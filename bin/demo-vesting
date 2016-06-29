@@ -5,9 +5,11 @@
 // in the future if this becomes a production library then use something like http://joose.it/ to reduce the linecount
 // maybe by then google apps script will support https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Meta_programming
 
+// this may also need to be able to solve linear equations ... if the unrestricted is a multiple of months, but the whole F grant has to fit into a certain max
+
 function Vesting(params) {
   var that = this;
-  "unrestricted restricted period term cliff vestingAtPeriod"
+  "unrestricted restricted period term cliff vestingAtPeriod acceleration"
 	.split(/ +/).map(function(attr){ if(params[attr] != undefined){
 	  that[attr] = params[attr];
 	}});
