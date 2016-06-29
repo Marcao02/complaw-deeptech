@@ -69,7 +69,15 @@ instance English ToppingE where
   english Tomato = "tasteless factory tomato"
 
 instance English BurgerE where
-  english (Burger a b c) = ("tasty " ++ english b ++ " lovingly wrapped in a " ++ english a ++ " topped with ") ++ (commaAnd $ uniq_c $ List.map english c)
+  english (Burger a b c) = ("tasty "
+                            ++ english b
+                            ++ " lovingly wrapped in a "
+                            ++ english a
+                            ++ " topped with ")
+    ++ (commaAnd $ uniq_c $ List.map english c)
+
+
+
 
 -- one would hope that this sort of rule is available in GenI
 -- otherwise there would just be too much reinvention of wheel

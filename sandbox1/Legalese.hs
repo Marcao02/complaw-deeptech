@@ -82,21 +82,26 @@ data EventType = Pay      { rcpt :: Person, money :: Money }
 
 -- we now have enough primitives to make some statements in our language.
 
+
+
+
+
+
 data Statement = -- First order logic
                  Statement :&&: Statement -- and
                | Statement :||: Statement -- or
                | Statement :=>: Statement -- implication
                | Not Statement            -- negation
                | StTrue                   -- Always true
+                 -- Deontic
+               | May      Person Statement
+               | Must     Person Statement
+               | Happens  [EventSpec]
                  -- Temporal modalities
                | At     Time Statement
                | During Time Time Statement
                | Prior  Time Statement
                | Post   Time Statement
-                 -- Deontic
-               | May      Person Statement
-               | Must     Person Statement
-               | Happens  [EventSpec]
                  -- Epistemic
                | Believes Person Statement
                | Knows    Person Statement

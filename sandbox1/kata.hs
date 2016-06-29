@@ -34,10 +34,18 @@ kataOrig holders security y z =
                          Intend [Event myco $ Issue y security z]
                           | x <- holders, isMajor x ])
 
+-- var kataOrig = function(holders, security, y, z) {
+--     this.happens([(new Event(myco))(new Resolution)(new Intend)
+--                   .....
+--                  }..
+
+
 -- "procures" means
 -- Person "Alice" `Must` Happens [Event "AliceCompany"... ]
 
--- Conception: Alice must pay ten dollars to Bob.
+-- Statement: Alice must pay ten dollars to Bob.
+-- Optimization: Alice must pay Bob ten dollars. If not, ...
+-- Implication: If Alice fails to pay Bob ten dollars, ...
 kata_conception = "Alice"
   `Must`
   Happens [Event "Alice" Pay { rcpt = "Bob"

@@ -8,6 +8,8 @@ You may also use this library to explore scenarios. When does convertible debt t
 
 The "business logic" presented here may be subclassed for specific jurisdictions.
 
+Some of this repeats what's in modeling.org.
+
 * Corporate Structures
 
 ** Corp: a corporation
