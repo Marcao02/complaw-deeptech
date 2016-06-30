@@ -19,10 +19,6 @@ data Event = Ready
 type Date = String
 type DateInterval = Int
 type Party = String
-data Action = Payment | Gesture
-instance Show Action where
-  show Payment = "payment transaction"
-  show Gesture = "some performative statement "
 type FromParty = Party
 type ToParty = Party
 data ToBool = ToBool (Agreement -> Temporal -> Bool)
@@ -32,48 +28,50 @@ instance Show After where
   show Immediately = "immediately"
   show (After date) = "after " ++ date
 
-data Condition Payment = SatisfyingPayment FromParty ToParty String Int
-data Condition Gesture = SatisfyingGesture FromParty String
-
-instance Show Condition Payment where
-  show (SatisfyingPayment fromParty toParty currency amount)
-    = fromParty ++ " pays " ++ toParty ++ " " ++ currency ++ show amount
-
-instance Show Condition Gesture where
-  show (SatisfyingGesture fromParty g)
-    = fromParty ++ " makes some public gesture " ++ g
-
-data Clause Action = Clause { precondition :: ToBool
-                     , responsibleParty :: Party
-                     , action :: Action
-                     , condition :: Condition Action
-                     , after :: After
-                     , within :: DateInterval
-                     , consequent :: Clause
-                     , reparation :: Clause
-                     }
+data Clause = Clause GenericC SpecificC
             | Fulfilled
             | Breach
-
 instance Show Clause where
   show Fulfilled = "the clause is trivially fulfilled"
   show Breach    = "the clause is breached"
-  show Clause { precondition = precondition
-              , responsibleParty = responsibleParty
-              , action = action
-              , condition = condition
-              , after = after
-              , within = within
-              , consequent = consequent
-              , reparation = reparation
-              }
-    = responsibleParty ++ " is responsible" ++
-    " for performing a " ++ show action ++
-    " satisfying the condition " ++ show condition ++
-    " " ++ show after ++
+  show (Clause
+        ( GenericC { precondition = precondition
+                   , responsibleParty = responsibleParty
+                   , after = after
+                   , within = within
+                   , consequent = consequent
+                   , reparation = reparation
+                   } )
+        specificc)
+    = responsibleParty ++ " is responsible for " ++
+    describeAction specificc ++
+    "; in this instance, " ++ responsibleParty ++ " must " ++
+    show specificc ++
+    "; and must do this " ++ show after ++
     " within " ++ show within ++ " seconds" ++
     ". " ++
     "If this clause is performed, then " ++ show consequent ++
     ", but if it is not, then " ++ show reparation ++
     "."
+
+data GenericC = GenericC { precondition :: ToBool
+                         , responsibleParty :: Party
+                         , after :: After
+                         , within :: DateInterval
+                         , consequent :: Clause
+                         , reparation :: Clause
+                         }
+
+data SpecificC = Payment ToParty String Int
+               | Gesture String
+
+instance Show SpecificC where
+  show (Payment toParty currency amount)
+    = "pay " ++ toParty ++ " " ++ currency ++ show amount
+  show (Gesture g)
+    = "announce " ++ g
+
+describeAction :: SpecificC -> String
+describeAction (Payment _ _ _) = "making a payment"
+describeAction (Gesture _) = "making some public gesture"
 
