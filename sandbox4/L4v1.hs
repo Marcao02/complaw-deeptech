@@ -25,13 +25,14 @@ upgradeImmediately c
   | otherwise              = c
 
 upgradeConsequents :: Clause -> Clause
-upgradeConsequents c = c { consequent = newconsequent,
-                           reparation = newreparation }
+upgradeConsequents c = c { reparation = newreparation }
   where
-    newconsequent = if consequent c == Fulfilled
-                    then FulfilledContract else consequent c
     newreparation = if reparation c == Breach
                     then BreachContract    else reparation c
+
+--
+-- output layout sugar
+--
 
 joinclauses :: [Clause] -> String
 joinclauses = concat . map (\c -> show c ++ "\n\n")
@@ -39,6 +40,10 @@ joinclauses = concat . map (\c -> show c ++ "\n\n")
 dashify :: [Party] -> String
 dashify = concat . map (\p -> "- " ++ p ++ "\n")
 
+--
+-- preamble
+-- if an agreement doesn't include consideration then we word it as a deed.
+-- 
 preamble :: Agreement -> String
 preamble a
   | hasConsideration = "This agreement dated "
@@ -77,13 +82,12 @@ data Clause = Clause { precondition :: ToBool
                      , reparation :: Clause
                      , condition :: Condition
                      }
-            | Fulfilled | FulfilledContract
+            | Fulfilled
             | Breach    | BreachContract
               deriving (Eq)
 instance Show Clause where
-  show Fulfilled = "the clause is trivially fulfilled"
+  show Fulfilled = "the clause is fulfilled"
   show Breach    = "the clause is breached"
-  show FulfilledContract = "the contract is fulfilled"
   show BreachContract    = "the contract is breached"
   show Clause { precondition = precondition
               , responsibleParty = responsibleParty
