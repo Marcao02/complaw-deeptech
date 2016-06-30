@@ -32,17 +32,21 @@ instance Show After where
   show Immediately = "immediately"
   show (After date) = "after " ++ date
 
-data Condition = SatisfyingPayment FromParty ToParty String Int
-               | SatisfyingGesture FromParty
-instance Show Condition where
+data Condition Payment = SatisfyingPayment FromParty ToParty String Int
+data Condition Gesture = SatisfyingGesture FromParty String
+
+instance Show Condition Payment where
   show (SatisfyingPayment fromParty toParty currency amount)
     = fromParty ++ " pays " ++ toParty ++ " " ++ currency ++ show amount
-  show (SatisfyingGesture fromParty)
-    = fromParty ++ " makes some public gesture"
-data Clause = Clause { precondition :: ToBool
+
+instance Show Condition Gesture where
+  show (SatisfyingGesture fromParty g)
+    = fromParty ++ " makes some public gesture " ++ g
+
+data Clause Action = Clause { precondition :: ToBool
                      , responsibleParty :: Party
                      , action :: Action
-                     , condition :: Condition
+                     , condition :: Condition Action
                      , after :: After
                      , within :: DateInterval
                      , consequent :: Clause
