@@ -49,7 +49,7 @@ preamble a
   | hasConsideration = "This agreement dated "
   | otherwise        = "Know all men by these presents, that as of "
     where hasConsideration = any (\clause ->
-                                   isPayment (condition clause)) (clauses a)
+                                   isPeppercorn (condition clause)) (clauses a)
 
 data EffectiveDate = UponSignature | UponDate Date
 instance Show EffectiveDate where
@@ -107,18 +107,24 @@ instance Show Clause where
     ++ "."
 
 data Condition = Payment ToParty String Int
+               | Transfer ToParty String
                | Gesture String
                  deriving (Eq)
 
 instance Show Condition where
   show (Payment toParty currency amount) = "pay " ++ toParty ++ " " ++ currency ++ " " ++ show amount
+  show (Transfer toParty item) = "transfer " ++ item ++ " to " ++ toParty
   show (Gesture g)                       = "announce " ++ g
 
+-- according to Hvitved, we have a universe of different kinds of actions; conditions satisfy the action.
 describeAction :: Condition -> String
 describeAction (Payment _ _ _) = "making a payment"
+describeAction (Transfer _ _)  = "transferring an item"
 describeAction (Gesture _)     = "making some public gesture"
 
-isPayment :: Condition -> Bool
-isPayment (Payment _ _ _) = True
-isPayment (Gesture _)     = False
+-- is there consideration in a clause?
+isPeppercorn :: Condition -> Bool
+isPeppercorn (Payment _ _ _) = True
+isPeppercorn (Transfer _ _)  = True
+isPeppercorn (Gesture _)     = False
 
