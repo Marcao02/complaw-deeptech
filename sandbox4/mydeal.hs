@@ -1,8 +1,11 @@
 import L4v1
 
+compilationTargets = ["Ethereum",
+                      "English"]
+
 myAgreement =
-  Agreement { agreementDate = "Jun 30"
-            , parties = ["Alice","Bob"]
+  Agreement { agreementDate = "Jun 30 2016"
+            , parties = ["Alice", "Bob"]
             , effectiveDate = UponSignature
             , clauses = [
                 Clause { precondition=ToBool (\a -> \b -> True)
@@ -19,7 +22,7 @@ myAgreement =
                        , within=86400
                        , consequent=Fulfilled
                        , reparation=Breach
-                       , condition=Transfer "Alice" "Clause the Octopus"
+                       , condition=Transfer "Alice" "Smoochy the Frog"
                        }
                 ]
             }  
