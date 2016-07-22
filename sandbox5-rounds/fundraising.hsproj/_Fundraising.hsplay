@@ -1,0 +1,7 @@
+-- Haskell Playground 1.0
+main
+
+Money { currency=sgd, cents=20000 }
+log       10000000000
+exp ((log 10000000000 - log 4000000) / 10)
+
