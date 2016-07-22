@@ -99,10 +99,6 @@ data ValuationGrowth = ValGrowth { years :: Integer
                                  , endValuation :: Integer
                                  }
                                  
-valgrowth = ValGrowth { years=10
-                      , startValuation =   4000000
-                      , endValuation = 10000000000
-                      }
 instance Show ValuationGrowth where
   show vg = "If initial valuation is " ++ digify (startValuation vg) ++ " and want to get to " ++ digify (endValuation vg) ++ " in " ++ show (years vg) ++ " years,\n" ++
             "then every year our valuation will need to increase by " ++ show (yearlyGrowth vg) ++ " times.\n"
@@ -125,7 +121,7 @@ yearlyGrowth (ValGrowth { years         =y
 
 -- 10^((log(1e10)-log(4e6))/10
 
-main = do
+project valgrowth = do
   putStrLn $ show valgrowth
   putStrLn $ unlines $
       map (\a -> printf "in %d, we will be worth %14s"
