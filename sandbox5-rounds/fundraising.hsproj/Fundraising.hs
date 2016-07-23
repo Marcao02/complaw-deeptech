@@ -12,7 +12,7 @@ import Data.List
 digify x = h++t
     where
         sp = break (== '.') $ show x
-        h = reverse (intercalate "," $ splitEvery 3 $ reverse $ fst sp) 
+        h = reverse $ intercalate "," $ chunksOf 3 $ reverse $ fst sp
         t = snd sp
 
 
