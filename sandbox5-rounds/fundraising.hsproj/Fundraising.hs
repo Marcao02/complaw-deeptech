@@ -125,7 +125,7 @@ project valgrowth = do
   putStrLn $ show valgrowth
   putStrLn $ unlines $
       map (\a -> printf "in %d, we will be worth %14s"
-           ((2016+a)::Int)
+           ((2016+a)::Int) -- printf gets snippy without the explicit type
            (digify $ truncate (fromIntegral
             (startValuation valgrowth) *
              (yearlyGrowth valgrowth)
