@@ -1,7 +1,2 @@
 -- Haskell Playground 1.0
-
-Money { currency=sgd, cents=20000 }
-log       10000000000
-exp ((log 10000000000 - log 4000000) / 10)
-
-project ValGrowth { years=10, startValuation =   4000000, endValuation   = 5000000000 }
+main

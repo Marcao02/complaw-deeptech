@@ -3,11 +3,52 @@ import Currency
 import Currency.Rates
 import qualified Data.ISO3166_CountryCodes as Country
 import Text.Printf
-
 import Data.Time
-
 import Data.List.Split
 import Data.List
+import qualified Data.Map as M
+
+import System.Environment ( getArgs )
+import System.Console.GetOpt as GetOpt
+import Data.Maybe ( fromMaybe )
+data Flag = Version
+          | Psn   (Maybe String)
+          | Years Integer
+          | Start Integer
+          | End   Integer
+  deriving (Show)
+
+options :: [OptDescr Flag]
+options =
+ [ Option ['V','?'] ["version"]         (NoArg Version)       "show version number"
+ , Option ['y']     ["year","years"]    (ReqArg (Years . read) "YEAR")  "years"
+ , Option ['s']     ["start"]           (ReqArg (Start . read) "START") "start valuation"
+ , Option ['e']     ["end"]             (ReqArg (End   . read) "END")   "end valuation"
+ , Option ['p']     ["psn_0_127007"]    (OptArg Psn "PSN")              "psn"
+ ]
+
+myOpts :: [String] -> IO ([Flag], [String])
+myOpts argv =
+  case getOpt Permute options argv of
+    (o,n,[]  ) -> return (o,n)
+    (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
+  where header = "Usage: projectgrowth [OPTION...]"
+
+defaultValGrowth = ValGrowth { years=10
+                         , startValuation =   4000000
+                         , endValuation   = 5000000000
+                         }
+
+
+opts2valgrowth :: ([Flag],[String]) -> ValuationGrowth
+opts2valgrowth (flags, otherargs) = foldl flag2valgrowth defaultValGrowth flags
+
+flag2valgrowth :: ValuationGrowth -> Flag -> ValuationGrowth
+flag2valgrowth vg (Years y) = vg { years=y }
+flag2valgrowth vg (Start n) = vg { startValuation=n }
+flag2valgrowth vg (End   n) = vg {   endValuation=n }
+flag2valgrowth vg (Psn _)   = vg
+flag2valgrowth vg (Version) = vg
 
 digify x = h++t
     where
@@ -124,14 +165,23 @@ yearlyGrowth (ValGrowth { years         =y
 project valgrowth = do
   putStrLn $ show valgrowth
   putStrLn $ unlines $
-      map (\a -> printf "in %d, we will be worth %14s"
+     Data.List.map (\a -> printf "in %d, we will be worth %14s"
            ((2016+a)::Int) -- printf gets snippy without the explicit type
            (digify $ truncate (fromIntegral
             (startValuation valgrowth) *
              (yearlyGrowth valgrowth)
               ** (fromIntegral a)))
            )
-     (take 11 [0..])
+     (take ((1+) $ fromIntegral $ years valgrowth) [0..])
+
+
+main = do
+  putStrLn "hello, world!"
+  myargs <- getArgs
+  myopts <- myOpts myargs
+  project $ opts2valgrowth myopts
+ 
+
 
 
 

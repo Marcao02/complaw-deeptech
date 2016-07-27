@@ -11,9 +11,11 @@ Executable fundraising
   buildable: True
   build-depends:
       base -any,
+      containers -any,
       iso3166-country-codes -any,
       currency -any,
       split -any,
       time -any
   other-modules:
       Security
+      WTF
