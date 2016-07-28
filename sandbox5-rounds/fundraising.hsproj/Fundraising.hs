@@ -4,6 +4,7 @@ import qualified Data.Maybe as Maybe
 import qualified Data.ISO3166_CountryCodes as Country
 import qualified Data.Time.Calendar as Calendar
 import Text.Printf
+import Security
 
 ymd = Calendar.fromGregorian
 
@@ -76,9 +77,9 @@ data Money = Money { currency :: Currency
                    }
 instance Show Money where
   show (Money { currency=cu, cents=q }) =
-      printf "%s %d%s"
+      printf "%s %s%s"
              (show cu)
-                (lchunk q (minorUnits cu))
+                (commafy $ lchunk q (minorUnits cu))
                 (rchunk q (minorUnits cu))
    where
     lchunk q Nothing = q
@@ -88,7 +89,8 @@ instance Show Money where
     rchunk q b = showcents b (cents b q)
     showcents Nothing _ = ""
     showcents _ Nothing = ""
-    showcents (Just 0) (Just c) = ""
+    showcents (Just 0) _ = ""
+    showcents _ (Just 0) = ""
     showcents (Just digits) (Just c) = "." ++ printf ("%0"++(show digits)++"d") c
     cents a b = do
       mi <- a

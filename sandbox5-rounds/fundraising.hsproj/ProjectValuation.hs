@@ -5,6 +5,7 @@ import Data.List.Split
 import Data.List
 import qualified Data.Map as M
 import Text.Printf
+import Security
 
 import System.Environment ( getArgs )
 import System.Console.GetOpt as GetOpt
@@ -48,12 +49,6 @@ flag2valgrowth vg (End   n) = vg {   endValuation=n }
 flag2valgrowth vg (Psn _)   = vg
 flag2valgrowth vg (Version) = vg
 
-digify x = h++t
-    where
-        sp = break (== '.') $ show x
-        h = reverse $ intercalate "," $ chunksOf 3 $ reverse $ fst sp
-        t = snd sp
-
 
 
 -- how much does our valuation need to grow every year to hit our goal?
@@ -63,7 +58,7 @@ data ValuationGrowth = ValGrowth { years :: Integer
                                  }
                                  
 instance Show ValuationGrowth where
-  show vg = "If initial valuation is " ++ digify (startValuation vg) ++ " and want to get to " ++ digify (endValuation vg) ++ " in " ++ show (years vg) ++ " years,\n" ++
+  show vg = "If initial valuation is " ++ commafy (startValuation vg) ++ " and want to get to " ++ commafy (endValuation vg) ++ " in " ++ show (years vg) ++ " years,\n" ++
             "then every year our valuation will need to increase by " ++ show (yearlyGrowth vg) ++ " times.\n"
             
 yearlyGrowth :: ValuationGrowth -> Float
@@ -89,7 +84,7 @@ project valgrowth = do
   putStrLn $ unlines $
      Data.List.map (\a -> printf "in %d, we will be worth %14s"
            ((2016+a)::Int) -- printf gets snippy without the explicit type
-           (digify $ truncate (fromIntegral
+           (commafy $ truncate (fromIntegral
             (startValuation valgrowth) *
              (yearlyGrowth valgrowth)
               ** (fromIntegral a)))
