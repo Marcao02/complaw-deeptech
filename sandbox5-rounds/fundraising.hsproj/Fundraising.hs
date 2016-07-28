@@ -1,3 +1,6 @@
+
+module Fundraising where
+
 import Currency
 import Currency.Rates
 import qualified Data.Maybe as Maybe
@@ -225,3 +228,6 @@ myDefaults = [
       }
   ]
 
+main = do
+  putStrLn $ show myDefaults
+  
