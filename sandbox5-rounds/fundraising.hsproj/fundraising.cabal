@@ -11,11 +11,13 @@ Executable fundraising
   buildable: True
   build-depends:
       base -any,
-      containers -any,
       iso3166-country-codes -any,
       currency -any,
+      containers -any,
       split -any,
       time -any
   other-modules:
+      ProjectValuation
+      MyLogger
       Security
-      WTF
+      MyFirstMonad

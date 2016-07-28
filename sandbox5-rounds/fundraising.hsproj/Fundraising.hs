@@ -1,91 +1,57 @@
-
 import Currency
 import Currency.Rates
+import qualified Data.Maybe as Maybe
 import qualified Data.ISO3166_CountryCodes as Country
+import qualified Data.Time.Calendar as Calendar
 import Text.Printf
-import Data.Time
-import Data.List.Split
-import Data.List
-import qualified Data.Map as M
 
-import System.Environment ( getArgs )
-import System.Console.GetOpt as GetOpt
-import Data.Maybe ( fromMaybe )
-data Flag = Version
-          | Psn   (Maybe String)
-          | Years Integer
-          | Start Integer
-          | End   Integer
-  deriving (Show)
-
-options :: [OptDescr Flag]
-options =
- [ Option ['V','?'] ["version"]         (NoArg Version)       "show version number"
- , Option ['y']     ["year","years"]    (ReqArg (Years . read) "YEAR")  "years"
- , Option ['s']     ["start"]           (ReqArg (Start . read) "START") "start valuation"
- , Option ['e']     ["end"]             (ReqArg (End   . read) "END")   "end valuation"
- , Option ['p']     ["psn_0_127007"]    (OptArg Psn "PSN")              "psn"
- ]
-
-myOpts :: [String] -> IO ([Flag], [String])
-myOpts argv =
-  case getOpt Permute options argv of
-    (o,n,[]  ) -> return (o,n)
-    (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
-  where header = "Usage: projectgrowth [OPTION...]"
-
-defaultValGrowth = ValGrowth { years=10
-                         , startValuation =   4000000
-                         , endValuation   = 5000000000
-                         }
-
-
-opts2valgrowth :: ([Flag],[String]) -> ValuationGrowth
-opts2valgrowth (flags, otherargs) = foldl flag2valgrowth defaultValGrowth flags
-
-flag2valgrowth :: ValuationGrowth -> Flag -> ValuationGrowth
-flag2valgrowth vg (Years y) = vg { years=y }
-flag2valgrowth vg (Start n) = vg { startValuation=n }
-flag2valgrowth vg (End   n) = vg {   endValuation=n }
-flag2valgrowth vg (Psn _)   = vg
-flag2valgrowth vg (Version) = vg
-
-digify x = h++t
-    where
-        sp = break (== '.') $ show x
-        h = reverse $ intercalate "," $ chunksOf 3 $ reverse $ fst sp
-        t = snd sp
-
+ymd = Calendar.fromGregorian
 
 data Locale = Locale { localeCountry :: String -- this should be Country
                      , localeLang :: String }
+            deriving (Show)
 
 locale = Locale { localeCountry = "SG"
-                , localeLang = "EN" }
+                , localeLang    = "EN" }
 
 data Round = Round { roundName :: String
                    , tranches :: [Tranche]
                    }
+           deriving (Show)
 
+data FundraisingTarget = FundraisingRange { low :: Money
+                                          , med :: Money
+                                          , high :: Money
+                                          }
+                       | FundraisingExactly Money
+                       deriving (Show)
+                                
 data Tranche = Tranche { trancheName :: String
                        , milestones :: [Milestone]
-                       , fundraisingTarget :: (Money, Money)
-                       , deadline :: Day
+                       , fundraisingTarget :: FundraisingTarget
+                       , deadline :: Calendar.Day
                        , securityTemplate :: Security
+                       , businessGoals :: [BusinessGoal]
                        }
+               deriving (Show)
 
-type Milestone = (String, Bool)
+type BusinessGoal = String
+
+type Milestone = (BusinessGoal, Bool)
 
 type NumDays = Int
+type NumMonths = Int
 
 data SecurityNature = Ordinary | Preferred String | Debt
 instance Show SecurityNature where
   show Ordinary = "Ordinary Shares"
+  show (Preferred x) = "Preferred " ++ x
+  show Debt = "Debt"
 
+-- we don't specify if it's debt or equity -- the nature of the security is interpretive
 data Security = Security { preMoney :: Maybe Money
-                         , valuationCap :: Maybe Money
                          , discount :: Maybe Int -- numerator /100
-                         , term :: NumDays -- change this to a dateinterval
+                         , term :: Maybe NumMonths -- TODO: change this to a dateinterval
                          , nature :: SecurityNature
                          }
 instance Show Security where
@@ -102,6 +68,8 @@ instance Show Security where
 sgd = ISO4217Currency (NationalCurrency Country.SG 'D')
 usd = ISO4217Currency (NationalCurrency Country.US 'D')
 jpy = ISO4217Currency (NationalCurrency Country.JP 'Y')
+
+currency ¢ cents = Money { currency = currency, cents = cents }
 
 data Money = Money { currency :: Currency
                    , cents :: Int
@@ -130,67 +98,128 @@ instance Show Money where
 --
 --                         
 
-rounds = [ Round { roundName="angel"
-                 , tranches = [] } ]
-
-
--- how much does our valuation need to grow every year to hit our goal?
-data ValuationGrowth = ValGrowth { years :: Integer
-                                 , startValuation :: Integer
-                                 , endValuation :: Integer
-                                 }
-                                 
-instance Show ValuationGrowth where
-  show vg = "If initial valuation is " ++ digify (startValuation vg) ++ " and want to get to " ++ digify (endValuation vg) ++ " in " ++ show (years vg) ++ " years,\n" ++
-            "then every year our valuation will need to increase by " ++ show (yearlyGrowth vg) ++ " times.\n"
-            
-yearlyGrowth :: ValuationGrowth -> Float
-yearlyGrowth (ValGrowth { years         =y
-                        , startValuation=sv
-                        , endValuation  =ev
-                        }) =
-                        exp ((log (fromIntegral ev)
-                             -log (fromIntegral sv))
-                            /      fromIntegral y)
-
-
--- formula: endValuation = startValuation * (yearlyGrowth ** years)
---        log(endValuation) = log(startValuation) + years * log(yearlyGrowth)
---       (log(endValuation) - log(startValuation))/ years = log(yearlyGrowth)
--- e  **((log(endValuation) - log(startValuation))/ years)=     yearlyGrowth
-
-
--- 10^((log(1e10)-log(4e6))/10
-
-project valgrowth = do
-  putStrLn $ show valgrowth
-  putStrLn $ unlines $
-     Data.List.map (\a -> printf "in %d, we will be worth %14s"
-           ((2016+a)::Int) -- printf gets snippy without the explicit type
-           (digify $ truncate (fromIntegral
-            (startValuation valgrowth) *
-             (yearlyGrowth valgrowth)
-              ** (fromIntegral a)))
-           )
-     (take ((1+) $ fromIntegral $ years valgrowth) [0..])
-
-
-main = do
-  putStrLn "hello, world!"
-  myargs <- getArgs
-  myopts <- myOpts myargs
-  project $ opts2valgrowth myopts
- 
-
-
-
-
-
-
-
-
-
-
-
-
+myDefaults = [
+  Round {
+      roundName = "incorporation", tranches = [
+          Tranche {
+              trancheName = "incorporation"
+            , milestones = [ ("need to own IP",    True)
+                           , ("raising funding",   False)
+                           , ("receiving revenue", False)
+                           ]
+            , fundraisingTarget = FundraisingExactly $ sgd ¢ 100
+            , deadline = ymd 2015 7 1
+            , securityTemplate = Security { preMoney = Nothing
+                                          , discount = Nothing
+                                          , term = Nothing
+                                          , nature = Ordinary
+                                          }
+            , businessGoals = ["Build v1 MVP"]
+              }
+          ]
+      },
+  Round {
+      roundName = "loans from director", tranches = [
+          Tranche {
+              trancheName = "airfare 1"
+            , milestones = [ ("Long Nguyen ready to visit",    True) ]
+            , fundraisingTarget = FundraisingExactly $ sgd ¢ 207761
+            , deadline = ymd 2016 2 21
+            , securityTemplate = Security { preMoney = Nothing
+                                          , discount = Just 0
+                                          , term = Just 36
+                                          , nature = Debt
+                                          }
+            , businessGoals = ["support Legalese summit"]
+              },
+          Tranche {
+              trancheName = "airfare 2"
+            , milestones = [ ("Anuj Gupta ready to visit",    True) ]
+            , fundraisingTarget = FundraisingExactly $ sgd ¢ 70000
+            , deadline = ymd 2016 2 21
+            , securityTemplate = Security { preMoney = Nothing
+                                          , discount = Just 0
+                                          , term = Just 36
+                                          , nature = Debt
+                                          }
+            , businessGoals = ["support Legalese summit"]
+              },
+          Tranche {
+              trancheName = "airfare 3"
+            , milestones = [ ("Yochi ready to visit",    True) ]
+            , fundraisingTarget = FundraisingExactly $ sgd ¢ 84877
+            , deadline = ymd 2016 2 21
+            , securityTemplate = Security { preMoney = Nothing
+                                          , discount = Just 0
+                                          , term = Just 36
+                                          , nature = Debt
+                                          }
+            , businessGoals = ["support Legalese summit"]
+              },
+          Tranche {
+              trancheName = "fossasia 2016"
+            , milestones = [ ("tickets for FOSSasia",    True) ]
+            , fundraisingTarget = FundraisingExactly $ sgd ¢ 46500
+            , deadline = ymd 2016 2 21
+            , securityTemplate = Security { preMoney = Nothing
+                                          , discount = Just 0
+                                          , term = Just 36
+                                          , nature = Debt
+                                          }
+            , businessGoals = ["support Legalese summit"]
+              },
+          Tranche {
+              trancheName = "registration of legalese.com"
+            , milestones = [ ("contract of transfer",    True) ]
+            , fundraisingTarget = FundraisingExactly $ sgd ¢ 502557
+            , deadline = ymd 2016 2 21
+            , securityTemplate = Security { preMoney = Nothing
+                                          , discount = Just 0
+                                          , term = Just 36
+                                          , nature = Debt
+                                          }
+            , businessGoals = ["support Legalese summit"]
+              }
+          ] },
+    Round {
+      roundName = "angel round ", tranches = [
+          Tranche {
+              trancheName = "1"
+            , milestones = [ ("v1.0 MVP done",        True)
+                           , ("problem/solution fit", True)
+                           ]
+            , fundraisingTarget = FundraisingRange { low  = sgd ¢ 20000000
+                                                   , med  = sgd ¢ 25000000
+                                                   , high = sgd ¢ 30000000
+                                                   }
+            , deadline = ymd 2016 8 4
+            , securityTemplate = Security { preMoney = Just $ sgd ¢ 350000000
+                                          , discount = Nothing
+                                          , term     = Just 36
+                                          , nature   = Debt
+                                          }
+            , businessGoals = ["build v2.0"]
+              },
+          Tranche {
+              trancheName = "2"
+            , milestones = [ ("v2.0 built",           False)
+                           , ("solution/product fit", False)
+                           ]
+            , fundraisingTarget = FundraisingRange { low  = sgd ¢  75000000
+                                                   , med  = sgd ¢ 100000000
+                                                   , high = sgd ¢ 130000000
+                                                   }
+            , deadline = ymd 2017 2 14
+            , securityTemplate = Security { preMoney = Just $ sgd ¢ 600000000
+                                          , discount = Nothing
+                                          , term     = Just 36
+                                          , nature   = Debt
+                                          }
+            , businessGoals = ["build v2.x"
+                              ,"conduct revenue model experiments"
+                              ,"achieve product/market fit"]
+              }
+          ]
+      }
+  ]
 
