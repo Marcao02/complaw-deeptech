@@ -17,7 +17,6 @@ Executable fundraising
       split -any,
       time -any
   other-modules:
-      ProjectValuation
       MyLogger
       Security
-      MyFirstMonad
+      ProjectValuation

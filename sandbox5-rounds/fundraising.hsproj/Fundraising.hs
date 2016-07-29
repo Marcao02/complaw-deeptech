@@ -6,8 +6,10 @@ import Currency.Rates
 import qualified Data.Maybe as Maybe
 import qualified Data.ISO3166_CountryCodes as Country
 import qualified Data.Time.Calendar as Calendar
+import qualified Data.Time.Clock    as Clock
 import Text.Printf
 import Security
+
 
 ymd = Calendar.fromGregorian
 
@@ -16,10 +18,14 @@ data Locale = Locale { localeCountry :: Country.CountryCode -- this should be Co
             deriving (Show)
 
 data NaturalLanguage = English | Italian | French
-  deriving (Show)
+                     deriving (Show)
+naturalLanguages = [English, French]
 
 class Lang a where
-  to :: NaturalLanguage -> a -> String
+  title, header, to :: NaturalLanguage -> a -> String
+
+class Named thing where
+  nameOf :: thing -> String
 
 locale = Locale { localeCountry = Country.SG
                 , localeLang    = English }
@@ -30,9 +36,15 @@ data Round = Round { roundName :: String
            deriving (Show)
 
 instance Lang Round where
-  to English round = "# Investment Round " ++ roundName round
-  to Italian round = "# Serie Investimento " ++ roundName round
-  to French  round = "# Séries d'Investissement " ++ roundName round
+  title English round = "Investment Round"
+  title Italian round = "Serie Investimento"
+  title French  round = "Séries d'Investissement"
+  header lang   round   = unwords ["#", title lang round ++ ":", nameOf round]
+  to   lang   round = unlines [header lang round,
+                                concat (map (to lang) (tranches round))]
+
+instance Named Round where
+  nameOf = roundName
 
 data FundraisingTarget = FundraisingRange { low :: Money
                                           , med :: Money
@@ -40,7 +52,15 @@ data FundraisingTarget = FundraisingRange { low :: Money
                                           }
                        | FundraisingExactly Money
                        deriving (Show)
-                                
+instance Lang FundraisingTarget where
+  title  _ frt = ""
+  header _ frt = ""
+  to English (FundraisingExactly money) = "raising " ++ to English money
+  to English frt    = unwords ["raising between",          to English (low frt),
+                               "and",                      to English (high frt),
+                               "with a mid-range goal of", to English (med frt)]
+  to _ frt = "xxx"
+    
 data Tranche = Tranche { trancheName :: String
                        , milestones :: [Milestone]
                        , fundraisingTarget :: FundraisingTarget
@@ -51,25 +71,59 @@ data Tranche = Tranche { trancheName :: String
                deriving (Show)
 
 type BusinessGoal = String
-
 type Milestone = (BusinessGoal, Bool)
-
 type NumDays = Int
 type NumMonths = Int
 
-data SecurityNature = Ordinary | Preferred String | Debt
-instance Show SecurityNature where
-  show Ordinary = "Ordinary Shares"
-  show (Preferred x) = "Preferred " ++ x
-  show Debt = "Debt"
+instance Lang Tranche where
+  title English tranche = "Tranche"
+  title Italian tranche = "Tranche di Investimento"
+  title French  tranche = "Tranche d'Investissement"
+  header   lang tranche   = unlines [unwords ["##", title lang tranche ++ ":", nameOf tranche]]
+  to       lang tranche   = unlines [header lang tranche,
+                                     unlines ["This is a description of a tranche",
+                                              to lang (fundraisingTarget tranche),
+                                              "the deadline is " ++ (Calendar.showGregorian $ deadline tranche)
+                                              ]]
 
--- we don't specify if it's debt or equity -- the nature of the security is interpretive
-data Security = Security { preMoney :: Maybe Money
-                         , discount :: Maybe Int -- numerator /100
-                         , term :: Maybe NumMonths -- TODO: change this to a dateinterval
-                         , nature :: SecurityNature
+-- pastFuture :: Calendar.Day -> Calendar.Day -> String
+-- TODO: figure out if the deadline is in the future or the past relative to the invocation time of the script. we probably need a state monad to wrap IO in.
+
+instance Named Tranche where
+  nameOf = trancheName
+
+-- later we will have security combinators, to represent an instrument whose attributes may change based on circumstance
+-- for GAAP / IFRS purposes we want to be able to characterize both individual simple Securities and combinations of securities.
+-- a security combinator may be threaded together with a modal combinator.
+
+data Right = Voting Int | Board | OtherRight String
+             deriving (Show)
+
+-- if we don't specify if it's debt or equity, the nature of the security is interpretive
+data Security = Security { preMoney        :: Maybe Money
+                         , discount        :: Maybe Int -- numerator /100
+                         , term            :: Maybe NumMonths -- TODO: change this to a dateinterval
+                         , redeemable      :: Bool
+                         , rights          :: [Right]
+                         , natureHardcoded :: Maybe SecurityNature
                          }
               deriving (Show)
+
+data SecurityNature = Ordinary | Preferred | Debt | Equity | Unknown
+                    deriving (Show)
+securityNature (Security { natureHardcoded = Just sn }) = sn
+securityNature sec
+    |      redeemable sec && Maybe.isJust    (term sec)                       = Debt
+    |      redeemable sec && Maybe.isNothing (term sec)                       = Preferred
+    |      redeemable sec && any preferredRight (rights sec)                  = Preferred
+    | not (redeemable sec)                                                   = Ordinary
+    | otherwise                                                              = Unknown
+   where
+    preferredRight (Voting 1)     = False
+    preferredRight (Voting 0)     = False
+    preferredRight (Voting _)     = True
+    preferredRight Board        = True
+    preferredRight (OtherRight _) = True
 
 -- Money
 -- 
@@ -91,7 +145,9 @@ data Money = Money { currency :: Currency
   deriving (Show)
 
 instance Lang Money where
-  to English (Money { currency=cu, cents=q }) =
+  title  _ _ = ""
+  header _ _ = "" -- in future change header to markup and add a character style
+  to _ (Money { currency=cu, cents=q }) =
       printf "%s %s%s"
              (show cu)
                 (commafy $ lchunk q (minorUnits cu))
@@ -129,7 +185,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Nothing
                                           , discount = Nothing
                                           , term = Nothing
-                                          , nature = Ordinary
+                                          , redeemable = False
+                                          , rights = [Voting 1]
+                                          , natureHardcoded = Nothing
                                           }
             , businessGoals = ["Build v1 MVP"]
               }
@@ -145,7 +203,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Nothing
                                           , discount = Just 0
                                           , term = Just 36
-                                          , nature = Debt
+                                          , redeemable = True
+                                          , rights = []
+                                          , natureHardcoded = Nothing
                                           }
             , businessGoals = ["support Legalese summit"]
               },
@@ -157,7 +217,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Nothing
                                           , discount = Just 0
                                           , term = Just 36
-                                          , nature = Debt
+                                          , redeemable = True
+                                          , rights = []
+                                          , natureHardcoded = Nothing
                                           }
             , businessGoals = ["support Legalese summit"]
               },
@@ -169,7 +231,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Nothing
                                           , discount = Just 0
                                           , term = Just 36
-                                          , nature = Debt
+                                          , redeemable = True
+                                          , rights = []
+                                          , natureHardcoded = Nothing
                                           }
             , businessGoals = ["support Legalese summit"]
               },
@@ -181,7 +245,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Nothing
                                           , discount = Just 0
                                           , term = Just 36
-                                          , nature = Debt
+                                          , redeemable = True
+                                          , rights = []
+                                          , natureHardcoded = Nothing
                                           }
             , businessGoals = ["support Legalese summit"]
               },
@@ -193,7 +259,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Nothing
                                           , discount = Just 0
                                           , term = Just 36
-                                          , nature = Debt
+                                          , redeemable = True
+                                          , rights = []
+                                          , natureHardcoded = Nothing
                                           }
             , businessGoals = ["support Legalese summit"]
               }
@@ -213,7 +281,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Just $ sgd ¢ 350000000
                                           , discount = Nothing
                                           , term     = Just 36
-                                          , nature   = Debt
+                                          , redeemable = True
+                                          , rights = []
+                                          , natureHardcoded   = Nothing
                                           }
             , businessGoals = ["build v2.0"]
               },
@@ -230,7 +300,9 @@ myDefaults = [
             , securityTemplate = Security { preMoney = Just $ sgd ¢ 600000000
                                           , discount = Nothing
                                           , term     = Just 36
-                                          , nature   = Debt
+                                          , redeemable = True
+                                          , rights = []
+                                          , natureHardcoded   = Nothing
                                           }
             , businessGoals = ["build v2.x"
                               ,"conduct revenue model experiments"
@@ -241,8 +313,9 @@ myDefaults = [
   ]
 
 main = do
-  putStrLn $ unlines $ map (to English) myDefaults
-  putStrLn $ unlines $ map (to Italian) myDefaults
-  putStrLn $ unlines $ map (to French)  myDefaults
-  putStrLn $ show myDefaults
+  currentTime <- Clock.getCurrentTime
+  let currentDay = Clock.utctDay currentTime
+  putStrLn $ "UTCtime = " ++ Calendar.showGregorian currentDay
+  putStrLn $ unlines $ [ to lang round | round <- myDefaults, lang <- naturalLanguages ]
+--  putStrLn $ show myDefaults
   
