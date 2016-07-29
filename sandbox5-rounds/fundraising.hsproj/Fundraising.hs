@@ -11,17 +11,28 @@ import Security
 
 ymd = Calendar.fromGregorian
 
-data Locale = Locale { localeCountry :: String -- this should be Country
-                     , localeLang :: String }
+data Locale = Locale { localeCountry :: Country.CountryCode -- this should be Country
+                     , localeLang :: NaturalLanguage }
             deriving (Show)
 
-locale = Locale { localeCountry = "SG"
-                , localeLang    = "EN" }
+data NaturalLanguage = English | Italian | French
+  deriving (Show)
+
+class Lang a where
+  to :: NaturalLanguage -> a -> String
+
+locale = Locale { localeCountry = Country.SG
+                , localeLang    = English }
 
 data Round = Round { roundName :: String
                    , tranches :: [Tranche]
                    }
            deriving (Show)
+
+instance Lang Round where
+  to English round = "# Investment Round " ++ roundName round
+  to Italian round = "# Serie Investimento " ++ roundName round
+  to French  round = "# Séries d'Investissement " ++ roundName round
 
 data FundraisingTarget = FundraisingRange { low :: Money
                                           , med :: Money
@@ -58,8 +69,7 @@ data Security = Security { preMoney :: Maybe Money
                          , term :: Maybe NumMonths -- TODO: change this to a dateinterval
                          , nature :: SecurityNature
                          }
-instance Show Security where
-  show security = show (nature security)
+              deriving (Show)
 
 -- Money
 -- 
@@ -78,8 +88,10 @@ currency ¢ cents = Money { currency = currency, cents = cents }
 data Money = Money { currency :: Currency
                    , cents :: Int
                    }
-instance Show Money where
-  show (Money { currency=cu, cents=q }) =
+  deriving (Show)
+
+instance Lang Money where
+  to English (Money { currency=cu, cents=q }) =
       printf "%s %s%s"
              (show cu)
                 (commafy $ lchunk q (minorUnits cu))
@@ -229,5 +241,8 @@ myDefaults = [
   ]
 
 main = do
+  putStrLn $ unlines $ map (to English) myDefaults
+  putStrLn $ unlines $ map (to Italian) myDefaults
+  putStrLn $ unlines $ map (to French)  myDefaults
   putStrLn $ show myDefaults
   
