@@ -7,6 +7,7 @@ import qualified Data.Maybe as Maybe
 import qualified Data.ISO3166_CountryCodes as Country
 import qualified Data.Time.Calendar as Calendar
 import qualified Data.Time.Clock    as Clock
+import qualified NaturalLanguage    as NL
 import Text.Printf
 import Security
 
@@ -14,34 +15,33 @@ import Security
 ymd = Calendar.fromGregorian
 
 data Locale = Locale { localeCountry :: Country.CountryCode -- this should be Country
-                     , localeLang :: NaturalLanguage }
+                     , localeLang :: NL.Tongue }
             deriving (Show)
 
-data NaturalLanguage = English | Italian | French
-                     deriving (Show)
-naturalLanguages = [English, French]
-
-class Lang a where
-  title, header, to :: NaturalLanguage -> a -> String
+class Heady a where
+  title, header :: NL.Ctx -> a -> String
 
 class Named thing where
   nameOf :: thing -> String
 
 locale = Locale { localeCountry = Country.SG
-                , localeLang    = English }
+                , localeLang    = NL.English }
 
 data Round = Round { roundName :: String
                    , tranches :: [Tranche]
                    }
            deriving (Show)
 
-instance Lang Round where
-  title English round = "Investment Round"
-  title Italian round = "Serie Investimento"
-  title French  round = "Séries d'Investissement"
+instance Heady Round where
+  title (NL.Ctx { NL.lang=NL.English }) round = "Investment Round"
+  title (NL.Ctx { NL.lang=NL.Italian }) round = "Serie Investimento"
+  title (NL.Ctx { NL.lang=NL.French  }) round = "Séries d'Investissement"
   header lang   round   = unwords ["#", title lang round ++ ":", nameOf round]
+
+
+instance NL.Lang Round where
   to   lang   round = unlines [header lang round,
-                                concat (map (to lang) (tranches round))]
+                                concat (map (NL.to lang) (tranches round))]
 
 instance Named Round where
   nameOf = roundName
@@ -52,14 +52,16 @@ data FundraisingTarget = FundraisingRange { low :: Money
                                           }
                        | FundraisingExactly Money
                        deriving (Show)
-instance Lang FundraisingTarget where
+instance Heady FundraisingTarget where
   title  _ frt = ""
   header _ frt = ""
-  to English (FundraisingExactly money) = "raising " ++ to English money
-  to English frt    = unwords ["raising between",          to English (low frt),
-                               "and",                      to English (high frt),
-                               "with a mid-range goal of", to English (med frt)]
-  to _ frt = "xxx"
+
+instance NL.Lang FundraisingTarget where
+  to lang@(NL.Ctx { NL.lang=NL.English }) (FundraisingExactly money) = "raising " ++ NL.to lang money
+  to lang@(NL.Ctx { NL.lang=NL.English }) frt    = unwords ["raising between",          NL.to lang (low frt),
+                               "and",                      NL.to lang (high frt),
+                               "with a mid-range goal of", NL.to lang (med frt)]
+  to _ _ = "à venir bientôt, je vous remercie de votre patience"
     
 data Tranche = Tranche { trancheName :: String
                        , milestones :: [Milestone]
@@ -75,16 +77,22 @@ type Milestone = (BusinessGoal, Bool)
 type NumDays = Int
 type NumMonths = Int
 
-instance Lang Tranche where
-  title English tranche = "Tranche"
-  title Italian tranche = "Tranche di Investimento"
-  title French  tranche = "Tranche d'Investissement"
+instance Heady Tranche where
+  title (NL.Ctx { NL.lang=NL.English }) tranche = "Tranche"
+  title (NL.Ctx { NL.lang=NL.Italian }) tranche = "Tranche di Investimento"
+  title (NL.Ctx { NL.lang=NL.French }) tranche = "Tranche d'Investissement"
   header   lang tranche   = unlines [unwords ["##", title lang tranche ++ ":", nameOf tranche]]
-  to       lang tranche   = unlines [header lang tranche,
-                                     unlines ["This is a description of a tranche",
-                                              to lang (fundraisingTarget tranche),
-                                              "the deadline is " ++ (Calendar.showGregorian $ deadline tranche)
-                                              ]]
+
+instance NL.Lang Tranche where
+  to lang tranche = unlines [header lang tranche,
+                             unlines [NL.to lang (fundraisingTarget tranche),
+                                      "the deadline is " ++ (Calendar.showGregorian $ deadline tranche),
+                                      sayPreMoney lang $ preMoney $ securityTemplate tranche
+                                     ]]
+
+sayPreMoney :: NL.Ctx -> Maybe Money -> String
+sayPreMoney lang (Just m) = "pre-money cap of " ++ NL.to lang m
+sayPreMoney lang Nothing  = "(no pre-money cap)"
 
 -- pastFuture :: Calendar.Day -> Calendar.Day -> String
 -- TODO: figure out if the deadline is in the future or the past relative to the invocation time of the script. we probably need a state monad to wrap IO in.
@@ -113,16 +121,16 @@ data SecurityNature = Ordinary | Preferred | Debt | Equity | Unknown
                     deriving (Show)
 securityNature (Security { natureHardcoded = Just sn }) = sn
 securityNature sec
-    |      redeemable sec && Maybe.isJust    (term sec)                       = Debt
-    |      redeemable sec && Maybe.isNothing (term sec)                       = Preferred
-    |      redeemable sec && any preferredRight (rights sec)                  = Preferred
-    | not (redeemable sec)                                                   = Ordinary
-    | otherwise                                                              = Unknown
+    |      redeemable sec && Maybe.isJust    (term sec)      = Debt
+    |      redeemable sec && Maybe.isNothing (term sec)      = Preferred
+    |      redeemable sec && any preferredRight (rights sec) = Preferred
+    | not (redeemable sec)                                   = Ordinary
+    | otherwise                                              = Unknown
    where
     preferredRight (Voting 1)     = False
     preferredRight (Voting 0)     = False
     preferredRight (Voting _)     = True
-    preferredRight Board        = True
+    preferredRight Board          = True
     preferredRight (OtherRight _) = True
 
 -- Money
@@ -144,9 +152,11 @@ data Money = Money { currency :: Currency
                    }
   deriving (Show)
 
-instance Lang Money where
+instance Heady Money where
   title  _ _ = ""
   header _ _ = "" -- in future change header to markup and add a character style
+
+instance NL.Lang Money where
   to _ (Money { currency=cu, cents=q }) =
       printf "%s %s%s"
              (show cu)
@@ -182,7 +192,7 @@ myDefaults = [
                            ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 100
             , deadline = ymd 2015 7 1
-            , securityTemplate = Security { preMoney = Nothing
+            , securityTemplate = Security { preMoney = Just $ sgd ¢ 100
                                           , discount = Nothing
                                           , term = Nothing
                                           , redeemable = False
@@ -316,6 +326,6 @@ main = do
   currentTime <- Clock.getCurrentTime
   let currentDay = Clock.utctDay currentTime
   putStrLn $ "UTCtime = " ++ Calendar.showGregorian currentDay
-  putStrLn $ unlines $ [ to lang round | round <- myDefaults, lang <- naturalLanguages ]
+  putStrLn $ unlines $ [ NL.to lang round | lang <- [NL.Ctx { NL.lang=NL.English, NL.tense=NL.Present }], round <- myDefaults ]
 --  putStrLn $ show myDefaults
   
