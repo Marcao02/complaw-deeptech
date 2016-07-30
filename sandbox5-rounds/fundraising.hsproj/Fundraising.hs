@@ -5,14 +5,11 @@ import Currency
 import Currency.Rates
 import qualified Data.Maybe as Maybe
 import qualified Data.ISO3166_CountryCodes as Country
-import qualified Data.Time.Calendar as Calendar
 import qualified Data.Time.Clock    as Clock
 import qualified NaturalLanguage    as NL
 import Text.Printf
 import Security
-
-
-ymd = Calendar.fromGregorian
+import qualified Data.Time.Calendar as Calendar; ymd = Calendar.fromGregorian
 
 data Locale = Locale { localeCountry :: Country.CountryCode -- this should be Country
                      , localeLang :: NL.Tongue }
@@ -21,11 +18,19 @@ data Locale = Locale { localeCountry :: Country.CountryCode -- this should be Co
 class Heady a where
   title, header :: NL.Ctx -> a -> String
 
-class Named thing where
-  nameOf :: thing -> String
+class Named thing       where nameOf :: thing -> String
+instance Named Round    where nameOf =    roundName
+instance Named Tranche  where nameOf =  trancheName
+instance Named Security where nameOf = securityName
+
 
 locale = Locale { localeCountry = Country.SG
                 , localeLang    = NL.English }
+
+
+
+
+-- ====================================================================== ROUND
 
 data Round = Round { roundName :: String
                    , tranches :: [Tranche]
@@ -43,8 +48,7 @@ instance NL.Lang Round where
   to   lang   round = unlines [header lang round,
                                 concat (map (NL.to lang) (tranches round))]
 
-instance Named Round where
-  nameOf = roundName
+-- ---------------------------------------------------------------------- FundraisingTarget
 
 data FundraisingTarget = FundraisingRange { low :: Money
                                           , med :: Money
@@ -68,10 +72,16 @@ instance NL.Lang FundraisingTarget where
   to lang@(NL.Ctx { NL.lang=NL.English }) frt = unwords [NL.v "raise" lang, frtAmount lang frt]
   to _ _ = "à venir bientôt, je vous remercie de votre patience"
     
+
+
+
+-- ====================================================================== TRANCHE
+
 data Tranche = Tranche { trancheName :: String
                        , milestones :: [Milestone]
                        , fundraisingTarget :: FundraisingTarget
                        , deadline :: Calendar.Day
+                       , deadline_fundsTransfer :: Maybe Calendar.Day
                        , securityTemplate :: Security
                        , businessGoals :: [BusinessGoal]
                        }
@@ -94,21 +104,27 @@ closeDate lang@(NL.Ctx { NL.lang=NL.English, NL.tense=Just NL.Present }) = "clos
 closeDate lang@(NL.Ctx { NL.lang=NL.English, NL.tense=Just NL.Future  }) = "will close on"
 closeDate lang@(NL.Ctx { NL.lang=NL.English, NL.tense=Nothing      }) = "deadline"
   
-
 instance NL.Lang Tranche where
-  to lang' tranche = unlines [header lang tranche,
-                              unlines [ NL.to lang (fundraisingTarget tranche)
-                                      , unwords [ closeDate lang, (Calendar.showGregorian $ deadline tranche)]
-                                      , sayPreMoney lang $ preMoney $ securityTemplate tranche
-                                      ]]
+  to lang' tranche = unlines [ header lang tranche
+                             , NL.to lang (fundraisingTarget tranche)
+                             , unwords [ closeDate lang, (Calendar.showGregorian $ deadline tranche)]
+                             , maybe "" (\dl -> "funds to be transferred by " ++ NL.to lang dl) (deadline_fundsTransfer tranche)
+                             , NL.to lang (securityTemplate tranche)
+                             ]
     where lang = lang' { NL.tense = Just $ mkTense (deadline tranche, NL.refTime lang') }
 
-sayPreMoney :: NL.Ctx -> Maybe Money -> String
-sayPreMoney lang (Just m) = "pre-money cap of " ++ NL.to lang m
-sayPreMoney lang Nothing  = "(no pre-money cap)"
+mkTense :: (Calendar.Day,Calendar.Day) -> NL.Tense
+mkTense (t1,t2)
+  | t1 <  t2 = NL.Past
+  | t1 == t2 = NL.Present
+  | t1 >  t2 = NL.Future
 
-instance Named Tranche where
-  nameOf = trancheName
+
+
+
+
+
+-- ====================================================================== SECURITY
 
 -- later we will have security combinators, to represent an instrument whose attributes may change based on circumstance
 -- for GAAP / IFRS purposes we want to be able to characterize both individual simple Securities and combinations of securities.
@@ -117,16 +133,40 @@ instance Named Tranche where
 data Right = Voting Int | Board | OtherRight String
              deriving (Show)
 
--- if we don't specify if it's debt or equity, the nature of the security is interpretive
-data Security = Security { preMoney        :: Maybe Money
+data Security = Security { securityName    :: String
+                         , preMoney        :: Maybe Money
                          , discount        :: Maybe Int -- numerator /100
-                         , term            :: Maybe NumMonths -- TODO: change this to a dateinterval
+                         , term            :: Maybe NumMonths -- TODO: change this to a dateinterval | fixedDate
                          , redeemable      :: Bool
                          , rights          :: [Right]
                          , natureHardcoded :: Maybe SecurityNature
                          }
               deriving (Show)
 
+--
+-- TODO: add national and linguistic context to a security
+-- because a security is scoped nationally
+-- we probably need to be clever about AbstractSecurity vs a NationalSecurity vs a ConcreteSecurity which has a specific contract with parties
+-- 
+
+instance NL.Lang Security where
+ to lang security = unlines [ "Security: " ++ nameOf security ++ " (" ++ NL.to lang (securityNature security) ++ ")"
+                            , sayPreMoney lang $ preMoney security
+                            ]
+   
+sayPreMoney :: NL.Ctx -> Maybe Money -> String
+sayPreMoney lang (Just m) = "pre-money cap of " ++ NL.to lang m
+sayPreMoney lang Nothing  = "(no pre-money cap)"
+
+
+instance NL.Lang Calendar.Day where
+  to lang@(NL.Ctx { NL.lang=NL.English }) = show
+  to _ = show
+
+
+-- ---------------------------------------------------------------------- SecurityNature
+
+-- if we don't specify if it's debt or equity, the nature of the security is interpretive
 data SecurityNature = Ordinary | Preferred | Debt | Equity | Unknown
                     deriving (Show)
 securityNature (Security { natureHardcoded = Just sn }) = sn
@@ -143,6 +183,16 @@ securityNature sec
     preferredRight Board          = True
     preferredRight (OtherRight _) = True
 
+instance NL.Lang SecurityNature where
+  to lang@(NL.Ctx { NL.lang=NL.English }) Ordinary = "ordinary shares"
+  to lang@(NL.Ctx { NL.lang=NL.English }) Preferred = "preferred shares"
+  to lang@(NL.Ctx { NL.lang=NL.English }) Debt = "debt"
+  to lang@(NL.Ctx { NL.lang=NL.English }) Equity = "equity"
+  to lang@(NL.Ctx { NL.lang=NL.English }) Unknown = "UNKNOWN"
+
+
+-- ====================================================================== MONEY
+  
 -- Money
 -- 
 -- Money { currency = jpy), cents = 12345 }
@@ -187,11 +237,49 @@ instance NL.Lang Money where
       mi <- a
       return ((abs b) `mod` (toE mi))
 
---
---
---                         
 
+
+
+-- ====================================================================== USER SPACE CONFIGURATION
+
+
+s_simpleCN =
+  Security { securityName = "Simplified Convertible Note"
+           , preMoney = Nothing
+           , discount = Just 0
+           , term = Just 36
+           , redeemable = True
+           , rights = []
+           , natureHardcoded = Nothing
+           }
+  
+s_ordinary =
+  Security { securityName = "Ordinary Shares"
+           , preMoney = Nothing
+           , discount = Nothing
+           , term = Nothing
+           , redeemable = False
+           , rights = [Voting 1]
+           , natureHardcoded = Nothing
+           }
+  
+s_fixedCN =
+  Security { securityName = "Fixed Convertible Note"
+           , preMoney = Nothing
+           , discount = Just 0
+           , term = Just 36
+           , redeemable = True
+           , rights = []
+           , natureHardcoded = Nothing
+           }
+
+
+-- ====================================================================== An Actual Company
+
+  
 myDefaults = [
+
+-- ---------------------------------------------------------------------- Incorporation
   Round {
       roundName = "incorporation", tranches = [
           Tranche {
@@ -202,17 +290,14 @@ myDefaults = [
                            ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 100
             , deadline = ymd 2015 7 1
-            , securityTemplate = Security { preMoney = Just $ sgd ¢ 0
-                                          , discount = Nothing
-                                          , term = Nothing
-                                          , redeemable = False
-                                          , rights = [Voting 1]
-                                          , natureHardcoded = Nothing
-                                          }
+            , deadline_fundsTransfer = Nothing
+            , securityTemplate = s_ordinary { preMoney = Just $ sgd ¢ 0 }
             , businessGoals = ["Build v1 MVP"]
               }
           ]
       },
+
+-- ---------------------------------------------------------------------- Loans from Director
   Round {
       roundName = "loans from director", tranches = [
           Tranche {
@@ -220,13 +305,8 @@ myDefaults = [
             , milestones = [ ("Long Nguyen ready to visit",    True) ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 207761
             , deadline = ymd 2016 2 21
-            , securityTemplate = Security { preMoney = Nothing
-                                          , discount = Just 0
-                                          , term = Just 36
-                                          , redeemable = True
-                                          , rights = []
-                                          , natureHardcoded = Nothing
-                                          }
+            , deadline_fundsTransfer = Nothing
+            , securityTemplate = s_simpleCN
             , businessGoals = ["support Legalese summit"]
               },
           Tranche {
@@ -234,13 +314,8 @@ myDefaults = [
             , milestones = [ ("Anuj Gupta ready to visit",    True) ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 70000
             , deadline = ymd 2016 2 21
-            , securityTemplate = Security { preMoney = Nothing
-                                          , discount = Just 0
-                                          , term = Just 36
-                                          , redeemable = True
-                                          , rights = []
-                                          , natureHardcoded = Nothing
-                                          }
+            , deadline_fundsTransfer = Nothing
+            , securityTemplate = s_simpleCN
             , businessGoals = ["support Legalese summit"]
               },
           Tranche {
@@ -248,13 +323,8 @@ myDefaults = [
             , milestones = [ ("Yochi ready to visit",    True) ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 84877
             , deadline = ymd 2016 2 21
-            , securityTemplate = Security { preMoney = Nothing
-                                          , discount = Just 0
-                                          , term = Just 36
-                                          , redeemable = True
-                                          , rights = []
-                                          , natureHardcoded = Nothing
-                                          }
+            , deadline_fundsTransfer = Nothing
+            , securityTemplate = s_simpleCN
             , businessGoals = ["support Legalese summit"]
               },
           Tranche {
@@ -262,13 +332,8 @@ myDefaults = [
             , milestones = [ ("tickets for FOSSasia",    True) ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 46500
             , deadline = ymd 2016 2 21
-            , securityTemplate = Security { preMoney = Nothing
-                                          , discount = Just 0
-                                          , term = Just 36
-                                          , redeemable = True
-                                          , rights = []
-                                          , natureHardcoded = Nothing
-                                          }
+            , deadline_fundsTransfer = Nothing
+            , securityTemplate = s_simpleCN
             , businessGoals = ["support Legalese summit"]
               },
           Tranche {
@@ -276,17 +341,15 @@ myDefaults = [
             , milestones = [ ("contract of transfer",    True) ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 502557
             , deadline = ymd 2016 2 21
-            , securityTemplate = Security { preMoney = Nothing
-                                          , discount = Just 0
-                                          , term = Just 36
-                                          , redeemable = True
-                                          , rights = []
-                                          , natureHardcoded = Nothing
-                                          }
+            , deadline_fundsTransfer = Nothing
+            , securityTemplate = s_simpleCN
             , businessGoals = ["support Legalese summit"]
               }
           ] },
-    Round {
+
+-- ---------------------------------------------------------------------- Angel Round
+
+  Round {
       roundName = "angel round ", tranches = [
           Tranche {
               trancheName = "1"
@@ -298,13 +361,8 @@ myDefaults = [
                                                    , high = sgd ¢ 30000000
                                                    }
             , deadline = ymd 2016 8 4
-            , securityTemplate = Security { preMoney = Just $ sgd ¢ 350000000
-                                          , discount = Nothing
-                                          , term     = Just 36
-                                          , redeemable = True
-                                          , rights = []
-                                          , natureHardcoded   = Nothing
-                                          }
+            , deadline_fundsTransfer = Just $ ymd 2016 10 1
+            , securityTemplate = s_fixedCN { preMoney = Just $ sgd ¢ 350000000 }
             , businessGoals = ["build v2.0"]
               },
           Tranche {
@@ -317,13 +375,8 @@ myDefaults = [
                                                    , high = sgd ¢ 130000000
                                                    }
             , deadline = ymd 2017 2 14
-            , securityTemplate = Security { preMoney = Just $ sgd ¢ 600000000
-                                          , discount = Nothing
-                                          , term     = Just 36
-                                          , redeemable = True
-                                          , rights = []
-                                          , natureHardcoded   = Nothing
-                                          }
+            , deadline_fundsTransfer = Just $ ymd 2017 4 1
+            , securityTemplate = s_fixedCN { preMoney = Just $ sgd ¢ 600000000 }
             , businessGoals = ["build v2.x"
                               ,"conduct revenue model experiments"
                               ,"achieve product/market fit"]
@@ -332,11 +385,8 @@ myDefaults = [
       }
   ]
 
-mkTense :: (Calendar.Day,Calendar.Day) -> NL.Tense
-mkTense (t1,t2)
-  | t1 <  t2 = NL.Past
-  | t1 == t2 = NL.Present
-  | t1 >  t2 = NL.Future
+-- ====================================================================== MAIN
+
 
 main = do
   currentTime <- Clock.getCurrentTime

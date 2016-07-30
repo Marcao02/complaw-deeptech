@@ -17,6 +17,6 @@ Executable fundraising
       split -any,
       time -any
   other-modules:
-      MyLogger
+      NaturalLanguage
       Security
       ProjectValuation
