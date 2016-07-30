@@ -56,11 +56,16 @@ instance Heady FundraisingTarget where
   title  _ frt = ""
   header _ frt = ""
 
+-- make this language-independent
+frtBetween lang frr = unwords ["between",                 NL.to lang (low  frr),
+                              "and",                      NL.to lang (high frr),
+                              "with a mid-range goal of", NL.to lang (med  frr)]
+
+frtAmount lang (FundraisingExactly money) = NL.to lang money
+frtAmount lang frr   = frtBetween lang frr
+
 instance NL.Lang FundraisingTarget where
-  to lang@(NL.Ctx { NL.lang=NL.English }) (FundraisingExactly money) = "raising " ++ NL.to lang money
-  to lang@(NL.Ctx { NL.lang=NL.English }) frt    = unwords ["raising between",          NL.to lang (low frt),
-                               "and",                      NL.to lang (high frt),
-                               "with a mid-range goal of", NL.to lang (med frt)]
+  to lang@(NL.Ctx { NL.lang=NL.English }) frt = unwords [NL.v "raise" lang, frtAmount lang frt]
   to _ _ = "à venir bientôt, je vous remercie de votre patience"
     
 data Tranche = Tranche { trancheName :: String
@@ -83,19 +88,24 @@ instance Heady Tranche where
   title (NL.Ctx { NL.lang=NL.French }) tranche = "Tranche d'Investissement"
   header   lang tranche   = unlines [unwords ["##", title lang tranche ++ ":", nameOf tranche]]
 
+closeDate :: NL.Ctx -> String
+closeDate lang@(NL.Ctx { NL.lang=NL.English, NL.tense=Just NL.Past    }) = "closed on"
+closeDate lang@(NL.Ctx { NL.lang=NL.English, NL.tense=Just NL.Present }) = "closing on"
+closeDate lang@(NL.Ctx { NL.lang=NL.English, NL.tense=Just NL.Future  }) = "will close on"
+closeDate lang@(NL.Ctx { NL.lang=NL.English, NL.tense=Nothing      }) = "deadline"
+  
+
 instance NL.Lang Tranche where
-  to lang tranche = unlines [header lang tranche,
-                             unlines [NL.to lang (fundraisingTarget tranche),
-                                      "the deadline is " ++ (Calendar.showGregorian $ deadline tranche),
-                                      sayPreMoney lang $ preMoney $ securityTemplate tranche
-                                     ]]
+  to lang' tranche = unlines [header lang tranche,
+                              unlines [ NL.to lang (fundraisingTarget tranche)
+                                      , unwords [ closeDate lang, (Calendar.showGregorian $ deadline tranche)]
+                                      , sayPreMoney lang $ preMoney $ securityTemplate tranche
+                                      ]]
+    where lang = lang' { NL.tense = Just $ mkTense (deadline tranche, NL.refTime lang') }
 
 sayPreMoney :: NL.Ctx -> Maybe Money -> String
 sayPreMoney lang (Just m) = "pre-money cap of " ++ NL.to lang m
 sayPreMoney lang Nothing  = "(no pre-money cap)"
-
--- pastFuture :: Calendar.Day -> Calendar.Day -> String
--- TODO: figure out if the deadline is in the future or the past relative to the invocation time of the script. we probably need a state monad to wrap IO in.
 
 instance Named Tranche where
   nameOf = trancheName
@@ -192,7 +202,7 @@ myDefaults = [
                            ]
             , fundraisingTarget = FundraisingExactly $ sgd ¢ 100
             , deadline = ymd 2015 7 1
-            , securityTemplate = Security { preMoney = Just $ sgd ¢ 100
+            , securityTemplate = Security { preMoney = Just $ sgd ¢ 0
                                           , discount = Nothing
                                           , term = Nothing
                                           , redeemable = False
@@ -322,10 +332,23 @@ myDefaults = [
       }
   ]
 
+mkTense :: (Calendar.Day,Calendar.Day) -> NL.Tense
+mkTense (t1,t2)
+  | t1 <  t2 = NL.Past
+  | t1 == t2 = NL.Present
+  | t1 >  t2 = NL.Future
+
 main = do
   currentTime <- Clock.getCurrentTime
   let currentDay = Clock.utctDay currentTime
-  putStrLn $ "UTCtime = " ++ Calendar.showGregorian currentDay
-  putStrLn $ unlines $ [ NL.to lang round | lang <- [NL.Ctx { NL.lang=NL.English, NL.tense=NL.Present }], round <- myDefaults ]
+  putStrLn $ "as of " ++ Calendar.showGregorian currentDay
+  putStrLn $ unlines $ [ NL.to
+                         (NL.Ctx { NL.lang = natlang
+                                 , NL.refTime = currentDay
+                                 , NL.tense = Nothing
+                                 })
+                         round
+                         | natlang <- [NL.English]
+                         , round   <- myDefaults ]
 --  putStrLn $ show myDefaults
   
