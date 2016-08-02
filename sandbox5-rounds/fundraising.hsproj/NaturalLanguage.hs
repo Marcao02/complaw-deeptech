@@ -5,7 +5,7 @@ import Data.Maybe
 
 import qualified Data.Time.Calendar as Calendar
 
-data Tongue  = English | Italian | French    deriving (Show)
+data Tongue  = English | Italian | French | Bahasa    deriving (Show)
 data Tense = Past | Present | Future       deriving (Show)
 
 data Ctx = Ctx { lang :: Tongue
@@ -28,3 +28,9 @@ v' "is" English Past    = "was"
 
 class Lang a where
   to    :: Ctx -> a -> String
+--
+-- Named: nameOf
+--
+
+class Named thing       where nameOf :: thing -> String
+

@@ -18,5 +18,6 @@ Executable fundraising
       time -any
   other-modules:
       NaturalLanguage
+      Money
       Security
       ProjectValuation
