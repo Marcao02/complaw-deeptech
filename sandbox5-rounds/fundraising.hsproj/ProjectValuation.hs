@@ -6,6 +6,9 @@ import Data.List
 import qualified Data.Map as M
 import Text.Printf
 import Security
+import Money
+import qualified Data.Time.Clock    as Clock
+import qualified Data.Time.Calendar as Calendar
 
 import System.Environment ( getArgs )
 import System.Console.GetOpt as GetOpt
@@ -13,6 +16,7 @@ import Data.Maybe ( fromMaybe )
 data Flag = Version
           | Psn   (Maybe String)
           | Years Integer
+          | Firstyear Integer
           | Start Integer
           | End   Integer
   deriving (Show)
@@ -20,6 +24,7 @@ data Flag = Version
 options :: [OptDescr Flag]
 options =
  [ Option ['V','?'] ["version"]         (NoArg Version)       "show version number"
+ , Option ['f']     ["firstyear"]       (ReqArg (Firstyear . read) "FIRST")  "first year"
  , Option ['y']     ["year","years"]    (ReqArg (Years . read) "YEAR")  "years"
  , Option ['s']     ["start"]           (ReqArg (Start . read) "START") "start valuation"
  , Option ['e']     ["end"]             (ReqArg (End   . read) "END")   "end valuation"
@@ -33,26 +38,21 @@ myOpts argv =
     (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
   where header = "Usage: projectgrowth [OPTION...]"
 
-defaultValGrowth = ValGrowth { years=10
-                         , startValuation =   4000000
-                         , endValuation   = 5000000000
-                         }
-
-
-opts2valgrowth :: ([Flag],[String]) -> ValuationGrowth
-opts2valgrowth (flags, otherargs) = foldl flag2valgrowth defaultValGrowth flags
+opts2valgrowth :: ([Flag],[String]) -> ValuationGrowth -> ValuationGrowth
+opts2valgrowth (flags, otherargs) defaultVG = foldl flag2valgrowth defaultVG flags
 
 flag2valgrowth :: ValuationGrowth -> Flag -> ValuationGrowth
 flag2valgrowth vg (Years y) = vg { years=y }
+flag2valgrowth vg (Firstyear y) = vg { firstYear=y }
 flag2valgrowth vg (Start n) = vg { startValuation=n }
 flag2valgrowth vg (End   n) = vg {   endValuation=n }
 flag2valgrowth vg (Psn _)   = vg
 flag2valgrowth vg (Version) = vg
 
 
-
 -- how much does our valuation need to grow every year to hit our goal?
 data ValuationGrowth = ValGrowth { years :: Integer
+                                 , firstYear :: Integer
                                  , startValuation :: Integer
                                  , endValuation :: Integer
                                  }
@@ -83,7 +83,7 @@ project valgrowth = do
   putStrLn $ show valgrowth
   putStrLn $ unlines $
      Data.List.map (\a -> printf "in %d, we will be worth %14s"
-           ((2016+a)::Int) -- printf gets snippy without the explicit type
+           (firstYear valgrowth + a)
            (commafy $ truncate (fromIntegral
             (startValuation valgrowth) *
              (yearlyGrowth valgrowth)
@@ -93,10 +93,16 @@ project valgrowth = do
 
 
 main = do
-  putStrLn "hello, world!"
   myargs <- getArgs
   myopts <- myOpts myargs
-  project $ opts2valgrowth myopts
+  (cY, cM, cD) <- fmap (Calendar.toGregorian . Clock.utctDay) Clock.getCurrentTime
+  project $ opts2valgrowth myopts ValGrowth { years=10
+                             , firstYear = cY
+                             , startValuation =   4000000
+                             , endValuation   = 5000000000
+                         }
+
+
  
 
 
