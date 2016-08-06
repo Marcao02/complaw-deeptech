@@ -4,17 +4,31 @@ import qualified Data.Time as Time
 
 -- actors in deontic clauses are entities
 
--- primitive entities are the common atomic unit of an entity
-data PrimEntity = ECompany
-                | EDirector
-                | EInvestor Security
-                | EShareholderInClass ShareClass
-                deriving (Show)              
+-- todo: create a class of identifiableEntity
+--                             , entityIdType :: Maybe String
+--                             , entityIdVal :: Maybe String
+--                             , entityJurisdiction :: Maybe String -- country
 
--- entities can act on as individuals or as members of a group
-data Entity = Entity      PrimEntity
-            | EntityGroup PrimEntity
-                deriving (Show)              
+data Director    = Director    Person            deriving (Show)
+data Shareholder = Shareholder Person ShareClass            deriving (Show)
+data Investor    = Investor    Person Security            deriving (Show)
+
+type Board        = [Director]
+type Shareholders = [Shareholder]
+type Investors    = [Investor]
+
+data Person = Company { board        :: Board
+                      , shareholders :: Shareholders
+                      , entityName   :: String
+                      }
+            | Individual  { entityName :: String }
+            | OtherPerson { entityName :: String }
+            deriving (Show)
+
+data AbstractPerson = AbstractCompany
+                    | AbstractIndividual
+                    | AbstractOtherPerson
+                    deriving (Show)
 
 -- a share class can be Ordinary or Other
 data ShareClass = Ordinary
@@ -22,6 +36,12 @@ data ShareClass = Ordinary
                             , rights :: String
                             }
                 deriving (Show)              
+
+data Entity a = Entity Person
+              | EntityGroup a
+              | AbstractEntity AbstractPerson
+              | AbstractEntityGroup a
+              deriving (Show)              
 
 -- later we'll load some other module that knows more about securities
 data Security = Security String
@@ -58,6 +78,7 @@ data Event = Event String Action
 data Action = Performative PerformativeStatement
             | Deliver Deliverable
             | SendNotice NoticeMessage
+            | IssueSecurity Security
             deriving (Show)
 
 type PerformativeStatement = String
@@ -76,7 +97,7 @@ evalCondition _      = True
 showCond :: Condition -> String
 showCond Always = "always"
 showCond Never  = "never"
-showCond cond = "some condition goes here"
+showCond cond   = "some condition goes here"
 
 data Predicate = PredAnd [Predicate]
                | PredOr  [Predicate]
@@ -86,20 +107,20 @@ data Predicate = PredAnd [Predicate]
 
 -- a rough equivalent to a clause, only in legislation this is a constraint
 -- this does not mean "unask the question"
-data Mu = Mu { entity  :: Entity
-             , cond    :: Condition
-             , deontic :: Deontic
-             , action  :: Action
-             , temporal :: Temporal
-             , thence :: Mu
-             , lest :: Mu
-             }
-        | AndMu [Mu]
-        |  OrMu [Mu]
+data Mu e = Mu { entity   :: Entity e
+               , cond     :: Condition
+               , deontic  :: Deontic
+               , action   :: Action
+               , temporal :: Temporal
+               , thence   :: Mu e
+               , lest     :: Mu e
+               }
+        | AndMu [Mu e]
+        |  OrMu [Mu e]
         | TriviallyFulfilled
         | TriviallyBreached
 
-showMu :: Mu -> String
+showMu :: (Show e) => (Mu e) -> String
 showMu mu = unlines [
   "If "   ++ showCond (cond mu),
   "then " ++ show (entity mu),
@@ -108,14 +129,6 @@ showMu mu = unlines [
   show (temporal mu)
   ]
   
-
-{-
-Share capital and variation of rights
-7.—(1)  Without prejudice to any special rights previously conferred on the holders of any existing shares or class of shares but subject to the Act, shares in the company may be issued by the directors.
-(2)  Shares referred to in paragraph (1) may be issued with preferred, deferred, or other special rights or restrictions, whether in regard to dividend, voting, return of capital, or otherwise, as the directors, subject to any ordinary resolution of the company, determine.
--}
-
-
 
 
 {-
