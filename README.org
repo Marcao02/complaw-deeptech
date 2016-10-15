@@ -16,4 +16,6 @@ incredibly hard to define.
 -- email from Michael Wayne Goodman <goodmami@u.washington.edu> 20140815
 #+END_QUOTE
 
+* ingredients:
 
+https://en.wikipedia.org/wiki/Cognitive_dimensions_of_notations
