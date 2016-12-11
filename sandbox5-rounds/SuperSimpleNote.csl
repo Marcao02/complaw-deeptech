@@ -65,8 +65,8 @@ clause ConvertibleNote( principal : Double
     immediately
 in ConvertibleNote(S$347.45, 1.0, ACRA, 0.7)<Alexis, Legalese>
 
-__ONTOLOGY__
 {-
+__ONTOLOGY__
 ElectionChoice is abstract.
 Equity is an ElectionChoice.
 Fiat is an ElectionChoice.
