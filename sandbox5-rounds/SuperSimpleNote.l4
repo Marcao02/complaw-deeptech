@@ -4,23 +4,50 @@
 -- -- parties
 data Agent = Agent String
 
+entity Legalese = Agent "Legalese Pte. Ltd."
+entity Alexis   = Agent "Alexis Chun"
+entity ACRA     = Agent "ACRA Singapore"
+
+resource MoneySGD = Currency SGD
+                  
 -- -- domain-specific data types
 data ElectionChoice = Equity | Fiat
 
 -- -- actions which can occur during the contract. note that these actions do not include a <responsibleParty> term
 -- -- .oO is the event observation operator, also called the oracle operator
 data ElectionResponse = (respondent : Agent, choice : ElectionChoice)
-data CompanySale = (elector : Agent, subject : Agent)
-data Adjustment = (resource : Ratio)
-data IssueSecurities = (from : Agent, to : Agent, shares : Natural)
-data Payment         = (from : Agent, to : Agent, amount : Natural)
+data CompanySale      = (elector : Agent, subject : Agent)
+data Adjustment       = (resource : Ratio)
+data IssueSecurities  = (from : Agent, to : Agent, shares : Natural)
+data Payment          = (from : Agent, to : Agent, amount : Natural)
 
--- -- other definitions which are best thought of as functions returning a value. the function may be const.
-def maturityComplement : Percentage (maturityDiscount : Percentage)
-    maturityComplement mD = Percentage 100 - maturityDiscount
+-- -- other definitions
+def maturityComplement : Percentage -> Percentage
+    maturityComplement mD = Percentage 100 - mD
+
+-- the entry point to a contract is often its conditions precedent.
+main ConvertibleNote = ConditionsPrecedent(
+                                            principal        = S$347.45
+                                          , investor         = Alexis
+                                          , conversionprice  = 1.0
+                                          , third            = ACRA,
+                                          , maturitydiscount = 0.3,
+                                          , noteterm         = 36M) <Legalese>
+
+-- we express conditions precedent as a clause which loops, waiting for the entry conditions to be met.
+-- in a more elaborated version of this contract we would introduce an expiration date to the loop, so it counts down.
+       
+§ ConditionsPrecedent principal investor conversionprice third maturitydiscount noteterm
+    = (Payment =investor =third =principal
+       or
+       Payment =investor =company =principal) →
+        PreMaturity principal noteterm investor conversionprice (maturityComplement maturitydiscount)
+    deadline immediately
+    else ConvertibleNote principal investor conversionprice third maturitydiscount noteterm
 
 -- a clause is declared with a list of input arguments bound to the body of the clause,
 -- and optionally one or more LABELS identifying responsible parties to whom the system assigns blame if the clause should fail
+-- note that the types of the input arguments are inferred from their use in the body of the clause.
 -- 
 -- if a <responsibleParty> label is present in the declaration, then the clause is an obligation clause
 -- otherwise, the clause is a choice clause.
@@ -37,21 +64,14 @@ def maturityComplement : Percentage (maturityDiscount : Percentage)
 -- 
 -- if there is no else clause, and the deadline passes, then the responsible party is in breach.
 
-§ OnCompanySale balance investor conversionPrice
-      <company>
-  = ElectionResponse .oO =investor |-
-    |-         choice=Equity -> IssueSecurities shares=(balance ÷ conversionPrice)
-    |- default choice=Fiat   -> Payment         from=company to=investor amount=(2 * balance)
-  deadline 1W
-
-§ PreMaturity balance timer investor shareprice maturitydiscount
+§ PreMaturity balance timer investor shareprice maturitycoe
     | balance > 0
   = Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) (deadline - z)
   | AdjustmentEvent .oO .ratio                     -> PreMaturity deadline=(deadline - z) shareprice=(shareprice / ratio)
   | CompanySale     .oO =company =company          -> OnCompanySale balance investor shareprice
   | IssueSecurities .oO from=company to=investor shares=(balance / sharePrice) -> YAY
   deadline timer, remaining z
-  else PostMaturity balance investor (maturitydiscount * shareprice)
+  else PostMaturity balance investor (maturitycoe * shareprice)
 
 § PreMaturity | balance <= 0 = YAY
 
@@ -61,26 +81,11 @@ def maturityComplement : Percentage (maturityDiscount : Percentage)
       <company>
   = IssueSecurities company investor (balance / conversionPrice)
   deadline immediately
-
-§ ConvertibleNote principal investor conversionprice third maturitydiscount noteterm
-    = (Payment =investor =third =principal
-       or
-       Payment =investor =company =principal) →
-        PreMaturity principal noteterm investor conversionprice maturitydiscount
-    deadline immediately
-    else ConvertibleNote principal investor conversionprice third maturitydiscount noteterm
---  else loop
          
-= ConvertibleNote(principal        = S$347.45,
-                  investor         = Alexis,
-                  conversionprice  = 1.0,
-                  third            = ACRA,
-                  maturitydiscount = 0.3,
-                  noteterm         = 36M) <Legalese>
+§ OnCompanySale balance investor conversionPrice
+      <company>
+  = ElectionResponse .oO =investor |-
+    |-         choice=Equity -> IssueSecurities shares=(balance ÷ conversionPrice)
+    |- default choice=Fiat   -> Payment         from=company to=investor amount=(2 * balance)
+  deadline 1W
 
-
-// ============================================================ case 2
-// adding some features
-
-// ============================================================ case 3
-// adding some more features
