@@ -1,0 +1,86 @@
+-- ============================================================ case 1
+-- the super simple convertible note
+
+-- -- parties
+data Agent = Agent String
+
+-- -- domain-specific data types
+data ElectionChoice = Equity | Fiat
+
+-- -- actions which can occur during the contract. note that these actions do not include a <responsibleParty> term
+-- -- .oO is the event observation operator, also called the oracle operator
+data ElectionResponse = (respondent : Agent, choice : ElectionChoice)
+data CompanySale = (elector : Agent, subject : Agent)
+data Adjustment = (resource : Ratio)
+data IssueSecurities = (from : Agent, to : Agent, shares : Natural)
+data Payment         = (from : Agent, to : Agent, amount : Natural)
+
+-- -- other definitions which are best thought of as functions returning a value. the function may be const.
+def maturityComplement : Percentage (maturityDiscount : Percentage)
+    maturityComplement mD = Percentage 100 - maturityDiscount
+
+-- a clause is declared with a list of input arguments bound to the body of the clause,
+-- and optionally one or more LABELS identifying responsible parties to whom the system assigns blame if the clause should fail
+-- 
+-- if a <responsibleParty> label is present in the declaration, then the clause is an obligation clause
+-- otherwise, the clause is a choice clause.
+-- a choice clause may be internal or external.
+-- an external choice clause represents some event that may have occurred.
+-- L4 offers your contract a way to observe the parameters of such events.
+-- 
+-- a clause is defined with optional guards, a body, a deadline tuple, and a call to some else clause
+-- the body of the clause comes between the = and the deadline.
+-- the body may contain predicates representing logical disjunction and conjunction
+-- the body may contain a switch statement
+-- the consequents of a body may be an obligation clause, or an action.
+-- a responsible party may be labeled in the action. if there is no responsibility label, then the existing responsible party is assumed.
+-- 
+-- if there is no else clause, and the deadline passes, then the responsible party is in breach.
+
+§ OnCompanySale balance investor conversionPrice
+      <company>
+  = ElectionResponse .oO =investor |-
+    |-         choice=Equity -> IssueSecurities shares=(balance ÷ conversionPrice)
+    |- default choice=Fiat   -> Payment         from=company to=investor amount=(2 * balance)
+  deadline 1W
+
+§ PreMaturity balance timer investor shareprice maturitydiscount
+    | balance > 0
+  = Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) (deadline - z)
+  | AdjustmentEvent .oO .ratio                     -> PreMaturity deadline=(deadline - z) shareprice=(shareprice / ratio)
+  | CompanySale     .oO =company =company          -> OnCompanySale balance investor shareprice
+  | IssueSecurities .oO from=company to=investor shares=(balance / sharePrice) -> YAY
+  deadline timer, remaining z
+  else PostMaturity balance investor (maturitydiscount * shareprice)
+
+§ PreMaturity | balance <= 0 = YAY
+
+§ PreMaturity | balance < 0  = Payment company investor abs(balance) -- refund the excess payment
+
+§ PostMaturity balance investor conversionprice
+      <company>
+  = IssueSecurities company investor (balance / conversionPrice)
+  deadline immediately
+
+§ ConvertibleNote principal investor conversionprice third maturitydiscount noteterm
+    = (Payment =investor =third =principal
+       or
+       Payment =investor =company =principal) →
+        PreMaturity principal noteterm investor conversionprice maturitydiscount
+    deadline immediately
+    else ConvertibleNote principal investor conversionprice third maturitydiscount noteterm
+--  else loop
+         
+= ConvertibleNote(principal        = S$347.45,
+                  investor         = Alexis,
+                  conversionprice  = 1.0,
+                  third            = ACRA,
+                  maturitydiscount = 0.3,
+                  noteterm         = 36M) <Legalese>
+
+
+// ============================================================ case 2
+// adding some features
+
+// ============================================================ case 3
+// adding some more features
