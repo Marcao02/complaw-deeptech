@@ -25,6 +25,9 @@ data Payment          = (from : Agent, to : Agent, amount : Natural)
 def maturityComplement : Percentage -> Percentage
     maturityComplement mD = Percentage 100 - mD
 
+def liquidationPreference : Natural
+    liquidationPreference = 2.0
+                            
 -- the entry point to a contract is often its conditions precedent.
 main ConvertibleNote = ConditionsPrecedent(
                                             principal        = S$347.45
@@ -89,6 +92,6 @@ main ConvertibleNote = ConditionsPrecedent(
       <company>
   = ElectionResponse .oO =investor |-
     |-         choice=Equity -> IssueSecurities shares=(balance ÷ conversionPrice)
-    |- default choice=Fiat   -> Payment         from=company to=investor amount=(2 * balance)
+    |- default choice=Fiat   -> Payment         from=company to=investor amount=(liquidationPreference * balance)
   deadline 1W
 
