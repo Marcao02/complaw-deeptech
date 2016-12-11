@@ -61,9 +61,9 @@ main ConvertibleNote = ConditionsPrecedent(
   = Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) (deadline - z)
   | AdjustmentEvent .oO .ratio                     -> PreMaturity deadline=(deadline - z) shareprice=(shareprice / ratio)
   | CompanySale     .oO =company =company          -> OnCompanySale balance investor shareprice
-  | IssueSecurities .oO from=company to=investor shares=(balance / sharePrice) -> YAY
+  | IssueSecurities .oO from=company to=investor shares=(balance / shareprice) -> YAY
   deadline timer, remaining z
-  else PostMaturity balance investor (maturitycoe * shareprice)
+  else PostMaturity balance investor shareprice maturitycoe
 
 -- a clause is defined with optional guards, a body, a deadline tuple, and usually a call to some else clause
 -- the body of the clause comes between the = and the deadline.
@@ -78,11 +78,11 @@ main ConvertibleNote = ConditionsPrecedent(
 
 § PreMaturity | balance == 0 = YAY
 
-§ PreMaturity | balance < 0  = <company> Payment company investor abs(balance) -- company must refund the excess payment
+§ PreMaturity | balance < 0  = <investor> Payment investor company abs(balance) -- investor must refund the excess payment
 
-§ PostMaturity balance investor conversionprice
+§ PostMaturity balance investor shareprice maturitycoe
       <company>
-  = IssueSecurities company investor (balance / conversionPrice)
+  = IssueSecurities company investor (balance / (maturitycoe * shareprice))
   deadline immediately
          
 § OnCompanySale balance investor conversionPrice
