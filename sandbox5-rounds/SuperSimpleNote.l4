@@ -55,14 +55,6 @@ main ConvertibleNote = ConditionsPrecedent(
 -- an external choice clause represents some event that may have occurred.
 -- L4 offers your contract a way to observe the parameters of such events.
 -- 
--- a clause is defined with optional guards, a body, a deadline tuple, and a call to some else clause
--- the body of the clause comes between the = and the deadline.
--- the body may contain predicates representing logical disjunction and conjunction
--- the body may contain a switch statement
--- the consequents of a body may be an obligation clause, or an action.
--- a responsible party may be labeled in the action. if there is no responsibility label, then the existing responsible party is assumed.
--- 
--- if there is no else clause, and the deadline passes, then the responsible party is in breach.
 
 § PreMaturity balance timer investor shareprice maturitycoe
     | balance > 0
@@ -73,9 +65,20 @@ main ConvertibleNote = ConditionsPrecedent(
   deadline timer, remaining z
   else PostMaturity balance investor (maturitycoe * shareprice)
 
-§ PreMaturity | balance <= 0 = YAY
+-- a clause is defined with optional guards, a body, a deadline tuple, and usually a call to some else clause
+-- the body of the clause comes between the = and the deadline.
+-- the body may contain predicates representing logical disjunction and conjunction
+-- the body may contain a switch statement
+-- the consequents of a body may be an obligation clause, or an action.
+-- a responsible party may be labeled in the action. if there is no responsibility label, then the existing responsible party is assumed.
+-- 
+-- if there is no else clause, and the deadline passes, then the responsible party is in breach.
 
-§ PreMaturity | balance < 0  = Payment company investor abs(balance) -- refund the excess payment
+-- guards offer an easy way to elaborate clause behaviour under different conditions
+
+§ PreMaturity | balance == 0 = YAY
+
+§ PreMaturity | balance < 0  = <company> Payment company investor abs(balance) -- company must refund the excess payment
 
 § PostMaturity balance investor conversionprice
       <company>
