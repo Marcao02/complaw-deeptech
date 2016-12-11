@@ -1,0 +1,96 @@
+clause OnCompanySale( principal : Double
+                    , investor : Party
+                    , conversionPrice : Double)<company> =
+  # Investor has a week to decide which of the options they want. Defaults to second option.
+  # In the ontology, election responses are marked with two abstract outcomes: equity or fiat
+  <company> (ElectionResponse(respondent, choice)
+  where respondent = investor
+  then
+    if choice = Equity
+	  IssueSecurities(debtor, creditor, shares)
+	  where debtor = company and creditor = investor and shares = principal / conversionPrice
+	else
+	  Payment(debtor, creditor, amount)
+	  where debtor = company and creditor = investor and amount = 2 * principal
+  due 1W
+  else Payment(debtor, creditor, amount)
+  where debtor = company and creditor = investor and amount = 2 * principal)
+
+clause PreMaturity( principal : Double
+                  , deadline : Deadline
+                  , investor : Party
+                  , sharePrice : Double
+                  , maturityDiscount : Double)<company> =
+  if principal <= 0 then Fulfillment else # If the principal has been fully repaid, then the we stop recognising the note.
+
+  ((if Payment(debtor, creditor, amount) # Repayment of part of the principal.
+     where debtor = company and creditor = investor
+     then PreMaturity(principal - amount, deadline - z, investor, maturityDiscount)
+  else 
+  ((if CompanySale(elector, subject) # company gets sold
+      where elector = company and subject = company
+      then OnCompanySale(principal, investor, sharePrice)<company>)
+  else
+  ((if AdjustmentEvent(ratio)
+      then PreMaturity(principal, deadline - z, investor, sharePrice / ratio, maturityDiscount))
+  else
+  (IssueSecurities(debtor, creditor, shares) # Optional Conversion at the option of the company
+      where debtor = company and creditor = investor and shares = principal / sharePrice)))))
+  due deadline
+  remaining z
+  else # the original 36M deadline runs out
+    PostMaturity(principal, investor, maturityDiscount * conversionPrice) <company>)
+
+clause PostMaturity(principal, investor, conversionPrice)<company> =
+  <company> IssueSecurities(debtor, creditor, shares)
+  where debtor = company and creditor = investor and shares = principal / conversionPrice
+  due immediately
+  
+
+clause ConvertibleNote( principal : Double
+                      , conversionPrice : Double
+                      , third : Party
+                      , maturityDiscount : Double
+                      , noteTerm : Deadline)<investor, company> =
+  # The agreement becomes effective when the investor provides evidence
+  # of having injected principal into the company or third party.
+  Payment(sender, recipient, amount)
+      where amount = principal and sender = investor and (recipient = third or recipient = company)
+  then
+    PreMaturity(principal, noteTerm, investor, conversionPrice, maturityDiscount)
+  else
+  # Otherwise we wait for this, indefinitely, without opportunity for breach.
+    ConvertibleNote(principal, conversionPrice, third, maturityDiscount)
+  due
+    immediately
+in ConvertibleNote(S$347.45, 1.0, ACRA, 0.7)<Alexis, Legalese>
+
+__ONTOLOGY__
+{-
+ElectionChoice is abstract.
+Equity is an ElectionChoice.
+Fiat is an ElectionChoice.
+
+ElectionResponse is abstract.
+ElectionResponse has an agent called respondent.
+ElectionResponse has an ElectionChoice called choice.
+
+Payment is abstract.
+Payment has an agent called debtor.
+Payment has an agent called creditor.
+Payment has a currency called amount.
+
+CompanySale is abstract.
+CompanySale has an agent called elector.
+CompanySale has an agent called subject.
+
+AdjustmentEvent is abstract.
+AdjustMentEvent has a real resource called ratio.
+
+IssueSecurities is abstract.
+Payment has an agent called debtor.
+Payment has an agent called creditor.
+Payment has a number called shares.
+
+
+-}
