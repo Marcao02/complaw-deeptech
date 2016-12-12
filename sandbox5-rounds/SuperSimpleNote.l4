@@ -8,8 +8,6 @@ entity Legalese = Agent "Legalese Pte. Ltd."
 entity Alexis   = Agent "Alexis Chun"
 entity ACRA     = Agent "ACRA Singapore"
 
-resource MoneySGD = Currency SGD
-                  
 -- -- domain-specific data types
 data ElectionChoice = Equity | Fiat
 
@@ -19,7 +17,7 @@ data ElectionResponse = (respondent : Agent, choice : ElectionChoice)
 data CompanySale      = (elector : Agent, subject : Agent)
 data Adjustment       = (resource : Ratio)
 data IssueSecurities  = (from : Agent, to : Agent, shares : Natural)
-data Payment          = (from : Agent, to : Agent, amount : Natural)
+data Payment          = (from : Agent, to : Agent, amount : Money)
 
 -- -- other definitions
 def maturityComplement : Percentage -> Percentage
@@ -27,7 +25,12 @@ def maturityComplement : Percentage -> Percentage
 
 def liquidationPreference : Natural
     liquidationPreference = 2.0
-                            
+
+data Currency = (code : ISO) (amount : Natural)
+
+def S$ : Natural -> Currency
+S$ = Currency SGD
+                  
 -- the entry point to a contract is often its conditions precedent.
 main ConvertibleNote = ConditionsPrecedent(
                                             principal        = S$347.45

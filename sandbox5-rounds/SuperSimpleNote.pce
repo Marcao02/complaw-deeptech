@@ -1,0 +1,38 @@
+Contract is abstract.
+Debt is a Contract.
+
+Currency has a String called code.
+
+ElectionChoice is abstract.
+Equity is an ElectionChoice.
+Fiat is an ElectionChoice.
+
+Alice is a Agent.
+Bob is a Agent.
+Acra is a Agent.
+
+Agent is abstract.
+Debt has an Agent called investor.
+Debt has an Agent called company.
+
+ElectionResponse is abstract.
+ElectionResponse has an Agent called respondent.
+ElectionResponse has an ElectionChoice called choice.
+
+Payment is abstract.
+Payment has an Agent called debtor.
+Payment has an Agent called creditor.
+Payment has a Real called amount.
+
+CompanySale is abstract.
+CompanySale has an Agent called elector.
+CompanySale has an Agent called subject.
+
+AdjustmentEvent is abstract.
+AdjustmentEvent has a Real called ratio.
+
+IssueSecurities is abstract.
+IssueSecurities has an Agent called debtor.
+IssueSecurities has an Agent called creditor.
+IssueSecurities has a Real called shares.
+
