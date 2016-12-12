@@ -22,36 +22,44 @@ clause convertibleNote( principal : Real
    preMaturity(balance, nteTerm, investor, conversionPrice, maturityDiscount)<company>
    else
 // Otherwise we wait for this, indefinitely, without opportunity for breach.
-    convertibleNote(principal, conversionPrice, maturityDiscount, third, nteTerm)<investor, company>
+   convertibleNote(principal, conversionPrice, maturityDiscount, third, nteTerm)<investor, company>
 
-clause preMaturity( principal : Real
-                  , deadline : Duration
-                  , investor : Agent
+
+clause preMaturity(principal  : Real
+                  , deadline   : Duration
+                  , investor   : Agent
                   , sharePrice : Real
                   , maturityDiscount : Real)<company : Agent> =
   if principal < 0.0 then fulfilment
   else
-  when Payment(debtor dr, creditor cr, amount a) // Repayment of part of the principal.
-   where (dr == company && cr == investor)
+  // Repayment of part of the principal.
+  (when  Payment(debtor dr, creditor cr, amount a)
+   where dr == company && cr == investor
    due within deadline remaining z
    then preMaturity(principal - a, z, investor, sharePrice, maturityDiscount)<company>
-  else 
-  when CompanySale(elector er, subject su) // company gets sold
+   else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>
+   )
+  or
+  // company gets sold
+  (when  CompanySale(elector er, subject su)
    where er == company && su == company
-   due within deadline remaining z
+   due within deadline
    then onCompanySale(principal, investor, sharePrice)<company>
-  else
-  when AdjustmentEvent(ratio r)
+   else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>
+   )
+  or
+  (when AdjustmentEvent(ratio r)
    due within deadline remaining z
    then preMaturity(principal, z, investor, sharePrice / r, maturityDiscount)<company>
-  else
-   // Optional Conversion at the option of the company
-  when IssueSecurities(debtor dr, creditor cr, shares sh)
-    where dr == company && cr == investor && sh == principal / sharePrice
-   due within deadline remaining z
+   else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>
+   )
+  or
+  // Optional Conversion at the option of the company
+  (when IssueSecurities(debtor dr, creditor cr, shares sh)
+   where dr == company && cr == investor && sh == principal / sharePrice
+   due within deadline
    then fulfilment
-  else
-   postMaturity(principal, investor, maturityDiscount * sharePrice) <company>
+   else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>)
 
 
 
