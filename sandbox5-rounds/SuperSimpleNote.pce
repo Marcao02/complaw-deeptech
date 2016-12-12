@@ -7,6 +7,9 @@ ElectionChoice is abstract.
 Equity is an ElectionChoice.
 Fiat is an ElectionChoice.
 
+Const is abstract.
+Const has an Agent called party.
+
 Alice is a Agent.
 Bob is a Agent.
 Acra is a Agent.
