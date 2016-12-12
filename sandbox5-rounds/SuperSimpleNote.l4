@@ -32,8 +32,7 @@ def S$ : Natural -> Currency
 S$ = Currency SGD
                   
 -- the entry point to a contract is often its conditions precedent.
-main ConvertibleNote = ConditionsPrecedent(
-                                            principal        = S$347.45
+main ConvertibleNote = ConditionsPrecedent( principal        = S$347.45
                                           , investor         = Alexis
                                           , conversionprice  = 1.0
                                           , third            = ACRA,
@@ -46,9 +45,9 @@ main ConvertibleNote = ConditionsPrecedent(
 § ConditionsPrecedent principal investor conversionprice third maturitydiscount noteterm
     = (Payment =investor =third =principal
        or
-       Payment =investor =company =principal) →
+       Payment =investor =company =principal) ->
         PreMaturity principal noteterm investor conversionprice (maturityComplement maturitydiscount)
-    deadline immediately
+    due immediately
     else ConvertibleNote principal investor conversionprice third maturitydiscount noteterm
 
 -- a clause is declared with a list of input arguments bound to the body of the clause,
@@ -64,8 +63,8 @@ main ConvertibleNote = ConditionsPrecedent(
 
 § PreMaturity balance timer investor shareprice maturitycoe
     | balance > 0
-  = Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) (deadline - z)
-  | AdjustmentEvent .oO .ratio                     -> PreMaturity deadline=(deadline - z) shareprice=(shareprice / ratio)
+  = Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) z
+  | AdjustmentEvent .oO .ratio                     -> PreMaturity deadline=z shareprice=(shareprice / ratio)
   | CompanySale     .oO =company =company          -> OnCompanySale balance investor shareprice
   | IssueSecurities .oO from=company to=investor shares=(balance / shareprice) -> YAY
   deadline timer, remaining z
