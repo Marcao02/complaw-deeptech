@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+
+# the tests/ folder contains *.log
+# each *.log contains strings prefixed with 'SEND: ' and 'RECV: '
+# which represent our expectations
+
+use strict;
+my $testdir = "tests";
+
+my @repl_cmd = qw(./repl2 -c SuperSimpleNote.csl -o SuperSimpleNote.pce);
+
+use IPC::Open3;
+
+opendir (DIR, $testdir);
+my @files = sort grep { /\.log$/ and ! /\#/ } readdir DIR;
+
+foreach my $testfile (@files) {
+  open TESTFILE, "$testdir/$testfile";
+  (my $testname = $testfile) =~ s/\.log$//;
+  my @lines = <TESTFILE>;
+  my @comment = grep { s/^COMMENT:\s*// } @lines;
+  my @send = grep { s/^SEND:\s*// } @lines;
+  my @recv = grep { s/^RECV:\s*// } @lines; # what we're expecting back
+  my @nowant = grep { s/^RECV !:\s*// } @lines; # what we don't want
+
+  if (@comment) {
+    print "$testname: $_" for @comment;
+  } else {
+    print "$testname\n";
+  }
+    
+  print ">> $_" for @send;
+
+  my($wtr, $rdr, $err);
+  use Symbol 'gensym'; $err = gensym;
+  my $pid = open3($wtr, $rdr, $err, @repl_cmd);
+
+  print $wtr $_ for @send;
+  close $wtr;
+  my @result = <$rdr>;
+  my $error = 0;
+  foreach my $wanted (@recv) {
+    chomp $wanted;
+    my $found = (grep { index($_,$wanted) >= 0 } @result);
+    if (not $found) {
+      print "$testname: FAILED: couldn't find: $wanted\n";
+      $error++;
+    }
+  }
+  foreach my $nowant (@nowant) {
+    chomp $nowant;
+    my $found = (grep { index($_,$nowant) >= 0 } @result);
+    if ($found) {
+      print "$testname: FAILED: found unwanted: $nowant\n";
+      $error++;
+    }
+  }
+  if ($error) {
+    print "$testname << $_" for @result;
+  } else {
+    print "$testname passed: << \"$_\"\n" for @recv;
+    print "$testname passed: << did not see \"$_\"\n" for @nowant;
+  }
+    
+  waitpid( $pid, 0 );
+  my $child_exit_status = $? >> 8;
+  print "\n";
+}
+
+
