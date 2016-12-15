@@ -14,7 +14,7 @@ clause convertibleNote( principal : Real
                       , nteTerm : Duration)<investor : Agent, company : Agent> =
 // The agreement becomes effective when the investor provides evidence
 // of having injected principal into the company or third party.
-  <investor> Payment(debtor sender, creditor recipient, amount balance)
+  <investor> Payment(from sender, to recipient, amount balance)
       where balance   == principal
 	     && sender    == investor
 	 	 && (recipient == company ||
@@ -30,36 +30,35 @@ clause preMaturity( principal  : Real
                   , investor   : Agent
                   , sharePrice : Real
                   , maturityDiscount : Real)<company : Agent> =
-  if principal < 0.0
+  if principal <= 0.0
   then fulfilment
   else
   (// four possibiilties during the lifetime of the note
       // Repayment of part of the principal.
-	(when  Payment(debtor dr, creditor cr, amount a)
+	(when  Payment(from dr, to cr, amount a)
 	 where dr == company && cr == investor
 	 due within deadline remaining z
-	 then fulfilment // preMaturity(principal - a, z, investor, sharePrice, maturityDiscount)<company>
+	 then preMaturity(principal - a, z, investor, sharePrice, maturityDiscount)<company>
 	 else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>
 	 )
 	or
 	  // stock split happens, we have to change the shareprice
 	(when AdjustmentEvent(ratio r)
 	 due within deadline remaining z
-	 then fulfilment // preMaturity(principal, z, investor, sharePrice / r, maturityDiscount)<company>
+	 then preMaturity(principal, z, investor, sharePrice / r, maturityDiscount)<company>
 	 else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>
 	 )
 	or
 	  // company gets sold
-	(when  CompanySale(elector er, subject su)
-	 where er == company && su == company
+	(when  CompanySale
 	 due within deadline
 	 then onCompanySale(principal, investor, sharePrice)<company>
 	 else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>
 	 )
 	or
  	  // Optional Conversion at the option of the company
-	(when IssueSecurities(debtor dr, creditor cr, shares sh)
-	 where dr == company && cr == investor && sh == principal / sharePrice
+	(when IssueSecurities(from dr, to cr, shares sh)
+	 where dr == company && cr == investor && sh >= principal / sharePrice
 	 due within deadline
 	 then fulfilment
 	 else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>)
@@ -76,28 +75,28 @@ clause onCompanySale( principal : Real
 	due within 1W
 	then
 	  (if (c == Equity) then
-		(<company> IssueSecurities(debtor dr, creditor cr, shares ss)
-		where dr == company && cr == investor && ss == principal / conversionPrice
+		(<company> IssueSecurities(from dr, to cr, shares ss)
+		where dr == company && cr == investor && ss >= principal / conversionPrice
 		due within 1W)
 	  else
-		(<company> Payment(debtor d, creditor c, amount a)
+		(<company> Payment(from d, to c, amount a)
 		where d == company && c == investor && a == 2 * principal
 	    due within 1W)
       )
     else
-      <company> Payment(debtor d, creditor c, amount a)
+      <company> Payment(from d, to c, amount a)
       where d == company && c == investor && a == 2 * principal
       due immediately
 
 clause postMaturity(principal : Real,
 	   		        investor  : Agent,
 					conversionPrice : Real)<company : Agent> =
-  <company> IssueSecurities(debtor dr, creditor cr, shares sh)
+  <company> IssueSecurities(from dr, to cr, shares sh)
   where dr == company && cr == investor && sh == principal / conversionPrice
   due immediately
   
 
 
 
-contract = convertibleNote(347.45, 1.0, 0.7, Acra, 1M, 1Y)<Alice, Bob>
+contract = convertibleNote(347.45, 1.0, 0.7, Acra, 1M, 1Y)<Alice, MyStartup>
 
