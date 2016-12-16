@@ -56,7 +56,7 @@ foreach my $testfile (@files) {
     }
   }
   if ($error) {
-    print "$testname << $_" for @result;
+    print "<< $_" for @result;
   } else {
     print "$testname passed: << \"$_\"\n" for @recv;
     print "$testname passed: << did not see \"$_\"\n" for @nowant;
