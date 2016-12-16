@@ -58,7 +58,7 @@ clause preMaturity( principal  : Real
 	or
  	  // Optional Conversion at the option of the company
 	(when IssueSecurities(from dr, to cr, shares sh)
-	 where dr == company && cr == investor && sh >= principal / sharePrice
+	 where dr == company && cr == investor && sh >= (principal / sharePrice)
 	 due within deadline
 	 then fulfilment
 	 else postMaturity(principal, investor, maturityDiscount * sharePrice) <company>)
