@@ -59,12 +59,18 @@ data Round = Round {
     , holdings :: [Holding]
     }
 
-data Holding = Holding OPSDCC {
-      amount :: HoldingUnits
-    , holder :: Party
-    , instrument :: Instrument
-    }
 
+
+-- data Holding = Holding {
+--       amount :: 
+--     , holder :: Party
+--     , instrument :: Instrument
+--     }
+
+
+-- let y = x ++ succ(x)
+--           in y ++ reverse y
+             
 data Instrument = Instrument {
       iname :: String
     , instrument' :: Instrument'
