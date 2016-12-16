@@ -1,0 +1,12 @@
+Bob has a Bag with 20 Potatoes.
+
+Alice has a Bag with 10 Potatoes.
+
+Carol has a Bag with 1 Potato.
+Carol has a Bag with 4 Apples.
+
+Dworkin has a Bag with 0 Potatoes.
+
+Ed has a Bag.
+
+Dworkin has a Bag with Apples.
