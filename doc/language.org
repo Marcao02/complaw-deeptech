@@ -1,0 +1,68 @@
+#+Legalese Language Design Notes
+
+https://en.wikipedia.org/wiki/Cognitive_dimensions_of_notations
+
+
+* Contract Evolution
+
+A contract document evolves through several stages:
+
+1. well-formed
+2. consistent
+3. complete
+4. compliant
+5. correct
+
+A *well-formed contract* has a list of parties, describes some consideration, describes the obligations-permissions-prohibitions of the parties, and contains a signature, or execution, component.
+
+A *consistent contract*, in addition to being well-formed, is satisfiable and contains no internal contradictions. All states described by the contract are reachable: for every given state, there exists some combination of events and choices that would cause the contract to enter that state.
+
+A *complete contract*, in addition to being consistent, is total: there does not exist any combination of events and choices that leads to an undefined state.
+
+A *compliant* contract, in addition to being complete, is /externally/ consistent with existing regulation and legislation, and with prior contracts.
+
+A *correct* contract, in addition to being compliant, represents the intent of the parties well enough that they would be willing to execute it.
+
+A contract evolves through the stages, usually by adding content, sometimes by taking away content.
+
+* Types of Statements
+
+A contract consists of one or more statements.
+
+Statements fall into one of the following categories:
+- Basic :: defines a term without reference to any other term.
+- Simple :: defines a term with reference to another term in the current contract.
+- External :: defines a term with reference only to an external definition, e.g. to a definition found in legislation. But without reference to any other term defined in the current contract.
+- Complex :: redefines a term defined elsewhere.
+- Compound :: defines a term with reference to more than one of the above.
+
+A complex term adds a *complication* to the contract. We borrow the word from horology: https://en.wikipedia.org/wiki/Complication_(horology).
+
+One of the stages of compilation converts the input list of statements to an intermediate representation. The intermediate representation preserves the semantics of the contract, but is organized in a different form; that is to say, it is a /reduction/ of the original input form.
+
+Subsequent reductions may eventually produce a [[https://en.wikipedia.org/wiki/Normal_form_(abstract_rewriting)][normal form]] of the contract in L4, which may then be further compiled to 
+
+* Why Input Form?
+
+Imagine a progressive GIF or JPEG.
+
+Legalese subscribes to the doctrine of progressive refinement, which is to say that the major points are given first in broad strokes, then revised in subsequent statements.
+
+Progressive refinement, in contracts, implies /homoiconicity/: a contract must be able to modify itself, at compile time.
+
+Why progressive refinement? Because of the limitations of human cognitive architecture: humans do not parse a text into symbol tables and syntax trees; they parse a text into characters and stories. Like buildings, stories have shape, texture, and detail: from a distance, only the outlines may be seen; as one approaches, finer details may appear, until eventually the mind grasps the whole.
+
+#+BEGIN_SRC
+// example goes here
+
+#+END_SRC
+
+* Compile-time Homoiconicity
+
+
+
+* Run-time Homoiconicity
+
+A contract may specify that prior to a certain time, variable A may point to variable B; after a certain time, variable A may point to variable C.
+
+
