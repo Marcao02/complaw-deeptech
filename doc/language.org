@@ -118,7 +118,7 @@ A *well-formed contract* has a list of parties, describes some consideration, de
 
 A *consistent contract*, in addition to being well-formed, is satisfiable and contains no internal contradictions. All states described by the contract are reachable: for every given state, there exists some combination of events and choices that would cause the contract to enter that state.
 
-A *complete contract*, in addition to being consistent, is total: there does not exist any combination of events and choices that leads to an undefined state.
+A *complete contract*, in addition to being consistent, is total: there does not exist any combination of events and choices that leads to an undefined state. An undefined state is a state where blame assignment is not determinable and decision rights have not been allocated.
 
 A *compliant* contract, in addition to being complete, is /externally/ consistent with existing regulation and legislation, and with prior contracts.
 
@@ -126,24 +126,32 @@ A *correct* contract, in addition to being compliant, represents the intent of t
 
 As a human "programmer" works on a contract, it usually evolves through the stages, usually by adding content, sometimes by taking away content.
 
-* Types of Statements
+* Narrative Form
 
-A contract consists of one or more statements.
+A contract in /narrative form/ consists of one or more statements.
 
 Statements fall into one of the following categories:
 - Basic :: defines a term without reference to any other term.
 - Simple :: defines a term with reference to another term in the current contract.
 - External :: defines a term with reference only to an external definition, e.g. to a definition found in legislation. But without reference to any other term defined in the current contract.
-- Complex :: redefines a term defined elsewhere.
+- Complex :: refines or redefines a term defined elsewhere.
 - Compound :: defines a term with reference to more than one of the above.
 
 A complex term adds a *complication* to the contract. We borrow the word from horology: https://en.wikipedia.org/wiki/Complication_(horology).
 
-One of the stages of compilation converts the input list of statements to an intermediate representation. The intermediate representation preserves the semantics of the contract, but is organized in a different form; that is to say, it is a /reduction/ of the original input form.
+* Compact Form
 
-Subsequent reductions may eventually produce a [[https://en.wikipedia.org/wiki/Normal_form_(abstract_rewriting)][normal form]] of the contract in L4, which may then be further compiled to English or Ethereum.
+/Compact form/ offers an alternative representation to narrative form.
 
-* Progressive Refinement
+/Narrative form/ and /compact form/ are isomorphic. It is possible to losslessly convert from one form to the other, and back.
+
+In compact form, multiple narrative statements may be combined with the help of /syntactic sugar/ into denser statement expressions.
+
+* Normal Form
+
+The compiler converts narrative/compact form into an intermediate representation called [[https://en.wikipedia.org/wiki/Normal_form_(abstract_rewriting)][normal form]]. Normal form preserves the semantics of the contract, but is organized in a different way that is easier for computers to perform validation, scenario exploration, and natural language generation on.
+
+* Narrative Statements: Progressive Refinement
 
 Imagine a progressive GIF or JPEG, layering in more and more detail as the file transfers. This is an example of progressive refinement.
 
@@ -152,38 +160,170 @@ revised in subsequent statements.
 
 Why progressive refinement? Because of the limitations of human cognitive architecture: humans do not parse a text into symbol tables and syntax trees; they parse a text into characters and stories. Like buildings, stories have shape, texture, and detail: from a distance, only the outlines may be seen; as one approaches, finer details may appear, until eventually the mind grasps the whole.
 
-Progressive refinement, in contracts, implies /homoiconicity/: a contract must be able to modify itself, at compile time. A contract may begin with
+Let's look at some examples.
+
+** FizzBuzz
+
+In the following pseudocode snippet, a rule is progressively refined to cover exceptions, and exceptions to exceptions.
 
 #+BEGIN_SRC
-rule.attendance: <Employee> MUST reportToWork(at: 9am, every: day);
+Write a program that prints the numbers from 1 to 100.
 
-rule.attendance.exception "1": (every: day) except [isSaturday(), isSunday(), isHoliday()]
+But for multiples of three print "Fizz" instead of the number and for the multiples of five print "Buzz".
 
-rule.attendance.exception "2": unless company.declaredDayOff()
+For numbers which are multiples of both three and five print "FizzBuzz".
+#+END_SRC
 
-rule.attendance.exception "3": unless callingInSsick
+This offers a good example of the weakness of informal language. Can you spot the bug in the specification?
 
-rule.attendance.2.exception: unless essentialPersonnel()
+Are the ~but~ and ~and~ operators of equal precedence? Are they left- or right-associative? Do we assume [[https://en.wikipedia.org/wiki/Ellipsis_(linguistics)][ellipsis]]?
+
+If ~and~ binds tighter than ~but~, or if the operators are right-associative, then we interpret the statement (expanding the ellipsis) as
+
+#+BEGIN_SRC
+But (for multiples of three print "Fizz" instead of the number
+     and
+     for the multiples of five print "Buzz" instead of the number)
+#+END_SRC
+
+Here's an alternative interpretation:
+
+#+BEGIN_SRC
+(But for multiples of three print "Fizz" instead of the number)
+(and for the multiples of five print "Buzz")
+#+END_SRC
+
+The first interpretation produces ~1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz~.
+
+The second interpretation produces ~1 2 Fizz 4 5 Buzz Fizz 7 8 Fizz 10 Buzz 11 Fizz 13 14 15 FizzBuzz~.
+
+Maybe FizzBuzz is a shibboleth: it [[http://wiki.c2.com/?FizzBuzzTest][purports to test programming skill]], but secretly tests whether you're a native speaker of English.
+
+If you had no trouble following this argument, and you're now thinking about implicit bias, congratulations, you are an existence proof that programmers and lawyers think the same way about the same things.
+
+
+** Narrative Example: Attendance Rule
+
+This snippet illustrates L4's /rule syntax/ for an employment agreement.
+
+*** Informal Version
+
+Employees must start work by 9am every work day, excluding weekends and holidays, and excluding staff days off.
+
+On Fridays, employees can turn up at 10:30am instead of at 9am.
+
+But if the employee is management personnel, they don't get staff days off.
+
+If the employee is security personnel, they don't get any days off. They also don't have to turn up at the same time as everybody else; instead, they run on shifts which are scheduled separately from other staff.
+
+All employees can get the day off if they call in sick at least three hours prior to when they are supposed to start work.
+
+But if they have called in sick for more than 10 out of the last 30 days, their contract will be subject to review and termination.
+
+The stacking of one exception upon another may remind you of the "[[http://www.nyulawreview.org/issues/volume-83-number-4/critical-guide-vehicles-park][no vehicles in the park]]" problem; see also http://lesswrong.com/lw/ld/the_hidden_complexity_of_wishes/
+
+But, even with the limitations and imperfections implied by these problems, we are able to produce useful contracts.
+
+*** Narrative Form
+#+BEGIN_SRC
+data Employee = Employee { isStaffPersonnel      :: Bool
+                         , isManagementPersonnel :: Bool
+                         , isSecurityPersonnel   :: Bool
+                         , sickDays              :: [ Date ]
+                         , workDays              :: [ Date ]
+                         }
+
+action reportToWork Employee counterparty Company: push day Employee.workdays
+action callInSick   Employee counterparty Company: push day Employee.sickdays
+
+// the company is responsible for updating the contract with a shift roster,
+// the contents of which are not fully determined at contract compile time.
+// this is an example of contract incompleteness: the contract does not fully
+// specify every possible future, but instead defers certain futures, allocating
+// decision rights to one of the parties.
+dynamic shiftHours <Company> :: Employee -> Date -> Time
+
+rule "attendance" recurring daily: <employee> MUST reportToWork on day by starttime
+  where starttime = if day isFriday then 10:30am else 9am ("lateFriday")
+
+attendance exception "holiday": day isHoliday or day isSaturday or day isSunday
+attendance exception "daysoff": employee isStaffPersonnel and day isCompanyDeclaredStaffDayOff
+
+attendance.daysoff           exception "management": employee.isManagementPersonnel
+attendance.{daysoff,holiday} exception   "security":   employee.isSecurityPersonnel
+
+attendance modification "securityShifts": if Employee.isSecurityPersonnel
+                                          then starttime = shiftHours()
+
+attendance exception "sickleave": <employee> callInSick by starttime - 3h
+
+function sickDays :: Employee -> Int
+function sickDays = sum (\case True -> 1; False -> 0) filter \a -> a > (day - 30D)) (take 30 employee.sickDays)
+
+rule "extended illness" recurring daily:
+    IF   sickDays > 10 / 30
+    THEN <company> MAY terminateContract
+
+rule "too many shifts" recurring daily:
+    IF   workDays > 25 / 30
+    THEN <employee> MAY terminateContract
 
 #+END_SRC
 
-People with legal training will recognize the "[[http://www.nyulawreview.org/issues/volume-83-number-4/critical-guide-vehicles-park][no vehicles in the park]]" problem; see also http://lesswrong.com/lw/ld/the_hidden_complexity_of_wishes/
+In humans, childhood is a relatively brief phase of rapid development; most of one's lifetime is spent in adulthood, growing increasingly decrepit, and attempting to stave off the ravages of time but inevitably accruing various forms of debt.
 
-But, that's life, and we accept it.
+Similarly, [[https://pdfs.semanticscholar.org/7eee/629b22cd3db63296cac13a0c37cb0a7235f6.pdf][most of the costs of software lie in maintenance, not development]].
+
+The same is true for contract templates: initial drafting is brief, but contracts run for years. People dip in and out of templates, adding rules and exceptions as the need arises, or as the lessons of experience are learned.
+
+Therefore, narrative form optimizes for ease of modification.
+
+By thinly smearing the semantics of a contract across a relatively flat landscape, we miminize [[https://en.wikipedia.org/wiki/Connascence_(computer_programming)][connascence]] and [[https://en.wikipedia.org/wiki/Coupling_(computer_programming)][coupling]]. To test if their change broke anything, the end-user may rely on the scenario visualization and test-suite components of L4.
+
+*** Compact Form: Attendance Rule
+
+By contrast, compact form stacks syntax trees deeper, and is more taxing on human working memory, but may be a more efficient venue for debug-time inspection.
+
+L4's compiler transforms the narrative form into:
+
+#+BEGIN_SRC
+rule "attendance" periodic (every :: Date -> Bool, by :: Time) <employee>
+     | isSecurityPersonnel Employee   = MUST reportToWork (by: shiftHours())
+     | otherwise                      = MUST reportToWork (every: isWorkDay(), by: startTime(day))
+  where isWorkDay (employee :: Employee, day :: Date) :: Bool
+        | isManagementPersonnel employee = not (isHoliday day or isSaturday day or isSunday day)
+        | isStaffPersonnel employee      = not (isHoliday day or isSaturday day or isSunday day or companyDeclaredStaffDayOff day)
+        | isSecurityPersonnel employee   = const true
+        startTime (day :: Day) :: Time
+        | isFriday day   = 10:30am
+        | otherwise      =  9:00am
+
+dynamic shiftHours <Company> :: Employee -> Date -> Time
+
+rule "sickleave" (day :: Date) modifies attendance
+    if (attendance.isWorkDay())
+       <employee>
+       MAY   callInSick(date: day, by: reportToWork.by - 3h)
+       HENCE <company> MUST waive( attendance ) for current day
+
+rule "extended illness" recurring daily:
+    IF   sickDays > 10 / 30
+    THEN <company> MAY terminateContract
+
+rule "too many shifts" recurring daily:
+    IF   workDays > 25 / 30
+    THEN <employee> MAY terminateContract
+
+#+END_SRC
+
 
 * Reasoning By Example
 
-L4 statements may specify a set of specific examples, and then derive a rule generalizing those examples. There are risks to this approach of course but this also serves as an easy embedding of a test suite within the contract itself.
+L4 statements may specify a set of specific examples, and then derive a rule generalizing those examples.
 
-* Compile-time Homoiconicity
+There are risks to this approach of course but this also serves as an easy embedding of a test suite within the contract itself.
 
-
-
-* Run-time Homoiconicity
-
-A contract may specify that prior to a certain time, variable A may point to variable B; after a certain time, variable A may point to variable C.
-
-* Completeness through Deferral 
+* Completeness through Deferral
 
 The complete contract, according to the winners of 2016's Nobel Economics prize, is impossible. A contract cannot anticipate every possible future, even with the help of default clauses. But a contract can specify how the parties will work through unanticipated futures.
 
