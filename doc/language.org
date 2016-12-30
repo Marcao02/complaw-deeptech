@@ -2,10 +2,111 @@
 
 https://en.wikipedia.org/wiki/Cognitive_dimensions_of_notations
 
+* Goal
+
+The L4 toolchain aims to offer technically-minded end-users a programming environment in which to draft, simulate, and [[http://legal-dictionary.thefreedictionary.com/engrossing][engross]] legally binding contracts, both on and off blockchain.
+
+End-user personas include law students, technically minded lawyers, and programmers who want to produce their own contracts with minimal reliance on human consultancy. The latter category includes individuals filling the in-house counsel role within an enterprise; for example, the founder of an early-stage high tech startup faced with a situation requiring legal contracts, whose first instinct is not to reach for the phone, but to query a package manager.
+
+The toolchain includes a multi-stage compiler, which transforms L4 source code in /narrative form/ into a sequence of intermediate representations (including /CSL/), and finally to one or more target languages such as CommonAccord, English, or Ethereum bytecode.
+
+The toolchain includes a verifier which is responsible for assessing the validity of contracts. Yay automatic bugfinding!e
+
+The toolchain does not include an IDE. Development of an Emacs mode is left as an exercise for the community. :)
+
+It is envisioned that a library of L4 contracts will emerge to cover common scenarios faced by the user community.
+
+Such scenarios are grouped by /vertical/: NDAs, employment contracts, investment agreements, ESOPs.
+
+The library will also offer /horizontals/, organized by language, time, and jurisdiction. In the same way that a high level language modularizes and abstracts away the details of the underlying processor architecture, L4 makes it possible to adapt a contract to different languages or jurisdictions by changing a single ~import~ line. An employment contract should be able to import a horizontal for ~Quebec French 2017~, and compile; the same contract could import ~Singapore Chinese 2016~ or ~Delaware English 2015~, and produce different target representations that share essential semantics.
+
+* Smart Contracts
+
+We distinguish between on-blockchain smart contracts, and off-blockchain smart contracts.
+
+What counts as an on-blockchain smart contract? An Ethereum contract is the obvious example.
+
+What counts as an off-blockchain smart contract? An old-fashioned paper document, printed from a PDF, signed by hand with quill and ink, and subsequently scanned to Dropbox, is an off-blockchain smart contract, *if* the PDF ultimately originated in a specification written in a formal language, which was automatically transformed by software to the PDF, and could also be transformed by software into an alternative representation suitable for automated performance.
+
+Automated performance includes integration with existing computer-based production operation systems. For example, a contract may require a vendor to provide 20 gigaflops of computing capacity between 9am and 5pm; that requirement could flow into some vendor script which brings Amazon EC2 instances up and down accordingly.
+
+See also http://digitalchamber.org/assets/Smart-contracts-12-use-cases-for-business-and-beyond.pdf for a perspective on the smart contract spectrum.
+
+* Insights
+
+Lessig wrote: [[https://www.amazon.com/Code-Other-Laws-Cyberspace-Version/dp/0465039146/][code is law]]. Conversely, [[https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2511947][law is code]].
+
+What is software? A representation, in formal language, of the specification and implementation of processes that operate in a distributed context, performed on computers communicating over an electronic network. (Some software may be standalone, but nowadays the vast majority of interesting software runs on a network in some way.)
+
+What is a contract? A representation, in /informal/ language, of the specification and implementation of /business/ processes that operate in a distributed context, performed by parties communicating by registered mail, fax, or (nowadays) over an electronic network.
+
+So, software and contracts are structurally very similar. They specify distributed processes, detailing the obligations of different parties, and mechanisms for communication. (It is no surprise that [[https://en.wikipedia.org/wiki/Design_by_contract][design-by-contract]] is a thing.)
+
+What are the differences?
+
+** Formal vs Informal
+
+When lawyers draft contracts, they're trying to program, only they don't know any programming languages. So they program in English. And the history of corporate litigation can be read as a history of the problems with this approach. It is easy for parties to come to different interpretations, due to the absence of formal language. When parties want to get out of an agreement, they search for bugs that might invalidate the contract. And, when the relationships sours, they look for [[https://en.wiktionary.org/wiki/sploit][exploits]] which might confer some advantage.
+
+** Automated vs Manual Execution
+
+Business processes predate computers, so they historically ran on human labour. The "computer revolution" is a history of business processes switching from running on humans to running on machines. What industrial-era machines did to blue-collar jobs, post-industrial computers will do to white-collar jobs. The implications for the legal profession are described in [[https://www.amazon.com/Future-Professions-Technology-Transform-Experts/dp/0198713398][Susskind]].
+
+Software processes, once executed, can run without human involvement, modulo the ops team valiantly carrying the pager.
+
+Traditional, non-smart contracts specify business processes, with the assumption that humans are an integral component of governing and executing those processes.
+
+Smart contracts offer the promise of specifying business processes in a form which invite largely or wholly automated implementation and execution.
+
+** Snailmail vs Online Communication
+
+Required advertisements in a newspaper can be mapped to timestamped blockchain notices.
+
+Registered mail corresponds to a protocol for sending notices, with delivery confirmation: email or something like it.
+
+If parties to a contract are [[https://en.wikipedia.org/wiki/Actor_model][actors]], contractually stipulated notices are messages.
+
+* Claim
+
+The deep correspondences between software and contracts suggest the possibility of a unification.
+
+Unification can occur at several levels: from the underlying mathematics of modelling execution (a chip designer might say "ah, this is a problem in [[https://en.wikipedia.org/wiki/Communicating_sequential_processes][CSP]]; it reminds me of a Verilog plugin"), to formal language specification and natural language generation, to the social practices of offering opensource libraries.
+
+Software is eating the world. And software is eating law. But software is eating law in a different way than how software is eating transportation, or medical diagnostics; the approach here is to interpret law itself as software. So all the tools and techniques available in the software world apply directly to the legal world.
+
+* Programming in L4
+
+The remainder of this document is a tutorial and user guide to L4, for programmers.
+
+We begin by discussing the human practice of developing contracts.
+
+* Using Precedents
+
+Most traditional contracts are usually derived from other contracts, starting with copy-and-paste, followed by some manual editing. Programmers might be reminded of [[https://en.wikipedia.org/wiki/Cargo_cult_programming][cargo cult programming]].
+
+Over the past 20 years, the document assembly industry has attempted to improve this state of affairs using contract templates and libraries of standard clauses, combined using wizard-based user interfaces. Early efforts included Hotdocs and ContractExpress. Recent, more Internet-era efforts include [[http://commonform.github.io/][CommonForm]] and [[http://www.commonaccord.org/][CommonAccord]].
+
+These approaches are largely /syntactic/: they are competent template-based text planning systems, but there is no deep integration with the semantics of a contract: they will not tell you, for instance, if some inconsistency lies in wait in the future of a contract, triggered by some combination of events that require a party to do two incompatible things at the same time. They will not tell you if a proposed new contract violates some existing contract, or some existing legislation. Template systems depend on human smarts to anticipate these errors.
+
+In L4, a model contract is a function that takes a bunch of parameters. The end-user particularizes the contract by giving the contract the parameters it wants. The result is an instantiation of the contract which is ready for signature.
+
+In practice, the casual end-user is expected to choose a sample contract available in the repo; the sample contract imports a collection of libraries representing the relevant horizontal context and vertical domain; the end-user can then configure the contract in some visual IDE or old fashioned text editor, overriding default parameters as needed to particularize the contract for their situation; they can then compile the contract to the desired target language for execution.
+
+In other words, ~sample/nda.l4~ says ~import lib/uk.l4~. Copy ~sample/nda.l4~ to ~build/nda.l4~. Run ~bin/l4~ on ~build/nda.l4~ and get ~out/myco-nda-uk.pdf~.
+
+If the end-user wishes to specify a scenario which is not easily parameterized within the available sample contract, she may write code to represent the scenario, in the same way one might pass a first-class ~function~ as a parameter to another function. Such code has the full range of expressivity of a typical programming language: if/then/else, case statements, a variety of data types and built-in operators.
+
+We believe it will be easier for parties to communicate and negotiate the terms of a contract using the high-level representation, than by arguing over the wordsmithing of the "compiled form" natural language. Negotiating the semantics and syntax at the same time is a double challenge.
+
+A similar double challenge faces beginner drivers, who have to practice two things at once: externally, the rules of the road and interacting with other drivers, and internally, handling the clutch and the gearshift.
+
+A triple challenge was [[http://dev.stephendiehl.com/hask/][noted by Stephen Diehl]]: "In my opinion the fundamental fallacy of monad tutorials is not that intuition for monads is hard to convey ( nor are metaphors required! ), but that novices often come to monads with an incomplete understanding of points (1), (2), and (3) and then trip on the simple fact that monads are the first example of a Haskell construct that is the confluence of all three."
+
+Of course, we aren't getting rid of the double challenge entirely: instead of arguing about the expression in English, parties will argue about the expression in L4. And if L4 is hard to learn then we will have a huge adoption problem. We're gambling that most technically minded individuals will be able to grasp L4 /narrative syntax/ quickly enough to hit payoff, especially when the payoff is augmented by other useful tools like scenario visualization and automated bugfinding.
 
 * Contract Evolution
 
-A contract document evolves through several stages:
+Let's consider a situation where a contract is being drafted from scratch. Over time, during the course of editing, contract source code evolves through several stages:
 
 1. well-formed
 2. consistent
@@ -21,9 +122,9 @@ A *complete contract*, in addition to being consistent, is total: there does not
 
 A *compliant* contract, in addition to being complete, is /externally/ consistent with existing regulation and legislation, and with prior contracts.
 
-A *correct* contract, in addition to being compliant, represents the intent of the parties well enough that they would be willing to execute it.
+A *correct* contract, in addition to being compliant, represents the intent of the parties well enough that they would be willing to sign it.
 
-A contract evolves through the stages, usually by adding content, sometimes by taking away content.
+As a human "programmer" works on a contract, it usually evolves through the stages, usually by adding content, sometimes by taking away content.
 
 * Types of Statements
 
@@ -40,22 +141,39 @@ A complex term adds a *complication* to the contract. We borrow the word from ho
 
 One of the stages of compilation converts the input list of statements to an intermediate representation. The intermediate representation preserves the semantics of the contract, but is organized in a different form; that is to say, it is a /reduction/ of the original input form.
 
-Subsequent reductions may eventually produce a [[https://en.wikipedia.org/wiki/Normal_form_(abstract_rewriting)][normal form]] of the contract in L4, which may then be further compiled to 
+Subsequent reductions may eventually produce a [[https://en.wikipedia.org/wiki/Normal_form_(abstract_rewriting)][normal form]] of the contract in L4, which may then be further compiled to English or Ethereum.
 
-* Why Input Form?
+* Progressive Refinement
 
-Imagine a progressive GIF or JPEG.
+Imagine a progressive GIF or JPEG, layering in more and more detail as the file transfers. This is an example of progressive refinement.
 
-Legalese subscribes to the doctrine of progressive refinement, which is to say that the major points are given first in broad strokes, then revised in subsequent statements.
-
-Progressive refinement, in contracts, implies /homoiconicity/: a contract must be able to modify itself, at compile time.
+Narrative form obeys the doctrine of progressive refinement, which is to say that the major points are given first in broad strokes, then 
+revised in subsequent statements.
 
 Why progressive refinement? Because of the limitations of human cognitive architecture: humans do not parse a text into symbol tables and syntax trees; they parse a text into characters and stories. Like buildings, stories have shape, texture, and detail: from a distance, only the outlines may be seen; as one approaches, finer details may appear, until eventually the mind grasps the whole.
 
+Progressive refinement, in contracts, implies /homoiconicity/: a contract must be able to modify itself, at compile time. A contract may begin with
+
 #+BEGIN_SRC
-// example goes here
+rule.attendance: <Employee> MUST reportToWork(at: 9am, every: day);
+
+rule.attendance.exception "1": (every: day) except [isSaturday(), isSunday(), isHoliday()]
+
+rule.attendance.exception "2": unless company.declaredDayOff()
+
+rule.attendance.exception "3": unless callingInSsick
+
+rule.attendance.2.exception: unless essentialPersonnel()
 
 #+END_SRC
+
+People with legal training will recognize the "[[http://www.nyulawreview.org/issues/volume-83-number-4/critical-guide-vehicles-park][no vehicles in the park]]" problem; see also http://lesswrong.com/lw/ld/the_hidden_complexity_of_wishes/
+
+But, that's life, and we accept it.
+
+* Reasoning By Example
+
+L4 statements may specify a set of specific examples, and then derive a rule generalizing those examples. There are risks to this approach of course but this also serves as an easy embedding of a test suite within the contract itself.
 
 * Compile-time Homoiconicity
 
@@ -65,4 +183,8 @@ Why progressive refinement? Because of the limitations of human cognitive archit
 
 A contract may specify that prior to a certain time, variable A may point to variable B; after a certain time, variable A may point to variable C.
 
+* Completeness through Deferral 
 
+The complete contract, according to the winners of 2016's Nobel Economics prize, is impossible. A contract cannot anticipate every possible future, even with the help of default clauses. But a contract can specify how the parties will work through unanticipated futures.
+
+In L4, it is possible for a contract to describe a scenario as /deferred/. A /deferred/ scenario specifies a resolution mechanism for handling that scenario.
