@@ -1,0 +1,115 @@
+#+TITLE: HOWTO install Poets using Nix
+
+
+* Platform
+These instructions have been tested on Mac OS X El Capitan.
+
+* Install Nix Dependencies
+
+Install [[https://nixos.org/nix/][Nix]] and [[Nixpkgs]].
+
+On my system, I ~git cloned~ nixpkgs into a folder ~/src/nixpkgs.
+
+#+BEGIN_SRC sh
+  20170102-18:27:52 mengwong@venice2:~/src% git clone git@github.com:NixOS/nixpkgs.git
+#+END_SRC
+
+* It might be possible to do this without a local clone of nixpkgs
+
+we'll investigate this later -- editing .nixpkg/local might be lighterweight than installing nixpkgs.
+
+Some resources:
+
+- http://www.cse.chalmers.se/~bernardy/nix.html
+- http://stackoverflow.com/questions/27215302/use-cabal2nix-to-create-local-nix-environment-for-packages-that-arent-in-nixpkg
+- http://wiki.ocharles.org.uk/Nix
+- http://nixos.org/nixpkgs/manual/#users-guide-to-the-haskell-infrastructure
+- http://www.pavelkogan.com/2014/07/09/haskell-development-with-nix/#fn:1
+
+
+* Extend Nixpkgs with Poets
+
+Create a folder ~nixpkgs/pkgs/applications/misc/poets/~ and copy or ln ~defaults.nix~ into it. You will find ~defaults.nix~ in the same folder as this README.
+
+Also copy ~poets.cabal~ there.
+
+Edit ~pkgs/top-level/all-packages.nix~ to tell nix about the package.
+
+#+BEGIN_SRC
+poetsPackages = recurseIntoAttrs (callPackage ../applications/misc/poets { });
+#+END_SRC
+
+Yes, this is a little different to the usual ~callPackage~ line -- we're doing an entire package set, the way ~haskellPackages~ is a set of multiple packages.
+
+* Installing the REPL
+
+You should now be able to run this:
+
+#+BEGIN_SRC
+20170102-18:32:16 mengwong@venice2:~/src/nixpkgs% nix-env -f '.' -iA poetsPackages.legalesePoets
+#+END_SRC
+
+That's equivalent, BTW, to
+
+#+BEGIN_SRC
+20170102-18:34:45 mengwong@venice2:~/src/nixpkgs% export NIX_PATH=nixpkgs=/$HOME/src/nixpkgs
+
+20170102-18:36:06 mengwong@venice2:~/src/nixpkgs/pkgs/applications/misc% nix-env -f '<nixpkgs>' -iA poetsPackages.legalesePoets
+#+END_SRC
+
+Now Poets is installed, and available to Nix.
+
+* See if nix-shell ghci can import Poets.
+
+Are you able to import? You should be.
+
+#+BEGIN_SRC
+20170102-18:37:25 mengwong@venice2:~% NIX_PATH=nixpkgs=$HOME/src/nixpkgs nix-shell '<nixpkgs>' -A poetsPackages.legalesePoets 
+
+[nix-shell:~]$ ghc --version
+The Glorious Glasgow Haskell Compilation System, version 7.4.2
+
+[nix-shell:~]$ ghci
+GHCi, version 7.4.2: http://www.haskell.org/ghc/  :? for help
+Loading package ghc-prim ... linking ... done.
+Loading package integer-gmp ... linking ... done.
+Loading package base ... linking ... done.
+
+
+Prelude> import Poets.Contracts.Base
+Prelude Poets.Contracts.Base> 
+Leaving GHCi.
+#+END_SRC
+
+Unfortunately, due to the necessary aloofness of Nix, you probably won't be able to do this using your system-installed ~ghc~ -- you have to do it in the Nix context.
+
+* Now you can build the REPL.
+
+#+BEGIN_SRC
+20170102-18:41:38 mengwong@venice2:~/src/poets/src/repl% ll
+total 24
+drwxr-xr-x  3 mengwong  staff    102 Jan  2 18:21 ./
+drwxr-xr-x@ 7 mengwong  staff    238 Jan  2 18:24 ../
+-rw-r--r--  1 mengwong  staff  10225 Dec 27 19:52 REPL.hs
+
+20170102-18:41:39 mengwong@venice2:~/src/poets/src/repl% NIX_PATH=nixpkgs=/Users/mengwong/src/nixpkgs nix-shell '<nixpkgs>' -A poetsPackages.legalesePoets --command 'ghc REPL.hs'
+[1 of 1] Compiling Main             ( REPL.hs, REPL.o )
+Linking REPL ...
+
+20170102-18:42:17 mengwong@venice2:~/src/poets/src/repl% ./REPL
+Missing: -c contract.csl -o ontology.pce
+
+Usage: REPL -c contract.csl -o ontology.pce
+
+#+END_SRC
+
+* Over to you!
+
+That error message means the REPL is working.
+
+You should have a CSL and a PCE ready to play with. Use the REPL to play with them.
+
+* If you want to play Poets developer 
+
+Fork poets. Edit the ~poets~ derivation in ~default.nix~ to point to your forked repo. You now have enough rope to hang yourself.
+
