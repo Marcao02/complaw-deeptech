@@ -1,10 +1,10 @@
-# test
-{ pkgs, callPackage, stdenv, lib }:
-rec {
-
+{
+  allowBroken = true;
+  allowUnfree = true;
+  packageOverrides = super: let self = super.pkgs; in {
 
      legalesePoets =
-     pkgs.haskell.packages.ghc742.ghcWithPackages
+     self.haskell.packages.ghc742.ghcWithPackages
         (haskellPackages:
       let
         inherit (haskellPackages)
@@ -20,7 +20,7 @@ rec {
           libraryHaskellDepends = [ base unix ];
           homepage = "https://github.com/feuerbach/ansi-terminal";
           description = "Simple ANSI terminal support, with Windows compatibility";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
 
         ansi-wl-pprint = mkDerivation {
@@ -30,7 +30,7 @@ rec {
           libraryHaskellDepends = [ ansi-terminal base ];
           homepage = "http://github.com/ekmett/ansi-wl-pprint";
           description = "The Wadler/Leijen Pretty Printer for colored ANSI terminal output";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         bytestring-builder = mkDerivation {
           pname = "bytestring-builder";
@@ -38,7 +38,7 @@ rec {
           sha256 = "1hnvjac28y44yn78c9vdp1zvrknvlw98ky3g4n5vivr16rvh8x3d";
           libraryHaskellDepends = [ base bytestring deepseq ];
           description = "The new bytestring builder, packaged outside of GHC";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         call-stack = mkDerivation {
           pname = "call-stack";
@@ -48,7 +48,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/sol/call-stack#readme";
           description = "Use GHC call-stacks in a backward compatible way";
-          license = lib.licenses.mit;
+          license = self.stdenv.licenses.mit;
         };
         compdata = mkDerivation {
           pname = "compdata";
@@ -62,7 +62,7 @@ rec {
           ];
           doCheck = false;
           description = "Compositional Data Types";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         ConfigFile = mkDerivation {
           pname = "ConfigFile";
@@ -71,7 +71,7 @@ rec {
           libraryHaskellDepends = [ base containers MissingH mtl parsec ];
           homepage = "http://software.complete.org/configfile";
           description = "Configuration file reading & writing";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         cpphs = mkDerivation {
           pname = "cpphs";
@@ -112,7 +112,7 @@ rec {
           executableHaskellDepends = [ base ];
           homepage = "https://github.com/ndmitchell/derive#readme";
           description = "A program and library to derive instances for data types";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         equivalence = mkDerivation {
           pname = "equivalence";
@@ -124,7 +124,7 @@ rec {
           doCheck = false;
           homepage = "https://bitbucket.org/paba/equivalence/";
           description = "Maintaining an equivalence relation implemented as union-find using STT";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         ghc-paths = mkDerivation {
           pname = "ghc-paths";
@@ -132,7 +132,7 @@ rec {
           sha256 = "0ibrr1dxa35xx20cpp8jzgfak1rdmy344dfwq4vlq013c6w8z9mg";
           libraryHaskellDepends = [ base ];
           description = "Knowledge of GHC's installation directories";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         GraphSCC = mkDerivation {
           pname = "GraphSCC";
@@ -140,7 +140,7 @@ rec {
           sha256 = "1wbcx3wb02adb7l4nchxla3laliz0h5q074vfw4z0ic833k977bq";
           libraryHaskellDepends = [ array base containers ];
           description = "Tarjan's algorithm for computing the strongly connected components of a graph";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         hashable = mkDerivation {
           pname = "hashable";
@@ -152,7 +152,7 @@ rec {
           doCheck = false;
           homepage = "http://github.com/tibbe/hashable";
           description = "A class for types that can be converted to a hash value";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         haskell-src-exts = mkDerivation {
           pname = "haskell-src-exts";
@@ -165,7 +165,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/haskell-suite/haskell-src-exts";
           description = "Manipulating Haskell source: abstract syntax, lexer, parser, and pretty-printer";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         hslogger = mkDerivation {
           pname = "hslogger";
@@ -176,7 +176,7 @@ rec {
           ];
           homepage = "http://software.complete.org/hslogger";
           description = "Versatile logging framework";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         HTTP = mkDerivation {
           pname = "HTTP";
@@ -189,7 +189,7 @@ rec {
           jailbreak = true;
           homepage = "https://github.com/haskell/HTTP";
           description = "A library for client-side HTTP";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         HUnit = mkDerivation {
           pname = "HUnit";
@@ -199,7 +199,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/hspec/HUnit#readme";
           description = "A unit testing framework for Haskell";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         IndentParser = mkDerivation {
           pname = "IndentParser";
@@ -221,7 +221,7 @@ rec {
           doCheck = false;
           homepage = "http://software.complete.org/missingh";
           description = "Large utility library";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         mtl = mkDerivation {
           pname = "mtl";
@@ -230,7 +230,7 @@ rec {
           libraryHaskellDepends = [ base transformers ];
           homepage = "http://github.com/ekmett/mtl";
           description = "Monad classes, using functional dependencies";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         nats = mkDerivation {
           pname = "nats";
@@ -239,7 +239,7 @@ rec {
           libraryHaskellDepends = [ hashable ];
           homepage = "http://github.com/ekmett/nats/";
           description = "Natural numbers";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         network = mkDerivation {
           pname = "network";
@@ -249,7 +249,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/haskell/network";
           description = "Low-level networking interface";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         optparse-applicative = mkDerivation {
           pname = "optparse-applicative";
@@ -261,7 +261,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/pcapriotti/optparse-applicative";
           description = "Utilities and combinators for parsing command line options";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         parsec = mkDerivation {
           pname = "parsec";
@@ -271,7 +271,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/aslatter/parsec";
           description = "Monadic parser combinators";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         polyparse = mkDerivation {
           pname = "polyparse";
@@ -292,7 +292,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/haskell/primitive";
           description = "Primitive memory-related operations";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         QuickCheck = mkDerivation {
           pname = "QuickCheck";
@@ -304,7 +304,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/nick8325/quickcheck";
           description = "Automatic testing of Haskell programs";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         random = mkDerivation {
           pname = "random";
@@ -313,7 +313,7 @@ rec {
           libraryHaskellDepends = [ base time ];
           doCheck = false;
           description = "random number library";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         regex-base = mkDerivation {
           pname = "regex-base";
@@ -323,7 +323,7 @@ rec {
           jailbreak = true;
           homepage = "http://sourceforge.net/projects/lazy-regex";
           description = "Replaces/Enhances Text.Regex";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         regex-compat = mkDerivation {
           pname = "regex-compat";
@@ -332,7 +332,7 @@ rec {
           libraryHaskellDepends = [ array base regex-base regex-posix ];
           homepage = "http://sourceforge.net/projects/lazy-regex";
           description = "Replaces/Enhances Text.Regex";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         regex-posix = mkDerivation {
           pname = "regex-posix";
@@ -343,7 +343,7 @@ rec {
           ];
           homepage = "http://sourceforge.net/projects/lazy-regex";
           description = "Replaces/Enhances Text.Regex";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         semigroups = mkDerivation {
           pname = "semigroups";
@@ -352,7 +352,7 @@ rec {
           libraryHaskellDepends = [ base bytestring-builder hashable nats tagged text transformers unordered-containers ];
           homepage = "http://github.com/ekmett/semigroups/";
           description = "Anything that associates";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         STMonadTrans = mkDerivation {
           pname = "STMonadTrans";
@@ -360,7 +360,7 @@ rec {
           sha256 = "05d37ax0j8dp1h1w6pxkf1415mzn4gasdhn7gbsr8ay46iv1r4fr";
           libraryHaskellDepends = [ array base mtl ];
           description = "A monad transformer version of the ST monad";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         syb = mkDerivation {
           pname = "syb";
@@ -370,7 +370,7 @@ rec {
           doCheck = false;
           homepage = "http://www.cs.uu.nl/wiki/GenericProgramming/SYB";
           description = "Scrap Your Boilerplate";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         tagged = mkDerivation {
           pname = "tagged";
@@ -381,7 +381,7 @@ rec {
           ];
           homepage = "http://github.com/ekmett/tagged";
           description = "Haskell 98 phantom types to avoid unsafely passing dummy arguments";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         text =mkDerivation {
           pname = "text";
@@ -393,7 +393,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/bos/text";
           description = "An efficient packed Unicode text type";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         tf-random = mkDerivation {
           pname = "tf-random";
@@ -401,7 +401,7 @@ rec {
           sha256 = "0445r2nns6009fmq0xbfpyv7jpzwv0snccjdg7hwj4xk4z0cwc1f";
           libraryHaskellDepends = [ base primitive random time ];
           description = "High-quality splittable pseudorandom number generator";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         th-expand-syns = mkDerivation {
           pname = "th-expand-syns";
@@ -410,7 +410,7 @@ rec {
           libraryHaskellDepends = [ base containers syb template-haskell ];
           doCheck = false;
           description = "Expands type synonyms in Template Haskell ASTs";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         thrift = mkDerivation {
           pname = "thrift";
@@ -433,7 +433,7 @@ rec {
           editedCabalFile = "4ec3dd53be60415dad46e00ec6c7f78bdc37dcda1670cf5abe5c480719b78b60";
           libraryHaskellDepends = [ base ];
           description = "Concrete functor and monad transformers";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         transformers-compat = mkDerivation {
           pname = "transformers-compat";
@@ -442,7 +442,7 @@ rec {
           libraryHaskellDepends = [ base ghc-prim transformers mtl ];
           homepage = "http://github.com/ekmett/transformers-compat/";
           description = "A small compatibility shim exposing the new types from transformers 0.3 and 0.4 to older Haskell platforms.";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         uniplate = mkDerivation {
           pname = "uniplate";
@@ -453,7 +453,7 @@ rec {
           ];
           homepage = "http://community.haskell.org/~ndm/uniplate/";
           description = "Help writing simple, concise and fast generic operations";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         unordered-containers = mkDerivation {
           pname = "unordered-containers";
@@ -463,7 +463,7 @@ rec {
           doCheck = false;
           homepage = "https://github.com/tibbe/unordered-containers";
           description = "Efficient hashing-based container types";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         wl-pprint = mkDerivation {
           pname = "wl-pprint";
@@ -471,7 +471,7 @@ rec {
           sha256 = "166zvk4zwn2zaa9kx66m1av38m34qp6h4i65bri2sfnxgvx0700r";
           libraryHaskellDepends = [ base ];
           description = "The Wadler/Leijen Pretty Printer";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
         xml = mkDerivation {
           pname = "xml";
@@ -480,7 +480,7 @@ rec {
           libraryHaskellDepends = [ base bytestring text ];
           homepage = "http://code.galois.com";
           description = "A simple XML library";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
 
 
@@ -491,26 +491,26 @@ rec {
   
           src = let
 
-#             repo = pkgs.fetchhg {
+#             repo = self.fetchhg {
 #               url = "https://bitbucket.org/jespera/poets";
 #               rev = "c0ee7194ce57d2ad6ca8894c8a44e88e546d5f4a";
 #               sha256 = "10d5r7r8wzzcna02b1qciwvyhxavnzgz3wkjjvi4cvxk8avg4his";
 #             };
  
-             repo = pkgs.fetchgit {
+             repo = self.fetchgit {
                 url    = "https://github.com/legalese/poets.git";
                 rev    = "a96217bfd92ba1e9247ca5d321fdc139a65bfc68";
 #                date   = "2016-12-27T15:59:06+08:00";
                 sha256 = "1iqnjypp8f6m3626nqh2fvzl5a5rbd6lxm8qsc0igmh230hpr76j";
              };
 
-           in pkgs.stdenv.mkDerivation {
+           in self.stdenv.mkDerivation {
              name = "poets-dir-plz";
-             builder = pkgs.writeScript "builder.sh" ''
-               ${pkgs.coreutils}/bin/mkdir -p $out
-               ${pkgs.coreutils}/bin/cp -r ${repo}/src/haskell/* $out
-               ${pkgs.coreutils}/bin/chmod a+w $out/poets.cabal
-               ${pkgs.coreutils}/bin/cp ${./poets.cabal} $out/poets.cabal
+             builder = self.writeScript "builder.sh" ''
+               ${self.coreutils}/bin/mkdir -p $out
+               ${self.coreutils}/bin/cp -r ${repo}/src/haskell/* $out
+               ${self.coreutils}/bin/chmod a+w $out/poets.cabal
+               ${self.coreutils}/bin/cp ${./poets.cabal} $out/poets.cabal
              '';
            };
  
@@ -523,7 +523,7 @@ rec {
             time wl-pprint xml
           ];
           description = "The POETS project";
-          license = lib.licenses.mit;
+          license = self.stdenv.licenses.mit;
         };
         bifunctors = mkDerivation {
           pname = "bifunctors";
@@ -537,10 +537,37 @@ rec {
           doCheck = false;
           homepage = "http://github.com/ekmett/bifunctors/";
           description = "Bifunctors";
-          license = lib.licenses.bsd3;
+          license = self.stdenv.licenses.bsd3;
         };
 
 
+#      test1HaskellEnv =
+#      self.haskell.packages.ghc742.ghcWithPackages
+#         (haskellPackages: with haskellPackages; [
+#            mtl QuickCheck random text alex cpphs happy ghc-paths
+#               # or anything you like.
+#         ]);
+# 
+})));
+        
+#      test2HaskellEnv = self.haskell.packages.ghc742.ghcWithPackages (haskellPackages:
+#       let
+#         inherit (haskellPackages)
+#           base unix bytestring deepseq containers template-haskell
+#           directory filepath pretty process array old-locale
+#           old-time time ghc-prim happy integer-gmp binary
+#           mkDerivation functor-infix bifunctors;
+#       in (builtins.attrValues (rec { 
+#         ansi-terminal = mkDerivation {
+#           pname = "ansi-terminal";
+#           version = "0.6.2.3";
+#           sha256 = "0hpfw0k025y681m9ml1c712skrb1p4vh7z5x1f0ci9ww7ssjrh2d";
+#           libraryHaskellDepends = [ base unix ];
+#           homepage = "https://github.com/feuerbach/ansi-terminal";
+#           description = "Simple ANSI terminal support, with Windows compatibility";
+# #          license = self.licenses.bsd3;
+#         };
+# })));
 #      test3HaskellEnv =
 #      pkgs.haskell.packages.ghc742.ghcWithPackages
 #         (haskellPackages: with haskellPackages; [
@@ -548,7 +575,6 @@ rec {
 #               # or anything you like.
 #         ]);
 #         
-})));
 
-        }
-        
+  };
+}
