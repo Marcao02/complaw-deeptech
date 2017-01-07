@@ -7,7 +7,7 @@
 use strict;
 my $testdir = "tests";
 
-my @repl_cmd = qw(./repl2 -c SuperSimpleNote.csl -o SuperSimpleNote.pce);
+my @repl_cmd = @ARGV ? @ARGV : qw(./REPL -c SuperSimpleNote.csl -o SuperSimpleNote.pce);
 
 use IPC::Open3;
 

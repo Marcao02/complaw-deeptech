@@ -19,7 +19,6 @@ Debt has an Agent called investor.
 Debt has an Agent called company.
 
 ElectionResponse is abstract.
-ElectionResponse has an Agent called respondent.
 ElectionResponse has an ElectionChoice called choice.
 
 Payment is abstract.

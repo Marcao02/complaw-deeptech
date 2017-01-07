@@ -14,7 +14,7 @@ entity ACRA     = Agent "ACRA Singapore"
 data ElectionChoice = Equity | Fiat
 
 -- -- actions which can occur during the contract. note that these actions do not include a <responsibleParty> term
--- -- .oO is the event observation operator, also called the oracle operator
+-- -- .oO is the event observation oerator, also called the oracle operator
 data ElectionResponse = (respondent : Agent, choice : ElectionChoice)
 data CompanySale      = (elector : Agent, subject : Agent)
 data Adjustment       = (resource : Ratio)
@@ -44,14 +44,13 @@ main ConvertibleNote = ConditionsPrecedent( principal        = S$347.45
 -- we express conditions precedent as a clause which loops, waiting for the entry conditions to be met.
 -- in a more elaborated version of this contract we would introduce an expiration date to the loop, so it counts down.
        
-§ ConditionsPrecedent principal investor conversionprice third maturitydiscount noteterm
-    = (Payment =investor =third =principal
-       or
-       Payment =investor =company =principal) ->
-        PreMaturity principal noteterm investor conversionprice (maturityComplement maturitydiscount)
-    due immediately
-    else ConvertibleNote principal investor conversionprice third maturitydiscount noteterm
-
+§ ConditionsPrecedent principal investor conversionprice third maturitydiscount noteterm =
+    (Payment =investor =third   =principal
+      or
+     Payment =investor =company =principal) ->
+    PreMaturity principal noteterm investor conversionprice (maturityComplement maturitydiscount)
+     due immediately
+ 
 -- a clause is declared with a list of input arguments bound to the body of the clause,
 -- and optionally one or more LABELS identifying responsible parties to whom the system assigns blame if the clause should fail
 -- note that the types of the input arguments are inferred from their use in the body of the clause.
@@ -65,10 +64,10 @@ main ConvertibleNote = ConditionsPrecedent( principal        = S$347.45
 
 § PreMaturity balance timer investor shareprice maturitycoe
     | balance > 0
-  = Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) z
-  | AdjustmentEvent .oO .ratio                     -> PreMaturity deadline=z shareprice=(shareprice / ratio)
-  | CompanySale     .oO =company =company          -> OnCompanySale balance investor shareprice
-  | IssueSecurities .oO from=company to=investor shares=(balance / shareprice) -> YAY
+  =  Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) z
+  || AdjustmentEvent .oO .ratio                     -> PreMaturity deadline=z shareprice=(shareprice / ratio)
+  || CompanySale     .oO =company =company          -> OnCompanySale balance investor shareprice
+  || IssueSecurities .oO from=company to=investor shares=(balance / shareprice) -> YAY
   deadline timer, remaining z
   else PostMaturity balance investor shareprice maturitycoe
 
