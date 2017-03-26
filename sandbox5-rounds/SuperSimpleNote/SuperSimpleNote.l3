@@ -41,9 +41,6 @@ main ConvertibleNote = ConditionsPrecedent( principal        = S$347.45
                                           , maturitydiscount = 0.3,
                                           , noteterm         = 36M) <Legalese>
 
--- we express conditions precedent as a clause which loops, waiting for the entry conditions to be met.
--- in a more elaborated version of this contract we would introduce an expiration date to the loop, so it counts down.
-       
 § ConditionsPrecedent principal investor conversionprice third maturitydiscount noteterm =
     (Payment =investor =third   =principal
       or
@@ -51,17 +48,6 @@ main ConvertibleNote = ConditionsPrecedent( principal        = S$347.45
     PreMaturity principal noteterm investor conversionprice (maturityComplement maturitydiscount)
      due immediately
  
--- a clause is declared with a list of input arguments bound to the body of the clause,
--- and optionally one or more LABELS identifying responsible parties to whom the system assigns blame if the clause should fail
--- note that the types of the input arguments are inferred from their use in the body of the clause.
--- 
--- if a <responsibleParty> label is present in the declaration, then the clause is an obligation clause
--- otherwise, the clause is a choice clause.
--- a choice clause may be internal or external.
--- an external choice clause represents some event that may have occurred.
--- L4 offers your contract a way to observe the parameters of such events.
--- 
-
 § PreMaturity balance timer investor shareprice maturitycoe
     | balance > 0
   =  Payment         .oO =company =investor .amount -> PreMaturity (balance - .amount) z
@@ -71,19 +57,7 @@ main ConvertibleNote = ConditionsPrecedent( principal        = S$347.45
   deadline timer, remaining z
   else PostMaturity balance investor shareprice maturitycoe
 
--- a clause is defined with optional guards, a body, a deadline tuple, and usually a call to some else clause
--- the body of the clause comes between the = and the deadline.
--- the body may contain predicates representing logical disjunction and conjunction
--- the body may contain a switch statement
--- the consequents of a body may be an obligation clause, or an action.
--- a responsible party may be labeled in the action. if there is no responsibility label, then the existing responsible party is assumed.
--- 
--- if there is no else clause, and the deadline passes, then the responsible party is in breach.
-
--- guards offer an easy way to elaborate clause behaviour under different conditions
-
 § PreMaturity | balance == 0 = YAY
-
 § PreMaturity | balance < 0  = <investor> Payment investor company abs(balance) -- investor must refund the excess payment
 
 § PostMaturity balance investor shareprice maturitycoe
@@ -97,4 +71,32 @@ main ConvertibleNote = ConditionsPrecedent( principal        = S$347.45
     |-         choice=Equity -> IssueSecurities shares=(balance ÷ conversionPrice)
     |- default choice=Fiat   -> Payment         from=company to=investor amount=(liquidationPreference * balance)
   deadline 1W
+
+
+-- we express conditions precedent as a clause which loops, waiting for the entry conditions to be met.
+-- in a more elaborated version of this contract we would introduce an expiration date to the loop, so it counts down.
+       
+
+-- a clause is declared with a list of input arguments bound to the body of the clause,
+-- and optionally one or more LABELS identifying responsible parties to whom the system assigns blame if the clause should fail
+-- note that the types of the input arguments are inferred from their use in the body of the clause.
+-- 
+-- if a <responsibleParty> label is present in the declaration, then the clause is an obligation clause
+-- otherwise, the clause is a choice clause.
+-- a choice clause may be internal or external.
+-- an external choice clause represents some event that may have occurred.
+-- L4 offers your contract a way to observe the parameters of such events.
+-- 
+
+
+-- a clause is defined with optional guards, a body, a deadline tuple, and usually a call to some else clause
+-- the body of the clause comes between the = and the deadline.
+-- the body may contain predicates representing logical disjunction and conjunction
+-- the body may contain a switch statement
+-- the consequents of a body may be an obligation clause, or an action.
+-- a responsible party may be labeled in the action. if there is no responsibility label, then the existing responsible party is assumed.
+-- 
+-- if there is no else clause, and the deadline passes, then the responsible party is in breach.
+
+-- guards offer an easy way to elaborate clause behaviour under different conditions
 
