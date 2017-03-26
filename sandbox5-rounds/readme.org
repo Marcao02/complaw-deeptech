@@ -134,7 +134,7 @@ ABOUT LEST
 
   if c1 = (c1a  OR c1b) the due deadline d1 is resolved as the later   deadline of c1a, c2a.
 
-  the deadline resolution is recursive.
+  the deadline resolution is recursive. see subclause unfolding relations in Hvitved p.46
 
 #+BEGIN_SRC yaml
 

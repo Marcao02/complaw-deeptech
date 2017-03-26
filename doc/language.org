@@ -147,9 +147,13 @@ A complex term adds a *complication* to the contract. We borrow the word from ho
 
 In compact form, multiple narrative statements may be combined with the help of /syntactic sugar/ into denser statement expressions.
 
+Together, Narrative and Compact Form are the source formats for the natural language generation component.
+
 * Normal Form
 
-The compiler converts narrative/compact form into an intermediate representation called [[https://en.wikipedia.org/wiki/Normal_form_(abstract_rewriting)][normal form]]. Normal form preserves the semantics of the contract, but is organized in a different way that is easier for computers to perform validation, scenario exploration, and natural language generation on.
+The compiler converts narrative/compact form into an intermediate representation called [[https://en.wikipedia.org/wiki/Normal_form_(abstract_rewriting)][normal form]]. Normal form preserves the semantics of the contract, but is organized in a different way that is easier for computers to perform validation and scenario exploration.
+
+Normal form is fully expanded.
 
 * Narrative Statements: Progressive Refinement
 
@@ -317,8 +321,9 @@ rule "too many shifts" recurring daily:
 #+END_SRC
 
 
-* Reasoning By Example
+* Normal Form
 
+* Reasoning By Example
 L4 statements may specify a set of specific examples, and then derive a rule generalizing those examples.
 
 There are risks to this approach of course but this also serves as an easy embedding of a test suite within the contract itself.
