@@ -1,15 +1,12 @@
-instance LexShallEng of LexShall = open SyntaxEng, ParadigmsEng, IrregEng in {
+instance LexShallEng of LexShall = open SyntaxEng, ParadigmsEng, IrregEng, ExtraEng in {
   oper
-    shall_VV = mkVV (mkV "shall");
-    mustNot_VV = mkVV (mkV "shall not"); -- TODO: use Polarity
-    may_VV = mkVV (mkV "may");
-
-    Alice_PN = mkPN "Alice";
-    Bob_PN   = mkPN "Bob";
-    Carol_PN = mkPN "Carol";
-
+    may = may_VV;
     pay_V = mkV "pay";
-    ship_V2 = mkV2 "ship";
-    goods_N = mkN "goods" "goods";
+    shipGoods_VP = mkVP (mkV2 "ship") (mkNP (mkN "goods" "goods"));
+
+    partyname p = mkPN (case p.order of {
+                             FnFirst => (p.prenom ++ p.surname )
+                           ; SnFirst => (p.surname ++ p.prenom )
+                            });
 }
 

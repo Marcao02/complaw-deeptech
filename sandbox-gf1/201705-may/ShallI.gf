@@ -3,21 +3,32 @@ incomplete concrete ShallI of Shall =
   lincat
     Contract = Utt ;
     Party = NP ;
-    Deontic = VV ;
+    Deontic = Deon ;
     Action = VP;
   lin
-    Pred alice must pay = mkUtt (mkCl alice must pay);
+    Pred alice deon pay = mkUtt (mkS (mkTemp presentTense simultaneousAnt)
+                                     deon.pol
+                                     (mkCl alice deon.vv pay));
 
-    Shall   = shall_VV;
-    MustNot = mustNot_VV; -- switch this to use Polarity
-    May     = may_VV;
+    Shall   = { d = Oblig; pol = positivePol; vv = must_VV };
+    May     = { d = Perm; pol = positivePol; vv =  may    };
+    MustNot = { d = Forb; pol = negativePol; vv = must_VV };
 
     Alice   = mkNP Alice_PN;
     Bob     = mkNP Bob_PN;
     Carol   = mkNP Carol_PN;
     
     Pay     = mkVP pay_V;
-    ShipGoods = mkVP ship_V2 (mkNP goods_N);
+    ShipGoods = shipGoods_VP;
+  oper
+    -- decompose logic properly to have a Bool and a Deon
+    -- the Bool should also work for other logics like Temporal
+    Deon : Type = { d   : DOp
+                  ; pol : Pol
+                  ; vv  : VV
+    };
+  param
+    DOp = Oblig | Forb | Perm ;
 }
 
     

@@ -1,14 +1,19 @@
 interface LexShall = open Syntax in {
   oper
-    shall_VV   : VV;
-    mustNot_VV : VV;
-    may_VV     : VV;
+    Party : Type = { prenom  : Str
+                   ; surname : Str
+                   ; order   : NameOrder
+    };
+    partyname   : Party -> PN;
 
-    Alice_PN   : PN;
-    Bob_PN     : PN;
-    Carol_PN   : PN;
+    Alice_PN = partyname Alice;
+    Bob_PN   = partyname Bob;
+    Carol_PN = partyname Carol;
 
-    pay_V      : V ;
-    ship_V2    : V2;
-    goods_N    : N ;
+    Alice = { prenom="Alice" ; surname="Angle"        ; order = FnFirst }; 
+    Bob   = { prenom="Bill"  ; surname="Baobean"      ; order = SnFirst }; 
+    Carol = { prenom="Carol" ; surname="Cryptologist" ; order = FnFirst }; 
+
+  param
+    NameOrder = FnFirst | SnFirst;
 }
