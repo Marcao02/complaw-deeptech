@@ -14,9 +14,9 @@ incomplete concrete ShallI of Shall =
     May     = { d = Perm; pol = positivePol; vv =  may    };
     MustNot = { d = Forb; pol = negativePol; vv = must_VV };
 
-    Alice   = mkNP Alice_PN;
-    Bob     = mkNP Bob_PN;
-    Carol   = mkNP Carol_PN;
+    Alice   = mkNP (partyname Alice_P);
+    Bob     = mkNP (partyname Bob_P);
+    Carol   = mkNP (partyname Carol_P);
     
     Pay     = mkVP pay_V;
     ShipGoods = shipGoods_VP;
