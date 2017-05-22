@@ -21,15 +21,18 @@ interface LexGruter = open Syntax in {
     easypay : VV;
 
     partyname : P_Party -> NP;
+    partyname p = mkNP (mkPN (case p.order of {
+                                FnFirst => (p.prenom ++ p.surname ) ;
+                                SnFirst => (p.surname ++ p.prenom )
+                                }));
 
-    P_the_sun : NP;
-    P_shines  : V;
+    P_the_sun  : NP;
+    P_shines   : V;
     P_the_moon : NP;
-    P_blue    : A;
+    P_blue     : A;
     
   param
     NameOrder = FnFirst | SnFirst;
-
 
     {- DEONTIC LOGIC -}
   oper

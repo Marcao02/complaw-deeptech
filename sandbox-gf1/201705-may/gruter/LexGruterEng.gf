@@ -12,11 +12,6 @@ instance LexGruterEng of LexGruter =
 
     P_pay_V      = mkV "pay";
 
-    partyname p = mkNP (mkPN (case p.order of {
-                          FnFirst => (p.prenom ++ p.surname )
-                            ; SnFirst => (p.surname ++ p.prenom )
-                                }));
-
     P_the_sun = mkNP the_Det (mkN "sun");
     P_shines  = mkV "shine";
     P_blue    = mkA "blue";

@@ -2,7 +2,7 @@
 -- functor for Gruter L4
 
 incomplete concrete GruterI of Gruter =
-  open Syntax, LexGruter
+  open Syntax, Sentence, LexGruter
   in {
   lincat
     Contract = Utt;
@@ -13,7 +13,7 @@ incomplete concrete GruterI of Gruter =
     ActionExp = Cl;
   lin
     Clause when party deon act actexp =
-      mkUtt (mkS when
+      mkUtt (ExtAdvS when
                (mkS
                   (mkTemp presentTense simultaneousAnt)
                   deon.pol
