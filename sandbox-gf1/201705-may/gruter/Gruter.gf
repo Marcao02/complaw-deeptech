@@ -16,7 +16,8 @@ abstract Gruter = {
     Deontic;
 
     -- domain-specific action expressions
-    Action; ActionExp;
+    ActionKind; -- dependently typed
+    Action ActionKind; ActionExp ActionKind;
 
  {- todo
     -- temporal logic
@@ -36,17 +37,23 @@ abstract Gruter = {
 -}
 
   fun
-    Clause                      : WhenPredicate
-                               -> Party
-                               -> Deontic
-                               -> Action
-                               -> ActionExp
-                               -> Contract;
+    Clause
+      :  WhenPredicate
+      -> Party
+      -> Deontic
+      -> (k : ActionKind)
+      -> Action k
+      -> ActionExp k
+      -> Contract;
+
     Always, BlueMoon            : WhenPredicate;
     Shall, MustNot, May         : Deontic;
     Party_A, Party_B, Party_C   : Party;
-    Pay_Act, Deliver_Act        : Action;
-    Pay_Exp, Deliver_Exp        : ActionExp;
+    Pay_Kind, Deliver_Kind      : ActionKind;
+    Pay_Act                     : Action Pay_Kind;
+    Deliver_Act                 : Action Deliver_Kind;
+    Pay_Exp                     : ActionExp Pay_Kind;
+    Deliver_Exp                 : ActionExp Deliver_Kind;
 --    Before_T                          : Temporal_Deadline;
  }
  

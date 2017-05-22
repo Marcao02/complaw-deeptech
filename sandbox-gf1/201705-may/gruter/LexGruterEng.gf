@@ -4,8 +4,9 @@ instance LexGruterEng of LexGruter =
   oper
     
     P_deliver_V2 = mkV2 "deliver";
-    P_things_N   = mkN "things";
+    P_things_NP  = mkNP the_Quant pluralNum (mkN "thing");
     P_correct_A  = mkA "correct";
+    P_hot_A      = mkA "hot";
     P_pay_N      = mkN "payment";
 
     easypay = may_VV;
@@ -17,4 +18,6 @@ instance LexGruterEng of LexGruter =
     P_blue    = mkA "blue";
     P_the_moon = mkNP the_Det (mkN "moon");
 
+    where_Subj = mkSubj "where";
+    
 }
