@@ -5,21 +5,24 @@ incomplete concrete GruterI of Gruter =
   open Syntax, Sentence, LexGruter
   in {
   lincat
-    Contract = Utt;
+    Contract = Text;
     WhenPredicate = Adv;
     Party = NP;
     Deontic = Deon;
     Action = VP;
     ActionExp = Cl;
-    ActionKind = { s : Str };
+    ActionKind = { }; -- dependent type disambiguation
   lin
     Clause when party deon kind act actexp =
-      mkUtt (ExtAdvS when
+      let main_act : S = 
+            mkS (mkTemp presentTense simultaneousAnt)
+            deon.pol
+            (mkCl party deon.vv act)
+      in
+      mkText (ExtAdvS when
                (case deon.d of {
-                 Oblig =>
-                   RelS (main_act party deon act) (mkRS (mkRCl actexp));
-                 _ => 
-                   SSubjS (main_act party deon act) where_Subj (mkS actexp)
+                 Oblig => RelS   main_act (mkRS (mkRCl actexp));
+                 _     => SSubjS main_act where_Subj (mkS actexp)
                })
       );
 
@@ -37,17 +40,9 @@ incomplete concrete GruterI of Gruter =
     MustNot = P_MustNot;
     May     = P_May;
 
-    Pay_Kind = { s = "payment" };
-    Deliver_Kind = { s = "delivery" };
-    
-    Always = mkAdv if_Subj (mkS (mkCl P_the_sun P_shines));
+    Always   = mkAdv   if_Subj (mkS (mkCl P_the_sun  P_shines));
     BlueMoon = mkAdv when_Subj (mkS (mkCl P_the_moon P_blue));
 
-  oper
-    main_act : NP -> Deon -> VP -> S;
-    main_act party deon act =
-            mkS (mkTemp presentTense simultaneousAnt)
-            deon.pol
-      (mkCl party deon.vv act);
-    
+    -- these are only used for disambiguating dependent types
+    Pay_Kind, Deliver_Kind = <>;
 }

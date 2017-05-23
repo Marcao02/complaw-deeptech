@@ -27,7 +27,6 @@ interface LexGruter = open Syntax in {
                                 }));
 
     P_the_sun   : NP;
-    P_shines    : V;
     P_the_moon  : NP;
     P_blue      : A;
     P_hot_A     : A;

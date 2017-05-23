@@ -14,7 +14,7 @@ instance LexGruterEng of LexGruter =
     P_pay_V      = mkV "pay";
 
     P_the_sun = mkNP the_Det (mkN "sun");
-    P_shines  = mkV "shine";
+    P_shines  = mkA "shining";
     P_blue    = mkA "blue";
     P_the_moon = mkNP the_Det (mkN "moon");
 
