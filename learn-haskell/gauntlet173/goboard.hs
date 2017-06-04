@@ -31,7 +31,8 @@ board1 = mkBoard [ Empty, Black, Empty, White
 data Verbosity = Regular | Verbose deriving Eq
 
 showBoard :: Board -> Verbosity -> String
-showBoard board v = let eachf = if v == Verbose then verbose else eachelem
+showBoard board v = let eachf = case v of Verbose -> verbose
+                                          _       -> eachelem
                     in allrows eachf
     where allrows ef   = unlines [ eachrow ef y | y <- [y_origin .. y_max] ]
           eachrow ef y = concat  [ ef       x y | x <- [x_origin .. x_max] ]
@@ -93,12 +94,10 @@ data CountedBoard = CountedBoard { board :: Board
 printCB :: CountedBoard -> IO ()
 printCB cb = do
   putStrLn "-------------- RESULTS -----------"
-  putStrLn $ unlines $ concat $ do
+  putStrLn $ unlines $ do
     (color, cstring) <- [(white, "white"), (black, "black")]
-    let groups = color cb
-    return $ do
-      g <- groups
-      return $ "- there is a "++ (show $ length g) ++ "-element " ++ cstring ++ " group at " ++ show g
+    group <- color cb
+    return $ "- there is a "++ (show $ length group) ++ "-element " ++ cstring ++ " group at " ++ show group
   printBoard $ board cb
                   
 -- count all the groups in a board
