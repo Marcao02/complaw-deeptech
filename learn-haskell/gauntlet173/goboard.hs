@@ -175,43 +175,40 @@ main = do
   printCB $! countBoard board1
          
 {-
-*Main> printCB $! countBoard board1
+20170604-20:55:08 mengwong@venice2:~/non-db-src/l/compiler/learn-haskell/gauntlet173% ./goboard
 revBoard found a Black at (1,2); finding all connected cells.
-revBoard uncovered 3 connected cells:
  O x
 OOxx
  x x
 xxxo
 
 revBoard found a White at (1,4); finding all connected cells.
-revBoard uncovered 4 connected cells:
- O x
-OOxx
+ o x
+ooxx
  X x
 XXXo
 
 revBoard found a White at (3,2); finding all connected cells.
-revBoard uncovered 4 connected cells:
- O X
-OOXX
- X X
-XXXo
+ o X
+ooXX
+ x X
+xxxo
 
 revBoard found a Black at (4,4); finding all connected cells.
-revBoard uncovered 1 connected cells:
+ o x
+ooxx
+ x x
+xxxO
+
+-------------- RESULTS -----------
+- there is a 4-element white group at [(3,2),(4,2),(4,1),(4,3)]
+- there is a 4-element white group at [(1,4),(2,4),(2,3),(3,4)]
+- there is a 1-element black group at [(4,4)]
+- there is a 3-element black group at [(1,2),(2,2),(2,1)]
+
  O X
 OOXX
  X X
-XXXO
-
--------------- RESULTS -----------
-- there is a white group at [(4,3),(4,1),(4,2),(3,2)]
-- there is a white group at [(3,4),(2,3),(2,4),(1,4)]
-- there is a black group at [(4,4)]
-- there is a black group at [(2,1),(2,2),(1,2)]
- O X
-OOXX
- X X                    
 XXXO
 
 -}
