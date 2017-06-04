@@ -157,11 +157,10 @@ findGroup b g leads =
 -- and adding the group to the list of groups under white/black
 addGroup :: CountedBoard -> Group -> CountedBoard
 addGroup cb g =
-    let newBoard = bigBoard (board cb) g
-    in
-      if (board cb ! head g) == White
-      then cb { board = newBoard, white = g : white cb }
-      else cb { board = newBoard, black = g : black cb }
+    let newBoard = bigBoard (board cb) g in
+    if board cb ! head g == White
+    then cb { board = newBoard, white = g : white cb }
+    else cb { board = newBoard, black = g : black cb }
 
 -- uppercase the cells in the given group
 bigBoard :: Board -> Group -> Board           
