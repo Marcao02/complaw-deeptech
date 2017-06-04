@@ -1,7 +1,6 @@
 import Data.Array
-import Data.List
-import Debug.Trace
-import Control.Monad (liftM)
+import Data.List (nub)
+import Debug.Trace (trace)
     
 data Occupant = Black    | White
               | BlackBig | WhiteBig
@@ -147,8 +146,8 @@ adjacentMatch b c = let small = unbiggen (b ! c)
                     in filter (\ii -> b ! ii == small) (adjacent2d c)
                
 -- a group is a set of connected cells.
--- given a board, a group in progress, a list of leads, investigate each lead until no leads remain.
--- mark off the completed cells on the board by uppercasing them.
+-- given a board, a group in progress, and a list of leads,
+-- investigate each lead until no leads remain.
 -- return the indices of the group.
 findGroup :: (Board,Group) -> [Cell] -> Group
 findGroup (b,g) [] = reverse $ nub g
@@ -157,7 +156,9 @@ findGroup (b,g) leads =
         newleads = concatMap (adjacentMatch newBoard) leads
     in findGroup (newBoard, leads ++ g) newleads
 
--- given an existing board and a new group, revise the board accordingly.
+-- given an existing board and a new group, revise the countedboard
+-- by uppercasing the group found
+-- and adding the group to the list of groups under white/black
 addGroup :: CountedBoard -> Group -> CountedBoard
 addGroup cb g =
     let newBoard = bigBoard (board cb) g
