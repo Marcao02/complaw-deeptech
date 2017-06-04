@@ -95,8 +95,8 @@ printCB :: CountedBoard -> IO ()
 printCB cb = do
   putStrLn "-------------- RESULTS -----------"
   putStrLn $ unlines $ do
-    (color, cstring) <- [(white, "white"), (black, "black")]
-    group <- color cb
+    (color, cstring) <- [(black, "black"), (white, "white")]
+    group <- reverse $ color cb
     return $ "- there is a "++ (show $ length group) ++ "-element " ++ cstring ++ " group at " ++ show group
   printBoard $ board cb
                   
@@ -109,17 +109,14 @@ countBoard b = revBoard CountedBoard { board = b
 
 -- repeatedly revise the board until no small blacks or whites remain; all whites and blacks should be big.
 revBoard :: CountedBoard -> CountedBoard
-revBoard cb = let foundSmalls = findSmalls (board cb)
-              in 
-                if null foundSmalls
-                then cb
-                else let (xy,e) = head foundSmalls
-                     in
-                       trace ("revBoard found a " ++ show e ++ " at " ++ show xy ++ "; finding all connected cells.")
-                             (let foundGroup = findGroup (board cb,[]) [xy]
-                              in
-                                trace (showBoard (bigBoard (orig cb) foundGroup) Regular)
-                                revBoard $ addGroup cb foundGroup)
+revBoard cb = let foundSmalls = findSmalls (board cb) in 
+              if null foundSmalls
+              then cb
+              else let (xy,e) = head foundSmalls in
+                   trace ("revBoard found a " ++ show e ++ " at " ++ show xy ++ "; finding all connected cells.")
+                   (let foundGroup = findGroup (board cb) [] [xy] in
+                    trace (showBoard (bigBoard (orig cb) foundGroup) Regular)
+                    revBoard $ addGroup cb foundGroup)
 
 -- we mark found groups by uppercasing the representing character, o->O, x->X
 biglify :: Board -> Cell -> (Cell, Occupant)
@@ -148,12 +145,12 @@ adjacentMatch b c = let small = unbiggen (b ! c)
 -- given a board, a group in progress, and a list of leads,
 -- investigate each lead until no leads remain.
 -- return the indices of the group.
-findGroup :: (Board,Group) -> [Cell] -> Group
-findGroup (b,g) [] = reverse $ nub g
-findGroup (b,g) leads =
+findGroup :: Board -> Group -> [Cell] -> Group
+findGroup b g [] = reverse $ nub g
+findGroup b g leads =
     let newBoard = bigBoard b leads
         newleads = concatMap (adjacentMatch newBoard) leads
-    in findGroup (newBoard, leads ++ g) newleads
+    in findGroup newBoard (leads ++ g) newleads
 
 -- given an existing board and a new group, revise the countedboard
 -- by uppercasing the group found
