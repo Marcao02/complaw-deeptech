@@ -37,8 +37,8 @@ abstract Gruter = {
 -}
 
   fun
-    Clause
-      :  WhenPredicate
+    Clause :
+         WhenPredicate
       -> Party
       -> Deontic
       -> (k : ActionKind)
