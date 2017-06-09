@@ -18,11 +18,4 @@ instance LexGruterEng of LexGruter =
 
     where_Subj = mkSubj "where";
 
-    -- separate this out into english lexical vs abstract phrasal
-    P_must_VV = must_VV;
-    P_may_VV  = may_VV;
-    
-    P_Shall   = mkShall   P_must_VV positivePol;
-    P_MustNot = mkMustNot P_must_VV negativePol;
-    P_May     = mkMay      P_may_VV positivePol;
 }
