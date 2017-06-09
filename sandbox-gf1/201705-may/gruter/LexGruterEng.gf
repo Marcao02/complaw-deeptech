@@ -9,8 +9,6 @@ instance LexGruterEng of LexGruter =
     P_hot_A      = mkA "hot";
     P_pay_N      = mkN "payment";
 
-    easypay = may_VV;
-
     P_pay_V      = mkV "pay";
 
     P_the_sun = mkNP the_Det (mkN "sun");

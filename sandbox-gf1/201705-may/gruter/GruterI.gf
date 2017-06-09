@@ -2,7 +2,7 @@
 -- functor for Gruter L4
 
 incomplete concrete GruterI of Gruter =
-  open Syntax, Sentence, LexGruter
+  open Syntax, Sentence, LexGruter, LexDeontic
   in {
   lincat
     Contract = Text;

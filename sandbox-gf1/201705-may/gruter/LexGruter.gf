@@ -18,8 +18,6 @@ interface LexGruter = open Syntax in {
               ; surname="Centaurus"
               ; order = FnFirst }; 
 
-    easypay : VV;
-
     partyname : P_Party -> NP;
     partyname p = mkNP (mkPN (case p.order of {
                                 FnFirst => (p.prenom ++ p.surname ) ;
@@ -38,20 +36,6 @@ interface LexGruter = open Syntax in {
   param
     NameOrder = FnFirst | SnFirst;
 
-    {- DEONTIC LOGIC -}
-  oper
-    
-    P_Shall   : Deon = { d = Oblig; pol = positivePol; vv = must_VV };
-    P_MustNot : Deon = { d = Forb;  pol = negativePol; vv = must_VV };
-    P_May     : Deon = { d = Perm;  pol = positivePol; vv =  easypay };
-
-  oper
-    Deon : Type = { d   : DOp
-                  ; pol : Pol
-                  ; vv  : VV
-    };
-  param
-    DOp = Oblig | Forb | Perm ;
 
     
 }
