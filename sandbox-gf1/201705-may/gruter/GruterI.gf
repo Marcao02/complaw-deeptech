@@ -1,8 +1,8 @@
 
 -- functor for Gruter L4
 
-incomplete concrete GruterI of Gruter = L4I **
-  -- these appear to be imported by the functor instantiation, so
+incomplete concrete GruterI of Gruter =
+  -- these appear to be imported by the GruterIEng functor instantiation, so
   -- we don't strictly need to open them here ... it still works!
   --  open Syntax, Sentence, LexGruter, LexDeontic, LexParty, LexL4 in
   {

@@ -16,4 +16,5 @@ instance LexGruterEng of LexGruter =
     P_blue    = mkA "blue";
     P_the_moon = mkNP the_Det (mkN "moon");
 
+    where_Subj = mkSubj "where";
 }
