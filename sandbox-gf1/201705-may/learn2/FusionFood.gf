@@ -1,1 +1,4 @@
-abstract FusionFood = Eastern, Western;
+abstract FusionFood = Eastern, Western ** {
+  fun
+    OmuRice : FoodItem;
+}
