@@ -8,6 +8,5 @@ interface LexGruter = open Syntax in {
     P_correct_A : A;
     P_things_NP : NP;
 
-    where_Subj  : Subj;
    
 }
