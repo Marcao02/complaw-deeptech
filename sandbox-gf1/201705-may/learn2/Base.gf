@@ -6,8 +6,7 @@ abstract Base = {
     Clause;
   fun
     Statement : Mod -> FoodItem -> Clause;
-    Small : Mod;
-    Large : Mod;
+    BaseSmall, BaseMedium, BaseLarge : Mod;
     Potato : FoodItem;
 }
       
