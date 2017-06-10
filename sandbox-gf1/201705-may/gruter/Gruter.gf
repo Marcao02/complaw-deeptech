@@ -1,7 +1,7 @@
 
 -- a simple L4 implementation.
 
-abstract Gruter = {
+abstract Gruter = L4 ** {
   flags startcat = Contract ;
   cat
     Contract;

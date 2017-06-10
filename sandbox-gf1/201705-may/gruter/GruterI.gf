@@ -1,7 +1,7 @@
 
 -- functor for Gruter L4
 
-incomplete concrete GruterI of Gruter =
+incomplete concrete GruterI of Gruter = L4I **
   open Syntax, Sentence, LexGruter, LexDeontic, LexParty
   in {
   lincat
