@@ -12,6 +12,10 @@ interface LexGruter = open Syntax in {
     P_the_moon  : NP;
     P_blue      : A;
     P_the_moon  : NP;
-   
+
+    P_by_default : Adv;
+    P_default_act : VP;
+    P_default_exp : Cl;
+    
     where_Subj  : Subj;
 }

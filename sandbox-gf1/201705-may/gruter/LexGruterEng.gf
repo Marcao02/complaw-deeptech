@@ -16,5 +16,11 @@ instance LexGruterEng of LexGruter =
     P_blue    = mkA "blue";
     P_the_moon = mkNP the_Det (mkN "moon");
 
+    P_default_act = mkVP (mkV2 "perform") (mkNP a_Det (mkN "action"));
+    P_default_exp = mkCl (mkNP the_Det (mkN "action")) P_correct_A;
+    
+    -- https://groups.google.com/forum/#!topic/gf-dev/O4z1lh2u0v4
+    P_by_default = SyntaxEng.mkAdv by8means_Prep (mkNP (mkN "default"));
+    
     where_Subj = mkSubj "where";
 }

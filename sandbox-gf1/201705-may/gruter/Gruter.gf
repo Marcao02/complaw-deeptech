@@ -46,14 +46,12 @@ abstract Gruter = {
       -> ActionExp k
       -> Contract;
 
-    Always, BlueMoon            : WhenPredicate;
+    Default_When                : WhenPredicate;
     Shall, MustNot, May         : Deontic;
-    Party_A, Party_B, Party_C   : Party;
-    Pay_Kind, Deliver_Kind      : ActionKind;
-    Pay_Act                     : Action Pay_Kind;
-    Deliver_Act                 : Action Deliver_Kind;
-    Pay_Exp                     : ActionExp Pay_Kind;
-    Deliver_Exp                 : ActionExp Deliver_Kind;
+    Default_Party               : Party;
+    Default_ActionKind          : ActionKind;
+    Default_Act                 : Action    Default_ActionKind;
+    Default_Exp                 : ActionExp Default_ActionKind;
 --    Before_T                          : Temporal_Deadline;
  }
  
