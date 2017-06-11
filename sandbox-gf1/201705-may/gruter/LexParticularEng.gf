@@ -20,6 +20,7 @@ instance LexParticularEng of LexParticular =
     P_blue    = mkA "blue";
     P_the_moon = mkNP the_Det (mkN "moon");
 
+    -- https://groups.google.com/forum/#!topic/gf-dev/O4z1lh2u0v4
     P_always = SyntaxEng.mkAdv   if_Subj (mkS (mkCl P_the_sun  P_shines));
 
 

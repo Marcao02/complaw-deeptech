@@ -7,7 +7,6 @@ incomplete concrete ParticularI of Particular = GruterI - [Default_Party,
                                                              Default_Exp,
                                                              Default_When]
   **
-  open Syntax, LexParticular in
   {
   oper
     -- PARTY CONFIGURATION
@@ -22,17 +21,17 @@ incomplete concrete ParticularI of Particular = GruterI - [Default_Party,
     Party_C = partyname P_Party_C;
   
     -- ontology of actions and action-expressions
-    Deliver_Act = Syntax.mkVP P_deliver_V2 P_things_NP;
+    Deliver_Act = mkVP P_deliver_V2 P_things_NP;
     Deliver_Exp = P_deliver_exp;
 
-    Pay_Act = Syntax.mkVP P_pay_V;
+    Pay_Act = mkVP P_pay_V;
     Pay_Exp = P_pay_exp;
 
     -- these are only used for disambiguating dependent types
     Pay_Kind, Deliver_Kind = <>;
 
     Always   = P_always;
-    BlueMoon = SyntaxEng.mkAdv when_Subj (mkS (mkCl P_the_moon P_blue));
+    BlueMoon = mkAdv when_Subj (mkS (mkCl P_the_moon P_blue));
 }
   
                                                             
