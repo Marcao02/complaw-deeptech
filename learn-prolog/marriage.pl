@@ -66,7 +66,11 @@ traceMarriage(KnownSingle, KnownMarried, SingleDays, MarriedDays) :-
 weddingDay(KS, KM, X) :- traceMarriage(KS, KM, _,[X|_]).
 
 % possibleWeddings collects all the weddingDays into a list.
-possibleWeddings(KS, KM, Bag) :- bagof(X, weddingDay(KS, KM, X), Bag),
-                                 format("If you were single on ~w and married by ~w then the marriage could have happened on any of ~w",
-                                        [KS, KM, Bag]).
+possibleWeddings(KS, KM) :- possibleWeddings_(KS, KM, Bag),
+                            format("If you were single on ~w and married by ~w then the wedding ", [KS, KM]),
+                            length(Bag, L),
+                            L is 1 -> ( Bag = [B], format("must have happened on ~w!", [B]) );
+                            format("could have happened on any of ~w.", [KS, KM, Bag]).
 
+% utility function to hide the bag output text.
+possibleWeddings_(KS, KM, Bag) :- bagof(X, weddingDay(KS, KM, X), Bag).
