@@ -4,7 +4,7 @@
 
 Legalese is experimenting with developing a language inspired by, and compilable to, CSL, a Contract Specification Language, described in Tom Hvitved's [[https://bitbucket.org/jespera/poets/src/c0ee7194ce57d2ad6ca8894c8a44e88e546d5f4a/doc/Hvitved%2520-%2520A%2520trace-based%2520model%2520for%2520multiparty%2520contracts.pdf?at=default&fileviewer=file-view-default][A Trace-based Model for Multiparty Contracts]].
 
-[[https://bitbucket.org/jespera/poets/src][Poets]] implements CSL with some minor differences to the original paper. (The implementation uses ~when~ syntax for external choice instead of ~if~.)
+[[https://bitbucket.org/jespera/poets/src][Poets]] implements CSL with some minor differences to the original paper. (The implementation uses ~when~ syntax for external choice instead of ~if~.) (Or maybe these differences are attributable to the PCSL extension described in chapter 6 of the thesis.)
 
 We are interested in running CSL independent of the Poets server system; to that end, we have written a [[https://en.wikipedia.org/wiki/Read%25E2%2580%2593eval%25E2%2580%2593print_loop][REPL]] wrapper for the CSL library.
 
