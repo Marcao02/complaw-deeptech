@@ -1,0 +1,71 @@
+
+Name: Burger Challenge
+Type: DiscountableSale
+Description: https://groups.google.com/a/lists.legalese.com/forum/#!topic/talk/7GuYsUzpoLs
+
+import Currency (currency)
+
+val NormalPrice = currency USD 7.20
+
+clause FoodChallenge( entryFee : Currency
+                    , foodItem : FoodType
+                    , deadline : Duration
+                    ) < restaurant : <Company>
+                      , customer   : <Person> > =
+  <customer> Payment( amount a, recipient r )
+    where a === entryFee && r === restaurant
+    due immediately
+  then
+    <restaurant> Delivery( foodItem f, before b )
+      where f === foodItem && b === customer
+      due within 20 minutes
+    then
+      -- checkempty encapsulates an event sequence where the patron signals "i'm done"
+      when CheckEmpty( foodItem f
+                     , verifier r
+                     , patron   c
+                     , state    s )
+        where f === foodItem
+           && isRepresentativeOf restaurant r
+           && c === customer
+           && s === Eaten
+        due within deadline
+
+        then
+          Refund( entryFee, customer, 10 minutes ) <restaurant>
+
+        else -- after an hour, the restaurant has to check
+          <restaurant> CheckEmpty( foodItem f
+                                 , verifier r
+                                 , patron   c
+                                 , state    s )
+                       where f === foodItem
+                          && isRepresentativeOf restaurant r
+                          && c === customer
+                          && s === Eaten
+                       due within 10m
+          then
+            Refund( entryFee, customer, 10 minutes ) <restaurant>
+
+clause Refund( amount : Currency, recipient : Party, deadline : Duration )
+             < payer : <Party> > =
+  <payer> Payment( amount a, recipient r )
+    where a === amount, r === recipient
+    due within deadline
+  then fulfilment
+
+contract = FoodChallenge( NormalPrice, Burger, 1 hour )
+                        < BobsBurgerShack, BellatrixLestrange >
+
+action CheckEmpty( foodItem : FoodType
+                 , verifier : Party
+                 , patron   : Person
+                 , state    : EatState
+                 ) =
+  -- we assume some sort of Prolog-style unification?
+  state = verifier `examine` (seat patron) foodItem
+
+data EatState == Eaten | Unfinished | Puked
+
+fun seat :: Person -> Seat
+fun examine :: Party -> Seat -> FoodItem -> EatState

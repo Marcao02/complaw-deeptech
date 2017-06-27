@@ -1,0 +1,72 @@
+#+TITLE: another go at the monster burger case
+
+- https://groups.google.com/a/lists.legalese.com/forum/#!topic/talk/7GuYsUzpoLs
+
+* Original (Steak)
+
+THE 72OZ STEAK RULES
+http://bigtexan.com/72oz-steak-rules/
+
+Meal consists of: Shrimp Cocktail, Baked Potato, Salad, with Roll, Butter, and of course the 72 oz. Steak
+
+Entire meal must be completed in one hour. If any of the meal is not consumed (swallowed)…YOU LOSE!
+Before the time starts, you will be allowed to cut into the steak, and take one bite. If the steak tastes good and is cooked to your satisfaction, we will start the time upon your acceptable approval. The time will not stop, and the contest is on, so make SURE before you say “yes.”
+Once you have started you are not allowed to stand up, leave your table, or have anyone else TOUCH the meal.
+You will be disqualified if anyone assists you in cutting, preparing or eating of your meal. This is YOUR contest.
+You don’t have to eat the fat, but we will judge this.
+Should you become ill, the contest is over… YOU LOSE! (Please use the container provided as necessary.)
+You are required to pay the full amount up front; if you win we will refund 100%.
+You must sit at a table that we assign.
+If you do not win the steak challenge, you are welcome to take the leftovers with you.
+No consumption or sharing of the leftovers is allowed in the restaurant once the contest is over.
+If you fail to complete the challenge, you must pay the full $72 dollars.
+
+
+* Modified (Burger)
+
+Simplify the contract to its essentials. Instead of a fancy steak, we'll start with a Basic Burger.
+
+The simple terms: Pay $7.20 up front. House produces a burger. Patron has to eat it all in an hour, starting from when it's picked up. If Patron finishes the burger within an hour, Patron gets money back. If not, house keeps the money
+There are two parties: the Patron and the House.
+There is consideration: $7.20.
+There is a deliverable, with a deadline: the Patron must down the burger, leaving nothing on the plate, within one hour.
+After downing the burger within the hour, the Patron must announce completion to the House.
+If the deliverable is met, the House pays the Patron $7.20.
+If not, House keeps the cash.
+Sounds straightforward, right? There's at least one bug! We'll get to that later.
+
+* Gauntlet's Version
+
+Something more precisely the same in legal langauge might be:
+
+Subject to availability, the patron may enter the contest by paying $7.20 to the house.
+If the patron enters the contest, the house will provide the patron with a burger.
+The patron may declare that they have finished the burger.
+When the patron declares that they have finished the burger, the house will promptly confirm whether the patron has finished the burger, and promptly inform the patron.
+If
+a) the house confirms that the patron has finished the burger, and
+b) the time elapsed between providing the burger to the patron and the patron's confirmed declaration that they have finished the burger is one hour or less,
+then the house will pay the patron $7.20.
+
+
+This, of course, considers possibilities like multiple incorrect declarations of "i'm done." It also times the finishing at the time of declaration, not the time of the confirmation. "Promptly" prevents the house from failing to inform the patron that they missed a part.  There is no "the patron must finish the burger" because they need not.  Nor need they declare. If they don't, it's a regular burger purchase. The second part of the agreement only comes into effect if they declare being done, which is optional. They can also declare while wrong, so there is no point in saying that they must eat first and then declare, otherwise an incorrect declaration is a breach, not by the mechanism of the contract itself. "Subject to availability" adds in the edge case that Meng mentioned.
+
+But I'm a lawyer who was a computer geek first, so I'm more likely to optimize the number of words than the readability, and what I wrote is going to  be less intuitive to people.
+
+The proposed contract version also has another problem. While it says that the patron must eat it in under an hour, and announce that they ate it in under an hour, the contract doesn't say whether or how the announcement relates to the timing. If the person eats it in 50 minutes, and announces the next day, that complies with the contract, and the contract has no agreed mechanism for determining the truth of the "ate it in one hour" requirement.
+
+* From website
+
+https://legalese.com/blog/a-food-eating-contract
+
+Terms of the Food Challenge
+------------------------------------
+
+1. The Challenger must pay $50 to Bob's Burgers.  This is due in 3601 seconds.
+2. The Challenger must complete the Food Challenge, consisting of:
+    
+   a. eating the whole 1kg Monster Burger and Fries; and
+   b. complete the obligation in clause 2.a, above, within 1 hour (3600 seconds) of the start of this challenge.
+
+3. Immediately upon the satisfaction of the above, the Restaurant must waive any cost of the 1kg Monster Burger and Fries in clause (2a) above.
+
