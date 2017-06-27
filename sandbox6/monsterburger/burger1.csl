@@ -59,9 +59,9 @@ clause FoodChallenge( entryFee : Currency
 
       else
         when CheckEmpty( foodItem f
-                  , verifier r
-                  , patron   c
-                  , state    s )
+                       , verifier r
+                       , patron   c
+                       , state    s )
             where f === foodItem
                && isRepresentativeOf restaurant r
                && c === customer
