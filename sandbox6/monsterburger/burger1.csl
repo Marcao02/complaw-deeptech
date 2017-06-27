@@ -1,5 +1,10 @@
 
 -- the language here is PCSL, defined by Hvitved as a tweak of CSL
+-- language definition: https://drive.google.com/open?id=0BxOaYa8pqqSwbl9GMWtwVU5HSFU
+-- CSL implementation: https://bitbucket.org/jespera/poets/overview
+-- see also: https://github.com/legalese/legalese-compiler/tree/master/nix
+-- note that this is just a sample draft used to give a taste of how CSL thinks
+-- 
 -- author: mengwong@legalese.com
 
 Name: Burger Challenge
@@ -31,6 +36,7 @@ clause FoodChallenge( entryFee : Currency
     then
 
       -- NARRATIVE: the customer says "i'm done!" and the restaurant confirms.
+      -- we model this as an external choice
 
       when CheckEmpty( foodItem f
                      , verifier r
@@ -44,23 +50,36 @@ clause FoodChallenge( entryFee : Currency
 
         -- NARRATIVE: the restaurant now has to refund the customer
 
+      then
+        Refund( entryFee, customer, 10 minutes ) <restaurant>
+
+      -- NARRATIVE: after the 1 hour deadline, the restaurant should come around to check.
+      -- this covers the race condition where the customer finishes at 00:59:59 and
+      -- doesn't have time to announce to the restaurant that he's done.
+
+      else
+        when CheckEmpty( foodItem f
+                  , verifier r
+                  , patron   c
+                  , state    s )
+            where f === foodItem
+               && isRepresentativeOf restaurant r
+               && c === customer
+            due within 10m
         then
+          case s of Eaten -> Refund( entryFee, customer, 10 minutes ) <restaurant>
+                  | Puked      -> fulfilled
+                  | Unfinished -> fulfilled
+
+        -- if the restaurant FAILED to come around to check on the customer
+        -- then it will owe the customer a refund.
+        else
           Refund( entryFee, customer, 10 minutes ) <restaurant>
 
-        -- NARRATIVE: after the 1 hour deadline, the restaurant comes around to check; this covers the race condition where the customer finishes at 00:59:59 and doesn't have time to announce to the restaurant that he's done
+        -- N.B. in practice, the restaurant should be motivated to check because
+        -- every minute that it doesn't is a minute the customer can keep eating.
 
-        else
-          <restaurant> CheckEmpty( foodItem f
-                                 , verifier r
-                                 , patron   c
-                                 , state    s )
-                       where f === foodItem
-                          && isRepresentativeOf restaurant r
-                          && c === customer
-                          && s === Eaten
-                       due within 10m
-          then
-            Refund( entryFee, customer, 10 minutes ) <restaurant>
+
 
 clause Refund( amount : Currency, recipient : Party, deadline : Duration )
              < payer : <Party> > =
