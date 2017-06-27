@@ -3,7 +3,7 @@ Name: Burger Challenge
 Type: DiscountableSale
 Description: https://groups.google.com/a/lists.legalese.com/forum/#!topic/talk/7GuYsUzpoLs
 
-import Currency (currency)
+import Currency (currency, Currency, USD)
 
 val NormalPrice = currency USD 7.20
 
@@ -12,15 +12,23 @@ clause FoodChallenge( entryFee : Currency
                     , deadline : Duration
                     ) < restaurant : <Company>
                       , customer   : <Person> > =
+
+  -- NARRATIVE: the customer pays
+
   <customer> Payment( amount a, recipient r )
     where a === entryFee && r === restaurant
     due immediately
   then
+
+  -- NARRATIVE: the restaurant sets the burger down
+
     <restaurant> Delivery( foodItem f, before b )
       where f === foodItem && b === customer
       due within 20 minutes
     then
-      -- checkempty encapsulates an event sequence where the patron signals "i'm done"
+
+      -- NARRATIVE: the customer says "i'm done!" and the restaurant confirms.
+
       when CheckEmpty( foodItem f
                      , verifier r
                      , patron   c
@@ -31,10 +39,14 @@ clause FoodChallenge( entryFee : Currency
            && s === Eaten
         due within deadline
 
+        -- NARRATIVE: the restaurant now has to refund the customer
+
         then
           Refund( entryFee, customer, 10 minutes ) <restaurant>
 
-        else -- after an hour, the restaurant has to check
+        -- NARRATIVE: after the 1 hour deadline, the restaurant comes around to check; this covers the race condition where the customer finishes at 00:59:59 and doesn't have time to announce to the restaurant that he's done
+
+        else
           <restaurant> CheckEmpty( foodItem f
                                  , verifier r
                                  , patron   c
@@ -54,8 +66,12 @@ clause Refund( amount : Currency, recipient : Party, deadline : Duration )
     due within deadline
   then fulfilment
 
+-- "main" instantiation
+
 contract = FoodChallenge( NormalPrice, Burger, 1 hour )
                         < BobsBurgerShack, BellatrixLestrange >
+
+-- auxiliary action definitions
 
 action CheckEmpty( foodItem : FoodType
                  , verifier : Party
@@ -65,7 +81,11 @@ action CheckEmpty( foodItem : FoodType
   -- we assume some sort of Prolog-style unification?
   state = verifier `examine` (seat patron) foodItem
 
+-- auxiliary datatypes
+
 data EatState == Eaten | Unfinished | Puked
+
+-- auxiliary function definitions
 
 fun seat :: Person -> Seat
 fun examine :: Party -> Seat -> FoodItem -> EatState
