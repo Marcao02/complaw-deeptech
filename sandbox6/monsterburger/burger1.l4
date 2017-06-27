@@ -1,0 +1,89 @@
+
+-- L4 implementation of the Monster Burger challenge
+
+import Currency (currency, Currency, USD)
+
+CONTRACT
+  title        = "Burger Challenge"
+  description  = "https://groups.google.com/a/lists.legalese.com/forum/#!topic/talk/7GuYsUzpoLs"
+  genre        = DiscountableSale
+  jurisdiction = US_TX
+  startClause  = FoodChallenge
+
+PARTIES
+  customer    : Person  (The "Customer")      = { name = "Bellatrix Lestrange" }
+  restaurant  : Company (The "Restaurant")    = { name = "Bob's Burger Shack"  }
+
+DEFINE
+  normalPrice : Currency (The "Normal Price") = { curr = USD, value = 7.20 }
+  deadline    : Duration (The "Deadline")     = hour 1
+
+TYPES
+  EatState : Eaten | Unfinished | Puked
+
+CLAUSES
+  
+LABEL FoodChallenge: "Entering The Food Challenge."
+  PARTY customer
+  SHALL Pay ( recipient <- restaurant, amount <- normalPrice )
+    AND DescribeBurger ( burgerspec -> bs )
+  DUE   immediately
+  HENCE
+
+LABEL ReadyBurger: "Burger to be prepared."
+  PARTY restaurant
+  SHALL Serve ( recipient <- customer, burgerspec <- bs, dish -> dish )
+  DUE   within 20 minutes
+  HENCE
+
+LABEL DoneClaim: "Customer claims completion."
+  GIVEN deadline : Duration, global threadStop : Bool = False
+  PARTY customer
+  MAY   Notify ( recipient <- restaurant, body <- "I have finished." )
+  BEFORE deadline REMAINING Z
+    THEN DoneClaim ( deadline <- z )
+    LEST CheckCompletion
+  REQUIRING
+
+LABEL CheckCompletion: "Restaurant verifies completion."
+  PARTY restaurant
+  SHALL CheckEmpty ( dish  <- dish
+                   , state -> s
+                   )
+  DUE 10min
+  HENCE
+        CASE s OF Eaten     -> Refund ( deadline <- 10 min ) ; threadStop = True
+                  otherwise -> Noop
+  LEST Refund ( deadline <- 10 min )
+
+LABEL Refund: "Restaurant refunds customer"
+  GIVEN deadline : Duration
+  PARTY restaurant
+  SHALL Pay ( recipient <- customer, amount <- normalPrice )
+  BEFORE deadline
+  THEN FULFILLED
+  LEST BREACH
+
+ACTION CheckEmpty
+  GIVEN  dish  : Dish
+  GIVING state : EatState
+  state = readState dish  -- verifier checks if the patron is done
+
+ACTION Serve
+  GIVEN recipient  : Person
+        burgerspec : BurgerSpec
+        dish       : Dish
+        party      : Party
+  event "%s delivers a %s matching specification %s to %s" party dish burgerspec recipient
+
+ACTION Notify
+  GIVEN recipient : Party
+        body      : Message
+        party     : Party
+  event "%s notifies %s, saying: %s" party recipient body
+
+ACTION Pay
+  GIVEN recipient : Entity
+        amount    : Currency
+        party     : Party
+  event "%s pays %s to %s" party amount recipient

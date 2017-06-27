@@ -9,7 +9,7 @@
             PARTY   p
             SHALL   [NOT] action-spec(params)
          PROVIDED   rule-spec(params)
-           BEFORE   deadline REMAINING Z
+     DUE / BEFORE   deadline REMAINING Z
             HENCE   clause-spec | FULFILLED
              LEST   clause-spec | BREACH
 

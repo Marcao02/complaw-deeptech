@@ -23,14 +23,14 @@ clause FoodChallenge( entryFee : Currency
 
   -- NARRATIVE: the customer pays
 
-  <customer> Payment( amount a, recipient r )
+  <customer> Pay( amount a, recipient r )
     where a === entryFee && r === restaurant
     due immediately
   then
 
   -- NARRATIVE: the restaurant sets the burger down
 
-    <restaurant> Delivery( foodItem f, before b )
+    <restaurant> Serve( foodItem f, recipient b )
       where f === foodItem && b === customer
       due within 20 minutes
     then
@@ -83,7 +83,7 @@ clause FoodChallenge( entryFee : Currency
 
 clause Refund( amount : Currency, recipient : Party, deadline : Duration )
              < payer : <Party> > =
-  <payer> Payment( amount a, recipient r )
+  <payer> Pay( amount a, recipient r )
     where a === amount, r === recipient
     due within deadline
   then fulfilment
