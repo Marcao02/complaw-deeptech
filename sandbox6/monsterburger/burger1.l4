@@ -21,7 +21,7 @@ DEFINE
 TYPES
   EatState : Eaten | Unfinished | Puked
   TempSpec : Hot | Cold
-  FoodSpec : { temperature = FoodSpec }
+  FoodSpec : { temperature = TempSpec }
   BurgerSpec : FoodSpec ** { cheese = Bool, pickle = Bool }
 
 CLAUSE FoodChallenge: "Entering The Food Challenge."
