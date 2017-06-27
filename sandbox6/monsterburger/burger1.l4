@@ -29,13 +29,13 @@ CLAUSE FoodChallenge: "Entering The Food Challenge."
   SHALL Pay ( recipient <- restaurant, amount <- normalPrice )
     AND DescribeBurger ( burgerspec -> bs )
   DUE   immediately
-  HENCE
+HENCE
 
 CLAUSE ReadyBurger: "Burger to be prepared."
   PARTY restaurant
   SHALL Serve ( recipient <- customer, burgerspec <- bs, dish -> dish )
   DUE   within 20 minutes
-  HENCE
+HENCE
 
 CLAUSE DoneClaim: "Customer claims completion."
   GIVEN deadline = mainDeadline, global threadStop : Bool = False
@@ -44,7 +44,7 @@ CLAUSE DoneClaim: "Customer claims completion."
   BEFORE deadline REMAINING z
     THEN DoneClaim ( deadline <- z ) -- recurse
     LEST CheckCompletion -- upon timeout, do this
-  REQUIRING
+REQUIRING
 
 CLAUSE CheckCompletion: "Restaurant verifies completion."
   PARTY restaurant
@@ -65,6 +65,7 @@ CLAUSE Refund: "Restaurant refunds customer"
   BEFORE deadline
   HENCE FULFILLED
   LEST BREACH
+
 
 ACTION CheckEmpty
   GIVEN  dish  : Dish
