@@ -2,7 +2,9 @@
 
 * Some Examples
 
-            LABEL   labelName: labelText
+** SHALL syntax for clauses
+
+           CLAUSE   labelName: labelString
        SUBJECT TO   rule-spec
   NOTWITHSTANDING   rule-spec
              WHEN   predicate
@@ -12,6 +14,12 @@
      DUE / BEFORE   deadline REMAINING Z
             HENCE   clause-spec | FULFILLED
              LEST   clause-spec | BREACH
+
+** the MAY variant
+
+              MAY   action-spec(params)
+             THEN   clause-spec
+        REQUIRING   clause-spec
 
 * PCSL inspiration
 

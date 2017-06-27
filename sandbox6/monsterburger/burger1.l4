@@ -20,32 +20,33 @@ DEFINE
 
 TYPES
   EatState : Eaten | Unfinished | Puked
+  TempSpec : Hot | Cold
+  FoodSpec : { temperature = FoodSpec }
+  BurgerSpec : FoodSpec ** { cheese = Bool, pickle = Bool }
 
-CLAUSES
-  
-LABEL FoodChallenge: "Entering The Food Challenge."
+CLAUSE FoodChallenge: "Entering The Food Challenge."
   PARTY customer
   SHALL Pay ( recipient <- restaurant, amount <- normalPrice )
     AND DescribeBurger ( burgerspec -> bs )
   DUE   immediately
   HENCE
 
-LABEL ReadyBurger: "Burger to be prepared."
+CLAUSE ReadyBurger: "Burger to be prepared."
   PARTY restaurant
   SHALL Serve ( recipient <- customer, burgerspec <- bs, dish -> dish )
   DUE   within 20 minutes
   HENCE
 
-LABEL DoneClaim: "Customer claims completion."
+CLAUSE DoneClaim: "Customer claims completion."
   GIVEN deadline : Duration, global threadStop : Bool = False
   PARTY customer
   MAY   Notify ( recipient <- restaurant, body <- "I have finished." )
   BEFORE deadline REMAINING Z
-    THEN DoneClaim ( deadline <- z )
+    THEN DoneClaim ( deadline <- z ) -- recurse
     LEST CheckCompletion
   REQUIRING
 
-LABEL CheckCompletion: "Restaurant verifies completion."
+CLAUSE CheckCompletion: "Restaurant verifies completion."
   PARTY restaurant
   SHALL CheckEmpty ( dish  <- dish
                    , state -> s
@@ -56,12 +57,12 @@ LABEL CheckCompletion: "Restaurant verifies completion."
                   otherwise -> Noop
   LEST Refund ( deadline <- 10 min )
 
-LABEL Refund: "Restaurant refunds customer"
+CLAUSE Refund: "Restaurant refunds customer"
   GIVEN deadline : Duration
   PARTY restaurant
   SHALL Pay ( recipient <- customer, amount <- normalPrice )
   BEFORE deadline
-  THEN FULFILLED
+  HENCE FULFILLED
   LEST BREACH
 
 ACTION CheckEmpty
@@ -87,3 +88,9 @@ ACTION Pay
         amount    : Currency
         party     : Party
   event "%s pays %s to %s" party amount recipient
+
+ACTION DescribeBurger
+  GIVEN  party      : Party
+  GIVING burgerspec : BurgerSpec
+  event "%s specifies a desired burger %s" party burgerspec
+  
