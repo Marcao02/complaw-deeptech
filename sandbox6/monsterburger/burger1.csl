@@ -1,4 +1,7 @@
 
+-- the language here is PCSL, defined by Hvitved as a tweak of CSL
+-- author: mengwong@legalese.com
+
 Name: Burger Challenge
 Type: DiscountableSale
 Description: https://groups.google.com/a/lists.legalese.com/forum/#!topic/talk/7GuYsUzpoLs
