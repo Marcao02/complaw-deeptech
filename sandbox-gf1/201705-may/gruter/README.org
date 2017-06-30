@@ -1,6 +1,6 @@
 #+TITLE: The Gruter Experiment
 
-L4 prototype developed at and after the Gruter Institute conference at Olympic Village, 2017.
+This is an L4 prototype developed at and after the Gruter Institute conference at Olympic Village, 2017.
 
 This code demonstrates correct use of GF's module system.
 
@@ -38,10 +38,17 @@ Gruter inherits from Deontic and Party.
 
 The ~Gruter~ modules need to be extended with the specifics of your application. They won't do anything on their own.
 
-Two example module sets are provided.
+Two example applications are provided.
 
 The ~London~ modules extend the L4 core with minimal application-specific code.
 
-The ~Particular~ modules extend the L4 core with less minimal application-specific code.
+| London       | abstract  | declares application-specific instances of Gruter abstract categories                                    |
+| LondonI      | functor   | defines the party. defines the when/kind/act/exp values phrasally, usually employing intermediate values |
+| LexLondon    | interface | declares the types of the expected intermediate values                                                   |
+| LexLondonEng | instance  | resolve the intermediate values to specific English-language lexical elements                            |
 
-Structurally, they are the same. It may be useful to compare the two examples to triangulate your appreciation of the system.
+The ~Particular~ modules extend the L4 core with a little more application-specific code.
+
+Structurally, ~London~ and ~Particular~ are the same.
+
+It may be useful to compare the two examples to triangulate an appreciation of the system.
