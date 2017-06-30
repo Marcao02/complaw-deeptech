@@ -1,6 +1,6 @@
 --# -path=.:present
 
-concrete GruterIEng of Gruter = GruterI with
+concrete GruterIEng of Gruter = DeonticI ** GruterI with
   (Syntax = SyntaxEng)
   , (LexGruter = LexGruterEng)
   , (LexDeontic = LexDeonticEng)

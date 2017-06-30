@@ -1,11 +1,7 @@
 
 -- functor for Particular
 
-incomplete concrete ParticularI of Particular = GruterI - [Default_Party,
-                                                             Default_ActionKind,
-                                                             Default_Act,
-                                                             Default_Exp,
-                                                             Default_When]
+incomplete concrete ParticularI of Particular = GruterI
   **
   {
   oper

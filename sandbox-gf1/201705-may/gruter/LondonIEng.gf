@@ -6,5 +6,8 @@ concrete LondonIEng of London = GruterIEng **
   (Syntax     =     SyntaxEng),
   (Sentence   =   SentenceEng),
   (LexDeontic = LexDeonticEng),
-  (LexParty   =   LexPartyEng);
+  (LexParty   =   LexPartyEng),
+  (LexGruter  =  LexGruterEng),
+  (LexLondon  =  LexLondonEng)
+  ;
 

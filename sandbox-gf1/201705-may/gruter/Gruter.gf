@@ -1,19 +1,13 @@
 
 -- a simple L4 implementation.
 
-abstract Gruter = {
+abstract Gruter = Deontic, Party ** {
   flags startcat = Contract ;
   cat
     Contract;
 
     -- predicate logic
     WhenPredicate;
-
-    -- logic of entities
-    Party;
-
-    -- logic of obligation, permission, and prohibition
-    Deontic;
 
     -- domain-specific action expressions
     ActionKind; -- dependently typed
@@ -46,12 +40,6 @@ abstract Gruter = {
       -> ActionExp k
       -> Contract;
 
-    Default_When                : WhenPredicate;
-    Shall, MustNot, May         : Deontic;
-    Default_Party               : Party;
-    Default_ActionKind          : ActionKind;
-    Default_Act                 : Action    Default_ActionKind;
-    Default_Exp                 : ActionExp Default_ActionKind;
 --    Before_T                          : Temporal_Deadline;
  }
  

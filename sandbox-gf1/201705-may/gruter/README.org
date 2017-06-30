@@ -1,0 +1,47 @@
+#+TITLE: The Gruter Experiment
+
+L4 prototype developed at and after the Gruter Institute conference at Olympic Village, 2017.
+
+This code demonstrates correct use of GF's module system.
+
+* L4 Core
+
+The ~Gruter~ modules contain the L4 core.
+
+| Gruter       | abstract              |
+| GruterI      | incomplete concrete   |
+| LexGruter    | interface             |
+| LexGruterEng | instance of LexGruter |
+| GruterIEng   | concrete              |
+
+** Core Dependencies
+
+Distinct components of the L4 core have their own modules.
+
+Gruter inherits from Deontic and Party.
+
+** ~Deontic~
+
+| Deontic       | abstract  |
+| DeonticI      | functor   |
+| LexDeontic    | interface |
+| LexDeonticEng | instance  |
+
+** ~Party~
+
+| Party       | abstract  |
+| PartyI      | functor   |
+| LexParty    | interface |
+| LexPartyEng | instance  |
+
+* Extending Gruter for your own application
+
+The ~Gruter~ modules need to be extended with the specifics of your application. They won't do anything on their own.
+
+Two example module sets are provided.
+
+The ~London~ modules extend the L4 core with minimal application-specific code.
+
+The ~Particular~ modules extend the L4 core with less minimal application-specific code.
+
+Structurally, they are the same. It may be useful to compare the two examples to triangulate your appreciation of the system.

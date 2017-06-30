@@ -1,4 +1,4 @@
-abstract Particular = Gruter - [Default_When,Default_Party,Default_ActionKind,Default_Act,Default_Exp] ** {
+abstract Particular = Gruter ** {
   flags startcat = Contract;
   fun
     Always, BlueMoon            : WhenPredicate;

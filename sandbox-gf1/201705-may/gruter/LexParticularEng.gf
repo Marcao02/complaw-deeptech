@@ -1,9 +1,5 @@
 instance LexParticularEng of LexParticular =
-  LexGruterEng - [P_desirable
-                    ,P_by_default
-                    ,P_default_act
-                    ,P_default_exp
-                    ] **
+  LexGruterEng **
   open SyntaxEng, ParadigmsEng, IrregEng, ExtraEng
   in {
   oper
