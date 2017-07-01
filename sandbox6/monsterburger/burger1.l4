@@ -1,28 +1,29 @@
 
 -- L4 implementation of the Monster Burger challenge
 
-import Currency (currency, Currency, USD)
+IMPORT :--
+  Currency (currency, Currency, USD)
 
-CONTRACT
+CONTRACT :--
   title        = "Burger Challenge"
   description  = "https://groups.google.com/a/lists.legalese.com/forum/#!topic/talk/7GuYsUzpoLs"
   genre        = DiscountableSale
   jurisdiction = US_TX
   startClause  = FoodChallenge
 
-PARTIES
+PARTIES :--
   customer     : Person  (The "Customer")      = { name = "Bellatrix Lestrange" }
   restaurant   : Company (The "Restaurant")    = { name = "Bob's Burger Shack"  }
 
-DEFINE
+DEFINE :--
   normalPrice  : Currency (The "Normal Price") = { curr = USD, value = 7.20 }
   mainDeadline : Duration (The "Deadline")     = hour 1
 
-TYPES
-  EatState : Eaten | Unfinished | Puked
-  TempSpec : Hot | Cold
-  FoodSpec : { temperature = TempSpec }
-  BurgerSpec : FoodSpec ** { cheese = Bool, pickle = Bool }
+TYPES :--
+  EatState = Eaten | Unfinished | Puked
+  TempSpec = Hot | Cold
+  FoodSpec = { temperature = TempSpec }
+  BurgerSpec = FoodSpec ** { cheese = Bool, pickle = Bool }
 
 CLAUSE FoodChallenge: "Entering The Food Challenge."
   PARTY customer

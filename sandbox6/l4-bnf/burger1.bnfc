@@ -1,0 +1,78 @@
+-- http://bnfc.digitalgrammars.com/
+-- lbnf format
+
+layout toplevel;
+layout ":--";
+
+MkL4Module . L4Module ::= [Section] ;
+
+separator Section ";" ;
+
+rules Section ::= SectionImport
+                | SectionContract
+                | SectionParties
+                | SectionDefine
+                | SectionTypes
+--                | SectionClause
+                ;
+
+rules SectionImport ::= "IMPORT" Lingam [BodyImport] ;
+separator BodyImport ";";
+rules BodyImport    ::= UIdent [Ident] ;
+
+separator Ident "," ;
+
+-- linguistic amplification list marker, at end of line
+rules Lingam ::= ":--" ;
+
+rules SectionContract ::= "CONTRACT" Lingam [DefContract] ;
+separator DefContract ";" ;
+rules DefContract ::= RegularDef ;
+
+rules SectionParties ::= "PARTIES" Lingam [TypedDefAlias] ;
+separator TypedDefAlias ";" ;
+rules TypedDefAlias ::= Ident ":" UIdent AliasParen "=" RBT;
+
+rules RBT ::= RecordBlock
+            | [Term];
+
+rules AliasParen ::= "(" [AliasBody] ")" ;
+separator AliasBody "";
+AliasBodyString. AliasBody ::= RegularString;
+AliasBodySymbol. AliasBody ::= RegularSymbol;
+
+rules SectionDefine ::= DefineHeader  Lingam [TypedDefAlias];
+rules DefineHeader ::= "DEFINE"
+                     | "DEFINITIONS";
+
+rules SectionTypes ::= "TYPES" Lingam [DefType] ;
+separator DefType ";" ;
+rules DefType ::= UIdent "=" [SumType] ;
+separator nonempty SumType "|" ;
+rules SumType ::= UIdent | RecordBlock ;
+
+
+
+rules RecordBlock ::= BasePrefix "{" [RecordDef] "}"
+                    |            "{" [RecordDef] "}" ;
+rules BasePrefix ::= [RecordBase] "**";
+
+separator RecordDef "," ;
+rules RecordDef ::= RegularDef ;
+
+separator RecordBase "," ;
+rules RecordBase ::= UIdent ;
+
+rules RegularDef ::= Ident "=" RegularString
+                   | Ident "=" RegularSymbol;
+rules RegularString ::= String ;
+rules RegularSymbol ::= UIdent ;
+
+token UIdent (upper (letter | digit | '_')*) ;
+
+separator Term "" ;
+rules Term ::= Ident;
+
+comment "--";
+comment "//" ;
+comment "/*" "*/" ;
