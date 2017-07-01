@@ -22,7 +22,7 @@ rules BodyImport    ::= UIdent [Ident] ;
 
 separator Ident "," ;
 
--- linguistic amplification list marker, at end of line
+-- list next, generative marker
 rules Lingam ::= ":--" ;
 
 rules SectionContract ::= "CONTRACT" Lingam [DefContract] ;
