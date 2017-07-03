@@ -8,71 +8,76 @@ MkL4Module . L4Module ::= [Section] ;
 
 separator Section ";" ;
 
-rules Section ::= SectionImport
-                | SectionContract
-                | SectionParties
-                | SectionDefine
-                | SectionTypes
+MkSectionImport.   Section ::= SectionImport ;
+MkSectionContract. Section ::= SectionContract ;
+MkSectionParties.  Section ::= SectionParties ;
+MkSectionDefine.   Section ::= SectionDefine ;
+MkSectionTypes.    Section ::= SectionTypes ;
 --                | SectionClause
-                ;
 
-rules SectionImport ::= "IMPORT" Lingam [BodyImport] ;
+MkHeaderImport. SectionImport ::= "IMPORT" Lingam "{" [BodyImport] "}" ;
 separator BodyImport ";";
-rules BodyImport    ::= UIdent [Ident] ;
+MkBodyImport. BodyImport ::= UIdent "(" [ImportSym] ")";
 
-separator Ident "," ;
+separator ImportSym "," ;
+MkImportSymI. ImportSym ::= Ident;
+MkImportSymU. ImportSym ::= UIdent;
 
 -- list next, generative marker
-rules Lingam ::= ":--" ;
+MkLingam. Lingam ::= ":--" ;
 
-rules SectionContract ::= "CONTRACT" Lingam [DefContract] ;
+MkHeaderContract. SectionContract ::= "CONTRACT" Lingam "{" [DefContract] "}" ;
 separator DefContract ";" ;
-rules DefContract ::= RegularDef ;
+MkDefContract. DefContract ::= RegularDef ;
 
-rules SectionParties ::= "PARTIES" Lingam [TypedDefAlias] ;
+MkHeaderParties. SectionParties ::= "PARTIES" Lingam "{" [TypedDefAlias] "}" ;
 separator TypedDefAlias ";" ;
-rules TypedDefAlias ::= Ident ":" UIdent AliasParen "=" RBT;
+MkTypedDefAlias. TypedDefAlias ::= Ident ":" UIdent AliasParen "=" RBT;
 
-rules RBT ::= RecordBlock
-            | [Term];
+MkRBTblock. RBT ::= RecordBlock;
+MkRBTterm.  RBT ::= [Term];
 
-rules AliasParen ::= "(" [AliasBody] ")" ;
+MkAliasParen. AliasParen ::= "(" [AliasBody] ")" ;
 separator AliasBody "";
-AliasBodyString. AliasBody ::= RegularString;
-AliasBodySymbol. AliasBody ::= RegularSymbol;
+MkAliasBodyString. AliasBody ::= RegularString;
+MkAliasBodySymbol. AliasBody ::= RegularSymbol;
 
-rules SectionDefine ::= DefineHeader  Lingam [TypedDefAlias];
-rules DefineHeader ::= "DEFINE"
-                     | "DEFINITIONS";
+MkHeaderDefine.      SectionDefine ::= DefineHeader Lingam "{" [TypedDefAlias] "}";
+MkHeaderDefineText.  DefineHeader ::= "DEFINE";
+MkHeaderDefineText2. DefineHeader ::= "DEFINITIONS";
 
-rules SectionTypes ::= "TYPES" Lingam [DefType] ;
+MkHeaderTypes. SectionTypes ::= "TYPES" Lingam "{" [DefType] "}" ;
 separator DefType ";" ;
-rules DefType ::= UIdent "=" [SumType] ;
-separator nonempty SumType "|" ;
-rules SumType ::= UIdent | RecordBlock ;
+MkDefType. DefType ::= UIdent "=" [SumType] ;
+separator SumType "|" ;
+MkSumTypeUIdent. SumType ::= UIdent ;
+MkSumTypeRecord. SumType ::= RecordBlock ;
 
 
 
-rules RecordBlock ::= BasePrefix "{" [RecordDef] "}"
-                    |            "{" [RecordDef] "}" ;
-rules BasePrefix ::= [RecordBase] "**";
-
-separator RecordDef "," ;
-rules RecordDef ::= RegularDef ;
+MkRecordBlockExtension. RecordBlock ::= BasePrefix RecordBlock;
+MkRecordBlock.          RecordBlock ::= "{" [RegularDef] "}" ;
+MkRecordBasePrefix.      BasePrefix ::= [RecordBase] "**";
 
 separator RecordBase "," ;
-rules RecordBase ::= UIdent ;
+MkRecordBase. RecordBase ::= UIdent ;
 
-rules RegularDef ::= Ident "=" RegularString
-                   | Ident "=" RegularSymbol;
-rules RegularString ::= String ;
-rules RegularSymbol ::= UIdent ;
+separator RegularDef "," ;
+MkRegularDefTerm.  RegularDef ::= Ident "=" Term;
+MkRegularString.   RegularString ::= String ;
+MkRegularSymbol.   RegularSymbol ::= UIdent ;
 
 token UIdent (upper (letter | digit | '_')*) ;
 
-separator Term "" ;
-rules Term ::= Ident;
+separator nonempty Term "" ;
+MkTermUIdent.  Term ::= UIdent;
+MkTermIdent.   Term ::= Ident;
+MkTermString.  Term ::= String;
+MkTermFloat.   Term ::= Double;
+MkTermInteger. Term ::= Integer;
+MkTermParens.  Term ::= "(" Term ")" ;
 
 comment "--";
 comment "//" ;
 comment "/*" "*/" ;
+comment "{-" "-}" ;

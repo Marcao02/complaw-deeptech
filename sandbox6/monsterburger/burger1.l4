@@ -2,7 +2,7 @@
 -- L4 implementation of the Monster Burger challenge
 
 IMPORT :--
-  Currency (currency, Currency, USD)
+  Currency (currency,Potato,USD)
 
 CONTRACT :--
   title        = "Burger Challenge"
@@ -12,7 +12,9 @@ CONTRACT :--
   startClause  = FoodChallenge
 
 PARTIES :--
-  customer     : Person  (The "Customer")      = { name = "Bellatrix Lestrange" }
+  customer     : Person  (The "Customer")      = { name = "Bellatrix Lestrange"
+                                                 , affiliation = Ravenclaw
+  }
   restaurant   : Company (The "Restaurant")    = { name = "Bob's Burger Shack"  }
 
 DEFINE :--
@@ -24,6 +26,9 @@ TYPES :--
   TempSpec = Hot | Cold
   FoodSpec = { temperature = TempSpec }
   BurgerSpec = FoodSpec ** { cheese = Bool, pickle = Bool }
+
+{--
+
 
 CLAUSE FoodChallenge: "Entering The Food Challenge."
   PARTY customer
@@ -97,3 +102,4 @@ ACTION DescribeBurger
   GIVING burgerspec : BurgerSpec
   event "%s specifies a desired burger %s" party burgerspec
   
+--}
