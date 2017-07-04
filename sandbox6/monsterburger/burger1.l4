@@ -27,51 +27,50 @@ TYPES :--
   FoodSpec = { temperature = TempSpec }
   BurgerSpec = FoodSpec ** { cheese = Bool, pickle = Bool }
 
-{--
-
 
 CLAUSE FoodChallenge: "Entering The Food Challenge."
   PARTY customer
   SHALL Pay ( recipient <- restaurant, amount <- normalPrice )
     AND DescribeBurger ( burgerspec -> bs )
   DUE   immediately
-HENCE
+  HENCE
 
 CLAUSE ReadyBurger: "Burger to be prepared."
   PARTY restaurant
   SHALL Serve ( recipient <- customer, burgerspec <- bs, dish -> dish )
   DUE   within 20 minutes
-HENCE
+  HENCE
 
 CLAUSE DoneClaim: "Customer claims completion."
-  GIVEN deadline = mainDeadline, global threadStop : Bool = False
+  GIVEN ( deadline = mainDeadline, global threadStop : Bool = False )
   PARTY customer
   MAY   Notify ( recipient <- restaurant, body <- "I have finished." )
   BEFORE deadline REMAINING z
     THEN DoneClaim ( deadline <- z ) -- recurse
     LEST CheckCompletion -- upon timeout, do this
-REQUIRING
+  REQUIRING
 
 CLAUSE CheckCompletion: "Restaurant verifies completion."
   PARTY restaurant
   SHALL CheckEmpty ( dish  <- dish
                    , state -> s
                    )
-  DUE 10min
+  DUE 10 minutes
   HENCE
-    CASE s OF Eaten     -> threadStop = True ; Refund ( deadline <- 10 min )
-              Puked     -> threadStop = True ; FULFILLED
-              otherwise -> NOOP -- same as Fulfilled but conventionally for a subbranch
+    CASE s OF Eaten     => threadStop = True ; Refund ( deadline <- 10 min )
+              Puked     => threadStop = True ; FULFILLED
+              otherwise => NOOP -- same as Fulfilled but conventionally for a subbranch
   LEST Refund ( deadline <- 10 min )
 
 CLAUSE Refund: "Restaurant refunds customer"
-  GIVEN deadline : Duration
+  GIVEN ( deadline : Duration )
   PARTY restaurant
   SHALL Pay ( recipient <- customer, amount <- normalPrice )
   BEFORE deadline
   HENCE FULFILLED
   LEST BREACH
 
+{--
 
 ACTION CheckEmpty
   GIVEN  dish  : Dish
