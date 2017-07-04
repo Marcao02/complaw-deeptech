@@ -184,10 +184,12 @@ MkTypeSpec. TypeSpec ::= UIdent;
 separator GivenScope "" ;
 MkGivenScope. GivenScope ::= "global";
 
-MkHeaderSection. SectionAction ::= "ACTION" UIdent ClGiven ClGiving [ActionBody];
+MkHeaderSection. SectionAction ::= "ACTION" UIdent ClGiven ClGiving ActionBody;
 
-separator ActionBody ";";
 MkActionBodyNoop.   ActionBody ::= "noop";
 MkActionBodyEvent.  ActionBody ::= "event" String [Term];
 MkActionBodyAss.    ActionBody ::= StmAssignment;
+MkActionBodyMulti.  ActionBody ::= "{" [ActionLine] "}" ;
   
+separator ActionLine ";";
+MkActionLine.       ActionLine ::= ActionBody;

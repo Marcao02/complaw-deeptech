@@ -75,6 +75,7 @@ ACTION CheckEmpty
   GIVING ( state : EatState )
   event "foo" bar
 
+
 ACTION Serve
   GIVEN ( recipient  : Person
         , burgerspec : BurgerSpec
