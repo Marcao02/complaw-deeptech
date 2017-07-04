@@ -14,6 +14,7 @@ MkSectionParties.  Section ::= SectionParties ;
 MkSectionDefine.   Section ::= SectionDefine ;
 MkSectionTypes.    Section ::= SectionTypes ;
 MkSectionClause.   Section ::= SectionCl ;
+MkSectionAction.   Section ::= SectionAction ;
 
 MkHeaderImport. SectionImport ::= "IMPORT" Lingam "{" [BodyImport] "}" ;
 separator BodyImport ";";
@@ -91,9 +92,12 @@ MkSectionClMustSequence. SectionCl ::= "CLAUSE" ClLabel ClGiven ClParty ClMust C
 MkSectionClMustSolo.     SectionCl ::= "CLAUSE" ClLabel ClGiven ClParty ClMust ClDeadline ClMustHence ClMustLest ;
 MkSectionClMay.  SectionCl ::= "CLAUSE" ClLabel ClGiven ClParty ClMay  ClDeadline ClMayThen   ClMayLest  ClMayConnector ;
 
-MkClLabel.      ClLabel ::= UIdent ":" String;
-MkClGivenNone.  ClGiven ::= ;
-MkClGiven.      ClGiven ::= "GIVEN" "(" [Given] ")";
+MkClLabel.      ClLabel  ::= UIdent ":" String;
+MkClGivenNone.  ClGiven  ::= ;
+MkClGiven.      ClGiven  ::= "GIVEN"  "(" [Given] ")";
+MkClGiving.     ClGiving ::= "GIVING" "(" [Given] ")";
+NoClGiving.     ClGiving ::= ;
+
 
 MkClParty.      ClParty ::= "PARTY" [Term] ;
 MkClMay.        ClMay   ::= MayWord        DeonticAction ;
@@ -179,4 +183,11 @@ MkTypeSpec. TypeSpec ::= UIdent;
 
 separator GivenScope "" ;
 MkGivenScope. GivenScope ::= "global";
+
+MkHeaderSection. SectionAction ::= "ACTION" UIdent ClGiven ClGiving [ActionBody];
+
+separator ActionBody ";";
+MkActionBodyNoop.   ActionBody ::= "noop";
+MkActionBodyEvent.  ActionBody ::= "event" String [Term];
+MkActionBodyAss.    ActionBody ::= StmAssignment;
   

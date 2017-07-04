@@ -70,35 +70,32 @@ CLAUSE Refund: "Restaurant refunds customer"
   HENCE FULFILLED
   LEST BREACH
 
-{--
-
 ACTION CheckEmpty
-  GIVEN  dish  : Dish
-  GIVING state : EatState
-  state = readState dish  -- verifier checks if the patron is done
+  GIVEN  ( dish  : Dish )
+  GIVING ( state : EatState )
+  event "foo" bar
 
 ACTION Serve
-  GIVEN recipient  : Person
-        burgerspec : BurgerSpec
-        dish       : Dish
-        party      : Party
+  GIVEN ( recipient  : Person
+        , burgerspec : BurgerSpec
+        , dish       : Dish
+        , party      : Party )
   event "%s delivers a %s matching specification %s to %s" party dish burgerspec recipient
 
 ACTION Notify
-  GIVEN recipient : Party
-        body      : Message
-        party     : Party
+  GIVEN ( recipient : Party
+        , body      : Message
+        , party     : Party )
   event "%s notifies %s, saying: %s" party recipient body
 
 ACTION Pay
-  GIVEN recipient : Entity
-        amount    : Currency
-        party     : Party
+  GIVEN ( recipient : Entity
+        , amount    : Currency
+        , party     : Party )
   event "%s pays %s to %s" party amount recipient
 
 ACTION DescribeBurger
-  GIVEN  party      : Party
-  GIVING burgerspec : BurgerSpec
+  GIVEN  ( party      : Party )
+  GIVING ( burgerspec : BurgerSpec )
   event "%s specifies a desired burger %s" party burgerspec
   
---}
