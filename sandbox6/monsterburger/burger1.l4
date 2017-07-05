@@ -80,23 +80,23 @@ ACTION Serve
   GIVEN ( recipient  : Person
         , burgerspec : BurgerSpec
         , dish       : Dish
-        , party      : Party )
-  event "%s delivers a %s matching specification %s to %s" party dish burgerspec recipient
+        , actor      : Party )
+  event "%s delivers a %s matching specification %s to %s" actor dish burgerspec recipient
 
 ACTION Notify
   GIVEN ( recipient : Party
         , body      : Message
-        , party     : Party )
-  event "%s notifies %s, saying: %s" party recipient body
+        , actor     : Party )
+  event "%s notifies %s, saying: %s" actor recipient body
 
 ACTION Pay
   GIVEN ( recipient : Entity
         , amount    : Currency
-        , party     : Party )
-  event "%s pays %s to %s" party amount recipient
+        , actor     : Party )
+  event "%s pays %s to %s" actor amount recipient
 
 ACTION DescribeBurger
-  GIVEN  ( party      : Party )
+  GIVEN  ( actor      : Party )
   GIVING ( burgerspec : BurgerSpec )
-  event "%s specifies a desired burger %s" party burgerspec
+  event "%s specifies a desired burger %s" actor burgerspec
   
