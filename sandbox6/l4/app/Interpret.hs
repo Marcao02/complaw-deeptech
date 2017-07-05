@@ -10,12 +10,12 @@ import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitFailure, exitSuccess )
 import Control.Monad (when)
 
-import LexBurger
-import ParBurger
-import SkelBurger
-import PrintBurger
-import AbsBurger
-import LayoutBurger
+import LexL
+import ParL
+import SkelL
+import PrintL
+import AbsL
+import LayoutL
 
 import Interpreter
 

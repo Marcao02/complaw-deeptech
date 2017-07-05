@@ -1,7 +1,7 @@
 
 module Interpreter where
-import AbsBurger
-import PrintBurger
+import AbsL
+import PrintL
 
 interpret :: L4Module -> [String]
 interpret (MkL4Module sections) = do

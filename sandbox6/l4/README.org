@@ -1,0 +1,18 @@
+#+TITLE: L4 Prototype Source
+
+* Prerequisites
+
+You need [[http://bnfc.digitalgrammars.com/][BNFC]].
+
+* Build and Installation
+
+in ~src~, manually run ~bnfc -m --haskell L4.bnfc~ to produce a bunch of ~.hs~ and ~.x~ and ~.y~ files.
+
+then run ~stack build~ to produce an ~interpret~ executable.
+
+* Test Run
+
+~stack exec l4-exe < examples/burger1.l4~ should produce a bunch of output
+
+
+
