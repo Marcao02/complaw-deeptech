@@ -12,7 +12,6 @@ import Control.Monad (when)
 
 import LexL
 import ParL
-import SkelL
 import PrintL
 import AbsL
 import LayoutL
@@ -52,8 +51,10 @@ run2 :: Verbosity -> ParseFun L4Module -> String -> IO ()
 run2 v p s = let lexed = myLLexer s
                  parsed = p lexed
              in case parsed of
-                  Ok l4module -> putStrLn $ unlines $ interpret l4module
-                                 
+                  Ok l4module -> interpret l4module
+                  otherwise   -> putStrLn "Parse failed. re-run with -v"
+
+
 
 showTree :: (Show a, Print a) => Int -> a -> IO ()
 showTree v tree
@@ -77,12 +78,40 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    [] -> getContents >>= run 2 pL4Module
-    "-s":fs -> mapM_ (runFile 0 pL4Module) fs
-    "-v":fs -> mapM_ (runFile 0 pL4Module) fs
-    fs -> mapM_ (runFile2 2 pL4Module) fs
-
-          
+    [] -> getContents >>= run2 0 pL4Module
+    "-s":fs -> mapM_ (runFile 2 pL4Module) fs
+    "-v":fs -> mapM_ (runFile 2 pL4Module) fs
+    fs -> mapM_ (runFile2 0 pL4Module) fs
 
 
+-- usage: ast "examples/burger1.l4"
+ast :: String -> IO L4Module
+ast f = readFile f >>= run3 pL4Module
 
+
+run3 :: ParseFun a -> String -> IO a
+run3 p s = do
+  let lexed = myLLexer s
+      parsed = p lexed
+  return $ case parsed of
+    Ok l4module -> l4module
+    Bad s       -> error ("Parse failed. " ++ s)
+
+
+{-- in ghci
+
+> let myast = ast "examples/burger1.l4"
+> (MkL4Module sections) <- myast
+> [concat <$> transSection] <*> sections
+
+<interactive>:44:2: error:
+    • No instance for (Foldable Err) arising from a use of ‘concat’
+    • In the first argument of ‘(<$>)’, namely ‘concat’
+      In the expression: concat <$> transSection
+      In the first argument of ‘(<*>)’, namely
+        ‘[concat <$> transSection]’
+> transSection <$> sections
+[Ok ["sectionimport"],Ok ["sectioncontract"],Ok ["sectionparties"],Ok ["sectiondefine"],Ok ["sectiontypes"],Ok ["sectioncl"],Ok ["sectioncl"],Ok ["sectioncl"],Ok ["sectioncl"],Ok ["sectioncl"],Ok ["sectionaction"],Ok ["sectionaction"],Ok ["sectionaction"],Ok ["sectionaction"],Ok ["sectionaction"]]
+> map unerr $ transSection <$> sections
+["sectionimport","sectioncontract","sectionparties","sectiondefine","sectiontypes","sectioncl","sectioncl","sectioncl","sectioncl","sectioncl","sectionaction","sectionaction","sectionaction","sectionaction","sectionaction"]
+--}
