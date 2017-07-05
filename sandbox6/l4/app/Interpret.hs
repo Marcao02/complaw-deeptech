@@ -35,7 +35,7 @@ runFile :: (Print a, Show a) => Verbosity -> ParseFun a -> FilePath -> IO ()
 runFile v p f = putStrLn f >> readFile f >>= run v p
 
 runFile2 :: Verbosity -> ParseFun L4Module -> FilePath -> IO ()
-runFile2 v p f = putStrLn f >> readFile f >>= run2 v p
+runFile2 v p f = readFile f >>= run2 v p
 
 run :: (Print a, Show a) => Verbosity -> ParseFun a -> String -> IO ()
 run v p s = let ts = myLLexer s in case p ts of
@@ -81,12 +81,6 @@ main = do
     "-s":fs -> mapM_ (runFile 0 pL4Module) fs
     "-v":fs -> mapM_ (runFile 0 pL4Module) fs
     fs -> mapM_ (runFile2 2 pL4Module) fs
-
-mygettree = do
-  args <- getArgs
-  let out = case args of
-              fs -> mapM (runFile 2 pL4Module) fs
-  return out
 
           
 

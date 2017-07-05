@@ -6,13 +6,21 @@ You need [[http://bnfc.digitalgrammars.com/][BNFC]].
 
 * Build and Installation
 
-in ~src~, manually run ~bnfc -m --haskell L4.bnfc~ to produce a bunch of ~.hs~ and ~.x~ and ~.y~ files.
+#+BEGIN_SRC sh
+(cd src; bnfc --haskell L4.bnfc)
+#+END_SRC
+
+should produce a bunch of ~.hs~ and ~.x~ and ~.y~ files.
 
 then run ~stack build~ to produce an ~interpret~ executable.
 
 * Test Run
 
-~stack exec l4-exe < examples/burger1.l4~ should produce a bunch of output
+#+BEGIN_SRC
+stack exec l4-exe examples/burger1.l4
+#+END_SRC
+
+should produce a bunch of output.
 
 
 
