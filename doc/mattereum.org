@@ -38,7 +38,11 @@ In Model-View-Controller lingo, 1st and 2nd generation DA/SCT systems separate M
 
 The unification contemplated by Mattereum -- the consummation devoutly wished -- between blockchain smart contracts and legacy paper, can be supported crudely by Gen 2 SCT systems and elegantly by Gen 3 SCT systems.
 
-Legalese has built a Gen 2 SCT system as an MVP, and is currently working on R&D toward a Gen 3 SCT system, in the form of the language L4.
+Legalese's Gen 2 system has been up and running since 2013: it has generated hundreds of documents for dozens of deals, handling over $2M worth of investments in total. Legalese's Gen 2 system is now on to its second version, which will offer a better UI.
+
+In parallel, Legalese also in active R&D on a Gen 3 system, in the form of the language L4.
+
+* Commercial Relationship
 
 Legalese proposes two strands of engagement with Mattereum.
 
