@@ -1,0 +1,65 @@
+#+TITLE: The product aspects of the L4 langauge
+
+Some remarks about L4 conceived as a product, with regard to the Mattereum proposal.
+
+* Approaches to Smart Contracts: Document Assembly vs Code-First
+
+The tradition of legal document assembly, or document automation, descends from the venerable mail merge: the key operation is "fill in the blanks", the key object is the template, and the key logic is "how do we compose templates together". The key output: a natural language document typically intended for signature. DA systems offer an attractive combination of business-user-friendliness and software flexibility.
+
+In the legal domain, first-generation DA systems include HotDocs, ContractExpress, and Exari. Most of these systems were developed in the 1990s as proprietary enterprise software, serving law firms and big companies.
+
+Second-generation DA systems, often called "smart contract templates" (SCTs) continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. SCT systems include CommonAccord, CommonForm, Clause.io, and R3. All are in development and none are widely used.
+
+Most contract templates have coarse grain: they fill in the blanks at the level of the document. If customizations need to be made then different document templates need to be constructed. There is often significant textual overlap between such templates. The SAFE templates provided by Y Combinator are an example: four variants, four Word documents. This is consistent with the legal tradition of model forms and templates. Only the most sophisticated systems use clause libraries.
+
+Textual overlap violates the DRY principle and invites refactoring. Refactoring can be achieved by increasing the granularity to paragraph/clause-level or sentence-level.
+
+The "fill in the blanks" approach leads naturally to the idea of abstracting out the values from the template. This idea was popularized by Ian Grigg as the "Ricardian contract": a template paired with a data structure to fill it, but kept separate until the last possible moment, like an epoxy glue.
+
+SCT systems are sufficient to solve several classes of problems.
+
+To get multilingual contracts, simply extend the singular template into a list of concrete languages: the same values can fill multiple blanks.
+
+When circumstances demand customization, refactor the templates at the appropriate level of granularity and extend the logic to compose accordingly, based on decision variables in the code.
+
+Customization is a function of expressiveness: the more expressive the system, the easier it is to customize.
+
+DA and SCT approaches face two major limitations.
+
+Customization requires specialized knowledge which tends to accumulate in the department of the "smart contract admin", just as database design and administration tends to end up the specialty of the DBA.
+
+The semantics of a contract reside in the natural language versions. The advent of cryptocurrencies brings an increasing demand for integration between natural language and blockchain-native smart contracts. However, DA systems are limited to filling static values into static blanks. They can fill names and numbers and strings, and they can switch sub-templates based on Booleans and case expressions, but they do not offer a way to express the logical semantics of the contract itself. A computer scientist would say they lack first-class functions. Mathematical expressions, numerical comparison, and if/then/else logic are not expressible in a Ricardian contract.
+
+To overcome these limitations, some have proposed to take the Ricardian contract to the next level: to encode not just the data values but the full logical semantics of a contract.
+
+In Model-View-Controller lingo, 1st and 2nd generation DA/SCT systems separate M but intermingle V and C.
+
+3rd generation SCT systems, as described by contractcoding.io and compk.stanford.edu, fully separate M, V, and C. A domain-specific language (DSL) is provided to express the logical semantics of a contract. The interpreter toolchain for that DSL operates in multiple stages. Stage 1 (Controller) compiles programs written in that DSL into an intermediate form representing the contract in the abstract. Stage 2 (Model) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar. In Stage 3 (View), a natural language generation system is responsible for concretizing the abstract grammar into one or more natural languages, at the highest possible degree of granularity: individual words and parts-of-speech.
+
+The unification contemplated by Mattereum -- the consummation devoutly wished -- between blockchain smart contracts and legacy paper, can be supported crudely by Gen 2 SCT systems and elegantly by Gen 3 SCT systems.
+
+Legalese has built a Gen 2 SCT system as an MVP, and is currently working on R&D toward a Gen 3 SCT system, in the form of the language L4.
+
+Legalese proposes two strands of engagement with Mattereum.
+
+One, under the vendor/client model, Mattereum engages Legalese to build out a Gen 2 SCT system: this is lower-risk and has a quicker path to short term results, but will eventually run into the wall described above. Legalese does not need to be the only vendor: given the importance of the project, other vendors such as CommonAccord and CommonForm should also be retained for redundancy.
+
+Two, under the investment model, Mattereum should invest in Legalese to capitalize its R&D into Gen 3 SCT.
+
+* FOSS vs proprietary
+
+Legalese is ideologically committed to FOSS. We believe that both laws and (standard) contracts are too important to be owned. The language specification, the core compiler, and a "standard library" of common contracts will be released opensource.
+
+From a business-model point of view, it remains possible to monetize on complements.
+
+* Relevance to Arbitration Arbitrage.
+
+Mattereum's white paper (draft five at time of this writing) proposes to establish a council of arbitrators who will only agree to arbitrate for contracts which bear the Mattereum imprimatur.
+
+The challenge: customization. People want to tweak their contracts. Now the question is: does a variant qualify for arbitration?
+
+Legalese's third-generation SMT language and associated tools offer the infrastructure needed to answer that question in an automated way.
+
+
+
+
