@@ -84,6 +84,14 @@ CLAUSE Refund: "Restaurant refunds customer"
   HENCE FULFILLED
   LEST BREACH
 
+{- is a terser representation possible for a clause? Sure, for advanced users:
+
+Refund: "Restaurant refunds customer" (deadline) <restaurant> {
+  pay (customer, normalPrice)
+} <= deadline => fulfilled >>> breach
+
+-}
+
 ACTION CheckEmpty
   GIVEN  ( dish  : Dish )
   GIVING ( state : EatState )
