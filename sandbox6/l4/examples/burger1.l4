@@ -5,6 +5,7 @@ module Burger1
 
 IMPORT :--
   Currency (currency,USD)
+  Prelude (Person,...) -- let's assume a bunch of native types like String
 
 CONTRACT :--
   title        = "Burger Challenge"
@@ -52,6 +53,17 @@ CLAUSE DoneClaim: "Customer claims completion."
     LEST CheckCompletion -- upon timeout, do this
   REQUIRING
 
+{- what's this threadStop business about? Well, the end-user
+is allowed to repeatedly claim that they're done, because
+maybe they claim but the restaurant judges that they aren't
+done. So the clause recurses, in the THEN line. But after
+the restaurant verifies completion, we don't want to allow
+the customer to claim completion any more, because that
+could lead to a loophole / security hole where the
+restaurant has to repeatedly refund the payment. That's fine
+for TheDAO but we aim higher. So we maintain a global state
+variable to turn off the DoneClaim thread. -}
+
 CLAUSE CheckCompletion: "Restaurant verifies completion."
   PARTY restaurant
   SHALL CheckEmpty ( dish  <- dish
@@ -75,7 +87,7 @@ CLAUSE Refund: "Restaurant refunds customer"
 ACTION CheckEmpty
   GIVEN  ( dish  : Dish )
   GIVING ( state : EatState )
-  event "foo" bar
+  event "the restaurant examines the %s and determines that it's %s." dish state
 
 
 ACTION Serve
