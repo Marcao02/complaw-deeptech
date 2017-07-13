@@ -1,8 +1,10 @@
 
 -- L4 implementation of the Monster Burger challenge
 
+module Burger1
+
 IMPORT :--
-  Currency (currency,Potato,USD)
+  Currency (currency,USD)
 
 CONTRACT :--
   title        = "Burger Challenge"
@@ -14,7 +16,7 @@ CONTRACT :--
 PARTIES :--
   customer     : Person  (The "Customer")      = { name = "Bellatrix Lestrange"
                                                  , affiliation = Ravenclaw
-  }
+  												 }
   restaurant   : Company (The "Restaurant")    = { name = "Bob's Burger Shack"  }
 
 DEFINE :--
