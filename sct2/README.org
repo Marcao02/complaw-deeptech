@@ -1,0 +1,71 @@
+#+TITLE: Legalese Smart Contract Templates 2 Project
+
+* Goals
+
+Given a JSON dictionary of key/value parameters, fill one or more templates to produce one or more output files.
+
+Typically, the output files are signature-ready paper contracts or blockchain-ready smart contracts. The input dictionaries are parameterizations of those contracts, filling in the blanks with /data variables/ such as name, address, or amount of money; and /control variables/ that determine how the template is to be composed from subtemplates.
+
+There is not a hard line between the two types of variables. Data variables may be used as control variables: the decision to use a subtemplate may depend on the value of a data variable. And a template may, for the sake of reproducibility, opt to report, in its fine print, all its input control variables.
+
+* Tests and Examples
+
+** YC SAFE
+
+http://www.ycombinator.com/documents/
+
+https://commonform.org/forms/7142bd88073cd27fc68d36d287b1615b3b998c42bc3e16799005603d29e3839b
+
+Let's reduce these four documents to a single one, with better use of template composition and control variables.
+
+* Requirements
+
+The template content can originate from multiple backend template systems, either in-house or 3rd party.
+
+The concrete results can be Word docx, PDF, or XML suitable for importing into Adobe InDesign for later conversion to INDD and PDF.
+
+The concrete results can also be Solidity source code or EVM bytecode.
+
+The JSON input needs to conform to a given [[http://json-schema.org/][schema]].
+
+The service should be available as a set of command-line tools and as a REST API.
+
+* Deliverables
+
+** human-readable document output
+*** plain text, like .txt or .md
+*** Word Doc
+*** PDF Doc
+*** HTML
+*** XML
+
+** Blockchain Smart Contract
+*** solidity?
+*** evm bytecode?
+
+* Architecture
+
+insert boxes and arrows here
+
+* Technologies
+
+** Some Kind of Web Server
+
+Probably Node
+
+** JSON Schema
+
+- http://json-schema.org/
+- https://github.com/YousefED/typescript-json-schema
+
+** Handlebars
+
+https://github.com/wycats/handlebars.js#differences-between-handlebarsjs-and-mustache
+
+* Tools
+
+Download all the commonform and commonaccord repos from github
+
+#+BEGIN_SRC sh
+cd 3rdparties; for c in commonform commonaccord; do (cd $c; ../git-multi-repos); done
+#+END_SRC
