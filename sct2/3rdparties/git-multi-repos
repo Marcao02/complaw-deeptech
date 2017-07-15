@@ -9,7 +9,7 @@ if [ -e repos.txt ]; then
 	for i in `cat repos.txt`; do
    		if [ -d $i ]; then
 			(echo -n $i " "; cd $i; git pull) ;
-		else git clone https://github.com:$owner/$i.git;
+		else git clone https://github.com/$owner/$i.git;
 		fi;
 	done ;
 else echo "expecting a file repos.txt";
