@@ -4,6 +4,8 @@
 
 Given a JSON dictionary of key/value parameters, fill one or more templates to produce one or more output files.
 
+Our starting case is the YC SAFE. At present the SAFE is presented as four templates, mostly the same. Let's refactor. We want one template, with the differences accounted for inside a properly MVC architecture.
+
 Typically, the output files are signature-ready paper contracts or blockchain-ready smart contracts. The input dictionaries are parameterizations of those contracts, filling in the blanks with /data variables/ such as name, address, or amount of money; and /control variables/ that determine how the template is to be composed from subtemplates.
 
 There is not a hard line between the two types of variables. Data variables may be used as control variables: the decision to use a subtemplate may depend on the value of a data variable. And a template may, for the sake of reproducibility, opt to report, in its fine print, all its input control variables.
@@ -12,15 +14,27 @@ There is not a hard line between the two types of variables. Data variables may 
 
 ** YC SAFE
 
-http://www.ycombinator.com/documents/
-
-https://commonform.org/forms/7142bd88073cd27fc68d36d287b1615b3b998c42bc3e16799005603d29e3839b
+See the original and other efforts:
+- http://www.ycombinator.com/documents/
+- https://www.cooleygo.com/documents/y-combinator-safe-financing-document-generator/
+- https://commonform.org/forms/7142bd88073cd27fc68d36d287b1615b3b998c42bc3e16799005603d29e3839b
+- https://github.com/CommonAccord/Site-Org/tree/master/Doc/core/form/agt/startup/yc/safe
 
 Let's reduce these four documents to a single one, with better use of template composition and control variables.
 
+** JSON Schema for the REST API
+
+I want to define a schema of our own, just to handle the SAFE for now, and satisfy ourselves that the MVC architecture of the backend clearly separates the control logic from the data interpolation.
+
+We should define the interface for the SAFE: what shape of JSON object satisfies the SAFE requirements and will return a document?
+
+** Extra Credit: Support for CommonAccord
+
+Write a translator that consumes all of CommonAccord and transforms it to either CommonForm or Handlebars, so that we can define schemas that work to fill either existing CommonAccord templates or existing commonform templates.
+
 * Requirements
 
-The template content can originate from multiple backend template systems, either in-house or 3rd party.
+The template content can originate from multiple backend template systems, either in-house or 3rd party. It would be nice in a future version, after this sprint, to have an importer that auto generates templates from wild source.
 
 The concrete results can be Word docx, PDF, or XML suitable for importing into Adobe InDesign for later conversion to INDD and PDF.
 
@@ -47,7 +61,7 @@ The service should be available as a set of command-line tools and as a REST API
 
 insert boxes and arrows here
 
-* Technologies
+* Technologies and background reading
 
 ** Some Kind of Web Server
 
@@ -61,6 +75,11 @@ Probably Node
 ** Handlebars
 
 https://github.com/wycats/handlebars.js#differences-between-handlebarsjs-and-mustache
+
+** Ricardian Contracts
+
+- http://iang.org/ricardian/
+- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2925871
 
 * Tools
 
