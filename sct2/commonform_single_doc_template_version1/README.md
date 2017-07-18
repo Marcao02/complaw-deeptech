@@ -28,13 +28,17 @@ Look in `generated/` for output.
 Do this once from this directory:
 
 ```
+mkdir build
+cp package.json package.json build/
+cd build
 npm install --only=dev
-tsc read_SAFE.ts
+tsc ../read_SAFE.ts
 ```
 
 ## Running the Javascript Piece
 
 ```
+cd build
 node read_SAFE.js ../generated/SAFE-MFN.gen.commonform
 ```
 
