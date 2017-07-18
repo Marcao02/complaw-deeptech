@@ -1,15 +1,16 @@
 Do this once from this directory:
 ```
-$ mkdir generated
-$ cd ../../3rdparties; for c in commonform commonaccord; do (cd $c; ../git-multi-repos); done
-$ cd commonform
-$ npm init --yes
-$ npm install --only=dev
-$ npm i -g commonform-cli # 0.27.0
+mkdir generated
+cd ../3rdparties; for c in commonform commonaccord; do (cd $c; ../git-multi-repos); done
+cd commonform
+npm init --yes
+npm install --only=dev
+npm i -g commonform-cli # 0.27.0
 ```
 
+From this directory:
 ```
-$ python gen_SAFE
+python gen_SAFE
 ```
 
 The syntax of SAFE-combined.txt is pretty self-explanatory except for the lines that start with * or some combination of bcdm. 
