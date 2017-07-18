@@ -1,6 +1,8 @@
 
 all: build
 
+clean: rm -rf generated build
+
 build:
 	mkdir -p build
 	cp package.json tsconfig.json build/

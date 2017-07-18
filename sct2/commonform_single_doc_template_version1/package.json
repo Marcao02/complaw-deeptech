@@ -11,10 +11,10 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^8.0.14",
-    "commonform-markup-parse": "^0.4.2",
     "typescript": "^2.4.1"
   },
   "dependencies": {
+    "commonform-markup-parse": "^0.4.2",
     "stdio": "^0.2.7"
   }
 }
