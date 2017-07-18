@@ -28,11 +28,7 @@ Look in `generated/` for output.
 Do this once from this directory:
 
 ```
-mkdir build
-cp package.json package.json build/
-cd build
-npm install --only=dev
-tsc ../read_SAFE.ts
+make build
 ```
 
 ## Running the Javascript Piece
