@@ -35,10 +35,10 @@ make build
 
 ```
 cd build
-node read_SAFE.js ../generated/SAFE-MFN.gen.commonform
+node read_SAFE.js -s ../generated/SAFE-MFN.gen.commonform
 ```
 
-Should produce a bunch of STDOUT.
+Should show the identifiers needed by the given form.
 
 # TODO
 
