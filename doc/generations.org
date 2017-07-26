@@ -73,33 +73,47 @@ Such a structure is unclean. What if you want not just one language but a multil
 
 To overcome these limitations, some have proposed to take the Ricardian contract to the next level: to encode not just the data values but the full logical semantics of a contract.
 
-3rd generation SCT systems, as described by contractcoding.io and compk.stanford.edu, solve many of these problems. A domain-specific language (DSL) is provided to express the logical semantics of a contract. The toolchain for that DSL operates in multiple stages.
+3rd generation SCT systems, as described by [[http://contractcode.io/][contractcode.io]] and [[http://compk.stanford.edu/][compk.stanford.edu]], solve many of these problems. A domain-specific language (DSL) is provided to express the logical semantics of a contract. The toolchain for that DSL operates in multiple stages.
 
-We assume that, as with a 2nd gen SCT, a library of 3rd gen template libraries are available in some opensource repository, easily imported by a program, the way NPM has made Node moduels easy to import.
+We assume that, as with a 2nd gen SCT, a library of 3rd gen templates are available in some opensource repository, easily imported by a program, the way NPM has made Node moduels easy to import.
 
-Stage 1 (the lexer/parser) compiles programs written in that DSL into an intermediate form representing the contract in the abstract -- what one might call a smart contract template.
+Stage 1 (the lexer/parser) compiles programs written in that DSL into an intermediate form representing the contract in the abstract -- what one might recognize as a Gen 2 smart contract template.
 
-Stage 2 (the interpreter) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar.
+Stage 2 (the template filler) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar.
 
 Stage 3 (natural language generator), a computational linguistics system is responsible for concretizing the abstract grammar into one or more natural languages, at the highest possible degree of granularity: individual words and parts-of-speech, where possible, and with canned blocks of text otherwise.
 
 3rd gen systems enjoy a number of advantages over 1st and 2nd gen SCTs.
 
+** What-If Scenario Exploration
+
+Help the end-user game out scenarios they are concerned about, to see what the outcomes will be, without needing an expensive lawyer to handhold them.
+
 ** Formal Verification
 
-Use an FOL/SAT/SMT solver to verify safety and liveness properties. See [[https://www.researchgate.net/publication/221027131_Model_Checking_Contracts_-_A_Case_Study][Model Checking Contracts]].
+Use an FOL/SAT/SMT solver to verify safety and liveness properties over every possible scenario. See [[https://www.researchgate.net/publication/221027131_Model_Checking_Contracts_-_A_Case_Study][Model Checking Contracts]].
 
 ** Controlled Natural Language Generation
 
 [[https://en.wikipedia.org/wiki/Natural_language_generation][Produce the natural language version]] of the contract from the ground up, using a tool such as [[http://www.grammaticalframework.org/][GF]].
 
+** Multilingual Generation
+
+With the right infrastructure, producing English, French, Spanish, Chinese contracts should be just a matter of checking a few boxes.
+
 ** Isomorphism with Diagrams
 
 Produce visual flowcharts in a way that would make [[https://legalinformatics.wordpress.com/2014/02/23/passera-haapio-and-curtotti-making-the-meaning-of-contracts-visible-automating-contract-visualization/][Haapio and Passera]] happy. [[https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation][BPMN]] is a leading candidate for choice of notation.
 
-** What-If Scenario Exploration
+** Isomorphism with Blockchain Smart Contracts
 
-Help the end-user game out scenarios they are concerned about, to see what the outcomes will be, without needing an expensive lawyer to handhold them.
+Transpile to Solidity / Viper or compile to EVM.
+
+** Runtime Automated Execution
+
+A convertible note, once signed, goes to sleep until the next funding round. It wakes up, reads the next-round contract (which is, naturally, also expressed as a 3rd gen program), and automatically produces all the paperwork needed for the conversion.
+
+This is akin to the sort of automated execution promised by blockchain smart contracts, but could run equally well off the chain.
 
 * Connecting SC-Ts with S-CTs
 
