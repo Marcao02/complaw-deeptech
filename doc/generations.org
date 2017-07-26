@@ -77,11 +77,13 @@ To overcome these limitations, some have proposed to take the Ricardian contract
 
 We assume that, as with a 2nd gen SCT, a library of 3rd gen templates are available in some opensource repository, easily imported by a program, the way NPM has made Node moduels easy to import.
 
-Stage 1 (the lexer/parser) compiles programs written in that DSL into an intermediate form representing the contract in the abstract -- what one might recognize as a Gen 2 smart contract template.
+Stage 1 (the lexer/parser) compiles programs written in that DSL into an intermediate form representing the contract in the abstract -- what one might recognize as being akin to a Gen 2 smart contract template, but highly structured and with semantics all over the place.
 
-Stage 2 (the template filler) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar.
+Stage 2 (the template filler) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar, losslessly preserving all the semantics of the source template and data/expression values.
 
 Stage 3 (natural language generator), a computational linguistics system is responsible for concretizing the abstract grammar into one or more natural languages, at the highest possible degree of granularity: individual words and parts-of-speech, where possible, and with canned blocks of text otherwise.
+
+Other stages may be connected up in parallel to this primary pipeline. For example, the compiler may delegate to an offboard static analyzer which performs compile-time bug-finding.
 
 3rd gen systems enjoy a number of advantages over 1st and 2nd gen SCTs.
 
