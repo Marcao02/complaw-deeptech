@@ -1,0 +1,95 @@
+#+TITLE: Three Generations of Document Assembly
+
+Smart Contract Templates (SCTs) are attracting increasing attention.
+
+The term SCT can be interpreted in two ways.
+
+First, as templates for blockchain smart contracts: (smart contract) (templates).
+
+Second, as legal contract templates that are, in some sense, smart: (smart) (contract templates).
+
+These interpretations meet at the notion of a Ricardian contract, which has been described elsewhere. So in practice, the term SCT is often meant to invoke a sense of integrating across both worlds: the offline world of legal contracts, and the online world of blockchain-enabled self-executing automated smart contracts.
+
+The (S)(CT) interpretation has a longer history, so we will begin there and come around to the newer, (SC)(T) interpretation.
+
+* Two Generations of Document Generation
+
+The tradition of legal document assembly, or document automation, descends from the venerable mail merge: the key operation is "fill in the blanks", the key object is the template, and the key logic is "how do we compose templates together". The key output: a natural language document typically intended for signature. DA systems offer an attractive combination of business-user-friendliness and software flexibility.
+
+In the legal domain, first-generation DA systems include HotDocs, ContractExpress, and Exari. Most of these systems were developed in the 1990s as proprietary enterprise software, serving law firms and big companies.
+
+Second-generation DA systems, often called "smart contract templates" (SCTs) continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. SCT systems include CommonAccord, CommonForm, OpenLaw.io, Clause.io, and R3. All are in development and none are widely used.
+
+Most contract templates have coarse grain: they fill in the blanks at the level of the document. If customizations need to be made then different document templates need to be constructed. There is often significant textual overlap between such templates. The SAFE templates provided by Y Combinator are an example: four variants, four Word documents. This is consistent with the legal tradition of model forms and templates. Only the most sophisticated systems use clause libraries or conditional logic.
+
+Textual overlap violates the DRY principle and invites refactoring. Refactoring can be achieved by increasing the granularity to paragraph/clause-level or sentence-level.
+
+The "fill in the blanks" approach leads naturally to the idea of abstracting out the values from the template. This idea was popularized by Ian Grigg as the "Ricardian contract": a template paired with a data structure to fill it, but kept separate until the last possible moment, like an epoxy superglue.
+
+* Strengths of 1st and 2nd generation systems
+
+SCT systems are sufficient to solve several classes of problems.
+
+To get multilingual contracts, simply extend the singular template into a list of concrete languages: the same values can fill multiple blanks.
+
+When circumstances demand customization, refactor the templates at the appropriate level of granularity and extend the logic to compose accordingly, based on decision variables in the code.
+
+Customization is a function of expressiveness: the more expressive the system, the easier it is to customize.
+
+* Weaknesses of 1st and 2nd generation systems
+
+DA and SCT approaches face two major limitations.
+
+** Syntax versus Semantics
+
+The semantics of a contract reside in natural language. The advent of cryptocurrencies brings an increasing demand for integration between natural language and blockchain-native smart contracts. However, DA systems are limited to filling static values into static blanks. They can fill names and numbers and strings, and they may be able to switch sub-templates based on Booleans and case expressions, but they do not offer a way to express the logical semantics of the contract itself.
+
+** Expressiveness
+
+What if an end-user legal developer wants to customize a contract template?
+
+| Before                                              | After                                   |
+|-----------------------------------------------------+-----------------------------------------|
+| The Buyer will pay the Seller a fixed fee of $1000. | The Buyer will pay the Seller a fee of: |
+|                                                     | - if the moon is full: $1200            |
+|                                                     | - else, if the tide is high: $1400      |
+|                                                     | - otherwise: $800                       |
+
+Most programming environments offer a standard set of conveniences: mathematical expressions, if/then/else logic, lambda functions, and function calls. None of these are expressible in a Ricardian contract.
+
+A computer scientist would say that, at best, the notion of a Ricardian contract, which has its roots in templates, lacks a rich expression language; at worst, it lacks first-class functions.
+
+** Specialized Knowledge
+
+Just as database design and administration tends to end up the specialty of the DBA, customization of contract templates requires specialized knowledge which tends to accumulate in the department of the "contract template admin".
+
+** Internationalization
+
+In Model-View-Controller lingo, 1st and 2nd generation DA/SCT systems tend to intermingle the presentation view with the business logic of the data model. There are no clean boundary layer separations: a single template may contain chunks of hardcoded text, output formatting instructions, data blanks, and logical directives to show/hide.
+
+Such a structure is unclean. What if you want not just one language but a multilingual family of templates? If all the functionality initially lives in a single template file, copying the template file to a different language means duplicating the logic. Changing the logic means visiting all the templates. Extending a new blank field to the template family means editing all the templates. This is not i18n/L10n best practice, nor is it MVC best practice.
+
+* 3rd generation smart contract templates
+
+To overcome these limitations, some have proposed to take the Ricardian contract to the next level: to encode not just the data values but the full logical semantics of a contract.
+
+3rd generation SCT systems, as described by contractcoding.io and compk.stanford.edu, solve many of these problems. A domain-specific language (DSL) is provided to express the logical semantics of a contract. The toolchain for that DSL operates in multiple stages.
+
+We assume that, as with a 2nd gen SCT, a library of 3rd gen template libraries are available in some opensource repository, easily imported by a program, the way NPM has made Node moduels easy to import.
+
+Stage 1 (the lexer/parser) compiles programs written in that DSL into an intermediate form representing the contract in the abstract -- what one might call a smart contract template.
+
+Stage 2 (the interpreter) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar.
+
+Stage 3 (natural language generator), a computational linguistics system is responsible for concretizing the abstract grammar into one or more natural languages, at the highest possible degree of granularity: individual words and parts-of-speech, where possible, and with canned blocks of text otherwise.
+
+* Connecting SC-Ts with S-CTs
+
+The unification between blockchain smart contracts and legacy paper, that many have discussed -- the consummation devoutly wished by Mattereum, Openlaw.io, and Agrello, to name but three -- can be supported crudely by Gen 2 SCT systems and elegantly by Gen 3 SCT systems.
+
+* Legalese
+
+Legalese's Gen 2 system has been up and running since 2013: it has generated hundreds of documents for dozens of deals, handling over $2M worth of investments in total. Legalese has built three Gen 2 systems to date.
+
+In parallel, Legalese also in active R&D on a Gen 3 system, in the form of the language L4.
+
