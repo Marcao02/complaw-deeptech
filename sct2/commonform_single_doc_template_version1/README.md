@@ -12,6 +12,10 @@ npm install --only=dev
 npm i -g commonform-cli # 0.27.0
 ```
 
+If you already have commonform and commonaccord checked out on your system you might want to symlink the repos instead of redownloading them.
+
+
+
 ## Running the Python Piece
 
 From this directory:

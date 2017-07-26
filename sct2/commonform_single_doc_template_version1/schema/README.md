@@ -16,6 +16,9 @@ In the short term though it would be okay to just fill the cftemplate with whate
 
 Given a cftemplate, extract the dependency signature.
 
+When we extract the dependency signature from a cftemplate we might phrase it as
+https://spacetelescope.github.io/understanding-json-schema/reference/object.html#property-dependencies
+
 A cftemplate has logic: the blanks that need filling (data variables) may depend on some of the other filled blanks (control variables).
 
 By contrast, once a cftemplate has been Controlled, the resulting commonform has no logic: every commonform requires the same blanks to be filled.

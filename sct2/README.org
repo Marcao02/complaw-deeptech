@@ -26,7 +26,7 @@ We'll use cftemplate to do this.
 
 ** JSON Schema for the REST API
 
-I want to define a schema of our own, just to handle the SAFE for now, and satisfy ourselves that the MVC architecture of the backend clearly separates the control logic from the data interpolation.
+I want to define a schema of our own, just to handle the SAFE for now, and satisfy ourselves that the MVC architecture of the backend clearly separates the business logic from the data interpolation.
 
 We should define the interface for the SAFE: what shape of JSON object satisfies the SAFE requirements and will return a document?
 

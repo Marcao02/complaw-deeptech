@@ -6,9 +6,11 @@ clean:
 
 generated:
 	mkdir generated
+	cp Makefile.generated generated/Makefile
+	$(MAKE) -C generated
 	python gen_SAFE.py
 
-build:
+build: generated
 	mkdir -p build
 	cp package.json tsconfig.json build/
 	cp Makefile.build build/Makefile
