@@ -14,11 +14,11 @@ The (S)(CT) interpretation has a longer history, so we will begin there and come
 
 * Two Generations of Document Generation
 
-The tradition of legal document assembly, or document automation, descends from the venerable mail merge: the key operation is "fill in the blanks", the key object is the template, and the key logic is "how do we compose templates together". The key output: a natural language document typically intended for signature. DA systems offer an attractive combination of business-user-friendliness and software flexibility.
+The tradition of legal document assembly, or document automation (DA), descends from the venerable mail merge: the key operation is "fill in the blanks", the key object is the template, and the key logic is "how do we compose templates together". The key output: a natural language document typically intended for signature. DA systems offer an attractive combination of business-user-friendliness and software flexibility.
 
-In the legal domain, first-generation DA systems include HotDocs, ContractExpress, and Exari. Most of these systems were developed in the 1990s as proprietary enterprise software, serving law firms and big companies.
+In the legal domain, first-generation DA systems include HotDocs, ContractExpress, and Exari. Most of these systems were developed in the 1990s and 2000s as proprietary enterprise software, serving law firms and big companies.
 
-Second-generation DA systems, often called "smart contract templates" (SCTs) continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. SCT systems include CommonAccord, CommonForm, OpenLaw.io, Clause.io, and R3. All are in development and none are widely used.
+Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. SCT2 systems include CommonAccord, CommonForm, OpenLaw.io, Clause.io, and R3. All are in development and none are widely used.
 
 Most contract templates have coarse grain: they fill in the blanks at the level of the document. If customizations need to be made then different document templates need to be constructed. There is often significant textual overlap between such templates. The SAFE templates provided by Y Combinator are an example: four variants, four Word documents. This is consistent with the legal tradition of model forms and templates. Only the most sophisticated systems use clause libraries or conditional logic.
 
@@ -28,7 +28,7 @@ The "fill in the blanks" approach leads naturally to the idea of abstracting out
 
 * Strengths of 1st and 2nd generation systems
 
-SCT systems are sufficient to solve several classes of problems.
+DA and SCT2 systems are sufficient to solve several classes of problems.
 
 To get multilingual contracts, simply extend the singular template into a list of concrete languages: the same values can fill multiple blanks.
 
@@ -38,7 +38,7 @@ Customization is a function of expressiveness: the more expressive the system, t
 
 * Weaknesses of 1st and 2nd generation systems
 
-DA and SCT approaches face two major limitations.
+DA and SCT2 approaches face two major limitations.
 
 ** Syntax versus Semantics
 
@@ -82,6 +82,24 @@ Stage 1 (the lexer/parser) compiles programs written in that DSL into an interme
 Stage 2 (the interpreter) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar.
 
 Stage 3 (natural language generator), a computational linguistics system is responsible for concretizing the abstract grammar into one or more natural languages, at the highest possible degree of granularity: individual words and parts-of-speech, where possible, and with canned blocks of text otherwise.
+
+3rd gen systems enjoy a number of advantages over 1st and 2nd gen SCTs.
+
+** Formal Verification
+
+Use an FOL/SAT/SMT solver to verify safety and liveness properties. See [[https://www.researchgate.net/publication/221027131_Model_Checking_Contracts_-_A_Case_Study][Model Checking Contracts]].
+
+** Controlled Natural Language Generation
+
+[[https://en.wikipedia.org/wiki/Natural_language_generation][Produce the natural language version]] of the contract from the ground up, using a tool such as [[http://www.grammaticalframework.org/][GF]].
+
+** Isomorphism with Diagrams
+
+Produce visual flowcharts in a way that would make [[https://legalinformatics.wordpress.com/2014/02/23/passera-haapio-and-curtotti-making-the-meaning-of-contracts-visible-automating-contract-visualization/][Haapio and Passera]] happy. [[https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation][BPMN]] is a leading candidate for choice of notation.
+
+** What-If Scenario Exploration
+
+Help the end-user game out scenarios they are concerned about, to see what the outcomes will be, without needing an expensive lawyer to handhold them.
 
 * Connecting SC-Ts with S-CTs
 
