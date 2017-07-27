@@ -10,7 +10,7 @@ Second, as legal contract templates that are, in some sense, smart: (smart) (con
 
 These interpretations meet at the notion of a Ricardian contract, which has been described elsewhere. So in practice, the term SCT is often meant to invoke a sense of integrating across both worlds: the offline world of legal contracts, and the online world of blockchain-enabled self-executing automated smart contracts.
 
-The (S)(CT) interpretation has a longer history, so we will begin there and come around to the newer, (SC)(T) interpretation.
+The (S)(CT) interpretation has a longer history, so we will begin there and work our way around to the newer, (SC)(T) interpretation.
 
 * Two Generations of Document Generation
 
@@ -18,7 +18,21 @@ The tradition of legal document assembly, or document automation (DA), descends 
 
 In the legal domain, first-generation DA systems include HotDocs, ContractExpress, and Exari. Most of these systems were developed in the 1990s and 2000s as proprietary enterprise software, serving law firms and big companies.
 
-Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. SCT2 systems include CommonAccord, CommonForm, OpenLaw.io, Clause.io, and R3. All are in development and none are widely used.
+Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. Some aim for integration with blockchain smart contracts, basically developing templates that compile to Ethereum as well as to PDF or docx. In July 2017 alone, four new SCT2 systems were announced. All are in development and none are widely used.
+
+| Initiative    | Announced    | (S)(CT) | (SC)(T) | Backed by    | Opensource | Maturity      | Consortium             | Funds Raised |
+|---------------+--------------+---------+---------+--------------+------------+---------------+------------------------+--------------|
+| [[https://commonform.org/][CommonForm]]    | 2015         | (S)(CT) |         | Ironclad     | github     | in use        |                        | $120k        |
+| [[http://www.commonaccord.org/][CommonAccord]]  | 2001         | (S)(CT) |         | James Hazard | github     | running code  |                        |              |
+| [[http://accordproject.org/][AccordProject]] | [[https://medium.com/@accordhq/the-accord-project-launches-industry-first-tools-and-standards-for-smart-legal-contracts-with-2e67b2b6f2fd][26 July 2017]] | (S)(CT) | (SC)(T) | Hyperledger  | claimed    | press release | clause.io, clio, IACCM |              |
+| [[http://openlaw.io/][OpenLaw.io]]    | [[https://media.consensys.net/introducing-openlaw-7a2ea410138b][25 July 2017]] | (S)(CT) | (SC)(T) | Consensys    | claimed    | press release |                        |              |
+| [[https://www.agrello.org/][Agrello]]       | [[https://blog.agrello.org/the-agrello-token-sale-has-begun-bd10a2ea71b9][16 July 2017]] |         | (SC)(T) | Estonians    | ?          | ICO           |                        | $15M ICO     |
+| [[http://internetofagreements.com/][Mattereum]]     | [[https://www.reddit.com/r/ethereum/comments/6lvfuu/mattereum_legally_enforceable_smart_contracts/?st=j4uhqi6b&sh=fb6aaa85][7 July 2017]]  | (S)(CT) | (SC)(T) | Hexayurt     | ?          | white paper   |                        |              |
+| [[https://www.r3.com/press/SCT3-press-release.pdf][R3]]            | 2016         |         | (SC)(T) | Barclays     | ?          | consortium    | banks, law firms       | $107M        |
+
+* Template Granularity
+
+Templates have been around since at least 1977. They are not a new technology. PHP, which Facebook was developed in, could be described as an overgrown template system.
 
 Most contract templates have coarse grain: they fill in the blanks at the level of the document. If customizations need to be made then different document templates need to be constructed. There is often significant textual overlap between such templates. The SAFE templates provided by Y Combinator are an example: four variants, four Word documents. This is consistent with the legal tradition of model forms and templates. Only the most sophisticated systems use clause libraries or conditional logic.
 
@@ -98,6 +112,8 @@ Help the end-user game out scenarios they are concerned about, to see what the o
 ** Formal Verification
 
 Use an FOL/SAT/SMT solver to verify safety and liveness properties over every possible scenario. See [[https://www.researchgate.net/publication/221027131_Model_Checking_Contracts_-_A_Case_Study][Model Checking Contracts]].
+
+Notably, [[http://www.tezos.community/t/michelson-101/23][Tezos's Michelson language]] is designed to facilitate formal verification. Tezos, if you are not familiar with it, is the cryptocurrency that (at time of writing) holds the record for largest ICO in history with over $232M raised.
 
 ** Controlled Natural Language Generation
 
