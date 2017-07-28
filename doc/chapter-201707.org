@@ -1,4 +1,4 @@
-#+TITLE: Computable Contracts: from Academia to Industry, from 
+#+TITLE: Computable Contracts: from Academia to Industry
 #+AUTHOR: mengwong@legalese.com
 
 pre-publication, not for redistribution ([2017-07-28 Fri])
@@ -93,11 +93,11 @@ On the other hand, a SAT solver accepts a specification, in which you assert cer
 
 Given these inputs, the SAT solver looks across all possible futures in search of a /counterexample/, in which -- depending on how you asked the question -- either the prophecy is fulfilled, or the prophecy fails. Computer scientists call this "model checking". It is akin to what computers do when they play chess, or Go: they peer into the future in search of a specific scenario.
 
-Multiple mature software packages[fn:SMTLIB] have been developed to be capable of this work.
-
 [fn:herbert1965] https://en.wikipedia.org/wiki/Dune_(novel)
 
 In 1994, the FDIV bug[fn:fdiv] cost Intel over $400 million in recalls, and galvanized the field of formal verification. Ever since, hardware engineers -- microchip designers -- have employed formal verification to prove that their designs will work correctly when fabbed to silicon. In the immensely competitive, billion-dollar business of CPU manufacturing, errors are simply unacceptable.
+
+Since 1994, multiple mature software packages[fn:SMTLIB] have been developed to be capable of this work.
 
 [fn:fdiv] http://www.csl.sri.com/papers/computer96/computer96.html https://en.wikipedia.org/wiki/Pentium_FDIV_bug
 
@@ -129,7 +129,7 @@ These languages typically borrow from modal logic:
 - temporal logics describe events and [[http://dl.acm.org/citation.cfm?id=940106][fluents]] in time;
 - epistemic logics (approximately, CCS, CSP, and process calculi) formalize the sending and receiving of notices among parties.
 
-Contract languages also borrow from rule logics. Reaction rules (the if/then constructs that are the mainstay of imperative programming languages) forward-chain from facts to conclusions. Deliberation, or deduction, rules (typically structured as Horn clauses in logic programming languages) backward-chain from consequence to antecedent.
+Contract languages also borrow from rule logics. Reaction rules (the if/then constructs that are the mainstay of imperative programming languages) forward-chain from facts to conclusions. Deliberation, or deduction, rules (typically structured as Horn clauses in logic programming languages) backward-chain from consequent to antecedent.
 
 Rules may conflict. Defeasible logics help resolve these conflicts using exceptions, priorities, and meta-rules.
 
@@ -165,13 +165,13 @@ Second, the technical difficulty of developing secure software libraries will dr
 
 So the result will be a number of smart contract libraries which have both passed rigorous formal verification, and been widely adopted. These libraries will be the smart-contract world's answer to the idea of a model form contract template.
 
-From this perspective, Smart Contract Templates are templates for smart contracts.
+From this perspective, SCTs are templates for smart contracts: (smart contract) (templates).
 
 * Smart Contract Templates
 
 In the legal tradition, where computerization has brought smarts to contract templates, SCT means (smart) (contract templates).
 
-In the software tradition, research into contract formalization and the crypto 2.0 rise of blockchain smart contracts mean that SCT stands for (smart) (contract templates).
+In the software tradition, research into contract formalization and the crypto 2.0 rise of blockchain smart contracts mean that SCT stands for (smart contract) (templates).
 
 In July 2017, these traditions finally met, like Montagues and Capulets colliding.
 
