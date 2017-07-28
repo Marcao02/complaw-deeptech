@@ -1,0 +1,310 @@
+#+TITLE: Computable Contracts: from Academia to Industry, from 
+#+AUTHOR: mengwong@legalese.com
+
+pre-publication, not for redistribution ([2017-07-28 Fri])
+
+* Outline
+
+- i will talk about the three generations of smart contract templates,
+- survey the current initiatives,
+- catalog the prior art in computable contracts,
+- motivate expressive DSLs in the third generation, from a security perspective and a verifiability perspective, (Oxford commas)
+- raise the complementarity between smart contracts and smart statutes, and
+- close with a couple of science fiction quotes, for which the publisher may need to seek copyright permission.
+
+
+* Introduction
+
+Ever since Ethereum was conceived in 2013, critics have quipped: "Smart contracts are neither smart nor contracts".
+
+Four years later, computer scientists are responding: "Challenge accepted."
+
+For context, this paper surveys the past and present of computational law. The history of software suggests a future for law: legacy formats and traditional jurisprudence are on a collision course with trustless blockchains and opensource legal engineering.
+
+What industry initiatives are afoot in the world of blockchain smart contracts? From what wells of academia do they draw inspiration? What insights from computer science could transfer to the world of legal reasoning and drafting? If tomorrow's consumers of legal services turn first to self-help apps and chatbots, before resorting to human "tech support", will the practices of tomorrow's lawyers look more like those of software engineers?
+
+* Two Traditions
+
+This paper was written at the end of July 2017. It was an exciting month: in the span of three short weeks, five separate initiatives were announced, all with the same stated goal: to bridge the brave new world of blockchain "smart contracts" with the ancient traditions of law.
+
+What does that mean? It means surrounding the automated execution of on-chain Ethereum bytecode with the exception-handling mechanisms of real-world dispute resolution. It means translating written rituals of offer and agreement, employing stylized phrases dating back centuries, into the cold, clean semantics of formal logic.
+
+This paper labels this family of initiatives "smart contract templates", or SCTs.
+
+SCTs represent a marriage between two noble families, each proud with history, but originating in different cultures.
+
+* Contract Templates
+
+The first, and older, tradition is that of the lawyer: the legal draftsman, the scribe, the notary. This is the tradition also of the handbook of model forms, of the clause bank of contract templates, of copy-and-paste and fill-in-the-blanks.
+
+Model templates reflect the mundane fact that commercial relationships run to a finite set of genres: the rental or sale of assets; the borrowing and lending of money; equity investment and divestment; a fee for services, as contractor or employee. Just as brides and grooms around the world recite the words "in sickness and in health, for richer or for poorer, till death do us part", business everywhere happily reuse the same sets of stock phrases to memorialize their relationships. In 2016 a contract carved in stone was unearthed in a Dionysian temple on the Anatolian coast: it was a student rental, in which tenants would be penalized for damages and were required to provide guarantors. It was 2,200 years old.[fn:teos]
+
+[fn:teos] http://www.haaretz.com/jewish/archaeology/1.746064
+
+Most contract templates are coarse-grained: they fill in the blanks at the level of the document. If customizations need to be made then different document templates need to be constructed. There is often significant textual overlap between such templates. Y Combinator, for example, provides a template for an investment agreement called a SAFE. SAFEs can be configured with or without a valuation cap, and with or without a discount rate: two configurables, hence four variants. Accordingly, Y Combinator's web site offers four Word documents for download. If it had three configurables, there would be eight variants; four configurables, sixteen.
+
+** First-Generation Document Assembly
+
+This exponential increase presents an obvious opportunity for software smarts: composable clause libraries and conditional logic. In the 1980s and 1990s, the advent of desktop publishing led to the first wave of document assembly, or document automation, systems -- DAs for short. DAs helped automate business processes: salespeople could quickly generate their own agreements from templates previously blessed by legal.
+
+DAs had much in common with the venerable mail merge: the key operation was "fill in the blanks", the key object was the template, and the key logic was "how do we compose templates together?" The key output: a natural language document typically intended for signature by both parties. DA systems offer an attractive combination of business-user-friendliness and software flexibility. In the 1980s, early A.I. -- expert systems and decision trees -- organized templates and guided end-users through the process of filling in the blanks.
+
+In the legal domain, first-generation DA systems include HotDocs, ContractExpress, and Exari. Most of these systems were developed in the 1990s and 2000s as proprietary enterprise software, serving law firms and big companies.
+
+** Ricardian Contracts
+
+"Fill in the blanks" leads to the idea of recording data values in a database, separate from their templates. Digitization leads to the idea that a contract could enjoy a purely digital, paperless existence from start to finish. These ideas were connected by Ian Grigg in the form of the "Ricardian contract": a template paired with a data structure to fill it, but kept separate until the last possible moment, like an epoxy superglue. The data structure follows some standard format, what an XML purist would call a DTD schema. The template matching a schema could be a natural-language document intended for humans -- or a program intended for computers. Finally the document would be given legal effect by some kind of digital signature, linked cryptographically to the identities of the parties.
+
+** Second-Generation Smart Contract Template systems
+
+Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. CommonAccord and CommonForm are exemplars of the opensource generation of (smart) (contract templates).
+
+** (Smart) (Contract Templates)
+
+This tradition interprets the term "Smart Contract Templates" as contract templates that are, in some sense, smart.
+
+But that is not the only tradition, and not the only interpretation. There is another tradition, with a different interpretation.
+
+* Smart Contracts
+
+In the early 1990s, Nick Szabo proposed "smart contracts"[fn:szabo1994]: agreements that were not just digital and machine-readable, but also formalized and machine-executable. Not mere PDFs or XMLs, but /programs/, describing the obligations of the parties and the rules of their interaction in code that a computer could interpret and reason over.
+
+[fn:szabo1994] http://web.archive.org/web/20021016104429/http://www.firstmonday.dk:80/issues/issue2_9/szabo/index.html
+
+Such a contract would be suitable for automated execution. One example: a vending machine[fn:szabo1997], simple enough to be described as a deterministic finite automaton, or DFA. Another example: a financial futures contract[fn:szabo2002], also simple enough to be described as a DFA[fn:goodenough]. DFAs, and their more advanced cousin the Petri Net[fn:lee1988], have an interesting and useful property: they are amenable to a powerful formal verification technique called SAT.
+
+[fn:goodenough] https://www.financialresearch.gov/working-papers/files/OFRwp-2015-04_Contract-as-Automaton-The-Computational-Representation-of-Financial-Agreements.pdf
+
+[fn:szabo1997] http://www.fon.hum.uva.nl/rob/Courses/InformationInSpeech/CDROM/Literature/LOTwinterschool2006/szabo.best.vwh.net/idea.html
+
+[fn:szabo2002] http://web.archive.org/web/20020806154414/http://szabo.best.vwh.net:80/contractlanguage.html
+
+[fn:lee1988] https://www.researchgate.net/publication/228185635_A_Logic_Model_for_Electronic_Contracting
+
+** Formal Verification
+
+Think of a SAT solver as a black box with two inputs. On one hand, like Paul Muad'dib in a clairvoyant trance brought on by drinking Water of Life[fn:herbert1965], it reads your contract and prepares to contemplate every possible future envisaged by the text.
+
+On the other hand, a SAT solver accepts a specification, in which you assert certain safety or liveness properties that you believe the contract should respect; in other words, a specific prophecy. Specialized languages called LTL and CTL[fn:CTL] are used to incant these prophecies.
+
+[fn:CTL] https://en.wikipedia.org/wiki/CTL*
+
+[fn:SMTLIB] http://smtlib.cs.uiowa.edu/solvers.shtml
+
+Given these inputs, the SAT solver looks across all possible futures in search of a /counterexample/, in which -- depending on how you asked the question -- either the prophecy is fulfilled, or the prophecy fails. Computer scientists call this "model checking". It is akin to what computers do when they play chess, or Go: they peer into the future in search of a specific scenario.
+
+Multiple mature software packages[fn:SMTLIB] have been developed to be capable of this work.
+
+[fn:herbert1965] https://en.wikipedia.org/wiki/Dune_(novel)
+
+In 1994, the FDIV bug[fn:fdiv] cost Intel over $400 million in recalls, and galvanized the field of formal verification. Ever since, hardware engineers -- microchip designers -- have employed formal verification to prove that their designs will work correctly when fabbed to silicon. In the immensely competitive, billion-dollar business of CPU manufacturing, errors are simply unacceptable.
+
+[fn:fdiv] http://www.csl.sri.com/papers/computer96/computer96.html https://en.wikipedia.org/wiki/Pentium_FDIV_bug
+
+Business contracts can also be worth billions of dollars. Mistakes in contracts can also cost millions, as lawsuits over the Oxford comma have demonstrated (in Canada in 2006[fn:comma2006], and in the US in 2017[fn:comma2017]).
+
+Given the similarities between the fields, it was only a matter of time before formal verification of contracts came along. Model checking of contracts was first demonstrated in 2006 by Pace, Prisacariu, and Schneider.[fn:pps2006] (See also [[https://theses.ncl.ac.uk/dspace/handle/10443/1814][Abdelsadiq]] 2013.) Model checking of legislation was demonstrated by Fernando Schapachnik et al in 2011[fn:formalex2011].
+
+[fn:formalex2011] http://publicaciones.dc.uba.ar/Publications/2011/GMS11/gms_flacos-2011-tr.pdf
+
+[fn:pps2006] https://www.researchgate.net/publication/221027131_Model_Checking_Contracts_-_A_Case_Study
+
+[fn:comma2006] https://www.theglobeandmail.com/report-on-business/comma-quirk-irks-rogers/article1101686/
+
+[fn:comma2017] http://www.newyorker.com/culture/culture-desk/a-few-words-about-that-ten-million-dollar-serial-comma
+
+As the term suggests, formal verification requires a contract to first be formalized: translated into an logical notation for which an explicit, unambiguous formal semantics has been defined.[fn:floyd1967]
+
+[fn:floyd1967] https://classes.soe.ucsc.edu/cmps290g/Fall09/Papers/AssigningMeanings1967.pdf
+
+A number of such formal languages have been developed in academia. The most important:
+- CL (Contract Language) by Pace and Schneider was the subject of John Camilleri's 2016 thesis work[fn:anacon];
+- CSL (Contract Specification Language) was the subject of Tom Hvitved's 2013 PhD thesis;
+- FormaLex by Schapachnik has been ongoing from 2011 to 2017.
+
+[fn:anacon] https://gupea.ub.gu.se/bitstream/2077/40725/1/gupea_2077_40725_1.pdf
+
+These languages typically borrow from modal logic:
+- deontics define the obligations and prohibitions of parties;
+- temporal logics describe events and [[http://dl.acm.org/citation.cfm?id=940106][fluents]] in time;
+- epistemic logics (approximately, CCS, CSP, and process calculi) formalize the sending and receiving of notices among parties.
+
+Contract languages also borrow from rule logics. Reaction rules (the if/then constructs that are the mainstay of imperative programming languages) forward-chain from facts to conclusions. Deliberation, or deduction, rules (typically structured as Horn clauses in logic programming languages) backward-chain from consequence to antecedent.
+
+Rules may conflict. Defeasible logics help resolve these conflicts using exceptions, priorities, and meta-rules.
+
+** Enter Blockchain
+
+While one corner of academia toiled away at contract formalization and verification, another obscure corner of cypherpunk crypto-anarchists were fomenting a revolution that would change the world.
+
+Bitcoin launched in 2011. Ethereum launched in 2015. Since then the market cap of those and other cryptocurrencies has risen, collectively, to over $80B.
+
+These blockchain technologies provided the missing element of Szabo's original vision: a tamper-proof, globally accessible cryptographic ledger on which the "world computer" -- the Ethereum virtual machine -- could be built; and on that EVM, contracts could be run.
+
+These programs, amenable to automated, trustless execution, were named "smart contracts". And, sure as night follows the day, smart contracts turned out to be just as fallible any other program: they had bugs.[fn:survey]
+
+[fn:survey] https://eprint.iacr.org/2016/1007.pdf
+
+The first major attack on an Ethereum smart contract happened in June 2016, when TheDAO began draining due to a bug in the Ethereum smart contract. In its wake came calls for formal verification of smart contracts. Easier said than done: in July 2017 the Parity multisig bug hit.[fn:parity]
+
+[fn:parity] http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/
+
+The hard-fork which followed the TheDAO incident amounted to a central intervention in an obstensibly decentralized cryptocurrency. This event highlighted the need for a more robust governance model.
+
+Partly in response to Ethereum's perceived security failings[fn:survey], and partly in response to Ethereum's perceived governance failings, Tezos launched. Tezos containd two innovations. First, a new smart contract blockchain and language (called Michelson) based on a stack-based virtual machine. Second, a promise of more democratic distributd governance: essentially, a "by the people, for the people, of the people" for the blockchain generation. They raised the largest ICO in history: over $200M.
+
+All of these smart contract initiatives have one thing in common.
+
+Just as most commercial agreements fall into a small number of known genres, just as most software programs can be classified into a small number of categories, most smart contracts -- which are both commercial agreements and software artefacts -- will end up in groups: birds of a feather flock together.
+
+Two software dynamics will then drive the evolution of smart contract software.
+
+First, mature software engineers prefer not to write software, if it can be at all avoided; rather than reinvent the wheel, they would much rather reuse a tried-and-tested library.
+
+Second, the technical difficulty of developing secure software libraries will drive down the number of widely-respected, generally accepted alternatives.
+
+So the result will be a number of smart contract libraries which have both passed rigorous formal verification, and been widely adopted. These libraries will be the smart-contract world's answer to the idea of a model form contract template.
+
+From this perspective, Smart Contract Templates are templates for smart contracts.
+
+* Smart Contract Templates
+
+In the legal tradition, where computerization has brought smarts to contract templates, SCT means (smart) (contract templates).
+
+In the software tradition, research into contract formalization and the crypto 2.0 rise of blockchain smart contracts mean that SCT stands for (smart) (contract templates).
+
+In July 2017, these traditions finally met, like Montagues and Capulets colliding.
+
+In yet another example of simultaneous invention, five matchmakers came almost simultaneously to the conclusion that it was time for Romeo to meet Juliet.
+
+This paper follows the lead set by R3, in which the term "Smart Contract Templates" is meant to invoke a sense of integrating across both traditions, both interpretations.
+
+* Two Generations of Document Generation
+
+The matchmakers devoutly wish a consummation between blockchain smart contracts and natural language contracts, in the form of templates that compile to Ethereum as well as to PDF or docx. In July 2017 alone, five new SCT2 systems were announced. All are in development and none are widely used.
+
+| Initiative    | Announced    | (S)(CT) | (SC)(T) | Backed by    | Opensource | Maturity      | Consortium             | Funds Raised |
+|---------------+--------------+---------+---------+--------------+------------+---------------+------------------------+--------------|
+| [[https://commonform.org/][CommonForm]]    | 2015         | (S)(CT) |         | Ironclad     | github     | in use        |                        | $120k        |
+| [[http://www.commonaccord.org/][CommonAccord]]  | 2001         | (S)(CT) |         | James Hazard | github     | running code  |                        |              |
+| [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][ZeppelinOS]]    | [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][27 July 2017]] |         | (SC)(T) |              |            |               |                        |              |
+| [[http://accordproject.org/][AccordProject]] | [[https://medium.com/@accordhq/the-accord-project-launches-industry-first-tools-and-standards-for-smart-legal-contracts-with-2e67b2b6f2fd][26 July 2017]] | (S)(CT) | (SC)(T) | Hyperledger  | claimed    | press release | clause.io, clio, IACCM |              |
+| [[http://openlaw.io/][OpenLaw.io]]    | [[https://media.consensys.net/introducing-openlaw-7a2ea410138b][25 July 2017]] | (S)(CT) | (SC)(T) | Consensys    | claimed    | press release |                        |              |
+| [[https://www.agrello.org/][Agrello]]       | [[https://blog.agrello.org/the-agrello-token-sale-has-begun-bd10a2ea71b9][16 July 2017]] |         | (SC)(T) | Estonians    | ?          | ICO           |                        | $15M ICO     |
+| [[http://internetofagreements.com/][Mattereum]]     | [[https://www.reddit.com/r/ethereum/comments/6lvfuu/mattereum_legally_enforceable_smart_contracts/?st=j4uhqi6b&sh=fb6aaa85][7 July 2017]]  | (S)(CT) | (SC)(T) | Hexayurt     | ?          | white paper   |                        |              |
+| [[https://www.r3.com/press/SCT3-press-release.pdf][R3]]            | 2016         |         | (SC)(T) | Barclays     | ?          | consortium    | banks, law firms       | $107M        |
+
+
+* Strengths of 1st and 2nd generation systems
+
+DA and SCT2 systems are sufficient to solve several classes of problems.
+
+To get multilingual contracts, simply extend the singular template into a list of concrete languages: the same values can fill multiple blanks.
+
+When circumstances demand customization, refactor the templates at the appropriate level of granularity and extend the logic to compose accordingly, based on decision variables in the code.
+
+Customization is a function of expressiveness: the more expressive the system, the easier it is to customize.
+
+* Weaknesses of 1st and 2nd generation systems
+
+DA and SCT2 approaches face two major limitations.
+
+** Syntax versus Semantics
+
+The semantics of a contract reside in natural language. The advent of cryptocurrencies brings an increasing demand for integration between natural language and blockchain-native smart contracts. However, DA systems are limited to filling static values into static blanks. They can fill names and numbers and strings, and they may be able to switch sub-templates based on Booleans and case expressions, but they do not offer a way to express the logical semantics of the contract itself.
+
+** Expressiveness
+
+What if an end-user legal developer wants to customize a contract template?
+
+| Before                                              | After                                   |
+|-----------------------------------------------------+-----------------------------------------|
+| The Buyer will pay the Seller a fixed fee of $1000. | The Buyer will pay the Seller a fee of: |
+|                                                     | - if the moon is full: $1200            |
+|                                                     | - else, if the tide is high: $1400      |
+|                                                     | - otherwise: $800                       |
+
+Most programming environments offer a standard set of conveniences: mathematical expressions, if/then/else logic, lambda functions, and function calls. None of these are expressible in a Ricardian contract.
+
+A computer scientist would say that, at best, the notion of a Ricardian contract, which has its roots in templates, lacks a rich expression language; at worst, it lacks first-class functions.
+
+** Specialized Knowledge
+
+Just as database design and administration tends to end up the specialty of the DBA, customization of contract templates requires specialized knowledge which tends to accumulate in the department of the "contract template admin".
+
+** Internationalization
+
+In Model-View-Controller lingo, 1st and 2nd generation DA/SCT systems tend to intermingle the presentation view with the business logic of the data model. There are no clean boundary layer separations: a single template may contain chunks of hardcoded text, output formatting instructions, data blanks, and logical directives to show/hide.
+
+Such a structure is unclean. What if you want not just one language but a multilingual family of templates? If all the functionality initially lives in a single template file, copying the template file to a different language means duplicating the logic. Changing the logic means visiting all the templates. Extending a new blank field to the template family means editing all the templates. This is not i18n/L10n best practice, nor is it MVC best practice.
+
+* 3rd generation smart contract templates
+
+To overcome these limitations, some have proposed to take the Ricardian contract to the next level: to encode not just the data values but the full logical semantics of a contract.
+
+3rd generation SCT systems (SCT3), as described by [[http://contractcode.io/][contractcode.io]] and [[http://compk.stanford.edu/][compk.stanford.edu]], solve many of these problems. A domain-specific language (DSL) is provided to express the logical semantics of a contract. The toolchain for that DSL operates in multiple stages.
+
+** Opensource Templates
+We assume that, as with a 2nd gen SCT, a library of 3rd gen templates are available in some opensource repository, easily imported by a program, the way NPM has made Node modules easy to import. As with Node modules, SCT3 templates could be sized at any level of functionality, from a sentence fragment (for Oxford commas) to a standard exemption clause to an entire contract workflow (such as a SAFE plus its sides).
+
+We preserve the Ricardian notion of separating data from template, but the data itself can contain code: rich expressions that the toolchain knows how to reduce to natural language and smart contract primitives.
+
+** Compiler Toolchain
+Stage 1 (the lexer/parser) compiles programs written in that DSL into an intermediate form representing the contract in the abstract -- what one might recognize as being akin to a Gen 2 smart contract template, but highly structured and with semantics all over the place.
+
+Stage 2 (the template filler) takes the output of Stage 1, adds the particulars of a contract instance (parties, configured terms and conditions, etc), and produces an abstract grammar, losslessly preserving all the semantics of the source template and data/expression values.
+
+Stage 3 (natural language generator) is a computational linguistics system responsible for concretizing the abstract grammar into one or more natural languages, at the highest possible degree of granularity: individual words and parts-of-speech, where possible, and with canned blocks of text otherwise.
+
+Other stages may be connected up in parallel to this primary pipeline. For example, the compiler may delegate to an offboard static analyzer which performs compile-time bug-finding.
+
+3rd gen systems enjoy a number of advantages over 1st and 2nd gen SCTs.
+
+** What-If Scenario Exploration
+
+Help the end-user game out scenarios they are concerned about, to see what the outcomes will be, without needing an expensive lawyer to handhold them.
+
+** Formal Verification
+
+Use an FOL/SAT/SMT solver to verify safety and liveness properties over every possible scenario. See [[https://www.researchgate.net/publication/221027131_Model_Checking_Contracts_-_A_Case_Study][Model Checking Contracts]].
+
+Notably, [[http://www.tezos.community/t/michelson-101/23][Tezos's Michelson language]] is designed to facilitate formal verification. Tezos, if you are not familiar with it, is the cryptocurrency that (at time of writing) holds the record for largest ICO in history with over $232M raised.
+
+** Controlled Natural Language Generation
+
+[[https://en.wikipedia.org/wiki/Natural_language_generation][Produce the natural language version]] of the contract from the ground up, using a tool such as [[http://www.grammaticalframework.org/][GF]].
+
+** Multilingual Generation
+
+With the right infrastructure, producing English, French, Spanish, Chinese contracts should be just a matter of checking a few boxes.
+
+** Isomorphism with Diagrams
+
+Produce visual flowcharts in a way that would make [[https://legalinformatics.wordpress.com/2014/02/23/passera-haapio-and-curtotti-making-the-meaning-of-contracts-visible-automating-contract-visualization/][Haapio and Passera]] happy. [[https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation][BPMN]] is a leading candidate for choice of notation.
+
+** Isomorphism with Blockchain Smart Contracts
+
+Transpile to Solidity / Viper or compile to EVM.
+
+** Runtime Automated Execution
+
+A convertible note, once signed, goes to sleep until the next funding round. It wakes up, reads the next-round contract (which is, naturally, also expressed as a 3rd gen program), and automatically produces all the paperwork needed for the conversion.
+
+This is akin to the sort of automated execution promised by blockchain smart contracts, but could run equally well off the chain.
+
+* Connecting SC-Ts with S-CTs
+
+The unification between blockchain smart contracts and legacy paper, that many have discussed, can be supported crudely by Gen 2 SCT systems and elegantly by Gen 3 SCT systems.
+
+* Code is Law is Code
+
+insert the medium blog post here
+
+http://medium.com/@legalese/
+
+* Legalese
+
+Legalese's Gen 2 system has been up and running since 2013: it has generated hundreds of documents for dozens of deals, handling over $2M worth of investments in total. Legalese has built three Gen 2 systems to date.
+
+In parallel, Legalese also in active R&D on a Gen 3 system, in the form of the language L4.
+
