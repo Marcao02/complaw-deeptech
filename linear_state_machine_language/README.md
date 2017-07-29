@@ -19,5 +19,10 @@ python3.6 -m pip install -U mypy
 mypy compileLSM.py
 
 
+## Examples
+
+More coming soon! The first two are from http://www.cs.toronto.edu/~wehr/st/out/scc-nogoog/index.html?demo=legalese
+
+
 ## Running
 python3.6 compileLSM examplesd
