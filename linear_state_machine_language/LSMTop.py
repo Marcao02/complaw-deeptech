@@ -24,7 +24,8 @@ class L4Top:
         self.prose_contract : Dict[ProseClauseId, str] = None  # mapping clause id string to clause string
         self.formal_contract : FormalContract = None
         self.sorts : Set[Sort] = set()
-        self.dot_file_name : str = None # for graphviz
+        self.dot_file_name : str = None # for input file to graphviz
+        self.img_file_name: str = None  # for graphviz output
 
     def can_transition(self, transid1, transid2) -> bool:
         return self.formal_contract.can_transition(transid1, transid2)

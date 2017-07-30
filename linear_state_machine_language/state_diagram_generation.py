@@ -37,7 +37,11 @@ def contractToDotFileStr(l4file: L4Top) -> str:
 def contractToDotFile(l4file: L4Top) -> None:
     # replace spaces with underscores
     cleaned_contract_name = "_".join(l4file.formal_contract.name[1].split(' '))
-    png_path = f"out/{cleaned_contract_name}.png"
+
+    if l4file.img_file_name:
+        img_path = f"out/{l4file.img_file_name}"
+    else:
+        img_path = f"out/{cleaned_contract_name}.png"
 
     if l4file.dot_file_name:
         dot_path = f"out/{l4file.dot_file_name}"
@@ -48,8 +52,8 @@ def contractToDotFile(l4file: L4Top) -> None:
     f = open(dot_path, 'w')
     f.write(dot_contents)
     f.close()
-    command = f'dot -Tpng -o{png_path} "{dot_path}"'
+    command = f'dot -Tpng -o{img_path} "{dot_path}"'
     print('\nTrying to run graphviz with:\n\t' + command)
     import os
     os.system(command)
-    print('If successful result will be at:\n\t' + png_path + '\n')
+    print('If successful generated png image will be at:\n\t' + img_path + '\n')

@@ -113,4 +113,5 @@
 	)
 )
 
-(DotFileName 'lease_state_diagram.dot')
+(DotFileName 'hvitved_lease.dot')
+(ImgFileName 'hvitved_lease.png')

@@ -107,4 +107,5 @@
 	}
 )
 
-(DotFileName 'printer_state_diagram.dot')
+(DotFileName 'hvitved_printer.dot')
+(ImgFileName 'hvitved_printer.png')

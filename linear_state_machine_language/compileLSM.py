@@ -36,6 +36,8 @@ class Assemble:
                 self._top.formal_contract = self.formal_contract(x[1:])
             elif streqci(x0, DOT_FILE_NAME_LABEL):
                 self._top.dot_file_name = x[1][1] # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+            elif streqci(x0, IMG_FILE_NAME_LABEL):
+                self._top.img_file_name = x[1][1] # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
 
         assert self._referenced_event_stateids.union(['Start']) == set(self._top.formal_contract.estates.keys()).union(["Fulfilled"]), (
