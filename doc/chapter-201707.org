@@ -31,7 +31,7 @@ What does that mean? It means surrounding the automated execution of on-chain Et
 
 This paper labels this family of initiatives "smart contract templates", or SCTs.
 
-SCTs represent a marriage between two noble families, each proud with history, but originating in different cultures.
+SCTs represent a marriage between two noble families, each proud with history, but rooted in different cultures.
 
 * Contract Templates
 
@@ -45,23 +45,23 @@ Most contract templates are coarse-grained: they fill in the blanks at the level
 
 This exponential increase presents an obvious opportunity for software smarts: composable clause libraries and conditional logic. In the 1980s and 1990s, the advent of desktop publishing led to the first wave of document assembly, or document automation, systems -- DAs for short. DAs helped automate business processes: salespeople could quickly generate their own agreements from templates previously blessed by legal.
 
-DAs had much in common with the venerable mail merge: the key operation was "fill in the blanks", the key object was the template, and the key logic was "how do we compose templates together?" The key output: a natural language document typically intended for signature by both parties. DA systems offer an attractive combination of business-user-friendliness and software flexibility. In the 1980s, early A.I. -- expert systems and decision trees -- organized templates and guided end-users through the process of filling in the blanks.
+DAs had much in common with the venerable mail merge: the key operation was "fill in the blanks", the key object the template, and the key logic "how do we compose templates together?" The key output: a natural language document typically intended for signature by both parties. DA systems offer an attractive combination of business-user-friendliness and software flexibility. In the 1980s, early A.I. -- expert systems and decision trees -- organized templates and guided end-users through the process of filling in the blanks.
 
 In the legal domain, first-generation DA systems include HotDocs, ContractExpress, and Exari. Most of these systems were developed in the 1990s and 2000s as proprietary enterprise software, serving law firms and big companies.
 
 ** Ricardian Contracts
 
-"Fill in the blanks" leads to the idea of recording data values in a database, separate from their templates. Digitization leads to the idea that a contract could enjoy a purely digital, paperless existence from start to finish. These ideas were connected by Ian Grigg in the form of the "Ricardian contract": a template paired with a data structure to fill it, but kept separate until the last possible moment, like an epoxy superglue. The data structure follows some standard format, what an XML purist would call a DTD schema. The template matching a schema could be a natural-language document intended for humans -- or a program intended for computers. Finally the document would be given legal effect by some kind of digital signature, linked cryptographically to the identities of the parties.
+"Fill in the blanks" leads to the idea of recording data values in a database, separate from their templates. Digitization leads to the idea that a contract could enjoy a purely paperless existence from start to finish. These ideas were connected by Ian Grigg in the form of the "Ricardian contract": a template paired with a data structure to fill it, but kept separate until the last possible moment, like an epoxy superglue. The data structure follows some standard format, what an XML purist would call a DTD schema. The template matching a schema could be a natural-language document intended for humans -- or a program intended for computers. Finally the document would be given legal effect by some kind of digital signature, linked cryptographically to the identities of the parties.
 
 ** Second-Generation Smart Contract Template systems
 
-Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. CommonAccord and CommonForm are exemplars of the opensource generation of smart contract templates). Many of these SCT2 systems also look toward blockchain-level operations.
+Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. CommonAccord and CommonForm are examples of the opensource generation of smart contract templates). Many of these SCT2 systems also look toward blockchain-level operations.
 
 ** (Smart) (Contract Templates)
 
-This tradition interprets the term "Smart Contract Templates" as contract templates that are, in some sense, smart.
+The above tradition, descending for law and spanning two generations of software, interprets the term "Smart Contract Templates" as contract templates that are, in some sense, smart.
 
-But that is not the only tradition, and not the only interpretation. There is another tradition, with a different interpretation.
+But that is not the only tradition, and not the only interpretation. There is another tradition with a different interpretation.
 
 * Smart Contracts
 
@@ -85,7 +85,7 @@ What does this have to do with contracts? Business contracts can be worth billio
 
 ** Model Checking Contracts
 
-Yet the legal field has nothing like the testing tools that programmers enjoy. Programmers have developed an extensive arsenal in the war on bugs. Formal verification is just one tool; others include such as unit testing, linting, fuzzing, and static type checking.
+Yet the legal field has nothing like the testing tools that programmers enjoy. Programmers have developed an extensive arsenal in their war on bugs. Formal verification is just one tool; others include unit testing, linting, fuzzing, and static type checking.
 
 Darmstadter 2010[fn:darmstadter] compared contract drafting with software engineering:
 
@@ -93,13 +93,13 @@ Darmstadter 2010[fn:darmstadter] compared contract drafting with software engine
 But compared to the testing engineers and programmers do, the testing of legal documents is hopelessly backward. Essentially, someone drafts the document and other people read it. If they notice problems, they alert the draftsman, who makes some changes. That's it. 
 #+END_QUOTE
 
-Given the similarities between the fields, formal verification of contracts was only a matter of time. Model checking of contracts was first demonstrated in 2006 by Pace, Prisacariu, and Schneider.[fn:pps2006] (See also [[https://theses.ncl.ac.uk/dspace/handle/10443/1814][Abdelsadiq]] 2013.) Model checking of legislation was demonstrated by Fernando Schapachnik et al in 2011[fn:formalex2011].
+Given the similarities between the fields, it was only a matter of time before somebody tried applying formal verification to contracts. Model checking of contracts was first demonstrated in 2006 by Pace, Prisacariu, and Schneider.[fn:pps2006] (See also [[https://theses.ncl.ac.uk/dspace/handle/10443/1814][Abdelsadiq]] 2013.) Model checking of legislation was demonstrated by Fernando Schapachnik et al in 2011[fn:formalex2011].
 
 As the term suggests, formal verification requires a contract to first be formalized: translated into a logical notation for which an explicit, unambiguous formal semantics has been defined.[fn:floyd1967] In other words, into a program, written in some programming language specialized for law.
 
 ** Formal Languages for Law
 
-Financial contracts were the first to be formalized. Special-purpose contract languages have been developed, along Ricardian lines, for within the limited domain of financial agreements: examples include [[https://en.wikipedia.org/wiki/FpML][FpML]] (1999) and Lexifi's [[https://www.lexifi.com/product/technology/contract-description-language][MLFi]] (2000).
+Financial contracts were the first to be formalized. Special-purpose contract languages have been developed, along Ricardian lines, within the limited domain of financial agreements: examples include [[https://en.wikipedia.org/wiki/FpML][FpML]] (1999) and Lexifi's [[https://www.lexifi.com/product/technology/contract-description-language][MLFi]] (2000).
 
 Subsequently, more general-purpose languages for contract formalization have been developed in academia. The most relevant:
 
@@ -116,7 +116,7 @@ Contract languages also borrow from rule logics. Reaction rules (the if/then con
 
 Rules may conflict. Defeasible logics[fn:governatori] help resolve these conflicts using exceptions, priorities, and meta-rules.
 
-This program of academic research evolved slowly and steadily, elaborating Szabo's original vision for "smart contracts". The term seemed apt to describe a born-digital contract which took shape first as a program in a text editor. That program might later compile to a Word document or a PDF, but such projections were only shadows cast upon a cave wall by the Platonic ideal of the smart contract code.
+This tradition of academic research evolved slowly and steadily, elaborating Szabo's original vision for "smart contracts". The term seemed apt to describe a born-digital contract which took shape first as a program in a text editor. That program might later compile to a Word document or a PDF, but such projections were only shadows cast upon a cave wall by the Platonic ideal of the smart contract code.
 
 Then, in the 2010s, a handful of billionaire anarchists co-opted the term "smart contract" and gave it a new meaning.
 
@@ -136,11 +136,11 @@ The first major attack on an Ethereum smart contract happened in June 2016, when
 
 Security is a multi-pronged challenge with no silver bullet. Techniques include audits[fn:zeppelin]; language-based security[fn:langsec]; and formal verification[fn:fvsc]. But security is always easier said than done: in July 2017 the Parity multisig bug hit.[fn:parity]
 
-Whereas traditional law represents centuries of accumulated experience with disputes of all kinds, the first generation of cryptocurrencies deliberately excluded dispute resolution as being inconsistent with the decentralization ethos. As a consequence, Ethereum does not support the notion of a simple lawsuit; instead, it can only have the constitutional crisis.
+Whereas traditional law represents centuries of accumulated experience with disputes of all kinds, the first generation of cryptocurrencies deliberately excluded dispute resolution as being inconsistent with the decentralization ethos. As a consequence, you can't have a lawsuit in Ethereum; you can only have a constitutional crisis.
 
 The hard-fork which followed the TheDAO incident amounted to a central intervention in an obstensibly decentralized cryptocurrency. This event highlighted the need for a more robust governance model.[fn:primavera2016]
 
-Partly in response to Ethereum's perceived security failings[fn:survey], and partly in response to Ethereum's perceived governance failings, Tezos launched. Tezos containd two innovations. First, a new smart contract blockchain and language (called Michelson) based on a stack-based virtual machine. Second, a promise of more democratic distributd governance: essentially, a "by the people, for the people, of the people" for the blockchain generation. They raised the largest ICO in history: over $200M.
+Partly in response to Ethereum's perceived security failings[fn:survey], and partly in response to Ethereum's perceived governance failings, Tezos launched. Tezos containd two innovations. First, a new smart contract blockchain and language (called Michelson) based on a stack-based virtual machine, suitable for formal verification. Second, a promise of more democratic distributd governance: essentially, a "by the people, for the people, of the people" for the blockchain generation. They raised the largest ICO in history: over $200M.
 
 ** (Smart Contract) (Templates)
 
@@ -158,7 +158,7 @@ So the result will be a relatively small number of smart contract libraries whic
 
 From this perspective, SCTs are templates for smart contracts: (smart contract) (templates).
 
-* Smart Contract Templates meet Smart Contract Templates
+* Smart-Contract Templates meet Smart Contract-Templates
 
 In the legal tradition, where computerization has brought smarts to contract templates, SCT means (smart) (contract templates).
 
@@ -166,7 +166,7 @@ In the software tradition, research into contract formalization and the crypto 2
 
 In July 2017, these traditions finally met, like Montagues and Capulets colliding.
 
-In yet another example of multiple discovery, five matchmakers came almost simultaneously to the conclusion that it was time for Romeo to meet Juliet.
+In yet another example of multiple discovery, five matchmakers came almost simultaneously to the conclusion that it was time for Romeo to kiss Juliet.
 
 This paper follows the lead set by R3, in which the term "Smart Contract Templates" is meant to invoke a sense of integrating across both traditions, both interpretations.
 
@@ -294,11 +294,11 @@ This is akin to the sort of automated execution promised by blockchain smart con
 
 Unification between blockchain smart contracts and legacy paper is the goal of several SCT2.5 systems. Their template orientation means that Gen 2.5 SCT systems will be able to bridge the gap, albeit crudely.
 
-Gen 3 SCT systems, having been designed for the purpose from the ground up, will be able to bridge the gap elegantly, and offer the features listd above, which SCT2.5 systems will not.
+Gen 3 SCT systems, having been designed for the purpose from the ground up, will be able to bridge the gap elegantly, and offer the features listed above, which SCT2.5 systems will not.
 
 * Why a DSL?
 
-How are SCT systems developing? The history of the Web is instructive.
+How are SCT systems evolving? The history of the Web is instructive.
 
 One of the first technologies to make the Web interactive was the Server-Side Include[fn:ssi]: a crude templating system capable of stitching together individual HTML files.
 
@@ -346,7 +346,7 @@ Today, that editing happens at the level of the compiled binary. It should happe
 
 What happens when your counterparty wants to add a new clause in the middle of your template blocks? You have to “recompile” -- update all the cross-references and adjust the clauses to match the change. And that's just at the surface level. What about deeper changes to the semantics? That is, after all, the point of negotiation. One change to the deal could entail half a dozen changes in the contract.
 
-Where is the source code for a business contract, for a piece of legislation? Largely in the heads of lawyers, it turns out. The closest thing to a high-level language version of a contract is a term sheet: a one-page version summarizing the configuration of the deal, which "definitive documentation" subsequently details.
+Where, then, is the source code for a business contract, for a piece of legislation? Largely in the heads of lawyers, it turns out. The closest thing to a high-level language version of a contract is a term sheet: a one-page version summarizing the configuration of the deal, which "definitive documentation" subsequently details.
 
 Today, lawyers are human compilers, just as there used to be human computers. But we’ve seen this show before; we know what comes next. High-level languages. Reusable, modular libraries. Open source.
 
