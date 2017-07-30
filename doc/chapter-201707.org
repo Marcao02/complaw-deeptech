@@ -425,6 +425,20 @@ Justinian, Digest, Book 1, Title 3, 17
 
 For the first time in history we can begin to move the not just the words, but the understanding of the words, and the understanding of their force and effect, into a machine.
 
+* TODO the complementarity between smart contracts and smart statutes
+
+So far we have been dealing with contracts. What about legislation and regulation? What about the law?
+
+Contracts are private law. What about public law?
+
+** Rule systems.
+
+* TODO close with a couple of science fiction quotes, for which the publisher may need to seek copyright permission.
+
+** accelerando
+
+** golden age, john c. wright
+
 * Footnotes
 
 [fn:darmstadter] http://www.jstor.org/stable/25758526
