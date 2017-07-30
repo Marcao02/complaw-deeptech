@@ -308,17 +308,124 @@ This is the organic evolutionary process that takes us to Gen 2.5 SCT today: fea
 
 But the dominant paradigm on today's web is the web app powered by client-side Javascript. Single-page apps are enabled by the ability to run Turing-complete code in a sandbox, in user's browser. These apps are supported by an ecosystem of Javascript libraries easily remixed and reused by developers.
 
-And that is where the third generation of SCT systems will go.
+And that is where the third generation of SCT systems is headed.
 
-insert the medium blog post here
+** Legalese Seen As Object Code
 
-http://medium.com/@legalese/
+(a version of the following text was originally published on Medium, on Jan 21 2017)
 
-* Legalese
+Every few years, the idea of a “Github for law” turns up on Hacker News.
 
-Legalese's Gen 2 system has been up and running since 2013: it has generated hundreds of documents for dozens of deals, handling over $2M worth of investments in total. Legalese has built three Gen 2 systems to date.
+https://news.ycombinator.com/item?id=13447059
 
-In parallel, Legalese also in active R&D on a Gen 3 system, in the form of the language L4.
+It’s natural to think “contracts are just chunks of text; we should be able to throw them together easily. Skinny jeans, strappy sandals, a sweater: voilà, an outfit!”
+
+A JSON-style key/value approach may make sense for a standalone lawyer producing first-cut documents, but those documents better be in Word format, because the other side will want to edit them, and you’re back to the original problem again.
+
+And that problem stands in the way of building a Github for Law.
+
+Legal documents that have been heavily edited often have the nature of a compiled object. Look at this example from Missouri:
+
+#+BEGIN_QUOTE text
+233.285.  Law not to affect road districts incorporated prior to effective date. — The repealing of the sections and law repealed by this law shall not have the effect of abating, nullifying, suspending or vitiating any public road district incorporated, or established by preliminary order, prior to the taking effect of this law or any proceedings by any such public road district; but any public road district finally incorporated, or established only by preliminary order, prior to the taking effect of this law, except districts established only by preliminary order in which there has been held a meeting of landowners of the district, in compliance with laws repealed by this law, at which owners of a majority of the acres of land in the district failed to vote in favor of the improvement of any road or roads proposed to be improved, shall, from and after the taking effect of this law, by the name mentioned in the preliminary order of the county commission establishing it, be a political subdivision of the state for governmental purposes with all the powers mentioned in sections 233.170 to 233.315 and such others as may from time to time be given by law, and shall, after the taking effect of sections 233.170 to 233.315, proceed, and shall have and exercise, and the commissioners and landowners and voters thereof shall have and exercise, the same privileges, powers and duties as if such district was incorporated after the taking effect of sections 233.170 to 233.315 and under and in accordance with sections 233.170 to 233.315; except that valid contracts made or entered into before the taking effect of sections 233.170 to 233.315, under laws hereby repealed, shall be complied with the same as if such laws were still in force; and except that any such district in which there has been a meeting of landowners of the district, in compliance with laws repealed by sections 233.170 to 233.315, at which owners of a majority of the acres of land in the district voted that any road or roads therein be improved and the cost thereof charged against the lands in the district, may proceed, and the commissioners thereof may proceed in making such improvement, and tax bills, or bonds may be issued and collected on account of such improvement, in the same manner as if the laws repealed by sections 233.170 to 233.315 were still in force and effect and sections 233.170 to 233.315 not yet in effect; but in case no contract for such improvement has been entered into, or tax bills or bonds issued by reason of such vote for such improvement, such district, and the commissioners and landowners thereof may, in making such improvement or issuing tax bills or bonds on account thereof, proceed as if such district had not been incorporated until after the taking effect of sections 233.170 to 233.315, and was incorporated under and in compliance with sections 233.170 to 233.315; or said special road district commissioners may file with the clerk of the county commission the tabulated statement or statements of the lands in the district as prepared previous to such meeting, and, if they have not done so already, make out and file with the clerk of the county commission a report of the action of the landowners at such meeting, signed and acknowledged by them, and the clerk of the county commission, after such report and tabulated statement are so filed, shall give notice, by at least two publications in some weekly newspaper published in the county, that said special road district commissioners have filed with him a report of an election in such district, and a tabulated statement of the lands in the district, showing the valuations fixed by them on each tract thereof for the purposes of an assessment for road improvement voted upon at such meeting, and such notice shall state a day not less than two weeks later than the date of the first publication of such notice, upon which the county commission will be in session and will hear and consider exceptions and objections to such report and tabulated statement and to the valuations so fixed on any or all tracts of land in the district, and the county commission shall, upon said day or as soon thereafter as the business of the county commission will permit, hear and consider any objections or exceptions that may be made to such report, and at such hearing such report shall be prima facie evidence of the statements therein made, and the county commission, if no objections or exceptions are made to such report, or if it find, after considering and hearing any objections that may be so made, and any evidence that may be offered, that such special road district commissioners prior to such meeting, and at such meeting, proceeded in compliance with the law then in force, and called such meeting and gave notice thereof in compliance with the law then in force, and that the action of the landowners at such meeting was as stated in such report, the county commission shall hear and consider such objections and exceptions as may be made to such tabulated statement or to valuations fixed on lands in the district as in such tabulated statement indicated, and, after hearing and considering such objections and exceptions, and such evidence as may be offered, shall make any alterations and corrections of said tabulated statement, and of the valuations so fixed and indicated, or fix such valuations on any of such lands, as it may deem proper, and shall thereupon approve such tabulated statement, and the valuations indicated therein, and order the clerk of the county commission to annex to said tabulated statement a certificate of such approval, and thereafter such district, and the special road district commissioners thereof, and the clerk of the county commission, in making such improvement and contracting for the same, or in issuing tax bills to pay for the same, or issuing bonds or tax bills to pay such bonds, may proceed as if this law had not taken effect, and the laws hereby repealed still in effect, except that the special road district commissioners need not make out and certify to the county clerk a description of the lands in the district as required by laws hereby repealed, and the county clerk in apportioning against each tract of land in the district its share of the cost of the improvement or its share of the principal and interest on the bonds, shall use, for the purpose of making such apportionment, such tabulated statement as so approved by the commission.
+#+END_QUOTE
+
+Does that remind you of something? The last time I felt this way was when I opened a binary executable in a hex editor. And that was a long, long time ago. Remember the 1980s? The era of proprietary software, before the Internet, when people shared programs on floppy disks. Not as source code, but as binaries. I remember turning on cheat codes by opening up .EXE files and twiddling specific address locations.
+
+https://sites.google.com/site/kmbrandt/hexeditor.jpg
+
+Binary code consists of machine instructions intended for CPUs. Editing raw binary is a dangerous thing; a single change in one spot often implies a cascade of changes throughout the rest of the file.
+
+No wonder one of the very first inventions in computer science was the compiler. A programmer writes source code in a high level language to work out the solution to a software problem, function by function, module by module, the way a screenwriter writes a script to work out the plot of their story, line by line, scene by scene. Then the screenplay enters production and turns into a gigabyte of MPEG data; the source code enters a compiler and turns into ten megabytes of machine code. Every time the source code changes, the compiler rebuilds the binary.
+
+In that sense, a contract template -- say, a Word document with yellow blanks -- is a special kind of machine binary. If you're an end-user you may fill in the assigned blanks, but don't touch anything else! Because you haven't been ordained -- you're not in the priesthood.
+
+But the life cycle of many business contracts involves some degree of negotiation. Yes, some contracts are take-it-or-leave-it[fn:adhesion]. But most B2B contracts ping-pong back and forth several times before the parties commit to signature. That means lots of editing.
+
+Today, that editing happens at the level of the compiled binary. It should happen at the level of source code.
+
+What happens when your counterparty wants to add a new clause in the middle of your template blocks? You have to “recompile” -- update all the cross-references and adjust the clauses to match the change. And that's just at the surface level. What about deeper changes to the semantics? That is, after all, the point of negotiation. One change to the deal could entail half a dozen changes in the contract.
+
+Where is the source code for a business contract, for a piece of legislation? Largely in the heads of lawyers, it turns out. The closest thing to a high-level language version of a contract is a term sheet: a one-page version summarizing the configuration of the deal, which "definitive documentation" subsequently details.
+
+Today, lawyers are human compilers, just as there used to be human computers. But we’ve seen this show before; we know what comes next. High-level languages. Reusable, modular libraries. Open source.
+
+** Example: SCT2 versus SCT3
+
+Let's look at an example of how SCT2 and SCT3 systems handle a common contract situation differently.
+
+Suppose a startup investment agreement, such as a SAFE or a KISS, contemplates conversion to equity in some future round. To avoid premature conversion and dilution, the triggering round must be of a certain minimum size. So the language in a contract might be:
+
+#+BEGIN_QUOTE text
+Next Equity Financing means the next sale (or series of related sales) by the Company of its Preferred Stock following the Date of Issuance from which the Company receives gross proceeds of not less than MIN_PROCEEDS (excluding the aggregate amount of securities converted into Common or Preferred Stock in connection with such sale (or series of related sales)).
+#+END_QUOTE
+
+A 2nd generation SCT system might organize this template as follows:
+
+#+BEGIN_SRC json
+{ "template": "Next Equity Financing means the next sale (or series of related sales) by the Company of its Preferred Stock following the Date of Issuance from which the Company receives gross proceeds of not less than {{MIN_PROCEEDS}} (excluding the aggregate amount of securities converted into Common or Preferred Stock in connection with such sale (or series of related sales)).",
+  "vars": {
+    "MIN_PROCEEDS": "US$2,000,000",
+  }
+}
+#+END_SRC
+
+This is consistent with the original vision of the Ricardian Contract: a text template with an accompanying dictionary of key-value pairs.
+
+Suppose, after negotiation, the parties agree to measure the size of the round in two ways instead of one. They revise the template:
+
+#+BEGIN_SRC json
+{ "template": "Next Equity Financing means the next sale (or series of related sales) by the Company of its Preferred Stock following the Date of Issuance from which the Company:--
+- receives gross proceeds of not less than {{MIN_PROCEEDS}} (excluding the aggregate amount of securities converted into Common or Preferred Stock in connection with such sale (or series of related sales)); or
+- is valued (prior to the sale (or series of related sales)) at no less than {{MIN_VALUATION}} (excluding the conversion of this instrument and other instruments of this type, and of convertible promissory notes).",
+  "vars": {
+    "MIN_PROCEEDS":   "US$2,000,000",
+    "MIN_VALUATION": "US$10,000,000"
+  }
+}
+#+END_SRC
+
+This is good 2nd-generation work. How would this look in a 3rd-generation SCT?
+
+#+BEGIN_SRC haskell
+nef :: Definition FinancingRound = (en "Next Equity Financing")
+    first [ round | round <- company.financingRounds
+          , round.date after my.dateOfIssuance
+          , round.instrument instanceof PreferredStock
+          , ( round.proceeds > min_proceeds ||
+              round.preMoneyValuation > min_valuation )
+          ] where min_proceeds  = USD 2000000
+                  min_valuation = USD 10000000
+#+END_SRC
+
+The template has become a program! The semantics have been formalized. The parties can now negotiate unambiguously about the meaning of the contract, trusting to the compiler to produce faithful language.
+
+It is now the compiler's job to turn the program back into text. To do this, the compiler must know how to convert a wide range of possible expressions to natural language. This is a tractable problem and solutions have been demonstrated in the literature.
+
+If further negotiation results in more changes to the program, no problem: changes to the text will follow automatically.
+
+This approach is not possible in a 2nd-generation SCT system. It is only possible in a 3rd-generation system.
+
+** Multiple Languages, Multiple Jurisdictions
+
+Pushing the burden of natural-language generation to the compiler opens a number of doors.
+
+Localizing a contract for a different jurisdiction, a different language, should be as simple as changing a single line in the file.
+
+** Github for Law
+
+The idea of "Github for Law" belongs more to the world of 3rd-generation SCT than 2nd-generation.
+
+In the absence of SCT3 source code, a "Github for Law" is really a warez site, full of suspect, immutable binaries. PDFs are not source code. They’re the executable.
+
+Going from SCT2 to SCT3 is fundamental stuff, which even the ancients would recognize as a giant step forward. The distinction between syntax, semantics, and pragmatics goes back two thousand years, to Publius Juventius Celsus:
+SCIRE LEGES NON HOC EST VERBA EARUM TENERE SED VIM AC POTESTATEM
+To know the law is not merely to understand the words, but as well their force and effect.
+Justinian, Digest, Book 1, Title 3, 17
+
+For the first time in history we can begin to move the not just the words, but the understanding of the words, and the understanding of their force and effect, into a machine.
+
+* Footnotes
 
 [fn:darmstadter] http://www.jstor.org/stable/25758526
 
@@ -369,3 +476,5 @@ In parallel, Legalese also in active R&D on a Gen 3 system, in the form of the l
 [fn:governatori] http://www.governatori.net/research/pubs/index.html
 
 [fn:ssi] https://en.wikipedia.org/wiki/Server_Side_Includes
+
+[fn:adhesion] https://en.wikipedia.org/wiki/Standard_form_contract#Contracts_of_adhesion
