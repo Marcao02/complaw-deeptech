@@ -4,8 +4,8 @@
 )
 
 (Claims 
-	(MAX_TIME = 44D)
-	(MAX_EVENT_STATE_CHANGES = 6)
+	($MAX_TIME = 44D)
+	($MAX_EVENT_STATE_CHANGES = 6)
 )
 
 (Actors Buyer Seller)
@@ -26,7 +26,7 @@
 	{EventStates
 		(Start() [P1] (
 			(Seller 
-				(Delivered() by 2011-01-01)
+				(Delivered() by DELIVERY_DEADLINE)
 			)
 		))
 	
@@ -74,7 +74,7 @@
 
 		(Returned_On_Time() [P5] (
 			(Seller 
-				(Refund_Received by (today() + 7D))
+				(Refund_Received() by (today() + 7D))
 			)
 		))
 
@@ -106,3 +106,5 @@
 		))
 	}
 )
+
+(DotFileName 'printer_state_diagram.dot')

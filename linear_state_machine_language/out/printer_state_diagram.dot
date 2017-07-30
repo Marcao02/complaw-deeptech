@@ -1,0 +1,25 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Two_part_sale_Hvitved_Laser_Printer {
+	Start[label=Start,color=Red];
+	Delivered[label=Delivered,color=Blue];
+	Paid_1st_Installment[label=Paid_1st_Installment,color=Blue];
+	Late_2nd_Installment[label=Late_2nd_Installment,color=Blue];
+	Paid_2nd_Installment[label=Paid_2nd_Installment,color=Blue];
+	Returned_On_Time[label=Returned_On_Time,color=Red];
+	Late_Fee_Paid_And_Sale_Complete[label=Late_Fee_Paid_And_Sale_Complete];
+	Normal_Sale_Ended[label=Normal_Sale_Ended];
+	Refund_Received[label=Refund_Received];
+	Start -> Delivered;
+	Delivered -> Paid_1st_Installment;
+	Paid_1st_Installment -> Paid_2nd_Installment;
+	Paid_1st_Installment -> Returned_On_Time;
+	Paid_1st_Installment -> Late_2nd_Installment [style=dashed];
+	Late_2nd_Installment -> Late_Fee_Paid_And_Sale_Complete;
+	Paid_2nd_Installment -> Returned_On_Time;
+	Paid_2nd_Installment -> Normal_Sale_Ended [style=dashed];
+	Returned_On_Time -> Refund_Received;
+	Late_Fee_Paid_And_Sale_Complete -> Fulfilled [style=dashed];
+	Normal_Sale_Ended -> Fulfilled [style=dashed];
+	Refund_Received -> Fulfilled [style=dashed];
+}

@@ -1,0 +1,30 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Lease_Hvitved {
+	Start[label=Start];
+	Lease_Term_Started[label=Lease_Term_Started,color=Blue];
+	Apartment_Ready[label=Apartment_Ready];
+	Month_Started[label=Month_Started];
+	Termination_Requested_At_Rent_Or_Before[label=Termination_Requested_At_Rent_Or_Before,color=Red];
+	Rent_Paid[label=Rent_Paid];
+	Termination_Requested_After_Rent[label=Termination_Requested_After_Rent];
+	Month_Ended[label=Month_Ended];
+	Lease_Term_Ended[label=Lease_Term_Ended,color=Red];
+	Moved_Out[label=Moved_Out];
+	Start -> Lease_Term_Started [style=dashed];
+	Lease_Term_Started -> Apartment_Ready;
+	Apartment_Ready -> Month_Started [style=dashed];
+	Month_Started -> Termination_Requested_At_Rent_Or_Before;
+	Month_Started -> Rent_Paid;
+	Month_Started -> Termination_Requested_At_Rent_Or_Before;
+	Termination_Requested_At_Rent_Or_Before -> Rent_Paid;
+	Rent_Paid -> Termination_Requested_After_Rent;
+	Rent_Paid -> Termination_Requested_After_Rent;
+	Rent_Paid -> Month_Ended [style=dashed];
+	Termination_Requested_After_Rent -> Month_Ended [style=dashed];
+	Month_Ended -> Lease_Term_Ended [style=dashed];
+	Month_Ended -> Month_Started [style=dashed];
+	Lease_Term_Ended -> Moved_Out;
+	Lease_Term_Ended -> Lease_Term_Started [style=dashed];
+	Moved_Out -> Fulfilled [style=dashed];
+}

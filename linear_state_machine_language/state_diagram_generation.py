@@ -28,20 +28,28 @@ def contractToDotFileStr(l4file: L4Top) -> str:
     # graphname = l4file.formal_contract.name[1]
     cleaned_graphname = "_".join(l4file.formal_contract.name[1].split(' '))
     nodes_str = mapjoin(lambda x: eventStateAsDotNodeStr(x, l4file.actors), l4file.event_states(), ";\n\t")
-    rv = "digraph " + cleaned_graphname + " {\n\t"
+    rv = "// THIS IS A GENERATED FILE. DO NOT EDIT.\n\n"
+    rv += "digraph " + cleaned_graphname + " {\n\t"
     transitions_str = mapjoin(transitionAsDotArcStr, l4file.transitions(), ";\n\t")
     rv += nodes_str + ";\n\t" + transitions_str + ";\n}"
     return rv
 
 def contractToDotFile(l4file: L4Top) -> None:
-    outname = "out/state_diagram.png"
-    cleaned_graphname = "_".join(l4file.formal_contract.name[1].split(' '))
-    filestr = contractToDotFileStr(l4file)
-    f = open(f"out/{cleaned_graphname}.dot", 'w')
-    f.write(filestr)
+    # replace spaces with underscores
+    cleaned_contract_name = "_".join(l4file.formal_contract.name[1].split(' '))
+    png_path = f"out/{cleaned_contract_name}.png"
+
+    if l4file.dot_file_name:
+        dot_path = f"out/{l4file.dot_file_name}"
+    else:
+        dot_path = f"out/{cleaned_contract_name}.dot"
+
+    dot_contents = contractToDotFileStr(l4file)
+    f = open(dot_path, 'w')
+    f.write(dot_contents)
     f.close()
-    command = f'dot -Tpng -o{outname} "out/{cleaned_graphname}.dot"'
+    command = f'dot -Tpng -o{png_path} "{dot_path}"'
     print('\nTrying to run graphviz with:\n\t' + command)
     import os
     os.system(command)
-    print('If successful result will be at ' + outname + '\n')
+    print('If successful result will be at:\n\t' + png_path + '\n')

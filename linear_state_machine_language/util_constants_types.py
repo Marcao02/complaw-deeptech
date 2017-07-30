@@ -20,12 +20,14 @@ FORMAL_CONTRACT_SECTION_LABEL = "FormalContract"
 ACTORS_SECTION_LABEL = "Actors"
 
 CONTRACT_PARAMETERS_SECTION_LABEL = "Parameters"
+DOT_FILE_NAME_LABEL = "DotFileName"
 EVENT_STATES_SECTION_LABEL = "EventStates"
 
 CODE_BLOCK_LABEL = "Code"
 NONACTION_BLOCK_LABEL = "AfterDeadlines"
 
 def streqci(s1:Any,s2:Any) -> bool:
+    # ci for case insensitive
     return isinstance(s1,str) and isinstance(s2,str) and s1.lower() == s2.lower()
 
 def is_singleton_string_list(lst:List[Any]) -> bool:
