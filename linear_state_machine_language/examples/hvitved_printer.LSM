@@ -10,6 +10,11 @@
 
 (Actors Buyer Seller)
 
+(Parameters 
+	(CONTRACT_START : Date)
+	(DELIVERY_DEADlINE : Date)
+)
+
 (ProseContract 
 	(P1 'Seller agrees to transfer and deliver to Buyer, on or before 2011-01-01, the goods: 1 laser printer.')
 	(P2 'Buyer agrees to accept the goods and to pay a total of €200 for them according to the terms further set out below.')
@@ -19,12 +24,10 @@
 )
 
 (FormalContract	
-	"Two part sale Hvitved Laser Printer"
-	(Parameters 
-		(DELIVERY_DEADlINE : Date)
-	)
+	"Two part sale Hvitved Laser Printer"	
+	(StartState Awaiting_Delivery)
 	{EventStates
-		(Start() [P1] (
+		(Awaiting_Delvery() [P1] (
 			(Seller 
 				(Delivered() by DELIVERY_DEADLINE)
 			)
