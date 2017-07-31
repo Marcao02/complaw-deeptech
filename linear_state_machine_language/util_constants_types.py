@@ -11,6 +11,7 @@ ParamsDec = Dict[str,Sort]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly'}
+DEADLINE_OPERATORS = {'by', 'within', 'on' ,'at', 'before'}
 
 # These are not actually case sensitive
 GLOBAL_VARS_SECTION_LABEL = "GlobalVars"

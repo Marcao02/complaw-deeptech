@@ -27,7 +27,7 @@
 	"Two part sale Hvitved Laser Printer"	
 	(StartState Awaiting_Delivery)
 	{EventStates
-		(Awaiting_Delvery() [P1] (
+		(Awaiting_Delivery() [P1] (
 			(Seller 
 				(Delivered() by DELIVERY_DEADLINE)
 			)

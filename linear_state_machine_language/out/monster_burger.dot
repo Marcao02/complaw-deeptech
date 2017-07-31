@@ -1,0 +1,26 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Monster_Burger {
+	MonsterBurgerOrdered[label=MonsterBurgerOrdered,color=Red];
+	ServeMB[label=ServeMB];
+	MissedServeDeadline[label=MissedServeDeadline];
+	EatingMB[label=EatingMB];
+	ChallengerAnnouncesFinished[label=ChallengerAnnouncesFinished,color=Red];
+	LateCheck[label=LateCheck];
+	CheckFinishedClaim[label=CheckFinishedClaim,color=Red];
+	RejectFinishedClaim[label=RejectFinishedClaim];
+	VerifyFinishedClaim[label=VerifyFinishedClaim];
+	MonsterBurgerOrdered -> ServeMB;
+	MonsterBurgerOrdered -> MissedServeDeadline [style=dashed];
+	ServeMB -> EatingMB [style=dashed];
+	MissedServeDeadline -> Fulfilled [style=dashed];
+	EatingMB -> ChallengerAnnouncesFinished;
+	EatingMB -> CheckFinishedClaim;
+	ChallengerAnnouncesFinished -> CheckFinishedClaim;
+	ChallengerAnnouncesFinished -> LateCheck [style=dashed];
+	LateCheck -> Fulfilled [style=dashed];
+	CheckFinishedClaim -> VerifyFinishedClaim;
+	CheckFinishedClaim -> RejectFinishedClaim;
+	RejectFinishedClaim -> EatingMB [style=dashed];
+	VerifyFinishedClaim -> Fulfilled [style=dashed];
+}

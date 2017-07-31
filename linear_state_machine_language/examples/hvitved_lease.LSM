@@ -22,8 +22,9 @@
 
 (FormalContract	
 	"Lease Hvitved"		
+	(StartState Move_In)
 	(EventStates
-		(Start() [] (
+		(Move_In() [] (
 			(AfterDeadlines 
 				(Lease_Term_Started() on MOVE_IN_DATE)
 			)

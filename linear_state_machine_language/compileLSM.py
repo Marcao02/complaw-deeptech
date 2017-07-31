@@ -40,9 +40,9 @@ class Assemble:
                 self._top.img_file_name = x[1][1] # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
 
-        assert self._referenced_event_stateids.union(['Start']) == set(self._top.formal_contract.estates.keys()).union(["Fulfilled"]), (
-            "Set of referenced event state ids (plus 'Start') ≠ set of declared event state ids (plus 'Fulfilled'):\n" +
-            "Referenced + 'Start' : " + str(sorted(self._referenced_event_stateids.union(['Start']))) + "\n" +
+        assert self._referenced_event_stateids == set(self._top.formal_contract.estates.keys()).union(["Fulfilled"]), (
+            "Set of referenced event state ids ≠ set of declared event state ids (plus 'Fulfilled'):\n" +
+            "Referenced           : " + str(sorted(self._referenced_event_stateids)) + "\n" +
             "Defined + 'Fulfilled': " + str(sorted(set(self._top.formal_contract.estates.keys()).union(["Fulfilled"])))
         )
 
@@ -54,10 +54,13 @@ class Assemble:
         for dec in l:
             if dec[0] in VARIABLE_MODIFIERS:
                 self._top.sorts.add(dec[3])
-                rv[dec[1]] = GlobalVar(dec[1], dec[3], dec[5], dec[0])
+                if dec[0] == 'writeonce':
+                    rv[dec[1]] = GlobalVar(dec[1], dec[3], None, dec[0])
+                else:
+                    rv[dec[1]] = GlobalVar(dec[1], dec[3], dec[5], dec[0])
             else:
                 self._top.sorts.add(dec[2])
-                rv[dec[1]] = GlobalVar(dec[0], dec[2], dec[4])
+                rv[dec[0]] = GlobalVar(dec[0], dec[2], dec[4])
         # logging.info(str(rv))
         return rv
 
@@ -88,6 +91,10 @@ class Assemble:
         for x in l[1:]:
             assert len(x) >= 2
             x0 = x[0]
+            if streqci(x0, 'StartState'):
+                fc.start_state = x[1]
+                self._referenced_event_stateids.add(x[1])
+
             if streqci(x0, CONTRACT_PARAMETERS_SECTION_LABEL):
                 param_decls = x[1:]
                 for pdecl in param_decls:
@@ -157,7 +164,7 @@ class Assemble:
         self._referenced_event_stateids.add(dest_id)
         tc = TransitionClause(src_es_id, dest_id, actor_id)
         tc.args = trans_spec[1]
-        if trans_spec[2] == 'by' or trans_spec[2] == 'on':
+        if trans_spec[2] in DEADLINE_OPERATORS:
             tc.deadline = trans_spec[2:4]
         else:
             assert streqci(trans_spec[2],"immediately"), trans_spec[2]
@@ -170,7 +177,7 @@ class Assemble:
         tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL)
         tc.args = trans_spec[1]
         if len(trans_spec) > 2:
-            if trans_spec[2] == 'by' or trans_spec[2] == 'on':
+            if trans_spec[2] in DEADLINE_OPERATORS:
                 tc.deadline = trans_spec[2:4]
             else:
                 assert streqci(trans_spec[2], "immediately"), trans_spec[2]
@@ -182,7 +189,8 @@ class Assemble:
 
 EXAMPLES = (
     'examples/hvitved_printer.LSM',
-    'examples/hvitved_lease.LSM'
+    'examples/hvitved_lease.LSM',
+    'examples/monster_burger.LSM'
 )
 
 

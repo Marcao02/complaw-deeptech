@@ -1,7 +1,7 @@
 // THIS IS A GENERATED FILE. DO NOT EDIT.
 
 digraph Lease_Hvitved {
-	Start[label=Start];
+	Move_In[label=Move_In];
 	Lease_Term_Started[label=Lease_Term_Started,color=Blue];
 	Apartment_Ready[label=Apartment_Ready];
 	Month_Started[label=Month_Started];
@@ -11,7 +11,7 @@ digraph Lease_Hvitved {
 	Month_Ended[label=Month_Ended];
 	Lease_Term_Ended[label=Lease_Term_Ended,color=Red];
 	Moved_Out[label=Moved_Out];
-	Start -> Lease_Term_Started [style=dashed];
+	Move_In -> Lease_Term_Started [style=dashed];
 	Lease_Term_Started -> Apartment_Ready;
 	Apartment_Ready -> Month_Started [style=dashed];
 	Month_Started -> Termination_Requested_At_Rent_Or_Before;
