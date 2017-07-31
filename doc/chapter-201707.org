@@ -96,7 +96,7 @@ Thirty years later, the situation had not improved. Darmstadter 2010[fn:darmstad
 But compared to the testing engineers and programmers do, the testing of legal documents is hopelessly backward. Essentially, someone drafts the document and other people read it. If they notice problems, they alert the draftsman, who makes some changes. That's it. 
 #+END_QUOTE
 
-Given the similarities between the fields, it was only a matter of time before somebody tried to formalize contracts, and to formally verify . Model checking of contracts was first demonstrated in 2006 by Pace, Prisacariu, and Schneider.[fn:pps2006] (See also [[https://theses.ncl.ac.uk/dspace/handle/10443/1814][Abdelsadiq]] 2013.) Model checking of legislation was demonstrated by Fernando Schapachnik et al in 2011[fn:formalex2011].
+Given the similarities between the fields, it was only a matter of time before somebody tried to formalize contracts, and to formally verify them. Model checking of contracts was first demonstrated in 2006 by Pace, Prisacariu, and Schneider.[fn:pps2006] (See also [[https://theses.ncl.ac.uk/dspace/handle/10443/1814][Abdelsadiq]] 2013.) Model checking of legislation was demonstrated by Fernando Schapachnik et al in 2011[fn:formalex2011].
 
 As the term suggests, formal verification requires a contract to first be formalized: translated into a logical notation for which an explicit, unambiguous formal semantics has been defined.[fn:floyd1967] In other words, into a program, written in some programming language specialized for law.
 
@@ -108,7 +108,7 @@ Subsequently, more general-purpose languages for contract formalization have bee
 
 - CL (Contract Language) by Pace and Schneider was the subject of John Camilleri's 2016 thesis work[fn:anacon];
 - CSL (Contract Specification Language) was the subject of Tom Hvitved's 2013 PhD thesis[fn:hvitved];
-- FormaLex by Schapachnik has been ongoing from 2011 to 2017.
+- FormaLex[fn:formalex2011] by Schapachnik has been ongoing from 2011 to 2017.
 
 These languages typically borrow from modal logic:
 - deontics define the obligations and prohibitions of parties;
@@ -117,9 +117,7 @@ These languages typically borrow from modal logic:
 
 Contract languages also borrow from rule logics, of which more later.
 
-Rules may conflict. Defeasible logics[fn:governatori] help resolve these conflicts using exceptions, priorities, and meta-rules.
-
-This tradition of academic research evolved slowly and steadily, elaborating Szabo's original vision for "smart contracts". The term seemed apt to describe a born-digital contract which took shape first as a program in a text editor. That program might later compile to a Word document or a PDF, but such projections were only shadows cast upon a cave wall by the Platonic ideal of the smart contract code.
+This tradition of academic research evolved slowly and steadily, elaborating Szabo's original vision for smart contracts. The term seemed apt to describe a born-digital contract which took shape first as a program in a text editor. That program might later compile to a Word document or a PDF, but such projections were only shadows cast upon a cave wall by the Platonic ideal of the smart contract code.
 
 Then, in the 2010s, a handful of billionaire anarchists co-opted the term "smart contract" and gave it a new meaning.
 
@@ -439,6 +437,9 @@ The earliest work in this space dates back to 1986: researchers translated the B
 Other verticals will follow. Sooner or later some country will muster the political will to fund the translation of their law into a formal structure; the first country to do this may enjoy economic benefits as smart contracts flow toward that jurisdiction. The Swiss canton of Zug is vying for this title.[fn:zug] So is Singapore.[fn:ubin]
 
 Laws are rules for society. Rules are their own subject of research in computer science; approaches to the topic include logic programming, recently updated by Kowalski and Sadri's LPS[fn:lps]; RuleLog[fn:rulelog]; and RuleML[fn:ruleml]. Reaction rules (the if/then constructs that are the mainstay of imperative programming languages) forward-chain from facts to conclusions. Deliberation, or deduction, rules (typically structured as Horn clauses in logic programming languages) backward-chain from consequent to antecedent. The RuleML standard emerged from work on the Semantic Web, and is being specialized for law in the form of LegalRuleML[fn:legalruleml].
+
+Rules may conflict. Defeasible logics[fn:governatori] help resolve these conflicts using exceptions, priorities, and meta-rules.
+
 
 * The Science Fiction of Computational Law
 
