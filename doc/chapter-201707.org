@@ -1,5 +1,8 @@
 #+TITLE: Computable Contracts: from Academia to Industry
 #+AUTHOR: mengwong@legalese.com
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://dl.dropboxusercontent.com/u/9544489/org-style-img100.css" />
+#+OPTIONS: toc:1
+#+OPTIONS: H:2 num:2
 
 pre-publication, not for redistribution ([2017-07-28 Fri])
 
@@ -104,7 +107,7 @@ Financial contracts were the first to be formalized. Special-purpose contract la
 Subsequently, more general-purpose languages for contract formalization have been developed in academia. The most relevant:
 
 - CL (Contract Language) by Pace and Schneider was the subject of John Camilleri's 2016 thesis work[fn:anacon];
-- CSL (Contract Specification Language) was the subject of Tom Hvitved's 2013 PhD thesis;
+- CSL (Contract Specification Language) was the subject of Tom Hvitved's 2013 PhD thesis[fn:hvitved];
 - FormaLex by Schapachnik has been ongoing from 2011 to 2017.
 
 These languages typically borrow from modal logic:
@@ -393,7 +396,7 @@ With the right infrastructure, producing English, French, Spanish, Chinese contr
 
 We can develop separate modules to [[https://en.wikipedia.org/wiki/Natural_language_generation][produce the natural language version]] of contracts, using tools such as [[http://www.grammaticalframework.org/][GF]]. Some work has been done in this domain already by Henrik Leopold.[fn:leopold]
 
-To date, the bulk of wordsmithing energy has been spent on specific contracts. Moving this effort to contract templates improves reusability. Increasing the granularity and shifting the focus of text generation to the level of a paragraph or sentence would be even more beneficial: continuing refinements to the NLG component would be analytically separated from the heat of any particular deal or transaction structure.
+The bulk of wordsmithing energy in the legal industry today is spent on specific contracts. Moving this effort to contract templates improves reusability. Increasing the granularity and shifting the focus of text generation to the level of a paragraph or sentence would be even more beneficial: continuing refinements to the NLG component would be analytically separated from the heat of any particular deal or transaction structure.
 
 ** Isomorphism with Diagrams
 
@@ -401,7 +404,7 @@ Produce visual flowcharts in a way that would make [[https://legalinformatics.wo
 
 ** Isomorphism with Blockchain Smart Contracts
 
-In the Ethereum domain, Gen-3 contracts couldtranspile to Solidity / Viper or compile to EVM.
+In the Ethereum domain, Gen-3 contracts could transpile to Solidity / Viper or compile to EVM.
 
 Going beyond Ethereum, [[http://www.tezos.community/t/michelson-101/23][Tezos's Michelson language]] is another compilation target.
 
@@ -427,11 +430,11 @@ For the first time in history we can move into a machine not just the words, but
 
 * Smart Statutes
 
-So far we have dealt mostly with contracts. Contracts are private law. What about public law? Legislation and regulation?
+So far we have dealt mostly with contracts. Contracts are private law. What about public law -- legislation and regulation?
 
-While the idea of computable law is strongly aligned with the age-old school of legal formalism[fn:lformalism], the most recent motivation for computable law comes from the world of smart contracts: in his InternetOfAgreements.com paper, Vinay Gupta argued that smart contracts attempting to engage with the real world need to know the real world's rules, if they are to obey them. Hence the need for a "Regulatory Oracle".
+While the idea of computable law is strongly aligned with the age-old school of legal formalism[fn:lformalism], the most recent motivation for computable law comes from the world of smart contracts: in his [[http://internetofagreements.com/][InternetOfAgreements.com]] paper, Vinay Gupta argued that smart contracts attempting to engage with the real world need to know the real world's rules, if they are to obey them. Hence the need for a "Regulatory Oracle".
 
-The earliest work in this space dates back to 1986: researchers translated the British Nationality Act into Prolog.[fn:bna] Since then, several initiatives have attempted to provide frameworks for converting law into code upon which a machine can reason.[fn:hpl] The current bottleneck is formalization: translation takes time and fraught with interpretive issues.[fn:surdenvalues] This work has been done by companies such as Intuit and commercialized in the form of products like TurboTax, which represent a user-friendly formalization of the tax code.
+The earliest work in this space dates back to 1986: researchers translated the British Nationality Act into Prolog.[fn:bna] Since then, several initiatives have attempted to provide frameworks for converting law into code upon which a machine can reason.[fn:hpl] The current bottleneck is formalization: translation takes time and is fraught with interpretive issues.[fn:surdenvalues] This work has been done by companies such as Intuit and commercialized in the form of products like TurboTax, which represent a user-friendly formalization of the tax code.
 
 Other verticals will follow. Sooner or later some country will muster the political will to fund the translation of their law into a formal structure; the first country to do this may enjoy economic benefits as smart contracts flow toward that jurisdiction. The Swiss canton of Zug is vying for this title.[fn:zug] So is Singapore.[fn:ubin]
 
@@ -487,6 +490,8 @@ The white-hot cube spoke: “Phaethon, you may be unaware that you have already 
 Golden Age, John C. Wright[fn:goldenage]
 
 * Footnotes
+
+[fn:hvitved] https://drive.google.com/open?id=0BxOaYa8pqqSwbl9GMWtwVU5HSFU
 
 [fn:CTL] https://en.wikipedia.org/wiki/CTL*
 
