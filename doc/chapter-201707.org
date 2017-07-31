@@ -173,7 +173,7 @@ This paper follows the lead set by R3, in which the term "Smart Contract Templat
 
 * An Industry Snapshot of SCT2.5 Bridges
 
-The matchmakers envision a bridge between smart contracts and natural language contracts. Libraries of contract templates will emerge, with a foot in both worlds. Once the blanks are filled in, the contracts will take shape both as Ethereum smart contracts and as PDF or docx paperwork suitable for parties to sign.
+The matchmakers envision a bridge between smart contracts and natural language contracts. Libraries of contract templates will emerge, with a foot in each world. Once the blanks are filled in, the contracts will take shape both as Ethereum smart contracts and as PDF or docx paperwork suitable for parties to sign.
 
 This paper calls such dual-use smart contract templates "Generation 2.5 SCT" systems, or SCT2.5 for short.
 
@@ -266,7 +266,7 @@ Gen 3 SCT systems, having been designed for the purpose from the ground up, will
 
 * Why a DSL?
 
-Is there a direction, a teleology to the evolution of SCT systems? We have already heard an argument from the history of computer science about the move to increasingly abstract high-level languages. The history of the Web offers another argument.
+Is there a direction, a teleology to the evolution of SCT systems? The history of the Web offers a compelling analogy.
 
 One of the first technologies to make the Web interactive was the Server-Side Include[fn:ssi]: a crude templating system capable of stitching together individual HTML files.
 
@@ -275,6 +275,8 @@ Then came PHP, originally named "Personal Home Page / Forms Interpreter". The "F
 PHP author Rasmus Lerdorf said: "there was never any intent to write a programming language […] I have absolutely no idea how to write a programming language, I just kept adding the next logical step on the way." This is the organic evolutionary process that takes us to Gen 2.5 SCT today: feature after feature accreting in response to demand for stitching together online databases with real-world transactions; e-commerce is the obvious example.
 
 In 2017, the dominant paradigm on today's web is the web app powered by client-side Javascript. Web apps are enabled by the ability to run Turing-complete code in a sandbox, in the user's browser, communicating with servers using JSON. These apps are supported by an ecosystem of Javascript libraries easily remixed and reused by developers. The analogy is again clear: the kingdom comes; it will be done, in legal as it is in browsers. That is where the third generation of SCT systems is headed.
+
+To elaborate this argument, let us examine another analogy from the history of computer science: this is the story of the move to increasingly abstract high-level languages.
 
 * Legalese As Object Code
 
