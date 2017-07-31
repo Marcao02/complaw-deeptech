@@ -176,18 +176,19 @@ The matchmakers envision a bridge between smart contracts and natural language c
 
 This paper calls such dual-use smart contract templates "Generation 2.5 SCT" systems, or SCT2.5 for short.
 
-In July 2017 alone, five new SCT2.5 systems were announced. All are in development and none are widely used at time of writing.
+In July 2017 alone, five new SCT2.5 systems were announced -- two on the same day. All are in development and none are widely used at time of writing.
 
-| Initiative    | Announced    | (S)(CT) | (SC)(T) | Backed by    | Opensource | Maturity      | Consortium             | Funds Raised |
-|---------------+--------------+---------+---------+--------------+------------+---------------+------------------------+--------------|
-| [[http://www.commonaccord.org/][CommonAccord]]  | 2001         | (S)(CT) |         | James Hazard | github     | running code  |                        |              |
-| [[https://commonform.org/][CommonForm]]    | 2015         | (S)(CT) |         | Ironclad     | github     | in use        |                        | $120k        |
-| [[https://www.r3.com/press/SCT3-press-release.pdf][R3]]            | 2016         |         | (SC)(T) | Barclays     | ?          | consortium    | banks, law firms       | $107M        |
-| [[http://internetofagreements.com/][Mattereum]]     | [[https://www.reddit.com/r/ethereum/comments/6lvfuu/mattereum_legally_enforceable_smart_contracts/?st=j4uhqi6b&sh=fb6aaa85][7 July 2017]]  | (S)(CT) | (SC)(T) | Hexayurt     | ?          | white paper   |                        |              |
-| [[https://www.agrello.org/][Agrello]]       | [[https://blog.agrello.org/the-agrello-token-sale-has-begun-bd10a2ea71b9][16 July 2017]] |         | (SC)(T) | Estonians    | ?          | ICO           |                        | $15M ICO     |
-| [[http://openlaw.io/][OpenLaw.io]]    | [[https://media.consensys.net/introducing-openlaw-7a2ea410138b][25 July 2017]] | (S)(CT) | (SC)(T) | Consensys    | claimed    | demo          |                        |              |
-| [[http://accordproject.org/][AccordProject]] | [[https://medium.com/@accordhq/the-accord-project-launches-industry-first-tools-and-standards-for-smart-legal-contracts-with-2e67b2b6f2fd][26 July 2017]] | (S)(CT) | (SC)(T) | Hyperledger  | claimed    | press release | clause.io, clio, IACCM |              |
-| [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][ZeppelinOS]]    | [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][27 July 2017]] |         | (SC)(T) |              |            | press release |                        |              |
+| Initiative    | Announced    | (S)(CT) | (SC)(T) | Backed by    | Opensource | Funds Raised |
+|---------------+--------------+---------+---------+--------------+------------+--------------|
+| [[http://www.commonaccord.org/][CommonAccord]]  | 2001         | (S)(CT) |         | James Hazard | github     |              |
+| [[https://commonform.org/][CommonForm]]    | 2015         | (S)(CT) |         | Ironclad     | github     | $120k        |
+| [[https://www.r3.com/press/SCT3-press-release.pdf][R3]]            | 2016         |         | (SC)(T) | Barclays     | ?          | $107M        |
+| [[http://internetofagreements.com/][Mattereum]]     | [[https://www.reddit.com/r/ethereum/comments/6lvfuu/mattereum_legally_enforceable_smart_contracts/?st=j4uhqi6b&sh=fb6aaa85][7 July 2017]]  | (S)(CT) | (SC)(T) | Hexayurt     | ?          |              |
+| [[https://www.agrello.org/][Agrello]]       | [[https://blog.agrello.org/the-agrello-token-sale-has-begun-bd10a2ea71b9][16 July 2017]] |         | (SC)(T) | Estonians    | ?          | $15M ICO     |
+| [[https://etherparty.io/][EtherParty]]    | [[https://medium.com/@etherparty/etherparty-makes-smart-contracts-accessible-to-all-99ab3610d9d8][25 July 2017]] | (S)(CT) | (SC)(T) |              |            |              |
+| [[http://openlaw.io/][OpenLaw.io]]    | [[https://media.consensys.net/introducing-openlaw-7a2ea410138b][25 July 2017]] | (S)(CT) | (SC)(T) | Consensys    | claimed    |              |
+| [[http://accordproject.org/][AccordProject]] | [[https://medium.com/@accordhq/the-accord-project-launches-industry-first-tools-and-standards-for-smart-legal-contracts-with-2e67b2b6f2fd][26 July 2017]] | (S)(CT) | (SC)(T) | Hyperledger  | claimed    |              |
+| [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][ZeppelinOS]]    | [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][27 July 2017]] |         | (SC)(T) |              |            |              |
 
 * Strengths of 1st and 2nd generation systems
 
@@ -274,7 +275,7 @@ PHP author Rasmus Lerdorf said: "there was never any intent to write a programmi
 
 In 2017, the dominant paradigm on today's web is the web app powered by client-side Javascript. Web apps are enabled by the ability to run Turing-complete code in a sandbox, in the user's browser, communicating with servers using JSON. These apps are supported by an ecosystem of Javascript libraries easily remixed and reused by developers. The analogy is again clear: the kingdom comes; it will be done, in legal as it is in browsers. That is where the third generation of SCT systems is headed.
 
-* Legalese Seen As Object Code
+* Legalese As Object Code
 
 (a version of the following text was originally published on Medium, on Jan 21 2017)
 
@@ -436,7 +437,7 @@ Other verticals will follow. Sooner or later some country will muster the politi
 
 Laws are rules for society. Rules are their own subject of research in computer science; approaches to the topic include logic programming, recently updated by Kowalski and Sadri's LPS[fn:lps]; RuleLog[fn:rulelog]; and RuleML[fn:ruleml]. Reaction rules (the if/then constructs that are the mainstay of imperative programming languages) forward-chain from facts to conclusions. Deliberation, or deduction, rules (typically structured as Horn clauses in logic programming languages) backward-chain from consequent to antecedent. The RuleML standard emerged from work on the Semantic Web, and is being specialized for law in the form of LegalRuleML[fn:legalruleml].
 
-* close with a couple of science fiction quotes, for which the publisher may need to seek copyright permission.
+* The Science Fiction of Computational Law
 
 Two quotes from science fiction offer a vision of where computational law could lead.
 
