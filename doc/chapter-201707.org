@@ -52,11 +52,11 @@ Note that we are /not/ talking about legal /markup/ languages: the idea of addin
 
 ** Second-Generation Smart Contract Template systems
 
-Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. CommonAccord and CommonForm are examples of the opensource generation of smart contract templates). Many of these SCT2 systems also look toward blockchain-level operations.
+Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. [[http://www.commonaccord.org/][CommonAccord]] and [[https://commonform.org/][CommonForm]] are examples of the opensource generation of smart contract templates. These two do not have blockchain ambitions, but many SCT2 systems do.
 
 ** (Smart) (Contract Templates)
 
-The above tradition, descending for law and spanning two generations of software, interprets the term "Smart Contract Templates" as contract templates that are, in some sense, smart.
+The above tradition, descending from law and spanning two generations of software, interprets the term "Smart Contract Templates" as contract templates that are, in some sense, smart.
 
 But that is not the only tradition, and not the only interpretation. There is another tradition with a different interpretation.
 
