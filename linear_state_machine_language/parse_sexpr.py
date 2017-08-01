@@ -2,13 +2,17 @@ from typing import Union, List, Any
 from util_constants_types import is_singleton_string_list
 
 STRING_LITERAL_MARKER = "STRLIT"
+COMMENT_LITERAL_MARKER = "COMMENT"
+LINE_COMMENT_START_CHAR = ';'
 
 left_groupers = {'(','{','[','<','‹','❪'}
 right_groupers = {')','}',']','>','›','❫'}
-grouper_map = {'(':')', '{':'}', '[':']', '<':'>', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`'}
+grouper_map = {'(':')', '{':'}', '[':']', '<':'>', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`', LINE_COMMENT_START_CHAR:'\n'}
+# grouper_map = {'(':')', '{':'}', '[':']', '<':'>', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`'}
 quotelike = {"'",'"','`'}
 splits_word_only = {':','=','≔',','}
-all_symb_tags = quotelike.union(left_groupers)
+all_symb_tags = quotelike.union(left_groupers).union(';')
+# all_symb_tags = quotelike.union(left_groupers)
 
 class TaggedList(list):
     def __init__(self,symb,lst:list=None) -> None:
@@ -37,9 +41,9 @@ class SExprBuilder:
         return self.stack[-1] 
 
     def __repr__(self):
-        return '*' + repr(self.stack) + '*'    
+        return '*' + repr(self.stack) + '*'
 
-def parse(string:str, debug=False):
+def parse(string:str, debug=False, strip_comments=True):
     """
     >>> parse("(+ 5 (+ 3 5))")
     [['+', '5', ['+', '3', '5']]]
@@ -61,6 +65,7 @@ def parse(string:str, debug=False):
     
     str_lit_opened_at = None
     in_str_lit = False
+    in_comment = False
     str_lit_quote = None
     
     i,line,col = 0,1,1
@@ -81,11 +86,26 @@ def parse(string:str, debug=False):
         elif (char in right_groupers) and not in_str_lit:
             maybeAppendToken()                 
             builder.closeParenSeq(char,line,col)            
-        
+
+        elif char == LINE_COMMENT_START_CHAR and not in_str_lit:
+            in_comment = True
+            if not strip_comments:
+                builder.openParenSeq(char)
+                builder.appendTokenInCurScope(COMMENT_LITERAL_MARKER)
+
+        elif in_comment:
+            if char == '\n':
+                in_comment = False
+                if not strip_comments:
+                    maybeAppendToken()
+                    builder.closeParenSeq(char, line, col)
+            else:
+                if not strip_comments:
+                    word += char
+
         elif char in (' ', '\n', '\t') and not in_str_lit:
             maybeAppendToken()
         
-        # elif (char in quotelike)str_lit_quote == char):
         elif char in quotelike and ((not in_str_lit) or (str_lit_quote == char)):
             if in_str_lit:                
                 in_str_lit = False
