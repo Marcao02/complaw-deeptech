@@ -177,6 +177,7 @@ class Assemble:
 
 EXAMPLES = (
     'examples/hvitved_printer.LSM',
+    'examples/hvitved_printer_no_event_params.LSM',
     'examples/hvitved_lease.LSM',
     'examples/monster_burger.LSM',
     'examples/SAFE.LSM',

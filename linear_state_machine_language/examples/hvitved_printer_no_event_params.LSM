@@ -1,6 +1,7 @@
 (GlobalVars 
 	(writeonly buyer_paid : ℕ := 0)
 	(writeonly seller_refunded : ℕ := 0)
+	(writeonce delivery_date : Date)
 )
 
 (Claims 
@@ -38,32 +39,32 @@
 	
 		(Delivered() [ProseRefs P1] 
 			(Entrance
-				(writeonce delivery_date := today)
+				(delivery_date := today)
 			)
 			(ActorEvents
 				(Buyer 
-					(Paid_1st_Installment(delivery_date) immediately)
+					(Paid_1st_Installment() immediately)
 				)
 			)
 		)
 
-		(Paid_1st_Installment(delivery_date:Date) [ProseRefs P1 P2 P3] 
+		(Paid_1st_Installment() [ProseRefs P1 P2 P3] 
 			(Entrance
 				(conjecture buyer_paid == 0)
 				(buyer_paid := 100)
 			)
 			(ActorEvents
 				(Buyer 
-					(Paid_2nd_Installment(delivery_date) by (delivery_date + 30D))
-					(Returned_On_Time(delivery_date) by (delivery_date + 14D))
+					(Paid_2nd_Installment() by (delivery_date + 30D))
+					(Returned_On_Time() by (delivery_date + 14D))
 				)
 			)
 			(Fallbacks 
-				(Late_2nd_Installment(delivery_date))
+				(Late_2nd_Installment())
 			)
 		)
 
-		(Late_2nd_Installment(delivery_date:Date) [ProseRefs P4] 
+		(Late_2nd_Installment() [ProseRefs P4] 
 			(ActorEvents
 				(Buyer 
 					(Late_Fee_Paid_And_Sale_Complete() by (delivery_date + 44D))
@@ -71,7 +72,7 @@
 			)
 		)
 		
-		(Paid_2nd_Installment(delivery_date:Date) [ProseRefs P5] 
+		(Paid_2nd_Installment() [ProseRefs P5] 
 			(Entrance
 				(conjecture buyer_paid == 100)
 				(buyer_paid := 200)
@@ -123,5 +124,5 @@
 	}
 )
 
-(DotFileName 'hvitved_printer.dot')
-(ImgFileName 'hvitved_printer.png')
+(DotFileName 'hvitved_printer_no_event_params.dot')
+(ImgFileName 'hvitved_printer_no_event_params.png')
