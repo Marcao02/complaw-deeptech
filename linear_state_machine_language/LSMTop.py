@@ -7,6 +7,7 @@ class FormalContract:
         self.name = name
         self.estates : Dict[EventStateId, EventState] = None
         self.params : Dict[str,Sort] = None  # paramname -> sort
+        self.start_state: str = None # EventState id
 
     def can_transition(self, transid1, transid2) -> bool:
         return self.estates[transid1].can_transition_to(transid2)

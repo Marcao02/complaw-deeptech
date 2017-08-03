@@ -11,7 +11,10 @@ ParamsDec = Dict[str,Sort]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly'}
+
 DEADLINE_OPERATORS = {'by', 'within', 'on' ,'at', 'before'}
+DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
+DURATION_SYMBOLS = {'discretionary'}
 
 # These are not actually case sensitive
 GLOBAL_VARS_SECTION_LABEL = "GlobalVars"
@@ -25,8 +28,8 @@ DOT_FILE_NAME_LABEL = "DotFileName"
 IMG_FILE_NAME_LABEL = "ImgFileName"
 EVENT_STATES_SECTION_LABEL = "EventStates"
 
-CODE_BLOCK_LABEL = "Code"
-NONACTION_BLOCK_LABEL = "AfterDeadlines"
+CODE_BLOCK_LABEL = "Entrance"
+NONACTION_BLOCK_LABEL = "Fallbacks"
 
 def streqci(s1:Any,s2:Any) -> bool:
     # ci for case insensitive

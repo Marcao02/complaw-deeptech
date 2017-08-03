@@ -27,86 +27,99 @@
 	"Two part sale Hvitved Laser Printer"	
 	(StartState Awaiting_Delivery)
 	{EventStates
-		(Awaiting_Delivery() [P1] (
-			(Seller 
-				(Delivered() by DELIVERY_DEADLINE)
+		(Awaiting_Delivery() 
+			[ProseRefs P1] 
+			(ActorEvents
+				(Seller 
+					(Delivered() by DELIVERY_DEADLINE)
+				)
 			)
-		))
+		)
 	
-		(Delivered() [P1] (
-			(Code
+		(Delivered() [ProseRefs P1] 
+			(Entrance
 				(writeonce delivery_date ≔ today)
 			)
-			(Buyer 
-				(Paid_1st_Installment(delivery_date) immediately)
+			(ActorEvents
+				(Buyer 
+					(Paid_1st_Installment(delivery_date) immediately)
+				)
 			)
-		))
+		)
 
-		(Paid_1st_Installment(delivery_date:Date, othervar:OtherSort) [P1 P2 P3] (
-			(Code
+		(Paid_1st_Installment(delivery_date:Date, othervar:OtherSort) [ProseRefs P1 P2 P3] 
+			(Entrance
 				(conjecture buyer_paid = 0)
 				(buyer_paid ≔ 100)
 			)
-			(Buyer 
-				(Paid_2nd_Installment(delivery_date) by (delivery_date + 30D))
-				(Returned_On_Time(delivery_date) by (delivery_date + 14D))
+			(ActorEvents
+				(Buyer 
+					(Paid_2nd_Installment(delivery_date) by (delivery_date + 30D))
+					(Returned_On_Time(delivery_date) by (delivery_date + 14D))
+				)
 			)
-			(AfterDeadlines 
+			(Fallbacks 
 				(Late_2nd_Installment(delivery_date))
 			)
-		))
+		)
 
-		(Late_2nd_Installment(delivery_date:Date) [P4] (
-			(Buyer 
-				(Late_Fee_Paid_And_Sale_Complete() by (delivery_date + 44D))
+		(Late_2nd_Installment(delivery_date:Date) [ProseRefs P4] 
+			(ActorEvents
+				(Buyer 
+					(Late_Fee_Paid_And_Sale_Complete() by (delivery_date + 44D))
+				)
 			)
-		))
+		)
 		
-		(Paid_2nd_Installment(delivery_date:Date) [P5] (
-			(Code
+		(Paid_2nd_Installment(delivery_date:Date) [ProseRefs P5] 
+			(Entrance
 				(conjecture buyer_paid = 100)
 				(buyer_paid ≔ 200)
 			)
-			(Buyer 
-				(Returned_On_Time() by (delivery_date + 14D))
+			(ActorEvents
+				(Buyer 
+					(Returned_On_Time() by (delivery_date + 14D))
+				)
 			)
-			(AfterDeadlines 
+			(Fallbacks 
 				(Normal_Sale_Ended())
 			)
-		))
+		)
 
-		(Returned_On_Time() [P5] (
-			(Seller 
-				(Refund_Received() by (today() + 7D))
+		(Returned_On_Time() [ProseRefs P5] 
+			(ActorEvents
+				(Seller 
+					(Refund_Received() by (today() + 7D))
+				)
 			)
-		))
+		)
 
-		(Late_Fee_Paid_And_Sale_Complete() [P4] (
-			(Code 
+		(Late_Fee_Paid_And_Sale_Complete() [ProseRefs P4] 
+			(Entrance 
 				(conjecture buyer_paid = 100)
 				(buyer_paid ≔ 220)
 			)
-			(AfterDeadlines 
+			(Fallbacks 
 				(Fulfilled())
 			)
-		))
+		)
 
-		(Normal_Sale_Ended() [P2] (
-			(AfterDeadlines 
+		(Normal_Sale_Ended() [ProseRefsP2] 
+			(Fallbacks 
 				(Fulfilled())
 			)
-		))
+		)
 
-		(Refund_Received() [P5] (
-			(Code
+		(Refund_Received() [ProseRefs P5] 
+			(Entrance
 				(conjecture seller_refunded = 0)
 				(conjecture (buyer_paid = 100) or (buyer_paid = 200))
 				(seller_refunded ≔ buyer_paid)
 			)
-			(AfterDeadlines 
+			(Fallbacks 
 				(Fulfilled())
 			)
-		))
+		)
 	}
 )
 

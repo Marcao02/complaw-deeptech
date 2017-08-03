@@ -21,7 +21,7 @@ class Assemble:
     def top(self, l:SExpr):
         x : SExpr
         for x in l:
-            assert len(x) >= 2
+            assert len(x) >= 2, "Problem top-level: " + str(x)
             x0 = x[0]
             # print(x)
             if streqci(x0, GLOBAL_VARS_SECTION_LABEL):
@@ -40,11 +40,13 @@ class Assemble:
                 self._top.img_file_name = x[1][1] # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
 
-        assert self._referenced_event_stateids == set(self._top.formal_contract.estates.keys()).union(["Fulfilled"]), (
-            "Set of referenced event state ids ≠ set of declared event state ids (plus 'Fulfilled'):\n" +
+        if  self._referenced_event_stateids != set(self._top.formal_contract.estates.keys()).union(["Fulfilled"]):
+            print(
+            "ISSUE\n:Set of referenced event state ids ≠ set of declared event state ids (plus 'Fulfilled'):\n" +
             "Referenced           : " + str(sorted(self._referenced_event_stateids)) + "\n" +
             "Defined + 'Fulfilled': " + str(sorted(set(self._top.formal_contract.estates.keys()).union(["Fulfilled"])))
-        )
+            )
+
 
         return self._top
 
@@ -109,24 +111,28 @@ class Assemble:
 
     def event_state(self, l:SExpr) -> EventState:
         es_id : EventStateId = l[0]
+        # self._referenced_event_stateids.add(x[1])
         es = EventState(es_id)
-        es.params = self.event_state_params(l[1])
-        if len(l) == 4:
-            es.prose_refs = l[2].copy()
-            blocks = l[3]
-        else:
-            es.prose_refs = []
-            blocks = l[2]
-
         es.proper_actor_blocks = dict()
-        for block in blocks:
-            if streqci(block[0], CODE_BLOCK_LABEL):
-                es.code_block = self.code_block(block[1:])
-            elif streqci(block[0], NONACTION_BLOCK_LABEL):
-                es.nonactor_block = self.nonactor_block(block[1:], es_id)
-            else:
-                actor_id = block[0]
-                es.proper_actor_blocks[actor_id] = self.actor_block(block[1:], es_id, actor_id)
+
+        es.params = self.event_state_params(l[1])
+
+        for x in l[2:]:
+            x0 = x[0]
+            if streqci(x0, 'Description'):
+                es.description = x[1]
+            elif streqci(x0, 'ProseRefs'):
+                es.prose_refs = x[1:].copy()
+            elif streqci(x0, CODE_BLOCK_LABEL):
+                es.code_block = self.code_block(x[1:])
+            elif streqci(x0, 'Fallbacks'):
+                es.nonactor_block = self.nonactor_block(x[1:], es_id)
+            elif streqci(x0, 'ActorEvents'):
+                actorblocks = x[1:]
+                for actorblock in actorblocks:
+                    actor_id = actorblock[0]
+                    es.proper_actor_blocks[actor_id] = self.actor_block(actorblock[1:], es_id, actor_id)
+
         return es
 
     def event_state_params(self, params:List[str]) -> ParamsDec:
@@ -159,16 +165,17 @@ class Assemble:
         return NonactorBlock({tcs[0]: self.nonactor_transition_clause(tcs, src_esid) for tcs in trans_specs})
 
     def transition_clause(self, trans_spec:SExpr, src_es_id:EventStateId, actor_id:ActorId) -> TransitionClause:
-        assert len(trans_spec) >= 3, trans_spec
+        assert len(trans_spec) >= 3, f"See src EventState {src_es_id} actor section {actor_id} trans_spec {trans_spec}"
         dest_id : str = trans_spec[0]
         self._referenced_event_stateids.add(dest_id)
         tc = TransitionClause(src_es_id, dest_id, actor_id)
         tc.args = trans_spec[1]
-        if trans_spec[2] in DEADLINE_OPERATORS:
-            tc.deadline = trans_spec[2:4]
-        else:
-            assert streqci(trans_spec[2],"immediately"), trans_spec[2]
-            tc.deadline = trans_spec[2:4]
+        tc.deadline = trans_spec[2:4]
+        # if trans_spec[2] in DEADLINE_OPERATORS:
+        #
+        # else:
+        #     assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
+        #     tc.deadline = trans_spec[2:4]
         return tc
 
     def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
@@ -180,7 +187,7 @@ class Assemble:
             if trans_spec[2] in DEADLINE_OPERATORS:
                 tc.deadline = trans_spec[2:4]
             else:
-                assert streqci(trans_spec[2], "immediately"), trans_spec[2]
+                # assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
                 tc.deadline = trans_spec[2:4]
             return tc
 
@@ -190,7 +197,8 @@ class Assemble:
 EXAMPLES = (
     'examples/hvitved_printer.LSM',
     'examples/hvitved_lease.LSM',
-    'examples/monster_burger.LSM'
+    'examples/monster_burger.LSM',
+    'examples/SAFE.LSM',
 )
 
 
@@ -218,8 +226,9 @@ if __name__ == '__main__':
                 print("\nLooking at file " + path + ":\n")
             parsed = parse_file(path)
             if 'print' in sys.argv:
-                print(parsed)
+                # print(parsed)
                 print(pretty(parsed))
+                pass
             assembler = Assemble()
             prog : L4Top = assembler.top(parsed)
             contractToDotFile(prog)

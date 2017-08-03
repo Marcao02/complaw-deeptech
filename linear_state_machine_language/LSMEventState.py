@@ -14,7 +14,7 @@ class TransitionClause:
         self.src_id = src_id
         self.dest_id = dest_id
         self.args = None
-        self.deadline = None
+        self.deadline : List[str] = None
 
 class ActorBlock:
     def __init__(self, transitions:Dict[EventStateId,TransitionClause], actor_id:ActorId) -> None:
@@ -33,6 +33,7 @@ class EventState:
         self.code_block : CodeBlock = None
         self.nonactor_block: NonactorBlock = None  # str event state name -> TransitionClause
         self.proper_actor_blocks: Dict[ActorId, ActorBlock] = None  # str actor name -> str event state name -> TransitionClause
+        self.description: str = None
 
     def vulnerableParties(self) -> List[ActorId]:
         return list(self.proper_actor_blocks.keys())

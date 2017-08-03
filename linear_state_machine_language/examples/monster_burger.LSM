@@ -27,88 +27,96 @@
 	"Monster Burger"		
 	(StartState MonsterBurgerOrdered)
 	(EventStates
-		(MonsterBurgerOrdered() [P4] (
-			(Code
+		(MonsterBurgerOrdered() 
+			(Entrance
 				(amount_owing := MB_PRICE)
 			)
-			(Restaurant 
-				(ServeMB() within MAX_SERVE_DELAY)
-			)
-			(AfterDeadlines
+			(ActorEvents
+				(Restaurant 
+					(ServeMB() within MAX_SERVE_DELAY)
+				)
+			)			
+			(Fallbacks
 				(MissedServeDeadline())
 			)
-		))		
+		)
 	
-		(ServeMB() [] (
-			(Code				
+		(ServeMB()  
+			(Entrance				
 				(challenge_start ≔ now())
 				(challenge_time_exhausted ≔ (challenge_start + {TIME_TO_EAT_BURGER}))
 			)			
-			(AfterDeadlines
+			(Fallbacks
 				(EatingMB())
 			)
-		))
+		)
 
 
-		(MissedServeDeadline() [] (
-			(Code
+		(MissedServeDeadline()  
+			(Entrance
 				(amount_owing := 0)
 			)			
-			(AfterDeadlines
+			(Fallbacks
 				(Fulfilled())
 			)
 
-		))
+		)
 
-		(EatingMB() [] (
-			(Challenger
-				(ChallengerAnnouncesFinished() before challenge_time_exhausted)
+		(EatingMB()  
+			(ActorEvents
+				(Challenger
+					(ChallengerAnnouncesFinished() before challenge_time_exhausted)
+				)
+				(Restaurant
+					(CheckFinishedClaim() at challenge_time_exhausted)
+				)
 			)
-			(Restaurant
-				(CheckFinishedClaim() at challenge_time_exhausted)
-			)
-		))		
+		)	
 
-		(ChallengerAnnouncesFinished() [] (
-			(Restaurant
-				(CheckFinishedClaim() by (earliest (now() + MAX_CLAIM_VERIFICATION_DELAY) challenge_time_exhausted))
+		(ChallengerAnnouncesFinished()  
+			(ActorEvents
+				(Restaurant
+					(CheckFinishedClaim() by (earliest (now() + MAX_CLAIM_VERIFICATION_DELAY) challenge_time_exhausted))
+				)
 			)
-			(AfterDeadlines
+			(Fallbacks
 				(LateCheck())
 			)
-		))
+		)
 
-		(LateCheck() [] (
-			(Code
+		(LateCheck()  
+			(Entrance
 				(amount_owing := 0)
 			)
-			(AfterDeadlines
+			(Fallbacks
 				(Fulfilled())
 			)
 
-		))
+		)
 
-		(CheckFinishedClaim() [] (
-			(Restaurant
-				(VerifyFinishedClaim() immediately)
-				(RejectFinishedClaim() immediately)
-			)
-		))
+		(CheckFinishedClaim()  
+			(ActorEvents
+				(Restaurant
+					(VerifyFinishedClaim() immediately)
+					(RejectFinishedClaim() immediately)
+				)
+			)		
+		)
 
-		(RejectFinishedClaim() [] (
-			(AfterDeadlines
+		(RejectFinishedClaim()  
+			(Fallbacks
 				(EatingMB())
 			)
-		))
+		)
 
-		(VerifyFinishedClaim() [] (
-			(Code
+		(VerifyFinishedClaim()  
+			(Entrance
 				(amount_owing := 0)
-			)
-			(AfterDeadlines
+			)			
+			(Fallbacks
 				(Fulfilled())
 			)			
-		))
+		)
 	)
 )
 

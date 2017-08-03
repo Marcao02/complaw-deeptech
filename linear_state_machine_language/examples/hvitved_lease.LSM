@@ -24,93 +24,104 @@
 	"Lease Hvitved"		
 	(StartState Move_In)
 	(EventStates
-		(Move_In() [] (
-			(AfterDeadlines 
+		(Move_In()  
+			(Fallbacks 
 				(Lease_Term_Started() on MOVE_IN_DATE)
 			)
-		))
+		)
 	
-		(Lease_Term_Started() [] (
-			(Code
+		(Lease_Term_Started()  
+			(Entrance
 				(conjecture today() == monthStartDay())
 				(lease_term_start ≔ today())
 				(lease_term_end ≔ today() + 6M)
 			)
-			(Owner
-				(Apartment_Ready() immediately)
-			)
-		))
+			(ActorEvents
+				(Owner
+					(Apartment_Ready() immediately)
+				)
+			)			
+		)
 
-		(Apartment_Ready() [] (			
-			(AfterDeadlines 
+		(Apartment_Ready()  
+			(Fallbacks 
 				(Month_Started())
 			)
-		))
+		)
 
-		(Month_Started() [] (
-			(Renter 
-				(Termination_Requested_At_Rent_Or_Before(renter) by (monthStartDay() + 7D) if (today() ≤ lease_term_end - 30D))
-				(Rent_Paid() by (monthStartDay() + 7D))
+		(Month_Started()  
+			(ActorEvents
+				(Renter 
+					(Termination_Requested_At_Rent_Or_Before(renter) by (monthStartDay() + 7D) if (today() ≤ lease_term_end - 30D))
+					(Rent_Paid() by (monthStartDay() + 7D))
+				)
+				(Owner
+					(Termination_Requested_At_Rent_Or_Before(owner) by (monthStartDay() + 7D) if (today() ≤ lease_term_end - 30D))
+				)
 			)
-			(Owner
-				(Termination_Requested_At_Rent_Or_Before(owner) by (monthStartDay() + 7D) if (today() ≤ lease_term_end - 30D))
-			)
-		))
+		)
 		
-		(Termination_Requested_At_Rent_Or_Before() [] (
-			(Code
+		(Termination_Requested_At_Rent_Or_Before()  
+			(Entrance
 				(lease_terminated ≔ true)
 			)
-			(Renter
-				(Rent_Paid() by (monthStartDay() + 7D))
-			)
-		))
+			(ActorEvents
+				(Renter
+					(Rent_Paid() by (monthStartDay() + 7D))
+				)
+			)						
+		)
 
-		(Rent_Paid() [] (
-			(Code
+		(Rent_Paid()  
+			(Entrance
 				(total_rent_paid ≔ (total_rent_paid + 1000))
 			)
-			(Renter
-				(Termination_Requested_After_Rent() by (monthEndDay()) if (today() ≤ lease_term_end - 30D))
+			(ActorEvents
+				(Renter
+					(Termination_Requested_After_Rent() by (monthEndDay()) if (today() ≤ lease_term_end - 30D))
+				)
+				(Owner
+					(Termination_Requested_After_Rent() by (monthEndDay()) if (today() ≤ lease_term_end - 30D))
+				)
 			)
-			(Owner
-				(Termination_Requested_After_Rent() by (monthEndDay()) if (today() ≤ lease_term_end - 30D))
-			)
-			(AfterDeadlines 
+			
+			(Fallbacks 
 				(Month_Ended() on (monthEndDay()))
 			)
-		))
+		)
 
-		(Termination_Requested_After_Rent() [] (
-			(Code
+		(Termination_Requested_After_Rent()  
+			(Entrance
 				(lease_terminated ≔ true)
 			)
-			(AfterDeadlines
+			(Fallbacks
 				(Month_Ended() on (monthEndDay()))
 			)
-		))
+		)
 
-		(Month_Ended() [] (
-			(AfterDeadlines
+		(Month_Ended()  
+			(Fallbacks
 				(Lease_Term_Ended() on lease_term_end)
 				(Month_Started() on (today() + 1D))
 			)
-		))
+		)
 
-		(Lease_Term_Ended() [] (
-			(Renter
-				(Moved_Out() immediately if lease_terminated)
+		(Lease_Term_Ended()  
+			(ActorEvents
+				(Renter
+					(Moved_Out() immediately if lease_terminated)
+				)
 			)
-			(AfterDeadlines 
+			(Fallbacks 
 				(Lease_Term_Started() immediately if (not lease_terminated))
 			)
-		))
+		)
 
-		(Moved_Out() [] (
-			(AfterDeadlines 
+		(Moved_Out()  
+			(Fallbacks 
 				(Fulfilled())
 			)
-		))
+		)
 	)
 )
 

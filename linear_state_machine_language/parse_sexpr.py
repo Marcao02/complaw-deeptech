@@ -5,19 +5,21 @@ STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"
 LINE_COMMENT_START_CHAR = ';'
 
-left_groupers = {'(','{','[','<','‹','❪'}
-right_groupers = {')','}',']','>','›','❫'}
-grouper_map = {'(':')', '{':'}', '[':']', '<':'>', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`', LINE_COMMENT_START_CHAR:'\n'}
-# grouper_map = {'(':')', '{':'}', '[':']', '<':'>', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`'}
+left_groupers = {'(','{','[','‹','❪'}
+right_groupers = {')','}',']','›','❫'}
+grouper_map = {'(':')', '{':'}', '[':']', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`', LINE_COMMENT_START_CHAR:'\n'}
+# grouper_map = {'(':')', '{':'}', '[':']', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`'}
 quotelike = {"'",'"','`'}
 splits_word_only = {':','=','≔',','}
 all_symb_tags = quotelike.union(left_groupers).union(';')
 # all_symb_tags = quotelike.union(left_groupers)
 
 class TaggedList(list):
-    def __init__(self,symb,lst:list=None) -> None:
+    def __init__(self,symb,lst:list=None, line:int=None, col:int=None) -> None:
         super().__init__(lst if lst else [])
         self.symb = symb
+        self.line = line
+        self.col = col
         assert isinstance(symb,str) and symb in all_symb_tags
 
 class SExprBuilder:
@@ -25,20 +27,25 @@ class SExprBuilder:
         # stack of growing S-Expressions
         self.stack : List[List[Any]] = [[]]
 
-    def openParenSeq(self,symb):
-        self.stack.append(TaggedList(symb))
+    def openParenSeq(self,symb,line:int=None,col:int=None):
+        self.stack.append(TaggedList(symb, [], line, col))
 
     def appendTokenInCurScope(self,token): 
         self.curScope.append(token)
 
     def closeParenSeq(self,closesymb,line,col):
         temp = self.stack.pop()
-        assert temp is not None and grouper_map[temp.symb] == closesymb, ("Found " + closesymb + " while expecting " + grouper_map[temp.symb] + "\nSee line {} col {}".format(line,col))
+        assert temp is not None and grouper_map[temp.symb] == closesymb, ("Found " + closesymb + " while expecting " + grouper_map[temp.symb] + "\n" +
+                                                                          "Left symbol line {} col {}\n".format(temp.line,temp.col) +
+                                                                          "Right symbol line {} col {}".format(line,col) )
         self.curScope.append(temp)
 
     @property
     def curScope(self):
         return self.stack[-1] 
+
+    def popLast(self):
+        self.curScope.pop()
 
     def __repr__(self):
         return '*' + repr(self.stack) + '*'
@@ -78,22 +85,10 @@ def parse(string:str, debug=False, strip_comments=True):
 
     for i in range(len(string)):
         char = string[i]
-        
-        if (char in left_groupers) and not in_str_lit:
-            maybeAppendToken()
-            builder.openParenSeq(char)            
-        
-        elif (char in right_groupers) and not in_str_lit:
-            maybeAppendToken()                 
-            builder.closeParenSeq(char,line,col)            
 
-        elif char == LINE_COMMENT_START_CHAR and not in_str_lit:
-            in_comment = True
-            if not strip_comments:
-                builder.openParenSeq(char)
-                builder.appendTokenInCurScope(COMMENT_LITERAL_MARKER)
+        assert not in_comment or not in_str_lit
 
-        elif in_comment:
+        if in_comment:
             if char == '\n':
                 in_comment = False
                 if not strip_comments:
@@ -102,6 +97,21 @@ def parse(string:str, debug=False, strip_comments=True):
             else:
                 if not strip_comments:
                     word += char
+
+        elif (char in left_groupers) and not in_str_lit:
+            maybeAppendToken()
+            builder.openParenSeq(char, line, col)
+        
+        elif (char in right_groupers) and not in_str_lit:
+            maybeAppendToken()                 
+            builder.closeParenSeq(char,line,col)            
+
+        elif char == LINE_COMMENT_START_CHAR and not in_str_lit and not in_comment:
+            in_comment = True
+            # print("!!!", builder.curScope)
+            if not strip_comments:
+                builder.openParenSeq(char)
+                builder.appendTokenInCurScope(COMMENT_LITERAL_MARKER)
 
         elif char in (' ', '\n', '\t') and not in_str_lit:
             maybeAppendToken()
@@ -132,7 +142,7 @@ def parse(string:str, debug=False, strip_comments=True):
         else: 
             word += char
 
-        if char == '\n' and not in_str_lit:
+        if char == '\n':
             line += 1
             col = 1  
         else:
