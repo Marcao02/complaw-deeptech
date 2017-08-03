@@ -1,5 +1,6 @@
 # from typing import Union, List, Set, Dict, Any, Tuple, Callable, Iterator
 from LSMTop import *
+from util import mapjoin
 
 COLORS = ('Blue', 'Red')
 

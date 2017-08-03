@@ -1,17 +1,12 @@
-# from typing import Union, List, Dict, Any, Tuple
-from typing import Set
-# from L4_util_constants_types import *
-
-from parse_sexpr import parse, pretty
+from typing import Any
 import logging
 
 from LSMTop import *
-
+from parse_sexpr import parse, pretty
 from state_diagram_generation import contractToDotFile
+from util import streqci, list_split
 
 SExpr = List[Any]
-
-
 
 class Assemble:
     def __init__(self):
@@ -39,24 +34,21 @@ class Assemble:
             elif streqci(x0, IMG_FILE_NAME_LABEL):
                 self._top.img_file_name = x[1][1] # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
-
-        if  self._referenced_event_stateids != set(self._top.formal_contract.estates.keys()).union(["Fulfilled"]):
+        if  self._referenced_event_stateids != set(self._top.formal_contract.estates.keys()).union([FULFILLED_EVENT_STATE_LABEL]):
             print(
-            "ISSUE\n:Set of referenced event state ids ≠ set of declared event state ids (plus 'Fulfilled'):\n" +
+            f"ISSUE\n:Set of referenced event state ids ≠ set of declared event state ids (plus '{FULFILLED_EVENT_STATE_LABEL}'):\n" +
             "Referenced           : " + str(sorted(self._referenced_event_stateids)) + "\n" +
-            "Defined + 'Fulfilled': " + str(sorted(set(self._top.formal_contract.estates.keys()).union(["Fulfilled"])))
+            f"Defined + '{FULFILLED_EVENT_STATE_LABEL}': " + str(sorted(set(self._top.formal_contract.estates.keys()).union([FULFILLED_EVENT_STATE_LABEL])))
             )
-
 
         return self._top
 
     def global_vars(self, l:SExpr):
-        # logging.info(l)
         rv = dict()
         for dec in l:
             if dec[0] in VARIABLE_MODIFIERS:
                 self._top.sorts.add(dec[3])
-                if dec[0] == 'writeonce':
+                if dec[0] == 'writeonce' or dec[0] == 'writeAtMostOnce':
                     rv[dec[1]] = GlobalVar(dec[1], dec[3], None, dec[0])
                 else:
                     rv[dec[1]] = GlobalVar(dec[1], dec[3], dec[5], dec[0])
@@ -73,13 +65,8 @@ class Assemble:
 
     def actors(self, l:SExpr):
         # logging.info(str(l))
-
-        if isinstance(l[0], str):
-            return l.copy()
-        else:
-            # maybe they're wrapped:
-            assert len(l) == 1
-            return self.actors(l[0])
+        assert isinstance(l[0], str), str(l) + " should be a list of strings"
+        return l.copy()
 
     def prose_contract(self, l: List[List[str]]) -> ProseContract:
         rv = {x[0]: x[1] for x in l}
@@ -93,7 +80,7 @@ class Assemble:
         for x in l[1:]:
             assert len(x) >= 2
             x0 = x[0]
-            if streqci(x0, 'StartState'):
+            if streqci(x0, START_STATE_LABEL):
                 fc.start_state = x[1]
                 self._referenced_event_stateids.add(x[1])
 
@@ -111,7 +98,6 @@ class Assemble:
 
     def event_state(self, l:SExpr) -> EventState:
         es_id : EventStateId = l[0]
-        # self._referenced_event_stateids.add(x[1])
         es = EventState(es_id)
         es.proper_actor_blocks = dict()
 
@@ -119,15 +105,15 @@ class Assemble:
 
         for x in l[2:]:
             x0 = x[0]
-            if streqci(x0, 'Description'):
+            if streqci(x0, EVENT_STATE_DESCRIPTION_LABEL):
                 es.description = x[1]
-            elif streqci(x0, 'ProseRefs'):
+            elif streqci(x0, EVENT_STATE_PROSE_REFS_LABEL):
                 es.prose_refs = x[1:].copy()
             elif streqci(x0, CODE_BLOCK_LABEL):
                 es.code_block = self.code_block(x[1:])
-            elif streqci(x0, 'Fallbacks'):
+            elif streqci(x0, NONACTION_BLOCK_LABEL):
                 es.nonactor_block = self.nonactor_block(x[1:], es_id)
-            elif streqci(x0, 'ActorEvents'):
+            elif streqci(x0, EVENT_STATE_ACTOR_BLOCKS_LABEL):
                 actorblocks = x[1:]
                 for actorblock in actorblocks:
                     actor_id = actorblock[0]
@@ -170,12 +156,7 @@ class Assemble:
         self._referenced_event_stateids.add(dest_id)
         tc = TransitionClause(src_es_id, dest_id, actor_id)
         tc.args = trans_spec[1]
-        tc.deadline = trans_spec[2:4]
-        # if trans_spec[2] in DEADLINE_OPERATORS:
-        #
-        # else:
-        #     assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
-        #     tc.deadline = trans_spec[2:4]
+        tc.conditions = trans_spec[2:]
         return tc
 
     def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
@@ -185,10 +166,10 @@ class Assemble:
         tc.args = trans_spec[1]
         if len(trans_spec) > 2:
             if trans_spec[2] in DEADLINE_OPERATORS:
-                tc.deadline = trans_spec[2:4]
+                tc.conditions = trans_spec[2:4]
             else:
                 # assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
-                tc.deadline = trans_spec[2:4]
+                tc.conditions = trans_spec[2:4]
             return tc
 
         return tc

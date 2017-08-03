@@ -1,6 +1,6 @@
 # from typing import Union, List, Set, Dict, Any, Tuple, Callable
-from typing import Iterator
-from util_constants_types import *
+from typing import Iterator, List
+from constants_and_defined_types import *
 
 from LSMStatements import *
 
@@ -14,7 +14,7 @@ class TransitionClause:
         self.src_id = src_id
         self.dest_id = dest_id
         self.args = None
-        self.deadline : List[str] = None
+        self.conditions : List[str] = None
 
 class ActorBlock:
     def __init__(self, transitions:Dict[EventStateId,TransitionClause], actor_id:ActorId) -> None:

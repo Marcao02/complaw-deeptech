@@ -1,14 +1,14 @@
 (GlobalVars 
-	(lease_term_start : Date ≔ never)
-	(lease_term_end : Date ≔ never)
-	(lease_terminated : Bool ≔ false)
-	(BranchUnaffecting total_rent_paid : ℕ ≔ 0)
+	(lease_term_start : Date := never)
+	(lease_term_end : Date := never)
+	(lease_terminated : Bool := false)
+	(BranchUnaffecting total_rent_paid : ℕ := 0)
 )
 
 (Actors Owner Renter)
 
-(Parameters 
-	(MOVE_IN_DATE : Date ≔ 1-1-2011)
+(ContractParams 
+	(MOVE_IN_DATE : Date := 1-1-2011)
 	(LEASE_DURATION : Duration = 6M)
 	(RENT : Price = €1000)
 	(MAX_RENT_DELAY : Duration = 7D)
@@ -33,8 +33,8 @@
 		(Lease_Term_Started()  
 			(Entrance
 				(conjecture today() == monthStartDay())
-				(lease_term_start ≔ today())
-				(lease_term_end ≔ today() + 6M)
+				(lease_term_start := today())
+				(lease_term_end := today() + 6M)
 			)
 			(ActorEvents
 				(Owner
@@ -63,7 +63,7 @@
 		
 		(Termination_Requested_At_Rent_Or_Before()  
 			(Entrance
-				(lease_terminated ≔ true)
+				(lease_terminated := true)
 			)
 			(ActorEvents
 				(Renter
@@ -74,7 +74,7 @@
 
 		(Rent_Paid()  
 			(Entrance
-				(total_rent_paid ≔ (total_rent_paid + 1000))
+				(total_rent_paid := (total_rent_paid + 1000))
 			)
 			(ActorEvents
 				(Renter
@@ -92,7 +92,7 @@
 
 		(Termination_Requested_After_Rent()  
 			(Entrance
-				(lease_terminated ≔ true)
+				(lease_terminated := true)
 			)
 			(Fallbacks
 				(Month_Ended() on (monthEndDay()))

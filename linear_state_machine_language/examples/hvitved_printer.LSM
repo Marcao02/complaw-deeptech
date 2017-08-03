@@ -1,16 +1,16 @@
 (GlobalVars 
-	(writeonly buyer_paid : ℕ ≔ 0)
-	(writeonly seller_refunded : ℕ ≔ 0)
+	(writeonly buyer_paid : ℕ := 0)
+	(writeonly seller_refunded : ℕ := 0)
 )
 
 (Claims 
 	($MAX_TIME = 44D)
-	($MAX_EVENT_STATE_CHANGES = 6)
+	($MAX_EVENT_STATE_CHANGES := 6)
 )
 
 (Actors Buyer Seller)
 
-(Parameters 
+(ContractParams 
 	(CONTRACT_START : Date)
 	(DELIVERY_DEADlINE : Date)
 )
@@ -38,7 +38,7 @@
 	
 		(Delivered() [ProseRefs P1] 
 			(Entrance
-				(writeonce delivery_date ≔ today)
+				(writeonce delivery_date := today)
 			)
 			(ActorEvents
 				(Buyer 
@@ -49,8 +49,8 @@
 
 		(Paid_1st_Installment(delivery_date:Date, othervar:OtherSort) [ProseRefs P1 P2 P3] 
 			(Entrance
-				(conjecture buyer_paid = 0)
-				(buyer_paid ≔ 100)
+				(conjecture buyer_paid == 0)
+				(buyer_paid := 100)
 			)
 			(ActorEvents
 				(Buyer 
@@ -73,8 +73,8 @@
 		
 		(Paid_2nd_Installment(delivery_date:Date) [ProseRefs P5] 
 			(Entrance
-				(conjecture buyer_paid = 100)
-				(buyer_paid ≔ 200)
+				(conjecture buyer_paid == 100)
+				(buyer_paid := 200)
 			)
 			(ActorEvents
 				(Buyer 
@@ -97,7 +97,7 @@
 		(Late_Fee_Paid_And_Sale_Complete() [ProseRefs P4] 
 			(Entrance 
 				(conjecture buyer_paid = 100)
-				(buyer_paid ≔ 220)
+				(buyer_paid := 220)
 			)
 			(Fallbacks 
 				(Fulfilled())
@@ -114,7 +114,7 @@
 			(Entrance
 				(conjecture seller_refunded = 0)
 				(conjecture (buyer_paid = 100) or (buyer_paid = 200))
-				(seller_refunded ≔ buyer_paid)
+				(seller_refunded := buyer_paid)
 			)
 			(Fallbacks 
 				(Fulfilled())

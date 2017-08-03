@@ -1,5 +1,5 @@
 from typing import Union, List, Any
-from util_constants_types import is_singleton_string_list
+from util import is_singleton_string_list
 
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"
@@ -8,11 +8,11 @@ LINE_COMMENT_START_CHAR = ';'
 left_groupers = {'(','{','[','‹','❪'}
 right_groupers = {')','}',']','›','❫'}
 grouper_map = {'(':')', '{':'}', '[':']', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`', LINE_COMMENT_START_CHAR:'\n'}
-# grouper_map = {'(':')', '{':'}', '[':']', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`'}
 quotelike = {"'",'"','`'}
-splits_word_only = {':','=','≔',','}
+double_splits_word_only = {':=','+=','-=','==','<=', '>=', '->', '=>', '<-'}
+splits_word_only = {':','=',','}
 all_symb_tags = quotelike.union(left_groupers).union(';')
-# all_symb_tags = quotelike.union(left_groupers)
+
 
 class TaggedList(list):
     def __init__(self,symb,lst:list=None, line:int=None, col:int=None) -> None:
@@ -50,6 +50,9 @@ class SExprBuilder:
     def __repr__(self):
         return '*' + repr(self.stack) + '*'
 
+
+
+
 def parse(string:str, debug=False, strip_comments=True):
     """
     >>> parse("(+ 5 (+ 3 5))")
@@ -70,9 +73,10 @@ def parse(string:str, debug=False, strip_comments=True):
     builder = SExprBuilder() 
     word = '' 
     
-    str_lit_opened_at = None
+    # str_lit_opened_at = None
     in_str_lit = False
     in_comment = False
+    skip_next_char = False
     str_lit_quote = None
     
     i,line,col = 0,1,1
@@ -88,59 +92,67 @@ def parse(string:str, debug=False, strip_comments=True):
 
         assert not in_comment or not in_str_lit
 
-        if in_comment:
-            if char == '\n':
-                in_comment = False
+        if not skip_next_char:
+            if in_comment:
+                if char == '\n':
+                    in_comment = False
+                    if not strip_comments:
+                        maybeAppendToken()
+                        builder.closeParenSeq(char, line, col)
+                else:
+                    if not strip_comments:
+                        word += char
+
+            elif (char in left_groupers) and not in_str_lit:
+                maybeAppendToken()
+                builder.openParenSeq(char, line, col)
+
+            elif (char in right_groupers) and not in_str_lit:
+                maybeAppendToken()
+                builder.closeParenSeq(char,line,col)
+
+            elif char == LINE_COMMENT_START_CHAR and not in_str_lit and not in_comment:
+                in_comment = True
                 if not strip_comments:
-                    maybeAppendToken()
-                    builder.closeParenSeq(char, line, col)
+                    builder.openParenSeq(char)
+                    builder.appendTokenInCurScope(COMMENT_LITERAL_MARKER)
+
+            elif char in (' ', '\n', '\t') and not in_str_lit:
+                maybeAppendToken()
+
+            elif char in quotelike and ((not in_str_lit) or (str_lit_quote == char)):
+                if in_str_lit:
+                    in_str_lit = False
+                    str_lit_quote = None
+                    # str_lit_opened_at = None
+                    builder.appendTokenInCurScope(word)
+                    word = ''
+                    builder.closeParenSeq(char,line,col)
+                else:
+                    in_str_lit = True
+                    str_lit_quote = char
+                    # str_lit_opened_at = (i,line,col)
+                    builder.openParenSeq(char)
+                    builder.appendTokenInCurScope(STRING_LITERAL_MARKER)
+
+            elif i < len(string)-1 and (char + string[i+1]) in double_splits_word_only:
+                maybeAppendToken()
+                word = char + string[i+1]
+                skip_next_char = True
+                maybeAppendToken()
+
+            elif char in splits_word_only:
+                maybeAppendToken()
+                word = char
+                maybeAppendToken()
+
+            elif in_str_lit and char == '\n':
+                assert False, "\nNo linebreaks in strings, just to prevent hard-to-diagnose syntax errors. See line {} column {}".format(line,col)
+
             else:
-                if not strip_comments:
-                    word += char
-
-        elif (char in left_groupers) and not in_str_lit:
-            maybeAppendToken()
-            builder.openParenSeq(char, line, col)
-        
-        elif (char in right_groupers) and not in_str_lit:
-            maybeAppendToken()                 
-            builder.closeParenSeq(char,line,col)            
-
-        elif char == LINE_COMMENT_START_CHAR and not in_str_lit and not in_comment:
-            in_comment = True
-            # print("!!!", builder.curScope)
-            if not strip_comments:
-                builder.openParenSeq(char)
-                builder.appendTokenInCurScope(COMMENT_LITERAL_MARKER)
-
-        elif char in (' ', '\n', '\t') and not in_str_lit:
-            maybeAppendToken()
-        
-        elif char in quotelike and ((not in_str_lit) or (str_lit_quote == char)):
-            if in_str_lit:                
-                in_str_lit = False
-                str_lit_quote = None
-                str_lit_opened_at = None                
-                builder.appendTokenInCurScope(word)
-                word = ''
-                builder.closeParenSeq(char,line,col)                
-            else:
-                in_str_lit = True
-                str_lit_quote = char
-                str_lit_opened_at = (i,line,col)
-                builder.openParenSeq(char)
-                builder.appendTokenInCurScope(STRING_LITERAL_MARKER)
-
-        elif char in splits_word_only:
-            maybeAppendToken()
-            word = char
-            maybeAppendToken()
-        
-        elif in_str_lit and char == '\n':
-            assert False, "\nNo linebreaks in strings, just to prevent hard-to-diagnose syntax errors. See line {} column {}".format(line,col)
-
-        else: 
-            word += char
+                word += char
+        else:
+            skip_next_char = False
 
         if char == '\n':
             line += 1

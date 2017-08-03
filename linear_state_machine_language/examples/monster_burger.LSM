@@ -1,12 +1,12 @@
 (GlobalVars 	
 	(writeonce challenge_start : Time )
 	(writeonce challenge_time_exhausted : Time)
-	(amount_owing : Price ≔ 0)
+	(amount_owing : Price := 0)
 )
 
 (Actors Challenger Restaurant)
 
-(Parameters 
+(ContractParams 
 	(MB_PRICE : Price)
 	(TIME_TO_EAT_BURGER : Duration)
 	(MAX_SERVE_DELAY : Duration)
@@ -43,8 +43,8 @@
 	
 		(ServeMB()  
 			(Entrance				
-				(challenge_start ≔ now())
-				(challenge_time_exhausted ≔ (challenge_start + {TIME_TO_EAT_BURGER}))
+				(challenge_start := now())
+				(challenge_time_exhausted := (challenge_start + {TIME_TO_EAT_BURGER}))
 			)			
 			(Fallbacks
 				(EatingMB())
