@@ -30,7 +30,7 @@ SCTs represent a marriage between two noble families, each proud with history, b
 
 The first, and older, tradition is that of the lawyer: the legal draftsman, the scribe, the notary. This is the tradition also of the handbook of model forms, of the clause bank of contract templates, of copy-and-paste and fill-in-the-blanks.
 
-Model templates reflect the mundane fact that commercial relationships run to a finite set of genres: the rental or sale of assets; the borrowing and lending of money; equity investment and divestment; a fee for services, as contractor or employee. Just as brides and grooms around the world recite the words "in sickness and in health, for richer or for poorer, till death do us part", business everywhere happily reuse the same sets of stock phrases to memorialize their relationships. In 2016 a contract carved in stone was unearthed in a Dionysian temple on the Anatolian coast: it was a student rental, in which tenants would be penalized for damages and were required to provide guarantors. It was 2,200 years old.[fn:teos]
+Model templates reflect the mundane fact that commercial relationships run to a finite set of genres: the rental or sale of assets; the borrowing and lending of money; equity investment and divestment; a fee for services, as contractor or employee. Just as brides and grooms around the world recite the words "in sickness and in health, for richer or for poorer, till death do us part", business everywhere happily reuse the same sets of stock phrases to memorialize their relationships. In 2016 a contract carved in stone was unearthed in a Dionysian temple on the Anatolian coast: it was a student rental, in which tenants would be penalized for damages and were required to provide guarantors. It was found to be 2,200 years old.[fn:teos]
 
 Most contract templates are coarse-grained: they fill in the blanks at the level of the document. If customizations need to be made then different document templates need to be constructed. There is often significant textual overlap between such templates. Y Combinator, for example, provides a template for an investment agreement called a SAFE. SAFEs can be configured with or without a valuation cap, and with or without a discount rate: two configurables, hence four variants. Accordingly, Y Combinator's web site offers four Word documents for download. If it had three configurables, there would be eight variants; four configurables, sixteen.
 
@@ -97,6 +97,8 @@ But compared to the testing engineers and programmers do, the testing of legal d
 #+END_QUOTE
 
 Given the similarities between the fields, it was only a matter of time before somebody tried to formalize contracts, and to formally verify them. Model checking of contracts was first demonstrated in 2006 by Pace, Prisacariu, and Schneider.[fn:pps2006] (See also [[https://theses.ncl.ac.uk/dspace/handle/10443/1814][Abdelsadiq]] 2013.) Model checking of legislation was demonstrated by Fernando Schapachnik et al in 2011[fn:formalex2011].
+
+In financial markets, [[https://www.imandra.ai/][Imandra]] performs formal verification of financial algorithms operating at stock exchanges.[fn:passmore]
 
 As the term suggests, formal verification requires a contract to first be formalized: translated into a logical notation for which an explicit, unambiguous formal semantics has been defined.[fn:floyd1967] In other words, into a program, written in some programming language specialized for law.
 
@@ -402,7 +404,7 @@ The bulk of wordsmithing energy in the legal industry today is spent on specific
 
 ** Isomorphism with Diagrams
 
-Produce visual flowcharts in a way that would make [[https://legalinformatics.wordpress.com/2014/02/23/passera-haapio-and-curtotti-making-the-meaning-of-contracts-visible-automating-contract-visualization/][Helena Haapio and Stefania Passera]] happy. [[https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation][BPMN]] is a leading candidate for visual notation.
+Just as geometry is dual to algebra, it will aid end-user comprehension if we produce a visual representation of contracts, in the form of flowcharts and other explanatory diagrams. This work will be a success if we can make [[https://legalinformatics.wordpress.com/2014/02/23/passera-haapio-and-curtotti-making-the-meaning-of-contracts-visible-automating-contract-visualization/][Helena Haapio and Stefania Passera]] happy. [[https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation][BPMN]] is a leading candidate for visual notation.
 
 ** Isomorphism with Blockchain Smart Contracts
 
@@ -497,6 +499,8 @@ The white-hot cube spoke: “Phaethon, you may be unaware that you have already 
 #+END_QUOTE
 
 * Footnotes
+
+[fn:passmore] https://link.springer.com/chapter/10.1007/978-3-319-63046-5_3
 
 [fn:hvitved] https://drive.google.com/open?id=0BxOaYa8pqqSwbl9GMWtwVU5HSFU
 
