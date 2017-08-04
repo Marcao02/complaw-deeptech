@@ -10,7 +10,7 @@ ProseContract = Dict[str,str]
 ParamsDec = Dict[str,Sort]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
-VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce'}
+VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce', 'inc', 'dec'}
 
 DEADLINE_OPERATORS = {'by', 'within', 'on' ,'at', 'before'}
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}

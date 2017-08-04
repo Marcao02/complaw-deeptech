@@ -45,16 +45,28 @@ class Assemble:
 
     def global_vars(self, l:SExpr):
         rv = dict()
+        print(l)
         for dec in l:
-            if dec[0] in VARIABLE_MODIFIERS:
-                self._top.sorts.add(dec[3])
-                if dec[0] == 'writeonce' or dec[0] == 'writeAtMostOnce':
-                    rv[dec[1]] = GlobalVar(dec[1], dec[3], None, dec[0])
-                else:
-                    rv[dec[1]] = GlobalVar(dec[1], dec[3], dec[5], dec[0])
-            else:
-                self._top.sorts.add(dec[2])
-                rv[dec[0]] = GlobalVar(dec[0], dec[2], dec[4])
+            try:
+                i = 0
+                modifiers = []
+                while True:
+                    if dec[i] in VARIABLE_MODIFIERS:
+                        modifiers.append(dec[i])
+                        i += 1
+                    else:
+                        break
+                name = dec[i]
+                sort = dec[i+2]
+                self._top.sorts.add(sort)
+
+                initval = None
+                if i+3 < len(dec) and dec[i+3] == ':=':
+                    initval = dec[i+4]
+                rv[name] = GlobalVar(name, sort, initval, modifiers)
+            except Exception:
+                logging.error("Problem processing " + str(dec))
+
         # logging.info(str(rv))
         return rv
 
@@ -160,19 +172,22 @@ class Assemble:
         return tc
 
     def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
-        dest_id: str = trans_spec[0]
-        self._referenced_event_stateids.add(dest_id)
-        tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL)
-        tc.args = trans_spec[1]
-        if len(trans_spec) > 2:
-            if trans_spec[2] in DEADLINE_OPERATORS:
-                tc.conditions = trans_spec[2:4]
-            else:
-                # assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
-                tc.conditions = trans_spec[2:4]
+        try:
+            dest_id: str = trans_spec[0]
+            self._referenced_event_stateids.add(dest_id)
+            tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL)
+            tc.args = trans_spec[1]
+            if len(trans_spec) > 2:
+                if trans_spec[2] in DEADLINE_OPERATORS:
+                    tc.conditions = trans_spec[2:4]
+                else:
+                    # assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
+                    tc.conditions = trans_spec[2:4]
+                return tc
             return tc
+        except Exception:
+            logging.error(f"Problem processing {src_es_id} trans: " + str(trans_spec))
 
-        return tc
 
 
 EXAMPLES = (
@@ -181,6 +196,7 @@ EXAMPLES = (
     'examples/hvitved_lease.LSM',
     'examples/monster_burger.LSM',
     'examples/SAFE.LSM',
+    'examples/hvitved_master_sales_agreement.LSM',
 )
 
 
