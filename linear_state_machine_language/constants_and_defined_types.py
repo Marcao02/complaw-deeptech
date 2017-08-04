@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Union, List
 
 Sort = str
 EventStateId = str
@@ -6,13 +6,25 @@ ActorId = str
 ProseClauseId = str
 GlobalVarId = str
 
+SExpr = Union[str,List[any]]
+
 ProseContract = Dict[str,str]
 ParamsDec = Dict[str,Sort]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
-VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce', 'inc', 'dec'}
+VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
+                      'writeOnceMore', 'inc', 'dec',
+                      'readonly', 'branchUnaffecting'}
+# branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
+# the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
-DEADLINE_OPERATORS = {'by', 'within', 'on' ,'at', 'before'}
+DEONTIC_MODALITIES = {'must','may','should'}
+DeonticModality = str
+DEONTIC_GUARD_MODALITIES = {'mustif','mayif','shouldif'}
+DEONTIC_KEYWORDS = DEONTIC_GUARD_MODALITIES.union(DEONTIC_MODALITIES)
+DeonticKeyword = str
+
+DEADLINE_OPERATORS = {'by', 'within', 'on' ,'at', 'before', 'between'}
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
 DURATION_SYMBOLS = {'discretionary'}
 

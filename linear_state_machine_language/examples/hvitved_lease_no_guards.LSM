@@ -1,0 +1,129 @@
+(GlobalVars 
+	(lease_term_start : Date := never)
+	(lease_term_end : Date := never)
+	(lease_terminated : Bool := false)
+	(BranchUnaffecting total_rent_paid : ℕ := 0)
+)
+
+(Actors Owner Renter)
+
+(ContractParams 
+	(MOVE_IN_DATE : Date := 1-1-2011)
+	(LEASE_DURATION : Duration = 6M)
+	(RENT : Price = €1000)
+	(MAX_RENT_DELAY : Duration = 7D)
+)
+
+(ProseContract 
+	(P1 'The term of this lease is for {LEASE_DURATION} months, beginning on {MOVE_IN_DATE}. At the expiration of said term, the lease will automatically be renewed for a period of one month unless either party (Landlord or Tenant) notifies the other of its intention to terminate the lease at least one month before its expiration date.')
+	(P2 'The lease is for 1 apartment, which is provided by Landlord throughout the term.')
+	(P3 'Tenant agrees to pay the amount of {RENT} per month, each payment due within {MAX_RENT_DELAY} of the start of each month.')	
+)
+
+(FormalContract	
+	"Lease Hvitved"		
+	(StartState Move_In)
+	(EventStates
+		(Move_In()  
+			(Fallbacks 
+				(Lease_Term_Started() on MOVE_IN_DATE)
+			)
+		)
+	
+		(Lease_Term_Started()  
+			(Entrance
+				(conjecture today() == monthStartDay())
+				(lease_term_start := today())
+				(lease_term_end := today() + 6M)
+			)
+			(ActorEvents
+				(Owner
+					(Apartment_Ready() immediately)
+				)
+			)			
+		)
+
+		(Apartment_Ready()  
+			(Fallbacks 
+				(Month_Started())
+			)
+		)
+
+		(Month_Started()  
+			(ActorEvents
+				(Renter 
+					(Termination_Requested_At_Rent_Or_Before() by (earliest (monthStartDay() + 7D) (lease_term_end - 30D)))
+					(Rent_Paid() by (monthStartDay() + 7D))
+				)
+				(Owner
+					(Termination_Requested_At_Rent_Or_Before() by (earliest (monthStartDay() + 7D) (lease_term_end - 30D)))
+				)
+			)
+		)
+		
+		(Termination_Requested_At_Rent_Or_Before()  
+			(Entrance
+				(lease_terminated := true)
+			)
+			(ActorEvents
+				(Renter
+					(Rent_Paid() by (monthStartDay() + 7D))
+				)
+			)						
+		)
+
+		(Rent_Paid()  
+			(Entrance
+				(total_rent_paid := (total_rent_paid + 1000))
+			)
+			(ActorEvents
+				(Renter
+					(Termination_Requested_After_Rent() by (earliest (monthEndDay()) (lease_term_end - 30D)))
+				)
+				(Owner
+					(Termination_Requested_After_Rent() by (earliest (monthEndDay()) (lease_term_end - 30D)))
+				)
+			)
+			
+			(Fallbacks 
+				(Month_Ended() on (monthEndDay()))
+			)
+		)
+
+		(Termination_Requested_After_Rent()  
+			(Entrance
+				(lease_terminated := true)
+			)
+			(Fallbacks
+				(Month_Ended() on (monthEndDay()))
+			)
+		)
+
+		(Month_Ended()  
+			(Fallbacks
+				(Lease_Term_Ended() on lease_term_end)
+				(Month_Started() on (today() + 1D))
+			)
+		)
+
+		(Lease_Term_Ended()  
+			(ActorEvents
+				(Renter
+					(Moved_Out() (ifthenelse lease_terminated immediately never))
+				)
+			)
+			(Fallbacks 
+				(Lease_Term_Started() (ifthenelse (not lease_terminated) immediately never))
+			)
+		)
+
+		(Moved_Out()  
+			(Fallbacks 
+				(Fulfilled())
+			)
+		)
+	)
+)
+
+(DotFileName 'hvitved_lease.dot')
+(ImgFileName 'hvitved_lease.png')

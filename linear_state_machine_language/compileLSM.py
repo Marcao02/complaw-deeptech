@@ -129,7 +129,20 @@ class Assemble:
                 actorblocks = x[1:]
                 for actorblock in actorblocks:
                     actor_id = actorblock[0]
-                    es.proper_actor_blocks[actor_id] = self.actor_block(actorblock[1:], es_id, actor_id)
+                    deontic_keyword = actorblock[1]
+                    try:
+                        if deontic_keyword in DEONTIC_GUARD_MODALITIES:
+                            guard = actorblock[2]
+                            rest = actorblock[3:]
+                        else:
+                            guard = None
+                            rest = actorblock[2:]
+                    except Exception:
+                        logging.error("Problem possibly with deontic_keyword: " + str(deontic_keyword))
+                    if actor_id not in es.proper_actor_blocks:
+                        es.proper_actor_blocks[actor_id] = set()
+                    es.proper_actor_blocks[actor_id].update(self.actor_block(rest, es_id, actor_id, deontic_keyword, guard))
+
 
         return es
 
@@ -149,33 +162,40 @@ class Assemble:
         return CodeBlock([self.code_block_statement_dispatch(x) for x in statements])
 
     def code_block_statement_dispatch(self, statement:SExpr) -> CodeBlockStatement:
-        if statement[0] == 'conjecture' and statement[2] == '=':
-            return AssertionEqualsStatement(statement[1], statement[3])
-        elif statement[1] == '≔' or statement[1] == "=":
-            return VarAssignStatement(statement[0], statement[2])
-        return None # not reachable
+        try:
+            if statement[0] == 'conjecture' and statement[2] == '=':
+                return AssertionEqualsStatement(statement[1], statement[3])
+            elif statement[1] == '≔' or statement[1] == "=":
+                return VarAssignStatement(statement[0], statement[2])
+            return None # not reachable
+        except Exception:
+            logging.error(f"Problem with {statement}")
 
 
-    def actor_block(self, trans_specs:SExpr, src_esid: EventStateId, actor_id:ActorId) -> ActorBlock:
-        return ActorBlock({tcs[0]: self.transition_clause(tcs, src_esid, actor_id) for tcs in trans_specs}, actor_id)
+    def actor_block(self, trans_specs:SExpr, src_esid: EventStateId,
+                    actor_id:ActorId,
+                    deontic_keyword: DeonticKeyword, guard:SExpr) -> Set[TransitionClause]:
+        return {self.transition_clause(tcs, src_esid, actor_id, deontic_keyword, guard) for tcs in trans_specs}
 
-    def nonactor_block(self, trans_specs, src_esid: EventStateId) -> NonactorBlock:
-        return NonactorBlock({tcs[0]: self.nonactor_transition_clause(tcs, src_esid) for tcs in trans_specs})
+    def nonactor_block(self, trans_specs, src_esid: EventStateId,
+                       guard: SExpr = None) -> Set[TransitionClause]:
+        return {self.nonactor_transition_clause(tcs, src_esid, guard) for tcs in trans_specs}
 
-    def transition_clause(self, trans_spec:SExpr, src_es_id:EventStateId, actor_id:ActorId) -> TransitionClause:
+    def transition_clause(self, trans_spec:SExpr, src_es_id:EventStateId, actor_id:ActorId,
+                          deontic_modality: DeonticKeyword = None, guard: SExpr = None) -> TransitionClause:
         assert len(trans_spec) >= 3, f"See src EventState {src_es_id} actor section {actor_id} trans_spec {trans_spec}"
         dest_id : str = trans_spec[0]
         self._referenced_event_stateids.add(dest_id)
-        tc = TransitionClause(src_es_id, dest_id, actor_id)
+        tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, guard)
         tc.args = trans_spec[1]
         tc.conditions = trans_spec[2:]
         return tc
 
-    def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
+    def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId, guard:SExpr) -> TransitionClause:
         try:
             dest_id: str = trans_spec[0]
             self._referenced_event_stateids.add(dest_id)
-            tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL)
+            tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL, None, guard)
             tc.args = trans_spec[1]
             if len(trans_spec) > 2:
                 if trans_spec[2] in DEADLINE_OPERATORS:
@@ -191,12 +211,17 @@ class Assemble:
 
 
 EXAMPLES = (
-    'examples/hvitved_printer.LSM',
-    'examples/hvitved_printer_no_event_params.LSM',
-    'examples/hvitved_lease.LSM',
-    'examples/monster_burger.LSM',
-    'examples/SAFE.LSM',
-    'examples/hvitved_master_sales_agreement.LSM',
+    # 'examples/hvitved_printer.LSM',
+    # 'examples/hvitved_printer_no_event_params.LSM',
+    # 'examples/hvitved_lease.LSM',
+    # 'examples/monster_burger.LSM',
+    # 'examples/SAFE.LSM',
+    # 'examples/hvitved_master_sales_agreement.LSM',
+    'examples/hvitved_printer_explicit_deontic.LSM',
+    'examples/hvitved_lease_explicit_deontic.LSM',
+    'examples/monster_burger_explicit_deontic.LSM',
+    'examples/SAFE_explicit_deontic.LSM',
+    'examples/hvitved_master_sales_agreement_explicit_deontic.LSM',
 )
 
 
