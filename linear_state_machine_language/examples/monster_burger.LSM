@@ -1,6 +1,6 @@
 (GlobalVars 	
-	(writeonce challenge_start : Time )
-	(writeonce challenge_time_exhausted : Time)
+	(writeonce challenge_start_time : Time )
+	(writeonce challenge_endlimit_time : Time)
 	(amount_owing : Price := 0)
 )
 
@@ -43,8 +43,8 @@
 	
 		(ServeMB()  
 			(Entrance				
-				(challenge_start := now())
-				(challenge_time_exhausted := (challenge_start + {TIME_TO_EAT_BURGER}))
+				(challenge_start_time := event_start())
+				(challenge_endlimit_time := (challenge_start_time + {TIME_TO_EAT_BURGER}))
 			)			
 			(Fallbacks
 				(EatingMB())
@@ -64,19 +64,22 @@
 
 		(EatingMB()  
 			(ActorEvents
-				(Challenger
-					(ChallengerAnnouncesFinished() before challenge_time_exhausted)
+				(Challenger 
+					(AnnounceMBFinished() (before challenge_endlimit_time))
 				)
-				(Restaurant
-					(CheckFinishedClaim() at challenge_time_exhausted)
+				(Restaurant 
+					(CheckFinishedClaim() (between challenge_endlimit_time and (time+ challenge_endlimit_time MAX_CLAIM_VERIFICATION_DELAY)) )
 				)
+			)
+			(Fallbacks			
+				(LateCheck())			
 			)
 		)	
 
-		(ChallengerAnnouncesFinished()  
+		(AnnounceMBFinished()  
 			(ActorEvents
-				(Restaurant
-					(CheckFinishedClaim() by (earliest (now() + MAX_CLAIM_VERIFICATION_DELAY) challenge_time_exhausted))
+				(Restaurant 
+					(CheckFinishedClaim() by (earliest (time+ event_start() MAX_CLAIM_VERIFICATION_DELAY) challenge_endlimit_time))
 				)
 			)
 			(Fallbacks
@@ -96,8 +99,9 @@
 
 		(CheckFinishedClaim()  
 			(ActorEvents
-				(Restaurant
-					(VerifyFinishedClaim() immediately)
+				(Restaurant 
+					(VerifyFinishedClaim() immediately) 
+					; or
 					(RejectFinishedClaim() immediately)
 				)
 			)		

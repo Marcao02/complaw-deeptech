@@ -5,7 +5,7 @@ digraph Monster_Burger {
 	ServeMB[label=ServeMB];
 	MissedServeDeadline[label=MissedServeDeadline];
 	EatingMB[label=EatingMB];
-	ChallengerAnnouncesFinished[label=ChallengerAnnouncesFinished,color=Red];
+	AnnounceMBFinished[label=AnnounceMBFinished,color=Red];
 	LateCheck[label=LateCheck];
 	CheckFinishedClaim[label=CheckFinishedClaim,color=Red];
 	RejectFinishedClaim[label=RejectFinishedClaim];
@@ -14,13 +14,14 @@ digraph Monster_Burger {
 	MonsterBurgerOrdered -> MissedServeDeadline [style=dashed];
 	ServeMB -> EatingMB [style=dashed];
 	MissedServeDeadline -> Fulfilled [style=dashed];
-	EatingMB -> ChallengerAnnouncesFinished;
+	EatingMB -> AnnounceMBFinished;
 	EatingMB -> CheckFinishedClaim;
-	ChallengerAnnouncesFinished -> CheckFinishedClaim;
-	ChallengerAnnouncesFinished -> LateCheck [style=dashed];
+	EatingMB -> LateCheck [style=dashed];
+	AnnounceMBFinished -> CheckFinishedClaim;
+	AnnounceMBFinished -> LateCheck [style=dashed];
 	LateCheck -> Fulfilled [style=dashed];
-	CheckFinishedClaim -> VerifyFinishedClaim;
 	CheckFinishedClaim -> RejectFinishedClaim;
+	CheckFinishedClaim -> VerifyFinishedClaim;
 	RejectFinishedClaim -> EatingMB [style=dashed];
 	VerifyFinishedClaim -> Fulfilled [style=dashed];
 }
