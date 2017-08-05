@@ -1,6 +1,6 @@
 (GlobalVars 
-	(writeonly buyer_paid : ℕ := 0)
-	(writeonly seller_refunded : ℕ := 0)
+	(nonoperative buyer_paid : ℕ := 0)
+	(nonoperative seller_refunded : ℕ := 0)
 	(writeonce delivery_date : Date)
 )
 
