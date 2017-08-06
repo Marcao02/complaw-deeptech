@@ -119,6 +119,7 @@ We then immediately return to the main `ContractLive` event state, from which an
 			(Deliver(quantity : ℕ)
 				(Entrance
 					(units_delivered += quantity)
+					(orders := (discardTop orders))
 				)
 				(Fallbacks
 					(ContractLive())

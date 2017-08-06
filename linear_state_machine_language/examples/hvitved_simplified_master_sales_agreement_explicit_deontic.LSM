@@ -37,8 +37,8 @@
 
 		(ContractLive()
 			(ActorEvents
-				(Customer mayif (orderable_units > 0)
-					(Order(_) by contract_ends)
+				(Customer mayif ((orderable_units > 0) and (q ≤ orderable_units))
+					(Order(q) by contract_ends)
 				)
 				(Vendor mustif ((nonempty orders) and (q == (fst (top orders))))
 					; fst (top orders) is the quantity. snd (top orders) is the deadline.
@@ -46,7 +46,7 @@
 				)
 			)
 			(Fallbacks
-				; this will only be executed when both of the actions in ActorEvents are disabled							
+				; this will only be executed when both of the actions in ActorEvents are disabled			
 				(Fulfilled())
 			)
 		)
@@ -56,7 +56,7 @@
 				(delivery_deadline := (max 14D ((ceil (quantity/10))D)) )
 				(units_ordered += quantity )
 				(orders := (enqueue orders (quantity delivery_deadline)) )
-			)						
+			)
 			(Fallbacks
 				(ContractLive())
 			)
@@ -65,6 +65,7 @@
 		(Deliver(quantity : ℕ)
 			(Entrance
 				(units_delivered += quantity)
+				(orders := (discardTop orders))
 			)
 			(Fallbacks
 				(ContractLive())
