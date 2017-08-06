@@ -221,7 +221,8 @@ EXAMPLES = (
     'examples/hvitved_lease_explicit_deontic.LSM',
     'examples/monster_burger_explicit_deontic.LSM',
     'examples/SAFE_explicit_deontic.LSM',
-    'examples/hvitved_master_sales_agreement_explicit_deontic.LSM',
+    'examples/hvitved_simplified_master_sales_agreement_explicit_deontic.LSM',
+    # 'examples/hvitved_master_sales_agreement_explicit_deontic.LSM',
 )
 
 

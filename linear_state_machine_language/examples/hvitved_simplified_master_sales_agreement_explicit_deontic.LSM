@@ -1,11 +1,11 @@
 (GlobalVars 
 	( nonoperative units_ordered : ℕ := 0 )	
-	( nonoperative inc units_delivered : ℕ := 0 )
+	( nonoperative inconly units_delivered : ℕ := 0 )
 	( writeonce contract_ends : Date )	
-	( orderQ : Queue[Pair[ℕ,Deadline]] := emptyQueue() ) 
+	( orders : Queue[Pair[ℕ,Deadline]] := emptyQueue() ) 
 )
 
-(Actors Buyer Seller)
+(Actors Customer Vendor)
 
 (ContractParams 
 	(MAX_UNITS : ℕ := 1000)
@@ -37,25 +37,25 @@
 
 		(ContractLive()
 			(ActorEvents
-				(Buyer mayif (orderable_units > 0)
+				(Customer mayif (orderable_units > 0)
 					(Order(_) by contract_ends)
 				)
-				(Seller mustif (nonempty orderQ)
-					; fst (top orderQ) is the quantity, snd (top orderQ) is the deadline
-					(Deliver((fst (top orderQ))) by (snd (top orderQ)))
+				(Vendor mustif ((nonempty orders) and (q == (fst (top orders))))
+					; fst (top orders) is the quantity. snd (top orders) is the deadline.
+					(Deliver(q) by (snd (top orders)))
 				)
 			)
 			(Fallbacks
-				; this will only be executed when both of actions in ActorEvents are disabled							
+				; this will only be executed when both of the actions in ActorEvents are disabled							
 				(Fulfilled())
 			)
 		)
 
 		(Order(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (max 14D ((ceil (quantity/10))D)) )				
+				(delivery_deadline := (max 14D ((ceil (quantity/10))D)) )
 				(units_ordered += quantity )
-				(orderQ := (enqueue orderQ (quantity delivery_deadline)) )
+				(orders := (enqueue orders (quantity delivery_deadline)) )
 			)						
 			(Fallbacks
 				(ContractLive())

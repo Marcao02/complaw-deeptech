@@ -25,8 +25,8 @@ digraph Lease_Hvitved {
 	PayRent -> Request_Termination_After_Rent;
 	PayRent -> Month_Ended [style=dashed];
 	Request_Termination_After_Rent -> Month_Ended [style=dashed];
-	Month_Ended -> Month_Started [style=dashed];
 	Month_Ended -> Lease_Term_Ended [style=dashed];
+	Month_Ended -> Month_Started [style=dashed];
 	Lease_Term_Ended -> Move_Out;
 	Lease_Term_Ended -> Lease_Term_Started [style=dashed];
 	Move_Out -> Fulfilled [style=dashed];

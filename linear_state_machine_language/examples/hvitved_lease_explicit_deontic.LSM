@@ -2,7 +2,7 @@
 	(lease_term_start : Date := never)
 	(lease_term_end : Date := never)
 	(writeOnceMore lease_terminated : Bool := false)
-	(branchUnaffecting inc total_rent_paid : ℕ := 0)
+	(branchUnaffecting inconly total_rent_paid : ℕ := 0)
 )
 
 (Actors Owner Renter)

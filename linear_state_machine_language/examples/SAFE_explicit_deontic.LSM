@@ -1,7 +1,7 @@
 (GlobalVars 	
 	(writeonce amount_invested : $ = 0)	
-	(inc investor_SAFE_Preferred_Stocks : ℕ = 0)
-	(inc investor_Common_Stocks : ℕ = 0)
+	(inconly investor_SAFE_Preferred_Stocks : ℕ = 0)
+	(inconly investor_Common_Stocks : ℕ = 0)
 	(writeAtMostOnce liquidity_price : $ = None)	
 	(writeAtMostOnce li_cashout : $ = 0)	
 	; later maybe: subtypes of ℕ for units, e.g. Preferred Stocks in this case

@@ -13,7 +13,7 @@ ParamsDec = Dict[str,Sort]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
-                      'writeOnceMore', 'inc', 'dec',
+                      'writeOnceMore', 'inconly', 'deconly',
                       'readonly', 'branchUnaffecting'}
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
