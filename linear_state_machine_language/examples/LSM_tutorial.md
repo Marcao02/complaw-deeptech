@@ -1,6 +1,6 @@
 L4/LSM, for Linear State Machine, is a working name for this language/computation model. A mouthful but more descriptive name for would be Event-Driven Linear State Machine. I hope that "state machine" does not make people think finite state.
 
-This tutorial will take you through a formalization of a simplification of one of the example informal contracts that Hvitved used in his thesis. It is simplified in that it doesn't include anything about payment. A full version is available **[here](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examples/hvitved_master_sales_agreement_explicit_deontic.LSM).**
+This tutorial will take you through a formalization of a simplification of one of the example informal contracts that Hvitved used in his thesis. It is simplified in that it doesn't include anything about payment. I'll add a link to a full version once it's done. The simplified version is  **[here](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examples/hvitved_simplified_master_sales_agreement_explicit_deontic.LSM).**
 
 L4/LSM unashamedly encourages the use of global vars. They will be ideal for prose contract isomorphism -- consider how infrequently scoped variables are used in English prose (pronouns don't count). They will also be ideal for hooking up to interactive visualization/customization widgets.
 
