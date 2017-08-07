@@ -45,7 +45,6 @@ class Assemble:
 
     def global_vars(self, l:SExpr):
         rv = dict()
-        print(l)
         for dec in l:
             try:
                 i = 0
@@ -222,7 +221,7 @@ EXAMPLES = (
     'examples/monster_burger_explicit_deontic.LSM',
     'examples/SAFE_explicit_deontic.LSM',
     'examples/hvitved_simplified_master_sales_agreement_explicit_deontic.LSM',
-    # 'examples/hvitved_master_sales_agreement_explicit_deontic.LSM',
+    'examples/hvitved_full_master_sales_agreement_explicit_deontic_variable_order.LSM',
 )
 
 

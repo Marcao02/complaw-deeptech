@@ -74,5 +74,5 @@
 	)
 )
 
-(DotFileName 'hvitved_master_sales_agreement.dot')
-(ImgFileName 'hvitved_master_sales_agreement.png')
+(DotFileName 'hvitved_simplified_master_sales_agreement.dot')
+(ImgFileName 'hvitved_simplified_master_sales_agreement.png')

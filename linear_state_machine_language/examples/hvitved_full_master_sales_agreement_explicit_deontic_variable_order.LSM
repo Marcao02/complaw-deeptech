@@ -1,0 +1,124 @@
+(TypeDefs
+	; Using lists instead of sets so don't have a bug when have two orders on the same day for same quantity. 
+	; Could alternatively use Triple[ℕ,Deadline,Id].
+	(Order := List[Pair[ℕ,Deadline]])
+	(Invoice := List[Pair[ℕ,Deadline]])
+	(Bill := List[Pair[ℕ,Deadline]])
+)
+
+(GlobalVars 
+	( nonoperative inconly units_ordered : ℕ := 0 )	
+	( nonoperative inconly units_delivered : ℕ := 0 )
+	( writeonce contract_ends : Date )	
+	( 2Bdelivered : List[Order] := emptyList() )
+	( 2Binvoiced : Set[Invoice] := emptyList() )
+	( 2Bpaid : Set[Bill] := emptyList() )
+)
+
+(Actors Customer Vendor)
+
+(ContractParams 
+	(MAX_UNITS : ℕ := 1000)
+	(CONTRACT_LIFE : Date := 1Y)
+	(PRICE_PER_UNIT : $ := 100)
+)
+
+(ReactiveVars	
+	(orderable_units : ℕ := (MAX_UNITS - units_ordered))
+)
+
+(ProseContract 
+	(P1 'The master agreement between Vendor and Customer is for 1000 printers, with a unit price of e100. The agreement is valid for one year, starting 2011-01-01.')
+	(P2 'The customer may at any time order an amount of printers (with the total not exceeding the threshold of 1000), after which the Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days.')
+	(P3 'After delivering the goods, Vendor may invoice the Customer within 1 month, after which the goods must be paid for by Customer within 14 days.')	
+; )
+
+(FormalContract	
+	"Master Sales Agreement"	
+	(StartState Start)
+	(EventStates
+		(Start()
+			(Entrance
+				(contract_ends := (contractStartDay + 1Y))
+			)
+			(Fallbacks
+				(ContractLive())
+			)			
+		)
+
+		(ContractLive()
+			(ActorEvents
+				(Customer mayif ((orderable_units > 0) and (q ≤ orderable_units))
+					(NewOrder(q) by contract_ends)
+				)				
+				(Vendor mustif (nonempty 2Bdelivered)
+					; the `where (containedIn order 2Bdelivered)` expression constrains permitted values of the event parameter `order`. 
+					; the constraint will be verified solvable by the static checker, since otherwise we would have an unfulfillable obligation.
+					(Deliver(order) by (order[1]) where (containedIn order 2Bdelivered))
+				)
+				(Vendor mayif (nonempty 2Binvoiced)
+					(SendInvoice(invoice) by (invoice[1]) where (containedIn invoice 2Binvoiced))	
+				)
+				(Customer mustif (nonempty 2Bpaid)					
+					(PayBill(bill) by (bill[1]) where (containedIn bill 2Bpaid))
+				)
+			)
+			(Fallbacks
+				; this will only be executed when both of the actions in ActorEvents are disabled
+				(Fulfilled())
+			)
+		)
+
+		(NewOrder(quantity : ℕ)			
+			(Entrance
+				(delivery_deadline := (max 14D ((ceil (quantity/10))D)))
+				(units_ordered += quantity)
+				(2Bdelivered := (append 2Bdelivered (quantity delivery_deadline)))				
+			)						
+			(Fallbacks
+				(ContractLive())
+			)
+		)
+
+		(Deliver(order : Order)
+			(Entrance
+				( assert (containedIn order 2Bdelivered) )
+				( quantity := (order[0]) )
+				( units_delivered += quantity )
+				( 2Bdelivered := (removeOne 2Bdelivered order) )
+				( 2Binvoiced := (append 2Binvoiced ((order[0]) (event_start_date() + 1M))) )
+			)
+			(Fallbacks
+				(ContractLive())
+			)
+		)
+
+		(SendInvoice(invoice : Invoice)
+			(Entrance
+				( assert (containedIn invoice 2Binvoiced) )
+				( quantity := invoice[0] )
+				( units_invoiced += quantity )
+				( 2Binvoiced := (removeOne 2Binvoiced invoice) )
+				( 2Bpaid := (append 2Bpaid ((invoice[0]) (event_start_date() + 14D))) )
+			)
+			(Fallbacks
+				(ContractLive())
+			)
+		)
+
+		(PayBill(bill : Bill)
+			(Entrance
+				( assert (containedIn bill 2Bpaid) )
+				( quantity := bill[0] )
+				( money_paid += quantity*PRICE_PER_UNIT )
+				( 2Bpaid := (removeOne 2Bpaid bill) )
+			)
+			(Fallbacks
+				(ContractLive())
+			)
+		)
+	)
+)
+
+(DotFileName 'hvitved_full_master_sales_agreement_explcit_deontic_variable_order.dot')
+(ImgFileName 'hvitved_full_master_sales_agreement_explcit_deontic_variable_order.png')
