@@ -210,18 +210,12 @@ class Assemble:
 
 
 EXAMPLES = (
-    # 'examples/hvitved_printer.LSM',
-    # 'examples/hvitved_printer_no_event_params.LSM',
-    # 'examples/hvitved_lease.LSM',
-    # 'examples/monster_burger.LSM',
-    # 'examples/SAFE.LSM',
-    # 'examples/hvitved_master_sales_agreement.LSM',
-    'examples/hvitved_printer_explicit_deontic.LSM',
-    'examples/hvitved_lease_explicit_deontic.LSM',
-    'examples/monster_burger_explicit_deontic.LSM',
-    'examples/SAFE_explicit_deontic.LSM',
-    'examples/hvitved_simplified_master_sales_agreement_explicit_deontic.LSM',
-    'examples/hvitved_full_master_sales_agreement_explicit_deontic_variable_order.LSM',
+    'examples/hvitved_printer.LSM',
+    'examples/hvitved_lease.LSM',
+    'examples/monster_burger.LSM',
+    'examples/SAFE.LSM',
+    'examples/hvitved_master_sales_agreement_simplified.LSM',
+    'examples/hvitved_master_sales_agreement_full.LSM',
 )
 
 

@@ -32,7 +32,7 @@
 				(amount_owing := MB_PRICE)
 			)
 			(ActorEvents
-				(Restaurant must
+				(Restaurant 
 					(ServeMB() within MAX_SERVE_DELAY)
 				)
 			)			
@@ -64,11 +64,11 @@
 
 		(EatingMB()  
 			(ActorEvents
-				(Challenger may
+				(Challenger 
 					(AnnounceMBFinished() (before challenge_endlimit_time))
 				)
-				(Restaurant should
-					(CheckFinishedClaim() (between challenge_endlimit_time (time+ challenge_endlimit_time MAX_CLAIM_VERIFICATION_DELAY)) )
+				(Restaurant 
+					(CheckFinishedClaim() (between challenge_endlimit_time and (time+ challenge_endlimit_time MAX_CLAIM_VERIFICATION_DELAY)) )
 				)
 			)
 			(Fallbacks			
@@ -78,7 +78,7 @@
 
 		(AnnounceMBFinished()  
 			(ActorEvents
-				(Restaurant should
+				(Restaurant 
 					(CheckFinishedClaim() by (earliest (time+ event_start() MAX_CLAIM_VERIFICATION_DELAY) challenge_endlimit_time))
 				)
 			)
@@ -99,7 +99,7 @@
 
 		(CheckFinishedClaim()  
 			(ActorEvents
-				(Restaurant must
+				(Restaurant 
 					(VerifyFinishedClaim() immediately) 
 					; or
 					(RejectFinishedClaim() immediately)

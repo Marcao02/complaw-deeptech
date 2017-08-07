@@ -1,6 +1,7 @@
 (GlobalVars 
 	(nonoperative buyer_paid : ℕ := 0)
 	(nonoperative seller_refunded : ℕ := 0)
+	(writeonce delivery_date : Date)
 )
 
 (Claims 
@@ -30,55 +31,55 @@
 		(Awaiting_Delivery() 
 			[ProseRefs P1] 
 			(ActorEvents
-				(Seller 
-					(Delivered() by DELIVERY_DEADLINE)
+				(Seller must
+					(Deliver() by DELIVERY_DEADLINE)
 				)
 			)
 		)
 	
-		(Delivered() [ProseRefs P1] 
+		(Deliver() [ProseRefs P1] 
 			(Entrance
-				(writeonce delivery_date := today)
+				(delivery_date := event_start())
 			)
 			(ActorEvents
-				(Buyer 
-					(Paid_1st_Installment(delivery_date) immediately)
+				(Buyer must
+					(Pay_1st_Installment() immediately)
 				)
 			)
 		)
 
-		(Paid_1st_Installment(delivery_date:Date) [ProseRefs P1 P2 P3] 
+		(Pay_1st_Installment() [ProseRefs P1 P2 P3] 
 			(Entrance
 				(conjecture buyer_paid == 0)
 				(buyer_paid := 100)
 			)
 			(ActorEvents
-				(Buyer 
-					(Paid_2nd_Installment(delivery_date) by (delivery_date + 30D))
-					(Returned_On_Time(delivery_date) by (delivery_date + 14D))
+				(Buyer should
+					(Pay_2nd_Installment() by (delivery_date + 30D))
+					(Return_On_Time() by (delivery_date + 14D))
 				)
 			)
 			(Fallbacks 
-				(Late_2nd_Installment(delivery_date))
+				(Late_2nd_Installment())
 			)
 		)
 
-		(Late_2nd_Installment(delivery_date:Date) [ProseRefs P4] 
+		(Late_2nd_Installment() [ProseRefs P4] 
 			(ActorEvents
-				(Buyer 
-					(Late_Fee_Paid_And_Sale_Complete() by (delivery_date + 44D))
+				(Buyer must
+					(Pay_2nd_Installment_With_Late_Fee() by (delivery_date + 44D))
 				)
 			)
 		)
 		
-		(Paid_2nd_Installment(delivery_date:Date) [ProseRefs P5] 
+		(Pay_2nd_Installment() [ProseRefs P5] 
 			(Entrance
 				(conjecture buyer_paid == 100)
 				(buyer_paid := 200)
 			)
 			(ActorEvents
-				(Buyer 
-					(Returned_On_Time() by (delivery_date + 14D))
+				(Buyer may
+					(Return_On_Time() by (delivery_date + 14D))
 				)
 			)
 			(Fallbacks 
@@ -86,15 +87,16 @@
 			)
 		)
 
-		(Returned_On_Time() [ProseRefs P5] 
+		(Return_On_Time() [ProseRefs P5] 
 			(ActorEvents
-				(Seller 
-					(Refund_Received() by (today() + 7D))
+				(Seller must
+					; NOTE: changing this to make the obligation be postmarked-by
+					(Refund_Postmarked() by (today() + 7D))
 				)
 			)
 		)
 
-		(Late_Fee_Paid_And_Sale_Complete() [ProseRefs P4] 
+		(Pay_2nd_Installment_With_Late_Fee() [ProseRefs P4] 
 			(Entrance 
 				(conjecture buyer_paid = 100)
 				(buyer_paid := 220)
@@ -110,7 +112,7 @@
 			)
 		)
 
-		(Refund_Received() [ProseRefs P5] 
+		(Refund_Postmarked() [ProseRefs P5] 
 			(Entrance
 				(conjecture seller_refunded = 0)
 				(conjecture (buyer_paid = 100) or (buyer_paid = 200))

@@ -120,5 +120,5 @@
 	)
 )
 
-(DotFileName 'hvitved_full_master_sales_agreement_explcit_deontic_variable_order.dot')
-(ImgFileName 'hvitved_full_master_sales_agreement_explcit_deontic_variable_order.png')
+(DotFileName 'hvitved_master_sales_agreement_full.dot')
+(ImgFileName 'hvitved_master_sales_agreement_full.png')

@@ -1,8 +1,8 @@
 (GlobalVars 
 	(lease_term_start : Date := never)
 	(lease_term_end : Date := never)
-	(writeOnceMore lease_terminated : Bool := false)
-	(branchUnaffecting inconly total_rent_paid : ℕ := 0)
+	(lease_terminated : Bool := false)
+	(BranchUnaffecting total_rent_paid : ℕ := 0)
 )
 
 (Actors Owner Renter)
@@ -30,20 +30,20 @@
 			)
 		)
 	
-		(Lease_Term_Started()
+		(Lease_Term_Started()  
 			(Entrance
 				(conjecture today() == monthStartDay())
 				(lease_term_start := today())
 				(lease_term_end := today() + 6M)
 			)
 			(ActorEvents
-				(Owner must
-					(EnsureApartmentReady() immediately)
+				(Owner
+					(Apartment_Ready() immediately)
 				)
 			)			
 		)
 
-		(EnsureApartmentReady()  
+		(Apartment_Ready()  
 			(Fallbacks 
 				(Month_Started())
 			)
@@ -51,48 +51,37 @@
 
 		(Month_Started()  
 			(ActorEvents
-				(Renter may
-					(Request_Termination_At_Rent_Or_Before() by (earliest (monthStartDay() + 7D) (lease_term_end - 30D)))
-					(PayRent() by (monthStartDay() + 7D))
+				(Renter 
+					(Termination_Requested_At_Rent_Or_Before(renter) by (monthStartDay() + 7D) if (today() ≤ lease_term_end - 30D))
+					(Rent_Paid() by (monthStartDay() + 7D))
 				)
-				(Owner may
-					(Request_Termination_At_Rent_Or_Before() by (earliest (monthStartDay() + 7D) (lease_term_end - 30D)))
+				(Owner
+					(Termination_Requested_At_Rent_Or_Before(owner) by (monthStartDay() + 7D) if (today() ≤ lease_term_end - 30D))
 				)
-			)
-			(Fallbacks
-				(RentDue())
 			)
 		)
-
-		(RentDue()
-			(ActorEvents
-				(Renter must
-					(PayRent() by (monthStartDay() + 7D))
-				)
-			)
-		)  
 		
-		(Request_Termination_At_Rent_Or_Before()  
+		(Termination_Requested_At_Rent_Or_Before()  
 			(Entrance
 				(lease_terminated := true)
 			)
 			(ActorEvents
-				(Renter must
-					(PayRent() by (monthStartDay() + 7D))
+				(Renter
+					(Rent_Paid() by (monthStartDay() + 7D))
 				)
 			)						
 		)
 
-		(PayRent()  
+		(Rent_Paid()  
 			(Entrance
-				(total_rent_paid += 1000)
+				(total_rent_paid := (total_rent_paid + 1000))
 			)
 			(ActorEvents
-				(Renter may
-					(Request_Termination_After_Rent() by (earliest (monthEndDay()) (lease_term_end - 30D)))
+				(Renter
+					(Termination_Requested_After_Rent() by (monthEndDay()) if (today() ≤ lease_term_end - 30D))
 				)
-				(Owner may
-					(Request_Termination_After_Rent() by (earliest (monthEndDay()) (lease_term_end - 30D)))
+				(Owner
+					(Termination_Requested_After_Rent() by (monthEndDay()) if (today() ≤ lease_term_end - 30D))
 				)
 			)
 			
@@ -101,7 +90,7 @@
 			)
 		)
 
-		(Request_Termination_After_Rent()  
+		(Termination_Requested_After_Rent()  
 			(Entrance
 				(lease_terminated := true)
 			)
@@ -119,17 +108,16 @@
 
 		(Lease_Term_Ended()  
 			(ActorEvents
-				(Renter mustif lease_terminated
-					(Move_Out() immediately)
+				(Renter
+					(Moved_Out() immediately if lease_terminated)
 				)
 			)
 			(Fallbacks 
-				; this only activates when lease_terminated is false
-				(Lease_Term_Started())
+				(Lease_Term_Started() immediately if (not lease_terminated))
 			)
 		)
 
-		(Move_Out()  
+		(Moved_Out()  
 			(Fallbacks 
 				(Fulfilled())
 			)

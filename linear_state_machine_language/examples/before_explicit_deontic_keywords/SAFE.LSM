@@ -42,10 +42,10 @@
 	(EventStates
 		(InvestorInvests()  
 			(Entrance
-				(amount_invested := INVESTMENT_AMOUNT)
+				(amount_invested = INVESTMENT_AMOUNT)
 			)	
 			(ActorEvents
-				(Company may
+				(Company 
 					(Dissolution() nodeadline)
 					(LiquidityEvent() nodeadline)
 					(LiquidityEventWithChangeOfControl() nodeadline)
@@ -56,7 +56,7 @@
 
 		(Dissolution()
 			(ActorEvents
-				(Company must
+				(Company
 					(DissolutionTransferCash() within discretionary )
 				)
 			)
@@ -64,7 +64,7 @@
 	
 		(DissolutionTransferCash()  
 			(Entrance
-				(dis_cashout := (
+				(dis_cashout = (
 					ifthenelse (PURCHASE_AMOUNT ≤ (COMPANY_CASH_AT_DISSOLUTION_EVENT * INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS))
 					 (PURCHASE_AMOUNT)
 					 (COMPANY_CASH_AT_DISSOLUTION_EVENT * INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS)
@@ -73,8 +73,8 @@
 				(company_cash -= dis_cashout)
 			)	
 			(ActorEvents
-				(Company mustif (dis_cashout < PURCHASE_AMOUNT)
-					(DissolutionTransferAssets() within discretionary)
+				(Company
+					(DissolutionTransferAssets() within discretionary if (dis_cashout < PURCHASE_AMOUNT) )
 				)
 			)
 			(Fallbacks
@@ -85,7 +85,7 @@
 
 		(DissolutionTransferAssets() 
 			(Entrance
-				(liquidity_price := (VALUATION_CAP / LIQUIDITY_CAPITALIZATION))
+				(liquidity_price = (VALUATION_CAP / LIQUIDITY_CAPITALIZATION))
 				(investor_Common_Stocks += ((PURCHASE_AMOUNT - li_cashout) / liquidity_price))
 			)
 			(Fallbacks
@@ -101,7 +101,7 @@
 
 		(LiquidityEvent()  
 			(ActorEvents
-				(Investor may
+				(Investor
 					(LiquidityChooseCashPayment() within discretionary)
 					(LiquidityChooseStockPayment() within discretionary)
 				)
@@ -113,7 +113,7 @@
 
 		(LiquidityChooseStockPayment() 
 			(ActorEvents
-				(Company must
+				(Company
 					(LiquidityTransferCommonStock() within discretionary)
 				)
 			)
@@ -121,7 +121,7 @@
 
 		(LiquidityTransferCommonStock() 
 			(Entrance
-				(liquidity_price := (VALUATION_CAP / LIQUIDITY_CAPITALIZATION))
+				(liquidity_price = (VALUATION_CAP / LIQUIDITY_CAPITALIZATION))
 				(investor_Common_Stocks += ((PURCHASE_AMOUNT - li_cashout) / liquidity_price))
 			)			
 			(Fallbacks
@@ -131,7 +131,7 @@
 
 		(LiquidityChooseCashPayment() 
 			(ActorEvents
-				(Company must
+				(Company
 					(LiquidityTransferCash() within discretionary )				
 				)
 			)
@@ -139,7 +139,7 @@
 
 		(LiquidityTransferCash()  
 			(Entrance 
-				(li_cashout := (
+				(li_cashout = (
 					ifthenelse (PURCHASE_AMOUNT ≤ (COMPANY_CASH_AT_LIQUIDITY_EVENT * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS))
 					(PURCHASE_AMOUNT)
 					(COMPANY_CASH_AT_LIQUIDITY_EVENT * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS)
@@ -148,13 +148,12 @@
 				(company_cash -= li_cashout)
 			)
 			(ActorEvents
-				(Company mustif (li_cashout < PURCHASE_AMOUNT)
-					(LiquidityTransferCommonStock() within discretionary )
+				(Company
+					(LiquidityTransferCommonStock() within discretionary if (li_cashout < PURCHASE_AMOUNT) )
 				)
 			)
 			(Fallbacks
-				; TODO: should add assertion that li_cashout == PURCHASE_AMOUNT
-				(Fulfilled())
+				(Fulfilled() if (li_cashout == PURCHASE_AMOUNT) )
 			)
 		)
 	
@@ -181,7 +180,7 @@
 		(EquityFinancing() 
 			(Description "Equity Financing Event begins")
 			(ActorEvents
-				(Company must
+				(Company
 					(EquityDeliverDocsWithProRataAgreement() within discretionary)
 					(EquityDeliverDocsWithoutProRataAgreement() within discretionary)
 				)
@@ -190,7 +189,7 @@
 
 		(EquityDeliverDocsWithProRataAgreement()  
 			(ActorEvents
-				(Company must
+				(Company
 					(EquityIssueSAFEPreferredStock() within discretionary)
 				)
 			)
@@ -198,7 +197,7 @@
 
 		(EquityDeliverDocsWithoutProRataAgreement()  
 			(ActorEvents
-				(Company must
+				(Company
 					(EquitySubmitProRataRightsAgreementForSigning() within discretionary)	
 				)
 			)
@@ -206,16 +205,15 @@
 
 		(EquitySubmitProRataRightsAgreementForSigning()  
 			(ActorEvents
-				(Investor must
-					; TODO: obviously this shouldn't be a *must*. they ought to be able to send it back with proposed amendments/corrections
+				(Investor
 					(EquitySignProRataAgreement() within discretionary)	
 				)
-			)			
+			)
 		)
 
 		(EquitySignProRataAgreement()  
 			(ActorEvents
-				(Company must
+				(Company
 					(EquityIssueSAFEPreferredStock() within discretionary)
 				)
 			)
