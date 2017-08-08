@@ -4,7 +4,7 @@
 #+OPTIONS: toc:1
 #+OPTIONS: H:2 num:2
 
-pre-publication, not for redistribution ([2017-07-28 Fri])
+pre-publication, not for redistribution ([2017-08-09 Wed])
 
 * Introduction
 
@@ -48,17 +48,23 @@ Note that we are /not/ talking about legal /markup/ languages: the idea of addin
 
 ** Ricardian Contracts
 
-"Fill in the blanks" leads to the idea of recording data values in a database, separate from their templates. Digitization leads to the idea that a contract could enjoy a purely paperless existence from start to finish. These ideas were connected by Ian Grigg in the form of the "Ricardian contract": a template paired with a data structure to fill it, but kept separate until the last possible moment, like an epoxy superglue. The data structure follows some standard format, what an XML purist would call a DTD schema. The template matching a schema could be a natural-language document intended for humans -- or a program intended for computers. Finally the document would be given legal effect by some kind of digital signature, linked cryptographically to the identities of the parties.
+"Fill in the blanks" leads to the idea of recording data values in a database, separate from their templates. Digitization leads to the idea that a contract could enjoy a purely paperless existence from start to finish.
+
+These ideas were examined by Ian Grigg in the exploration of a system to publish and issue digitalised bond contracts on the net. It seemed intuitive that the nature of bond contracts, being mostly the same, should be amenable to a database or templating structure. But, mindful of the many other contracts that were possible such as cash, derivatives, shares, Grigg decided that there was such variability that a document automation mechanism would distract from the real problem of creating a digital contract. Grigg eschewed templates and databases altogether and instead invented a form that let the scribe create the contract in the old way -- by copying an existing contract and changing it to suit, without the assistance of automation in the drafting of the contract.
+
+The result, known as the "Ricardian contract", is a document layout paired with a markup language to set basic parameters that were of interest to a software program. The data structure follows some standard format, which an XML purist would call a DTD schema. The template matching a schema could be a natural-language document intended for humans -- or a program intended for computers. Finally the document would be given legal effect by some kind of digital signature, linked cryptographically to the identities of the parties.
+
+The goal of the Ricardian contract was not to solve the templating or legal prose re-use problem but instead to solve the sharing problem: how do human parties and software share and interpret the same contract?
 
 ** Second-Generation Smart Contract Template systems
 
-Second-generation DA systems, which this paper will call SCT2 systems, continue this tradition into the 2010s. They tend toward opensource and Web technologies like Javascript. [[http://www.commonaccord.org/][CommonAccord]] and [[https://commonform.org/][CommonForm]] are examples of the opensource generation of smart contract templates. These two do not have blockchain ambitions, but many SCT2 systems do.
+Second-generation DA systems, which this paper will call SCT2 systems, continued the document automation tradition into the 2010s. They address the problem posed by the Ricardian Contract. They tend toward opensource and Web technologies like Javascript. [[http://www.commonaccord.org/][CommonAccord]] and [[https://commonform.org/][CommonForm]] are examples of the opensource generation of smart contract templates. These two do not have blockchain ambitions, but many SCT2 systems do.
 
 ** (Smart) (Contract Templates)
 
 The above tradition, descending from law and spanning two generations of software, interprets the term "Smart Contract Templates" as contract templates that are, in some sense, smart.
 
-But that is not the only tradition, and not the only interpretation. There is another tradition with a different interpretation.
+But that is not the only tradition, and not the only interpretation. There is another tradition, with another interpretation.
 
 * Smart Contracts
 
