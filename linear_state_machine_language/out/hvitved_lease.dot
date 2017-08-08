@@ -15,8 +15,8 @@ digraph Lease_Hvitved {
 	Move_In -> Lease_Term_Started [style=dashed];
 	Lease_Term_Started -> EnsureApartmentReady;
 	EnsureApartmentReady -> Month_Started [style=dashed];
-	Month_Started -> Request_Termination_At_Rent_Or_Before;
 	Month_Started -> PayRent;
+	Month_Started -> Request_Termination_At_Rent_Or_Before;
 	Month_Started -> Request_Termination_At_Rent_Or_Before;
 	Month_Started -> RentDue [style=dashed];
 	RentDue -> PayRent;

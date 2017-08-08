@@ -1,9 +1,9 @@
 (TypeDefs
 	; Using lists instead of sets so don't have a bug when have two orders on the same day for same quantity. 
 	; Could alternatively use Triple[ℕ,Deadline,Id].
-	(Order := List[Pair[ℕ,Deadline]])
-	(Invoice := List[Pair[ℕ,Deadline]])
-	(Bill := List[Pair[ℕ,Deadline]])
+	(Order := Pair[ℕ,Deadline])
+	(Invoice := Pair[ℕ,Deadline])
+	(Bill := Pair[ℕ,Deadline])
 )
 
 (GlobalVars 
@@ -11,8 +11,8 @@
 	( nonoperative inconly units_delivered : ℕ := 0 )
 	( writeonce contract_ends : Date )	
 	( 2Bdelivered : List[Order] := emptyList() )
-	( 2Binvoiced : Set[Invoice] := emptyList() )
-	( 2Bpaid : Set[Bill] := emptyList() )
+	( 2Binvoiced : List[Invoice] := emptyList() )
+	( 2Bpaid : List[Bill] := emptyList() )
 )
 
 (Actors Customer Vendor)
@@ -48,9 +48,9 @@
 
 		(ContractLive()
 			(ActorEvents
-				(Customer mayif ((orderable_units > 0) and (q ≤ orderable_units))
+				(Customer mayif ((orderable_units > 0) and (q ≤ orderable_units) and (q > 0))
 					(NewOrder(q) by contract_ends)
-				)				
+				)
 				(Vendor mustif (nonempty 2Bdelivered)
 					; the `where (containedIn order 2Bdelivered)` expression constrains permitted values of the event parameter `order`. 
 					; the constraint will be verified solvable by the static checker, since otherwise we would have an unfulfillable obligation.
@@ -82,7 +82,7 @@
 
 		(Deliver(order : Order)
 			(Entrance
-				( assert (containedIn order 2Bdelivered) )
+				( conjecture (containedIn order 2Bdelivered) )
 				( quantity := (order[0]) )
 				( units_delivered += quantity )
 				( 2Bdelivered := (removeOne 2Bdelivered order) )
@@ -95,7 +95,7 @@
 
 		(SendInvoice(invoice : Invoice)
 			(Entrance
-				( assert (containedIn invoice 2Binvoiced) )
+				( conjecture (containedIn invoice 2Binvoiced) )
 				( quantity := invoice[0] )
 				( units_invoiced += quantity )
 				( 2Binvoiced := (removeOne 2Binvoiced invoice) )
@@ -108,7 +108,7 @@
 
 		(PayBill(bill : Bill)
 			(Entrance
-				( assert (containedIn bill 2Bpaid) )
+				( conjecture (containedIn bill 2Bpaid) )
 				( quantity := bill[0] )
 				( money_paid += quantity*PRICE_PER_UNIT )
 				( 2Bpaid := (removeOne 2Bpaid bill) )

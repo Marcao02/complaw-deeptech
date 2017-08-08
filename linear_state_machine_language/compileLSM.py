@@ -162,10 +162,16 @@ class Assemble:
 
     def code_block_statement_dispatch(self, statement:SExpr) -> CodeBlockStatement:
         try:
-            if statement[0] == 'conjecture' and statement[2] == '=':
-                return AssertionEqualsStatement(statement[1], statement[3])
-            elif statement[1] == '≔' or statement[1] == "=":
+            if statement[0] == 'conjecture':
+                return InCodeConjectureStatement(statement[1:])
+            elif statement[1] == ':=' or statement[1] == "=":
                 return VarAssignStatement(statement[0], statement[2])
+            elif statement[1] == '+=':
+                return IncrementStatement(statement[0], statement[2])
+            elif statement[1] == '-=':
+                return DecrementStatement(statement[0], statement[2])
+            else:
+                raise Exception
             return None # not reachable
         except Exception:
             logging.error(f"Problem with {statement}")
@@ -187,7 +193,14 @@ class Assemble:
         self._referenced_event_stateids.add(dest_id)
         tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, guard)
         tc.args = trans_spec[1]
+        try:
+            ind = trans_spec[2:].index('where')
+            tc.where_clause = trans_spec[ind+1:]
+        except ValueError:
+            pass
+
         tc.conditions = trans_spec[2:]
+        # print(tc.conditions)
         return tc
 
     def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId, guard:SExpr) -> TransitionClause:

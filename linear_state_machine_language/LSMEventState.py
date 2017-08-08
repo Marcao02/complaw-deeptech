@@ -18,6 +18,7 @@ class TransitionClause:
         self.deontic_modality = deontic_modality
         self.args = None
         self.conditions : List[str] = None
+        self.where_clause : SExpr = None
 
 
 class EventState:
