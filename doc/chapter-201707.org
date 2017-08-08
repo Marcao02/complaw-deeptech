@@ -10,7 +10,7 @@ pre-publication, not for redistribution ([2017-08-09 Wed])
 
 Ever since Ethereum was conceived in 2013, critics have quipped: "Smart contracts are neither smart nor contracts".
 
-Four years later, computer scientists are responding: "Challenge accepted."
+Four years later, computer scientists are responding: "Challenge accepted!"
 
 For context, this paper surveys the past and present of computational law. The history of software suggests a future for law: legacy formats and traditional jurisprudence are on a collision course with trustless blockchains and opensource legal engineering.
 
