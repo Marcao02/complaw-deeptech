@@ -39,7 +39,7 @@
 	
 		(Deliver() [ProseRefs P1] 
 			(Entrance
-				(delivery_date := event_start())
+				(delivery_date := (event_start_date))
 			)
 			(ActorEvents
 				(Buyer must
@@ -50,7 +50,7 @@
 
 		(Pay_1st_Installment() [ProseRefs P1 P2 P3] 
 			(Entrance
-				(conjecture buyer_paid == 0)
+				(conjecture (buyer_paid == 0))
 				(buyer_paid := 100)
 			)
 			(ActorEvents

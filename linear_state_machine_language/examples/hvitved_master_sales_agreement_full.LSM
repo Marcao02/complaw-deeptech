@@ -48,19 +48,19 @@
 
 		(ContractLive()
 			(ActorEvents
-				(Customer mayif ((orderable_units > 0) and (q ≤ orderable_units) and (q > 0))
+				(Customer mayif ((orderable_units > 0) and ((q ≤ orderable_units) and (q > 0)))
 					(NewOrder(q) by contract_ends)
 				)
 				(Vendor mustif (nonempty 2Bdelivered)
 					; the `where (containedIn order 2Bdelivered)` expression constrains permitted values of the event parameter `order`. 
 					; the constraint will be verified solvable by the static checker, since otherwise we would have an unfulfillable obligation.
-					(Deliver(order) by (order[1]) where (containedIn order 2Bdelivered))
+					(Deliver(order) by (get order 1) where (containedIn order 2Bdelivered))
 				)
 				(Vendor mayif (nonempty 2Binvoiced)
-					(SendInvoice(invoice) by (invoice[1]) where (containedIn invoice 2Binvoiced))	
+					(SendInvoice(invoice) by (get invoice 1) where (containedIn invoice 2Binvoiced))	
 				)
 				(Customer mustif (nonempty 2Bpaid)					
-					(PayBill(bill) by (bill[1]) where (containedIn bill 2Bpaid))
+					(PayBill(bill) by (get bill 1) where (containedIn bill 2Bpaid))
 				)
 			)
 			(Fallbacks
@@ -71,7 +71,7 @@
 
 		(NewOrder(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (max 14D ((ceil (quantity/10))D)))
+				(delivery_deadline := (max 14D ((ceil (quantity / 10))D)))
 				(units_ordered += quantity)
 				(2Bdelivered := (append 2Bdelivered (quantity delivery_deadline)))				
 			)						
@@ -83,10 +83,10 @@
 		(Deliver(order : Order)
 			(Entrance
 				( conjecture (containedIn order 2Bdelivered) )
-				( quantity := (order[0]) )
+				( quantity := (get order 0) )
 				( units_delivered += quantity )
 				( 2Bdelivered := (removeOne 2Bdelivered order) )
-				( 2Binvoiced := (append 2Binvoiced ((order[0]) (event_start_date() + 1M))) )
+				( 2Binvoiced := (append 2Binvoiced ((get order 0) (event_start_date() + 1M))) )
 			)
 			(Fallbacks
 				(ContractLive())
@@ -96,10 +96,10 @@
 		(SendInvoice(invoice : Invoice)
 			(Entrance
 				( conjecture (containedIn invoice 2Binvoiced) )
-				( quantity := invoice[0] )
+				( quantity := (get invoice 0) )
 				( units_invoiced += quantity )
 				( 2Binvoiced := (removeOne 2Binvoiced invoice) )
-				( 2Bpaid := (append 2Bpaid ((invoice[0]) (event_start_date() + 14D))) )
+				( 2Bpaid := (append 2Bpaid ((get invoice 0) (event_start_date() + 14D))) )
 			)
 			(Fallbacks
 				(ContractLive())
@@ -109,8 +109,8 @@
 		(PayBill(bill : Bill)
 			(Entrance
 				( conjecture (containedIn bill 2Bpaid) )
-				( quantity := bill[0] )
-				( money_paid += quantity*PRICE_PER_UNIT )
+				( quantity := (get bill 0) )
+				( money_paid += (quantity * PRICE_PER_UNIT) )
 				( 2Bpaid := (removeOne 2Bpaid bill) )
 			)
 			(Fallbacks

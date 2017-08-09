@@ -32,9 +32,9 @@
 	
 		(Lease_Term_Started()
 			(Entrance
-				(conjecture today() == monthStartDay())
-				(lease_term_start := today())
-				(lease_term_end := today() + 6M)
+				(conjecture ((event_start_date) == (monthStartDay)))
+				(lease_term_start := (event_start_date))
+				(lease_term_end := ((event_start_date) + 6M))
 			)
 			(ActorEvents
 				(Owner must
