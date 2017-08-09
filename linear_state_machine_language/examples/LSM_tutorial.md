@@ -71,17 +71,17 @@ The next and last part of the `Start` event state is the `Fallbacks` block. This
 				)			
 			)
 
-The next event state is more interesting. It has an `ActorEvents` block (which should perhaps be renamed `Actions`). Each expression inside it defines one or more **action transition rules**. The head of a transition rule is the actor who can/must perform it. The second term is one of the keywords `may, should, must, mayif, shouldif, mustif`. In this case it is `mustif`, which means the transition expression that follows (`(Order(_) by contract_ends)`) is a *permission*, and the `if` part of `mustif` means that the immediate next expression `(orderable_units > 0)` is a **deontic guard**. In the operational semantics, every deontic guard gets evaluated to `true` or `false` immediately after the `Entrance` section has been evaluated. If it's `false`, then the permission or obligation gets disabled.
+The next event state is more interesting. It has an `ActorEvents` block (which should perhaps be renamed `Actions`). Each expression inside it defines one or more **action transition rules**. The head of a transition rule is the actor who can/must perform it. The second term is one of the keywords `may, should, must, mayif, shouldif, mustif`. In this case it is `mayif`, which means the transition expression that follows (`(Order(_) by contract_ends)`) is a *permission*, and the `if` part of `mayif` means that the immediate next expression `(orderable_units > 0)` is a **deontic guard**. In the operational semantics, every deontic guard gets evaluated to `true` or `false` immediately after the `Entrance` section has been evaluated. If it's `false`, then the permission or obligation gets disabled.
 
-`Order` is an event state (an **action-event state** to be more precise) that takes a parameter (an **event state parameter**). The syntax `(_)` indicates that we don't want to put any constraints on the value of that parameter. Currently, the only such constraint available is to uniquely specify what the value of that parameter must be, which we do in the next transition rule (thus we can currently say exactly what a parameter must be, or we can say that it can be anything the types allow). This I'm sure will change in the near future, probably, as Meng suggested, in concert with a change/removal of to the guarded deontic keywords.
+`Order` is an event state (an **action-event state** to be more precise) that takes a parameter (an **event state parameter**). The special underscore parameter `(_)` indicates that the action-event state is unconstrained. Any other term indicates a constraint. In this example we specify the parameter `p`, which also appears in the deontic guard as a constraint (`q ≤ orderable_units`). This I'm sure will change in the near future, probably, as Meng suggested, in concert with a change to / removal of the guarded deontic keywords.
 
 			(ContractLive()
 				(ActorEvents
-					(Customer mayif ((orderable_units > 0) and (q ≤ orderable_units))
-						(Order(q) by contract_ends)
+					(Customer mayif ((orderable_units > 0) and (p ≤ orderable_units))
+						(Order(p) by contract_ends)
 					)				
 				
-The main thing new about the next transition rule is that we use the deontic guard (expression following `mustif`) to uniquely specify the acceptable value of the event state parameter of `Order`. The 'real world' effect is that the Vendor must deliver exactly the number of units ordered. They cannot, for example, split the delivery in two. Generalizing this contract to allow for that might be a good exercise. Our typechecker will verify from `(nonempty orders)` in the guard that if this transition is used, then `(top orders)` is well defined.
+The main thing new about the next transition rule is that we use the deontic guard (expression following `mustif`) to uniquely specify the acceptable value of the event state parameter of `Deliver`. The 'real world' effect is that the Vendor must deliver exactly the number of units ordered, in the same sequence as the original orders. They cannot, for example, split the delivery in two. Generalizing this contract to allow for that might be a good exercise. Our typechecker will verify from `(nonempty orders)` in the guard that if this transition is used, then `(top orders)` is well defined.
 				
 					(Vendor mustif ((nonempty orders) and (q == (fst (top orders))))
 						; fst (top orders) is the quantity, snd (top orders) is the deadline
@@ -89,6 +89,8 @@ The main thing new about the next transition rule is that we use the deontic gua
 					)
 				)
 							
+When are Fallbacks run and when are they not?
+
 Note `Fulfilled` is a standard name for "the contract completed unbreached":
 
 				(Fallbacks
@@ -97,13 +99,15 @@ Note `Fulfilled` is a standard name for "the contract completed unbreached":
 				)
 			)
 
-The second event state `Order` takes a parameter, the number of units requested for this order. Next we set the local variable `delivery_deadline` according to the informal contract, which says "Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days." 
+The second event state `Order` declares a parameter, the number of units requested for this order. Next we define the local variable `delivery_deadline` according to the informal contract, which says "Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days." 
 
 			(Order(quantity : ℕ)			
 				(Entrance
 					(local delivery_deadline := contract_start_date() + (max 14D ((ceil (quantity/10))D))
 				
-We then increment the count `units_ordered` of the total number of units ordered (which, recall, is a `nonoperative` variable). And finally we put the calculated delivery deadline and requested quantity on the bottom of the `orders` queue (recall it's immutable).				
+We then increment the count `units_ordered` of the total number of units ordered (which, recall, is a `nonoperative` variable). And finally we put the calculated delivery deadline and requested quantity on the bottom of the `orders` queue (recall it's immutable).
+
+The `orders := …` line of code has more of a runtime, operational nature than might be expected in a contract specification; we may benefit from rephrasing this more declaratively, or creating a higher-level construct to encapsulate state in a way that is consistent with isomorphism to English.
 
 					(units_ordered += quantity )
 					(orders := (enqueue orders (quantity delivery_deadline)) )

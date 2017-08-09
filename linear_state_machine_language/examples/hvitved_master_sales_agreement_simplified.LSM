@@ -37,8 +37,8 @@
 
 		(ContractLive()
 			(ActorEvents
-				(Customer mayif ((orderable_units > 0) and (q ≤ orderable_units))
-					(Order(q) by contract_ends)
+				(Customer mayif ((orderable_units > 0) and (p ≤ orderable_units))
+					(Order(p) by contract_ends)
 				)
 				(Vendor mustif ((nonempty orders) and (q == (fst (top orders))))
 					; fst (top orders) is the quantity. snd (top orders) is the deadline.
