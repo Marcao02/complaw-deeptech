@@ -1,5 +1,6 @@
 # from typing import Union, List, Set, Dict, Any, Tuple
 from typing import List
+from constants_and_defined_types import SExpr
 
 class GlobalVar:
     def __init__(self, name: str, sort: str, initval: str, modifier=None) -> None:
@@ -53,3 +54,15 @@ class DecrementStatement(CodeBlockStatement):
     def __init__(self, varname:str, value_expr) -> None:
         self.var = varname
         self.value_expr = value_expr
+
+class Term:
+    pass
+
+class FnApp(Term):
+    def __init__(self, head:str, args:SExpr) -> None:
+        self.head = head
+        self.args = args
+
+class Atom(Term):
+    def __init__(self, atom:str) -> None:
+        self.atom = atom

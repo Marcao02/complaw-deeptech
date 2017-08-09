@@ -1,12 +1,12 @@
-from typing import Any
 import logging
 
 from LSMTop import *
 from parse_sexpr import parse, pretty
 from state_diagram_generation import contractToDotFile
 from util import streqci, list_split
+from constants_and_defined_types import SExpr
+from typing import Tuple
 
-SExpr = List[Any]
 
 class Assemble:
     def __init__(self):
@@ -164,17 +164,36 @@ class Assemble:
         try:
             if statement[0] == 'conjecture':
                 return InCodeConjectureStatement(statement[1:])
-            elif statement[1] == ':=' or statement[1] == "=":
-                return VarAssignStatement(statement[0], statement[2])
-            elif statement[1] == '+=':
-                return IncrementStatement(statement[0], statement[2])
-            elif statement[1] == '-=':
-                return DecrementStatement(statement[0], statement[2])
             else:
-                raise Exception
-            return None # not reachable
-        except Exception:
+                assert len(statement) == 3, "As of now, every code block statement other than a conjecture should be a tripple: a :=, +=, or -= specifically. See\n" + str(statement)
+
+                rhs = self.parse_term(statement[2])
+
+                if statement[1] == ':=' or statement[1] == "=":
+                    return VarAssignStatement(statement[0], rhs)
+                elif statement[1] == '+=':
+                    return IncrementStatement(statement[0], rhs)
+                elif statement[1] == '-=':
+                    return DecrementStatement(statement[0], rhs)
+                else:
+                    raise Exception
+                return None # not reachable
+        except Exception as e:
             logging.error(f"Problem with {statement}")
+            raise e
+
+    def parse_term(self, term:Union[str,SExpr]) -> Term:
+        if isinstance(term,str):
+            return term
+        infixtry = try_parse_infix(term)
+        if infixtry :
+            return FnApp(infixtry[0], infixtry[1])
+        prefixtry = try_parse_prefix(term)
+        if prefixtry:
+            return FnApp(prefixtry[0], prefixtry[1])
+        return term
+
+
 
 
     def actor_block(self, trans_specs:SExpr, src_esid: EventStateId,
@@ -220,7 +239,27 @@ class Assemble:
         except Exception:
             logging.error(f"Problem processing {src_es_id} trans: " + str(trans_spec))
 
+def try_parse_infix(lst:SExpr) -> Tuple[str, SExpr]:
+    try:
+        if len(lst) == 3 and isinstance(lst[1],str):
+            symb = lst[1]
+            if symb in INFIX_FN_SYMBOLS:
+                return symb, [lst[0]] + lst[2:]
+        return None
+    except:
+        print("try_parse_infix")
 
+
+def try_parse_prefix(lst:SExpr) -> Tuple[str, SExpr]:
+
+    if isinstance(lst[0],str):
+        symb = lst[0]
+        if symb in PREFIX_FN_SYMBOLS:
+            if len(lst) == 1:
+                return symb, []
+            else:
+                return symb, lst[1:]
+    return None
 
 EXAMPLES = (
     'examples/hvitved_printer.LSM',

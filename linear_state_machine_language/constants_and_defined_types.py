@@ -18,6 +18,12 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
+INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '=='}
+PREFIX_FN_SYMBOLS = {'append', 'removeOne', 'containedIn', 'get'
+                     'contractStartDay', 'event_start_date' }
+
+
+
 DEONTIC_MODALITIES = {'must','may','should'}
 DeonticModality = str
 DEONTIC_GUARD_MODALITIES = {'mustif','mayif','shouldif'}
