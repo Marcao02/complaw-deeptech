@@ -74,7 +74,7 @@
 		
 		(Pay_2nd_Installment() [ProseRefs P5] 
 			(Entrance
-				(conjecture buyer_paid == 100)
+				(conjecture (buyer_paid == 100))
 				(buyer_paid := 200)
 			)
 			(ActorEvents
@@ -98,7 +98,7 @@
 
 		(Pay_2nd_Installment_With_Late_Fee() [ProseRefs P4] 
 			(Entrance 
-				(conjecture buyer_paid = 100)
+				(conjecture (buyer_paid == 100))
 				(buyer_paid := 220)
 			)
 			(Fallbacks 
@@ -114,8 +114,8 @@
 
 		(Refund_Postmarked() [ProseRefs P5] 
 			(Entrance
-				(conjecture seller_refunded = 0)
-				(conjecture (buyer_paid = 100) or (buyer_paid = 200))
+				(conjecture (seller_refunded == 0))
+				(conjecture ((buyer_paid == 100) or (buyer_paid == 200)))
 				(seller_refunded := buyer_paid)
 			)
 			(Fallbacks 

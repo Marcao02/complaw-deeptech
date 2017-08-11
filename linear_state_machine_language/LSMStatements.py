@@ -43,12 +43,6 @@ class VarAssignStatement(CodeBlockStatement):
         self.varname : str = varname
         self.value_expr = value_expr
 
-    # def varObj(self,env:'LSMTop'):
-    #     if self.varname in top.global_vars:
-    #         return top.global_vars[self.varname]
-    #     else:
-    #         logging.error("Todo: see if it's a local var")
-
     def __str__(self):
         return f"{self.varname} := {str(self.value_expr)}"
 
@@ -58,13 +52,19 @@ class InCodeConjectureStatement(CodeBlockStatement):
 
 class IncrementStatement(CodeBlockStatement):
     def __init__(self, varname:str, value_expr) -> None:
-        self.var = varname
+        self.varname = varname
         self.value_expr = value_expr
+
+    def __str__(self):
+        return f"{self.varname} += {str(self.value_expr)}"
 
 class DecrementStatement(CodeBlockStatement):
     def __init__(self, varname:str, value_expr) -> None:
-        self.var = varname
+        self.varname = varname
         self.value_expr = value_expr
+
+    def __str__(self):
+        return f"{self.varname} -= {str(self.value_expr)}"
 
 class Term:
     pass

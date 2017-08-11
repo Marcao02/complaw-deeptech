@@ -52,11 +52,11 @@
 		(Month_Started()  
 			(ActorEvents
 				(Renter may
-					(Request_Termination_At_Rent_Or_Before() by (earliest (monthStartDay() + 7D) (lease_term_end - 30D)))
-					(PayRent() by (monthStartDay() + 7D))
+					(Request_Termination_At_Rent_Or_Before() by (earliest ((monthStartDay) + 7D) (lease_term_end - 30D)))
+					(PayRent() by ((monthStartDay) + 7D))
 				)
 				(Owner may
-					(Request_Termination_At_Rent_Or_Before() by (earliest (monthStartDay() + 7D) (lease_term_end - 30D)))
+					(Request_Termination_At_Rent_Or_Before() by (earliest ((monthStartDay) + 7D) (lease_term_end - 30D)))
 				)
 			)
 			(Fallbacks
@@ -67,7 +67,7 @@
 		(RentDue()
 			(ActorEvents
 				(Renter must
-					(PayRent() by (monthStartDay() + 7D))
+					(PayRent() by ((monthStartDay) + 7D))
 				)
 			)
 		)  
@@ -78,7 +78,7 @@
 			)
 			(ActorEvents
 				(Renter must
-					(PayRent() by (monthStartDay() + 7D))
+					(PayRent() by ((monthStartDay) + 7D))
 				)
 			)						
 		)
@@ -89,15 +89,15 @@
 			)
 			(ActorEvents
 				(Renter may
-					(Request_Termination_After_Rent() by (earliest (monthEndDay()) (lease_term_end - 30D)))
+					(Request_Termination_After_Rent() by (earliest (monthEndDay) (lease_term_end - 30D)))
 				)
 				(Owner may
-					(Request_Termination_After_Rent() by (earliest (monthEndDay()) (lease_term_end - 30D)))
+					(Request_Termination_After_Rent() by (earliest (monthEndDay) (lease_term_end - 30D)))
 				)
 			)
 			
 			(Fallbacks 
-				(Month_Ended() on (monthEndDay()))
+				(Month_Ended() on (monthEndDay))
 			)
 		)
 
@@ -106,7 +106,7 @@
 				(lease_terminated := true)
 			)
 			(Fallbacks
-				(Month_Ended() on (monthEndDay()))
+				(Month_Ended() on (monthEndDay))
 			)
 		)
 

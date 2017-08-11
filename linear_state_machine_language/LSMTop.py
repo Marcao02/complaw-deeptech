@@ -42,3 +42,9 @@ class LSMTop:
 
     def estate(self, id:str):
         return self.formal_contract.estates[id]
+
+    def varObj(self, varname:str):
+        if varname in self.global_vars:
+            return self.global_vars[varname]
+        else:
+            logging.error("Todo: see if it's a local var")

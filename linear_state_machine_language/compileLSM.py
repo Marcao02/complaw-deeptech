@@ -12,10 +12,15 @@ class Assemble:
         self._top : LSMTop = LSMTop(filename)
         self._referenced_event_stateids: Set[EventStateId] = set()
 
-    def syntaxError(self, expr: SExpr):
-        raise SyntaxError(str(expr) +
+    def syntaxError(self, expr: SExpr, msg:str = None):
+        raise SyntaxError((msg if msg else "") +
+                          "\n" + str(expr) +
                           "\nline " + str(cast(TaggedList, expr).line) +
                           "\n" + str(self._top.filename) )
+
+    def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:str = None):
+        if not test:
+            self.syntaxError(expr, msg)
 
     def top(self, l:SExpr):
         x : SExpr
@@ -167,10 +172,14 @@ class Assemble:
     def code_block_statement_dispatch(self, statement:SExpr) -> CodeBlockStatement:
         try:
             if statement[0] == 'conjecture':
-                return InCodeConjectureStatement(cast(List,statement[1:]))
+
+                self.assertOrSyntaxError( len(statement) == 2, statement, "CodeBlock conjecture expression should have length 2")
+                rhs = self.parse_term(statement[1])
+
+                return InCodeConjectureStatement(cast(List,rhs))
+
             else:
                 assert len(statement) == 3, "As of now, every code block statement other than a conjecture should be a tripple: a :=, +=, or -= specifically. See\n" + str(statement)
-
                 rhs = self.parse_term(statement[2])
 
                 if statement[1] == ':=' or statement[1] == "=":
