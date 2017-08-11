@@ -73,7 +73,6 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
     builder = SExprBuilder() 
     word = '' 
     
-    # str_lit_opened_at = None
     in_str_lit = False
     in_comment = False
     skip_next_char = False
@@ -124,14 +123,12 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
                 if in_str_lit:
                     in_str_lit = False
                     str_lit_quote = None
-                    # str_lit_opened_at = None
                     builder.appendTokenInCurScope(word)
                     word = ''
                     builder.closeParenSeq(char,line,col)
                 else:
                     in_str_lit = True
                     str_lit_quote = char
-                    # str_lit_opened_at = (i,line,col)
                     builder.openParenSeq(char)
                     builder.appendTokenInCurScope(STRING_LITERAL_MARKER)
 
@@ -201,16 +198,6 @@ def pretty(l:Union[str,TaggedList],nspaces=0) -> str:
             s = indent + lsymb + s
             s += " " + rsymb    
         return s
-        # return indent + lsymb + "\n" + "\n".join([pretty(x,nspaces+2) for x in l]) + "\n" + indent + rsymb        
-    
-
-
-# FILES = (
-#     '/Users/dustin/NoLockin/NoLockin Datatypes/Collections/Unordered/Set/SetMonotonic.nlo',
-#     '/Users/dustin/NoLockin/NoLockin Datatypes/Collections/Unordered/Set/Set.nlo',
-#     '/Users/dustin/Sites/legalese/legalese-compiler/singlethreaded-statemachine-language/examples/hvitved_printer_sexpr.LSM',
-#     '/Users/dustin/Sites/legalese/legalese-compiler/flat-nonconcurrent-language/sexpr_language/printer_sexpr.L4fnc'
-# )
 
 if __name__ == '__main__':
     # import sys
@@ -218,11 +205,3 @@ if __name__ == '__main__':
     import doctest
     print("Running tests")
     doctest.testmod()
-
-    # if 'file' in sys.argv:
-    #     for path in FILES:
-    #         print("\nLooking at file " + path + ":\n")
-    #         fil = open(path,'r')
-    #         parsed = parse(fil.read())
-    #         print( parsed, "\n")
-    #         print( pretty(parsed) )
