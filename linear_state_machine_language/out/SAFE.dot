@@ -17,9 +17,9 @@ digraph SAFE {
 	EquitySubmitProRataRightsAgreementForSigning[label=EquitySubmitProRataRightsAgreementForSigning,color=Blue];
 	EquitySignProRataAgreement[label=EquitySignProRataAgreement,color=Red];
 	EquityIssueSAFEPreferredStock[label=EquityIssueSAFEPreferredStock];
+	InvestorInvests -> LiquidityEvent;
 	InvestorInvests -> LiquidityEventWithChangeOfControl;
 	InvestorInvests -> Dissolution;
-	InvestorInvests -> LiquidityEvent;
 	InvestorInvests -> EquityFinancing;
 	Dissolution -> DissolutionTransferCash;
 	DissolutionTransferCash -> DissolutionTransferAssets;
