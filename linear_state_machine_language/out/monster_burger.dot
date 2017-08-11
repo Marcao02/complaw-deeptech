@@ -20,8 +20,8 @@ digraph Monster_Burger {
 	AnnounceMBFinished -> CheckFinishedClaim;
 	AnnounceMBFinished -> LateCheck [style=dashed];
 	LateCheck -> Fulfilled [style=dashed];
-	CheckFinishedClaim -> VerifyFinishedClaim;
 	CheckFinishedClaim -> RejectFinishedClaim;
+	CheckFinishedClaim -> VerifyFinishedClaim;
 	RejectFinishedClaim -> EatingMB [style=dashed];
 	VerifyFinishedClaim -> Fulfilled [style=dashed];
 }

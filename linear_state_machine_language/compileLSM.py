@@ -140,16 +140,17 @@ class Assemble:
                     deontic_keyword = actorblock[1]
                     try:
                         if deontic_keyword in DEONTIC_GUARD_MODALITIES:
-                            guard = actorblock[2]
+                            deontic_guard = actorblock[2]
                             rest = actorblock[3:]
                         else:
-                            guard = None
+                            deontic_guard = None
                             rest = actorblock[2:]
                     except Exception:
                         logging.error("Problem possibly with deontic_keyword: " + str(deontic_keyword))
                     if actor_id not in es.proper_actor_blocks:
                         es.proper_actor_blocks[actor_id] = set()
-                    es.proper_actor_blocks[actor_id].update(self.actor_block(rest, es_id, actor_id, deontic_keyword, guard))
+                    es.proper_actor_blocks[actor_id].update(
+                        self.actor_block(rest, es_id, actor_id, deontic_keyword, deontic_guard))
 
 
         return es
@@ -172,14 +173,11 @@ class Assemble:
     def code_block_statement_dispatch(self, statement:SExpr) -> CodeBlockStatement:
         try:
             if statement[0] == 'conjecture':
-
                 self.assertOrSyntaxError( len(statement) == 2, statement, "CodeBlock conjecture expression should have length 2")
                 rhs = self.parse_term(statement[1])
-
                 return InCodeConjectureStatement(cast(List,rhs))
-
             else:
-                assert len(statement) == 3, "As of now, every code block statement other than a conjecture should be a tripple: a :=, +=, or -= specifically. See\n" + str(statement)
+                assert len(statement) == 3, "As of now, every code block statement other than a conjecture should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
                 rhs = self.parse_term(statement[2])
 
                 if statement[1] == ':=' or statement[1] == "=":
@@ -207,25 +205,33 @@ class Assemble:
 
     def actor_block(self, trans_specs:SExpr, src_esid: EventStateId,
                     actor_id:ActorId,
-                    deontic_keyword: DeonticKeyword, guard:SExpr) -> Set[TransitionClause]:
-        return {self.transition_clause(tcs, src_esid, actor_id, deontic_keyword, guard) for tcs in trans_specs}
+                    deontic_keyword: DeonticKeyword,
+                    deontic_guard:SExpr) -> Set[TransitionClause]:
+        return {self.transition_clause(tcs, src_esid, actor_id, deontic_keyword, deontic_guard) for tcs in trans_specs}
 
     def nonactor_block(self, trans_specs, src_esid: EventStateId,
                        guard: SExpr = None) -> Set[TransitionClause]:
         return {self.nonactor_transition_clause(tcs, src_esid, guard) for tcs in trans_specs}
 
     def transition_clause(self, trans_spec:SExpr, src_es_id:EventStateId, actor_id:ActorId,
-                          deontic_modality: DeonticKeyword = None, guard: SExpr = None) -> TransitionClause:
+                          deontic_modality: DeonticKeyword = None, deontic_guard: SExpr = None) -> TransitionClause:
         assert len(trans_spec) >= 3, f"See src EventState {src_es_id} actor section {actor_id} trans_spec {trans_spec}"
         dest_id : str = trans_spec[0]
         self._referenced_event_stateids.add(dest_id)
-        tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, guard)
+        tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, deontic_guard)
         tc.args = trans_spec[1]
-        try:
+
+        if 'where' in trans_spec[2:]:
             ind = trans_spec[2:].index('where')
             tc.where_clause = trans_spec[ind+1:]
-        except ValueError:
-            pass
+            # TODO
+
+        for deadline_keyword in DEADLINE_OPERATORS:
+            if deadline_keyword in trans_spec[2:]:
+                ind = trans_spec[2:].index(deadline_keyword)
+                tc.deadline_clause = trans_spec[ind:ind+2]
+                # TODO
+                # tc.deadline_clause = DeadlineClause(trans_spec[ind], trans_spec[ind + 1:])
 
         tc.conditions = trans_spec[2:]
         # print(tc.conditions)
@@ -312,7 +318,8 @@ if __name__ == '__main__':
                 pass
             assembler = Assemble(path)
             prog : LSMTop = assembler.top(parsed)
-            contractToDotFile(prog)
+            if 'dot' in sys.argv:
+                contractToDotFile(prog)
 
 
 # prog = Assemble().top(parse_file(EXAMPLES[0]))

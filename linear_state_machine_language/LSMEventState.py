@@ -17,8 +17,10 @@ class TransitionClause:
         self.dest_id = dest_id
         self.deontic_modality = deontic_modality
         self.args : SExpr = None
-        self.conditions : SExpr = None
+
+        self.conditions : SExpr = None # deadline and guard
         self.where_clause : SExpr = None
+        self.deadline_clause: SExpr = None
 
 
 class EventState:

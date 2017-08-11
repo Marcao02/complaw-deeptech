@@ -65,10 +65,10 @@
 		(EatingMB()  
 			(ActorEvents
 				(Challenger may
-					(AnnounceMBFinished() (before challenge_endlimit_time))
+					(AnnounceMBFinished() before challenge_endlimit_time)
 				)
 				(Restaurant should
-					(CheckFinishedClaim() (between challenge_endlimit_time (time+ challenge_endlimit_time MAX_CLAIM_VERIFICATION_DELAY)) )
+					(CheckFinishedClaim() between (interval challenge_endlimit_time (time+ challenge_endlimit_time MAX_CLAIM_VERIFICATION_DELAY)) )
 				)
 			)
 			(Fallbacks			
