@@ -103,7 +103,7 @@ The second event state `Order` declares a parameter, the number of units request
 
 			(Order(quantity : ℕ)			
 				(Entrance
-					(local delivery_deadline := contract_start_date() + (max 14D ((ceil (quantity/10))D))
+					(local delivery_deadline := contract_start_date() + (max 14D (days (ceil (quantity / 10))))
 				
 We then increment the count `units_ordered` of the total number of units ordered (which, recall, is a `nonoperative` variable). And finally we put the calculated delivery deadline and requested quantity on the bottom of the `orders` queue (recall it's immutable).
 

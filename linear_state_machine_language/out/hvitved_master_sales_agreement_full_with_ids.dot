@@ -10,8 +10,8 @@ digraph Master_Sales_Agreement {
 	Start -> ContractLive [style=dashed];
 	ContractLive -> NewOrder;
 	ContractLive -> PayBill;
-	ContractLive -> Deliver;
 	ContractLive -> SendInvoice;
+	ContractLive -> Deliver;
 	ContractLive -> Fulfilled [style=dashed];
 	NewOrder -> ContractLive [style=dashed];
 	Deliver -> ContractLive [style=dashed];

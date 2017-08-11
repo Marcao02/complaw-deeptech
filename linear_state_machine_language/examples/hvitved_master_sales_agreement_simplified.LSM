@@ -28,7 +28,7 @@
 	(EventStates
 		(Start()
 			(Entrance
-				(contract_ends := (contractStartDay + 1Y))
+				(contract_ends := ((contract_start_date) + 1Y))
 			)
 			(Fallbacks
 				(ContractLive())
@@ -53,9 +53,9 @@
 
 		(Order(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (max 14D ((ceil (quantity/10))D)) )
+				(delivery_deadline := (max 14D (days (ceil (quantity / 10)))) )
 				(units_ordered += quantity )
-				(orders := (enqueue orders (quantity delivery_deadline)) )
+				(orders := (enqueue orders (tuple quantity delivery_deadline)) )
 			)
 			(Fallbacks
 				(ContractLive())

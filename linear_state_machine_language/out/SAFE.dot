@@ -17,10 +17,10 @@ digraph SAFE {
 	EquitySubmitProRataRightsAgreementForSigning[label=EquitySubmitProRataRightsAgreementForSigning,color=Blue];
 	EquitySignProRataAgreement[label=EquitySignProRataAgreement,color=Red];
 	EquityIssueSAFEPreferredStock[label=EquityIssueSAFEPreferredStock];
-	InvestorInvests -> LiquidityEvent;
 	InvestorInvests -> LiquidityEventWithChangeOfControl;
-	InvestorInvests -> Dissolution;
+	InvestorInvests -> LiquidityEvent;
 	InvestorInvests -> EquityFinancing;
+	InvestorInvests -> Dissolution;
 	Dissolution -> DissolutionTransferCash;
 	DissolutionTransferCash -> DissolutionTransferAssets;
 	DissolutionTransferCash -> Fulfilled [style=dashed];
@@ -33,8 +33,8 @@ digraph SAFE {
 	LiquidityChooseCashPayment -> LiquidityTransferCash;
 	LiquidityTransferCash -> LiquidityTransferCommonStock;
 	LiquidityTransferCash -> Fulfilled [style=dashed];
-	EquityFinancing -> EquityDeliverDocsWithoutProRataAgreement;
 	EquityFinancing -> EquityDeliverDocsWithProRataAgreement;
+	EquityFinancing -> EquityDeliverDocsWithoutProRataAgreement;
 	EquityDeliverDocsWithProRataAgreement -> EquityIssueSAFEPreferredStock;
 	EquityDeliverDocsWithoutProRataAgreement -> EquitySubmitProRataRightsAgreementForSigning;
 	EquitySubmitProRataRightsAgreementForSigning -> EquitySignProRataAgreement;

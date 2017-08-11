@@ -1,6 +1,6 @@
+import logging
 from typing import Union, List, Any
 from util import is_singleton_string_list
-from constants_and_defined_types import SExpr
 
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"
@@ -22,6 +22,8 @@ class TaggedList(list):
         self.line = line
         self.col = col
         assert isinstance(symb,str) and symb in all_symb_tags
+
+SExpr = Union[str,List[Any]]
 
 class SExprBuilder:
     def __init__(self) -> None:

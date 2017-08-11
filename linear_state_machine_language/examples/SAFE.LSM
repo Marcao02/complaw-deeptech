@@ -10,7 +10,7 @@
 (Actors Investor Company)
 
 (ContractParams
-	(INVESTMENT_AMOUNT : $)
+	(PURCHASE_AMOUNT : $)
 	(VALUATION_CAP : $)
 	(DISCOUNT_PERCENT : %) ; must be < 100
 )
@@ -42,7 +42,7 @@
 	(EventStates
 		(InvestorInvests()  
 			(Entrance
-				(amount_invested := INVESTMENT_AMOUNT)
+				(amount_invested := PURCHASE_AMOUNT)
 			)	
 			(ActorEvents
 				(Company may
@@ -66,7 +66,7 @@
 			(Entrance
 				(dis_cashout := (
 					ifthenelse (PURCHASE_AMOUNT ≤ (COMPANY_CASH_AT_DISSOLUTION_EVENT * INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS))
-					 (PURCHASE_AMOUNT)
+					 PURCHASE_AMOUNT
 					 (COMPANY_CASH_AT_DISSOLUTION_EVENT * INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS)
 				))
 				(investor_cash += dis_cashout)
@@ -141,7 +141,7 @@
 			(Entrance 
 				(li_cashout := (
 					ifthenelse (PURCHASE_AMOUNT ≤ (COMPANY_CASH_AT_LIQUIDITY_EVENT * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS))
-					(PURCHASE_AMOUNT)
+					PURCHASE_AMOUNT
 					(COMPANY_CASH_AT_LIQUIDITY_EVENT * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS)
 				))
 				(investor_cash += li_cashout)

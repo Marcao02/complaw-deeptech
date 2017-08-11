@@ -47,3 +47,6 @@ class EventState:
         if self.nonactor_block:
             for t in self.nonactor_block:
                 yield t
+
+    def __str__(self):
+        return self.name

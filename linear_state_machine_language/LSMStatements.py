@@ -1,9 +1,11 @@
 # from typing import Union, List, Set, Dict, Any, Tuple
+import logging
 from typing import List
-from constants_and_defined_types import SExpr
+from constants_and_defined_types import GlobalVarId
+from parse_sexpr import SExpr
 
 class GlobalVar:
-    def __init__(self, name: str, sort: str, initval: str, modifier=None) -> None:
+    def __init__(self, name: GlobalVarId, sort: str, initval: str, modifier=None) -> None:
         self.name = name
         self.sort = sort
         self.initval = initval
@@ -38,8 +40,17 @@ class CodeBlockStatement:
 
 class VarAssignStatement(CodeBlockStatement):
     def __init__(self, varname:str, value_expr, modifier=None) -> None:
-        self.var = varname
+        self.varname : str = varname
         self.value_expr = value_expr
+
+    # def varObj(self,env:'LSMTop'):
+    #     if self.varname in top.global_vars:
+    #         return top.global_vars[self.varname]
+    #     else:
+    #         logging.error("Todo: see if it's a local var")
+
+    def __str__(self):
+        return f"{self.varname} := {str(self.value_expr)}"
 
 class InCodeConjectureStatement(CodeBlockStatement):
     def __init__(self, exprs:List) -> None:
@@ -62,6 +73,9 @@ class FnApp(Term):
     def __init__(self, head:str, args:SExpr) -> None:
         self.head = head
         self.args = args
+
+    def __str__(self):
+        return "({} {})".format(self.head, " ".join([str(x) for x in self.args]))
 
 class Atom(Term):
     def __init__(self, atom:str) -> None:

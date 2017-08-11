@@ -6,8 +6,6 @@ ActorId = str
 ProseClauseId = str
 GlobalVarId = str
 
-SExpr = Union[str,List[Any]]
-
 ProseContract = Dict[str,str]
 ParamsDec = Dict[str,Sort]
 
@@ -18,9 +16,15 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
-INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '=='}
-PREFIX_FN_SYMBOLS = {'append', 'removeOne', 'containedIn', 'get'
-                     'contractStartDay', 'event_start_date' }
+INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>'}
+PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time',
+                     'ifthenelse',
+                     'max', 'ceil',
+                     'days',
+                     'enqueue', 'dequeue', 'discardTop', # queues
+                     'append', 'removeOne', 'containedIn', 'get', # lists
+                     'setAdd', 'setRemove', # sets
+                     'tuple'}
 
 
 

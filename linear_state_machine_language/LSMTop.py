@@ -10,6 +10,8 @@ class FormalContract:
         self.start_state: str = None # EventState id
 
     def can_transition(self, transid1, transid2) -> bool:
+        if transid1 is None and transid2 == self.start_state:
+            return True
         return self.estates[transid1].can_transition_to(transid2)
 
     def transitions(self) -> Iterator[TransitionClause]:
@@ -17,8 +19,9 @@ class FormalContract:
             for t in estate.transitions():
                 yield t
 
-class L4Top:
-    def __init__(self) -> None:
+class LSMTop:
+    def __init__(self, filename:str) -> None:
+        self.filename = filename
         self.global_vars : Dict[GlobalVarId,GlobalVar] = None
         self.claims : List[ContractClaim] = None
         self.actors : List[str] = None
@@ -36,3 +39,6 @@ class L4Top:
 
     def event_states(self) -> List[EventState]:
         return list(self.formal_contract.estates.values())
+
+    def estate(self, id:str):
+        return self.formal_contract.estates[id]

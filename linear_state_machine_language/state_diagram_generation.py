@@ -24,7 +24,7 @@ def transitionAsDotArcStr(tc: TransitionClause) -> str:
         return f"{tc.src_id} -> {tc.dest_id}"
 
 
-def contractToDotFileStr(l4file: L4Top) -> str:
+def contractToDotFileStr(l4file: LSMTop) -> str:
     # the [1] is because first element is STRING_LITERAL tag
     # graphname = l4file.formal_contract.name[1]
     cleaned_graphname = "_".join(l4file.formal_contract.name[1].split(' '))
@@ -35,7 +35,7 @@ def contractToDotFileStr(l4file: L4Top) -> str:
     rv += nodes_str + ";\n\t" + transitions_str + ";\n}"
     return rv
 
-def contractToDotFile(l4file: L4Top, verbose=False) -> None:
+def contractToDotFile(l4file: LSMTop, verbose=False) -> None:
     # replace spaces with underscores
     cleaned_contract_name = "_".join(l4file.formal_contract.name[1].split(' '))
 

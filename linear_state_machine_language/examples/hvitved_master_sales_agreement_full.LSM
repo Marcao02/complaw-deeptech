@@ -40,7 +40,7 @@
 	(EventStates
 		(Start()
 			(Entrance
-				(contract_ends := (contractStartDay + 1Y))
+				(contract_ends := ((contract_start_date) + 1Y))
 			)
 			(Fallbacks
 				(ContractLive())
@@ -72,9 +72,9 @@
 
 		(NewOrder(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (max 14D ((ceil (quantity / 10))D)))
+				(delivery_deadline := (max 14D (days (ceil (quantity / 10)))))
 				(units_ordered += quantity)
-				(2Bdelivered := (append 2Bdelivered (quantity delivery_deadline)))				
+				(2Bdelivered := (append 2Bdelivered (tuple quantity delivery_deadline)))				
 			)						
 			(Fallbacks
 				(ContractLive())
@@ -87,7 +87,7 @@
 				( quantity := (get order 0) )
 				( units_delivered += quantity )
 				( 2Bdelivered := (removeOne 2Bdelivered order) )
-				( 2Binvoiced := (append 2Binvoiced ((get order 0) (event_start_date() + 1M))) )
+				( 2Binvoiced := (append 2Binvoiced (tuple (get order 0) ((event_start_date) + 1M))) )
 			)
 			(Fallbacks
 				(ContractLive())
@@ -100,7 +100,7 @@
 				( quantity := (get invoice 0) )
 				( units_invoiced += quantity )
 				( 2Binvoiced := (removeOne 2Binvoiced invoice) )
-				( 2Bpaid := (append 2Bpaid ((get invoice 0) (event_start_date() + 14D))) )
+				( 2Bpaid := (append 2Bpaid (tuple (get invoice 0) ((event_start_date) + 14D))) )
 			)
 			(Fallbacks
 				(ContractLive())

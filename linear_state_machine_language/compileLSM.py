@@ -1,17 +1,21 @@
 import logging
 
 from LSMTop import *
-from parse_sexpr import parse, pretty
+from parse_sexpr import parse, pretty, SExpr, TaggedList
 from state_diagram_generation import contractToDotFile
 from util import streqci, list_split
-from constants_and_defined_types import SExpr
 from typing import Tuple, cast
 
 
 class Assemble:
-    def __init__(self):
-        self._top : L4Top = L4Top()
+    def __init__(self, filename:str) -> None:
+        self._top : LSMTop = LSMTop(filename)
         self._referenced_event_stateids: Set[EventStateId] = set()
+
+    def syntaxError(self, expr: SExpr):
+        raise SyntaxError(str(expr) +
+                          "\nline " + str(cast(TaggedList, expr).line) +
+                          "\n" + str(self._top.filename) )
 
     def top(self, l:SExpr):
         x : SExpr
@@ -185,16 +189,12 @@ class Assemble:
     def parse_term(self, term:Union[str,SExpr]) -> Union[Term,str]:
         if isinstance(term,str):
             return term
-        infixtry = try_parse_infix(term)
-        if infixtry :
-            return FnApp(infixtry[0], infixtry[1])
-        prefixtry = try_parse_prefix(term)
-        if prefixtry:
-            return FnApp(prefixtry[0], prefixtry[1])
-        return term
-
-
-
+        pair = try_parse_infix(term) or try_parse_prefix(term)
+        if not pair:
+            logging.error("Didn't recognize function symbol in: " + str(term))
+            self.syntaxError(term)
+        return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
+        # return term
 
     def actor_block(self, trans_specs:SExpr, src_esid: EventStateId,
                     actor_id:ActorId,
@@ -301,8 +301,8 @@ if __name__ == '__main__':
                 # print(parsed)
                 print(pretty(parsed))
                 pass
-            assembler = Assemble()
-            prog : L4Top = assembler.top(parsed)
+            assembler = Assemble(path)
+            prog : LSMTop = assembler.top(parsed)
             contractToDotFile(prog)
 
 
