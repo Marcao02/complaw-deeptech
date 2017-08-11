@@ -16,8 +16,8 @@ class TransitionClause:
         self.src_id = src_id
         self.dest_id = dest_id
         self.deontic_modality = deontic_modality
-        self.args = None
-        self.conditions : List[str] = None
+        self.args : SExpr = None
+        self.conditions : SExpr = None
         self.where_clause : SExpr = None
 
 

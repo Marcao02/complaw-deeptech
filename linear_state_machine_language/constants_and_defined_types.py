@@ -1,4 +1,4 @@
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Any
 
 Sort = str
 EventStateId = str
@@ -6,7 +6,7 @@ ActorId = str
 ProseClauseId = str
 GlobalVarId = str
 
-SExpr = Union[str,List[any]]
+SExpr = Union[str,List[Any]]
 
 ProseContract = Dict[str,str]
 ParamsDec = Dict[str,Sort]

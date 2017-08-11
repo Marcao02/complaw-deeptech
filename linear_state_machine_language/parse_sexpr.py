@@ -1,5 +1,6 @@
 from typing import Union, List, Any
 from util import is_singleton_string_list
+from constants_and_defined_types import SExpr
 
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"
@@ -44,16 +45,13 @@ class SExprBuilder:
     def curScope(self):
         return self.stack[-1] 
 
-    def popLast(self):
-        self.curScope.pop()
-
     def __repr__(self):
         return '*' + repr(self.stack) + '*'
 
 
 
 
-def parse(string:str, debug=False, strip_comments=True):
+def parse(string:str, debug=False, strip_comments=True) -> SExpr:
     """
     >>> parse("(+ 5 (+ 3 5))")
     [['+', '5', ['+', '3', '5']]]
@@ -114,7 +112,7 @@ def parse(string:str, debug=False, strip_comments=True):
             elif char == LINE_COMMENT_START_CHAR and not in_str_lit and not in_comment:
                 in_comment = True
                 if not strip_comments:
-                    builder.openParenSeq(char)
+                    builder.openParenSeq(char,line,col)
                     builder.appendTokenInCurScope(COMMENT_LITERAL_MARKER)
 
             elif char in (' ', '\n', '\t') and not in_str_lit:

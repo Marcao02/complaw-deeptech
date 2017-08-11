@@ -5,7 +5,7 @@ from parse_sexpr import parse, pretty
 from state_diagram_generation import contractToDotFile
 from util import streqci, list_split
 from constants_and_defined_types import SExpr
-from typing import Tuple
+from typing import Tuple, cast
 
 
 class Assemble:
@@ -24,9 +24,9 @@ class Assemble:
             elif streqci(x0, CLAIMS_SECTION_LABEL):
                 self._top.claims = self.claims(x[1:])
             elif streqci(x0, ACTORS_SECTION_LABEL):
-                self._top.actors = self.actors(x[1:])
+                self._top.actors = self.actors(cast(List[str],x[1:]))
             elif streqci(x0, PROSE_CONTRACT_SECTION_LABEL):
-                self._top.prose_contract = self.prose_contract(x[1:])
+                self._top.prose_contract = self.prose_contract(cast(List[List[str]],x[1:]))
             elif streqci(x0, FORMAL_CONTRACT_SECTION_LABEL):
                 self._top.formal_contract = self.formal_contract(x[1:])
             elif streqci(x0, DOT_FILE_NAME_LABEL):
@@ -74,10 +74,10 @@ class Assemble:
         # logging.info(str(rv))
         return rv
 
-    def actors(self, l:SExpr):
+    def actors(self, l:List[str]) -> List[str]:
         # logging.info(str(l))
         assert isinstance(l[0], str), str(l) + " should be a list of strings"
-        return l.copy()
+        return cast(List,l).copy()
 
     def prose_contract(self, l: List[List[str]]) -> ProseContract:
         rv = {x[0]: x[1] for x in l}
@@ -112,14 +112,14 @@ class Assemble:
         es = EventState(es_id)
         es.proper_actor_blocks = dict()
 
-        es.params = self.event_state_params(l[1])
+        es.params = self.event_state_params(cast(List[str],l[1]))
 
         for x in l[2:]:
             x0 = x[0]
             if streqci(x0, EVENT_STATE_DESCRIPTION_LABEL):
                 es.description = x[1]
             elif streqci(x0, EVENT_STATE_PROSE_REFS_LABEL):
-                es.prose_refs = x[1:].copy()
+                es.prose_refs = cast(List,x[1:]).copy()
             elif streqci(x0, CODE_BLOCK_LABEL):
                 es.code_block = self.code_block(x[1:])
             elif streqci(x0, NONACTION_BLOCK_LABEL):
@@ -163,7 +163,7 @@ class Assemble:
     def code_block_statement_dispatch(self, statement:SExpr) -> CodeBlockStatement:
         try:
             if statement[0] == 'conjecture':
-                return InCodeConjectureStatement(statement[1:])
+                return InCodeConjectureStatement(cast(List,statement[1:]))
             else:
                 assert len(statement) == 3, "As of now, every code block statement other than a conjecture should be a tripple: a :=, +=, or -= specifically. See\n" + str(statement)
 
@@ -182,7 +182,7 @@ class Assemble:
             logging.error(f"Problem with {statement}")
             raise e
 
-    def parse_term(self, term:Union[str,SExpr]) -> Term:
+    def parse_term(self, term:Union[str,SExpr]) -> Union[Term,str]:
         if isinstance(term,str):
             return term
         infixtry = try_parse_infix(term)
@@ -238,16 +238,18 @@ class Assemble:
             return tc
         except Exception:
             logging.error(f"Problem processing {src_es_id} trans: " + str(trans_spec))
+            return None
 
-def try_parse_infix(lst:SExpr) -> Tuple[str, SExpr]:
-    try:
+def try_parse_infix(lst:List[SExpr]) -> Tuple[str, SExpr]:    
+    try:        
         if len(lst) == 3 and isinstance(lst[1],str):
-            symb = lst[1]
+            symb : str = lst[1]
             if symb in INFIX_FN_SYMBOLS:
                 return symb, [lst[0]] + lst[2:]
         return None
     except:
         print("try_parse_infix")
+        return None
 
 
 def try_parse_prefix(lst:SExpr) -> Tuple[str, SExpr]:
@@ -268,6 +270,7 @@ EXAMPLES = (
     'examples/SAFE.LSM',
     'examples/hvitved_master_sales_agreement_simplified.LSM',
     'examples/hvitved_master_sales_agreement_full.LSM',
+    'examples/hvitved_master_sales_agreement_full_with_ids.LSM',
 )
 
 
