@@ -1,0 +1,60 @@
+{
+  "holders" : [
+    { "fullname": "Alice"
+      , "idtype": "passport"
+      , "idnum":  "E1111111B"
+      , "nature": "natural"
+      , "gender": "female"
+    },
+    { "fullname": "Bob"
+      , "idtype": "nric"
+      , "idnum":  "S2222222B"
+      , "nature": "natural"
+      , "gender": "male"
+    },
+    { "fullname": "Carol"
+      , "idtype": "nric"
+      , "idnum":  "S3333333C"
+      , "nature": "natural"
+      , "gender": "female"
+    },
+    { "fullname": "Dan"
+      , "idtype": "passport"
+      , "idnum":  "E4333444"
+      , "nature": "natural"
+      , "gender": "male"
+    },
+    { "fullname": "Edward"
+      , "idtype": "passport"
+      , "idnum":  "E5555555"
+      , "nature": "natural"
+      , "gender": "male"
+    }
+  ],
+  "securities": [ { "name": "ordinary shares",  "measure": "ByUnit" },
+                  { "name": "preferred stock",  "measure": "ByUnit" },
+                  { "name": "convertible debt", "measure": "ByMoney" } ],
+  "company": { "state" : "Singapore" , "id"  : "UEN11111111A" },
+  "holdings": [
+    { "holder": "Alice",   "holds": [ { "security": "ordinary shares", "units": 100,
+                                        "description": "Alice gets added" }
+                                    ] },
+    { "holder": "Bob",     "holds": [ { "security": "ordinary shares", "units": 100,
+                                        "description": "Bob abides" }
+                                      ] },
+    { "holder": "Carol",   "holds": [ { "security": "ordinary shares", "units": 250,
+                                        "description": "Carol changes" }
+                                    ] },
+    { "holder": "Cynthia", "holds": [ { "security": "ordinary shares", "units": 300,
+                                        "description": "cynthia gets preferred" },
+                                      { "security": "preferred stock", "units": 50,
+                                        "description": "cynthia gets preferred" }
+                                    ] },
+    { "holder": "Edward",    "holds": [ { "security": "ordinary shares", "units": 600,
+                                        "description": "Eddy appears" },
+                                      { "security": "convertible", "money" : 700,
+                                        "description": "Eddy appears" } ] }
+  ],
+  "agreements": [ {"shareholdersAgreement" : false} ]
+}
+    
