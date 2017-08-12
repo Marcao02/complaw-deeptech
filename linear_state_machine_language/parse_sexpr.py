@@ -1,6 +1,6 @@
 import logging
-from typing import Union, List, Any
-from util import is_singleton_string_list
+from typing import Union, List, Any, TypeVar, Sequence, cast
+from util import is_singleton_string_list, caststr
 
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"
@@ -15,15 +15,19 @@ splits_word_only = {':','=',','}
 all_symb_tags = quotelike.union(left_groupers).union(';')
 
 
-class TaggedList(list):
-    def __init__(self,symb,lst:list=None, line:int=None, col:int=None) -> None:
+class SExpr(List[Union['SExpr', str]]):
+    def __init__(self,symb,lst:List[Union['SExpr', str]]=None, line:int=None, col:int=None) -> None:
         super().__init__(lst if lst else [])
         self.symb = symb
         self.line = line
         self.col = col
         assert isinstance(symb,str) and symb in all_symb_tags
 
-SExpr = Union[str,List[Any]]
+def castse(x: Any) -> SExpr:
+    assert isinstance(x, list), x
+    return cast(SExpr, x)
+
+SExprOrStr = Union[SExpr,str]
 
 class SExprBuilder:
     def __init__(self) -> None:
@@ -31,7 +35,7 @@ class SExprBuilder:
         self.stack : List[List[Any]] = [[]]
 
     def openParenSeq(self,symb,line:int=None,col:int=None):
-        self.stack.append(TaggedList(symb, [], line, col))
+        self.stack.append(SExpr(symb, [], line, col))
 
     def appendTokenInCurScope(self,token): 
         self.curScope.append(token)
@@ -168,15 +172,15 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
 
     return builder.curScope
 
-def pretty(l:Union[str,TaggedList],nspaces=0) -> str:
+def pretty(l:Union[str,SExpr],nspaces=0) -> str:
     indent = " "*nspaces
     if isinstance(l,str):
         return indent + l
     elif isinstance(l,list) and len(l) >= 1 and l[0] == STRING_LITERAL_MARKER:
         return indent + "`" + l[1] + "`"
     else:
-        lsymb = l.symb if isinstance(l,TaggedList) else "("
-        rsymb = grouper_map[l.symb] if isinstance(l,TaggedList) else ")"
+        lsymb = l.symb if isinstance(l,SExpr) else "("
+        rsymb = grouper_map[l.symb] if isinstance(l,SExpr) else ")"
         s = ""
         line_broke = False
         for x in l:
@@ -184,10 +188,10 @@ def pretty(l:Union[str,TaggedList],nspaces=0) -> str:
                 s += " " + x
             elif isinstance(x,list) and len(x) == 0:
                 s += "()"
-            elif isinstance(x,TaggedList) and x.symb == '[' and is_singleton_string_list(x):
-                s += " [" + x[0] + "]"
+            elif isinstance(x,SExpr) and x.symb == '[' and is_singleton_string_list(x):
+                s += " [" + caststr(x[0]) + "]"
             elif isinstance(x,list) and len(x) >= 1 and x[0] == STRING_LITERAL_MARKER:
-                s += " `" + x[1] + "`"    
+                s += " `" + caststr(x[1]) + "`"
             else:
                 s += "\n" + pretty(x,nspaces+4)
                 line_broke = True

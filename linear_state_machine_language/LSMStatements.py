@@ -1,8 +1,8 @@
 # from typing import Union, List, Set, Dict, Any, Tuple
 import logging
-from typing import List
+from typing import List, Union
 from constants_and_defined_types import GlobalVarId
-from parse_sexpr import SExpr
+from parse_sexpr import SExpr, SExprOrStr
 
 class GlobalVar:
     def __init__(self, name: GlobalVarId, sort: str, initval: str, modifier=None) -> None:
@@ -38,9 +38,26 @@ class CodeBlockStatement:
     """ Just the common parent """
     pass
 
+class Term:
+    pass
+
+class FnApp(Term):
+    def __init__(self, head:str, args:List[Term]) -> None:
+        self.head = head
+        self.args = args
+
+    def __str__(self):
+        return "({} {})".format(self.head, " ".join([str(x) for x in self.args]))
+
+TermOrStr = Union[Term,str]
+
+class Atom(Term):
+    def __init__(self, atom:str) -> None:
+        self.atom = atom
+
 class VarAssignStatement(CodeBlockStatement):
-    def __init__(self, varname:str, value_expr, modifier=None) -> None:
-        self.varname : str = varname
+    def __init__(self, varname:str, value_expr:TermOrStr, modifier=None) -> None:
+        self.varname = varname
         self.value_expr = value_expr
 
     def __str__(self):
@@ -51,7 +68,7 @@ class InCodeConjectureStatement(CodeBlockStatement):
         self.value_exprs = exprs
 
 class IncrementStatement(CodeBlockStatement):
-    def __init__(self, varname:str, value_expr) -> None:
+    def __init__(self, varname:str, value_expr:TermOrStr) -> None:
         self.varname = varname
         self.value_expr = value_expr
 
@@ -59,24 +76,10 @@ class IncrementStatement(CodeBlockStatement):
         return f"{self.varname} += {str(self.value_expr)}"
 
 class DecrementStatement(CodeBlockStatement):
-    def __init__(self, varname:str, value_expr) -> None:
+    def __init__(self, varname:str, value_expr:TermOrStr) -> None:
         self.varname = varname
         self.value_expr = value_expr
 
     def __str__(self):
         return f"{self.varname} -= {str(self.value_expr)}"
 
-class Term:
-    pass
-
-class FnApp(Term):
-    def __init__(self, head:str, args:SExpr) -> None:
-        self.head = head
-        self.args = args
-
-    def __str__(self):
-        return "({} {})".format(self.head, " ".join([str(x) for x in self.args]))
-
-class Atom(Term):
-    def __init__(self, atom:str) -> None:
-        self.atom = atom

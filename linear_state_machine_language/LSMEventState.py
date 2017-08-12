@@ -1,5 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple, Callable
-from typing import Iterator, List,  Set
+from typing import Iterator, List,  Set, Optional
 from constants_and_defined_types import *
 
 from LSMStatements import *
@@ -11,7 +11,7 @@ class CodeBlock:
 class TransitionClause:
     def __init__(self, src_id: EventStateId, dest_id: EventStateId,
                  actor_id:ActorId,
-                 deontic_modality: DeonticModality, guard: SExpr) -> None:
+                 deontic_modality: DeonticModality, deontic_guard: Optional[Term] = None) -> None:
         self.actor_id = actor_id
         self.src_id = src_id
         self.dest_id = dest_id

@@ -1,10 +1,10 @@
 import logging
 
 from LSMTop import *
-from parse_sexpr import parse, pretty, SExpr, TaggedList
+from parse_sexpr import parse, pretty, SExpr, SExprOrStr, castse
 from state_diagram_generation import contractToDotFile
-from util import streqci, list_split
-from typing import Tuple, cast
+from util import streqci, list_split, caststr
+from typing import Tuple, cast, Optional
 
 
 class Assemble:
@@ -15,33 +15,35 @@ class Assemble:
     def syntaxError(self, expr: SExpr, msg:str = None):
         raise SyntaxError((msg if msg else "") +
                           "\n" + str(expr) +
-                          "\nline " + str(cast(TaggedList, expr).line) +
+                          "\nline " + str(cast(SExpr, expr).line) +
                           "\n" + str(self._top.filename) )
 
     def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:str = None):
         if not test:
             self.syntaxError(expr, msg)
 
-    def top(self, l:SExpr):
+    def top(self, l:List[SExpr]):
         x : SExpr
         for x in l:
             assert len(x) >= 2, "Problem top-level: " + str(x)
             x0 = x[0]
-            # print(x)
+            rem = cast(SExpr,x[1:])
+
             if streqci(x0, GLOBAL_VARS_SECTION_LABEL):
-                self._top.global_vars = self.global_vars(x[1:])
+                assert isinstance(x,SExpr), type(x)
+                self._top.global_vars = self.global_vars(cast(SExpr,rem))
             elif streqci(x0, CLAIMS_SECTION_LABEL):
-                self._top.claims = self.claims(x[1:])
+                self._top.claims = self.claims(cast(SExpr,rem))
             elif streqci(x0, ACTORS_SECTION_LABEL):
-                self._top.actors = self.actors(cast(List[str],x[1:]))
+                self._top.actors = self.actors(cast(List[str],rem))
             elif streqci(x0, PROSE_CONTRACT_SECTION_LABEL):
-                self._top.prose_contract = self.prose_contract(cast(List[List[str]],x[1:]))
+                self._top.prose_contract = self.prose_contract(cast(List[List[str]],rem))
             elif streqci(x0, FORMAL_CONTRACT_SECTION_LABEL):
-                self._top.formal_contract = self.formal_contract(x[1:])
+                self._top.formal_contract = self.formal_contract(rem)
             elif streqci(x0, DOT_FILE_NAME_LABEL):
-                self._top.dot_file_name = x[1][1] # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+                self._top.dot_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
             elif streqci(x0, IMG_FILE_NAME_LABEL):
-                self._top.img_file_name = x[1][1] # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+                self._top.img_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
         if  self._referenced_event_stateids != set(self._top.formal_contract.estates.keys()).union([FULFILLED_EVENT_STATE_LABEL]):
             print(
@@ -64,13 +66,13 @@ class Assemble:
                         i += 1
                     else:
                         break
-                name = dec[i]
-                sort = dec[i+2]
+                name = caststr(dec[i])
+                sort = caststr(dec[i+2])
                 self._top.sorts.add(sort)
 
                 initval = None
                 if i+3 < len(dec) and dec[i+3] == ':=':
-                    initval = dec[i+4]
+                    initval = caststr(dec[i+4])
                 rv[name] = GlobalVar(name, sort, initval, modifiers)
             except Exception:
                 logging.error("Problem processing " + str(dec))
@@ -94,30 +96,32 @@ class Assemble:
         return rv
 
     def formal_contract(self, l:SExpr) -> FormalContract:
-        fc = FormalContract(name=l[0])
+        fc = FormalContract(name=caststr(l[0][1]))
         fc.params = dict()
 
         for x in l[1:]:
             assert len(x) >= 2
             x0 = x[0]
             if streqci(x0, START_STATE_LABEL):
-                fc.start_state = x[1]
-                self._referenced_event_stateids.add(x[1])
+                assert len(x) == 2, "One start state"
+                id = caststr(x[1])
+                fc.start_state = id
+                self._referenced_event_stateids.add(id)
 
             if streqci(x0, CONTRACT_PARAMETERS_SECTION_LABEL):
-                param_decls = x[1:]
+                param_decls = cast(List[str],x[1:])
                 for pdecl in param_decls:
                     # param name -> sort
                     fc.params[pdecl[0]] = pdecl[1]
 
             elif streqci(x0, EVENT_STATES_SECTION_LABEL):
                 event_state_decls = x[1:]
-                fc.estates = {esd[0]: self.event_state(esd) for esd in event_state_decls}
+                fc.estates = {caststr(esd[0]): self.event_state(cast(SExpr,esd)) for esd in event_state_decls}
 
         return fc
 
     def event_state(self, l:SExpr) -> EventState:
-        es_id : EventStateId = l[0]
+        es_id : EventStateId = caststr(l[0])
         es = EventState(es_id)
         es.proper_actor_blocks = dict()
 
@@ -126,31 +130,36 @@ class Assemble:
         for x in l[2:]:
             x0 = x[0]
             if streqci(x0, EVENT_STATE_DESCRIPTION_LABEL):
-                es.description = x[1]
+                es.description = caststr(x[1][1]) # extract from STRLIT expression
             elif streqci(x0, EVENT_STATE_PROSE_REFS_LABEL):
                 es.prose_refs = cast(List,x[1:]).copy()
             elif streqci(x0, CODE_BLOCK_LABEL):
-                es.code_block = self.code_block(x[1:])
+                es.code_block = self.code_block(cast(List[SExpr],x[1:]))
             elif streqci(x0, NONACTION_BLOCK_LABEL):
-                es.nonactor_block = self.nonactor_block(x[1:], es_id)
+                es.nonactor_block = self.nonactor_block(castse(x[1:]), es_id)
             elif streqci(x0, EVENT_STATE_ACTOR_BLOCKS_LABEL):
-                actorblocks = x[1:]
+                actorblocks = castse(x[1:])
                 for actorblock in actorblocks:
-                    actor_id = actorblock[0]
-                    deontic_keyword = actorblock[1]
+                    actor_id = caststr(actorblock[0])
+                    deontic_keyword = caststr(actorblock[1])
+                    rest : SExpr = None
+                    deontic_guard : Term = None
                     try:
                         if deontic_keyword in DEONTIC_GUARD_MODALITIES:
-                            deontic_guard = actorblock[2]
-                            rest = actorblock[3:]
+                            deontic_guard = self.parse_term(cast(SExprOrStr,actorblock[2]))
+                            rest = castse(actorblock[3:])
                         else:
                             deontic_guard = None
-                            rest = actorblock[2:]
-                    except Exception:
+                            rest = castse(actorblock[2:])
+                    except Exception as e:
                         logging.error("Problem possibly with deontic_keyword: " + str(deontic_keyword))
+                        raise e
+
                     if actor_id not in es.proper_actor_blocks:
                         es.proper_actor_blocks[actor_id] = set()
+
                     es.proper_actor_blocks[actor_id].update(
-                        self.actor_block(rest, es_id, actor_id, deontic_keyword, deontic_guard))
+                        self.actor_block(cast(List[SExpr],rest), es_id, actor_id, deontic_keyword, deontic_guard))
 
 
         return es
@@ -167,7 +176,7 @@ class Assemble:
         # logging.info(str(rv))
         return rv
 
-    def code_block(self, statements:SExpr) -> CodeBlock:
+    def code_block(self, statements:List[SExpr]) -> CodeBlock:
         return CodeBlock([self.code_block_statement_dispatch(x) for x in statements])
 
     def code_block_statement_dispatch(self, statement:SExpr) -> CodeBlockStatement:
@@ -179,13 +188,13 @@ class Assemble:
             else:
                 assert len(statement) == 3, "As of now, every code block statement other than a conjecture should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
                 rhs = self.parse_term(statement[2])
-
+                varname = caststr(statement[0])
                 if statement[1] == ':=' or statement[1] == "=":
-                    return VarAssignStatement(statement[0], rhs)
+                    return VarAssignStatement(varname, rhs)
                 elif statement[1] == '+=':
-                    return IncrementStatement(statement[0], rhs)
+                    return IncrementStatement(varname, rhs)
                 elif statement[1] == '-=':
-                    return DecrementStatement(statement[0], rhs)
+                    return DecrementStatement(varname, rhs)
                 else:
                     raise Exception
                 return None # not reachable
@@ -193,55 +202,56 @@ class Assemble:
             logging.error(f"Problem with {statement}")
             raise e
 
-    def parse_term(self, term:Union[str,SExpr]) -> Union[Term,str]:
-        if isinstance(term,str):
-            return term
-        pair = try_parse_infix(term) or try_parse_prefix(term)
-        if not pair:
-            logging.error("Didn't recognize function symbol in: " + str(term))
-            self.syntaxError(term)
-        return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
+    def parse_term(self, x:Union[str,SExpr]) -> Term:
+        if isinstance(x,str):
+            return Atom(x)
+        else:
+            pair = try_parse_infix(x) or try_parse_prefix(x)
+            if not pair:
+                logging.error("Didn't recognize function symbol in: " + str(x))
+                self.syntaxError(x)
+            return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
         # return term
 
-    def actor_block(self, trans_specs:SExpr, src_esid: EventStateId,
+    def actor_block(self, trans_specs:List[SExpr], src_esid: EventStateId,
                     actor_id:ActorId,
                     deontic_keyword: DeonticKeyword,
-                    deontic_guard:SExpr) -> Set[TransitionClause]:
+                    deontic_guard:Term) -> Set[TransitionClause]:
         return {self.transition_clause(tcs, src_esid, actor_id, deontic_keyword, deontic_guard) for tcs in trans_specs}
 
-    def nonactor_block(self, trans_specs, src_esid: EventStateId,
-                       guard: SExpr = None) -> Set[TransitionClause]:
-        return {self.nonactor_transition_clause(tcs, src_esid, guard) for tcs in trans_specs}
+    def nonactor_block(self, trans_specs:SExpr, src_esid: EventStateId) -> Set[TransitionClause]:
+        assert trans_specs is not None
+        return {self.nonactor_transition_clause(tcs, src_esid) for tcs in trans_specs}
 
     def transition_clause(self, trans_spec:SExpr, src_es_id:EventStateId, actor_id:ActorId,
-                          deontic_modality: DeonticKeyword = None, deontic_guard: SExpr = None) -> TransitionClause:
+                          deontic_modality: Optional[DeonticKeyword] = None, deontic_guard: Optional[Term] = None) -> TransitionClause:
         assert len(trans_spec) >= 3, f"See src EventState {src_es_id} actor section {actor_id} trans_spec {trans_spec}"
-        dest_id : str = trans_spec[0]
+        dest_id : str = caststr(trans_spec[0])
         self._referenced_event_stateids.add(dest_id)
         tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, deontic_guard)
-        tc.args = trans_spec[1]
+        tc.args = castse(trans_spec[1])
 
         if 'where' in trans_spec[2:]:
             ind = trans_spec[2:].index('where')
-            tc.where_clause = trans_spec[ind+1:]
+            tc.where_clause = castse(trans_spec[ind+1:])
             # TODO
 
         for deadline_keyword in DEADLINE_OPERATORS:
             if deadline_keyword in trans_spec[2:]:
                 ind = trans_spec[2:].index(deadline_keyword)
-                tc.deadline_clause = trans_spec[ind:ind+2]
+                tc.deadline_clause = castse(trans_spec[ind:ind+2])
                 # TODO
                 # tc.deadline_clause = DeadlineClause(trans_spec[ind], trans_spec[ind + 1:])
 
-        tc.conditions = trans_spec[2:]
+        tc.conditions = castse(trans_spec[2:])
         # print(tc.conditions)
         return tc
 
-    def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId, guard:SExpr) -> TransitionClause:
+    def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
         try:
             dest_id: str = trans_spec[0]
             self._referenced_event_stateids.add(dest_id)
-            tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL, None, guard)
+            tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL, None)
             tc.args = trans_spec[1]
             if len(trans_spec) > 2:
                 if trans_spec[2] in DEADLINE_OPERATORS:
@@ -255,12 +265,12 @@ class Assemble:
             logging.error(f"Problem processing {src_es_id} trans: " + str(trans_spec))
             return None
 
-def try_parse_infix(lst:List[SExpr]) -> Tuple[str, SExpr]:    
+def try_parse_infix(lst:SExpr) -> Tuple[str, SExpr]:
     try:        
         if len(lst) == 3 and isinstance(lst[1],str):
             symb : str = lst[1]
             if symb in INFIX_FN_SYMBOLS:
-                return symb, [lst[0]] + lst[2:]
+                return symb, castse([lst[0]] + lst[2:])
         return None
     except:
         print("try_parse_infix")
@@ -273,9 +283,9 @@ def try_parse_prefix(lst:SExpr) -> Tuple[str, SExpr]:
         symb = lst[0]
         if symb in PREFIX_FN_SYMBOLS:
             if len(lst) == 1:
-                return symb, []
+                return symb, castse([])
             else:
-                return symb, lst[1:]
+                return symb, castse(lst[1:])
     return None
 
 EXAMPLES = (

@@ -1,5 +1,8 @@
-from typing import Any, List, Callable, Iterable
+from typing import Any, List, Callable, Iterable, cast
 
+def caststr(x:Any) -> str:
+    assert isinstance(x,str), x
+    return cast(str,x)
 
 def streqci(s1:Any,s2:Any) -> bool:
     # ci for case insensitive

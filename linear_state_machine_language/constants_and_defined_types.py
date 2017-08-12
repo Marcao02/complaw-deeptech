@@ -23,10 +23,10 @@ PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_tim
                      'ifthenelse',
                      'max', 'ceil',
                      'not',
-                     'enqueue', 'dequeue', 'discardTop', # queues
-                     'append', 'removeOne', 'containedIn', 'get', # lists
+                     'enqueue', 'dequeue', 'discardTop', 'top',  # queues
+                     'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
                      'setAdd', 'setRemove', # sets
-                     'tuple'}
+                     'tuple', 'fst', 'snd'}
 
 
 
