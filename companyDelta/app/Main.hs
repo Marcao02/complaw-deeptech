@@ -4,7 +4,7 @@
 
 module Main where
 
--- mengwong i am making progress with my haskell differ.
+-- mengwong: i am making progress with my haskell differ.
 -- what is the haskell differ? it reads JSON snapshots of
 -- before & after company state, including cap table of
 -- holders and holdings, and it calculates the diffs between
@@ -68,8 +68,16 @@ main1 (Options quiet v beforefilename afterfilename) = do
   afterfile <- BSL.readFile afterfilename
   vprint v $ "afterfile: read " ++ show (BSL.length afterfile) ++ " bytes of input"
 
-  let beforeJSON = decode beforefile :: Maybe Holder
-  vprint v $ "beforeJSON: showing " ++ show(beforeJSON)
+  let beforeJSON = eitherDecode beforefile :: Either String CompanyState
+  vprint True $ case beforeJSON of
+    (Left  parseError)  -> "beforeJSON error: "  ++ parseError
+    (Right parseOutput) -> "beforeJSON output: " ++ show(parseOutput)
+
+  let afterJSON = eitherDecode afterfile :: Either String CompanyState
+  vprint True $ case afterJSON of
+    (Left  parseError)  -> "afterJSON error: "  ++ parseError
+    (Right parseOutput) -> "afterJSON output: " ++ show(parseOutput)
+
 
 {-                               input json parsing                           -}
 

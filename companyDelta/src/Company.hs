@@ -17,47 +17,59 @@ import Control.Applicative
 import Control.Monad
 import qualified Data.Text as T (unpack)
 
-data CompanyState = CompanyState { holders :: [Holder]
+data CompanyState = CompanyState { holders    :: [Holder]
                                  , securities :: [Security]
-                                 , company :: Company
-                                 , holdings :: [Holding]
-                                 } deriving (Generic, ToJSON, Show, Eq)
-
-data Company = Company { name :: String
-                         , jurisdiction :: String -- change to some ISO code
-                         , idtype :: String
-                         , idnum  :: String
-                         }
-             deriving (Show, Eq, Generic, ToJSON, FromJSON)
+                                 , company    ::  Company
+                                 , holdings   :: [Holding]
+                                 } deriving (Generic, ToJSON, FromJSON, Show, Eq)
 
 data Holder = Holder { fullname :: String
                      , idtype   :: String
                      , idnum    :: String
-                     , nature   :: String
+                     , nature   :: EntityNature
                      , gender   :: Gender
                      } deriving (Generic, ToJSON, FromJSON, Show, Eq)
 
-data Security = Security { name :: String
-                                 , measure :: String
-                                 } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+data Company = Company { name :: String
+                       , jurisdiction :: String -- change to some ISO code
+                       , idtype :: String
+                       , idnum  :: String
+                       }
+             deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
+data Security = Security { name :: String
+                         , measure :: Measure
+                         } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+                
 data Holding = Holding { holder :: String
-                               , holds  :: [HeldSecurity]
-                               } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+                       , holds  :: [HeldSecurity]
+                       } deriving (Generic, ToJSON, FromJSON, Show, Eq)
 
 data HeldSecurity = HeldSecurity { securityName :: String
                                  , units :: Maybe Float
                                  , money :: Maybe Float
+                                 , description :: Maybe String
                                  } deriving (Generic, ToJSON, FromJSON, Show, Eq)
--- compute the CRUD deltas between two snapshots of company state
+-- we need some way to sanity-check the input that either units xor money is given
 
+data Measure     = ByUnit | ByMoney | OtherMeasure String deriving (Show, Eq, Generic, ToJSON)
+instance FromJSON Measure where
+  parseJSON = withText "measure" $ \v -> return $ case v of
+    "byunit"  ->  ByUnit
+    "bymoney" ->  ByMoney
+    _         ->  OtherMeasure (T.unpack v)
 
-data Measure     = ByUnit    | ByMoney        deriving (Show, Eq)
 data Measurement = Units Int | Money Currency deriving (Show, Eq)
                       
-                             
-data EntityNature = Human | Corporate | AI
-                  deriving (Show, Eq)
+data EntityNature = Human | Corporate | AI | OtherNature String
+                  deriving (Show, Eq, Generic, ToJSON)
+
+instance FromJSON EntityNature where
+  parseJSON = withText "nature" $ \v -> return $ case v of
+    "human"     ->  Human
+    "corporate" ->  Corporate
+    "AI"        ->  AI
+    _        ->  OtherNature (T.unpack v)
 
 data Gender = Female | Male | Neutral | OtherGender String
             deriving (Show, Eq, Generic, ToJSON)
@@ -66,6 +78,7 @@ instance FromJSON Gender where
   parseJSON = withText "gender" $ \v -> return $ case v of
     "female" ->  Female
     "male"   ->  Male
+    "neutral" -> Neutral
     _        ->  OtherGender (T.unpack v)
 
 data Agreement = Agreement deriving (Show, Eq)
