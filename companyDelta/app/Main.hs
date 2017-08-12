@@ -1,5 +1,6 @@
 
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass, OverloadedStrings #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Main where
 
@@ -14,19 +15,21 @@ module Main where
 -- state to the other. the output: an ordered list of
 -- resolutions and agreements.
 
-import Company
-import Options.Applicative
-import Data.Semigroup ((<>))
-import Control.Monad
+-- for aeson
 import GHC.Generics
 import Data.Aeson
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Lazy.Char8 as Char8
 
-data Person = Person {
-  name :: String,
-  age  :: Int }
-  deriving (Generic, ToJSON, FromJSON)
+-- for option parsing
+import Options.Applicative
+import Data.Semigroup ((<>))
+import Control.Monad
+
+-- for the company data model
+import Company
+
+-- in the future, get aeson-schema to automatically produce even this parser
 
 {-                       OPTION MANAGEMENT                    -}
 {-                       OPTION MANAGEMENT                    -}
@@ -59,11 +62,13 @@ main1 (Options quiet v beforefilename afterfilename) = do
   vprint v $ "Main runs! quiet = " ++ show quiet ++ "; verbose = " ++ show v
   vprint v $ "Main runs! infile = " ++ beforefilename ++ "; outfile = " ++ afterfilename
   vprint v $ "potato = " ++ potato -- exported from the Company library
+
   beforefile <- BSL.readFile beforefilename
   vprint v $ "beforefile: read " ++ show (BSL.length beforefile) ++ " bytes of input"
   afterfile <- BSL.readFile afterfilename
   vprint v $ "afterfile: read " ++ show (BSL.length afterfile) ++ " bytes of input"
-  let beforeJSON = decode beforefile :: Maybe Value
+
+  let beforeJSON = decode beforefile :: Maybe Holder
   vprint v $ "beforeJSON: showing " ++ show(beforeJSON)
 
 {-                               input json parsing                           -}

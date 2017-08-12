@@ -1,7 +1,8 @@
 
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 -- emacs haskell-mode with intero
 -- C-c ! n for next flycheck error
@@ -11,49 +12,61 @@ module Company where
 
 import Data.Aeson.Diff
 import Data.Aeson
+import GHC.Generics
+import Control.Applicative
+import Control.Monad
+import qualified Data.Text as T (unpack)
 
--- compute the CRUD deltas between two snapshots of company state
+data CompanyState = CompanyState { holders :: [Holder]
+                                 , securities :: [Security]
+                                 , company :: Company
+                                 , holdings :: [Holding]
+                                 } deriving (Generic, ToJSON, Show, Eq)
 
-data CompanyState = MkCompanyState { company    :: Company
-                                   , securities :: [Security]
-                                   , holders    :: [Holder]
-                                   , holdings   :: [Holding]
-                                   , agreements :: [Agreement]
-                                   }
-                  deriving (Show, Eq)
-
-data Company = MkCompany { name :: String
+data Company = Company { name :: String
                          , jurisdiction :: String -- change to some ISO code
                          , idtype :: String
                          , idnum  :: String
                          }
-             deriving (Show, Eq)
+             deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+data Holder = Holder { fullname :: String
+                     , idtype   :: String
+                     , idnum    :: String
+                     , nature   :: String
+                     , gender   :: Gender
+                     } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+
+data Security = Security { name :: String
+                                 , measure :: String
+                                 } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+
+data Holding = Holding { holder :: String
+                               , holds  :: [HeldSecurity]
+                               } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+
+data HeldSecurity = HeldSecurity { securityName :: String
+                                 , units :: Maybe Float
+                                 , money :: Maybe Float
+                                 } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+-- compute the CRUD deltas between two snapshots of company state
+
 
 data Measure     = ByUnit    | ByMoney        deriving (Show, Eq)
 data Measurement = Units Int | Money Currency deriving (Show, Eq)
                       
-data Security = Security { name :: String,
-                           measure :: Measure
-                         }
-              deriving (Show, Eq)
-                       
-data Holder = MkHolder { name :: String
-                       , nature :: EntityNature
-                       , gender :: Gender
-                       , idtype :: String
-                       , idnum  :: String
-                       } deriving (Show, Eq)
-
-data Holding = MkHolding { holder   :: Holder
-                         , security :: Security
-                         , quantity :: Measurement }
-             deriving (Show, Eq)
                              
 data EntityNature = Human | Corporate | AI
                   deriving (Show, Eq)
 
 data Gender = Female | Male | Neutral | OtherGender String
-            deriving (Show, Eq)
+            deriving (Show, Eq, Generic, ToJSON)
+
+instance FromJSON Gender where
+  parseJSON = withText "gender" $ \v -> return $ case v of
+    "female" ->  Female
+    "male"   ->  Male
+    _        ->  OtherGender (T.unpack v)
 
 data Agreement = Agreement deriving (Show, Eq)
 
