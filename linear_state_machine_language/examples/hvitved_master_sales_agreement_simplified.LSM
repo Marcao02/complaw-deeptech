@@ -53,7 +53,7 @@
 
 		(Order(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (max 14D (days (ceil (quantity / 10)))) )
+				(delivery_deadline := (days (max 14 (ceil (quantity / 10)))) )
 				(units_ordered += quantity )
 				(orders := (enqueue orders (tuple quantity delivery_deadline)) )
 			)

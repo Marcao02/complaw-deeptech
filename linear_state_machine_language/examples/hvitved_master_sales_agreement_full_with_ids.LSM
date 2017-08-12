@@ -70,7 +70,8 @@
 				)
 				(Vendor mustif (nonempty 2Bdelivered)
 					; the `where (containedIn order 2Bdelivered)` expression constrains permitted values of the event parameter `order`. 
-					; the constraint will be verified solvable by the static checker, since otherwise we would have an unfulfillable obligation.
+					; the static analyzer will check whether the constraint is solvable, and will issue a warning if not (since in this 
+					; case that means there's an unfulfillable obligation).
 					(Deliver(order) by (get order 1) where (containedIn order 2Bdelivered))
 				)
 				(Vendor mayif (nonempty 2Binvoiced)
@@ -88,7 +89,7 @@
 
 		(NewOrder(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (max 14D (days (ceil (quantity / 10)))))
+				(delivery_deadline := (days (max 14 (ceil (quantity / 10)))) )
 				(units_ordered += quantity)
 				(2Bdelivered := (setAdd 2Bdelivered (tuple quantity delivery_deadline next_order_id)))
 				(next_order_id += 1)
@@ -104,7 +105,7 @@
 				( quantity := (get order 0) )
 				( units_delivered += quantity )
 				( 2Bdelivered := (setRemove 2Bdelivered order) )
-				( 2Binvoiced := (setAdd 2Binvoiced (tuple quantity ((event_start_date) + 1M) (get order 2))) )
+				( 2Binvoiced := (setAdd 2Binvoiced (tuple quantity ((event_start_date) + 30D) (get order 2))) )
 			)
 			(Fallbacks
 				(ContractLive())

@@ -1,8 +1,8 @@
 # L4 Linear State Machine (LSM) Language
 
-Most documentation about the language itself is currently at http://www.cs.toronto.edu/~wehr/st/out/scc-nogoog/index.html?demo=legalese -- will move it here eventually.
+Read [LSM Tutorial](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/LSM_tutorial.md) first.
 
-"Linear" in this context is like the "linear" in Linear Temporarl Logic. It means single-threaded. This is good for efficiency, and does not actually preclude concurrency in contracts, but for highly concurrent contracts there would be a state space explosion, as you can see from the following example: Suppose a contract requires party 1 to do {a1,a2,a3} in any order, and requires party 2 to do {b1,b2} in any order. In the worst case, if no states can be joined together, we would use about 2^5 = 32 states for that contract. An example of a state is "party 1 has done a1 and a3 only, and party 2 has done b2 only."
+Most of the [example contracts](https://github.com/legalese/legalese-compiler/tree/master/linear_state_machine_language/examples) are problems from Tom Hvitved's PhD thesis. He wrote executable contracts in the language CSL that he developed. CSL influenced L4/LSM, but in the end they use quite different approaches. 
 
 ## Dependencies
 You'll need to install Python 3.6 because the code uses format strings e.g. `f"text {code} text"`. It will be installed alongside any other python versions you have, so don't worry about it breaking anything. Also, some version of Python 3 is needed to recognize the static typing annotations. 
