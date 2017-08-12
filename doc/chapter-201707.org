@@ -153,6 +153,13 @@ The hard-fork which followed the TheDAO incident amounted to a central intervent
 
 Partly in response to Ethereum's perceived security failings[fn:survey], and partly in response to Ethereum's perceived governance failings, Tezos launched. Tezos containd two innovations. First, a new smart contract blockchain and language (called Michelson) based on a stack-based virtual machine, suitable for formal verification. Second, a promise of more democratic distributd governance: essentially, a "by the people, for the people, of the people" for the blockchain generation. They raised the largest ICO in history: over $200M.
 
+*** Other Blockchain Smart Contract Systems
+
+- plasma.io
+- kadena
+- adjoint.io
+- agrello
+
 ** (Smart Contract) (Templates)
 
 All of these smart contract initiatives have one thing in common.
