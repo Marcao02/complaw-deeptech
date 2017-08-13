@@ -5,11 +5,11 @@ data PeanoWire = Peano String
                | PList [PeanoWire]
                deriving (Show,Read)
 
-data P  a where
-  P  :: a     -> P a
-  PL :: [P a] -> P a
+data Pea  a where
+  P  :: a       -> Pea a
+  PL :: [Pea a] -> Pea a
 
-instance (Show a) => Show (P a) where
+instance (Show a) => Show (Pea a) where
   show (P   a) = "P "  ++ show a
   show (PL pa) = "PL " ++ show pa
 
