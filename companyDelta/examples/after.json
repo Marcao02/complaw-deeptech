@@ -34,7 +34,7 @@
   "securities": [ { "name": "ordinary shares",  "measure": "ByUnit" },
                   { "name": "preferred stock",  "measure": "ByUnit" },
                   { "name": "convertible debt", "measure": "ByMoney" } ],
-  "company": { "name": "Acme Potato Pte. Ltd."
+  "company": { "name": "Acme Champagne Pte. Ltd."
                , "jurisdiction" : "Singapore"
                , "idtype" : "UEN"
                , "idnum"  : "UEN11111111A" },

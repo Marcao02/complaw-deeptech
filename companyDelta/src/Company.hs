@@ -90,17 +90,6 @@ data Currency = Currency { code  :: CurrencyCode
 
 newtype CurrencyCode = CurrencyCode String deriving (Show, Eq)
 
---
--- set up some sample data
---
-
-potato = "Potato"
-
---
--- compare two companystates
--- 
-
-
 
 
 

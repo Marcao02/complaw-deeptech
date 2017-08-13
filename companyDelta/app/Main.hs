@@ -28,6 +28,11 @@ import Control.Monad
 
 -- for the company data model
 import Company
+import CDiff
+
+-- various utilities
+import Data.Maybe (catMaybes, fromMaybe)
+import Data.Map as Map
 
 -- in the future, get aeson-schema to automatically produce even this parser
 
@@ -55,31 +60,56 @@ main = main1 =<< execParser opts
          
 {-                               MAIN                           -}
 {-                               MAIN                           -}
-{-                               MAIN                           -}
+{-                               MAIN                                -}
 
 main1 :: Options -> IO ()
-main1 (Options quiet v beforefilename afterfilename) = do
-  vprint v $ "Main runs! quiet = " ++ show quiet ++ "; verbose = " ++ show v
+main1 opts@(Options quiet v beforefilename afterfilename) = do
+  vprint v $ "Main runs! quiet = "  ++ show quiet ++     "; verbose = " ++ show v
   vprint v $ "Main runs! infile = " ++ beforefilename ++ "; outfile = " ++ afterfilename
-  vprint v $ "potato = " ++ potato -- exported from the Company library
 
+  (before, after) <- parseJSONs opts
+
+-- let companystate_diffs = rdiff before after
+
+  let companydiffs = catMaybes $ [ rdiffifdiff (company before) (company after) ]
+  vprint v $ "companydiffs: " ++ show companydiffs
+
+  let hdiffs = pairBy holder holds (holdings before) (holdings after)
+  vprint v $ show $ assocs hdiffs
+
+  let reorganizedHoldings = [ rdiffifdiff (Holding hname (fromMaybe [] h1)) (Holding hname (fromMaybe [] h2))
+                            | (hname,(h1,h2)) <- assocs hdiffs
+                            ]
+  vprint True $ show reorganizedHoldings
+
+--  vprint True $ show $ fmap (rdiff . Holding) $ assocs hdiffs
+  
+
+{-                               input json parsing                           -}
+
+parseJSONs :: Options -> IO (CompanyState, CompanyState)
+parseJSONs opts@(Options quiet v beforefilename afterfilename) = do
   beforefile <- BSL.readFile beforefilename
   vprint v $ "beforefile: read " ++ show (BSL.length beforefile) ++ " bytes of input"
   afterfile <- BSL.readFile afterfilename
   vprint v $ "afterfile: read " ++ show (BSL.length afterfile) ++ " bytes of input"
 
   let beforeJSON = eitherDecode beforefile :: Either String CompanyState
-  vprint True $ case beforeJSON of
+  vprint v $ case beforeJSON of
     (Left  parseError)  -> "beforeJSON error: "  ++ parseError
     (Right parseOutput) -> "beforeJSON output: " ++ show(parseOutput)
 
   let afterJSON = eitherDecode afterfile :: Either String CompanyState
-  vprint True $ case afterJSON of
+  vprint v $ case afterJSON of
     (Left  parseError)  -> "afterJSON error: "  ++ parseError
     (Right parseOutput) -> "afterJSON output: " ++ show(parseOutput)
 
+  case (beforeJSON, afterJSON) of
+    (Right before, Right after) -> return (before, after)
+    _                           -> fail "parse error. terminating."
 
-{-                               input json parsing                           -}
+
+
 
 {-                               utilities                           -}
 

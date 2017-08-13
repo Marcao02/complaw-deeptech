@@ -16,10 +16,12 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Company
+                     , CDiff
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , aeson-diff
                      , text
+                     , containers
   default-language:    Haskell2010
 
 executable companyDelta-exe
@@ -31,6 +33,7 @@ executable companyDelta-exe
                      , optparse-applicative
                      , aeson
                      , bytestring
+                     , containers
   default-language:    Haskell2010
 
 test-suite companyDelta-test
