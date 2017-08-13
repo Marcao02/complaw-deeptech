@@ -80,9 +80,9 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
   let reorganizedHoldings = [ rdiffifdiff (Holding hname (fromMaybe [] h1)) (Holding hname (fromMaybe [] h2))
                             | (hname,(h1,h2)) <- assocs hdiffs
                             ]
-  vprint True $ show reorganizedHoldings
+  vprint v $ show reorganizedHoldings
 
---  vprint True $ show $ fmap (rdiff . Holding) $ assocs hdiffs
+  vprint True $ show [ rdiffifdiff before after ]
   
 
 {-                               input json parsing                           -}

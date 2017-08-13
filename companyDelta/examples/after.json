@@ -22,7 +22,7 @@
       , "idtype": "passport"
       , "idnum":  "E4333444"
       , "nature": "natural"
-      , "gender": "male"
+      , "gender": "female"
     },
     { "fullname": "Edward"
       , "idtype": "passport"
@@ -49,14 +49,14 @@
                                         "description": "Carol changes" }
                                     ] },
     { "holder": "Cynthia", "holds": [ { "securityName": "ordinary shares", "units": 300,
-                                        "description": "cynthia gets preferred" },
+                                        "description": "cynthia ordinary no change" },
                                       { "securityName": "preferred stock", "units": 50,
                                         "description": "cynthia gets preferred" }
                                     ] },
     { "holder": "Edward",    "holds": [ { "securityName": "ordinary shares", "units": 600,
-                                        "description": "Eddy appears" },
+                                        "description": "Eddy appears with ordinary" },
                                       { "securityName": "convertible", "money" : 700,
-                                        "description": "Eddy appears" } ] }
+                                        "description": "Eddy appears with convertible" } ] }
   ],
   "agreements": [ {"shareholdersAgreement" : false} ]
 }
