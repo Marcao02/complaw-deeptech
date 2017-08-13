@@ -73,7 +73,7 @@ class Assemble:
                 initval = None
                 if i+3 < len(dec) and dec[i+3] == ':=':
                     initval = caststr(dec[i+4])
-                rv[name] = GlobalVar(name, sort, initval, modifiers)
+                rv[name] = GlobalVar(name, sort, initval, castse(modifiers))
             except Exception:
                 logging.error("Problem processing " + str(dec))
 
@@ -96,8 +96,9 @@ class Assemble:
         return rv
 
     def formal_contract(self, l:SExpr) -> FormalContract:
-        fc = FormalContract(name=caststr(l[0][1]))
-        fc.params = dict()
+        estates: Dict[EventStateId, EventState] = dict()
+        params: Dict[str, Sort] = dict() # paramname -> sort
+        start_state: str   # EventState id
 
         for x in l[1:]:
             assert len(x) >= 2
@@ -105,20 +106,20 @@ class Assemble:
             if streqci(x0, START_STATE_LABEL):
                 assert len(x) == 2, "One start state"
                 id = caststr(x[1])
-                fc.start_state = id
+                start_state = id
                 self._referenced_event_stateids.add(id)
 
             if streqci(x0, CONTRACT_PARAMETERS_SECTION_LABEL):
                 param_decls = cast(List[str],x[1:])
                 for pdecl in param_decls:
-                    # param name -> sort
-                    fc.params[pdecl[0]] = pdecl[1]
+                    params[pdecl[0]] = pdecl[1]
 
             elif streqci(x0, EVENT_STATES_SECTION_LABEL):
                 event_state_decls = x[1:]
-                fc.estates = {caststr(esd[0]): self.event_state(cast(SExpr,esd)) for esd in event_state_decls}
+                estates = {caststr(esd[0]): self.event_state(cast(SExpr, esd)) for esd in event_state_decls}
 
-        return fc
+        print(l[0])
+        return FormalContract(caststr(l[0][1]), estates, params, start_state)
 
     def event_state(self, l:SExpr) -> EventState:
         es_id : EventStateId = caststr(l[0])
@@ -231,19 +232,23 @@ class Assemble:
         tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, deontic_guard)
         tc.args = castse(trans_spec[1])
 
+        ind = 2
         if 'where' in trans_spec[2:]:
-            ind = trans_spec[2:].index('where')
-            tc.where_clause = castse(trans_spec[ind+1:])
+            ind = trans_spec.index('where')
+            tc.where_clause = self.parse_term(castse(trans_spec[ind+1]))
+            ind = ind + 2
             # TODO
 
         for deadline_keyword in DEADLINE_OPERATORS:
             if deadline_keyword in trans_spec[2:]:
-                ind = trans_spec[2:].index(deadline_keyword)
+                ind = trans_spec.index(deadline_keyword)
                 tc.deadline_clause = castse(trans_spec[ind:ind+2])
+                ind = ind + 2
                 # TODO
                 # tc.deadline_clause = DeadlineClause(trans_spec[ind], trans_spec[ind + 1:])
 
-        tc.conditions = castse(trans_spec[2:])
+        # TODO conditions should be obsolete
+        tc.conditions = castse(trans_spec[ind:])
         # print(tc.conditions)
         return tc
 

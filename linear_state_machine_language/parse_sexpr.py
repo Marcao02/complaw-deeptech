@@ -32,7 +32,8 @@ SExprOrStr = Union[SExpr,str]
 class SExprBuilder:
     def __init__(self) -> None:
         # stack of growing S-Expressions
-        self.stack : List[List[Any]] = [[]]
+        # self.stack: List[SExpr] = [castse([])] # TODO not actually an SExpr...
+        self.stack: List[SExpr] = [SExpr('(',[],1,1)]  # TODO not actually an SExpr...
 
     def openParenSeq(self,symb,line:int=None,col:int=None):
         self.stack.append(SExpr(symb, [], line, col))
@@ -48,8 +49,8 @@ class SExprBuilder:
         self.curScope.append(temp)
 
     @property
-    def curScope(self):
-        return self.stack[-1] 
+    def curScope(self) -> SExpr:
+        return self.stack[-1]
 
     def __repr__(self):
         return '*' + repr(self.stack) + '*'
@@ -170,14 +171,16 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
         print(char, repr(builder.stack))
         print("stack size: ", len(builder.stack))
 
+    assert len(builder.stack) == 1, "Unbalanced parentheses...\n\n" + str(builder.stack[0])
+
     return builder.curScope
 
 def pretty(l:Union[str,SExpr],nspaces=0) -> str:
-    indent = " "*nspaces
+    indent : str = " "*nspaces
     if isinstance(l,str):
-        return indent + l
+        return indent + caststr(l)
     elif isinstance(l,list) and len(l) >= 1 and l[0] == STRING_LITERAL_MARKER:
-        return indent + "`" + l[1] + "`"
+        return indent + "`" + caststr(l[1]) + "`"
     else:
         lsymb = l.symb if isinstance(l,SExpr) else "("
         rsymb = grouper_map[l.symb] if isinstance(l,SExpr) else ")"

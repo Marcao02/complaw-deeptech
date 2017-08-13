@@ -25,9 +25,8 @@ def transitionAsDotArcStr(tc: TransitionClause) -> str:
 
 
 def contractToDotFileStr(l4file: LSMTop) -> str:
-    # the [1] is because first element is STRING_LITERAL tag
     # graphname = l4file.formal_contract.name[1]
-    cleaned_graphname = "_".join(l4file.formal_contract.name[1].split(' '))
+    cleaned_graphname = "_".join(l4file.formal_contract.name.split(' '))
     nodes_str = mapjoin(lambda x: eventStateAsDotNodeStr(x, l4file.actors), l4file.event_states(), ";\n\t")
     rv = "// THIS IS A GENERATED FILE. DO NOT EDIT.\n\n"
     rv += "digraph " + cleaned_graphname + " {\n\t"
@@ -37,7 +36,7 @@ def contractToDotFileStr(l4file: LSMTop) -> str:
 
 def contractToDotFile(l4file: LSMTop, verbose=False) -> None:
     # replace spaces with underscores
-    cleaned_contract_name = "_".join(l4file.formal_contract.name[1].split(' '))
+    cleaned_contract_name = "_".join(l4file.formal_contract.name.split(' '))
 
     if l4file.img_file_name:
         img_path = f"out/{l4file.img_file_name}"

@@ -65,7 +65,7 @@
 
 		(ContractLive()
 			(ActorEvents
-				(Customer mayif (orderable_units > 0))
+				(Customer mayif (orderable_units > 0)
 					(NewOrder(q) by contract_ends where ((q ≤ orderable_units) and (q > 0)))
 				)
 				(Vendor mustif (nonempty 2Bdelivered)

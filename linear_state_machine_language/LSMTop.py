@@ -1,13 +1,12 @@
 # from typing import Union, List, Dict, Any, Tuple
-from typing import Set
+from typing import Set, NamedTuple
 from LSMEventState import *
 
-class FormalContract:
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self.estates : Dict[EventStateId, EventState] = None
-        self.params : Dict[str,Sort] = None  # paramname -> sort
-        self.start_state: str = None # EventState id
+class FormalContract(NamedTuple):
+    name : str
+    estates : Dict[EventStateId, EventState]
+    params : Dict[str,Sort]  # paramname -> sort
+    start_state: str         # EventState id
 
     def can_transition(self, transid1, transid2) -> bool:
         if transid1 is None and transid2 == self.start_state:

@@ -20,7 +20,7 @@
 	(P1 'The master agreement between Vendor and Customer is for 1000 printers, with a unit price of e100. The agreement is valid for one year, starting 2011-01-01.')
 	(P2 'The customer may at any time order an amount of printers (with the total not exceeding the threshold of 1000), after which the Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days.')
 	(P3 'After delivering the goods, Vendor may invoice the Customer within 1 month, after which the goods must be paid for by Customer within 14 days.')	
-; )
+)
 
 (FormalContract	
 	"Master Sales Agreement"	
@@ -37,7 +37,7 @@
 
 		(ContractLive()
 			(ActorEvents
-				(Customer mayif (orderable_units > 0))
+				(Customer mayif (orderable_units > 0)
 					(Order(p) by contract_ends where (p ≤ orderable_units))
 				)
 				(Vendor mustif ((nonempty orders) and (q == (fst (top orders))))

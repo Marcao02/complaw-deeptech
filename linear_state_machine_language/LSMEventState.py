@@ -1,5 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple, Callable
-from typing import Iterator, List,  Set, Optional
+from typing import Iterator, List,  Set, Optional, NamedTuple
 from constants_and_defined_types import *
 
 from LSMStatements import *
@@ -19,8 +19,21 @@ class TransitionClause:
         self.args : SExpr = None
 
         self.conditions : SExpr = None # deadline and guard
-        self.where_clause : SExpr = None
+        self.where_clause : Term = None
         self.deadline_clause: SExpr = None
+
+# class TransitionClause(NamedTuple):
+#     actor_id : str
+#     src_id : str
+#     dest_id : str
+#     deontic_modality : Optional[str]
+#     args: SExpr
+#     conditions: SExpr # deadline and guard
+#     where_clause: Optional[Term]
+#     deadline_clause: Optional[SExpr]
+#
+# y = TransitionClause('a', 'b', 's', None, [], [], None, None)
+# x = TransitionClause(actor_id = 'a', src_id = 'b', dest_id = 's', deontic_modality = None, args = [], conditions = [], where_clause = None, deadline_clause = None)
 
 
 class EventState:
