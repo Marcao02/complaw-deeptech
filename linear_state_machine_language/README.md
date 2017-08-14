@@ -5,7 +5,7 @@ Read [LSM Tutorial](https://github.com/legalese/legalese-compiler/blob/master/li
 Most of the [example contracts](https://github.com/legalese/legalese-compiler/tree/master/linear_state_machine_language/examples) are problems from Tom Hvitved's PhD thesis. He wrote executable contracts in the language CSL that he developed. CSL influenced L4/LSM, but in the end they use quite different approaches. 
 
 ## Dependencies
-You'll need to install Python 3.6 because the code uses format strings e.g. `f"text {code} text"`. It will be installed alongside any other python versions you have, so don't worry about it breaking anything. Also, some version of Python 3 is needed to recognize the static typing annotations. 
+You'll need to install Python 3.6 because the code uses format strings e.g. `f"text {code} text"` and Named Tuple syntax. It will be installed alongside any other python versions you have, so don't worry about it breaking anything. Also, some version of Python 3 is needed to recognize the static typing annotations. 
 
 https://www.python.org/downloads/release/python-362/
 
@@ -15,12 +15,17 @@ Install graphviz (AKA 'dot'):
 http://www.graphviz.org/Download.php
 
 ### For typechecking
-python3.6 -m pip install -U mypy
+Install mypy with 
 
-mypy compileLSM.py
+`python3.6 -m pip install -U mypy`
+
+Then
+
+`mypy compileLSM.py`
 
 ## Running
-python3.6 compileLSM examplesd
+`python3.6 compileLSM examples`
 
-## Examples
-Todo: SAFE and possibly more examples from Hvitved's thesis.
+or `python3.6 compileLSM examples print`
+
+or `python3.6 compileLSM examples print dot`

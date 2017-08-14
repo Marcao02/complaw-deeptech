@@ -175,7 +175,7 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
 
     return builder.curScope
 
-def pretty(l:Union[str,SExpr],nspaces=0) -> str:
+def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
     indent : str = " "*nspaces
     if isinstance(l,str):
         return indent + caststr(l)
@@ -196,7 +196,7 @@ def pretty(l:Union[str,SExpr],nspaces=0) -> str:
             elif isinstance(x,list) and len(x) >= 1 and x[0] == STRING_LITERAL_MARKER:
                 s += " `" + caststr(x[1]) + "`"
             else:
-                s += "\n" + pretty(x,nspaces+4)
+                s += "\n" + prettySExprStr(x, nspaces + 4)
                 line_broke = True
         if line_broke:
             s = indent + lsymb + s 
@@ -212,3 +212,12 @@ if __name__ == '__main__':
     import doctest
     print("Running tests")
     doctest.testmod()
+
+
+class NestedList(List[Union['Test', str]]):
+    def __init__(self, symb, lst: List[Union['NestedList', str]] = None) -> None:
+        super().__init__(lst if lst else [])
+
+def f(x:NestedList) -> None:
+    print(x)
+

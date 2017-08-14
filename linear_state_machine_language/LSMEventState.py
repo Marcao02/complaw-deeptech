@@ -42,6 +42,7 @@ class EventState:
         self.params : Dict[str,str] = None  # str param -> str sort
         self.prose_refs : List[str] = None
         self.code_block : CodeBlock = None
+        self.local_vars: Dict[str,LocalVarDec] = dict()
         # self.nonactor_block: NonactorBlock = None  # str event state name -> TransitionClause
         # self.proper_actor_blocks: Dict[ActorId, ActorBlock] = None  # effectively (str actor name) -> (str event state name) -> TransitionClause
         self.nonactor_block: Set[TransitionClause] = None

@@ -10,9 +10,9 @@
 (Actors Investor Company)
 
 (ContractParams
-	(PURCHASE_AMOUNT : $)
-	(VALUATION_CAP : $)
-	(DISCOUNT_PERCENT : %) ; must be < 100
+	(PURCHASE_AMOUNT : $ := $100000)
+	(VALUATION_CAP : $ := $100)
+	(DISCOUNT_PERCENT : % := 20) ; must be < 100
 )
 
 (OracleVars

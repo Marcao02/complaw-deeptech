@@ -11,9 +11,9 @@
 	( nonoperative inconly units_delivered : ℕ := 0 )
 	( nonoperative inconly total_paid : $ := 0 )
 	( writeonce contract_ends : Date )	
-	( 2Bdelivered : List[Order] := emptyList() )
-	( 2Binvoiced : List[Invoice] := emptyList() )
-	( 2Bpaid : List[Bill] := emptyList() )
+	( 2Bdelivered : List[Order] := (emptyList) )
+	( 2Binvoiced : List[Invoice] := (emptyList) )
+	( 2Bpaid : List[Bill] := (emptyList) )
 )
 
 (Actors Customer Vendor)
@@ -72,9 +72,9 @@
 
 		(NewOrder(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (days (max 14 (ceil (quantity / 10)))) )
+				(local delivery_deadline : Date := (dateplus (event_start_date) (days (max 14 (ceil (quantity / 10))))) )
 				(units_ordered += quantity)
-				(2Bdelivered := (append 2Bdelivered (tuple quantity delivery_deadline)))				
+				(2Bdelivered := (append 2Bdelivered (tuple quantity delivery_deadline)) )
 			)						
 			(Fallbacks
 				(ContractLive())
@@ -84,7 +84,7 @@
 		(Deliver(order : Order)
 			(Entrance
 				( conjecture (containedIn order 2Bdelivered) )
-				( quantity := (get order 0) )
+				( local quantity : ℕ := (get order 0) )
 				( units_delivered += quantity )
 				( 2Bdelivered := (removeOne 2Bdelivered order) )
 				( 2Binvoiced := (append 2Binvoiced (tuple (get order 0) ((event_start_date) + 30D))) )
@@ -97,7 +97,7 @@
 		(SendInvoice(invoice : Invoice)
 			(Entrance
 				( conjecture (containedIn invoice 2Binvoiced) )
-				( quantity := (get invoice 0) )
+				( local quantity : ℕ := (get invoice 0) )
 				( units_invoiced += quantity )
 				( 2Binvoiced := (removeOne 2Binvoiced invoice) )
 				( 2Bpaid := (append 2Bpaid (tuple (get invoice 0) ((event_start_date) + 14D))) )
@@ -110,7 +110,7 @@
 		(PayBill(bill : Bill)
 			(Entrance
 				( conjecture (containedIn bill 2Bpaid) )
-				( quantity := (get bill 0) )
+				( local quantity : ℕ := (get bill 0) )
 				( total_paid += (quantity * PRICE_PER_UNIT) )
 				( 2Bpaid := (removeOne 2Bpaid bill) )
 			)

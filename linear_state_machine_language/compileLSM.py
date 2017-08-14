@@ -1,10 +1,11 @@
 import logging
 
 from LSMTop import *
-from parse_sexpr import parse, pretty, SExpr, SExprOrStr, castse
+from parse_sexpr import parse, prettySExprStr, SExpr, SExprOrStr, castse, STRING_LITERAL_MARKER
 from state_diagram_generation import contractToDotFile
 from util import streqci, list_split, caststr
 from typing import Tuple, cast, Optional
+from LSMStatements import Term, ContractParamDec
 
 
 class Assemble:
@@ -26,23 +27,29 @@ class Assemble:
         x : SExpr
         for x in l:
             assert len(x) >= 2, "Problem top-level: " + str(x)
-            x0 = x[0]
             rem = cast(SExpr,x[1:])
+            def head(constant:str) -> bool:
+                nonlocal x
+                return streqci(x[0], constant)
 
-            if streqci(x0, GLOBAL_VARS_SECTION_LABEL):
+            if   head( GLOBAL_VARS_SECTION_LABEL ):
                 assert isinstance(x,SExpr), type(x)
-                self._top.global_vars = self.global_vars(cast(SExpr,rem))
-            elif streqci(x0, CLAIMS_SECTION_LABEL):
+                self._top.global_var_decs = self.global_vars(cast(SExpr, rem))
+            elif head( CONTRACT_PARAMETERS_SECTION_LABEL ):
+                self._top.contract_params = {expr[0] : self.contract_param(expr) for expr in rem}
+            elif head( CLAIMS_SECTION_LABEL ):
                 self._top.claims = self.claims(cast(SExpr,rem))
-            elif streqci(x0, ACTORS_SECTION_LABEL):
+            elif head( CLAIMS_SECTION_LABEL ):
+                self._top.claims = self.claims(cast(SExpr,rem))
+            elif head( ACTORS_SECTION_LABEL ):
                 self._top.actors = self.actors(cast(List[str],rem))
-            elif streqci(x0, PROSE_CONTRACT_SECTION_LABEL):
+            elif head( PROSE_CONTRACT_SECTION_LABEL ):
                 self._top.prose_contract = self.prose_contract(cast(List[List[str]],rem))
-            elif streqci(x0, FORMAL_CONTRACT_SECTION_LABEL):
+            elif head( FORMAL_CONTRACT_SECTION_LABEL ):
                 self._top.formal_contract = self.formal_contract(rem)
-            elif streqci(x0, DOT_FILE_NAME_LABEL):
+            elif head( DOT_FILE_NAME_LABEL ):
                 self._top.dot_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
-            elif streqci(x0, IMG_FILE_NAME_LABEL):
+            elif head( IMG_FILE_NAME_LABEL ):
                 self._top.img_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
         if  self._referenced_event_stateids != set(self._top.formal_contract.estates.keys()).union([FULFILLED_EVENT_STATE_LABEL]):
@@ -53,6 +60,10 @@ class Assemble:
             )
 
         return self._top
+
+    def contract_param(self, expr):
+        self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : type := term)" )
+        return ContractParamDec(expr[0], expr[2], self.parse_term(expr[4]))
 
     def global_vars(self, l:SExpr):
         rv = dict()
@@ -70,12 +81,14 @@ class Assemble:
                 sort = caststr(dec[i+2])
                 self._top.sorts.add(sort)
 
-                initval = None
+                initval : Term = None
                 if i+3 < len(dec) and dec[i+3] == ':=':
-                    initval = caststr(dec[i+4])
-                rv[name] = GlobalVar(name, sort, initval, castse(modifiers))
-            except Exception:
+                    initval = self.parse_term(dec[i+4])
+                print('initval', initval)
+                rv[name] = GlobalVarDec(name, sort, initval, castse(modifiers))
+            except Exception as e:
                 logging.error("Problem processing " + str(dec))
+                raise e
 
         # logging.info(str(rv))
         return rv
@@ -87,7 +100,7 @@ class Assemble:
 
     def actors(self, l:List[str]) -> List[str]:
         # logging.info(str(l))
-        assert isinstance(l[0], str), str(l) + " should be a list of strings"
+        self.assertOrSyntaxError(all(isinstance(x, str) for x in l), castse(l), "Actors declaration S-expression should have the form (Actors Alice Bob)")
         return cast(List,l).copy()
 
     def prose_contract(self, l: List[List[str]]) -> ProseContract:
@@ -102,23 +115,25 @@ class Assemble:
 
         for x in l[1:]:
             assert len(x) >= 2
-            x0 = x[0]
-            if streqci(x0, START_STATE_LABEL):
-                assert len(x) == 2, "One start state"
+            def head(constant:str) -> bool:
+                nonlocal x
+                return streqci(x[0], constant)
+
+            if head(START_STATE_LABEL):
+                self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
                 id = caststr(x[1])
                 start_state = id
                 self._referenced_event_stateids.add(id)
 
-            if streqci(x0, CONTRACT_PARAMETERS_SECTION_LABEL):
+            if head(CONTRACT_PARAMETERS_SECTION_LABEL):
                 param_decls = cast(List[str],x[1:])
                 for pdecl in param_decls:
                     params[pdecl[0]] = pdecl[1]
 
-            elif streqci(x0, EVENT_STATES_SECTION_LABEL):
+            elif head(EVENT_STATES_SECTION_LABEL):
                 event_state_decls = x[1:]
                 estates = {caststr(esd[0]): self.event_state(cast(SExpr, esd)) for esd in event_state_decls}
 
-        print(l[0])
         return FormalContract(caststr(l[0][1]), estates, params, start_state)
 
     def event_state(self, l:SExpr) -> EventState:
@@ -129,22 +144,24 @@ class Assemble:
         es.params = self.event_state_params(cast(List[str],l[1]))
 
         for x in l[2:]:
-            x0 = x[0]
-            if streqci(x0, EVENT_STATE_DESCRIPTION_LABEL):
+            def head(constant:str) -> bool:
+                nonlocal x
+                return streqci(x[0], constant)
+            if head(EVENT_STATE_DESCRIPTION_LABEL):
                 es.description = caststr(x[1][1]) # extract from STRLIT expression
-            elif streqci(x0, EVENT_STATE_PROSE_REFS_LABEL):
+            elif head(EVENT_STATE_PROSE_REFS_LABEL):
                 es.prose_refs = cast(List,x[1:]).copy()
-            elif streqci(x0, CODE_BLOCK_LABEL):
-                es.code_block = self.code_block(cast(List[SExpr],x[1:]))
-            elif streqci(x0, NONACTION_BLOCK_LABEL):
+            elif head(CODE_BLOCK_LABEL):
+                es.code_block = self.code_block(cast(List[SExpr],x[1:]), es)
+            elif head(NONACTION_BLOCK_LABEL):
                 es.nonactor_block = self.nonactor_block(castse(x[1:]), es_id)
-            elif streqci(x0, EVENT_STATE_ACTOR_BLOCKS_LABEL):
+            elif head(EVENT_STATE_ACTOR_BLOCKS_LABEL):
                 actorblocks = castse(x[1:])
                 for actorblock in actorblocks:
                     actor_id = caststr(actorblock[0])
                     deontic_keyword = caststr(actorblock[1])
-                    rest : SExpr = None
-                    deontic_guard : Term = None
+                    rest : SExpr
+                    deontic_guard : Term
                     try:
                         if deontic_keyword in DEONTIC_GUARD_MODALITIES:
                             deontic_guard = self.parse_term(cast(SExprOrStr,actorblock[2]))
@@ -177,17 +194,29 @@ class Assemble:
         # logging.info(str(rv))
         return rv
 
-    def code_block(self, statements:List[SExpr]) -> CodeBlock:
-        return CodeBlock([self.code_block_statement_dispatch(x) for x in statements])
+    def code_block(self, statements:List[SExpr], es:EventState) -> CodeBlock:
+        return CodeBlock([self.code_block_statement_dispatch(x,es) for x in statements])
 
-    def code_block_statement_dispatch(self, statement:SExpr) -> CodeBlockStatement:
+    def code_block_statement_dispatch(self, statement:SExpr, es:EventState) -> CodeBlockStatement:
         try:
             if statement[0] == 'conjecture':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "CodeBlock conjecture expression should have length 2")
                 rhs = self.parse_term(statement[1])
                 return InCodeConjectureStatement(cast(List,rhs))
+            elif statement[0] == 'local':
+                self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type := term)')
+                self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
+                                          'Local var dec should have form (local name : type := term)')
+                sort = caststr(statement[3])
+                rhs = self.parse_term(statement[5])
+                varname = caststr(statement[1])
+                lvd = LocalVarDec(varname, rhs, sort)
+                if varname in es.local_vars:
+                    self.syntaxError(statement, "Redeclaration of local variable")
+                es.local_vars[varname] = lvd
+                return lvd
             else:
-                assert len(statement) == 3, "As of now, every code block statement other than a conjecture should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
+                assert len(statement) == 3, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
                 rhs = self.parse_term(statement[2])
                 varname = caststr(statement[0])
                 if statement[1] == ':=' or statement[1] == "=":
@@ -203,9 +232,30 @@ class Assemble:
             logging.error(f"Problem with {statement}")
             raise e
 
-    def parse_term(self, x:Union[str,SExpr]) -> Term:
+    def parse_term(self, x:Union[str,SExpr], event_state:Optional[EventState] = None) -> Term:
         if isinstance(x,str):
-            return Atom(x)
+            if x in self._top.global_var_decs:
+                return GlobalVar(x, self._top.global_var_decs[x])
+            if event_state and (x in event_state.local_vars):
+                return LocalVar(x)
+            # if x.isdecimal():
+            #     return IntLit(int(x))
+            # if x == 'false':
+            #     return BoolLit(False)
+            # if x == 'true':
+            #     return BoolLit(True)
+            if x.isdecimal():
+                return int(x)
+            if x == 'false':
+                return False
+            if x == 'true':
+                return True
+            if x == 'never':
+                return DeadlineLit(x)
+            print('Unrecognized atom: ' + x + '. Treating as deadline literal.')
+            return DeadlineLit(x)
+        elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
+            return StringLit(caststr(x[1]))
         else:
             pair = try_parse_infix(x) or try_parse_prefix(x)
             if not pair:
@@ -324,15 +374,18 @@ if __name__ == '__main__':
 
     if 'examples' in sys.argv:
         for path in EXAMPLES:
-            if 'print' in sys.argv:
+            if 'printSExpr' in sys.argv:
                 print("\nLooking at file " + path + ":\n")
             parsed = parse_file(path)
-            if 'print' in sys.argv:
-                # print(parsed)
-                print(pretty(parsed))
-                pass
+            if 'printSExpr' in sys.argv:
+                print(prettySExprStr(parsed))
+
             assembler = Assemble(path)
             prog : LSMTop = assembler.top(parsed)
+
+            if 'printPretty' in sys.argv:
+                print(prog)
+
             if 'dot' in sys.argv:
                 contractToDotFile(prog)
 

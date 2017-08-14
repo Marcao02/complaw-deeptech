@@ -12,8 +12,8 @@
 (Actors Buyer Seller)
 
 (ContractParams 
-	(CONTRACT_START : Date)
-	(DELIVERY_DEADlINE : Date)
+	(CONTRACT_START : Date := "2010-12-30")
+	(DELIVERY_DEADlINE : Date := "2011-01-01")
 )
 
 (ProseContract 

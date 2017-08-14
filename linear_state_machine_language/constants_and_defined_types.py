@@ -12,7 +12,8 @@ ParamsDec = Dict[str,Sort]
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
                       'writeOnceMore', 'inconly', 'deconly',
-                      'readonly', 'branchUnaffecting'}
+                      'readonly', 'branchUnaffecting',
+                      'reactive', 'nonoperative'}
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
@@ -20,6 +21,7 @@ INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and'}
 PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time', 'monthStartDay', 'monthEndDay',
                      'days', #'earliest',
+                     'dateplus',
                      'ifthenelse',
                      'max', 'ceil',
                      'not',

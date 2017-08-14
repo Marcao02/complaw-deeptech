@@ -4,12 +4,20 @@
 	(Order := Tuple[ℕ,Deadline,Id])
 )
 
+(ContractParams 
+	(MAX_UNITS : ℕ := 1000)
+	(CONTRACT_LIFE : Date := 1Y)
+	(PRICE_PER_UNIT : $ := 100)
+)
+
 (GlobalVars 	
 	( inconly next_order_id : Id := 0 )
 	( writeonce contract_ends : Date )	
-	( 2Bdelivered : Set[Order] := emptySet() )
-	( 2Binvoiced : Set[Order] := emptySet() )
-	( 2Bpaid : Set[Order] := emptySet() )
+	( 2Bdelivered : Set[Order] := (emptySet) )
+	( 2Binvoiced : Set[Order] := (emptySet) )
+	( 2Bpaid : Set[Order] := (emptySet) )
+
+	( reactive orderable_units : ℕ := (MAX_UNITS - units_ordered))
 
 	( nonoperative inconly units_ordered : ℕ := 0 )	
 	( nonoperative inconly units_delivered : ℕ := 0 )
@@ -17,16 +25,6 @@
 )
 
 (Actors Customer Vendor)
-
-(ContractParams 
-	(MAX_UNITS : ℕ := 1000)
-	(CONTRACT_LIFE : Date := 1Y)
-	(PRICE_PER_UNIT : $ := 100)
-)
-
-(ReactiveVars	
-	(orderable_units : ℕ := (MAX_UNITS - units_ordered))
-)
 
 (ProseContract 
 	(P1 'The master agreement between Vendor and Customer is for 1000 printers, with a unit price of e100. The agreement is valid for one year, starting 2011-01-01.')
@@ -89,7 +87,7 @@
 
 		(NewOrder(quantity : ℕ)			
 			(Entrance
-				(delivery_deadline := (days (max 14 (ceil (quantity / 10)))) )
+				(local delivery_deadline : Date := (dateplus (event_start_date) (days (max 14 (ceil (quantity / 10))))) )
 				(units_ordered += quantity)
 				(2Bdelivered := (setAdd 2Bdelivered (tuple quantity delivery_deadline next_order_id)))
 				(next_order_id += 1)
@@ -102,7 +100,7 @@
 		(Deliver(order : Order)
 			(Entrance
 				( conjecture (containedIn order 2Bdelivered) )
-				( quantity := (get order 0) )
+				( local quantity : ℕ := (get order 0) )
 				( units_delivered += quantity )
 				( 2Bdelivered := (setRemove 2Bdelivered order) )
 				( 2Binvoiced := (setAdd 2Binvoiced (tuple quantity ((event_start_date) + 30D) (get order 2))) )
@@ -115,7 +113,7 @@
 		(SendInvoice(order : Invoice)
 			(Entrance
 				( conjecture (containedIn order 2Binvoiced) )
-				( quantity := (get order 0) )
+				( local quantity : ℕ := (get order 0) )
 				( units_invoiced += quantity )
 				( 2Binvoiced := (setRemove 2Binvoiced order) )
 				( 2Bpaid := (setAdd 2Bpaid (tuple quantity ((event_start_date) + 14D) (get order 2))) )
@@ -128,7 +126,7 @@
 		(PayBill(order : Bill)
 			(Entrance
 				( conjecture (containedIn order 2Bpaid) )
-				( quantity := (get order 0) )
+				( local quantity : ℕ := (get order 0) )
 				( total_paid += (quantity * PRICE_PER_UNIT) )
 				( 2Bpaid := (setRemove 2Bpaid order) )
 			)

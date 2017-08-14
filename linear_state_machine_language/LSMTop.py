@@ -21,10 +21,11 @@ class FormalContract(NamedTuple):
 class LSMTop:
     def __init__(self, filename:str) -> None:
         self.filename = filename
-        self.global_vars : Dict[GlobalVarId,GlobalVar] = None
-        self.claims : List[ContractClaim] = None
-        self.actors : List[str] = None
-        self.prose_contract : Dict[ProseClauseId, str] = None  # mapping clause id string to clause string
+        self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
+        self.claims : List[ContractClaim] = []
+        self.actors : List[str] = []
+        self.contract_params : Dict[str, ContractParamDec] = dict()
+        self.prose_contract : Dict[ProseClauseId, str] = dict() # mapping clause id string to clause string
         self.formal_contract : FormalContract = None
         self.sorts : Set[Sort] = set()
         self.dot_file_name : str = None # for input file to graphviz
@@ -42,8 +43,39 @@ class LSMTop:
     def estate(self, id:str):
         return self.formal_contract.estates[id]
 
-    def varObj(self, varname:str):
-        if varname in self.global_vars:
-            return self.global_vars[varname]
+    def varDecObj(self, varname:str, es:EventState = None) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
+        if varname in self.global_var_decs:
+            return self.global_var_decs[varname]
+        elif varname in es.local_vars:
+            return es.local_vars[varname]
         else:
-            logging.error("Todo: see if it's a local var")
+            return None
+
+    def __str__(self) -> str:
+        rv = ''
+        def line(thing:Any,tabs:int=0) -> None:
+            nonlocal rv
+            rv += (tabs * '    ') + str(thing) + "\n"
+
+        titleline = "File: " + self.filename
+        line(len(titleline)*'-')
+        line(titleline)
+
+        if len(self.contract_params) > 0:
+            line("\nContractParams:")
+            for cp in self.contract_params.values():
+                line(cp, 1)
+
+
+        line('\nGlobalVars:')
+        for gv in self.global_var_decs.values():
+            line(gv,1)
+
+        if self.claims:
+            line('\nClaims:')
+            for c in self.claims:
+                line(c,1)
+
+
+
+        return rv

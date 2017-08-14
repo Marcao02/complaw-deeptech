@@ -7,11 +7,11 @@
 (Actors Challenger Restaurant)
 
 (ContractParams 
-	(MB_PRICE : Price)
-	(TIME_TO_EAT_BURGER : Duration)
-	(MAX_SERVE_DELAY : Duration)
-	(MAX_CLAIM_VERIFICATION_DELAY : Duration = 30M)
-	(MAX_REFUND_DELAY : Duration)
+	(MB_PRICE : Price := $50)
+	(TIME_TO_EAT_BURGER : Duration := 1H)
+	(MAX_SERVE_DELAY : Duration := 20M)
+	(MAX_CLAIM_VERIFICATION_DELAY : Duration = 10M)
+	(MAX_REFUND_DELAY : Duration := 10M)
 )
 
 (ProseContract 
