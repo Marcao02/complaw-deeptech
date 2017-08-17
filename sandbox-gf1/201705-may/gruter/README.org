@@ -174,3 +174,11 @@ When the moon is blue, Carol Centaurus must pay, such that the payment is correc
 Particular>
 #+END_SRC
 
+* Utilities
+
+#+BEGIN_SRC
+i -retain something.gf
+dependency_graph
+! dot -Tpng _gfdepgraph.dot > diamond.png
+#+END_SRC
+
