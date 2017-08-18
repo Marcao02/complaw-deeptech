@@ -5,8 +5,9 @@ incomplete concrete MissouriI of Missouri =
   open SyntaxEng, ParadigmsEng, Prelude in
   {
   lincat
-    ReactiveRule = Text;
-    Happening = NP;
+    ReactionRule = Text;
+    Event = NP;
+    Consequent = VP;
 
   oper
     LPP : P_Party = {
@@ -24,19 +25,27 @@ incomplete concrete MissouriI of Missouri =
 
     eating = mkNP the_Det (mkCN
                              (mkN2 (mkN "eating"))
-                             (mkNP and_Conj
+                             (mkNP and_Conj -- it would be nice for the the_Det to live here, but we can't seem to Det -> NP -> mkNP
                                 (mkNP the_Det (mkCN (mkN "bacon")))
                                 (mkNP aPl_Det (mkCN (mkN "egg")))))
                              ;
+
+    obesity = (mkVP have_V2
+                 (mkNP the_Det
+                    (mkCN
+                       (mkN2 (mkN "effect"))
+                       (mkNP (mkN "causing obesity")))));
     
-    mkReactiveRule happening1 deon happening2 =
+    mkReactionRule event deon consequent =
       mkText (mkS (mkTemp presentTense simultaneousAnt)
                 deon.pol
                 (mkCl
-                   happening1
+                   event
                    deon.vv
-                   (mkVP (mkV "cause obesity"))));
+                   consequent));
 
+                                  -- NP  have the effect of causing obesity
+                                  
     
 }
                                      

@@ -6,8 +6,9 @@ abstract Missouri =
   flags startcat = Contract;
 
   cat
-    ReactiveRule;
-    Happening;
+    ReactionRule;
+    Event;
+    Consequent;
         
   fun
     Missouri_When  : WhenPredicate;
@@ -16,12 +17,13 @@ abstract Missouri =
     Win_Act      : Action Win_Kind;
     Win_Exp      : ActionExp Win_Kind;
 
-    eating       : Happening;
+    eating       : Event;
+    obesity      : Consequent;
     
-    mkReactiveRule :
-         Happening
+    mkReactionRule :
+         Event
       -> Deontic
-      -> Happening
-      -> ReactiveRule;
+      -> Consequent
+      -> ReactionRule;
 }
       
