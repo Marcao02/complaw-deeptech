@@ -2,7 +2,7 @@
 
 incomplete concrete MissouriI of Missouri =
   GruterI **
-  open SyntaxEng, ParadigmsEng, Prelude in
+  open SyntaxEng, ParadigmsEng, Prelude, (RE=ResEng), (EE=ExtraEng) in
   {
   lincat
     ReactionRule = Text;
@@ -34,7 +34,9 @@ incomplete concrete MissouriI of Missouri =
                  (mkNP the_Det
                     (mkCN
                        (mkN2 (mkN "effect"))
-                       (mkNP (mkN "causing obesity")))));
+                       (mkNP (mkCN (VP2N (progressiveVP (mkVP
+                                                           (mkV2 "cause")
+                                                           (mkNP any_Predet (mkNP (mkN "obesity")))))))))));
     
     mkReactionRule event deon consequent =
       mkText (mkS (mkTemp presentTense simultaneousAnt)
@@ -44,8 +46,9 @@ incomplete concrete MissouriI of Missouri =
                    deon.vv
                    consequent));
 
-                                  -- NP  have the effect of causing obesity
-                                  
-    
+  oper
+    VP2N : VP -> N = \vp -> mkN (vp.s2 ! (RE.agrP3 RE.Sg));
+
+    any_Predet = lin Predet (ss "any");
+       
 }
-                                     
