@@ -1,4 +1,4 @@
---# -path=.:present:/Users/mengwong/non-db-src/l/compiler/sandbox-gf1/201705-may/gruter
+--# -path=.:present
 
 instance LexMissouriEng of LexMissouri =
   LexGruterEng **
