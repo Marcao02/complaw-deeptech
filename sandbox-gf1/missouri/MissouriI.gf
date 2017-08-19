@@ -57,13 +57,12 @@ incomplete concrete MissouriI of Missouri =
     mkConsequence : Det -> N   -> V2 -> Det -> N       -> VP =
                    \the,effect,causing,some,  obesity ->
       (mkVP have_V2
-         (mkNP the
+         (mkNP the -- TODO：turn this into a quantifier
             (mkCN (mkN2 effect) -- of
                (ExtensionsEng.GerundNP (mkVP causing
                                           (mkNP some
                                              (mkCN obesity)))))));
     
-
     --
     -- test 02
     --
