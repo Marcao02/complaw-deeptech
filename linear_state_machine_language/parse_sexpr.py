@@ -1,3 +1,5 @@
+# v 1.1.0
+
 import logging
 from typing import Union, List, Any, TypeVar, Sequence, cast
 from util import is_singleton_string_list, caststr
@@ -206,18 +208,15 @@ def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
             s += " " + rsymb    
         return s
 
+def parse_file(path):
+    fil = open(path, 'r')
+    parsed = parse(fil.read())
+    fil.close()
+    return parsed
+
 if __name__ == '__main__':
     # import sys
     # if 'test' in sys.argv:
     import doctest
     print("Running tests")
     doctest.testmod()
-
-
-class NestedList(List[Union['Test', str]]):
-    def __init__(self, symb, lst: List[Union['NestedList', str]] = None) -> None:
-        super().__init__(lst if lst else [])
-
-def f(x:NestedList) -> None:
-    print(x)
-

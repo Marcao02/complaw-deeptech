@@ -1,4 +1,4 @@
-from typing import Any, List, Callable, Iterable, cast
+from typing import Any, List, Callable, Iterable, cast, Dict
 
 def caststr(x:Any) -> str:
     assert isinstance(x,str), x
@@ -29,3 +29,19 @@ def list_split(by:str, lst:List[str]) -> List[List[str]]:
 
 def mapjoin(f:Callable[[Any],str], iter:Iterable[Any], delim:str) -> str:
     return delim.join(map(f,iter))
+
+def isFloat(x:str) -> bool:
+    try:
+        y = float(x)
+        return True
+    except ValueError:
+        return False
+
+def hasNotNone(d:Dict[str,Any], x:str) -> bool:
+    return (x in d) and not(d[x] is None)
+
+def dictSetOrInc(d:Dict[str,int], key:str, init:int ) -> None:
+    if key in d:
+        d[key] += 1
+    else:
+        d[key] = init

@@ -18,6 +18,17 @@ class GlobalVarDec(NamedTuple):
                self.name + " : " + self.sort + \
                (" := " + str(self.initval) if self.initval else '')
 
+    def isWriteOnceMore(self) -> bool:
+        return 'writeOnceMore' in self.modifier
+
+class ContractParamDec(NamedTuple):
+    name: str
+    sort: str
+    value_expr: Term
+
+    def __str__(self) -> str:
+        return self.name + " : " + self.sort + " := " + str(self.value_expr)
+
 class Proposition:
     def __init__(self, lst:SExprOrStr) -> None:
         self.lst = lst
@@ -41,21 +52,36 @@ class FnApp(Term):
         return "({} {})".format(self.head, " ".join([str(x) for x in self.args]))
 
 class Atom(Term):
-    def __init__(self, atom:str) -> None:
-        self.atom = atom
+    def __init__(self) -> None:
+        pass
 
     def __str__(self):
-        return "@" + self.atom
+        return "@" + self.name
+
+    @property
+    def name(self) -> str:
+        raise NotImplementedError
 
 
-class LocalVar(Term):
+class LocalVar(Atom):
     def __init__(self, name:str) -> None:
         self.name = name
 
-class GlobalVar(Term):
-    def __init__(self, name:str, vardec:GlobalVarDec) -> None:
-        self.name = name
+class GlobalVar(Atom):
+    def __init__(self, vardec:GlobalVarDec) -> None:
         self.vardec = vardec
+
+    @property
+    def name(self) -> str:
+        return self.vardec.name
+
+class ContractParam(Atom):
+    def __init__(self, paramdec:ContractParamDec) -> None:
+        self.paramdec = paramdec
+
+    @property
+    def name(self) -> str:
+        return self.paramdec.name
 
 class Literal(Term):
     def __repr__(self):
@@ -84,14 +110,6 @@ class StringLit(Literal):
         self.lit = lit
     def __str__(self):
         return "'" + self.lit + "'"
-
-class ContractParamDec(NamedTuple):
-    name: str
-    sort: str
-    value_expr: Term
-
-    def __str__(self) -> str:
-        return self.name + " : " + self.sort + " := " + str(self.value_expr)
 
 class VarAssignStatement(CodeBlockStatement):
     def __init__(self, varname:str, value_expr:Term) -> None:

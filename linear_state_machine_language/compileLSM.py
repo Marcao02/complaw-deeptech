@@ -1,12 +1,11 @@
 import logging
 
 from LSMTop import *
-from parse_sexpr import parse, prettySExprStr, SExpr, SExprOrStr, castse, STRING_LITERAL_MARKER
+from parse_sexpr import prettySExprStr, SExpr, SExprOrStr, castse, STRING_LITERAL_MARKER, parse_file
 from state_diagram_generation import contractToDotFile
-from util import streqci, list_split, caststr
+from util import streqci, list_split, caststr, isFloat
 from typing import Tuple, cast, Optional
 from LSMStatements import Term, ContractParamDec
-
 
 class Assemble:
     def __init__(self, filename:str) -> None:
@@ -110,7 +109,6 @@ class Assemble:
 
     def formal_contract(self, l:SExpr) -> FormalContract:
         estates: Dict[EventStateId, EventState] = dict()
-        params: Dict[str, Sort] = dict() # paramname -> sort
         start_state: str   # EventState id
 
         for x in l[1:]:
@@ -125,16 +123,11 @@ class Assemble:
                 start_state = id
                 self._referenced_event_stateids.add(id)
 
-            if head(CONTRACT_PARAMETERS_SECTION_LABEL):
-                param_decls = cast(List[str],x[1:])
-                for pdecl in param_decls:
-                    params[pdecl[0]] = pdecl[1]
-
             elif head(EVENT_STATES_SECTION_LABEL):
                 event_state_decls = x[1:]
                 estates = {caststr(esd[0]): self.event_state(cast(SExpr, esd)) for esd in event_state_decls}
 
-        return FormalContract(caststr(l[0][1]), estates, params, start_state)
+        return FormalContract(caststr(l[0][1]), estates, start_state)
 
     def event_state(self, l:SExpr) -> EventState:
         es_id : EventStateId = caststr(l[0])
@@ -235,24 +228,20 @@ class Assemble:
     def parse_term(self, x:Union[str,SExpr], event_state:Optional[EventState] = None) -> Term:
         if isinstance(x,str):
             if x in self._top.global_var_decs:
-                return GlobalVar(x, self._top.global_var_decs[x])
+                return GlobalVar(self._top.global_var_decs[x])
             if event_state and (x in event_state.local_vars):
                 return LocalVar(x)
-            # if x.isdecimal():
-            #     return IntLit(int(x))
-            # if x == 'false':
-            #     return BoolLit(False)
-            # if x == 'true':
-            #     return BoolLit(True)
-            if x.isdecimal():
-                return int(x)
+            if x in self._top.contract_params:
+                return ContractParam(self._top.contract_params[x])
+            if isFloat(x):
+                return float(x)
             if x == 'false':
                 return False
             if x == 'true':
                 return True
             if x == 'never':
                 return DeadlineLit(x)
-            print('Unrecognized atom: ' + x + '. Treating as deadline literal.')
+            logging.warning('Unrecognized atom: ' + x + '. Treating as deadline literal.')
             return DeadlineLit(x)
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
             return StringLit(caststr(x[1]))
@@ -287,7 +276,6 @@ class Assemble:
             ind = trans_spec.index('where')
             tc.where_clause = self.parse_term(castse(trans_spec[ind+1]))
             ind = ind + 2
-            # TODO
 
         for deadline_keyword in DEADLINE_OPERATORS:
             if deadline_keyword in trans_spec[2:]:
@@ -352,13 +340,6 @@ EXAMPLES = (
     'examples/hvitved_master_sales_agreement_full.LSM',
     'examples/hvitved_master_sales_agreement_full_with_ids.LSM',
 )
-
-
-def parse_file(path):
-    fil = open(path, 'r')
-    parsed = parse(fil.read())
-    fil.close()
-    return parsed
 
 
 if __name__ == '__main__':

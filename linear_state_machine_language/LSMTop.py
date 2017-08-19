@@ -5,7 +5,6 @@ from LSMEventState import *
 class FormalContract(NamedTuple):
     name : str
     estates : Dict[EventStateId, EventState]
-    params : Dict[str,Sort]  # paramname -> sort
     start_state: str         # EventState id
 
     def can_transition(self, transid1, transid2) -> bool:

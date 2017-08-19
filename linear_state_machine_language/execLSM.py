@@ -10,6 +10,7 @@ from LSMEventState import EventState
 from compileLSM import Assemble, parse_file
 from parse_sexpr import prettySExprStr
 from constants_and_defined_types import GlobalVarId
+from util import hasNotNone, dictSetOrInc
 
 # Nat = NewType('Nat',int)
 # TimeStamp = NewType('TimeStamp',Nat)
@@ -57,37 +58,66 @@ class ExecEnv:
     def __init__(self, prog:LSMTop) -> None:
         self._top : LSMTop = prog
         self._varvals : Dict[str, Any] = dict()
+        self._var_write_cnt : Dict[str, int] = dict()
+        self._contract_param_vals: Dict[str, Any] = dict()
         self._state : str = None #prog.formal_contract.start_state
         self._timestamp : int = None
 
     def evalLSM(self, trace:Trace):
+        self.evalContractParamDecs(self._top.contract_params)
         self.evalGlobalVarDecs(self._top.global_var_decs)
+        print(self._top.global_var_decs)
+
         print('Globals\n\t', self._varvals)
 
         for i in range(len(trace)):
-            event = trace[i]
-            next_state_name, next_timestamp = event.name, event.timestamp
+            eventi = trace[i]
+            next_state_name, next_timestamp = eventi.name, eventi.timestamp
             
-            if self._timestamp is None or self._timestamp < next_timestamp:
-                self._timestamp = next_timestamp
-            else:
+            if not(self._timestamp is None or self._timestamp < next_timestamp):
                 logging.error(f"Event timestamps must be strictly increasing: {next_timestamp} !> {self._timestamp}")
-
-            if prog.can_transition(self._state, next_state_name):
-                self._state = next_state_name
-                self.evalCodeBlock(event)
-            else:
+                continue
+            if not self._top.can_transition(self._state, next_state_name):
                 logging.error(f"Cannot ever transition from {self._state} to {next_state_name}")
+                continue
+            # if prog.can_transition(self._state, next_state_name):
+            #     self._timestamp = next_timestamp
+            #     self._state = next_state_name
+            #     self.evalCodeBlock(eventi)
+            if self.can_transition(next_state_name, next_timestamp):
+                self._timestamp = next_timestamp
+                self._state = next_state_name
+                self.evalCodeBlock(eventi)
 
-            print('Globals\n\t', self._varvals)
+            # print('Globals\n\t', self._varvals)
+
+    def ensureCanTransition(self, next_state_name:str, next_timestamp:int) -> None:
+        if not (self._timestamp is None or self._timestamp < next_timestamp):
+            logging.error(f"Event timestamps must be strictly increasing: {next_timestamp} !> {self._timestamp}")
+            return
+        if not self._top.can_transition(self._state, next_state_name):
+            logging.error(f"Cannot ever transition from {self._state} to {next_state_name}")
+            return
+        self.evalCodeBlock(eventi)
+        if next_timestamp < self.evalDeadline()
 
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
         for (var,dec) in decs.items():
-            print(dec)
-            if not(dec.initval is None):
-                self._varvals[var] = self.evalTerm(dec.initval)
-            else:
+            if dec.initval is None:
                 self._varvals[var] = None
+            else:
+                self._varvals[var] = self.evalTerm(dec.initval)
+                dictSetOrInc(self._var_write_cnt, var, init=1)
+            print('evalGlobalVarDecs: ', var, dec, self._var_write_cnt[var])
+
+
+    def evalContractParamDecs(self, decs : Dict[str, ContractParamDec]):
+        for (name,dec) in decs.items():
+            print(dec)
+            if not(dec.value_expr is None):
+                self._contract_param_vals[name] = self.evalTerm(dec.value_expr)
+            else:
+                self._contract_param_vals[name] = None
 
     def evalCodeBlock(self, event:Event):
         eventstate = self._top.estate(event.name)
@@ -104,11 +134,17 @@ class ExecEnv:
             value = self.evalTerm(stmt.value_expr)
             self._varvals[stmt.varname] = value
         elif isinstance(stmt, VarAssignStatement):
-            varobj = self._top.varDecObj(stmt.varname)
+            vardec = self._top.varDecObj(stmt.varname)
+            print(self._var_write_cnt[stmt.varname])
+            if vardec.isWriteOnceMore() and self._var_write_cnt[stmt.varname] >= 2:
+                raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
+            dictSetOrInc(self._var_write_cnt, stmt.varname, init=1)
+            # todo: use vardec for runtime type checking
             value = self.evalTerm(stmt.value_expr)
             self._varvals[stmt.varname] = value
         elif isinstance(stmt, IncrementStatement):
-            varobj = self._top.varDecObj(stmt.varname)
+            vardec = self._top.varDecObj(stmt.varname)
+            # todo: use vardec for runtime type checking
             value = self.evalTerm(stmt.value_expr)
             assert self._varvals[stmt.varname] is not None, "Tried to increment uninitialized variable `" + stmt.varname + "`"
             self._varvals[stmt.varname] = self._varvals[stmt.varname] + int(value)
@@ -118,16 +154,22 @@ class ExecEnv:
             self._varvals[stmt.varname] = self._varvals[stmt.varname] - int(value)
 
     def evalTerm(self, term:Term) -> Any:
-        print(term)
+        # print('evalTerm: ', term)
         if isinstance(term, FnApp):
             return self.evalFnApp(term)
         elif isinstance(term, StringLit):
             return term.lit
         elif isinstance(term, LocalVar):
+            assert hasNotNone(self._varvals, term.name), term.name
             return self._varvals[term.name]
         elif isinstance(term, GlobalVar):
+            assert hasNotNone(self._varvals, term.name), term.name
             return self._varvals[term.name]
+        elif isinstance(term, ContractParam):
+            assert hasNotNone(self._contract_param_vals, term.name), term.name
+            return self._contract_param_vals[term.name]
         elif isinstance(term, Atom):
+            raise Exception(term)
             return term.atom
         else:
             return term
@@ -135,7 +177,6 @@ class ExecEnv:
     def evalFnApp(self, fnapp:FnApp) -> Any:
         fn = fnapp.head
         args = (self.evalTerm(x) for x in fnapp.args)
-        print([str(x) for x in args])
         if fn in FN_SYMB_INTERP:
             return FN_SYMB_INTERP[fn](args)
         return 0
@@ -182,6 +223,7 @@ traces = {
         event('Month_Ended'),
         event('Month_Started'),
         event('PayRent'),
+        event('Request_Termination_After_Rent'),
         event('Month_Ended'),
         event('Lease_Term_Ended'),
         event('Move_Out'),
