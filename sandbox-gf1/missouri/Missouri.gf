@@ -8,7 +8,7 @@ abstract Missouri =
   cat
     ReactionRule;
     Event;
-    Consequent;
+    Consequent Event;
         
   fun
     Missouri_When  : WhenPredicate;
@@ -18,12 +18,15 @@ abstract Missouri =
     Win_Exp      : ActionExp Win_Kind;
 
     eating       : Event;
-    obesity      : Consequent;
+    obesity      : Consequent eating;
+
+--     repealing    : Event;
+--     abating      : Consequent repealing;
     
     mkReactionRule :
-         Event
+         (event : Event)
       -> Deontic
-      -> Consequent
+      -> Consequent event
       -> ReactionRule;
 }
       
