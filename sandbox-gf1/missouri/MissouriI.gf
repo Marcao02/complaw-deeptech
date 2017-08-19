@@ -2,12 +2,12 @@
 
 incomplete concrete MissouriI of Missouri =
   GruterI **
-  open SyntaxEng, ParadigmsEng, Prelude, (RE=ResEng), (EE=ExtraEng) in
+  open SyntaxEng, ParadigmsEng, Prelude, (RE=ResEng), (EE=ExtraEng), ExtensionsEng in
   {
   lincat
     ReactionRule = Text;
     Event = NP;
-    Consequent = VP;
+    Consequent = LexDeontic.DOp => VP;
 
   oper
     LPP : P_Party = {
@@ -25,30 +25,40 @@ incomplete concrete MissouriI of Missouri =
 
     eating = mkNP the_Det (mkCN
                              (mkN2 (mkN "eating"))
-                             (mkNP and_Conj -- it would be nice for the the_Det to live here, but we can't seem to Det -> NP -> mkNP
+                             (mkNP and_Conj
+                                -- it would be nice for the the_Det to live here,
+                                -- but we can't seem to Det -> NP -> mkNP
                                 (mkNP the_Det (mkCN (mkN "bacon")))
                                 (mkNP aPl_Det (mkCN (mkN "egg")))))
                              ;
 
-    obesity = (mkVP have_V2
-                 (mkNP the_Det
-                    (mkCN
-                       (mkN2 (mkN "effect"))
-                       (mkNP (mkCN (VP2N (progressiveVP (mkVP
-                                                           (mkV2 "cause")
-                                                           (mkNP any_Predet (mkNP (mkN "obesity")))))))))));
-    
     mkReactionRule event deon consequent =
       mkText (mkS (mkTemp presentTense simultaneousAnt)
                 deon.pol
                 (mkCl
                    event
                    deon.vv
-                   consequent));
+                   (consequent ! deon.d)));
+
+    obesity = table {
+      LexDeontic.Oblig => monobesity some_Det ;
+      LexDeontic.Forb  => monobesity any_Det  ;
+      LexDeontic.Perm  => monobesity some_Det
+      };
+
 
   oper
-    VP2N : VP -> N = \vp -> mkN (vp.s2 ! (RE.agrP3 RE.Sg));
+    any_Det  = mkDet (ParadigmsEng.mkQuant "any"  "any");
+    some_Det = mkDet (ParadigmsEng.mkQuant "some" "some");
 
-    any_Predet = lin Predet (ss "any");
-       
+    monobesity : Det -> VP = \det ->
+      (mkVP have_V2
+         (mkNP the_Det
+            (mkCN
+               (mkN2 (mkN "effect"))
+               (ExtensionsEng.GerundNP
+                  (mkVP
+                     (mkV2 "cause")
+                     (mkNP det (mkCN (mkN "obesity"))))))));
+    
 }
