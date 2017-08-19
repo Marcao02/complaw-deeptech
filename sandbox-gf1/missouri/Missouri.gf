@@ -20,8 +20,8 @@ abstract Missouri =
     eating       : Event;
     obesity      : Consequent eating;
 
---     repealing    : Event;
---     abating      : Consequent repealing;
+    repealing    : Event;
+    abating      : Consequent repealing;
     
     mkReactionRule :
          (event : Event)
