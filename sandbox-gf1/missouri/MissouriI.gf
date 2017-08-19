@@ -28,31 +28,38 @@ incomplete concrete MissouriI of Missouri =
     --
   lin
     
-    eating = (mkNP
-                the_Det (mkCN
-                           (mkN2 (mkN "eating")) -- of the
-                           (mkNP and_Conj
-                              -- it would be nice for the the_Det to live here,
-                              -- but we can't seem to Det -> NP -> mkNP
-                              (mkNP the_Det (mkCN (mkN "bacon")))
-                              (mkNP aPl_Det (mkCN (mkN "egg"))))));
+    eating = mkEating
+      (mkN "eating") -- of the
+      (mkNP and_Conj
+         -- it would be nice for the the_Det to live here,
+         -- but we can't seem to Det -> NP -> mkNP
+         (mkNP the_Det (mkCN (mkN "bacon")))
+         (mkNP aPl_Det (mkCN (mkN "egg"))));
               
+  oper
+    mkEating : N -> NP -> NP =
+      \eating, baconAndEggs ->
+      mkNP the_Det
+         (mkCN (mkN2 eating) -- of the
+            baconAndEggs);
+
+  lin               
     obesity = table {
-      LexDeontic.Oblig => monobesity some_Det;
-      LexDeontic.Forb  => monobesity  any_Det;
-      LexDeontic.Perm  => monobesity some_Det
+      LexDeontic.Oblig => mkObesity some_Det;
+      LexDeontic.Forb  => mkObesity  any_Det;
+      LexDeontic.Perm  => mkObesity some_Det
       };
 
   oper
-    monobesity : Det -> VP = \det ->
-      mkConsequence (mkN "effect") (mkV2 "cause") det (mkN "obesity");
+    mkObesity : Det -> VP = \det ->
+      mkConsequence the_Det (mkN "effect") (mkV2 "cause") det (mkN "obesity");
     
-    mkConsequence : N   -> V2 -> Det -> N       -> VP =
-                   \effect,cause,some,  obesity ->
+    mkConsequence : Det -> N   -> V2 -> Det -> N       -> VP =
+                   \the,effect,causing,some,  obesity ->
       (mkVP have_V2
-         (mkNP the_Det
+         (mkNP the
             (mkCN (mkN2 effect) -- of
-               (ExtensionsEng.GerundNP (mkVP cause -- causing
+               (ExtensionsEng.GerundNP (mkVP causing
                                           (mkNP some
                                              (mkCN obesity)))))));
     
