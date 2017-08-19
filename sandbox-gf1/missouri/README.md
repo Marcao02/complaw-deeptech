@@ -13,14 +13,16 @@ Check out the `gflibpaths` branch.
 `make; make install`. Keep an eye on where the libs get installed: you will see three lines like this:
 
 ```
-Installing [prelude] /Users/mengwong/Library/Haskell/share/ghc-8.0.2-x86_64/gf-3.9/lib/prelude
+Installing [prelude]   /Users/mengwong/Library/Haskell/share/ghc-8.0.2-x86_64/gf-3.9/lib/prelude
 Installing [AllTenses] /Users/mengwong/Library/Haskell/share/ghc-8.0.2-x86_64/gf-3.9/lib/alltenses
-Installing [Present] /Users/mengwong/Library/Haskell/share/ghc-8.0.2-x86_64/gf-3.9/lib/present
+Installing [Present]   /Users/mengwong/Library/Haskell/share/ghc-8.0.2-x86_64/gf-3.9/lib/present
 ```
 
 If you previously installed GF from some kind of package, `rm` or `mv` the `gf` binary to `gf-3.8` or `gf-3.9` or whatever, so that `gf` is the one you compiled.
 
 The `gflibpaths` branch of our fork is needed for the following magic:
+
+# `GF_LIB_PATH`
 
 The standard GF install instructions tell you to set, in your `.zshenv` or `.profile`, something like
 
