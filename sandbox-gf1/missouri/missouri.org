@@ -1,0 +1,352 @@
+* original text
+233.285.  Law not to affect road districts incorporated prior to effective date. — The repealing of the sections and law repealed by this law shall not have the effect of abating, nullifying, suspending or vitiating any public road district incorporated, or established by preliminary order, prior to the taking effect of this law or any proceedings by any such public road district; but any public road district finally incorporated, or established only by preliminary order, prior to the taking effect of this law, except districts established only by preliminary order in which there has been held a meeting of landowners of the district, in compliance with laws repealed by this law, at which owners of a majority of the acres of land in the district failed to vote in favor of the improvement of any road or roads proposed to be improved, shall, from and after the taking effect of this law, by the name mentioned in the preliminary order of the county commission establishing it, be a political subdivision of the state for governmental purposes with all the powers mentioned in sections 233.170 to 233.315 and such others as may from time to time be given by law, and shall, after the taking effect of sections 233.170 to 233.315, proceed, and shall have and exercise, and the commissioners and landowners and voters thereof shall have and exercise, the same privileges, powers and duties as if such district was incorporated after the taking effect of sections 233.170 to 233.315 and under and in accordance with sections 233.170 to 233.315; except that valid contracts made or entered into before the taking effect of sections 233.170 to 233.315, under laws hereby repealed, shall be complied with the same as if such laws were still in force; and except that any such district in which there has been a meeting of landowners of the district, in compliance with laws repealed by sections 233.170 to 233.315, at which owners of a majority of the acres of land in the district voted that any road or roads therein be improved and the cost thereof charged against the lands in the district, may proceed, and the commissioners thereof may proceed in making such improvement, and tax bills, or bonds may be issued and collected on account of such improvement, in the same manner as if the laws repealed by sections 233.170 to 233.315 were still in force and effect and sections 233.170 to 233.315 not yet in effect; but in case no contract for such improvement has been entered into, or tax bills or bonds issued by reason of such vote for such improvement, such district, and the commissioners and landowners thereof may, in making such improvement or issuing tax bills or bonds on account thereof, proceed as if such district had not been incorporated until after the taking effect of sections 233.170 to 233.315, and was incorporated under and in compliance with sections 233.170 to 233.315; or said special road district commissioners may file with the clerk of the county commission the tabulated statement or statements of the lands in the district as prepared previous to such meeting, and, if they have not done so already, make out and file with the clerk of the county commission a report of the action of the landowners at such meeting, signed and acknowledged by them, and the clerk of the county commission, after such report and tabulated statement are so filed, shall give notice, by at least two publications in some weekly newspaper published in the county, that said special road district commissioners have filed with him a report of an election in such district, and a tabulated statement of the lands in the district, showing the valuations fixed by them on each tract thereof for the purposes of an assessment for road improvement voted upon at such meeting, and such notice shall state a day not less than two weeks later than the date of the first publication of such notice, upon which the county commission will be in session and will hear and consider exceptions and objections to such report and tabulated statement and to the valuations so fixed on any or all tracts of land in the district, and the county commission shall, upon said day or as soon thereafter as the business of the county commission will permit, hear and consider any objections or exceptions that may be made to such report, and at such hearing such report shall be prima facie evidence of the statements therein made, and the county commission, if no objections or exceptions are made to such report, or if it find, after considering and hearing any objections that may be so made, and any evidence that may be offered, that such special road district commissioners prior to such meeting, and at such meeting, proceeded in compliance with the law then in force, and called such meeting and gave notice thereof in compliance with the law then in force, and that the action of the landowners at such meeting was as stated in such report, the county commission shall hear and consider such objections and exceptions as may be made to such tabulated statement or to valuations fixed on lands in the district as in such tabulated statement indicated, and, after hearing and considering such objections and exceptions, and such evidence as may be offered, shall make any alterations and corrections of said tabulated statement, and of the valuations so fixed and indicated, or fix such valuations on any of such lands, as it may deem proper, and shall thereupon approve such tabulated statement, and the valuations indicated therein, and order the clerk of the county commission to annex to said tabulated statement a certificate of such approval, and thereafter such district, and the special road district commissioners thereof, and the clerk of the county commission, in making such improvement and contracting for the same, or in issuing tax bills to pay for the same, or issuing bonds or tax bills to pay such bonds, may proceed as if this law had not taken effect, and the laws hereby repealed still in effect, except that the special road district commissioners need not make out and certify to the county clerk a description of the lands in the district as required by laws hereby repealed, and the county clerk in apportioning against each tract of land in the district its share of the cost of the improvement or its share of the principal and interest on the bonds, shall use, for the purpose of making such apportionment, such tabulated statement as so approved by the commission.
+
+
+* structured
+
+** title
+233.285.  Law not to affect road districts incorporated prior to effective date. —
+
+** ()
+
+*** The repealing
+**** of the sections and law repealed by this law
+*** shall not
+**** have the effect of abating, nullifying, suspending or vitiating
+**** any public road district
+***** incorporated,
+***** or established by preliminary order,
+***** prior to the taking effect of this law
+**** or any proceedings by any such public road district;
+
+** but
+
+*** any public road district
+**** finally incorporated,
+**** or established only by preliminary order,
+**** prior to the taking effect of this law,
+**** except districts
+***** established only by preliminary order in which
+****** there has been held
+******* a meeting of landowners of the district,
+******* in compliance with laws repealed by this law,
+******* at which owners of a majority of the acres of land in the district 
+******* failed to vote in favor of
+******** the improvement of any road or roads proposed to be improved, 
+*** shall,
+**** from and after the taking effect of this law,
+**** by the name mentioned in the preliminary order of the county commission establishing it, 
+*** be a political subdivision of the state
+**** for governmental purposes
+**** with
+***** all the powers mentioned in sections 233.170 to 233.315
+***** and such others as may from time to time be given by law,
+**** and shall, 
+***** after the taking effect of sections 233.170 to 233.315, 
+**** proceed,
+*** and shall have and exercise,
+**** and the commissioners and landowners and voters thereof shall have and exercise,
+*** the same privileges, powers and duties
+**** as if such district was incorporated after the taking effect of sections 233.170 to 233.315
+**** and under and in accordance with sections 233.170 to 233.315; 
+
+
+** except that 
+*** valid contracts
+**** made or entered into before the taking effect of sections 233.170 to 233.315,
+**** under laws hereby repealed, 
+*** shall be complied with
+**** the same as if such laws were still in force;
+
+
+** and except that
+*** any such district
+**** in which there has been a meeting of landowners of the district, 
+***** in compliance with laws repealed by sections 233.170 to 233.315,
+**** at which owners of a majority of the acres of land in the district voted that
+***** any road or roads therein be improved
+***** and the cost thereof charged against the lands in the district,
+*** may proceed,
+**** and the commissioners thereof may proceed
+*** in making such improvement,
+**** and tax bills, or bonds may be issued and collected on account of such improvement,
+*** in the same manner
+**** as if the laws repealed by sections 233.170 to 233.315 were still in force and effect
+**** and sections 233.170 to 233.315 not yet in effect;
+*** but
+**** in case
+***** no contract for such improvement has been entered into,
+***** or tax bills or bonds issued by reason of such vote for such improvement,
+
+**** such district, and the commissioners and landowners thereof
+**** may, 
+***** in making such improvement or issuing tax bills or bonds on account thereof,
+**** proceed
+***** as if such district
+****** had not been incorporated until after the taking effect of sections 233.170 to 233.315, 
+****** and was incorporated under and in compliance with sections 233.170 to 233.315; 
+
+**** or said special road district commissioners
+**** may
+***** file
+****** with the clerk of the county commission
+***** the tabulated statement
+****** or statements of the lands in the district as prepared previous to such meeting,
+***** and,
+****** if they have not done so already,
+***** make out and file
+****** with the clerk of the county commission
+***** a report
+****** of the action of the landowners at such meeting, signed and acknowledged by them,
+
+***** and the clerk of the county commission, 
+****** after such report and tabulated statement are so filed, 
+***** shall give notice, 
+****** by at least two publications 
+****** in some weekly newspaper published in the county, 
+****** that said special road district commissioners have filed with him a report
+[https://legalese.slack.com/archives/C18UVEESV/p1503069398000394]
+******* of an election in such district, 
+******* and a tabulated statement of the lands in the district, 
+******* showing the valuations fixed by them on each tract thereof
+******** for the purposes of an assessment for road improvement voted upon at such meeting,
+***** and such notice shall state a day
+****** not less than two weeks later than the date of the first publication of such notice, 
+***** upon which the county commission will be in session
+****** and will hear and consider exceptions and objections
+[https://legalese.slack.com/archives/C18UVEESV/p1503070677000576]
+******* to such report and tabulated statement 
+******* and to the valuations so fixed on any or all tracts of land in the district,
+
+***** and the county commission shall, 
+****** upon said day
+******* or as soon thereafter as the business of the county commission will permit,
+***** hear and consider any objections or exceptions that may be made to such report, 
+****** and at such hearing such report shall be prima facie evidence of the statements therein made
+***** and the county commission,
+****** if
+******* no objections or exceptions are made to such report,
+****** or if
+******* it find,
+******** after considering and hearing
+********* any objections that may be so made, 
+********* and any evidence that may be offered, 
+******* that
+******** such special road district commissioners
+********* prior to such meeting, and at such meeting, 
+********* proceeded in compliance with the law then in force,
+********* and called such meeting and gave notice thereof in compliance with the law then in force, 
+********* and that the action of the landowners at such meeting was as stated in such report, 
+***** [catch breath, repeat] the county commission
+****** shall hear and consider
+******* such objections and exceptions as may be made
+******** to such tabulated statement
+******** or to valuations fixed on lands in the district as in such tabulated statement indicated, 
+****** and,
+******* after hearing and considering
+******** such objections and exceptions,
+******** and such evidence as may be offered, 
+****** shall
+******* make any alterations and corrections
+******** of said tabulated statement, and
+******** of the valuations so fixed and indicated,
+******* or fix such valuations on any of such lands, as it may deem proper, 
+****** and shall thereupon
+******* approve such tabulated statement, 
+******** and the valuations indicated therein,
+******* and order the clerk of the county commission 
+******** to annex to said tabulated statement a certificate of such approval, 
+**** and thereafter
+***** such district, 
+***** and the special road district commissioners thereof, 
+***** and the clerk of the county commission, 
+****** in making such improvement and contracting for the same, 
+****** or in issuing tax bills to pay for the same, 
+****** or issuing bonds or tax bills to pay such bonds, 
+***** may proceed 
+****** as if this law had not taken effect, 
+****** and the laws hereby repealed still in effect, 
+***** except that
+****** the special road district commissioners need not
+******* make out and certify to the county clerk a description of the lands in the district
+******** as required by laws hereby repealed, 
+****** and
+****** the county clerk
+******* in apportioning against each tract of land in the district its share of the cost of the improvement or its share of the principal and interest on the bonds, 
+****** shall use, 
+******** for the purpose of making such apportionment, 
+****** such tabulated statement as so approved by the commission.
+
+* semantic / logical patterns
+
+** inspiration
+
+Searle
+
+http://www.webpages.uidaho.edu/~morourke/443-phil/06-Spring/Handouts/Philosophical/Searle.htm
+
+1. Regulative Rules:  these regulate pre-existing activity whose existence is independent of the rules; these rules can be stated typically as imperatives.  (Often these are mistakenly taken to be the paradigm type of rule.)
+ 
+2. Constitutive Rules:  these constitute an activity the existence of which is logically dependent on the rules; these can be expressed as imperatives in certain cases, but they can also be expressed as non-imperative, "counts as" rules.  (These tend to get overlooked.)
+
+** constitutive rules
+
+*** informally
+
+**** a thing T
+**** has characteristic P
+**** if conditions C1, ..., CN
+(expressed in CNF)
+
+*** formally, in predicate FOL
+
+~C₁(T), ..., Cₙ(T) -> P(T)~
+
+*** as a Horn Clause
+
+~P(T) :- C₁(T), ..., Cₙ(T)~
+
+*** in our notation
+
+~P(T) ← C₁(T) ∧ ... ∧ Cₙ(T)~
+
+*** related concepts
+
+pull / deliberation / backward-chaining
+
+http://wiki.ruleml.org/index.php/Specification_of_Deliberation_RuleML_1.0
+
+** regulative rules
+*** informally
+
+**** optional (when conditions are met)
+**** party Q (possibly defined constitutively by the conditions)
+**** Must / MustNot / May (deontic D)
+**** case D == Must
+***** perform some positive Action (A)
+****** belonging to an Action Kind (AK)
+****** meeting the criteria described by an Action Expression (AE)
+***** by some deadline (DL)
+**** case D == MustNot
+***** refrain from some Action (A) : AK = λAE → ⊥
+***** until some deadline (DL) | forever (∞)
+
+*** in our notation
+
+(C₁ ∧ ... ∧ Cₙ) ⇒ rule-spec
+
+
+#+BEGIN_SRC
+rule-spec ::= <party Q> (MUSΤ | MUSTNOT | MAY) A ： AK (AE) ( by DL | forever )
+
+rule-spec ::= ASSERT (rule-name)
+            | RETRACT (rule-name)
+#+END_SRC
+
+*** related concepts
+
+push / reaction / forward-chaining
+
+** metarules： defeasibility
+
+*** example
+
+all men are mortal except those who have tasted the Philosopher's Stone
+
+**** all men are mortal
+
+Rₘ = Cₘ              → Bₘ
+     Cₘ = ∀x. man(x)
+                       Bₘ = mortal(x)
+
+∀x. man(x) → mortal(x)
+
+**** all men who have tasted the Philosopher's Stone are immortal
+
+Rₚ = Cₚ                 → Bₚ
+     Cₚ = ∀x. stoned(x)
+                        Bₚ = ¬mortal(x)
+
+∀x. stoned(x) → ¬mortal(x)
+
+**** together
+
+∀x.   ( man(x) ∧ ¬stoned(x) →  mortal(x) )
+    ∧ ( man(x) ∧  stoned(x) → ¬mortal(x) )
+
+*** semi-formally
+
+every rule R₀ with conditions C₀ and body B₀ may be defeased by an exception Rₓ=(Cₓ,Bₓ) producing the new rule
+
+R₁ = ( C₀ ∧ ¬Cₓ → Bₒ )
+   ∧ ( C₀ ∧  Cₓ → B₁ )
+
+**** let us observe two kinds of exceptions, which affect bodies differently:
+
+***** the substitution exception
+
+B₁ = Bₓ
+
+***** the extension exception
+
+B₁ = B₀ ∧ Bₓ
+
+**** entertainingly, the exception rule Rₓ may itself be further defeased by Rₓₓ ad infinitum.
+
+**** syntactic sugar
+if there is no Bₓ then B₁ = ⊤
+*** related concepts
+
+http://wiki.ruleml.org/index.php/Specification_of_Reaction_RuleML_1.0
+
+** metarules： assertion and extraction
+
+*** informally
+
+**** when certain conditions are met
+**** assert ruleset RS
+**** retract rules RS
+
+* semantics of the missouri code
+
+#+BEGIN_SRC prolog
+
+global thisLaw
+
+global oldSections
+global oldLaw
+
+takingEffectDate(thisLaw) ≔ Date 1919-00-00
+
+oldPRD(PRD) ← ( incorporatedT(PRD,Date) ∨ establishedByT(PRD, preliminaryOrder, Date) ), Date ≤ takingEffectDate(thisLaw)
+
+repealedBy(sections, thisLaw) ≔ [ section | section <- oldSections, repeals(thisLaw, section) ]
+repealedBy(law,      thisLaw) ≔ [ law     | law     <- oldLaw,      repeals(thisLaw, law    ) ]
+
+repealingOf(sections ∪ law) ← repealedBy(sections, thisLaw), repealedBy(law, thisLaw)
+                            ⇏ ( effectOf(negging, PRD), oldPRD(PRD)
+                              ∨ effectOf(negging, proceedingsBy(PRD) )
+
+negging(X) ← abating(X) ∨ nullifying(X) ∨ suspending(X) ∨ vitiating(X)
+
+
+-- is finallyIncorporatedT the same as incorporatedT?
+
+oldF_PRD(PRD) ← ( incorporatedFinallyT(PRD,Date) ∨  )
+                ),
+                Date ≤ takingEffectDate(thisLaw)
+
+establishedOnlyByPreliminaryOrder(PRD) ← (    establishedByT(PRD, preliminaryOrder, Date)
+                                         ∧ ¬ (establishedByT(PRD, Other, Date), (Other ≠ preliminaryOrder) ) )
+
+except(oldF_PRD(PRD)) ← establishedOnlyByPreliminaryOrder(PRD),
+                        meetingParticipants(M, landowners(PRD)),
+                        meetingInCompliance(M, law), repealedBy(law, thisLaw),
+                        majorityOwnersByAcre(MO, LD), landIn(LD, PRD),
+                        ¬ meetingVoteFor(improvement(Roads)), roadsIn(Roads,PRD)
+
+
+#+END_SRC
+
+
+
