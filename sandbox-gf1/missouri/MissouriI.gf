@@ -1,13 +1,15 @@
---# -path=.:present
+--# -path=.:present:librarybrowser
 
 incomplete concrete MissouriI of Missouri =
   GruterI **
-  open SyntaxEng, ParadigmsEng, Prelude, (RE=ResEng), (EE=ExtraEng), ExtensionsEng in
+  open SyntaxEng, ParadigmsEng, Prelude, (RE=ResEng), (EE=ExtraEng), ExtensionsEng
+  in
   {
   lincat
     ReactionRule = Text;
     Event = NP;
     Consequent = LexDeontic.DOp => VP;
+--    Simple = S;
 
   oper
     LPP : P_Party = {
@@ -56,14 +58,42 @@ incomplete concrete MissouriI of Missouri =
     --   any public road district
     --   or any proceedings by any such public road district.
 
-    -- PhrUtt NoPConj (UttS (UseCl (TTAnt TPast ASimul) PPos (PredVP (DetCN (DetQuant DefArt NumPl) (UseN boy_N)) (AdvVP (ComplV2 love_V2 (MassNP (UseN mother_N))) by_Adv)))) NoVoc
+    -- mkCl i_NP ( mkVP ( passiveVP love_V2 ) ( mkAdv by8agent_Prep ( mkNP this_Quant ( mkCN ( mkAP young_A ) ( mkCN woman_N ) ) ) ) )
 
   lin    
+
     repealing = mkEvent
       (mkN "repealing") -- of the
-      (mkNP and_Conj
-         (mkNP aPl_Det (mkCN (mkN "section")))
-         (mkNP aPl_Det (mkCN (mkN "law"))));
+      (mkNP
+         (mkNP
+            (mkNP and_Conj
+               (mkNP the_Det (mkCN (mkN "section")))
+               (mkNP aPl_Det (mkCN (mkN "law"))))
+            (mkV2 "repeal") )
+         ( SyntaxEng.mkAdv by8agent_Prep
+             ( mkNP this_Quant (mkCN (mkN "law")))));
+
+    -- example = mkS 
+    --   ( mkCl i_NP 
+    --       ( mkVP 
+    --           ( mkVP love_V2 
+    --               ( mkNP 
+    --                   ( mkNP the_Det woman_N ) love_V2 ) ) 
+    --           ( SyntaxEng.mkAdv by8agent_Prep 
+    --               ( mkNP 
+    --                   ( mkNP the_Det 
+    --                       ( mkCN brother_N2 ) )
+    --                   ( SyntaxEng.mkAdv part_Prep -- of
+    --                       ( mkNP 
+    --                           ( mkNP 
+    --                               ( mkNP the_Det woman_N )
+    --                               love_V2 ) 
+    --                           ( SyntaxEng.mkAdv by8agent_Prep 
+    --                               ( mkNP 
+    --                                   ( mkNP the_Det 
+    --                                       ( mkCN brother_N2 ) ) 
+    --                                   ( SyntaxEng.mkAdv part_Prep 
+    --                                       ( mkNP the_Det woman_N ) ) ) ) ) ) ) ) ) );
 
     abating = table {
       LexDeontic.Oblig => mkAbating some_Det;
@@ -94,13 +124,13 @@ incomplete concrete MissouriI of Missouri =
     mkEvent : N -> NP -> NP =
       \eating, baconAndEggs ->
       mkNP the_Det
-         (mkCN (mkN2 eating) -- of the
+         (mkCN (mkN2 eating) -- of
             baconAndEggs);
 
     mkConsequence : Det -> N   -> V2 -> Det -> N       -> VP =
                    \the,effect,causing,some,  obesity ->
       (mkVP have_V2
-         (mkNP the -- TODO：turn this into a quantifier
+         (mkNP the -- think about this as a quantifier also
             (mkCN (mkN2 effect) -- of
                (ExtensionsEng.GerundNP (mkVP causing
                                           (mkNP some

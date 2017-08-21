@@ -9,6 +9,7 @@ abstract Missouri =
     ReactionRule;
     Event;
     Consequent Event;
+--    Simple;
         
   fun
     Missouri_When  : WhenPredicate;
@@ -22,6 +23,8 @@ abstract Missouri =
 
     repealing    : Event;
     abating      : Consequent repealing;
+
+--    example      : Simple;
     
     mkReactionRule :
          (event : Event)

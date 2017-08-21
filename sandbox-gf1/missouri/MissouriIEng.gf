@@ -1,4 +1,4 @@
---# -path=.:present
+--# -path=.:present:api:abstract:common:english:prelude:api/libraryBrowser:translator
 
 concrete MissouriIEng of Missouri = GruterIEng **
   MissouriI
