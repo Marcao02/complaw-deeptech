@@ -210,6 +210,16 @@ http://www.webpages.uidaho.edu/~morourke/443-phil/06-Spring/Handouts/Philosophic
 
 ~P(T) ← C₁(T) ∧ ... ∧ Cₙ(T)~
 
+*** classically
+
+Ken Adams rails against the use of "shall" in a non-deontic sense: for example, "this agreement shall be organized in the following sections."
+
+but we can resolve this difficulty by distinguishing between two uses of shall： the "shall do" use versus the "shall be" use.
+
+"shall be" is constitutive; "shall do" is regulative.
+
+So, any use of ← or ⇐ in our notation is equivalent, and translatable to, "shall be", in the other direction.
+
 *** related concepts
 
 pull / deliberation / backward-chaining
@@ -307,6 +317,14 @@ http://wiki.ruleml.org/index.php/Specification_of_Reaction_RuleML_1.0
 **** assert ruleset RS
 **** retract rules RS
 
+* linguistic patterns
+
+** corpus
+
+a bestiary of archaic synonyms.
+
+(can we borrow anything from [[https://github.com/bringert/mosg][Bringert]]？)
+
 * semantics of the missouri code
 
 #+BEGIN_SRC prolog
@@ -345,6 +363,7 @@ except(oldF_PRD(PRD)) ← establishedOnlyByPreliminaryOrder(PRD),
                         majorityOwnersByAcre(MO, LD), landIn(LD, PRD),
                         ¬ meetingVoteFor(improvement(Roads)), roadsIn(Roads,PRD)
 
+legit(PRD) ⇐ oldF_PRD(PRD)
 
 #+END_SRC
 
