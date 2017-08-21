@@ -265,32 +265,39 @@ all men are mortal except those who have tasted the Philosopher's Stone
 
 **** all men are mortal
 
+#+BEGIN_SRC
 Rₘ = Cₘ              → Bₘ
      Cₘ = ∀x. man(x)
                        Bₘ = mortal(x)
 
 ∀x. man(x) → mortal(x)
+#+END_SRC
 
 **** all men who have tasted the Philosopher's Stone are immortal
 
+#+BEGIN_SRC
 Rₚ = Cₚ                 → Bₚ
      Cₚ = ∀x. stoned(x)
                         Bₚ = ¬mortal(x)
 
 ∀x. stoned(x) → ¬mortal(x)
+#+END_SRC
 
 **** together
 
+#+BEGIN_SRC
 ∀x.   ( man(x) ∧ ¬stoned(x) →  mortal(x) )
     ∧ ( man(x) ∧  stoned(x) → ¬mortal(x) )
+#+END_SRC
 
 *** semi-formally
 
 every rule R₀ with conditions C₀ and body B₀ may be defeased by an exception Rₓ=(Cₓ,Bₓ) producing the new rule
 
+#+BEGIN_SRC
 R₁ = ( C₀ ∧ ¬Cₓ → Bₒ )
    ∧ ( C₀ ∧  Cₓ → B₁ )
-
+#+END_SRC
 **** let us observe two kinds of exceptions, which affect bodies differently:
 
 ***** the substitution exception
