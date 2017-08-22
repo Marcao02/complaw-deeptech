@@ -12,7 +12,7 @@ left_groupers = {'(','{','[','‹','❪'}
 right_groupers = {')','}',']','›','❫'}
 grouper_map = {'(':')', '{':'}', '[':']', '‹':'›', '❪':'❫', '"':'"', "'":"'", '`':'`', LINE_COMMENT_START_CHAR:'\n'}
 quotelike = {"'",'"','`'}
-double_splits_word_only = {':=','+=','-=','==','<=', '>=', '->', '=>', '<-'}
+double_splits_word_only = {':=','+=','-=','*=','==','<=', '>=', '->', '=>', '<-'}
 splits_word_only = {':','=',','}
 all_symb_tags = quotelike.union(left_groupers).union(';')
 

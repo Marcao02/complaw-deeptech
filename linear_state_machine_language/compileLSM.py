@@ -218,6 +218,8 @@ class Assemble:
                     return IncrementStatement(varname, rhs)
                 elif statement[1] == '-=':
                     return DecrementStatement(varname, rhs)
+                elif statement[1] == '*=':
+                    return TimesEqualsStatement(varname, rhs)    
                 else:
                     raise Exception
                 return None # not reachable
@@ -339,6 +341,7 @@ EXAMPLES = (
     'examples/hvitved_master_sales_agreement_simplified.LSM',
     'examples/hvitved_master_sales_agreement_full.LSM',
     'examples/hvitved_master_sales_agreement_full_with_ids.LSM',
+    'examples/hvitved_instalment_sale.LSM'
 )
 
 

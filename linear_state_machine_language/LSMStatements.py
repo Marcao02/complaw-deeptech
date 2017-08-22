@@ -138,7 +138,6 @@ class IncrementStatement(CodeBlockStatement):
 
     def __str__(self):
         return f"{self.varname} += {str(self.value_expr)}"
-
 class DecrementStatement(CodeBlockStatement):
     def __init__(self, varname:str, value_expr:Term) -> None:
         self.varname = varname
@@ -146,4 +145,10 @@ class DecrementStatement(CodeBlockStatement):
 
     def __str__(self):
         return f"{self.varname} -= {str(self.value_expr)}"
+class TimesEqualsStatement(CodeBlockStatement):
+    def __init__(self, varname:str, value_expr:Term) -> None:
+        self.varname = varname
+        self.value_expr = value_expr
 
+    def __str__(self):
+        return f"{self.varname} *= {str(self.value_expr)}"
