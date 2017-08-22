@@ -298,6 +298,7 @@ every rule R₀ with conditions C₀ and body B₀ may be defeased by an excepti
 R₁ = ( C₀ ∧ ¬Cₓ → Bₒ )
    ∧ ( C₀ ∧  Cₓ → B₁ )
 #+END_SRC
+
 **** let us observe two kinds of exceptions, which affect bodies differently:
 
 ***** the substitution exception
@@ -311,7 +312,8 @@ B₁ = B₀ ∧ Bₓ
 **** entertainingly, the exception rule Rₓ may itself be further defeased by Rₓₓ ad infinitum.
 
 **** syntactic sugar
-if there is no Bₓ then B₁ = ⊤
+if there is no Bₓ given, then B₁ = ⊤
+
 *** related concepts
 
 http://wiki.ruleml.org/index.php/Specification_of_Reaction_RuleML_1.0
@@ -341,7 +343,7 @@ global thisLaw
 global oldSections
 global oldLaw
 
-takingEffectDate(thisLaw) ≔ Date 1919-00-00
+takingEffectDate(thisLaw) ≔ Date _
 
 oldPRD(PRD) ← ( incorporatedT(PRD,Date) ∨ establishedByT(PRD, preliminaryOrder, Date) ), Date ≤ takingEffectDate(thisLaw)
 
@@ -349,20 +351,24 @@ repealedBy(sections, thisLaw) ≔ [ section | section <- oldSections, repeals(th
 repealedBy(law,      thisLaw) ≔ [ law     | law     <- oldLaw,      repeals(thisLaw, law    ) ]
 
 repealingOf(sections ∪ law) ← repealedBy(sections, thisLaw), repealedBy(law, thisLaw)
-                            ⇏ ( effectOf(negging, PRD), oldPRD(PRD)
+                            ⇏ -- shall not have the effect of
+                              ( effectOf(negging, PRD), oldPRD(PRD)
                               ∨ effectOf(negging, proceedingsBy(PRD) )
+                              % in the above we see the pattern: use of a term, definition of a term, use of the term
+                              % note the difference between "a" and "the" above;
+                              % the latter use also corresponds to "such term"
+                              % ... the word "such" appears in the final text!
+                              % we can apply this pattern to "aforesaid" and "abovementioned"
 
 negging(X) ← abating(X) ∨ nullifying(X) ∨ suspending(X) ∨ vitiating(X)
 
-
 -- is finallyIncorporatedT the same as incorporatedT?
 
-oldF_PRD(PRD) ← ( incorporatedFinallyT(PRD,Date) ∨  )
-                ),
+oldF_PRD(PRD) ← incorporatedFinallyT(PRD,Date), 
                 Date ≤ takingEffectDate(thisLaw)
 
-establishedOnlyByPreliminaryOrder(PRD) ← (    establishedByT(PRD, preliminaryOrder, Date)
-                                         ∧ ¬ (establishedByT(PRD, Other, Date), (Other ≠ preliminaryOrder) ) )
+establishedOnlyByPreliminaryOrder(PRD) ← (   establishedByT(PRD, preliminaryOrder, Date),
+                                           ¬(establishedByT(PRD, Other, Date), (Other ≠ preliminaryOrder) ) )
 
 except(oldF_PRD(PRD)) ← establishedOnlyByPreliminaryOrder(PRD),
                         meetingParticipants(M, landowners(PRD)),
@@ -370,9 +376,13 @@ except(oldF_PRD(PRD)) ← establishedOnlyByPreliminaryOrder(PRD),
                         majorityOwnersByAcre(MO, LD), landIn(LD, PRD),
                         ¬ meetingVoteFor(improvement(Roads)), roadsIn(Roads,PRD)
 
-legit(PRD) ⇐ oldF_PRD(PRD)
+legit(PRD) ← oldF_PRD(PRD)
+           ⇒ 
 
 #+END_SRC
+
+* sandbox
+
 
 
 
