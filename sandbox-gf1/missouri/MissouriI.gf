@@ -115,7 +115,20 @@ incomplete concrete MissouriI of Missouri =
       any_Predet
       (mkNP
          or_Conj
-         (mkNP (mkCN (mkN "public road district")))
+
+         -- NP -> V2 -> NP
+         (mkNP 
+            (mkNP 
+               (mkNP (mkCN (mkN "public road district")))
+               (mkV2 (mkV "incorporate"))
+            )
+            ( SyntaxEng.mkAdv
+                prior_to_Prep
+                (mkNP the_Det
+                   (mkCN (mkN "taking-effect of this law")))))
+
+-- mkUtt ( mkS ( mkCl i_NP like_V2 ( mkNP ( mkNP ( mkNP anySg_Det food_N ) incorporate_V2 ) ( mkAdv prior_to_Prep ( mkNP ( mkCN yesterday_N ) ) ) ) ) )
+
          (mkNP any_Predet
             (mkNP (mkCN
                (mkN2
@@ -126,9 +139,7 @@ incomplete concrete MissouriI of Missouri =
                      (mkNP (mkCN (mkN "public road district"))))))))
          );
 
-       -- N -> Prep -> N2
-       -- N2 -> NP -> CN   mother of the king
-       
+    -- mkAdv by8agent_Prep NP
        
     -- mkUtt ( mkS ( mkCl i_NP like_V2 ( mkNP most_Predet ( mkNP and_Conj ( mkNP ( mkCN fruit_N ) ) ( mkNP aPl_Det vegetable_N ) ) ) ) )
     
@@ -230,7 +241,10 @@ incomplete concrete MissouriI of Missouri =
     some_Predet = lin Predet (ss "some");
     all_Predet  = lin Predet (ss "all");
     such_Predet = lin Predet (ss "such");
+
     
     lessening : Str -> Str = \s -> table { x + "vitiating" => x + "vitiate"; _ => s } ! s ;
+
+    prior_to_Prep : Prep = mkPrep "prior to";
 
 }
