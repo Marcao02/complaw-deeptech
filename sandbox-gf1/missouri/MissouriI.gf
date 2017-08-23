@@ -206,6 +206,6 @@ incomplete concrete MissouriI of Missouri =
     any_Det  = mkDet (ParadigmsEng.mkQuant "any"  "any");
     some_Det = mkDet (ParadigmsEng.mkQuant "some" "some");
 
-    lessing : Str -> Str = \s -> table { x + "ing" => x + "e"; _ => s } ! s ;
+    lessing : Str -> Str = \s -> table { x + "vitiating" => x + "vitiate"; _ => s } ! s ;
 
 }
