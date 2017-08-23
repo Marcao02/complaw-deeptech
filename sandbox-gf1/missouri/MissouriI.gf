@@ -201,12 +201,11 @@ incomplete concrete MissouriI of Missouri =
       let sadTable : Det => Conj = table { some_Det =>  or_Conj ; any_Det  => and_Conj };
           conj = sadTable ! det;
           vpi  = ConjVPI conj listvpi
-      in  mkV2 (vpi.s ! RE.VVPresPart ! RE.AgP3Pl RE.Neutr);
+      in  mkV2 (lessing (vpi.s ! RE.VVPresPart ! RE.AgP3Pl RE.Neutr));
 
     any_Det  = mkDet (ParadigmsEng.mkQuant "any"  "any");
     some_Det = mkDet (ParadigmsEng.mkQuant "some" "some");
 
-    
-    
+    lessing : Str -> Str = \s -> table { x + "ing" => x + "e"; _ => s } ! s ;
 
 }
