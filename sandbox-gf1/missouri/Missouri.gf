@@ -22,7 +22,7 @@ abstract Missouri =
     obesity      : Consequent eating;
 
     repealing    : Event;
-    abating      : Consequent repealing;
+    abate        : Consequent repealing;
 
 --    example      : Simple;
     

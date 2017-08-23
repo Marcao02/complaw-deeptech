@@ -96,15 +96,14 @@ incomplete concrete MissouriI of Missouri =
     --                                   ( SyntaxEng.mkAdv part_Prep 
     --                                       ( mkNP the_Det woman_N ) ) ) ) ) ) ) ) ) );
 
-    abating = table {
+    abate = table {
       LexDeontic.Oblig => mkAbating some_Det;
       LexDeontic.Forb  => mkAbating  any_Det;
       LexDeontic.Perm  => mkAbating some_Det
       };
 
   oper
-    mkAbatingShort : Det -> VP = \det ->
-      mkConsequence the_Det (mkN "effect") (mkV2 "abate") det (mkN "proceeding");
+
     mkAbating : Det -> VP = \det ->
       mkConsequence the_Det (mkN "effect")
 
@@ -113,7 +112,14 @@ incomplete concrete MissouriI of Missouri =
       (BaseVPI (MkVPI (mkVP (mkV "suspend")))
                (MkVPI (mkVP (mkV "vitiate"))))))
 
-      det (mkN "proceeding");
+      any_Predet
+      (mkNP (mkCN (mkN "proceeding")));
+
+    -- mkUtt ( mkS ( mkCl i_NP like_V2 ( mkNP most_Predet ( mkNP and_Conj ( mkNP ( mkCN fruit_N ) ) ( mkNP aPl_Det vegetable_N ) ) ) ) )
+    
+    -- ( mkCN and_Conj ( mkListCN ( mkCN publicRoadDistrict_N ) ( mkCN banana_N ) ) ) ) ) 
+
+    -- mkUtt ( mkNP ( mkNP i_Pron ) ( mkAdv like_Prep ( mkNP somePl_Det ( mkCN and_Conj ( mkListCN ( mkCN apple_N ) ( mkCN banana_N ) ) ) ) ) )
     
 -- > l -table (ConjVPI and_Conj (ConsVPI (MkVPI (UseV sleep_V)) (BaseVPI (MkVPI (UseV sing_V)) (MkVPI (UseV eat_V)))))
 -- linking ... OK
@@ -185,27 +191,30 @@ incomplete concrete MissouriI of Missouri =
                                           (mkNP some
                                              (mkCN obesity))))))) ;
 
-      mkConsequence : Det -> N   -> ListVPI       -> Det -> N -> VP =
+      mkConsequence : Det -> N   -> ListVPI     -> SS -> NP -> VP =
                      \the,effect,causing_worsening,some,  obesity ->
       (mkVP have_V2
          (mkNP the -- think about this as a quantifier also
             (mkCN (mkN2 effect) -- of
                (ExtensionsEng.GerundNP (mkVP
                                           (listvpi2v2 causing_worsening some)
-                                          (mkNP some
-                                             (mkCN obesity)))))))
+                                          (mkNP some obesity))))))
     };
 
-    listvpi2v2 : ListVPI -> Det -> V2;
-    listvpi2v2 listvpi det =
-      let sadTable : Det => Conj = table { some_Det =>  or_Conj ; any_Det  => and_Conj };
-          conj = sadTable ! det;
+    listvpi2v2 : ListVPI -> SS -> V2;
+    listvpi2v2 listvpi predet =
+      let sadTable : SS => Conj = table { some_Predet =>  or_Conj ; any_Predet  => and_Conj };
+          conj = sadTable ! predet;
           vpi  = ConjVPI conj listvpi
-      in  mkV2 (lessing (vpi.s ! RE.VVPresPart ! RE.AgP3Pl RE.Neutr));
+      in  mkV2 (lessening (vpi.s ! RE.VVPresPart ! RE.AgP3Pl RE.Neutr));
 
     any_Det  = mkDet (ParadigmsEng.mkQuant "any"  "any");
     some_Det = mkDet (ParadigmsEng.mkQuant "some" "some");
 
-    lessing : Str -> Str = \s -> table { x + "vitiating" => x + "vitiate"; _ => s } ! s ;
+    any_Predet  = ss "any";
+    some_Predet = ss "some";
+    all_Predet  = ss "all";
+    
+    lessening : Str -> Str = \s -> table { x + "vitiating" => x + "vitiate"; _ => s } ! s ;
 
 }
