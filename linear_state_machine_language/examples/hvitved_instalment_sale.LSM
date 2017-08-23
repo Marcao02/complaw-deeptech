@@ -24,7 +24,7 @@
 
 (FormalContract	
 	"Instalment Sale Hvitved"
-	(StartState WaitingForFirstDayOfMonth)
+	(StartState WaitingForFirstDayOfNextMonth)
 
 	(EventStates		
 		(WaitingForFirstDayOfNextMonth()			
@@ -35,7 +35,7 @@
 					(PayInstallment(a) on (dayOrdRelativeToMonth 1 (nextMonthOrd)) where ((MIN_PAYMENT ≤ a ) and (a ≤ balance_remaining)))
 				)
 				(Buyer mustif (contract_month == 23)
-					(PayInstallment(a) on (dayOrdRelativeToMonth 1 (nextMonthOrd)) where (a == (balance + DUE_AT_CLOSING)))
+					(PayLastInstallment(a) on (dayOrdRelativeToMonth 1 (nextMonthOrd)) where (a == (balance + DUE_AT_CLOSING)))
 				)
 			)
 		)
