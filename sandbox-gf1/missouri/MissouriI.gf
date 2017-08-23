@@ -197,19 +197,16 @@ incomplete concrete MissouriI of Missouri =
     };
 
     listvpi2v2 : ListVPI -> Det -> V2;
-    listvpi2v2 listvpi wtf =
-      let conj = stupidTable ! wtf in
-      let vpi = ConjVPI conj listvpi in
-      mkV2 (vpi.s ! RE.VVPresPart ! RE.AgP3Pl RE.Neutr);
+    listvpi2v2 listvpi det =
+      let sadTable : Det => Conj = table { some_Det =>  or_Conj ; any_Det  => and_Conj };
+          conj = sadTable ! det;
+          vpi  = ConjVPI conj listvpi
+      in  mkV2 (vpi.s ! RE.VVPresPart ! RE.AgP3Pl RE.Neutr);
 
     any_Det  = mkDet (ParadigmsEng.mkQuant "any"  "any");
     some_Det = mkDet (ParadigmsEng.mkQuant "some" "some");
 
-    stupidTable : Det => Conj;
-    stupidTable = table {
-            some_Det =>  or_Conj ;
-            any_Det  => and_Conj
-            };
+    
     
 
 }
