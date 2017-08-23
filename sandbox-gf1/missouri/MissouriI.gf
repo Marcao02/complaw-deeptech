@@ -113,8 +113,23 @@ incomplete concrete MissouriI of Missouri =
                (MkVPI (mkVP (mkV "vitiate"))))))
 
       any_Predet
-      (mkNP (mkCN (mkN "proceeding")));
+      (mkNP
+         or_Conj
+         (mkNP (mkCN (mkN "public road district")))
+         (mkNP any_Predet
+            (mkNP (mkCN
+               (mkN2
+                  (mkN "proceeding")
+                  by8agent_Prep)
+               (mkNP any_Predet
+                  (mkNP such_Predet
+                     (mkNP (mkCN (mkN "public road district"))))))))
+         );
 
+       -- N -> Prep -> N2
+       -- N2 -> NP -> CN   mother of the king
+       
+       
     -- mkUtt ( mkS ( mkCl i_NP like_V2 ( mkNP most_Predet ( mkNP and_Conj ( mkNP ( mkCN fruit_N ) ) ( mkNP aPl_Det vegetable_N ) ) ) ) )
     
     -- ( mkCN and_Conj ( mkListCN ( mkCN publicRoadDistrict_N ) ( mkCN banana_N ) ) ) ) ) 
@@ -211,9 +226,10 @@ incomplete concrete MissouriI of Missouri =
     any_Det  = mkDet (ParadigmsEng.mkQuant "any"  "any");
     some_Det = mkDet (ParadigmsEng.mkQuant "some" "some");
 
-    any_Predet  = ss "any";
-    some_Predet = ss "some";
-    all_Predet  = ss "all";
+    any_Predet  = lin Predet (ss "any");
+    some_Predet = lin Predet (ss "some");
+    all_Predet  = lin Predet (ss "all");
+    such_Predet = lin Predet (ss "such");
     
     lessening : Str -> Str = \s -> table { x + "vitiating" => x + "vitiate"; _ => s } ! s ;
 
