@@ -383,7 +383,42 @@ legit(PRD) ← oldF_PRD(PRD)
 
 #+END_SRC
 
+* progress
+
+| day | number of words output | progress | data visualization                           |
+|-----+------------------------+----------+----------------------------------------------|
+|   1 |                      0 |    0.00% | .                                            |
+|   2 |                      7 |    0.63% | .-------                                     |
+|   3 |                     14 |    1.27% | .       -------                              |
+|   4 |                     21 |    1.90% | .              -------                       |
+|   5 |                     26 |    2.36% | .                     -----                  |
+|   6 |                     32 |    2.90% | .                          ------            |
+|   7 |                     43 |    3.90% | .                                ----------- |
+| ... |                        |          |                                              |
+| 180 |                   1100 |  100.00% |                                              |
+
+
+
+
+
+
+
+
+
+at this rate we will complete the full sentence on [2018-02-20 Tue]
+
+* modeling de morgan's cat
+
+∀cat.  switchedOn(cat) → ∀rodent ∈ mice ∪ rats →  catch(cat,rodent);
+∀cat. switchedOff(cat) → ∀rodent ∈ mice U rats → ¬catch(cat,rodent);
+
+
 * sandbox
+
+
+
+
+
 
 
 

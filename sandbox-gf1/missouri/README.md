@@ -1,10 +1,64 @@
-# Prerequisite: Haskell
+# About
+
+In this exercise we attempt to model [MO Rev Stat § 233.285 (2015)](http://law.justia.com/codes/missouri/2015/title-xiv/chapter-233/section-233.285/) which was chosen as a good example of a law that
+- is very long
+- modifies prior law
+- is conscious of modifying prior law
+- contains constitutive rules
+- contains regulatory rules
+- contains one or two elements that might be considered mistakes
+- contains one or two elements that might be considered ambiguities
+- contains repetitive patterns that appear to "unroll the loop"
+- uses "shall" in various senses, sometimes to obligate the parties, sometimes to determine the reading of the text
+
+Analyzing the text, one might conjecture that a formalization of the logic of the text would involve:
+- temporal modals --- to describe events and fluents in time
+- deontic modals --- to describe the obligations of parties, aka regulative rules
+- evaluation of intensional predicates to an extensional determination --- to support constitutive rules
+- first-order logic --- to assign truth or false values to combinations of elements within the text
+
+See <missouri.org> for more detail on the text itself.
+
+# Usage
+
+```
+20170824-12:05:14 mengwong@venice2:~/non-db-src/l/compiler/sandbox-gf1/missouri% gf MissouriIEng.gf
+
+         *  *  *
+      *           *
+    *               *
+   *
+   *
+   *        * * * * * *
+   *        *         *
+    *       * * * *  *
+      *     *      *
+         *  *  *
+
+This is GF version 3.9.
+Built on darwin/x86_64 with ghc-8.0, flags: interrupt
+License: see help -license.
+
+linking ... OK
+
+Languages: MissouriIEng
+Missouri> l mkReactionRule repealing MustNot abate
+the repealing of the section and laws repealed by this law shall not have the effect of abating , nullifying , suspending or vitiating any public road district incorporated prior to the taking-effect of this law or any proceeding by any such public road district .
+
+9 msec
+```
+
+# Installation
+
+To run `gf MissouriIEng.gf` you may need to install a tweaked GF.
+
+## Prerequisite: Haskell
 
 Install [Haskell](https://www.haskell.org/downloads), preferably using Slack.
 
 Haskell `ghc` is needed to compile `GF`.
 
-# Prerequisite: GF
+## Prerequisite: GF
 
 Clone the [Legalese fork of GF](https://github.com/legalese/GF/tree/gflibpaths).
 
@@ -22,7 +76,7 @@ If you previously installed GF from some kind of package, `rm` or `mv` the `gf` 
 
 The `gflibpaths` branch of our fork is needed for the following magic:
 
-# `GF_LIB_PATH`
+## `GF_LIB_PATH`
 
 The standard GF install instructions tell you to set, in your `.zshenv` or `.profile`, something like
 
