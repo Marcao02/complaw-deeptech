@@ -1,0 +1,126 @@
+(LSMVersion 3.0.0)
+
+(Actors Landlord Tenant)
+
+(ContractParams 
+	(MOVE_IN_TIME : Time := 0)	
+	(LEASE_DURATION : M := 6) 
+	(RENT : Price = 1000)
+	(MAX_DAYS_RENT_DELAY : D := 7)  	
+)
+
+(ProseContract
+	(P1 'The term of this lease is for {LEASE_DURATION} months, beginning on {LEASE_TERM_START}. At the expiration of said term, the lease will automatically be renewed for a period of one month unless either party (Landlord or Tenant) notifies the other of its intention to terminate the lease at least one month before its expiration date.')
+	(P2 'The lease is for 1 apartment, which is provided by Landlord throughout the term.')
+	(P3 'Tenant agrees to pay the amount of {RENT} per month, each payment due within {MAX_DAYS_RENT_DELAY} days of the start of each month.')
+)
+
+(GlobalVars
+	(lease_term_start : ℕ := NaN)		; formerly never : Date
+	(lease_term_end : ℕ := NaN)		; formerly never : Date
+	(writeOnceMore lease_terminated : Bool := false)
+	(branchUnaffecting inconly total_rent_paid : ℕ := 0)
+)
+
+(FormalContract
+	"Lease Hvitved"
+	(StartState Start)
+	
+	(Event&State Start()
+		(ActorEvents
+			(Landlord must
+				(EnsureApartmentReady() on MOVE_IN_TIME)
+			)
+		)
+	)
+
+	(Action Request_Termination
+		(Tenant may in states (Month_Started RentToBePaid PayRent) if (not lease_terminated))
+		(Landlord may in states (Month_Started RentToBePaid PayRent) if (not lease_terminated))
+		
+		(Entrance
+			(lease_terminated := true)
+		)			
+	)
+	
+	(Action&State EnsureApartmentReady()
+		(FallbackState
+			(Lease_Term_Started() immediately)
+		)
+	)
+
+	(Event&State Lease_Term_Started()
+		(Entrance
+			(conjecture ((event_start_date) == (monthStartDay)))
+			(lease_term_start := (event_start_date))
+			(lease_term_end := ((event_start_date) + LEASE_DURATION))
+		)
+		(FallbackState
+			(Month_Started() immediately)
+		)
+	)
+
+	(Event&State Month_Started()
+		(ActorEvents
+			(Tenant may
+				(Request_Termination_At_Rent_Or_Before() by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+				(PayRent() by ((monthStartDay) + MAX_RENT_DELAY))
+			)
+			(Landlord may
+				(Request_Termination_At_Rent_Or_Before() by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+			)
+		)
+		(FallbackState
+			(RentToBePaid() immediately)
+		)
+	)
+
+	(Event&State RentToBePaid()
+		(ActorEvents
+			(Tenant must
+				(PayRent() by ((monthStartDay) + MAX_RENT_DELAY))
+			)
+		)
+	)		
+
+	(Action&State PayRent()
+		(Entrance
+			(total_rent_paid += 1000)
+		)			
+		
+		(FallbackState
+			(Month_Ended() on (monthEndDay))
+		)
+	)
+
+	(Event&State Month_Ended()
+		(Entrance
+			(local lease_term_will_end := (lease_term_end ≤ ((today) + 1)))
+		)
+		(FallbackStates
+			(Lease_Term_Ended() on lease_term_end if lease_term_will_end)
+			(Month_Started() on (today() + 1) if (not lease_term_will_end))
+		)
+	)
+
+	(Event&State Lease_Term_Ended()  
+		(ActorEvents
+			(Tenant mustif lease_terminated
+				(Move_Out() immediately)
+			)
+		)
+		(Fallbacks 
+			; this only activates when lease_terminated is false
+			(Lease_Term_Started() immediately)
+		)
+	)
+
+	(Action&State Move_Out()
+		(Fallbacks 
+			(Fulfilled())
+		)
+	)	
+)
+
+(DotFileName 'hvitved_lease_pitstops.dot')
+(ImgFileName 'hvitved_lease_pitstops.png')
