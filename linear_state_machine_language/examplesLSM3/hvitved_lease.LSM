@@ -1,12 +1,21 @@
+; TODO: 
+; Use standard for dates/times.
+; Change the sorts of the old date variables back to some date/time sort..
+
+
 (LSMVersion 3.0.0)
 
 (Actors Landlord Tenant)
 
+; (TimeUnit H)
+; (BaseYear ...)
+
 (ContractParams 
-	(MOVE_IN_TIME : Time := 0)	
-	(LEASE_DURATION : M := 6) 
+	(MOVE_IN_TIME : Time := 0)	; Number of hours after 
+	(LEASE_DURATION : M := 6) ; 6 months
 	(RENT : Price = 1000)
-	(MAX_DAYS_RENT_DELAY : D := 7)  	
+	(MAX_DAYS_RENT_DELAY : D := 7) ; 7 days
+	(MIN_TERMINATION_NOTICE : M := 1) ; 1 month
 )
 
 (ProseContract
@@ -17,7 +26,7 @@
 
 (GlobalVars
 	(lease_term_start : ℕ := NaN)		; formerly never : Date
-	(lease_term_end : ℕ := NaN)		; formerly never : Date
+	(lease_term_end : ℕ := NaN)		; formerly never : Date	
 	(writeOnceMore lease_terminated : Bool := false)
 	(branchUnaffecting inconly total_rent_paid : ℕ := 0)
 )
@@ -63,11 +72,11 @@
 	(Event&State Month_Started()
 		(ActorEvents
 			(Tenant may
-				(Request_Termination_At_Rent_Or_Before() by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+				(Request_Termination() by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
 				(PayRent() by ((monthStartDay) + MAX_RENT_DELAY))
 			)
 			(Landlord may
-				(Request_Termination_At_Rent_Or_Before() by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+				(Request_Termination() by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
 			)
 		)
 		(FallbackState
