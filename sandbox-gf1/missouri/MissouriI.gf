@@ -116,7 +116,6 @@ incomplete concrete MissouriI of Missouri =
       (mkNP
          or_Conj
 
-         -- NP -> V2 -> NP
          (mkNP 
             (mkNP 
                (mkNP (mkCN (mkN "public road district")))
@@ -127,8 +126,6 @@ incomplete concrete MissouriI of Missouri =
                 (mkNP the_Det
                    (mkCN (mkN "taking-effect of this law")))))
 
--- mkUtt ( mkS ( mkCl i_NP like_V2 ( mkNP ( mkNP ( mkNP anySg_Det food_N ) incorporate_V2 ) ( mkAdv prior_to_Prep ( mkNP ( mkCN yesterday_N ) ) ) ) ) )
-
          (mkNP any_Predet
             (mkNP (mkCN
                (mkN2
@@ -138,50 +135,6 @@ incomplete concrete MissouriI of Missouri =
                   (mkNP such_Predet
                      (mkNP (mkCN (mkN "public road district"))))))))
          );
-
-    -- mkAdv by8agent_Prep NP
-       
-    -- mkUtt ( mkS ( mkCl i_NP like_V2 ( mkNP most_Predet ( mkNP and_Conj ( mkNP ( mkCN fruit_N ) ) ( mkNP aPl_Det vegetable_N ) ) ) ) )
-    
-    -- ( mkCN and_Conj ( mkListCN ( mkCN publicRoadDistrict_N ) ( mkCN banana_N ) ) ) ) ) 
-
-    -- mkUtt ( mkNP ( mkNP i_Pron ) ( mkAdv like_Prep ( mkNP somePl_Det ( mkCN and_Conj ( mkListCN ( mkCN apple_N ) ( mkCN banana_N ) ) ) ) ) )
-    
--- > l -table (ConjVPI and_Conj (ConsVPI (MkVPI (UseV sleep_V)) (BaseVPI (MkVPI (UseV sing_V)) (MkVPI (UseV eat_V)))))
--- linking ... OK
-
--- Languages: AllEng
--- s VVAux (AgP1 Sg) : sleep , sing and eat
--- s VVAux (AgP1 Pl) : sleep , sing and eat
--- s VVAux (AgP2 Sg) : sleep , sing and eat
--- s VVAux (AgP2 Pl) : sleep , sing and eat
--- s VVAux (AgP3Sg Neutr) : sleep , sing and eat
--- s VVAux (AgP3Sg Masc) : sleep , sing and eat
--- s VVAux (AgP3Sg Fem) : sleep , sing and eat
--- s VVAux (AgP3Pl Neutr) : sleep , sing and eat
--- s VVAux (AgP3Pl Masc) : sleep , sing and eat
--- s VVAux (AgP3Pl Fem) : sleep , sing and eat
--- s VVInf (AgP1 Sg) : to sleep , to sing and to eat
--- s VVInf (AgP1 Pl) : to sleep , to sing and to eat
--- s VVInf (AgP2 Sg) : to sleep , to sing and to eat
--- s VVInf (AgP2 Pl) : to sleep , to sing and to eat
--- s VVInf (AgP3Sg Neutr) : to sleep , to sing and to eat
--- s VVInf (AgP3Sg Masc) : to sleep , to sing and to eat
--- s VVInf (AgP3Sg Fem) : to sleep , to sing and to eat
--- s VVInf (AgP3Pl Neutr) : to sleep , to sing and to eat
--- s VVInf (AgP3Pl Masc) : to sleep , to sing and to eat
--- s VVInf (AgP3Pl Fem) : to sleep , to sing and to eat
--- s VVPresPart (AgP1 Sg) : sleeping , singing and eating
--- s VVPresPart (AgP1 Pl) : sleeping , singing and eating
--- s VVPresPart (AgP2 Sg) : sleeping , singing and eating
--- s VVPresPart (AgP2 Pl) : sleeping , singing and eating
--- s VVPresPart (AgP3Sg Neutr) : sleeping , singing and eating
--- s VVPresPart (AgP3Sg Masc) : sleeping , singing and eating
--- s VVPresPart (AgP3Sg Fem) : sleeping , singing and eating
--- s VVPresPart (AgP3Pl Neutr) : sleeping , singing and eating
--- s VVPresPart (AgP3Pl Masc) : sleeping , singing and eating
--- s VVPresPart (AgP3Pl Fem) : sleeping , singing and eating
-
 
 
     
@@ -211,7 +164,7 @@ incomplete concrete MissouriI of Missouri =
         Det -> N     -> V2 -> Det -> N       -> VP =
         \the, effect,causing, some,  obesity ->
       (mkVP have_V2
-         (mkNP the -- think about this as a quantifier also
+         (mkNP the -- think about this as a quantifier
             (mkCN (mkN2 effect) -- of
                (ExtensionsEng.GerundNP (mkVP causing -- mkVΠ V2
                                           (mkNP some
@@ -220,7 +173,7 @@ incomplete concrete MissouriI of Missouri =
       mkConsequence : Det -> N   -> ListVPI     -> SS -> NP -> VP =
                      \the,effect,causing_worsening,some,  obesity ->
       (mkVP have_V2
-         (mkNP the -- think about this as a quantifier also
+         (mkNP the -- think about this as a quantifier
             (mkCN (mkN2 effect) -- of
                (ExtensionsEng.GerundNP (mkVP
                                           (listvpi2v2 causing_worsening some)
@@ -237,6 +190,7 @@ incomplete concrete MissouriI of Missouri =
     any_Det  = mkDet (ParadigmsEng.mkQuant "any"  "any");
     some_Det = mkDet (ParadigmsEng.mkQuant "some" "some");
 
+    
     any_Predet  = lin Predet (ss "any");
     some_Predet = lin Predet (ss "some");
     all_Predet  = lin Predet (ss "all");
