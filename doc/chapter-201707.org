@@ -279,6 +279,8 @@ Other stages may be connected up in parallel to this primary pipeline. For examp
 
 Unification between blockchain smart contracts and legacy paper is the goal of several SCT2.5 systems. Their template orientation means that Gen 2.5 SCT systems will be able to bridge the gap, albeit crudely.
 
+In 2016, Lee Braine and Chris Clack, members of the R3 project, wrote a couple of papers about Smart Contract Templates.
+
 Gen 3 SCT systems, having been designed for the purpose from the ground up, will be able to bridge the gap elegantly, and offer the features listed above, which SCT2.5 systems will not.
 
 * Why a DSL?
