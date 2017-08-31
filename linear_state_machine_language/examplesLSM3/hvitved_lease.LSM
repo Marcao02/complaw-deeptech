@@ -44,8 +44,8 @@
 	)
 
 	(Action Request_Termination
-		(Tenant may in states (Month_Started RentToBePaid PayRent) if (not lease_terminated))
-		(Landlord may in states (Month_Started RentToBePaid PayRent) if (not lease_terminated))
+		(Tenant may in states {Month_Started RentToBePaid PayRent} if (not lease_terminated))
+		(Landlord may in states {Month_Started RentToBePaid PayRent} if (not lease_terminated))
 		
 		(Entrance
 			(lease_terminated := true)

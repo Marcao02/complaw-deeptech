@@ -55,7 +55,9 @@
 			)
 			(ActorEvents
 				(Buyer should
-					(Pay_2nd_Installment() by (delivery_date + 30D))
+					(Pay_2nd_Installment() by (delivery_date + 30D))				
+				)
+				(Buyer may
 					(Return_On_Time() by (delivery_date + 14D))
 				)
 			)
