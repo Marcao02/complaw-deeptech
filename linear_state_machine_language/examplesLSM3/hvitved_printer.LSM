@@ -30,98 +30,96 @@
 	"Two part sale Hvitved Laser Printer"	
 	(StartState Awaiting_Delivery)
 	
-	(Event&State Awaiting_Delivery() 
-		[ProseRefs P1] 
-		(ActorEvents
-			(Seller must
-				(Deliver() by DELIVERY_DEADLINE)
+	(NLGSection "Delivery and first instalment payment"
+		(Event&State Awaiting_Delivery() 
+			(NLGSubsection "Deadline for delivery of the printer")
+			[ProseRefs P1] 
+			(ActorEvents
+				(Seller must
+					(Deliver() by DELIVERY_DEADLINE)
+				)
 			)
 		)
-	)
-	
-	(Action&State Deliver() [ProseRefs P1] 
-		(Entrance
-			(delivery_date := (event_start_date))
-		)
-		(ActorEvents
-			(Buyer must
-				(Pay_1st_Installment() immediately)
+		
+		(Action&State Deliver() [ProseRefs P1] 		
+			(NLGSubsection "Delivery and payment of the first instalment")
+			(NLGActionDescriptor "deliver the printer and pay the first instalment")
+			(Entrance
+				(delivery_date := (event_start_date))
+				(conjecture (buyer_paid == 0))
+				(buyer_paid := 100)
+			)
+			(ActorEvents
+				(Buyer should
+					(Pay_2nd_Installment() by (delivery_date + 30D))				
+				)			
+			)
+			(Fallbacks 
+				(Late_2nd_Installment())
 			)
 		)
 	)
 
-	(Action&State Pay_1st_Installment() [ProseRefs P1 P2 P3] 
-		(Entrance
-			(conjecture (buyer_paid == 0))
-			(buyer_paid := 100)
+	(NLGSection "Returns"
+		(Action&State Return_On_Time() [ProseRefs P5] 
+			(NLGSubsection "Deadline for returning the printer")
+
+			(Buyer may in states {Pay_1st_Installment Pay_2nd_Installment} by (delivery_date + 14D))			
+
+			(DependsOn Postmark_Refund)		
 		)
-		(ActorEvents
-			(Buyer should
-				(Pay_2nd_Installment() by (delivery_date + 30D))
-				(Return_On_Time() by (delivery_date + 14D))
+
+		(Action&State Postmark_Refund() [ProseRefs P5] 
+			(NLGSubsection "Deadline for refund")
+			
+			(Seller must in states {Return_On_Time} by (today() + 7D))
+					
+			(Entrance
+				(conjecture (seller_refunded == 0))
+				(conjecture ((buyer_paid == 100) or (buyer_paid == 200)))
+				(seller_refunded := buyer_paid)
 			)
-		)
-		(Fallbacks 
-			(Late_2nd_Installment())
+			(Fallbacks 
+				(Fulfilled())
+			)
 		)
 	)
 
-	(Event&State Late_2nd_Installment() [ProseRefs P4] 
-		(ActorEvents
-			(Buyer must
-				(Pay_2nd_Installment_With_Late_Fee() by (delivery_date + 44D))
+	(NLGSection "Payment"	
+
+		(Event&State Late_2nd_Installment() [ProseRefs P4] 
+			(NLGSubsection "Late payment of second instalment")
+			(ActorEvents
+				(Buyer must
+					(Pay_2nd_Installment_With_Late_Fee() by (delivery_date + 44D))
+				)
 			)
 		)
 	)
 		
-	(Action&State Pay_2nd_Installment() [ProseRefs P5] 
-		(Entrance
-			(conjecture (buyer_paid == 100))
-			(buyer_paid := 200)
-		)
-		(ActorEvents
-			(Buyer may
-				(Return_On_Time() by (delivery_date + 14D))
+	(NLGSection "Completion of sale"
+		(Action&State Pay_2nd_Installment() [ProseRefs P5] 
+			(NLGSubsection "Completion of contract following on-time payment of the second instalment")
+			(NLGActionDescriptor "pay the second instalment")
+			(Entrance
+				(conjecture (buyer_paid == 100))
+				(buyer_paid := 200)
+			)
+			
+			(Fallbacks 
+				(Fulfilled())
 			)
 		)
-		(Fallbacks 
-			(Normal_Sale_Ended())
-		)
-	)
 
-	(Action&State Return_On_Time() [ProseRefs P5] 
-		(ActorEvents
-			(Seller must
-				; NOTE: changing this to make the obligation be postmarked-by
-				(Postmark_Refund() by (today() + 7D))
+		(Action&State Pay_2nd_Installment_With_Late_Fee() [ProseRefs P4] 
+			(NLGSubsection "Completion of contract following late payment of the second instalment")
+			(Entrance 
+				(conjecture (buyer_paid == 100))
+				(buyer_paid := 220)
 			)
-		)
-	)
-
-	(Action&State Pay_2nd_Installment_With_Late_Fee() [ProseRefs P4] 
-		(Entrance 
-			(conjecture (buyer_paid == 100))
-			(buyer_paid := 220)
-		)
-		(Fallbacks 
-			(Fulfilled())
-		)
-	)
-
-	(Event&State Normal_Sale_Ended() [ProseRefsP2] 
-		(Fallbacks 
-			(Fulfilled())
-		)
-	)
-
-	(Action&State Postmark_Refund() [ProseRefs P5] 
-		(Entrance
-			(conjecture (seller_refunded == 0))
-			(conjecture ((buyer_paid == 100) or (buyer_paid == 200)))
-			(seller_refunded := buyer_paid)
-		)
-		(Fallbacks 
-			(Fulfilled())
+			(Fallbacks 
+				(Fulfilled())
+			)
 		)
 	)	
 )
