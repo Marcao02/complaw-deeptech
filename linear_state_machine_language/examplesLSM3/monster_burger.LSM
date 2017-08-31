@@ -4,6 +4,7 @@
 	(writeonce challenge_start_time : Time )
 	(writeonce challenge_endlimit_time : Time)
 	(amount_owing : Price := 0)
+	(amount_paid : Price := 0)
 )
 
 (Actors Challenger Restaurant)
@@ -110,8 +111,23 @@
 	)
 
 	(Action&State RejectFinishedClaim()  
+		(ActorEvents			
+			(Customer mustif ((event_start) ≥ challenge_endlimit_time)
+				(PayForMB() immediately)
+			)
+		)
 		(Fallbacks
 			(EatingMB())
+		)
+	)
+
+	(Action&State PayForMB()
+		(Entrance
+			(amount_paid := amount_owing)
+			(amount_owing := 0)
+		)			
+		(Fallbacks
+			(Fulfilled())
 		)
 	)
 

@@ -108,8 +108,23 @@
 		)
 
 		(RejectFinishedClaim()  
+			(ActorEvents			
+				(Customer mustif ((event_start) ≥ challenge_endlimit_time)
+					(PayForMB() immediately)
+				)
+			)
 			(Fallbacks
 				(EatingMB())
+			)
+		)
+
+		(PayForMB()
+			(Entrance
+				(amount_paid := amount_owing)
+				(amount_owing := 0)
+			)			
+			(Fallbacks
+				(Fulfilled())
 			)
 		)
 
