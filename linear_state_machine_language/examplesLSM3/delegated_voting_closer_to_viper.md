@@ -1,16 +1,20 @@
-**_This algorithm is complete, but not yet in the syntax of LSM3._**
+### See legalese-compiler/blockchain/viper_examples/voting for the ethereum Viper code that came of this.
 
-**_PLEASE TELL ME IF YOU WANT TO READ THIS AND I WILL PRIORITIZE MAKING IT SUITABLE FOR READING_**
+*This algorithm is complete, but not yet in the syntax of LSM3.*
 
 The contract is created with a fixed set of k proposal, numbered 1,...,k.
 Having not voted is represented by 0.
 
 R - the set of **R**egistered voters, which is the disjoint union of the sets U, S, D?, D✓ defined below. For each voter v in R. Each v in R is a structure with:
 
-* v.counted ∈ {True,False}, initially False
-* v.vote ∈ {0,...,k} where v.vote == 0 means v hasn't voted
-* v.delegate ∈ R ⋃ None
-* Invariant: v.delegate ≠ v
+* v.counted : bool  \# Initially False
+* v.vote : num ∈ {0,...,k} \# Initially 0, meaning hasn't voted.
+* v.delegate : address ∈ R ⋃ None \# Initially None
+* Invariant : v.delegate ≠ v
+
+Some pure helper functions:
+
+decided(u:address) is True iff 
 
 The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 
@@ -39,50 +43,72 @@ The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 	
 **Algorithm**
 
-* *Action* **_Submit_**: An undecided voter v submits a vote for proposal p.
-	* Pre: v ∈ U
-	* Post:
-		* U := U - v
-		* S := S + v
-		* v.vote := p
-		* p.votecnt += 1
-		* u.counted := True
+* @constant **hasActed**(addr:address) -> bool:
+	* return self.vote != None || self.delegate != None
+
+* **_SubmitBallot_**(p:num): An undecided voter submits a ballot for proposal p.
+	* assert not self.hasActed(msg.sender)
+	* self.voters[msg.sender].vote = p
+	* self.voters[msg.sender].counted = True
+	* self.proposals[p].vote_count += 1
 		
-* *Action* **_Delegate_**: An undecided voter u delegates to another, different voter v.
-	* Pre: u ∈ U, v ∈ R, u ≠ v
-	* Post:
-	 	* u.delegate := v
-		* U := U - u		
-		* D? := D? + u
+* **_Delegate_**(v:address): An undecided voter delegates to another, different voter v.
+	* assert not self.hasActed(msg.sender) 
+	* assert msg.sender != v 
+	* self.voters[msg.sender].delegate := v
 
-* *Action* **_Redeligate_** (*this is optional*): If u has an unconfirmed delegation to v, and v has not participated or also has an unconfirmed delegation, then u can change their delegation to another voter, provided that voter either directly voted or has a confirmed delegation. This allows for two things: (1) breaking cycles, and (2) giving a voter one more (less flexible) chance to redeligate their vote if the person they originally delegated to hasn't voted.
-	* Pre: u ∈ D?, v ∈ U ⋃ D?, w ∈ S ⋃ D✓, {u, v, w} all distinct
-	* Post:
-	 	* u.delegate := w
-		* D? := D? - u
-		* D✓ := D✓ + u
+* **_Shorten Delegation Chain_**(u_addr:address): If u has an unconfirmed delegation to some voter v, where v delegates to a voter w who has submitted a ballot, then we move u's delegation from v to w. 
+	* u = self.voters[u_addr]
+	* v = self.voters[u.delegate]
+	* w = self.voters[v.delegate]
+	* assert self.hasActed(w) and self.hasActed(v)
+	* assert not u.counted
+	* assert w.vote != None
+	* assert v.counted
+	* assert v.vote == None
+	* u.delegate = v.delegate
+	
+* **_Count Delegated Vote_**(u_addr:address): If u has (confirmed or unconfirmed) delegation to v, and v has submitted their vote, and u has not had their vote counted, then this transition count's u's vote, and marks u's delegation as confirmed if it isn't already.
+	* u = self.voters[u_addr] 
+	* v = self.voters[u.delegate]
+	* assert v.vote != None
+	* assert not u.counted 
+	* u.vote := u.delegate.vote
+	* u.counted := True
+	* self.proposals[v.vote].vote_count += 1
 
-* *Action* **_Cancel Delegation And Vote_** (*this is optional*): If u has an unconfirmed delegation to v, and v has not participated or also has an unconfirmed delegation (these are the same conditions as _Redeligate_), then u can cancel their delegation and vote directly for a proposal p. 
-	* Pre: u ∈ D?, v ∈ U ⋃ D? 
-	* Post:
-	 	* u.delegate := None
-		* D? := D? - u
-		* S := S + u
-		* u.vote := p
-		* p.votecnt += 1
-		* u.counted := True		
+* **_Change_Delegation_**(to:address) (*this is optional*): If this voter u has an unconfirmed delegation to v, and v has not participated or also has an unconfirmed delegation, then u can change their delegation to another voter, provided that voter either directly voted or has a confirmed delegation. This allows for two things: (1) breaking cycles, and (2) giving a voter one more (less flexible) chance to redeligate their vote if the person they originally delegated to hasn't voted.
+	* u_addr = msg.sender
+	* u = self.voters[u_addr]
+	* v_addr = u.delegate
+	* v = self.voters[v_addr]
+	* assert not u.counted
+	* assert not self.hasActed(v_addr) or not v.counted	
+	* w = self.voters[to]
+	* assert w.voted != None or w.counted
+	* u.delegate = to
+
+* **_Cancel Delegation And Vote_**(p:num) (*this is optional*): If u has an unconfirmed delegation to v, and v has not participated or also has an unconfirmed delegation (these are the same conditions as _Redeligate_), then u can cancel their delegation and vote directly for a proposal p. 
+	* u_addr = msg.sender
+	* u = self.voters[u_addr]
+	* v_addr = u.delegate
+	* v = self.voters[v_addr]
+	* assert not u.counted
+	* assert not hasActed(v) or not v.counted
+	* u.delegate = None
+	* u.vote = p
+	* u.counted := True
+	* self.proposals[p].vote_count += 1
 
 * *Nonaction State Transition* **_Count Delegated Vote_**: u has (confirmed or unconfirmed) delegation to v, and v has submitted their vote, and u has not had their vote counted, then this transition count's u's vote, and marks u's delegation as confirmed if it isn't already.
-	* Pre: u ∈ D? ⋃ D✓, v ∈ S, u.counted = False
+	* Pre: u.delegate ≠ None, u.delegate.vote ≠ 0, u.counted = False
 	* Post:
-		* v.vote.votecnt += 1
-		* u.vote := v.vote
+		* u.vote := u.delegate.vote
+		* u.delegate.vote.votecnt += 1
 		* u.counted := True
-		* D? := D? - u 
-		* D✓ := D✓ + u		
 					
 * *Nonaction State Transition* **_Shorten Delegation Chain_**: If u has an unconfirmed delegation to a voter v, where v delegates to a voter w who has submitted, then we move u's delegation from v to w. 
-	* Pre: u ∈ D?, v ∈ D✓, w ∈ S, u.delegate = v, v.delegate = w
+	* Pre: hasUnconfirmedDelegation(u), directlyVoted(w), confirmedDelegation(v), w.counted , u.delegate = v, v.delegate = w
 	* Assert u,v,w distinct
 	* Post:
 		* u.delegate := w
