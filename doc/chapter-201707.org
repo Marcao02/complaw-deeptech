@@ -58,7 +58,7 @@ The goal of the Ricardian contract was not to solve the templating or legal pros
 
 ** Second-Generation Smart Contract Template systems
 
-Second-generation DA systems, which this paper will call SCT2 systems, continued the document automation tradition into the 2010s. They address the problem posed by the Ricardian Contract. They tend toward opensource and Web technologies like Javascript. [[http://www.commonaccord.org/][CommonAccord]] and [[https://commonform.org/][CommonForm]] are examples of the opensource generation of smart contract templates. These two do not have blockchain ambitions, but many SCT2 systems do.
+Second-generation DA systems, which this paper will call SCT2 systems, continued the document automation tradition into the 2010s. They address the problem posed by the Ricardian Contract. They tend toward opensource and Web technologies like Javascript. [[http://www.commonaccord.org/][CommonAccord]] and [[https://commonform.org/][CommonForm]] are examples of the opensource generation of smart contract templates. These two do not have blockchain ambitions, but many SCT2 systems do. 
 
 ** (Smart) (Contract Templates)
 
@@ -207,6 +207,7 @@ In July 2017 alone, five new SCT2.5 systems were announced -- two on the same da
 | [[http://openlaw.io/][OpenLaw.io]]    | [[https://media.consensys.net/introducing-openlaw-7a2ea410138b][25 July 2017]] | (S)(CT) | (SC)(T) | Consensys    | claimed    |              |
 | [[http://accordproject.org/][AccordProject]] | [[https://medium.com/@accordhq/the-accord-project-launches-industry-first-tools-and-standards-for-smart-legal-contracts-with-2e67b2b6f2fd][26 July 2017]] | (S)(CT) | (SC)(T) | Hyperledger  | claimed    |              |
 | [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][ZeppelinOS]]    | [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][27 July 2017]] |         | (SC)(T) |              |            |              |
+| [[http://wiki.p2pfoundation.net/Legal_Framework_For_Crypto-Ledger_Transactions][LFCT]]          | 2017         |         | (SC)(T) |              |            |              |
 
 * Strengths of 1st and 2nd generation systems
 
