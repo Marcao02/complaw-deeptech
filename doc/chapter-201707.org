@@ -1,6 +1,6 @@
 #+TITLE: Computable Contracts: from Academia to Industry
 #+AUTHOR: mengwong@legalese.com
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="http://mengwong.com/dropbox-public/org-style-img100.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://legalese.com/doc/css/org-style-img100.css" />
 #+OPTIONS: toc:1
 #+OPTIONS: H:2 num:2
 
