@@ -1,8 +1,9 @@
+## English version 1
 
 We can do the following monster burger formalization and NLG using sugared FOL and NLG code that we already know how to write. 
 Here's the version of monster burger we're formalizing.
 
-* Clause 1: When the Challenger orders the Monster Burger, their obligation to pay $50 for it before they leaves the restaurant becomes active.
+* Clause 1: Upon the Challenger ordering the Monster Burger, their obligation to pay $50 for it before they leave the restaurant becomes active.
 * Clause 2: Once the Monster Burger is served, the Challenger wins iff they eat it within 1 hour.
 * Clause 3: If the Challenger wins, their obligation to pay from Clause 1 is canceled.
 
@@ -28,47 +29,49 @@ This is enough to generate good English. More axioms are required to prove anyth
 ```
 (Types 
 	Person
-	FoodOffer
+	MenuItem
 	DollarAmount
 	Event
 	Obligation
 	ObligationWithDeadline ⊆ Obligation
-	ActionRelation
+	ActionType
 )
 
 (ReservedVariables
 	E,E1,E2,E3 : Event
 	O : Obligation
 	P : Person
-	F : FoodOffer
-	A : ActionRelation
+	F : MenuItem
+	A : ActionType
 	M : DollarAmount
 )
 
 pronoun they : Person
-pronoun it : FoodOffer
+pronoun it : MenuItem
 they's ↦ their
 
 (the Challenger) : Person
-(the Monster Burger) : FoodOffer
-(P orders F) : Person → Event
+(the Monster Burger) : MenuItem
+(P ordering F) : Person → MenuItem → Event
 (P leaves the restaurant) : Person → Event
-(pay M for F) : DollarAmount → FoodOffer → ActionRelation
+(pay M for F) : DollarAmount → MenuItem → ActionType
 ```
 
-<!--An `ActionRelation` is a set of actions. -->
+<!--An `ActionType` is a set of actions. -->
 
-The next function symbol takes an ActionRelation and attaches it to a Person and a deadline Event, to get a normal obligation, which we currently call `ObligationWithDeadline`.
-
-```
-(P's obligation to A before E) : Person → ActionRelation → Event → ObligationWithDeadline
-```
-
-This means the obligation O is inactive before E and active for some period of time after E. If and when it is later inactive again is undetermined.
+The next function symbol takes an ActionType and attaches it to a Person and a deadline Event, to get a normal obligation, which we currently call `ObligationWithDeadline`.
 
 ```
-(When E, O becomes active) : Event → Obligation → Bool
+(P's obligation to A before E) : Person → ActionType → Event → ObligationWithDeadline
 ```
+
+If E occurs, the following means the obligation O is inactive before E, and active immediately following E. If and when it is later inactive once again is undetermined. If E does not occur, the relation is defined to be true.
+
+```
+(Upon E, O becomes active) : Event → Obligation → Bool
+```
+
+**Compare that** to the related (currently unused) symbol of the same type, which says only that an obligation is active immediately after an event, without also saying that it was inactive before: `(O is active immediately after E)`
 
 *‹Logic note›* O is an immutable object, like everything in FOL, so it doesn't actually change from the formal logic perspective.
  
@@ -77,26 +80,30 @@ This means the obligation O is inactive before E and active for some period of t
 This is the concrete syntax for defining Clause 1:
 
 ```
-(Clause 1) := (When ((the Challenger) orders (the Monster Burger)), 
-     (they's obligation to (pay $50 for it) before (they leaves the restaurant)) becomes active.)
+(Clause 1) := (Upon ((the Challenger) ordering (the Monster Burger)), 
+     (they's obligation to (pay $50 for it) before (they leaves the restaurant)) becomes active)
 ```
 
 Our GF code will fix the agreement to generate exactly the sentence we wanted:
 
-Clause 1: When the Challenger orders the Monster Burger, their obligation to pay 50 dollars for it before they leave the restaurant becomes active.
+Clause 1: Upon the Challenger ordering the Monster Burger, their obligation to pay 50 dollars for it before they leave the restaurant becomes active.
 
 ```
-(F is served) : FoodOffer → Event
+(F is served) : MenuItem → Event
 (P wins) : Person → Event
 (P finishes F) : Person → Food → Event
 (one hour) : Timespan
 ```
 
-Next predicate symbol means that after E1 happens, the following relation holds: (E2 happens) if and only if (E3 happens within timespan T).
+Next predicate symbol means that after E1 happens, the following relation holds: (E2 happens) if and only if (E3 happens within timespan T). This essentially defines E2 in terms of E1, E3 and T.
 
 ```
 (Once E1, E2 iff E3 within T) : Event → Event → Event → Timespan → Bool
 ```
+
+You see that, and you might want to break it up more. For example, you might want to make `Once` a symbol that takes an `Event` and a formula and yields a formula. That would be essentially the modal logic approach. That would feel more right, more satisfying, but it wouldn't actually benefit us.
+
+
 
 Next predicate symbol means that *if* E happens, then the obligation O is inactive from the time of that event onward.
 
@@ -139,7 +146,7 @@ So far we haven't formally specified significant meaning to obligations. We'll d
 An Obligation O has at least the following not-all-independent things:
 
 * An `Entity`, `(the Entity obligated by O)`. Note for this example we use its subset-type `Person`.
-* An `ActionRelation`, `(actions fulfilling O)`. This is the criteria for fulfilling the obligation.
+* An `ActionType`, `(actions fulfilling O)`. This is the criteria for fulfilling the obligation.
 * A TimeSpan when the obligation is *active*.
 * A truth value, `(O is met)`, which is determined by whether `e = (the Entity obligated by O)` does an action `a` during `(O's period of activity)` 
 
@@ -150,7 +157,7 @@ An Obligation O has at least the following not-all-independent things:
 (E is O's deadline),  : Event → Obligation → Bool
 (O is inactive before E), (O is active at E) : Obligation → Event → Bool
 (O is met) : Obligation → Bool
-(P does A after E), (P does A before E) : Person → ActionRelation → Event → Bool
+(P does A after E), (P does A before E) : Person → ActionType → Event → Bool
 ```
 
 The first axiom is definitional in nature:
@@ -167,19 +174,28 @@ Meeting the obligation requires doing the obligated action before the deadline:
 
 
 ```
-(Axiom 3) := (When E, O becomes active) ⇒ (O is inactive before E) ∧ (O is active at E)
+(Axiom 3) := (Upon E, O becomes active) ⇒ (O is inactive before E) ∧ (O is active at E)
 ```
 
 
 A strengthening of the previous axiom's conclusion applies when we also know when the obligation became active:
 
 ```
-(Axiom 3) := (When E1, O becomes active) ∧ O = (P's obligation to A before E2)  
+(Axiom 3') := (Upon E1, O becomes active) ∧ O = (P's obligation to A before E2)  
           ⇒ ((O is met) ⇔ ((P does A after E1) ∧ (P does A before E2))
 ```
 
+**Note** (actually, is this still true?): We haven't yet expressed the constraint that A must happen after the obligation becomes active in order for the obligation to be met.
 
 
+<!--
+## English version 2
 
+Upon : 
 
-**Note**: We haven't yet expressed the constraint that A must happen after the obligation becomes active in order for the obligation to be met.
+* Clause 1: After the Challenger orders the Moster Burger, they are obligated to pay $50 for it before they leave the restaurant. 
+* Clause 2: Once the Monster Burger is served, the Challenger wins iff they eat it within 1 hour.
+* Clause 3: If the Challenger wins, their obligation to pay from Clause 1 is canceled.
+
+(After E1, P is obligated to A before E2) : Event → Person → Action → Event → 
+-->
