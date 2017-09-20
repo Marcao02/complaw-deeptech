@@ -8,7 +8,6 @@
 ; documented at http://docs.oracle.com/cd/E25178_01/doc.1111/e15176/timers_bpmpd.htm
 
 (GlobalVars 	
-	(writeonce challenge_start_time    : Time )
 	(writeonce challenge_endlimit_time : Time )
 	(amount_owing                      : Price := 0)
 	(amount_paid                       : Price := 0)
@@ -42,7 +41,7 @@
 			(amount_owing := MB_PRICE)
 		)
 		(ActorEvents
-			(Restaurant must
+			(Restaurant should
 				(ServeMB within MAX_SERVE_DELAY)
 			)
 		)			
@@ -52,9 +51,8 @@
 	)
 
 	(Action&State ServeMB  
-		(Entrance				
-			(challenge_start_time := (event_start_time))
-			(challenge_endlimit_time := (challenge_start_time + TIME_TO_EAT_BURGER))
+		(Entrance							
+			(challenge_endlimit_time := (event_start_time + TIME_TO_EAT_BURGER))
 		)			
 		(Fallbacks
 			EatingMB
