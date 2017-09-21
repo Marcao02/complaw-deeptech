@@ -1,5 +1,23 @@
 (LSMVersion 4.0.0)
 
+; *I should have said this earlier:*
+; The LSM3 examples all have the following property 
+; (which requires some easy automated theorem proving to verify) 
+; which makes the conception of obligations and permissions extremely simple
+; (and, I would argue, basically impossible to misuse):
+
+; At any instant in contract execution:
+; - There can be any number of permitted (“may”) actions by any number of 
+; agents.
+; - There can be at most one required (“must”) action. In particular, 
+; its not possible to be in a contract state where two “must” rules are 
+; active for one agent, or where two agents each have an active  “must” rule.
+
+; In short, in LSM3 “must” means “must as the next action in this contract 
+; execution”, and “may” means “may as the next action in this contract 
+; execution”.
+
+
 ; ABOUT THIS EXAMPLE
 ; I think this is the ONLY example, out of all the Hvitved examples, SAFE, and
 ; monster burger, where it is advisable to have "first class" Obligation 
@@ -9,6 +27,20 @@
 ; to track obligations. The difference (LSM3 version vs this version) is 
 ; analogous to introducing a combinator datatype vs using a language's 
 ; build-in function type.
+;
+; This takes us toward the idea of offering high level abstractions, 
+; but with unusually-specific instructions on when to use them.
+; I think we will want to retain finite-state LSM as a named 
+; sublanguage of a more advanced version of  LSM that offers explicit 
+; obligation objects (as I’ve demoed in this file). And we may want 
+; to advise that the extra features of this more advanced language 
+; only be used when infinite state is needed.
+;
+; I never liked having to introduce unbounded collection data structures 
+; into LSM, because it would result in generated natural language contracts 
+; that don’t read the way current natural language contracts do. This is 
+; under the assumption that current natural language contracts rarely use 
+; (informal) collection data structures. 
 
 
 (ContractParams 
@@ -74,7 +106,7 @@
 				(days (max 14 (ceil (quantity / 10))))) )
 			(units_ordered += quantity)
 						
-			( Vendor must (Deliver quantity next_order_id)
+			( Vendor must-eventually (Deliver quantity next_order_id)
 				by delivery_deadline )
 			(next_order_id += 1)
 		)								
@@ -91,9 +123,9 @@
 	(Action (SendInvoice (quantity : ℕ) (orderid : ℕ))
 		(Entrance						
 			( units_invoiced += quantity ) 
-			( Buyer must (PayBill quantity orderid)
+			( Buyer must-eventually (PayBill quantity orderid)
 				by ((event_start_date) + 14D) )
-		)		
+		)
 	)
 
 	(Action (PayBill (quantity : ℕ) (orderid : ℕ))
