@@ -1,0 +1,107 @@
+(LSMVersion 4.0.0)
+
+; ABOUT THIS EXAMPLE
+; I think this is the ONLY example, out of all the Hvitved examples, SAFE, and
+; monster burger, where it is advisable to have "first class" Obligation 
+; objects in the state of the contract. Compare this to 
+; ../examplesLSM3/hvitved_master_sales_agreement_full_with_ids.LSM
+; which instead took the approach of using data structures and a new data type
+; to track obligations. The difference (LSM3 version vs this version) is 
+; analogous to introducing a combinator datatype vs using a language's 
+; build-in function type.
+
+
+(ContractParams 
+	(MAX_UNITS : ℕ := 1000)
+	(CONTRACT_LIFE : Date := 1Y)
+	(PRICE_PER_UNIT : $ := 100)
+)
+
+(GlobalVars 	
+	( inconly next_order_id : Id := 0 )
+	( inconly units_ordered : ℕ := 0 )	
+	( writeonce contract_ends : Date )		
+	( reactive orderable_units : ℕ := (MAX_UNITS - units_ordered))
+	
+	; `nonoperative` instructs our static checker to verify that these 
+	; variables cannot affect program execution. They would only be used 
+	; for verification conditions (which we haven't done in this example
+	; yet).
+	( nonoperative inconly units_delivered : ℕ := 0 )
+	( nonoperative inconly total_paid : $ := 0 )
+)
+
+(Actors Customer Vendor)
+
+(ProseContract 
+	(P1 'The master agreement between Vendor and Customer is for {MAX_UNITS} printers, with a unit price of {PRICE_PER_UNIT}. The agreement is valid for {CONTRACT_LIFE}, starting 2011-01-01.')
+	(P2 'The customer may at any time order an amount of printers (with the total not exceeding the threshold of {MAX_UNITS}), after which the Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days.')
+	(P3 'After delivering the goods, Vendor may bill the Customer within 1 month, after which the goods must be paid for by Customer within 14 days.')	
+)
+
+; NTS: removed preliminary work with VerificationDefinition, FOLContract, Conjecture
+
+(FormalContract	
+	"Master Sales Agreement"	
+	(StartState Start)
+	
+	(Event&State Start()
+		(Entrance
+			(contract_ends = ((contract_start_date) + 1Y))
+		)
+		(Fallbacks
+			(ContractLive())
+		)			
+	)
+
+	(Event&State ContractLive()
+		(ActorEvents
+			(Customer mayif (orderable_units > 0)
+				(SubmitNewOrder(q) by contract_ends where (0 < q ≤ orderable_units))
+			)			
+		)
+		(Fallbacks
+			; this will only be executed when both of the actions in ActorEvents are disabled
+			(Fulfilled())
+		)
+	)
+
+	(Action (SubmitNewOrder (quantity : ℕ))
+		(Entrance			
+			; 14 days later, or quantity/10 days later, whichever occurs last
+			(local delivery_deadline : Date = (dateplus 
+				(event_start_date) 
+				(days (max 14 (ceil (quantity / 10))))) )
+			(units_ordered += quantity)
+						
+			( Vendor must (Deliver quantity next_order_id)
+				by delivery_deadline )
+			(next_order_id += 1)
+		)								
+	)
+
+	(Action (Deliver (quantity : ℕ) (orderid : ℕ))
+		(Entrance
+			( units_delivered += quantity )
+			( Vendor may (SendInvoice quantity orderid)
+				by ((event_start_date) + 30D) )
+		)		
+	)
+
+	(Action (SendInvoice (quantity : ℕ) (orderid : ℕ))
+		(Entrance						
+			( units_invoiced += quantity ) 
+			( Buyer must (PayBill quantity orderid)
+				by ((event_start_date) + 14D) )
+		)		
+	)
+
+	(Action (PayBill (quantity : ℕ) (orderid : ℕ))
+		(Entrance
+			( total_paid += (quantity * PRICE_PER_UNIT) )			
+		)		
+	)	
+)
+
+(DotFileName 'hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.dot')
+(ImgFileName 'hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.png')
