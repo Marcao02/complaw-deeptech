@@ -88,12 +88,16 @@
 
 	(Event&State ContractLive()
 		(ActorEvents
-			(Customer mayif (orderable_units > 0)
-				(SubmitNewOrder(q) by contract_ends where (0 < q ≤ orderable_units))
-			)			
+			(if (orderable_units > 0)
+				(Customer may next and (by contract_ends) 
+					do (SubmitNewOrder q) 
+					for some (q : ℕ) such that (0 < q ≤ orderable_units))
+			) 			
 		)
 		(Fallbacks
-			; this will only be executed when both of the actions in ActorEvents are disabled
+			; this will only be executed when 
+			;	(a). the `if` condition in ActorEvents is false, or
+			;	(b). orderable_units == 0			
 			(Fulfilled())
 		)
 	)
@@ -106,8 +110,8 @@
 				(days (max 14 (ceil (quantity / 10))))) )
 			(units_ordered += quantity)
 						
-			( Vendor must-eventually (Deliver quantity next_order_id)
-				by delivery_deadline )
+			( Vendor must later and (by delivery_deadline)
+				do (Deliver quantity next_order_id) )
 			(next_order_id += 1)
 		)								
 	)
@@ -115,16 +119,16 @@
 	(Action (Deliver (quantity : ℕ) (orderid : ℕ))
 		(Entrance
 			( units_delivered += quantity )
-			( Vendor may (SendInvoice quantity orderid)
-				by ((event_start_date) + 30D) )
+			( Vendor may later and (by ((event_start_date) + 30D)) 
+				do (SendInvoice quantity orderid) )
 		)		
 	)
 
 	(Action (SendInvoice (quantity : ℕ) (orderid : ℕ))
 		(Entrance						
 			( units_invoiced += quantity ) 
-			( Buyer must-eventually (PayBill quantity orderid)
-				by ((event_start_date) + 14D) )
+			( Buyer must later (by ((event_start_date) + 14D)) 
+				do (PayBill quantity orderid) )
 		)
 	)
 
