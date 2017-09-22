@@ -9,14 +9,23 @@
 ; At any instant in contract execution:
 ; - There can be any number of permitted (“may”) actions by any number of 
 ; agents.
-; - There can be at most one required (“must”) action. In particular, 
-; its not possible to be in a contract state where two “must” rules are 
-; active for one agent, or where two agents each have an active  “must” rule.
-
-; In short, in LSM3 “must” means “must as the next action in this contract 
+; - There can be at most one required (“must”) action set (an action with 
+; parameters, possibly constrained), belonging to one of the agents only, 
+; such that the agent must do exactly one of the actions. 
+;
+; In LSM3 “must” means “must as the next action in this contract 
 ; execution”, and “may” means “may as the next action in this contract 
 ; execution”.
-
+;
+; This example introduces the feature of adding future obligations/permissions
+; to the environment. This expands the characterization of the state of a 
+; contract to the following (Γ is added):
+; A tupple <t, σ, s, Γ> where
+; - t is the current time
+; - σ is an assignment of values to the global variables
+; -	s is one of the fixed number of `State`s.
+; - Γ is a finite set of fully-instantiated `Action`s (no parameters), each
+;   of which is an obligation or a permission.
 
 ; ABOUT THIS EXAMPLE
 ; I think this is the ONLY example, out of all the Hvitved examples, SAFE, and
@@ -24,23 +33,24 @@
 ; objects in the state of the contract. Compare this to 
 ; ../examplesLSM3/hvitved_master_sales_agreement_full_with_ids.LSM
 ; which instead took the approach of using data structures and a new data type
-; to track obligations. The difference (LSM3 version vs this version) is 
-; analogous to introducing a combinator datatype vs using a language's 
-; build-in function type.
+; to track obligations. The difference (LSM3 version of example vs this version 
+; of example) is very loosely analogous to introducing a combinator datatype 
+; vs using a language's build-in function type.
 ;
-; This takes us toward the idea of offering high level abstractions, 
-; but with unusually-specific instructions on when to use them.
-; I think we will want to retain finite-state LSM as a named 
-; sublanguage of a more advanced version of  LSM that offers explicit 
-; obligation objects (as I’ve demoed in this file). And we may want 
-; to advise that the extra features of this more advanced language 
-; only be used when infinite state is needed.
-;
-; I never liked having to introduce unbounded collection data structures 
-; into LSM, because it would result in generated natural language contracts 
-; that don’t read the way current natural language contracts do. This is 
-; under the assumption that current natural language contracts rarely use 
-; (informal) collection data structures. 
+; ASIDE:
+;	This takes us toward the idea of offering high level abstractions, 
+;	but with unusually-specific instructions on when to use them.
+;	I think we will want to retain finite-state LSM as a named 
+;	sublanguage of a more advanced version of LSM that offers explicit 
+;	obligation objects (as I’ve demoed in this file). And we may want 
+;	to advise that the extra features of this more advanced language 
+;	_only_ be used when infinite state is needed.
+;	I never liked having to introduce unbounded collection data structures 
+;	into LSM (as in the LSM3 version of this example), 
+;   because it would result in generated natural language contracts 
+;	that don’t read the way current natural language contracts do (under 
+;	the assumption that current natural language contracts rarely use 
+;	(informal) collection data structures). 
 
 
 (ContractParams 
@@ -77,16 +87,16 @@
 	"Master Sales Agreement"	
 	(StartState Start)
 	
-	(Event&State Start()
+	(Event&State (Start)
 		(Entrance
 			(contract_ends = ((contract_start_date) + 1Y))
 		)
-		(Fallbacks
-			(ContractLive())
+		(Fallback
+			(ContractLive)
 		)			
 	)
 
-	(Event&State ContractLive()
+	(Event&State (ContractLive)
 		(ActorEvents
 			(if (orderable_units > 0)
 				(Customer may next and (by contract_ends) 
@@ -94,11 +104,11 @@
 					for some (q : ℕ) such that (0 < q ≤ orderable_units))
 			) 			
 		)
-		(Fallbacks
+		(Fallback
 			; this will only be executed when 
 			;	(a). the `if` condition in ActorEvents is false, or
 			;	(b). orderable_units == 0			
-			(Fulfilled())
+			(Fulfilled
 		)
 	)
 
