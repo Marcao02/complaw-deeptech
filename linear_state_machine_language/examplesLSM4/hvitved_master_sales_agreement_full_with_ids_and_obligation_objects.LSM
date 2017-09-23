@@ -51,6 +51,10 @@
 ;	that don’t read the way current natural language contracts do (under 
 ;	the assumption that current natural language contracts rarely use 
 ;	(informal) collection data structures). 
+;
+;
+; There's not much too it. We now have a minimal feature for adding obligations and permissions floating out in the future, whereas before the active obligations and permissions (can we say "deontics" or something like that?) were always specified by the current State.
+; The main reason for this is that it will be better for NLG than using Set data structures
 
 
 (ContractParams 
@@ -60,17 +64,17 @@
 )
 
 (GlobalVars 	
-	( inconly next_order_id : Id := 0 )
-	( inconly units_ordered : ℕ := 0 )	
+	( inconly next_order_id : Id = 0 )
+	( inconly units_ordered : ℕ = 0 )	
 	( writeonce contract_ends : Date )		
-	( reactive orderable_units : ℕ := (MAX_UNITS - units_ordered))
+	( reactive orderable_units : ℕ = (MAX_UNITS - units_ordered))
 	
 	; `nonoperative` instructs our static checker to verify that these 
 	; variables cannot affect program execution. They would only be used 
 	; for verification conditions (which we haven't done in this example
 	; yet).
-	( nonoperative inconly units_delivered : ℕ := 0 )
-	( nonoperative inconly total_paid : $ := 0 )
+	( nonoperative inconly units_delivered : ℕ = 0 )
+	( nonoperative inconly total_paid : $ = 0 )
 )
 
 (Actors Customer Vendor)
@@ -105,10 +109,11 @@
 			) 			
 		)
 		(Fallback
-			; this will only be executed when 
-			;	(a). the `if` condition in ActorEvents is false, or
-			;	(b). orderable_units == 0			
-			(Fulfilled
+			; this will only be executed 
+			;[ (a). the `if` condition in `ActorEvents` is false, i.e. `orderable_units` == 0, or
+			;  (b). the time has passed `contract_ends` ]
+			; AND there are no ‘floating’ obligations or permissions
+			(Fulfilled)
 		)
 	)
 
@@ -137,7 +142,7 @@
 	(Action (SendInvoice (quantity : ℕ) (orderid : ℕ))
 		(Entrance						
 			( units_invoiced += quantity ) 
-			( Buyer must later (by ((event_start_date) + 14D)) 
+			( Buyer must later and (by ((event_start_date) + 14D)) 
 				do (PayBill quantity orderid) )
 		)
 	)
