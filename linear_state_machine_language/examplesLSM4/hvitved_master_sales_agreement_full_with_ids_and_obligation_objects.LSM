@@ -96,11 +96,11 @@
 			(contract_ends = ((contract_start_date) + 1Y))
 		)
 		(Fallback
-			(ContractLive)
+			(VendorAcceptingOrders)
 		)			
 	)
 
-	(Event&State (ContractLive)
+	(Event&State (VendorAcceptingOrders)
 		(ActorEvents
 			(if (orderable_units > 0)
 				(Customer may next and (by contract_ends) 
@@ -113,9 +113,12 @@
 			;[ (a). the `if` condition in `ActorEvents` is false, i.e. `orderable_units` == 0, or
 			;  (b). the time has passed `contract_ends` ]
 			; AND there are no ‘floating’ obligations or permissions
+			; in other words, when no actor can do anything
 			(Fulfilled)
 		)
 	)
+	(nlg VendorAcceptingOrders event "{Vendor} begins or continues accepting orders.")
+	(nlg VendorAcceptingOrders state "{Vendor} is accepting orders.")
 
 	(Action (SubmitNewOrder (quantity : ℕ))
 		(Entrance			

@@ -1,4 +1,4 @@
-* Upon `ordering the monster burger`:
+* Upon `the Customer` `ordering the monster burger`:
 	* `the Restaurant` should `serve the monster burger` within 15 minutes, and 
 	* otherwise `the Restaurant` `violates its prompt serve gaurantee`.
 
