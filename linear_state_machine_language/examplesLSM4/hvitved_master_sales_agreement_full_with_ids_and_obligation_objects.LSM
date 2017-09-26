@@ -122,7 +122,7 @@
         ; I think we should at least encourage this style of order-insensitive conditionals.
         (verifiedDisjointExhaustive
             (if ((orderable_units_remaining > 0) and (nowNoLaterThanAbs? contract_ends))
-                (Customer may (SubmitNewOrder q)
+                (Customer may next (SubmitNewOrder q)
                      for some (q : ℕ) such that (0 < q ≤ orderable_units_remaining))
             )
             (if ((orderable_units_remaining == 0) or (nowPastAbs? contract_ends))
@@ -152,7 +152,7 @@
         ;   - then, {Vendor} must later, by {delivery_deadline}, deliver the order.
 
         ; LANG note: see monster_burger.LSM in this directory
-        (0 ≤ visits ≤ nonconstant)
+        (0 ≤ traversals ≤ nonconstant)
 
         (AllowedSubjects Customer)
         (Entrance
@@ -175,8 +175,7 @@
         ;   - {units_delivered} is increased by {quantity}.
         ;   - then, {Vendor} may later, within 30 days, send an invoice for the order.
 
-        ; LANG note: see monster_burger.LSM in this directory
-        (0 ≤ visits ≤ nonconstant)
+        (0 ≤ traversals ≤ nonconstant)
 
         (AllowedSubjects Vendor)
         (Entrance
@@ -191,8 +190,7 @@
         ;   - {units_invoiced} is increased by {quantity}.
         ;   - then, {Customer} must later, within 14 days, pay for the order.
 
-        ; LANG note: see monster_burger.LSM in this directory
-        (0 ≤ visits ≤ nonconstant)
+        (0 ≤ traversals ≤ nonconstant)
 
         (AllowedSubjects Vendor)
         (Entrance
@@ -206,8 +204,7 @@
         ; When {Customer} pays the bill for an order of {quantity} units:
         ;   - {total_paid} is increased by {quantity}*{PRICE_PER_UNIT}.
 
-        ; LANG note: see monster_burger.LSM in this directory
-        (0 ≤ visits ≤ 1)
+        (0 ≤ traversals ≤ 1)
 
         (AllowedSubjects Customer)
         (Entrance
