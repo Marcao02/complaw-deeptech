@@ -7,8 +7,8 @@
 ; - some of it will be specified within a general-purpose English locale file. For example, the template "* ACTOR should ACTION DEADLINE_EXPRESSION"
 ; - some of it will be written in an English locale file specific for this program, e.g. what to replace {action:ServeMB} with.
 
-; currentTimeNoLaterThanThisMuchAfterEntranceTime?, currentTimeLaterThanThisMuchAfterEntranceTime? : Duration → Bool
-; e.g. (currentTimeNoLaterThanThisMuchAfterEntranceTime? 10) means the current time is within 10 time units of the time when the current state was entered.
+; within?, currentTimeLaterThanThisMuchAfterEntranceTime? : Duration → Bool
+; e.g. (within? 10) means the current time is within 10 time units of the time when the current state was entered.
 
 ; currentTimeNoLaterThan?, currentTimeBefore?, currentTimeAfter? : Timestamp → Bool
 ; currentTimeBetween? : Timestamp → Timestamp → Bool
@@ -63,10 +63,10 @@
 			(amount_owing = MB_PRICE)
 		)
 		(verifiedDisjointExhaustive
-			(if (currentTimeNoLaterThanThisMuchAfterEntranceTime? MAX_SERVE_DELAY)
+			(if (within? MAX_SERVE_DELAY)
 				(Restaurant should (ServeMB))
 			)
-			(if (currentTimeLaterThanThisMuchAfterEntranceTime? MAX_SERVE_DELAY)
+			(if (not (within? MAX_SERVE_DELAY))
 				(PromptServeGuaranteeViolated)
 			)
 		)
@@ -142,10 +142,10 @@
 		(0 ≤ visits ≤ nonconstant)
 
 		(verifiedDisjointExhaustive
-			(if (currentTimeNoLaterThanThisMuchAfterEntranceTime? MAX_CLAIM_VERIFICATION_DELAY)
+			(if (within? MAX_CLAIM_VERIFICATION_DELAY)
 				(Restaurant should (CheckFinishedClaim))
 			)
-			(if (currentTimeLaterThanThisMuchAfterEntranceTime? MAX_CLAIM_VERIFICATION_DELAY)
+			(if (not (within? MAX_CLAIM_VERIFICATION_DELAY))
 				(LateCheck)
 			)
 		)
