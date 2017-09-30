@@ -12,7 +12,6 @@
 
 ; NOTE 1: If Client overpays, this contract does not have any facility for refunding them (but it could easily be added).
 ; NOTE 2: This contract ignores the possibility of a message being sent but not received.
-; NOTE 3: It’s not quite ideal between instances of the client fulfilling their obligations and the next time when they can next raise their internet traffic. Specifically, they can only have high traffic in one interval within each 48 hour interval. Also, the client must finish paying for their last high-usage infraction before raising the usage again.
 
 (FormalContract
 	"PS Internet Provision"
@@ -46,37 +45,41 @@
 
 	(StartState TrafficNormal)
 
+	(Event&State TrafficNormal
+		(visits == 1)
+		(Client may next (TrafficRaised))
+	)
+
 	(Action CancelContract
 		(AllowedSubjects ISP)
+		(traversals ≤ 1)
 		; ISP can do this action in any contract state provided both of the
 		; cancel_* boolean variables are true
-		(ISP may in any state if (and cancel_notice_sent_by_email cancel_notice_sent_by_post))
+		(ISP may in any state if
+			(and cancel_notice_sent_by_email
+				 cancel_notice_sent_by_post
+				 (not contract_canceled)
+			)
+		)
 		(Entrance
 			(contract_canceled = true)
 		)
 	)
 
-	(Event&State TrafficNormal
-		(Entrance
-			(L24 = false)
-			(sent_delay_email = false)
-			(P1 = false)
-			(P2 = false)
-			(P3 = false)
-		)
-		(Client may next (TrafficRaised))
-	)
-
 	(Action LowerTrafficWithin24HofInfraction
 		(AllowedSubjects Client)
+		(traversals ≤ 1)
 		(Entrance
 			(L24 := true)
 		)
-		(startContract "PS Internet Provision" (Actors ISP Client))
+		(if (not contract_canceled)
+			(startInstace "PS Internet Provision" (Actors ISP Client))
+		)
 	)
 
 	(Action SendDelayEmail
 		(AllowedSubjects Client)
+		(traversals ≤ 1)
 		(Entrance
 			(sent_delay_email := true)
 		)
@@ -84,12 +87,15 @@
 
 	(Action Pay1XHighUsageFeeWithin24HofInfraction
 		(AllowedSubjects Client)
+		(traversals ≤ 1)
 		(Entrance
 			(P1 := true)
 		)
 	)
 
 	(Action&State TrafficRaised
+		(AllowedSubjects Client)
+		(visits ≤ 1)
 		(verifiedDisjointExhaustive
 			(if (within? 24H)
 				(Client may next (LowerTrafficWithin24HofInfraction))
@@ -103,6 +109,10 @@
 	)
 
 	(Event&State After24H
+		; not == 1 because the contract technically allows the possibility that
+		; the client delivers their cancelation request messages, and the ISP
+		; cancels their service, all before they raise their internet traffic.
+		(visits ≤ 1)
 		(verifiedDisjoint
 			(if (and P1 L24)
 				; Both paid 1X high usage fee and lowered traffic within 24H.
@@ -157,6 +167,7 @@
 
 	(Action Pay2XHighUsageFeeBetween24And48HofInfraction
 		(AllowedSubjects Client)
+		(traversals ≤ 1)
 		(Entrance
 			(P2 := true)
 		)
@@ -164,6 +175,7 @@
 
 	(Action Pay3XHighUsageFeeBetween24And48HofInfraction
 		(AllowedSubjects Client)
+		(traversals ≤ 1)
 		(Entrance
 			(P3 := true)
 		)
@@ -171,10 +183,13 @@
 
 	(Action LowerTrafficBetween24And48HofInfraction
 		(AllowedSubjects Client)
+		(traversals ≤ 1)
 		(Entrance
 			(L48 := true)
 		)
-		(startContract "PS Internet Provision" (Actors ISP Client))
+		(if (not contract_canceled)
+			(startInstance "PS Internet Provision" (Actors ISP Client))
+		)
 	)
 
 
