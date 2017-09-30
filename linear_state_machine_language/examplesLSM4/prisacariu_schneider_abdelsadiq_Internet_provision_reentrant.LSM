@@ -72,6 +72,7 @@
 		(Entrance
 			(L24 := true)
 		)
+		(startContract "PS Internet Provision" (Actors ISP Client))
 	)
 
 	(Action SendDelayEmail
@@ -106,9 +107,7 @@
 			(if (and P1 L24)
 				; Both paid 1X high usage fee and lowered traffic within 24H.
 				; They owe nothing more.
-				(if (and (not contract_canceled) (not (within? 24H)))
-					(TrafficNormal)
-				)
+				(ContingentFulfilled)
 			)
 			(if (and (not P1) sent_delay_email L24)
 				; Sent the delay payment email, and lowered traffic within 24H.
@@ -116,9 +115,7 @@
 				(if (and (not P2) (not P3))
 					(Client must later (within 24H) (Pay2XHighUsageFeeBetween24And48HofInfraction))
 				)
-				(if (and (not contract_canceled) (not (within? 24H)))
-					(TrafficNormal)
-				)
+				(ContingentFulfilled)
 			)
 			(if (and P1 (not L24))
 				; Paid 1X high usage fee within 24H and doesn't lower traffic within 24H.
@@ -130,9 +127,7 @@
 				(if (not L48)
 					(Client must later (within 24H) (LowerTrafficBetween24And48HofInfraction))
 				)
-				(if (and (not contract_canceled) (not (within? 24H)))
-					(TrafficNormal)
-				)
+				(ContingentFulfilled)
 			)
 			(if (and (not P1) sent_delay_email (not L24))
 				; Sent the delay payment email and doesn't lower traffic within 24H.
@@ -143,9 +138,7 @@
 				(if (not L48)
 					(Client must later (within 24H) (LowerTrafficBetween24And48HofInfraction))
 				)
-				(if (and (not contract_canceled) (not (within? 24H)))
-					(TrafficNormal)
-				)
+				(ContingentFulfilled)
 			)
 		)
 
@@ -181,6 +174,7 @@
 		(Entrance
 			(L48 := true)
 		)
+		(startContract "PS Internet Provision" (Actors ISP Client))
 	)
 
 
