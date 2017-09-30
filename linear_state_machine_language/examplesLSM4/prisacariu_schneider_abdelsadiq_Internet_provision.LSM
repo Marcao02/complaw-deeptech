@@ -7,12 +7,11 @@
 	(HOURS_PARAM : ℕ := 24)
 )
 
-
 ; The original (ambiguous) agreement.
 (ProseContract
 	(P1 'Whenever Internet traffic is high then the client must pay {HIGH_USAGE_FEE} or the client must notify the service provider by sending an e-mail specifying that he will pay later within {HOURS_PARAM} hours.')
-	(P2 'In case the client delays the payment, after notification he must lower Internet traffic within {HOURS_PARAM} hours to the low level, and pay twice the amount ${HIGH_USAGE_FEE}.')
-	(P3 'If the client does not lower the Internet traffic within {HOURS_PARAM} hours, then the client will have to pay thrice the amount ${HIGH_USAGE_FEE}.')
+	(P2 'In case the client delays the payment, after notification he must lower Internet traffic within {HOURS_PARAM} hours to the low level, and pay twice the amount {HIGH_USAGE_FEE}.')
+	(P3 'If the client does not lower the Internet traffic within {HOURS_PARAM} hours, then the client will have to pay thrice the amount {HIGH_USAGE_FEE}.')
 	(P4 'The provider does not have permission to cancel the contract without previous written notification by normal post and by e-mail.')
 
 ; These are some properties we would want to verify are true:
@@ -25,29 +24,33 @@
 ; Client may pay in up to 2 parts, one before 24H and the other between 24H and 48H.
 ; Client, if they don't lower traffic within 48 hours of infraction, breaches the contract.
 
-; NOTE: If Client overpays, this contract does not have any facility for refunding them (but it could easily be added).
-; This contract ignores the possibility of a message being sent but not received.
-
-
-(GlobalVars
-	(cancel_notice_sent_by_post : Bool = false)
-	(cancel_notice_sent_by_email : Bool = false)
-	(L24 : Bool = false) ; lowered traffic within 24H of infraction
-	(L48 : Bool = false) ; lowered traffic between 24 and 48 hours of infraction
-	(sent_delay_email : Bool = false) ; sent delay-payment-notification email within 24H of infraction.
-	(P1 : Bool = false) ; paid 1X high usage fee within 24H of infraction
-	(P2 : Bool = false) ; paid at least 2X high usage fee between 24 and 48 hours of infraction
-	(P3 : Bool = false) ; paid 3X high usage fee between 24 and 48 hours of infraction
-)
+; NOTE 1: If Client overpays, this contract does not have any facility for refunding them (but it could easily be added).
+; NOTE 2: This contract ignores the possibility of a message being sent but not received.
+; NOTE 3: It’s not quite ideal between instances of the client fulfilling their obligations and the next time when they can next raise their internet traffic. Specifically, they can only have high traffic in one interval within each 48 hour interval. Also, the client must finish paying for their last high-usage infraction before raising the usage again.
 
 (FormalContract
+	(GlobalVars
+		(contract_canceled : Bool = false)
+		(cancel_notice_sent_by_post : Bool = false)
+		(cancel_notice_sent_by_email : Bool = false)
+		(L24 : Bool = false) ; lowered traffic within 24H of infraction
+		(L48 : Bool = false) ; lowered traffic between 24 and 48 hours of infraction
+		(sent_delay_email : Bool = false) ; sent delay-payment-notification email within 24H of infraction.
+		(P1 : Bool = false) ; paid 1X high usage fee within 24H of infraction
+		(P2 : Bool = false) ; paid at least 2X high usage fee between 24 and 48 hours of infraction
+		(P3 : Bool = false) ; paid 3X high usage fee between 24 and 48 hours of infraction
+	)
+
 	(StartState TrafficNormal)
 
 	(Action CancelContract
 		(AllowedSubjects ISP)
-		; ISP can do this action in any contract state
-		(ISP may if (and cancel_notice_sent_by_email cancel_notice_sent_by_post))
-
+		; ISP can do this action in any contract state provided both of the
+		; cancel_* boolean variables are true
+		(ISP may in any state if (and cancel_notice_sent_by_email cancel_notice_sent_by_post))
+		(Entrance
+			(contract_canceled = true)
+		)
 	)
 
 	(Event&State TrafficNormal
@@ -100,7 +103,9 @@
 			(if (and P1 L24)
 				; Both paid 1X high usage fee and lowered traffic within 24H.
 				; They owe nothing more.
-				(TrafficNormal (not (within 24H)))
+				(if (and (not contract_canceled) (not (within? 24H)))
+					(TrafficNormal)
+				)
 			)
 			(if (and (not P1) sent_delay_email L24)
 				; Sent the delay payment email, and lowered traffic within 24H.
@@ -108,7 +113,9 @@
 				(if (and (not P2) (not P3))
 					(Client must later (within 24H) (Pay2XHighUsageFeeBetween24And48HofInfraction))
 				)
-				(TrafficNormal (not (within 24H)))
+				(if (and (not contract_canceled) (not (within? 24H)))
+					(TrafficNormal)
+				)
 			)
 			(if (and P1 (not L24))
 				; Paid 1X high usage fee within 24H and doesn't lower traffic within 24H.
@@ -120,7 +127,9 @@
 				(if (not L48)
 					(Client must later (within 24H) (LowerTrafficBetween24And48HofInfraction))
 				)
-				(TrafficNormal (not (within 24H)))
+				(if (and (not contract_canceled) (not (within? 24H)))
+					(TrafficNormal)
+				)
 			)
 			(if (and (not P1) sent_delay_email (not L24))
 				; Sent the delay payment email and doesn't lower traffic within 24H.
@@ -131,7 +140,9 @@
 				(if (not L48)
 					(Client must later (within 24H) (LowerTrafficBetween24And48HofInfraction))
 				)
-				(TrafficNormal (not (within 24H)))
+				(if (and (not contract_canceled) (not (within? 24H)))
+					(TrafficNormal)
+				)
 			)
 		)
 
@@ -141,6 +152,10 @@
 		(if (and (not P2) (not P3))
 			(Client may next (within 24H) Pay2XHighUsageFeeBetween24And48HofInfraction)
 			(Client may next (within 24H) Pay3XHighUsageFeeBetween24And48HofInfraction)
+		)
+
+		(if contract_canceled
+			(ContingentFulfilled)
 		)
 	)
 
