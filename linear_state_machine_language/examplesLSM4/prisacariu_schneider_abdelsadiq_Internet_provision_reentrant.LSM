@@ -32,29 +32,37 @@
 	)
 
 	(GlobalVars
-		(contract_canceled : Bool = false)
-		(cancel_notice_sent_by_post : Bool = false)
-		(cancel_notice_sent_by_email : Bool = false)
-		(L24 : Bool = false) ; lowered traffic within 24H of infraction
-		(L48 : Bool = false) ; lowered traffic between 24 and 48 hours of infraction
-		(sent_delay_email : Bool = false) ; sent delay-payment-notification email within 24H of infraction.
-		(P1 : Bool = false) ; paid 1X high usage fee within 24H of infraction
-		(P2 : Bool = false) ; paid at least 2X high usage fee between 24 and 48 hours of infraction
-		(P3 : Bool = false) ; paid 3X high usage fee between 24 and 48 hours of infraction
+		(change≤once contract_canceled : Bool = false)
+		(change≤once cancel_notice_sent_by_post : Bool = false)
+		(change≤once cancel_notice_sent_by_email : Bool = false)
+		(change≤once when_lowered : [Enum never before24H after24H] = never); when
+		; they lower their usage level.
+		(change≤once sent_delay_email : Bool = false) ; sent delay-payment-notification email
+		; within 24H of infraction.
+		(change≤once paidBefore24 : Bool = false) ; paid 1X high usage fee within 24H of
+		; infraction
+		(change≤once paidAfter24 : [Enum nothing 2X 3X] = nothing) ; how much
+		; Client paid between 24 and 48 hours of infraction
 	)
 
-	(StartState TrafficNormal)
+	(StartState UsageWithinAllowance)
 
-	(Event&State TrafficNormal
+	(State UsageWithinAllowance
+		; When ‹Client's internet traffic usage level is within the allowed range›
+		; they may, by increasing their traffic, ‹cause their usage level to exceed
+		; the allowed range›, after which the rules of section UsageLimitExceeded
+		; go into force.
 		(visits == 1)
-		(Client may next (TrafficRaised))
+		(Client may next (ExceedUsageLimit))
 	)
 
 	(Action CancelContract
+		; ISP can ‹initiate termination of Client's account› whenever:
+		; * ‹they have received a cancelation notice from Client by email›
+		; * ‹they have received a cancelation notice from Client by post›
+		; * ‹termination of Client's account has not already been initiated›
 		(AllowedSubjects ISP)
 		(traversals ≤ 1)
-		; ISP can do this action in any contract state provided both of the
-		; cancel_* boolean variables are true
 		(ISP may in any state if
 			(and cancel_notice_sent_by_email
 				 cancel_notice_sent_by_post
@@ -70,7 +78,7 @@
 		(AllowedSubjects Client)
 		(traversals ≤ 1)
 		(Entrance
-			(L24 := true)
+			(when_lowered := before24H)
 		)
 		(if (not contract_canceled)
 			(startInstace "PS Internet Provision" (Actors ISP Client))
@@ -89,18 +97,27 @@
 		(AllowedSubjects Client)
 		(traversals ≤ 1)
 		(Entrance
-			(P1 := true)
+			(paidBefore24 := true)
 		)
 	)
 
-	(Action&State TrafficRaised
+	(Action/State ExceedUsageLimit/UsageLimitExceeded
+		; Within 24 hours of the Client exceeding the allowed internet
+		; usage limit, they may next
+		; * Lower their usage, if they haven't done so already, and/or
+		; * Send an email to the ISP notifying them that they will delay their
+		;	high usage fee payment, if they haven't done so already, and/or
+		; * Pay the ISP the high usage fee, if they haven't done so already.
+		;
+		; After 24 hours, the rules of this section no longer apply, and
+		; the rules of section After24H go into force.
 		(AllowedSubjects Client)
 		(visits ≤ 1)
 		(verifiedDisjointExhaustive
 			(if (within? 24H)
-				(Client may next (LowerTrafficWithin24HofInfraction))
-				(Client may next (SendDelayEmail))
-				(Client may next (Pay1XHighUsageFeeWithin24HofInfraction))
+				(Client may next (LowerTrafficWithin24HofInfraction) if (when_lowered != before24H))
+				(Client may next (SendDelayEmail) if (not sent_delay_email))
+				(Client may next (Pay1XHighUsageFeeWithin24HofInfraction) if (not paidBefore24))
 			)
 			(if (not (within? 24H))
 				(After24H)
@@ -108,41 +125,57 @@
 		)
 	)
 
-	(Event&State After24H
-		; not == 1 because the contract technically allows the possibility that
-		; the client delivers their cancelation request messages, and the ISP
-		; cancels their service, all before they raise their internet traffic.
+	(Event/State After24H
+		; When Section After24H is in force:
+		; ~~> see individual clauses for sketched NLG
 		(visits ≤ 1)
+		; note visits ≤ 1 instead of == 1 because the contract technically
+		; allows the possibility that the client delivers their cancelation
+		; request messages, and the ISP cancels their service, all before
+		; they raise their internet traffic.
 		(verifiedDisjoint
-			(if (and P1 L24)
-				; Both paid 1X high usage fee and lowered traffic within 24H.
-				; They owe nothing more.
+			(if (and paidBefore24 (when_lowered == before24H))
+				; If the Client both paid the high usage fee and lowered their usage
+				; within 24H, then they owe nothing more, and the contract is fulfilled
 				(ContingentFulfilled)
 			)
-			(if (and (not P1) sent_delay_email L24)
-				; Sent the delay payment email, and lowered traffic within 24H.
-				; They owe 2X high usage fee.
-				(if (and (not P2) (not P3))
+			(if (and (not paidBefore24) sent_delay_email (when_lowered == before24H))
+				; If the Client did not pay the high usage fee within 24 hours of their
+				; infraction, and sent a delay-payment-notification email, and lowered
+				; their internet usage within 24H, then they must pay 2x the high usage
+				; fee within 48 hours of their infraction.
+				; The contract is fulfilled as soon as all obligations are met.
+				(if (paidAfter24 == nothing)
 					(Client must later (within 24H) (Pay2XHighUsageFeeBetween24And48HofInfraction))
 				)
 				(ContingentFulfilled)
 			)
-			(if (and P1 (not L24))
-				; Paid 1X high usage fee within 24H and doesn't lower traffic within 24H.
-				; Regardless of whether they sent the delay payment email,
-				; they owe 3X high usage fee total, so must pay an additional 2X.
-				(if (and (not P2) (not P3))
+			(if (and paidBefore24 (when_lowered != before24H))
+				; If the Client paid the high usage fee within 24H and doesn't lower
+				; traffic within 24H, then (regardless of whether they sent the delay
+				; payment email), they must pay (an additional) 2X high usage fee
+				; (for a total of 3X) within 48 hours of their infraction (i.e. within
+				; 24 hours of entering the After24H state).	The Client must also
+				; lower their usage within 48 hours of their
+				; infraction (i.e. within 24 hours of entering the After24H state).
+				; The contract is fulfilled as soon as all obligations are met.
+				(if (paidAfter24 == nothing)
 					(Client must later (within 24H) (Pay2XHighUsageFeeBetween24And48HofInfraction))
 				)
-				(if (not L48)
+				(if (when_lowered != after24H)
 					(Client must later (within 24H) (LowerTrafficBetween24And48HofInfraction))
 				)
 				(ContingentFulfilled)
 			)
-			(if (and (not P1) sent_delay_email (not L24))
-				; Sent the delay payment email and doesn't lower traffic within 24H.
-				; They owe 3X high usage fee.
-				(if (not P3)
+			(if (and (not paidBefore24) sent_delay_email (when_lowered != before24H))
+				; If the client did not pay the high usage fee within 24 hours of their
+				; infraction, and sent a delay-payment-notification email, and didn't
+				; lower their usage within 24H of their infraction, then they must
+				; pay 3X high usage fee. They must also lower their usage within 48
+				; hours of their infraction (i.e. within 24 hours of entering the
+				; After24H state).
+				; The contract is fulfilled as soon as all obligations are met.
+				(if ()
 					(Client must later (within 24H) (Pay3XHighUsageFeeBetween24And48HofInfraction))
 				)
 				(if (not L48)
@@ -152,10 +185,10 @@
 			)
 		)
 
-		(if (and (not L48) (not L24))
+		(if (when_lowered == never)
 			(Client may next (within 24H) LowerTrafficBetween24And48HofInfraction)
 		)
-		(if (and (not P2) (not P3))
+		(if (paidAfter24 == nothing)
 			(Client may next (within 24H) Pay2XHighUsageFeeBetween24And48HofInfraction)
 			(Client may next (within 24H) Pay3XHighUsageFeeBetween24And48HofInfraction)
 		)
