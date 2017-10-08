@@ -60,7 +60,7 @@ main = main1 =<< execParser opts
          
 {-                               MAIN                           -}
 {-                               MAIN                           -}
-{-                               MAIN                                -}
+{-                               MAIN                           -}
 
 main1 :: Options -> IO ()
 main1 opts@(Options quiet v beforefilename afterfilename) = do
@@ -69,20 +69,25 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
 
   (before, after) <- parseJSONs opts
 
--- let companystate_diffs = rdiff before after
+  -- diff the company
 
-  let companydiffs = catMaybes $ [ rdiffifdiff (company before) (company after) ]
+  let companydiffs = rdiff (company before) (company after)
   vprint v $ "companydiffs: " ++ show companydiffs
+
+  -- diff the holdings
 
   let hdiffs = pairBy holder holds (holdings before) (holdings after)
   vprint v $ show $ assocs hdiffs
 
-  let reorganizedHoldings = [ rdiffifdiff (Holding hname (fromMaybe [] h1)) (Holding hname (fromMaybe [] h2))
+  let reorganizedHoldings = [ rdiff       (Holding hname (fromMaybe [] h1))
+                                          (Holding hname (fromMaybe [] h2))
                             | (hname,(h1,h2)) <- assocs hdiffs
                             ]
   vprint v $ show reorganizedHoldings
 
-  vprint True $ show [ rdiffifdiff before after ]
+  -- diff the full companystate
+  
+  vprint True $ show $ rdiff before after
   
 
 {-                               input json parsing                           -}
