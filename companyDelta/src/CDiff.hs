@@ -49,78 +49,71 @@ pruneNoops :: Tree Diff -> Maybe (Tree Diff)
 pruneNoops (Node (Noop _) forest) = Nothing
 pruneNoops (Node y        forest) = Just $ Node y (catMaybes $ map pruneNoops forest)
 
--- a list of the tuples you want to diff; we return the diffs, pruned of noops
-mkForest :: [Tree Diff] -> [Tree Diff]
-mkForest xs = catMaybes $ pruneNoops <$> xs
-
 -- Recursively Diffable types
 class RDiff x where
   rdiff :: x -> x -> Tree Diff
 
 mkDiff :: (RDiff a, Show a) => String -> a -> a -> [Tree Diff] -> Tree Diff
 mkDiff elName x y forest =
-  mytrace ("mkDiff " ++ elName)
-  (if length forest > 0
-   then Node (Update x y ("changed " ++ elName))
-   else Node (Noop ("no change to " ++ elName))
-  ) forest
+  let pruned = catMaybes $ pruneNoops <$> forest
+  in mytrace ("mkDiff " ++ elName)
+     (if length pruned > 0
+      then Node (Update x y ("changed " ++ elName))
+      else Node (Noop ("no change to " ++ elName))
+     ) pruned
 
 instance RDiff CompanyState where
   rdiff
     s1@(CompanyState holders1 se1 co1 holdings1)
     s2@(CompanyState holders2 se2 co2 holdings2) =
-    mkDiff "CompanyState" s1 s2 $ mkForest [rdiff holders1 holders2
-                                           ,rdiff se1 se2
-                                           ,rdiff co1 co2
-                                           ,rdiff holdings1 holdings2]
+    mkDiff "CompanyState" s1 s2 [rdiff holders1 holders2
+                                ,rdiff se1 se2
+                                ,rdiff co1 co2
+                                ,rdiff holdings1 holdings2]
 
 instance RDiff Company where
   rdiff
     s1@(Company n1 j1 idtype1 idnum1)
     s2@(Company n2 j2 idtype2 idnum2) =
-    mkDiff "Company" s1 s2 $ mkForest [rdiff n1 n2
-                                      ,rdiff j1 j2
-                                      ,rdiff idtype1 idtype2
-                                      ,rdiff idnum1 idnum2 ]
+    mkDiff "Company" s1 s2 [rdiff n1 n2
+                           ,rdiff j1 j2
+                           ,rdiff idtype1 idtype2
+                           ,rdiff idnum1 idnum2 ]
   
 instance RDiff [Holder] where
   rdiff s1s s2s =
     let mergedHolders = pairBy fullname (:[]) s1s s2s
-        forest = mkForest
-          [ rdiff (fmap head hBefore) (fmap head hAfter)
-          | (hName,(hBefore,hAfter)) <- Map.assocs mergedHolders ]
-    in mkDiff "Holders" s1s s2s forest
+    in mkDiff "Holders" s1s s2s [ rdiff (fmap head hBefore) (fmap head hAfter)
+                                | (hName,(hBefore,hAfter)) <- Map.assocs mergedHolders ]
 
 
 instance RDiff Holder where
   rdiff
     s1@(Holder fullname1 idtype1 idnum1 nature1 gender1)
     s2@(Holder fullname2 idtype2 idnum2 nature2 gender2) =
-    mkDiff "Holder" s1 s2 $ mkForest [rdiff fullname1 fullname2
-                                     ,rdiff idtype1 idtype2
-                                     ,rdiff idnum1 idnum2
-                                     ,rdiff nature1 nature2
-                                     ,rdiff gender1 gender2]
+    mkDiff "Holder" s1 s2 [rdiff fullname1 fullname2
+                          ,rdiff idtype1 idtype2
+                          ,rdiff idnum1 idnum2
+                          ,rdiff nature1 nature2
+                          ,rdiff gender1 gender2]
 
 
 instance RDiff [Security] where
   rdiff s1s s2s =
     let mergedSecurities = pairBy (name :: Security -> String) (:[]) s1s s2s
-    in mkDiff "Securities" s1s s2s $
-       mkForest [ rdiff (fmap head sBefore) (fmap head sAfter)
-                | (sName,(sBefore,sAfter)) <- Map.assocs mergedSecurities ]
+    in mkDiff "Securities" s1s s2s [ rdiff (fmap head sBefore) (fmap head sAfter)
+                                   | (sName,(sBefore,sAfter)) <- Map.assocs mergedSecurities ]
 
 instance RDiff Security where
   rdiff s1@(Security name1 measure1)
         s2@(Security name2 measure2) =
-    mkDiff "Security" s1 s2 $ mkForest [rdiff name1 name2]
+    mkDiff "Security" s1 s2 [rdiff name1 name2]
   
 
 instance RDiff [Holding] where
   rdiff s1s s2s =
-    mkDiff "Holdings" s1s s2s
-    $ mkForest [ rdiff h1 h2
-               | (hname,(h1,h2)) <- Map.assocs $ pairBy holder holds s1s s2s ]
+    mkDiff "Holdings" s1s s2s [ rdiff h1 h2
+                              | (hname,(h1,h2)) <- Map.assocs $ pairBy holder holds s1s s2s ]
 
 instance RDiff Holding where
   rdiff s1@(Holding holder1 holds1)
@@ -128,10 +121,9 @@ instance RDiff Holding where
     let holdingsBySN = (pairBy securityName (:[]) holds1 holds2)
     -- :: Map holderName ( Map securityName ( [HeldSecurity/before] , [HeldSecurity/after] ) )
 
-    in mkDiff "Holding" s1 s2 $
-       mkForest [ rdiff hsBefore hsAfter
-                | (hsName,(hsBefore,hsAfter)) <- Map.assocs holdingsBySN
-                ]
+    in mkDiff "Holding" s1 s2 [ rdiff hsBefore hsAfter
+                              | (hsName,(hsBefore,hsAfter)) <- Map.assocs holdingsBySN
+                              ]
 
 ignoreDescription :: Maybe HeldSecurity -> Maybe HeldSecurity
 ignoreDescription (Just r) = -- mytrace ("ignoreDescription: flattening description="++(show $ description r))
@@ -158,14 +150,14 @@ instance RDiff [HeldSecurity] where
     let hsBefore = ignoreDescription $ myconcat $ Just hs1s
         hsAfter  = ignoreDescription $ myconcat $ Just hs2s
     in
-      mkDiff "HeldSecurities" hs1s hs2s $ mkForest [rdiff hsBefore hsAfter ]
+      mkDiff "HeldSecurities" hs1s hs2s [rdiff hsBefore hsAfter ]
   
 instance RDiff HeldSecurity where
   rdiff s1@(HeldSecurity securityName1 units1 money1 description1)
         s2@(HeldSecurity securityName2 units2 money2 description2) =
-    mkDiff "HeldSecurity" s1 s2 $ mkForest [rdiff units1 units2
-                                           ,rdiff money1 money2
-                                           ,rdiff description1 description2 ]
+    mkDiff "HeldSecurity" s1 s2 [rdiff units1 units2
+                                ,rdiff money1 money2
+                                ,rdiff description1 description2 ]
 
 
 instance RDiff EntityNature where
