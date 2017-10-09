@@ -127,7 +127,7 @@ Contract languages also borrow from rule logics, of which more later.
 
 This tradition of academic research evolved slowly and steadily, elaborating Szabo's original vision for smart contracts. The term seemed apt to describe a born-digital contract which took shape first as a program in a text editor. That program might later compile to a Word document or a PDF, but such projections were only shadows cast upon a cave wall by the Platonic ideal of the smart contract code.
 
-Then, in the 2010s, a handful of billionaire anarchists co-opted the term "smart contract" and gave it a new meaning.
+Then, in the 2010s, a handful of soon-to-be-billionaire cypherpunks co-opted the term "smart contract" and gave it a new meaning.
 
 ** Enter Blockchain
 
