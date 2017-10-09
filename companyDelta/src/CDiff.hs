@@ -39,11 +39,11 @@ data Diff where
   Noop    :: (                  ) =>               String -> Diff
 
 instance Show Diff where
-  show (Create      new comment) = unwords ["Create",  show new, show comment]
-  show (Replace old new comment) = unwords ["Replace", show new, show comment]
-  show (Update  old new comment) = unwords ["Update",  show new, show comment]
-  show (Delete  old     comment) = unwords ["Delete",  show old, show comment]
-  show (Noop            comment) = unwords ["Noop",              show comment]
+  show (Create      new comment) = unwords [show comment, "Create",  show new]
+  show (Replace old new comment) = unwords [show comment, "Replace", show new]
+  show (Update  old new comment) = unwords [show comment, "Update",  show new]
+  show (Delete  old     comment) = unwords [show comment, "Delete",  show old]
+  show (Noop            comment) = unwords [show comment, "Noop"             ]
 
 pruneNoops :: Tree Diff -> Maybe (Tree Diff)
 pruneNoops (Node (Noop _) forest) = Nothing
@@ -73,10 +73,11 @@ instance RDiff CompanyState where
 
 instance RDiff Company where
   rdiff
-    s1@(Company n1 j1 idtype1 idnum1)
-    s2@(Company n2 j2 idtype2 idnum2) =
+    s1@(Company n1 j1 address1 idtype1 idnum1)
+    s2@(Company n2 j2 address2 idtype2 idnum2) =
     mkDiff "Company" s1 s2 [rdiff n1 n2
                            ,rdiff j1 j2
+                           ,rdiff address1 address2
                            ,rdiff idtype1 idtype2
                            ,rdiff idnum1 idnum2 ]
   

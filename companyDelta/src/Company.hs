@@ -32,6 +32,7 @@ data Holder = Holder { fullname :: String
 
 data Company = Company { name :: String
                        , jurisdiction :: String -- change to some ISO code
+                       , address :: String
                        , idtype :: String
                        , idnum  :: String
                        }
