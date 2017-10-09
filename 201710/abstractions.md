@@ -141,13 +141,15 @@ With financing, any unpaid balance will be charged 6% interest, and the minimum 
 
 A high level formulation expands programmatically, largely via fill-in-the blanks, to a "low level" or "back end" formulation.
 
+The low level formulation looks more programmery, with types and so on.
+
 This is a pretty straightforward template expansion exercise.
 
 The low level template for a `sale + multipart` agreement can be found at 
 
 `linear_state_machine_language/examplesLSM4/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.LSM`
 
-It should be fairly obvious how the key/values from the high level "JSON" are spliced in to low level template -- we substitute into `ContractParams` and `GlobalVars`.
+It should be fairly obvious how the key/values from the high level "JSON" are spliced in to the low level template -- we substitute into `ContractParams` and `GlobalVars`.
 
 ## Intermixing High and Low Level Formalisms
 
