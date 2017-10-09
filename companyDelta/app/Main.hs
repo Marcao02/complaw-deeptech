@@ -29,6 +29,7 @@ import Control.Monad
 -- for the company data model
 import Company
 import CDiff
+import BusinessLogic
 
 -- various utilities
 import Data.Maybe (catMaybes, fromMaybe)

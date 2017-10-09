@@ -12,24 +12,26 @@ module Company where
 
 import Data.Aeson.Diff
 import Data.Aeson
+import Data.Time
 import GHC.Generics
 import Control.Applicative
 import Control.Monad
 import qualified Data.Text as T (unpack)
 
-data CompanyState = CompanyState { holders    :: [Holder]
+data CompanyState = CompanyState { parties    :: [Party]
                                  , securities :: [Security]
                                  , company    ::  Company
                                  , holdings   :: [Holding]
+                                 , agreements :: [Contract]
                                  } deriving (Generic, ToJSON, FromJSON, Show, Eq)
 
-data Holder = Holder { fullname :: String
-                     , idtype   :: String
-                     , idnum    :: String
-                     , nature   :: EntityNature
-                     , gender   :: Gender
-                     } deriving (Generic, ToJSON, FromJSON, Show, Eq)
-
+data Party = Party { fullname :: PartyName
+                   , idtype   :: String
+                   , idnum    :: String
+                   , nature   :: EntityNature
+                   , gender   :: Gender
+                   } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+             
 data Company = Company { name :: String
                        , jurisdiction :: String -- change to some ISO code
                        , address :: String
@@ -42,9 +44,19 @@ data Security = Security { name :: String
                          , measure :: Measure
                          } deriving (Generic, ToJSON, FromJSON, Show, Eq)
                 
-data Holding = Holding { holder :: String
+data Holding = Holding { holder :: PartyName
                        , holds  :: [HeldSecurity]
                        } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+
+type PartyName = String
+
+data Contract = Contract { parties :: [PartyName]
+                         , dated   :: Day
+                         , title   :: String
+                         } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+
+-- Prelude Data.Aeson Data.Time> decode (encode $ toJSON $ fromGregorian 1970 1 2) :: Maybe Day
+-- Just 1970-01-02
 
 data HeldSecurity = HeldSecurity { securityName :: String
                                  , units :: Maybe Float
@@ -81,8 +93,6 @@ instance FromJSON Gender where
     "male"   ->  Male
     "neutral" -> Neutral
     _        ->  OtherGender (T.unpack v)
-
-data Agreement = Agreement deriving (Show, Eq)
 
 -- TODO: use some currency library
 data Currency = Currency { code  :: CurrencyCode

@@ -26,9 +26,11 @@ import qualified Data.Set as Set
 import Data.Aeson (ToJSON)
 import qualified Data.Text as T (unpack)
 
+type Holder = Party
+
 data Relation = CH Company Holder
               | CS Company Security
-              | HS Holder Security
+              | HS Holder  Security
   deriving (Show, Eq)
 
 data Diff where
@@ -64,12 +66,13 @@ mkDiff elName x y forest =
 
 instance RDiff CompanyState where
   rdiff
-    s1@(CompanyState holders1 se1 co1 holdings1)
-    s2@(CompanyState holders2 se2 co2 holdings2) =
+    s1@(CompanyState holders1 se1 coy1 holdings1 con1)
+    s2@(CompanyState holders2 se2 coy2 holdings2 con2) =
     mkDiff "CompanyState" s1 s2 [rdiff holders1 holders2
                                 ,rdiff se1 se2
-                                ,rdiff co1 co2
-                                ,rdiff holdings1 holdings2]
+                                ,rdiff coy1 coy2
+                                ,rdiff holdings1 holdings2
+                                ,rdiff con1 con2]
 
 instance RDiff Company where
   rdiff
@@ -81,23 +84,43 @@ instance RDiff Company where
                            ,rdiff idtype1 idtype2
                            ,rdiff idnum1 idnum2 ]
   
-instance RDiff [Holder] where
+instance RDiff [Party] where
   rdiff s1s s2s =
     let mergedHolders = pairBy fullname (:[]) s1s s2s
     in mkDiff "Holders" s1s s2s [ rdiff (fmap head hBefore) (fmap head hAfter)
                                 | (hName,(hBefore,hAfter)) <- Map.assocs mergedHolders ]
 
-
-instance RDiff Holder where
+instance RDiff Party where
   rdiff
-    s1@(Holder fullname1 idtype1 idnum1 nature1 gender1)
-    s2@(Holder fullname2 idtype2 idnum2 nature2 gender2) =
+    s1@(Party fullname1 idtype1 idnum1 nature1 gender1)
+    s2@(Party fullname2 idtype2 idnum2 nature2 gender2) =
     mkDiff "Holder" s1 s2 [rdiff fullname1 fullname2
                           ,rdiff idtype1 idtype2
                           ,rdiff idnum1 idnum2
                           ,rdiff nature1 nature2
                           ,rdiff gender1 gender2]
 
+
+instance RDiff [Contract] where
+  rdiff s1s s2s =
+    let mergedContracts = pairBy (\c -> (show $ title c) ++ (show $ dated c)) (:[]) s1s s2s
+    in mkDiff "Contracts" s1s s2s [ rdiff (fmap head cBefore) (fmap head cAfter)
+                                  | (cName,(cBefore,cAfter)) <- Map.assocs mergedContracts ]
+
+
+instance RDiff Contract where
+  rdiff
+    s1@(Contract parties1 dated1 title1)
+    s2@(Contract parties2 dated2 title2) =
+    mkDiff "Contract" s1 s2 [rdiff parties1 parties2
+                            ,rdiff (show dated1) (show dated2)
+                            ,rdiff title1 title2]
+  
+instance RDiff [PartyName] where
+  rdiff s1s s2s =
+    let merged = pairBy id (:[]) s1s s2s
+    in mkDiff "PartyNames" s1s s2s [ rdiff (fmap head hBefore) (fmap head hAfter)
+                                   | (hName,(hBefore,hAfter)) <- Map.assocs merged ]
 
 instance RDiff [Security] where
   rdiff s1s s2s =

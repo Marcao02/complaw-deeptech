@@ -1,5 +1,5 @@
 {
-  "holders" : [
+  "parties" : [
     { "fullname": "Alice"
       , "idtype": "passport"
       , "idnum":  "E1111111B"
@@ -17,5 +17,7 @@
     { "holder": "Alice", "holds": [ { "securityName": "ordinary shares", "units": 100,
                                       "descripton" : "Alice doesn't change"} ] }
     ],
-  "agreements": [ {"shareholdersAgreement" : false} ]
+  "agreements": [ {"title" : "shareholdersAgreement",
+                   "dated" : "1970-01-01",
+                   "parties" : ["Alice","Company"] } ]
 }
