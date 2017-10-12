@@ -16,6 +16,7 @@ import Debug.Trace
 import Company
 import Control.Applicative
 import Control.Monad
+import Data.Typeable
 import Data.Tree
 import Data.Maybe
 import Data.Semigroup
@@ -33,37 +34,49 @@ data Relation = CH Company Holder
               | HS Holder  Security
   deriving (Show, Eq)
 
-data Diff where
-  Create  :: (          Show new) =>        new -> String -> Diff
-  Replace :: (Show old, Show new) => old -> new -> String -> Diff
-  Update  :: (Show old, Show new) => old -> new -> String -> Diff
-  Delete  :: (Show old          ) => old ->        String -> Diff
-  Noop    :: (                  ) =>               String -> Diff
+data Diff a where
+  Create  :: (Show a, Typeable a) =>      a -> String -> Diff a
+  Replace :: (Show a, Typeable a) => a -> a -> String -> Diff a
+  Update  :: (Show a, Typeable a) => a -> a -> String -> Diff a
+  Delete  :: (Show a, Typeable a) => a ->      String -> Diff a
+  Noop    ::                       String -> Diff a
 
-instance Show Diff where
+data DiffBox where
+  DiffBox :: (Show a, Typeable a) => Diff a -> DiffBox
+
+instance Show (Diff a) where
   show (Create      new comment) = unwords [show comment, "Create",  show new]
   show (Replace old new comment) = unwords [show comment, "Replace", show new]
   show (Update  old new comment) = unwords [show comment, "Update",  show new]
   show (Delete  old     comment) = unwords [show comment, "Delete",  show old]
   show (Noop            comment) = unwords [show comment, "Noop"             ]
 
-pruneNoops :: Tree Diff -> Maybe (Tree Diff)
-pruneNoops (Node (Noop _) forest) = Nothing
+instance Show DiffBox where
+  show (DiffBox x) = show x
+  
+pruneNoops :: Tree DiffBox -> Maybe (Tree DiffBox)
+pruneNoops (Node (DiffBox (Noop _)) forest) = Nothing
 pruneNoops (Node y        forest) = Just $ Node y (catMaybes $ map pruneNoops forest)
 
 -- Recursively Diffable types
 class RDiff x where
-  rdiff :: x -> x -> Tree Diff
+  rdiff :: x -> x -> Tree DiffBox
 
-mkDiff :: (RDiff a, Show a) => String -> a -> a -> [Tree Diff] -> Tree Diff
+mkDiff :: (RDiff a, Show a, Typeable a) => String -> a -> a -> [Tree DiffBox] -> Tree DiffBox
 mkDiff elName x y forest =
   let pruned = catMaybes $ pruneNoops <$> forest
   in mytrace ("mkDiff " ++ elName)
      (if length pruned > 0
-      then Node (Update x y ("changed " ++ elName))
-      else Node (Noop ("no change to " ++ elName))
+      then Node (DiffBox $ Update x y ("changed " ++ elName))
+      else Node (DiffBox $ (Noop ("no change to " ++ elName) :: Diff ()))
      ) pruned
 
+instance RDiff () where
+  rdiff x y = Node (DiffBox (Noop "" :: Diff ())) []
+
+-- argh, this doesn't work.
+-- instance RDiff DiffBox where
+--   rdiff db1@(DiffBox diff1) db2@(DiffBox diff2) = rdiff diff1 diff2
 
 -- maybe we need https://hackage.haskell.org/package/base-4.10.0.0/docs/Data-Data.html to "Scrap your boilerplate"
 
@@ -208,23 +221,23 @@ instance RDiff HeldSecurity where
 
 
 instance RDiff EntityNature where
-  rdiff s1@Human     s2@Corporate   = Node (Replace s1 s2 "incorporated") []
-  rdiff s1@Corporate s2@Human       = Node (Replace s1 s2 "disincorporated") []
-  rdiff s1@Human     s2@AI          = Node (Replace s1 s2 "uploaded") []
-  rdiff s1@Corporate s2@AI          = Node (Replace s1 s2 "blockchained") []
-  rdiff s1@AI        s2@Human       = Node (Replace s1 s2 "embodied") []
-  rdiff s1@AI        s2@Corporate   = Node (Replace s1 s2 "downgraded") []
-  rdiff s1           s2 | s1 == s2  = Node (Noop "no change to EntityNature") []
-                        | otherwise = Node (Replace s1 s2 "changed somehow") []
+  rdiff s1@Human     s2@Corporate   = Node (DiffBox $ Replace s1 s2 "incorporated") []
+  rdiff s1@Corporate s2@Human       = Node (DiffBox $ Replace s1 s2 "disincorporated") []
+  rdiff s1@Human     s2@AI          = Node (DiffBox $ Replace s1 s2 "uploaded") []
+  rdiff s1@Corporate s2@AI          = Node (DiffBox $ Replace s1 s2 "blockchained") []
+  rdiff s1@AI        s2@Human       = Node (DiffBox $ Replace s1 s2 "embodied") []
+  rdiff s1@AI        s2@Corporate   = Node (DiffBox $ Replace s1 s2 "downgraded") []
+  rdiff s1           s2 | s1 == s2  = Node (DiffBox $ (Noop "no change to EntityNature" :: Diff ())) []
+                        | otherwise = Node (DiffBox $ Replace s1 s2 "changed somehow") []
     
 instance RDiff Gender where
-  rdiff s1           s2 | s1 == s2     = Node (Noop "no change to Gender") []
-  rdiff s1@Male    s2@Female           = Node (Replace s1 s2 "m2f") []
-  rdiff s1@Female  s2@Male             = Node (Replace s1 s2 "f2m") []
-  rdiff s1         s2@Neutral          = Node (Replace s1 s2 "unsexed") []
-  rdiff s1         s2@Male             = Node (Replace s1 s2 "androgened") []
-  rdiff s1         s2@Female           = Node (Replace s1 s2 "estrogened") []
-  rdiff s1         s2@(OtherGender og) = Node (Replace s1 s2 ("became " ++ og)) []
+  rdiff s1           s2 | s1 == s2     = Node (DiffBox $ (Noop "no change to Gender" :: Diff ())) []
+  rdiff s1@Male    s2@Female           = Node (DiffBox $ Replace s1 s2 "m2f") []
+  rdiff s1@Female  s2@Male             = Node (DiffBox $ Replace s1 s2 "f2m") []
+  rdiff s1         s2@Neutral          = Node (DiffBox $ Replace s1 s2 "unsexed") []
+  rdiff s1         s2@Male             = Node (DiffBox $ Replace s1 s2 "androgened") []
+  rdiff s1         s2@Female           = Node (DiffBox $ Replace s1 s2 "estrogened") []
+  rdiff s1         s2@(OtherGender og) = Node (DiffBox $ Replace s1 s2 ("became " ++ og)) []
 
 -- if we have an Old thing and a New thing
 -- where there is a key Old.key and New.key
@@ -265,16 +278,16 @@ merge2ways oldMap newMap =
 
 
 
-instance (Show a, RDiff a) => RDiff (Maybe a) where
-  rdiff Nothing Nothing   = Node (Noop "given identical Nothing inputs") []
-  rdiff Nothing (Just y)  = Node (Create y "from Nothing") []
-  rdiff (Just x) Nothing  = Node (Delete x   "to Nothing") []
+instance (Show a, RDiff a, Typeable a) => RDiff (Maybe a) where
+  rdiff Nothing Nothing   = Node (DiffBox $ (Noop "given identical Nothing inputs" :: Diff ())) []
+  rdiff Nothing (Just y)  = Node (DiffBox $ Create y "from Nothing") []
+  rdiff (Just x) Nothing  = Node (DiffBox $ Delete x   "to Nothing") []
   rdiff (Just x) (Just y) = rdiff x y
 
 -- syntactic sugar
-ndr :: (Show term, Eq term) => term -> term -> String -> Tree Diff
-ndr s1 s2 str | s1 == s2  = Node (Noop ("no change")) []
-              | otherwise = Node (Replace s1 s2 str)  []
+ndr :: (Show term, Eq term, Typeable term) => term -> term -> String -> Tree DiffBox
+ndr s1 s2 str | s1 == s2  = Node (DiffBox $ (Noop ("no change") :: Diff ())) []
+              | otherwise = Node (DiffBox $ Replace s1 s2 str)  []
 
 instance RDiff String where
   rdiff s1 s2 = ndr s1 s2 "change string"
