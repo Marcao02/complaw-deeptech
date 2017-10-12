@@ -31,6 +31,8 @@ data Party = Party { fullname :: PartyName
                    , nature   :: EntityNature
                    , gender   :: Gender
                    } deriving (Generic, ToJSON, FromJSON, Show, Eq)
+
+type Director = Party
              
 data Company = Company { name :: String
                        , jurisdiction :: String -- change to some ISO code
@@ -38,6 +40,8 @@ data Company = Company { name :: String
                        , idtype :: String
                        , idnum  :: String
                        , constitution :: Constitution
+                       , directors  :: [PartyName]
+                       , secretary  :: PartyName
                        }
              deriving (Show, Eq, Generic, ToJSON, FromJSON)
 

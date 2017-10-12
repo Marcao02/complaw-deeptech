@@ -21,6 +21,8 @@
                , "idnum"  : "UEN11111111A"
                , "constitution" : [ { "title" : "Constitution Default",
                                       "body"  : "The default constitution shall be substituted here." } ]
+               , "directors" : ["Alice" ]
+               , "secretary" : "Alice"
                                     },
   "holdings": [
     { "holder": "Alice", "holds": [ { "securityName": "ordinary shares", "units": 100,

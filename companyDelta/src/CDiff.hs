@@ -69,14 +69,14 @@ mkDiff elName x y forest =
 
 instance RDiff CompanyState where
   rdiff
-    s1@(CompanyState holders1 se1 coy1 holdings1 con1)
-    s2@(CompanyState holders2 se2 coy2 holdings2 con2) =
+    s1@(CompanyState holders1 se1 coy1 holdings1 contracts1)
+    s2@(CompanyState holders2 se2 coy2 holdings2 contracts2) =
     mkDiff "CompanyState" s1 s2 [rdiff holders1 holders2
                                 ,rdiff se1 se2
                                 ,rdiff coy1 coy2
                                 ,rdiff holdings1 holdings2
-                                ,rdiff con1 con2]
-
+                                ,rdiff contracts1 contracts2
+                                ]
 instance RDiff [ConExp] where
   rdiff s1s s2s =
     let mergedConstitution = pairBy (title :: ConExp -> String) (:[]) s1s s2s
@@ -92,14 +92,17 @@ instance RDiff ConExp where
                                        
 instance RDiff Company where
   rdiff
-    s1@(Company n1 j1 address1 idtype1 idnum1 con1)
-    s2@(Company n2 j2 address2 idtype2 idnum2 con2) =
+    s1@(Company n1 j1 address1 idtype1 idnum1 constitution1 directors1 secretary1)
+    s2@(Company n2 j2 address2 idtype2 idnum2 constitution2 directors2 secretary2) =
     mkDiff "Company" s1 s2 [rdiff n1 n2
                            ,rdiff j1 j2
                            ,rdiff address1 address2
                            ,rdiff idtype1 idtype2
                            ,rdiff idnum1 idnum2
-                           ,rdiff con1 con2]
+                           ,rdiff constitution1 constitution2
+                           ,rdiff directors1 directors2
+                           ,rdiff secretary1 secretary2
+                           ]
   
 instance RDiff [Party] where
   rdiff s1s s2s =
