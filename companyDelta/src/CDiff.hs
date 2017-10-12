@@ -64,6 +64,9 @@ mkDiff elName x y forest =
       else Node (Noop ("no change to " ++ elName))
      ) pruned
 
+
+-- maybe we need https://hackage.haskell.org/package/base-4.10.0.0/docs/Data-Data.html to "Scrap your boilerplate"
+
 instance RDiff CompanyState where
   rdiff
     s1@(CompanyState holders1 se1 coy1 holdings1 con1)
@@ -74,15 +77,29 @@ instance RDiff CompanyState where
                                 ,rdiff holdings1 holdings2
                                 ,rdiff con1 con2]
 
+instance RDiff [ConExp] where
+  rdiff s1s s2s =
+    let mergedConstitution = pairBy (title :: ConExp -> String) (:[]) s1s s2s
+    in mkDiff "Constitution" s1s s2s [ rdiff (fmap head cBefore) (fmap head cAfter)
+                                     | (cName,(cBefore,cAfter)) <- Map.assocs mergedConstitution ]
+
+instance RDiff ConExp where
+  rdiff
+    s1@(ConExp title1 body1)
+    s2@(ConExp title2 body2) =
+    mkDiff "ConExp" s1 s2 [rdiff body1 body2]
+
+                                       
 instance RDiff Company where
   rdiff
-    s1@(Company n1 j1 address1 idtype1 idnum1)
-    s2@(Company n2 j2 address2 idtype2 idnum2) =
+    s1@(Company n1 j1 address1 idtype1 idnum1 con1)
+    s2@(Company n2 j2 address2 idtype2 idnum2 con2) =
     mkDiff "Company" s1 s2 [rdiff n1 n2
                            ,rdiff j1 j2
                            ,rdiff address1 address2
                            ,rdiff idtype1 idtype2
-                           ,rdiff idnum1 idnum2 ]
+                           ,rdiff idnum1 idnum2
+                           ,rdiff con1 con2]
   
 instance RDiff [Party] where
   rdiff s1s s2s =
@@ -103,18 +120,21 @@ instance RDiff Party where
 
 instance RDiff [Contract] where
   rdiff s1s s2s =
-    let mergedContracts = pairBy (\c -> (show $ title c) ++ (show $ dated c)) (:[]) s1s s2s
+    let mergedContracts = pairBy (\c -> if singleton c
+                                        then (title (c :: Contract))
+                                        else (title (c :: Contract)) ++ (show $ dated c)) (:[]) s1s s2s
     in mkDiff "Contracts" s1s s2s [ rdiff (fmap head cBefore) (fmap head cAfter)
                                   | (cName,(cBefore,cAfter)) <- Map.assocs mergedContracts ]
 
 
 instance RDiff Contract where
   rdiff
-    s1@(Contract parties1 dated1 title1)
-    s2@(Contract parties2 dated2 title2) =
+    s1@(Contract parties1 dated1 title1 singleton1)
+    s2@(Contract parties2 dated2 title2 singleton2) =
     mkDiff "Contract" s1 s2 [rdiff parties1 parties2
                             ,rdiff (show dated1) (show dated2)
-                            ,rdiff title1 title2]
+                            ,rdiff title1 title2
+                            ,rdiff singleton1 singleton2]
   
 instance RDiff [PartyName] where
   rdiff s1s s2s =
@@ -261,6 +281,9 @@ instance RDiff Float where
   
 instance RDiff Int where
   rdiff s1 s2 = ndr s1 s2 "change int"
+  
+instance RDiff Bool where
+  rdiff s1 s2 = ndr s1 s2 "change bool"
   
   
 {-

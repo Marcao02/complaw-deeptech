@@ -18,7 +18,10 @@
                , "jurisdiction" : "Singapore"
                , "address" : "1 Corporate Park, Singapore 139951"
                , "idtype" : "UEN"
-               , "idnum"  : "UEN11111111A" },
+               , "idnum"  : "UEN11111111A"
+               , "constitution" : [ { "title" : "Constitution Default",
+                                      "body"  : "The default constitution shall be substituted here." } ]
+                                    },
   "holdings": [
     { "holder": "Alice", "holds": [ { "securityName": "ordinary shares", "units": 100,
                                       "descripton" : "Alice doesn't change"} ] },
@@ -27,6 +30,7 @@
                                     } ] }
   ],
   "agreements": [ {"title" : "shareholdersAgreement",
-                   "dated" : "1970-01-01",
-                   "parties" : ["Company","Alice","Bob"] } ]
+                   "dated" : "1970-01-02",
+                   "parties" : ["Company","Alice","Bob"],
+                   "singleton": true } ]
 }

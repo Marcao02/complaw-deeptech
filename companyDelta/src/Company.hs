@@ -37,8 +37,14 @@ data Company = Company { name :: String
                        , address :: String
                        , idtype :: String
                        , idnum  :: String
+                       , constitution :: Constitution
                        }
              deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+type Constitution = [ConExp]
+data                 ConExp = ConExp { title :: String
+                                     , body  :: String }
+                            deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Security = Security { name :: String
                          , measure :: Measure
@@ -53,6 +59,7 @@ type PartyName = String
 data Contract = Contract { parties :: [PartyName]
                          , dated   :: Day
                          , title   :: String
+                         , singleton :: Bool
                          } deriving (Generic, ToJSON, FromJSON, Show, Eq)
 
 -- Prelude Data.Aeson Data.Time> decode (encode $ toJSON $ fromGregorian 1970 1 2) :: Maybe Day
