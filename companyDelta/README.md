@@ -1,5 +1,71 @@
 # companyDelta
 
+Given two snapshots of a Company State, what corporate actions are required to transition the company from the first state to the second?
+
+## Modeling Company State
+
+We model the state of a company as a data structure.
+
+A Company at a given time consists of
+- a set of shareholders
+- a set of securities
+- relations representing which shareholders hold how many securities
+- agreements with parties
+- the company constitution
+- simple metadata like
+  - the office address
+  - legal jurisdiction
+  - company number
+  - list of directors
+  - who is the corporate secretary
+
+## Modeling Differences
+
+The differences between two states of a company are represented by a `Tree Diff`. At the highest level of the tree, the root node represents all the differences between old and new. At lower levels of the tree, the differences are represented by finger-grained chunks. The leaves of the tree represent the finest-grained differences.
+
+## Modeling State Transitions
+
+Let a state be a node. Let a pair of states be two nodes in a graph.
+
+The diff between two states is represented by a path of edges between the two nodes.
+
+The full path between the start and end states represents the full Diff tree.
+
+Subpaths represent Diff subtrees. Each edge is an atomic corporate action, represented by a piece of Paperwork.
+
+For example:
+- directors resolution to change the address of the company
+- members resolution to appoint a board of directors
+- execution of an agreement
+- sending a notice to shareholders about a meeting
+- sending an instruction to the corporate secretary
+- directors resolution to appoint a different corporate secretary
+
+## Ordering State Transition Dependencies
+
+To be a legal sequence, a path of corporate actions may be required to obey an ordering.
+
+For example, the correct procedure for issuing new shares is:
+
+1. directors agree to issue new shares
+2. directors request permission from members to issue new shares
+3. members either hold an extraordinary general meeting or pass resolutions by written means approving the directors' plan
+4. directors offer existing members pro-rata rights in the new share issue
+5. directors offer existing members excess rightse in the new share issue
+6. directors offer non-members participation in the new share issue
+7. directors sign investment agreement with particpating investors
+8. new investors sign shareholders agreement
+9. old investors sign deed of ratification and accession
+
+We use a dependency tree to model the sequence of these corporate actions. We collect nodes into node-groups, which we call dependency stages. Every document within a given dependency stage must be signed before documents within the next dependency stage can be signed.
+
+## Aggregating State Transitions
+
+We combine actions of the same type within the same dependency stage, into an aggregate document.
+
+For example, if a dependency stage contains three directors resolutions, the software should group those three directors resolutions into a single document for signature purposes.
+ 
+
 ```
 20171009-14:49:24 mengwong@venice2:~/non-db-src/l/compiler/companyDelta% stack build && stack exec companyDelta-exe  -- examples/case1/before.json examples/case1/after.json | ppsh
 companyDelta-0.1.0.0: unregistering (local file changes: src/CDiff.hs)
