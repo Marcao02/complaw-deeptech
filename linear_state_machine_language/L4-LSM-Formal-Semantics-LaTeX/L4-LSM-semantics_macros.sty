@@ -38,8 +38,13 @@
 \newcommand{\src}[1]{\ensuremath{\textsf{source}_{#1}}}
 
 % Properties of \Roles
-\newcommand{\breachby}[1]{\ensuremath{\textsf{breach}_{#1}}}
-\newcommand{\breaches}[1]{\ensuremath{\textsf{breaches}_{#1}}}
+%\newcommand{\breached}[1]{\ensuremath{\textsf{breached}_{#1}}}
+%\newcommand{\breaches}[1]{\ensuremath{\textsf{breaches}_{#1}}}
+%\newcommand{\breach}[2]{\ensuremath{\textsf{breachEvent}_{#1}(#2)}}
+\newcommand{\breached}[1]{\ensuremath{\textsf{breached}(#1)}}
+\newcommand{\breaches}[1]{\ensuremath{\textsf{breaches}(#1)}}
+\newcommand{\breach}[2]{\ensuremath{\textsf{breachEvent}(#1,#2)}}
+
 
 % Properties of \States AND \Events
 \newcommand{\timeStamp}[1]{\ensuremath{\textsf{timeStamp}_{#1}}}
@@ -61,7 +66,7 @@
 \newcommand{\FDeon}{\legterm{future deontic}}
 \newcommand{\FDeons}{\legterm{future deontics}}
 
-\newcommand{\breach}{\legterm{breach}}
+%\newcommand{\breach}{\legterm{breach}}
 
 % \introx{TimeStamp}{time stamp}
 \newcommand\introx[2]{%
