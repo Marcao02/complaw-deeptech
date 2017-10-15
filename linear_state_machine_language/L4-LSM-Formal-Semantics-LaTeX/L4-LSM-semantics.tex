@@ -22,12 +22,12 @@
 
 \section{Basics: events, time, and traces} \label{basics}
 
+This section defines a complete-but-limited model of contracts, called \\ \introxx{FSContracts}{simple contracts}{FSContract}{simple contract}, and also gives definitions that will be used for the full definition of \introxx{Contracts}{contracts}{Contract}{contract} in Section \ref{globalvars}.
 
-Every \introxx{Contract}{contract}{Contracts}{contracts} specifies a \introxx{TimeUnit}{time unit}{TimeUnits}{time units}; it is the smallest unit of time that one writes constraints about or does arithmetic with. We expect it will most often be days. A \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps} is a natural number that we think of as being in units \TimeUnit.
+Every \Contract specifies a \introxx{TimeUnit}{time unit}{TimeUnits}{time units}; it is the smallest unit of time that one writes constraints about or does arithmetic with. We expect it will most often be days. A \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps} is a natural number that we think of as being in units \TimeUnit.
 
-An \introxx{Event}{event}{Events}{events} is composed of an \introxx{Action}{action}{Actions}{actions}, a \introxx{Role}{role}{Roles}{roles}, a \TimeStamp, and optionally some parameters (but parameters will not be introduced until Section \ref{slater}). The \Actions and \Roles are fixed finite sets. In this first version of L4, there is exactly one participant of each \Role.
-
-{\bf All events are modelled as actions}, and a special \Role \introx{Env}{Env}  is used to model events that have no agent (\Role).
+An \introxx{Event}{event}{Events}{events} is composed of an \introxx{Action}{action}{Actions}{actions}, a \introxx{Role}{role}{Roles}{roles}, a \TimeStamp, and optionally some parameters (but parameters will not be introduced until Section \ref{globalvars}). The \Actions and \Roles are fixed finite sets. In this first version of the L4 mathematical model, there is exactly one participant of each \Role.
+{\bf All events are modelled as actions}, and a special \Role \introx{Env}{Env}  is used to model events that have no agent (i.e. \Role).
 
 A \introxx{trace}{trace}{traces}{traces} is a sequence of \Events. The \TimeStamps of the \Events must be nondecreasing. Thus, within the smallest unit of time, any number of \Events can happen; however, they are always strictly ordered. The idea here is that we want \Events to be strictly ordered for simplicity and to minimize the size of the space of execution traces, but if we made the \TimeStamps strictly increasing, we would need to be working at a level of granularity for time that is at least one level smaller than the smallest unit of time that would appear in an informal version of the contract (at least when \TimeUnit = days, since contracts that use days as their minimum unit generally do not require that all \Events happen on different days).
 
@@ -38,10 +38,12 @@ A \Contract has a fixed finite number of \introxx{States}{states}{State}{state},
 \end{LPPI}
 Between any two events in a \trace, the \Contract is in some \introx{GlobalState}{global state} which consists of at least a \TimeStamp for the current time and a \State (in Section \ref{globalvars}, \GVars will be added).
 
-A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{skeleton}{skeleton}; the nodes are the \States, and each directed edge, which we will call a \introxx{transition}{transition}{transitions}{transitions}, is labeled with an \Action. Some notation:
+\medskip
+
+A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{skeleton}{skeleton}; the nodes are the \States, and each directed edge, which we will call a \introxx{transition}{transition}{transitions}{transitions}, is labeled with an \Action. The \skeleton is the part of the \Contract that is easy to visualize. Some notation:
 \begin{LPPI}
 \item For $r$ a \Role, an \intro{\depTrans{r}} is a \transition whose \Role is $r$.
-\item For $a$ an \Action, an \intro{\depAction{a}} (\intro{\depTrans{a}}) is an \Event (\transition) whose \Action is $a$.
+\item For $a$ an \Action, an \intro{\depEvent{a}} (\intro{\depTrans{a}}) is an \Event (\transition) whose \Action is $a$.
 \item For $s$ a \State, the \intro{\sInTransitions{s}} (\intro{\sOutTransitions{s}}) are the edges coming into (going out of) $s$.
 \end{LPPI}
 Every \transition is one of the following three types. They will be explained in more detail in the next section.
@@ -49,10 +51,11 @@ Every \transition is one of the following three types. They will be explained in
 \introxxoutside{rmustntran}{relievable must next transition}{rmustntrans}{relievable must next transitions}
 \introxxoutside{mayntran}{may next transition}{mayntrans}{may next transitions}
 \begin{LPPI}
-\item A \introxxinside{may next transition} is a permission.
-\item A \introxxinside{relievable must next transition} will be the most-used kind of obligation. 
-\item A \introxxinside{must next transition} is the strongest possible obligation. 
+\item A \introxxinside{may next transition} defines permitted \Events.
+\item A \introxxinside{relievable must next transition} defines the most-used kind of obligated \Events. These are obligations that are relieved by the performance of a permitted {\Event} {\it by some other} agent.
+\item A \introxxinside{must next transition} defines the strongest kind of obligated \Events.
 \end{LPPI}
+Note that the events defined by \rmustntrans and \mustntrans are also considered permitted \Events.
 
 %\introx{mustntrans}{must next transitions} 
 %\introxx{rmustntran}{relievable must next transition}{rmustntrans}{relievable must next transitions} 
@@ -62,20 +65,12 @@ Every \transition is one of the following three types. They will be explained in
 Since the environment \Env cannot breach a contract or be {\it obligated} to do anything, no $\depTrans{\Env}$ can be a \mustntran or a \rmustntran.
 That completes the definition of the finite directed graph \skeleton of a \Contract.
 
-
-
-
-\section{Simple Contracts} \label{sc}
-
-We obtain the first complete, but limited, model of contracts, called \\ \introxx{FSContracts}{simple contracts}{FSContract}{simple contract}, by elaborating on the definitions from the previous section. 
-
-
 \medskip
 
-Each \transition $\tau$ is associated with a \introxx{TGuard}{transition guard}{TGuards}{transition guards} $\tguard{\tau}{\cdot}$. In the case of \FSContracts, it is just a relation on \TimeStamps.
-A \transition $\tau$ is \introx{enabled}{enabled} upon entering a \GlobalState with \TimeStamp $t$ iff $\tguard{\tau}{t}$ is true.\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}  
+Each \transition $\tau$ is also associated with a \introxx{TGuard}{transition guard}{TGuards}{transition guards} $\tguard{\tau}{\cdot}$ relation. For \FSContracts, it is just a relation on \TimeStamps,
+and a \transition $\tau$ is \introx{enabled}{enabled} upon entering a \GlobalState with \TimeStamp $t$ iff $\tguard{\tau}{t}$ is true.\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}  
 
-The \TGuards must satisfy the following conditions, which would be statically verified in a language for \FSContracts: 
+The \TGuards must satisfy the following conditions, which would be statically verified in a language for \Contracts. We give the \FSContracts definitions here, but these conditions will be used in Section \ref{globalvars} as well.
 \medskip
 
 \noindent \introx{uaoc}{unambiguous absolute obligation condition}: For every \TimeStamp t, if some \mustntran evaluates to true (at $t$) then every other \TGuard evaluates to false (at $t$). 
@@ -84,10 +79,16 @@ The \TGuards must satisfy the following conditions, which would be statically ve
 \noindent \introx{croc}{choiceless relievable obligations condition}: For every \Role r and \TimeStamp t, if one of $r$'s \rmustntrans evaluates to true (at $t$) then any other \rmustntrans for $r$ evaluate to false (at $t$).
 \medskip
 
+\noindent \introx{bostgc}{breach or somewhere to go condition}: {\it Roughly}, if it is possible for all the \enabled non-\Env \transitions to expire simultaneously, without causing a breach (which entails that there are no enabled \mustntrans or \rmustntrans) then there must be an \depTrans{\Env} with no deadline.
+\smallskip
+
 We say that a \transition $\tau$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters.
 \medskip
 
-Each \transition $\tau$ is also associated with a \introx{DeadlineFn}{deadline function} $\deadline{\tau}{\cdot}$, which gives a \TimeStamp for a deadline when: 
+Each \transition $\tau$ is also associated with a \introx{DeadlineFn}{deadline function} $\deadline{\tau}{\cdot}$, which yields a \introx{Deadline}{deadline}{Deadlines}{deadlines}. A \Deadline is either 
+
+
+\TimeStamp for a deadline when: 
 	\begin{LPPI}
 	\item an \enabled \mayntran (a kind of permission) expires.
 	\item an \enabled \mustntran (the strong form of obligation) causes a breach by $\role{\tau}$\footnote{Which recall, in this formal model means a transition to the state \breached{\{\role{\tau}\}}} if a \compatible \Event has not been performed by the deadline. 
@@ -99,9 +100,13 @@ For \FSContracts, a \DeadlineFn is just a function from \TimeStamps to $\TimeUni
 	\item If $d(t) \in \TimeUnit$, the deadline is $t + d(t)$.
 \end{LPPI}
 
-That completes the definition of \FSContract. In the next section, we give the complete definition of how a \FSContract executes on a \trace.
 
-\subsection{Execution}
+%\section{Simple Contracts} \label{sc}
+%
+%That completes the definition of \FSContract. In the next section, we give the complete definition of how a \FSContract executes on a \trace.
+
+
+\subsection{Execution for \FSContracts}
 A \FSContract of course starts in its \startstate. Let $E_1, E_2, \dots$ be a finite or infinite \trace (recall: a sequence of \Events), as defined in Section \ref{basics}. Let $G_i$ be the \GlobalState that follows $E_i$ for each $i$.
 
 $G_0$ is $\tup{\startstate, 0}$.  
@@ -125,7 +130,7 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 {\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \transitions whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\tau$ if $\deadline{\tau}{t} > t'$.}  let $T_p$ be the resulting set of \transitions. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\transitions} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\tau} \, \vert \, \tau \in T_{o} \}$. Then $E$ is either:
 \begin{PPI}
 	\item An event compatible with $T_p$.
-	\item $\breach{R}{t^*}$. This means that all of the \Roles whose \rmustntran expires first are jointly responsible for the breach.
+	\item $\breach{R}{t^*}$. This means that all of the \Roles whose \enabled \rmustntran expires first are jointly responsible for the breach.
 \end{PPI}	
 
 %Then $A$ must be \compatible with one of the \transitions in that filtered set.
@@ -166,7 +171,7 @@ Add to the definition of \Contract:
 \item An assignment of types to the \Actions. This allows \Events to have parameters. We refer to such a type as an \AParamsDomain, and the specific \AParamsDomain for \Action $a$ is $\itsAParamsDomain{a}$.
 \end{LPPI}
 
-\noindent \Events receive the following modifications:
+\noindent The \Event definition receives the following modifications:
 \begin{LPPI}
 \item Each \Action $a$ additionally has a \GStateTransform, denoted \itsTransform{a}, which is a function from $\text{\GVarTypes} \times \itsAParamsDomain{a}$ to \GVarTypes. 
 \item And the definition of \depTrans{a} is extended:
