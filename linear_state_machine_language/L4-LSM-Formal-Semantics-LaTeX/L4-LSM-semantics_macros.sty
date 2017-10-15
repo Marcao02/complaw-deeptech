@@ -1,0 +1,104 @@
+%!TEX root = L4-LSM-semantics.tex
+
+\newcommand{\legterm}[1]{{\sf #1}\xspace}
+
+\newcommand{\tup}[1]{\langle#1\rangle}
+
+\renewcommand{\u}[1]{\underline{#1}}
+\newcommand{\intro}[1]{\u{#1}}
+
+\newcommand{\depAction}[1]{\ensuremath{#1\textsf{-action}}}
+
+\newcommand{\EventSchema}{\legterm{event schema}}
+\newcommand{\EventSchemas}{\legterm{event schemas}}
+\newcommand{\ActionSchema}{\legterm{action schema}}
+\newcommand{\ActionSchemas}{\legterm{action schemas}}
+
+\newcommand{\GVars}{\legterm{global variables}}
+\newcommand{\GVarTypes}{\legterm{GVarTypes}}
+
+\newcommand{\depTrans}[1]{\ensuremath{#1\textsf{-transition}}}
+\newcommand{\depTranss}[1]{\ensuremath{#1\textsf{-transitions}}}
+\newcommand{\sTransition}[1]{\ensuremath{#1\textsf{-transition}}}
+\newcommand{\sTransitions}[1]{\ensuremath{#1\textsf{-transitions}}}
+\newcommand{\sInTransition}[1]{\legterm{incoming} \sTransition{#1}}
+\newcommand{\sOutTransition}[1]{\legterm{outgoing} \sTransition{#1}}
+\newcommand{\sInTransitions}[1]{\legterm{incoming} \sTransitions{#1}}
+\newcommand{\sOutTransitions}[1]{\legterm{outgoing} \sTransitions{#1}}
+
+\newcommand{\GStateTransform}{\legterm{global variables transform}}
+\newcommand{\itsTransform}[1]{\ensuremath{\textsf{transform}_{#1}}}
+
+% Properties of \transitions
+\newcommand{\tguard}[2]{\ensuremath{\textsf{transGuard}_{#1}(#2)}}
+\newcommand{\deadline}[2]{\ensuremath{\textsf{deadline}_{#1}(#2)}}
+\newcommand{\role}[1]{\ensuremath{\textsf{role}_{#1}}}
+\newcommand{\actionname}[1]{\ensuremath{\textsf{actionName}_{#1}}}
+\newcommand{\trg}[1]{\ensuremath{\textsf{target}_{#1}}}
+\newcommand{\src}[1]{\ensuremath{\textsf{source}_{#1}}}
+
+% Properties of \Roles
+\newcommand{\breachby}[1]{\ensuremath{\textsf{breach}_{#1}}}
+\newcommand{\breaches}[1]{\ensuremath{\textsf{breaches}_{#1}}}
+
+% Properties of \States AND \Events
+\newcommand{\timeStamp}[1]{\ensuremath{\textsf{timeStamp}_{#1}}}
+
+
+
+\newcommand{\ASConstructor}{\legterm{action-schema constructor}}
+\newcommand{\itsASConstructor}[1]{\ensuremath{\textsf{actionSchema}_{#1}}}
+\newcommand{\AParamsDomain}{\legterm{action-parameters domain}}
+\newcommand{\AParamsDomains}{\legterm{action-parameters domains}}
+\newcommand{\itsAParamsDomain}[1]{\ensuremath{\textsf{ParamTypes}_{#1}}}
+
+\newcommand{\JustHappened}[1]{\ensuremath{\textsf{JH}_{#1}}}
+
+\newcommand{\FOb}{\legterm{future obligation}}
+\newcommand{\FObs}{\legterm{future obligations}}
+\newcommand{\FPerm}{\legterm{future permission}}
+\newcommand{\FPerms}{\legterm{future permissions}}
+\newcommand{\FDeon}{\legterm{future deontic}}
+\newcommand{\FDeons}{\legterm{future deontics}}
+
+\newcommand{\breach}{\legterm{breach}}
+
+% \introx{TimeStamp}{time stamp}
+\newcommand\introx[2]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\phantomsection%
+\u{{\sf #2\label{#1}}}%
+}
+% \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps}
+\newcommand\introxx[4]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\expandafter\newcommand\csname #3\endcsname{\hyperref[#1]{{\sf #4}}\xspace}%
+\phantomsection%
+\u{{\sf #2\label{#1}}}%
+}
+
+% \introxoutside{TimeStamp}{time stamp}
+\newcommand\introxoutside[2]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\phantomsection%
+\label{#1}
+}
+% \introxinside{TimeStamp}
+\newcommand\introxinside[1]{%
+\u{{\sf #1}}%
+}
+
+
+% \introxxoutside{TimeStamp}{time stamp}{TimeStamps}{time stamps}
+\newcommand\introxxoutside[4]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\expandafter\newcommand\csname #3\endcsname{\hyperref[#1]{{\sf #4}}\xspace}%
+\phantomsection%
+\label{#1}
+}
+% \introxxinside{TimeStamp}
+\newcommand\introxxinside[1]{%
+\u{{\sf #1}}%
+}
+
+

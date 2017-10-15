@@ -1,0 +1,196 @@
+\documentclass[12pt]{article}
+% Organization note: L4-LSM-semantics_packages is _mostly_ package imports, but also contains some document-level usages of those packages.
+\usepackage{L4-LSM-semantics_packages}
+\usepackage{L4-LSM-semantics_environments}
+\usepackage{L4-LSM-semantics_macros}
+
+\author{Legalese (Dustin Wehr, Meng Wong, \ldots)}
+
+\title{Linear State Machines Formal Model}
+\begin{document}
+\maketitle
+
+%Section 1 has no global variables. Can easily obtain that system by taking Section 2 system and restricting it to finite-domain variables.
+
+%In this version, all events are actions, and a special role \introx{Env}{Env} is used to model events with no role.
+
+\noindent Click most terms (in \color{TermColor}this color\color{black}) to jump to their first underlined usage.
+
+\tableofcontents
+
+
+
+\section{Basics: events, time, and traces} \label{basics}
+
+
+Every \introxx{Contract}{contract}{Contracts}{contracts} specifies a \introxx{TimeUnit}{time unit}{TimeUnits}{time units}; it is the smallest unit of time that one writes constraints about or does arithmetic with. We expect it will most often be days. A \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps} is a natural number that we think of as being in units \TimeUnit.
+
+An \introxx{Event}{event}{Events}{events} is composed of an \introxx{Action}{action}{Actions}{actions}, a \introxx{Role}{role}{Roles}{roles}, a \TimeStamp, and optionally some parameters (but parameters will not be introduced until Section \ref{slater}). The \Actions and \Roles are fixed finite sets. In this first version of L4, there is exactly one participant of each \Role.
+
+{\bf All events are modelled as actions}, and a special \Role \introx{Env}{Env}  is used to model events that have no agent (\Role).
+
+A \introxx{trace}{trace}{traces}{traces} is a sequence of \Events. The \TimeStamps of the \Events must be nondecreasing. Thus, within the smallest unit of time, any number of \Events can happen; however, they are always strictly ordered. The idea here is that we want \Events to be strictly ordered for simplicity and to minimize the size of the space of execution traces, but if we made the \TimeStamps strictly increasing, we would need to be working at a level of granularity for time that is at least one level smaller than the smallest unit of time that would appear in an informal version of the contract (at least when \TimeUnit = days, since contracts that use days as their minimum unit generally do not require that all \Events happen on different days).
+
+A \Contract has a fixed finite number of \introxx{States}{states}{State}{state}, one of which is designated the \introx{startstate}{start state}, and which includes at least the following:
+\begin{LPPI}
+\item \introx{fulfilled}{fulfilled}
+\item \intro{$\breachby{X}$} for each nonempty subset $X$ of the \Roles. There is also an \Action \intro{$\breaches{X}$} for each such $X$.
+\end{LPPI}
+Between any two events in a \trace, the \Contract is in some \introx{GlobalState}{global state} which consists of at least a \TimeStamp for the current time and a \State (in Section \ref{globalvars}, \GVars will be added).
+
+A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{skeleton}{skeleton}; the nodes are the \States, and each directed edge, which we will call a \introxx{transition}{transition}{transitions}{transitions}, is labeled with an \Action. Some notation:
+\begin{LPPI}
+\item For $r$ a \Role, an \intro{\depTrans{r}} is a \transition whose \Role is $r$.
+\item For $a$ an \Action, an \intro{\depAction{a}} (\intro{\depTrans{a}}) is an \Event (\transition) whose \Action is $a$.
+\item For $s$ a \State, the \intro{\sInTransitions{s}} (\intro{\sOutTransitions{s}}) are the edges coming into (going out of) $s$.
+\end{LPPI}
+Every \transition is one of the following three types. They will be explained in more detail in the next section.
+\introxxoutside{mustntran}{must next transition}{mustntrans}{must next transitions}
+\introxxoutside{rmustntran}{relievable must next transition}{rmustntrans}{relievable must next transitions}
+\introxxoutside{mayntran}{may next transition}{mayntrans}{may next transitions}
+\begin{LPPI}
+\item A \introxxinside{may next transition} is a permission.
+\item A \introxxinside{relievable must next transition} will be the most-used kind of obligation. 
+\item A \introxxinside{must next transition} is the strongest possible obligation. 
+\end{LPPI}
+
+%\introx{mustntrans}{must next transitions} 
+%\introxx{rmustntran}{relievable must next transition}{rmustntrans}{relievable must next transitions} 
+%\introxx{mayntran}{may next transition}{mayntrans}{may next transitions} 
+
+
+Since the environment \Env cannot breach a contract or be {\it obligated} to do anything, no $\depTrans{\Env}$ can be a \mustntran or a \rmustntran.
+That completes the definition of the finite directed graph \skeleton of a \Contract.
+
+
+
+
+\section{Simple Contracts} \label{sc}
+
+We obtain the first complete, but limited, model of contracts, called \\ \introxx{FSContracts}{simple contracts}{FSContract}{simple contract}, by elaborating on the definitions from the previous section. 
+
+
+\medskip
+
+Each \transition $\tau$ is associated with a \introxx{TGuard}{transition guard}{TGuards}{transition guards} $\tguard{\tau}{\cdot}$. In the case of \FSContracts, it is just a relation on \TimeStamps.
+A \transition $\tau$ is \introx{enabled}{enabled} upon entering a \GlobalState with \TimeStamp $t$ iff $\tguard{\tau}{t}$ is true.\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}  
+
+The \TGuards must satisfy the following conditions, which would be statically verified in a language for \FSContracts: 
+\medskip
+
+\noindent \introx{uaoc}{unambiguous absolute obligation condition}: For every \TimeStamp t, if some \mustntran evaluates to true (at $t$) then every other \TGuard evaluates to false (at $t$). 
+\medskip
+
+\noindent \introx{croc}{choiceless relievable obligations condition}: For every \Role r and \TimeStamp t, if one of $r$'s \rmustntrans evaluates to true (at $t$) then any other \rmustntrans for $r$ evaluate to false (at $t$).
+\medskip
+
+We say that a \transition $\tau$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters.
+\medskip
+
+Each \transition $\tau$ is also associated with a \introx{DeadlineFn}{deadline function} $\deadline{\tau}{\cdot}$, which gives a \TimeStamp for a deadline when: 
+	\begin{LPPI}
+	\item an \enabled \mayntran (a kind of permission) expires.
+	\item an \enabled \mustntran (the strong form of obligation) causes a \breach by $\role{\tau}$\footnote{Which recall, in this formal model means a transition to the state \breachby{\{\role{\tau}\}}} if a \compatible \Event has not been performed by the deadline. 
+	\item an \enabled \rmustntran (the weak form of obligation) causes a possibly-joint breach by $\role{\tau}$ if a \compatible \Event has not been performed by the deadline {\bf and} no other permitted \Event is performed by the deadline. 
+	\end{LPPI}
+For \FSContracts, a \DeadlineFn is just a function from \TimeStamps to $\TimeUnit \cup \TimeStamps$. If $d$ is such a function, and a state is entered at \TimeStamp $t$, then:
+\begin{LPPI}
+\item If $d(t) \in \TimeStamps$, the deadline is $d(t)$.
+	\item If $d(t) \in \TimeUnit$, the deadline is $t + d(t)$.
+\end{LPPI}
+
+That completes the definition of \FSContract. In the next section, we give the complete definition of how a \FSContract executes on a \trace.
+
+\subsection{Execution}
+A \FSContract of course starts in its \startstate. Let $E_1, E_2, \dots$ be a finite or infinite \trace (recall: a sequence of \Events), as defined in Section \ref{basics}. Let $G_i$ be the \GlobalState that follows $E_i$ for each $i$.
+
+$G_0$ is $\tup{\startstate, 0}$.  
+
+Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce notational clutter, let us use the aliases:
+%\[ G = \tup{s,t} = G_i \qquad  G' = \tup{s',t'} = G_{i+1} \qquad A = \tup{a_A, r_A, t_A} = A_i\]
+\[ G = \tup{s,t} = G_i  \qquad E = E_i \qquad  G' = \tup{s',t'} = G_{i+1} \]
+
+
+
+
+
+
+{\bf Case 1}: There is some \enabled \mustntran $\tau$ in $G$. If there is any other \enabled \transition, then this \Contract (not just this \trace) violates the \uaoc, and so is invalid.\footnote{Recall that a language (tool) for \FSContracts will verify that such a thing can't happen.} 
+\begin{LPPI}
+    \item[(a)] If $E$ is \compatible with $\tau$ and $E$ happens within $\tau$'s deadline, then the next state must be $\trg{\tau}$.\footnote{i.e. if $t' \leq \deadline{\tau}{t}$ then $s' = \trg{\tau}$.} This means $A$ fulfilled the obligation created by $\tau$.
+    \item[(b)] Otherwise, Otherwise, If $E$ is not \compatible with $\tau$ then $\role{\tau}$ solely breaches the contract. We specify that $E$ must be 
+    \item[(c)] If $E$ is \compatible with $\tau$ and $E$ happens after $\tau$'s deadline, then $\role{\tau}$ solely breaches the contract. 
+\end{LPPI}
+{\bf Todo: Cases (b) and (c) should be joined. They must be transitions to $\breachby{\role{\tau}}$ at time 1 after the deadline.}
+
+{\bf Case 2}: There is no \enabled \mustntran $\tau$ in $G$. From the \enabled \mayntrans of $s$ in $G$, compute the deadline for each, and discard the \transitions whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\tau$ if $\deadline{\tau}{t} > t'$.}  let $T_p$ be the resulting set of \transitions. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \transitions whose deadline is not minimal within that set; let $T_o$ be the resulting set. Then $A$ must be \compatible with one of the \transitions in that filtered set.
+
+%\pagebreak
+%%\item If $t'$ is within $\tau$'s deadline, there are two subcases: 
+%\begin{LPPI} 
+%\item $A$'s \Role and \Action are not the same as $\tau$'s. This means $A$'s \Role performed some action while $\tau$'s role had an immediate obligation and still had time to fulfill it.
+%
+%\item If the next \GlobalState $G'$ is consistent with {\bf Case 2} below,\footnote{i.e. it would be a valid next \GlobalState if $\tau$ was removed from the contract.} that's fine. {\bf Importantly, \Events are really {\it action decisions}; they do not consume time. So, if Alice has an immediate obligation, it is not possible for Bob to ``starve'' Alice by repeatedly doing permitted \Events.} 
+%\item Otherwise, the next state $s'$ must be  $A$'s \Role's \breach state; they performed an \Event that they we're permitted to perform. 
+%\end{LPPI}
+%
+%\bigskip
+%{\bf Todo: What if \Role $r$ in state $s$ has both a permitted transition and an obligated transition. I think this should be proved impossible statically. }\\
+%
+%Otherwise, the next state must be $\trg{\tau}$.\footnote{i.e. if $t' \leq \deadline{\tau}{t}$ then $s' = \trg{\tau}$.} This means $A$ fulfilled the obligation created by $\tau$. \\
+%
+%Otherwise ($t'$ is past $\tau$'s deadline), the next state {\it must} be $\tau's$ \Role's \breach state, and moreover we specify that $t'$ is exactly one \TimeUnit past the deadline.\footnote{So $G' = \tup{\breachby{\{\role{\tau}\}}, \deadline{\tau}{t} + 1}$.} Thus, when a \breach occurs because of a missed deadline, the final  \TimeStamp is maximally early.\\
+%
+%{\bf Case 2}: There is no \enabled \mustntran. Let $T$ be the \enabled \mayntrans of $s$.\footnote{i.e. the set of $\tau$ such that $\tguard{\tau}{t}$ is true.} Compute the deadline for each \transition in $T$, and discard the \transitions whose deadline has passed by the time $A$ happens.\footnote{i.e. discard $\tau$ if $\deadline{\tau}{t} > t'$.} Then $A$ must be \compatible with one of the \transitions in that filtered set.
+
+
+
+
+
+
+
+
+
+\section{Infinite state: Global Variables and Event Parameters} \label{globalvars}
+
+Add to the definition of \Contract:
+\begin{LPPI}
+\item A fixed finite set of typed \GVars. The \GVars are ordered, so we may describe their collective types as a single tuple \GVarTypes. \\
+ Add to the definition of \GlobalState an assignment of values to the \GVars.
+
+\item An assignment of types to the \Actions. This allows \Events to have parameters. We refer to such a type as an \AParamsDomain, and the specific \AParamsDomain for \Action $a$ is $\itsAParamsDomain{a}$.
+\end{LPPI}
+
+\noindent \Events receive the following modifications:
+\begin{LPPI}
+\item Each \Action $a$ additionally has a \GStateTransform, denoted \itsTransform{a}, which is a function from $\text{\GVarTypes} \times \itsAParamsDomain{a}$ to \GVarTypes. 
+\item And the definition of \depTrans{a} is extended:
+\begin{LPPI}
+\item The \TGuard attached to an \depTrans{a} may now depend on the values of the \GVars; i.e. it is now a relation on $\TimeStamp \times \text{\GVarTypes}$.
+\item Each \depTrans{a} additionally gets an \ASConstructor called $\itsASConstructor{a}$. This is a function from \GVarTypes to a set of \Events all of whose \Action is $a$. We call such a set of actions an  \ActionSchema. 
+\end{LPPI}
+\end{LPPI}
+
+\noindent The \uaoc is updated: Let $T$ be the set of \TGuards of the \mustntrans of some \State $s$. For any \GVars assignment $\sigma$ and \TimeStamp $t$, at most one of the \TGuards in $T$ evaluates to true. {\bf Todo}\footnote{Later will be: For any \GVars assignment $\sigma$ and \TimeStamp $t$ that makes $s$'s precondition true, at most one of the \TGuards in $T$ evaluates to true.}
+
+
+\bigskip
+
+Note (probably to move to some other section or document): it will often be the case in a language for \Contracts that we simultaneously define an \Action $a$ and a \State \JustHappened{a} (for ``$a$ Just Happened'', to fit its literal meaning). In this case, the \sInTransitions{\JustHappened{a}} are exactly the set of $\depTranss{a}$. As a convenience, a language for \Contracts will allow the \sOutTransitions{\JustHappened{a}} to depend directly on $a$'s parameters (that is, for the \TGuard and \ASConstructor to depend on $a$'s parameters). This is merely a convenience because, as we will see when we define execution, one can achieve the same effect by introducing new \GVars that are only used by $a$ and $\JustHappened{a}$; $a$ uses \itsTransform{a} (recall, its \GStateTransform) to save its parameter values to those new \GVars, so that the \sOutTransitions{ \JustHappened{a}} can then refer to them.
+
+\subsection{Execution}
+
+
+\section{May-Later and Must-Later}  \label{slater}
+
+This section does not actually change the definition of \Contract. Instead, it defines, essentially, an often-useful \Contract structure that is likely to be supported with custom syntax in a language for \Contracts.
+
+We have so far been noncommittal about what types are available for \GVars and \AParamsDomains. We will see later that the types strongly affect expressivity. As a special case, the reader should convince themselves that any \Contract that uses only boolean (or other finite domain) types can be simulated by a \FSContract (using a much larger number of \States).
+
+%Add a fourth component to the definition of \GlobalState: a finite set \EventSchemas called \FDeons. A \FDeon is a \FOb or a \FPerm. We will see soon that \FDeons are created by a new component that we add to the definition of \Transform.
+
+
+%\FDeons, aside from being distinguished from \transitions by a label, have the same components as \transitions.
+
+
+\end{document}
