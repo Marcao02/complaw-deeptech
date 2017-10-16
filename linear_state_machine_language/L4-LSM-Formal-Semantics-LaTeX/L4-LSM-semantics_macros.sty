@@ -9,13 +9,13 @@
 
 \newcommand{\depEvent}[1]{\ensuremath{#1\textsf{-event}}}
 
-\newcommand{\EventSchema}{\legterm{event schema}}
-\newcommand{\EventSchemas}{\legterm{event schemas}}
-\newcommand{\ActionSchema}{\legterm{action schema}}
-\newcommand{\ActionSchemas}{\legterm{action schemas}}
+%\newcommand{\EventSchema}{\legterm{event schema}}
+%\newcommand{\EventSchemas}{\legterm{event schemas}}
+%\newcommand{\ActionSchema}{\legterm{action schema}}
+%\newcommand{\ActionSchemas}{\legterm{action schemas}}
 
-\newcommand{\GVars}{\legterm{global variables}}
-\newcommand{\GVarTypes}{\legterm{GVarTypes}}
+%\newcommand{\GVars}{\legterm{global variables}}
+%\newcommand{\GVarTypes}{\legterm{GVarTypes}}
 
 \newcommand{\depTrans}[1]{\ensuremath{#1\textsf{-transition}}}
 \newcommand{\depTranss}[1]{\ensuremath{#1\textsf{-transitions}}}
@@ -49,13 +49,17 @@
 % Properties of \States AND \Events
 \newcommand{\timeStamp}[1]{\ensuremath{\textsf{timeStamp}_{#1}}}
 
+\newcommand{\TT}{\mathbb{T}}
+\newcommand{\BB}{\mathbb{B}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\NN}{\mathbb{N}}
 
 
-\newcommand{\ASConstructor}{\legterm{action-schema constructor}}
-\newcommand{\itsASConstructor}[1]{\ensuremath{\textsf{actionSchema}_{#1}}}
-\newcommand{\AParamsDomain}{\legterm{action-parameters domain}}
-\newcommand{\AParamsDomains}{\legterm{action-parameters domains}}
-\newcommand{\itsAParamsDomain}[1]{\ensuremath{\textsf{ParamTypes}_{#1}}}
+\newcommand{\ESConstructor}{\legterm{event-schema constructor}}
+\newcommand{\itsESConstructor}[1]{\ensuremath{\textsf{eventschema}_{#1}}}
+%\newcommand{\AParamsDomain}{\legterm{action-parameters domain}}
+%\newcommand{\AParamsDomains}{\legterm{action-parameters domains}}
+\newcommand{\itsAParamsDomain}[1]{\ensuremath{\textsf{paramtypes}_{#1}}}
 
 \newcommand{\JustHappened}[1]{\ensuremath{\textsf{JH}_{#1}}}
 
@@ -82,6 +86,14 @@
 \u{{\sf #2\label{#1}}}%
 }
 
+% \introxsubarg{itsAParamsDomain}{\ensuremath{\textsf{paramtypes}_{#1}}}
+% not yet working
+%\newcommand\introxarg[2]{%
+%\expandafter\newcommand\csname #1\endcsname[1]{\hyperref[#1]{{\sf #2}_{#1}}\xspace}%
+%\phantomsection%
+%\u{{\sf #2\label{#1}}_{#1}}%
+%}
+
 % \introxoutside{TimeStamp}{time stamp}
 \newcommand\introxoutside[2]{%
 \expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
@@ -92,7 +104,6 @@
 \newcommand\introxinside[1]{%
 \u{{\sf #1}}%
 }
-
 
 % \introxxoutside{TimeStamp}{time stamp}{TimeStamps}{time stamps}
 \newcommand\introxxoutside[4]{%
