@@ -1,0 +1,37 @@
+The student must submit their lab assignment at absolute deadline 11.
+Then, the grader has 7 days from the deadline to accept or reject the lab.
+If the grader rejects, then the student has till a second absolute deadline 26 to resubmit.
+The grader must accept a resubmitted assignment within 7 days of resubmission.
+
+state AssignmentOut:
+	Student must next Submit at 11
+action Submit transitions to state Submitted:
+	Grader must next (oneOf Accept Reject) within 7
+action Reject transitions to state Rejected:
+	Student must next Resubmit before 26
+action Accept:
+	Fulfilled
+action Resubmit transitions to state Resubmitted:
+	Grader must next Accept within 7
+
+
+Compare this to the SCL version from their paper. Which takes longer to understand? If you answer SCL, you are full of shit.
+
+"Let action submit stand for the student submitting a lab assign- ment. We can make this obligatory with O⟨submit⟩.
+To specify the submission deadline, we use the At constructor with a deadline of 11, giving At⟨11,O⟨submit⟩⟩.
+The submission should be followed by the a grader correcting it within 7 days of the deadline.
+Thus we combine Seq and Within to end up with Seq⟨At⟨11,O⟨submit⟩⟩,Within⟨7,O⟨accept⟩⟩⟩.
+If the grader decides to reject the assignment, the student must resubmit before a second deadline and
+the grader will need to accept this new submission. This can be modelled as a reparation which
+applies when the first obligation to accept the lab is violated."
+
+Seq(
+	At(11, O(submit)),
+	Rep(
+		Seq(
+			Before(26, O(resubmit)),
+			Within(7, O(accept))
+		),
+		Within(7, O(accept))
+	)
+)
