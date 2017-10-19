@@ -41,25 +41,30 @@ Between any two events in a \trace, the \Contract is in some \introx{GlobalState
 
 \medskip
 
-A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{skeleton}{skeleton}; the nodes are the \States, and each directed edge, which we will call a \introxx{transition}{transition}{transitions}{transitions}, is labeled with an \Action. The \skeleton is the part of the \Contract that is easy to visualize. Some notation:
+A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{skeleton}{skeleton}; the nodes are the \States, and each directed edge, which we will call an \introxx{transition}{\nameforedge}{transitions}{\nameforedges}, is labeled with an \Action. The \skeleton is the part of the \Contract that is easy to visualize. Some notation:
+
+\newcommand{\atransition}{an \transition}
+
 \begin{LPPI}
-\item For $r$ a \Role, an \intro{\depTrans{r}} is a \transition whose \Role is $r$.
+\item For $r$ a \Role, an \intro{\depTrans{r}} is \atransition whose \Role is $r$.
 \item For $a$ an \Action, an \intro{\depEvent{a}} (\intro{\depTrans{a}}) is an \Event (\transition) whose \Action is $a$.
 \item For $s$ a \State, the \intro{\sInTransitions{s}} (\intro{\sOutTransitions{s}}) are the edges coming into (going out of) $s$.
 \end{LPPI}
 Every \transition is one of the following three types. They will be explained in more detail in the next section.
-\introxxoutside{mustntran}{must next transition}{mustntrans}{must next transitions}
-\introxxoutside{rmustntran}{relievable must next transition}{rmustntrans}{relievable must next transitions}
-\introxxoutside{mayntran}{may next transition}{mayntrans}{may next transitions}
+\introxxoutside{mustntran}{must-next \nameforedge}{mustntrans}{must-next \nameforedge}
+\introxxoutside{rmustntran}{relievable must-next \nameforedge}{rmustntrans}{relievable must-next \nameforedge}
+\introxxoutside{mayntran}{may-next \nameforedge}{mayntrans}{may-next \nameforedge}
 \begin{LPPI}
-\item A \introxxinside{may next transition} defines permitted \Events.
-\item A \introxxinside{relievable must next transition} defines the most-used kind of obligated \Events. These are obligations that are relieved by the performance of a permitted {\Event} {\it by some other} agent.
-\item A \introxxinside{must next transition} defines the strongest kind of obligated \Events.
+\item A \introxxinside{may-next \nameforedge} defines permitted \Events.
+\item A \introxxinside{relievable must-next \nameforedge} defines the most used kind of obligated \Events. These are obligations that are relieved by the performance of a permitted {\Event} {\it by some other} agent.
+\item A \introxxinside{must-next \nameforedge} defines the strongest kind of obligated \Events.
 \end{LPPI}
 Note that the events defined by \rmustntrans and \mustntrans are also considered permitted \Events.
 
-We say that a \transition $\tau$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters.
+We say that \atransition $\eva$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters.
 \medskip
+
+
 
 %\introx{mustntrans}{must next transitions} 
 %\introxx{rmustntran}{relievable must next transition}{rmustntrans}{relievable must next transitions} 
@@ -71,19 +76,19 @@ That completes the definition of the finite directed graph \skeleton of a \Contr
 
 \medskip
 
-Each \transition $\tau$ is also associated with a \introxx{TGuard}{transition guard}{TGuards}{transition guards} $\tguard{\tau}{\cdot}$ relation. For \FSContracts, it is just a relation on \TimeStamps,
-and a \transition $\tau$ is \introx{enabled}{enabled} upon entering a \GlobalState with \TimeStamp $t$ iff $\tguard{\tau}{t}$ is true.\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}  
+Each \transition $\eva$ is also associated with a \introxx{TGuard}{edge guard}{TGuards}{edge guards} $\tguard{\eva}{\cdot}$ relation. For \FSContracts, it is just a relation on \TimeStamps,
+and \atransition $\eva$ is \introx{enabled}{enabled} upon entering a \GlobalState with \TimeStamp $t$ iff $\tguard{\eva}{t}$ is true.\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}  
 
 \medskip
 
-Each \transition $\tau$ is also associated with a \introx{DeadlineFn}{deadline function} $\deadline{\tau}{\cdot}$, which yields a \introxx{Deadline}{deadline}{Deadlines}{deadlines}. $\deadline{\tau}{t}$ is either a \TimeStamp after $t$, or the special element \introx{nodeadline}{$\infty$}. The \Deadline for a \transition is when:
+Each \transition $\eva$ is also associated with a \introx{DeadlineFn}{deadline function} $\deadline{\eva}{\cdot}$, which yields a \introxx{Deadline}{deadline}{Deadlines}{deadlines}. $\deadline{\eva}{t}$ is either a \TimeStamp after $t$, or the special element \introx{nodeadline}{$\infty$}. The \Deadline for \atransition is when:
 %special elements \introx{discr}{discretionary} or \introx{nodeadline}{nodeadline}.
 % A \Deadline is either 
 
 \begin{LPPI}
 	\item an \enabled \mayntran (a kind of permission) expires\footnote{Todo: expires should probably be a defined term.}.
-	\item an \enabled \mustntran (the strong form of obligation) causes a breach by $\role{\tau}$\footnote{Which recall, in this formal model means a transition to the state \breached{\{\role{\tau}\}}} if a \compatible \Event has not been performed by the deadline. 
-	\item an \enabled \rmustntran (the weak form of obligation) causes a possibly-joint breach by $\role{\tau}$ if a \compatible \Event has not been performed by the deadline {\bf and} no other permitted \Event is performed by the deadline. 
+	\item an \enabled \mustntran (the strong form of obligation) causes a breach by $\role{\eva}$\footnote{Which recall, in this formal model means a transition to the state \breached{\{\role{\eva}\}}} if a \compatible \Event has not been performed by the deadline. 
+	\item an \enabled \rmustntran (the weak form of obligation) causes a possibly-joint breach by $\role{\eva}$ if a \compatible \Event has not been performed by the deadline {\bf and} no other permitted \Event is performed by the deadline. 
 	\end{LPPI}
 For \FSContracts, a \DeadlineFn is just a function from \TimeStamps to $\TimeUnit \cup \TimeStamps$. If $d$ is such a function, and a state is entered at \TimeStamp $t$, then:
 \begin{LPPI}
@@ -124,14 +129,14 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 
 
 
-{\bf Case 1}: There is some \enabled \mustntran $\tau$ in $G$. If there is any other \enabled \transition, then this \Contract (not just this \trace) violates the \uaoc, and so is invalid.\footnote{Recall that a language (tool) for \FSContracts will verify that such a thing can't happen.} 
+{\bf Case 1}: There is some \enabled \mustntran $\eva$ in $G$. If there is any other \enabled \transition, then this \Contract (not just this \trace) violates the \uaoc, and so is invalid.\footnote{Recall that a language (tool) for \FSContracts will verify that such a thing can't happen.} 
 \begin{PPI}
-    \item If $E$ is \compatible with $\tau$ and $E$ happens within $\tau$'s deadline, then the next state must be $\trg{\tau}$.\footnote{i.e. if $t' \leq \deadline{\tau}{t}$ then $s' = \trg{\tau}$.} This means $E$ fulfilled the obligation created by $\tau$.
-    \item Otherwise, $E$ must be $\breach{\role{\tau}}{\deadline{\tau}{t} + 1}$. %Otherwise, If $E$ is not \compatible with $\tau$ then $\role{\tau}$ solely breaches the contract. We specify that $E$ must be 
-%    \item[(c)] If $E$ is \compatible with $\tau$ and $E$ happens after $\tau$'s deadline, then $\role{\tau}$ solely breaches the contract. 
+    \item If $E$ is \compatible with $\eva$ and $E$ happens within $\eva$'s deadline, then the next state must be $\trg{\eva}$.\footnote{i.e. if $t' \leq \deadline{\eva}{t}$ then $s' = \trg{\eva}$.} This means $E$ fulfilled the obligation created by $\eva$.
+    \item Otherwise, $E$ must be $\breach{\role{\eva}}{\deadline{\eva}{t} + 1}$. %Otherwise, If $E$ is not \compatible with $\eva$ then $\role{\eva}$ solely breaches the contract. We specify that $E$ must be 
+%    \item[(c)] If $E$ is \compatible with $\eva$ and $E$ happens after $\eva$'s deadline, then $\role{\eva}$ solely breaches the contract. 
 \end{PPI}
 
-{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \transitions whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\tau$ if $\deadline{\tau}{t} > t'$.}  let $T_p$ be the resulting set of \transitions. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\transitions} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\tau} \, \vert \, \tau \in T_{o} \}$. Then $E$ is either:
+{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \transitions whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\eva$ if $\deadline{\eva}{t} > t'$.}  let $T_p$ be the resulting set of \transitions. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\transitions} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\eva} \, \vert \, \eva \in T_{o} \}$. Then $E$ is either:
 \begin{PPI}
 	\item An event compatible with $T_p$.
 	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} This means that all of the \Roles whose \enabled \rmustntran expire earliest (at $t^*$) are jointly responsible for the breach.
@@ -141,22 +146,22 @@ The \bostgc ensures that one of those two cases will apply. In particular, it im
 %Then $A$ must be \compatible with one of the \transitions in that filtered set.
 
 %\pagebreak
-%%\item If $t'$ is within $\tau$'s deadline, there are two subcases: 
+%%\item If $t'$ is within $\eva$'s deadline, there are two subcases: 
 %\begin{LPPI} 
-%\item $A$'s \Role and \Action are not the same as $\tau$'s. This means $A$'s \Role performed some action while $\tau$'s role had an immediate obligation and still had time to fulfill it.
+%\item $A$'s \Role and \Action are not the same as $\eva$'s. This means $A$'s \Role performed some action while $\eva$'s role had an immediate obligation and still had time to fulfill it.
 %
-%\item If the next \GlobalState $G'$ is consistent with {\bf Case 2} below,\footnote{i.e. it would be a valid next \GlobalState if $\tau$ was removed from the contract.} that's fine. {\bf Importantly, \Events are really {\it action decisions}; they do not consume time. So, if Alice has an immediate obligation, it is not possible for Bob to ``starve'' Alice by repeatedly doing permitted \Events.} 
+%\item If the next \GlobalState $G'$ is consistent with {\bf Case 2} below,\footnote{i.e. it would be a valid next \GlobalState if $\eva$ was removed from the contract.} that's fine. {\bf Importantly, \Events are really {\it action decisions}; they do not consume time. So, if Alice has an immediate obligation, it is not possible for Bob to ``starve'' Alice by repeatedly doing permitted \Events.} 
 %\item Otherwise, the next state $s'$ must be  $A$'s \Role's \breach state; they performed an \Event that they we're permitted to perform. 
 %\end{LPPI}
 %
 %\bigskip
 %{\bf Todo: What if \Role $r$ in state $s$ has both a permitted transition and an obligated transition. I think this should be proved impossible statically. }\\
 %
-%Otherwise, the next state must be $\trg{\tau}$.\footnote{i.e. if $t' \leq \deadline{\tau}{t}$ then $s' = \trg{\tau}$.} This means $A$ fulfilled the obligation created by $\tau$. \\
+%Otherwise, the next state must be $\trg{\eva}$.\footnote{i.e. if $t' \leq \deadline{\eva}{t}$ then $s' = \trg{\eva}$.} This means $A$ fulfilled the obligation created by $\eva$. \\
 %
-%Otherwise ($t'$ is past $\tau$'s deadline), the next state {\it must} be $\tau's$ \Role's \breach state, and moreover we specify that $t'$ is exactly one \TimeUnit past the deadline.\footnote{So $G' = \tup{\breached{\{\role{\tau}\}}, \deadline{\tau}{t} + 1}$.} Thus, when a \breach occurs because of a missed deadline, the final  \TimeStamp is maximally early.\\
+%Otherwise ($t'$ is past $\eva$'s deadline), the next state {\it must} be $\eva's$ \Role's \breach state, and moreover we specify that $t'$ is exactly one \TimeUnit past the deadline.\footnote{So $G' = \tup{\breached{\{\role{\eva}\}}, \deadline{\eva}{t} + 1}$.} Thus, when a \breach occurs because of a missed deadline, the final  \TimeStamp is maximally early.\\
 %
-%{\bf Case 2}: There is no \enabled \mustntran. Let $T$ be the \enabled \mayntrans of $s$.\footnote{i.e. the set of $\tau$ such that $\tguard{\tau}{t}$ is true.} Compute the deadline for each \transition in $T$, and discard the \transitions whose deadline has passed by the time $A$ happens.\footnote{i.e. discard $\tau$ if $\deadline{\tau}{t} > t'$.} Then $A$ must be \compatible with one of the \transitions in that filtered set.
+%{\bf Case 2}: There is no \enabled \mustntran. Let $T$ be the \enabled \mayntrans of $s$.\footnote{i.e. the set of $\eva$ such that $\tguard{\eva}{t}$ is true.} Compute the deadline for each \transition in $T$, and discard the \transitions whose deadline has passed by the time $A$ happens.\footnote{i.e. discard $\eva$ if $\deadline{\eva}{t} > t'$.} Then $A$ must be \compatible with one of the \transitions in that filtered set.
 
 
 

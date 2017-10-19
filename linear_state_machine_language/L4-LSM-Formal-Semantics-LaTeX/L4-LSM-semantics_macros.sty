@@ -18,10 +18,15 @@
 %\newcommand{\GVars}{\legterm{global variables}}
 %\newcommand{\GVarTypes}{\legterm{GVarTypes}}
 
-\newcommand{\depTrans}[1]{\ensuremath{#1\textsf{-transition}}}
-\newcommand{\depTranss}[1]{\ensuremath{#1\textsf{-transitions}}}
-\newcommand{\sTransition}[1]{\ensuremath{#1\textsf{-transition}}}
-\newcommand{\sTransitions}[1]{\ensuremath{#1\textsf{-transitions}}}
+\newcommand{\nameforedge}{edge}
+\newcommand{\nameforaedge}{a edge}
+\newcommand{\nameforedges}{edges}
+\newcommand{\eva}{e}
+
+\newcommand{\depTrans}[1]{\ensuremath{#1\textsf{-\nameforedge}}}
+\newcommand{\depTranss}[1]{\ensuremath{#1\textsf{-\nameforedges}}}
+\newcommand{\sTransition}[1]{\ensuremath{#1\textsf{-\nameforedge}}}
+\newcommand{\sTransitions}[1]{\ensuremath{#1\textsf{-\nameforedges}}}
 \newcommand{\sInTransition}[1]{\legterm{incoming} \sTransition{#1}}
 \newcommand{\sOutTransition}[1]{\legterm{outgoing} \sTransition{#1}}
 \newcommand{\sInTransitions}[1]{\legterm{incoming} \sTransitions{#1}}
@@ -31,7 +36,7 @@
 \newcommand{\itsTransform}[1]{\ensuremath{\textsf{transform}_{#1}}}
 
 % Properties of \transitions
-\newcommand{\tguard}[2]{\ensuremath{\textsf{transGuard}_{#1}(#2)}}
+\newcommand{\tguard}[2]{\ensuremath{\textsf{edgeGuard}_{#1}(#2)}}
 \newcommand{\deadline}[2]{\ensuremath{\textsf{deadline}_{#1}(#2)}}
 \newcommand{\role}[1]{\ensuremath{\textsf{role}_{#1}}}
 \newcommand{\actionname}[1]{\ensuremath{\textsf{actionName}_{#1}}}
