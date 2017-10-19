@@ -21,7 +21,7 @@
 
 
 
-\section{Basics: events, time, and traces} \label{basics}
+\section{Events, Time, Traces, Finite State Contracts} \label{basics}
 
 This section defines a complete-but-limited model of contracts, called \\ \introxx{FSContracts}{simple contracts}{FSContract}{simple contract}, and also gives definitions that will be used for the full definition of \introxx{Contracts}{contracts}{Contract}{contract} in Section \ref{globalvars}.
 
@@ -91,7 +91,7 @@ For \FSContracts, a \DeadlineFn is just a function from \TimeStamps to $\TimeUni
 	\item If $d(t) \in \TimeUnit$, the deadline is $t + d(t)$.
 \end{LPPI}
 
-The \TGuards must satisfy the following conditions, which would be statically verified in a language for \Contracts. We give the \FSContracts definitions here, but these conditions will be used in Section \ref{globalvars} as well.
+The \TGuards must satisfy the following conditions, which would be statically verified in a \Contract-definition language. We give the \FSContracts definitions here, but these conditions will be used in Section \ref{globalvars} as well.
 \medskip
 
 \noindent \introx{uaoc}{unambiguous absolute obligation condition}: For every \TimeStamp t, if some \TGuard of a \mustntran evaluates to true (at $t$) then every other \TGuard evaluates to false (at $t$). 
@@ -164,28 +164,34 @@ The \bostgc ensures that one of those two cases will apply. In particular, it im
 
 
 
-\section{Infinite state: Global Variables and Event Parameters} \label{globalvars}
+%\section{Infinite State with Global Variables, and Action Parameters} \label{globalvars}
+\section{Infinite State with Global Variables} \label{globalvars}
+%{\bf Note}: Action parameters are not at all necessary to utilize global variables. In fact, \Contracts with global variables and no action parameters can efficiently simulate \Contracts with global variables and action parameters.
+%{\bf Todo?: Move Event Parameters to its own section. A lot can be done with infinite state systems without them.} \\
+\medskip
 
-{\bf Todo?: Move Event Parameters to its own section. A lot can be done with infinite state systems without them.} \\
-
-We introduce a set of basic datatypes $\TT$, which includes at least $\BB, \NN$, and $\ZZ$. Add to the definition of \Contract:
 \introxxoutside{GVars}{global vars}{GVar}{global var}
 \introxoutside{GVarTypes}{gvartypes} 
-\introxxoutside{AParamsDomain}{action-parameters domain}{AParamsDomains}{action-parameters domains}
-\introxoutside{gvarsassign}{global vars assignment}.
-\begin{LPPI}
-\item A fixed finite set of typed \introxxinside{global vars}. The \GVars are ordered, so we may describe their collective types as a single tuple $\introxinside{GVarTypes} \in \TT^* $\\
- Add to the definition of \GlobalState an assignment of values to the \GVars. We'll call such an assignment a \introxinside{global vars assignment}.
 
-\item An assignment of types ($\TT$-tuples) to the \Actions. This allows \Events to have parameters. We refer to such a type as an \introxxinside{action-parameters domain}, and the specific \AParamsDomain for \Action $a$ is $\itsAParamsDomain{a}$.
-\end{LPPI}
-%\introxarg{itsAParamsDomain}{paramtypes}$.
+
+
+We introduce a set of basic datatypes $\TT$, which includes at least $\BB, \NN$, and $\ZZ$. Add to the definition of \Contract a fixed finite set of typed \introxxinside{global vars}. The \GVars are ordered, so we may describe their collective types as a single tuple $\introxinside{GVarTypes} \in \TT^* $.
+
+Add to the definition of \GlobalState an assignment of values to the \GVars. We'll call such an assignment a \introx{gvarsassign}{global vars assignment}. A particular \gvarsassign \introx{initvals}{initvals} for the values of the \GVars in the unique \startstate is required for a \Contract. Alternatively, one may omit some initial values, which results in a \introx{ContractTemplate}{contract template}; the meaning should be obvious.
+
+%\begin{LPPI}
+%\item 
+%\item An assignment of types ($\TT$-tuples) to the \Actions. This allows \Events to have parameters. We refer to such a type as an \introxxinside{action-parameters domain}, and the specific \AParamsDomain for \Action $a$ is $\itsAParamsDomain{a}$.
+%\end{LPPI}
+
 \introxxoutside{gvTransform}{global vars transform}{gvTransforms}{global vars transforms}
-\introxxoutside{EventSchema}{event schema}{EventSchemas}{event schemas}
-\noindent The \Event definition receives the following generalizations:
+
+ The \Event definition receives the following generalizations:
 \begin{LPPI}
-\item Each \Action $a$ additionally has a \gvTransform, denoted \itsTransform{a}, which is a function from $\GVarTypes \times \itsAParamsDomain{a} \times \TimeStamps$ to \GVarTypes. 
-\item The definition of the \TGuard of a \depTrans{a} is generalized: it may now depend on the values of the \GVars; i.e. it is now a relation on $\TimeStamps \times \text{\GVarTypes}$.
+\item Each \Action $a$ additionally has a \gvTransform, denoted \itsTransform{a}, which is a function from 
+$\GVarTypes \times \TimeStamps$ to \GVarTypes. 
+%$\GVarTypes \times \itsAParamsDomain{a} \times \TimeStamps$ to \GVarTypes. 
+\item The definition of the \TGuard of a \depTrans{a} is generalized: it may now depend on the values of the \GVars; i.e. it is now a relation on $\TimeStamps \times \GVarTypes$.
 \end{LPPI}
 
 The conditions on \TGuards are updated in unsurprising ways. For every \State $s$:
@@ -203,20 +209,39 @@ The conditions on \TGuards are updated in unsurprising ways. For every \State $s
 
 \bigskip
 
-Note (probably to move to some other section or document): it will often be the case in a language for \Contracts that we simultaneously define an \Action $a$ and a \State \JustHappened{a} (for ``$a$ Just Happened'', to fit its literal meaning). In this case, the \sInTransitions{\JustHappened{a}} are exactly the set of $\depTranss{a}$. As a convenience, a language for \Contracts will allow the \sOutTransitions{\JustHappened{a}} to depend directly on $a$'s parameters (that is, for the \TGuard and \ESConstructor to depend on $a$'s parameters). This is merely a convenience because, as we will see when we define execution, one can achieve the same effect by introducing new \GVars that are only used by $a$ and $\JustHappened{a}$; $a$ uses \itsTransform{a} (recall, its \gvTransform) to save its parameter values to those new \GVars, so that the \sOutTransitions{ \JustHappened{a}} can then refer to them.
+Note (probably to move to some other section or document): it will often be the case in a \Contract-definition language that we simultaneously define an \Action $a$ and a \State \JustHappened{a} (for ``$a$ Just Happened'', to fit its literal meaning). In this case, the \sInTransitions{\JustHappened{a}} are exactly the set of $\depTranss{a}$. As a convenience, a \Contract-definition language will likely allow the \sOutTransitions{\JustHappened{a}} to depend directly on $a$'s parameters (that is, for the \TGuard 
+%and \ESConstructor 
+to depend on $a$'s parameters). This is merely a convenience because, as we will see when we define execution, one can achieve the same effect by introducing new \GVars that are only used by $a$ and $\JustHappened{a}$; $a$ uses \itsTransform{a} (recall, its \gvTransform) to save its parameter values to those new \GVars, so that the \sOutTransitions{ \JustHappened{a}} can then refer to them.
 
 \subsection{Execution}
 
-\section{Event Schema} \label{eventschema}
+
+\section{Event Parameters and Schema} \label{eventparams}
+%The feature we introduce in this section, for most uses, can be simulated efficiently by \GVars. An exception is in the case of \Events coming from 
+
+Add to the definition of \Contract an assignment of types ($\TT$-tuples) to the \Actions. This allows \Events to have parameters. We refer to such a type as an \introxx{AParamsDomain}{action-parameters domain}{AParamsDomains}{action-parameters domains}, and the specific \AParamsDomain for \Action $a$ is $\itsAParamsDomain{a}$.
+
+\introxxoutside{EventSchema}{event schema}{EventSchemas}{event schemas}
+Each \depTrans{a} gets assigned an \introxxinside{event schema} called $\itsESConstructor{a}$. This is a function from $\GVarTypes \times \TimeStamps$ to a set of $\depEvents{a}$. Equivalently, it is a relation on $\GVarTypes \times \TimeStamps \times \depEvents{a}$, and that is likely how it will be represented in a \Contract-definition language. We call a set of $\depEvents{a}$ an \EventSchema. In many cases, an \EventSchema will be a singleton set. It is only for $\depEvents{\Env}$ that singleton \EventSchema allow us to express things that we couldn't otherwise; in all other cases, singleton \EventSchema can be simulated efficiently using $\GVars$. Nonetheless, we will recommend using singleton \EventSchema for events other than $\depEvents{\Env}$. Check for yourself that the definitions from the previous section do not need significant changes for singleton $\EventSchema$.
+
+{\it Non-singleton} \EventSchema are most useful for an infinite or large choice of \Actions (and, in the case of $\depEvents{\Env}$, for infinite or large nondeterminism). 
+
+
+
+
+
+%\section{Event Schema} \label{eventschema}
 
 %\item Each \depTrans{a} additionally gets an \introxxinside{event schema} called $\itsESConstructor{a}$. This is a function from \GVarTypes\footnote{Could also easily make it depend on current \TimeStamp.} to a set of \Events all of whose \Action is $a$. We call such a set of events an \EventSchema. 
 
 
 \section{May-Later and Must-Later}  \label{slater}
 
-This section does not actually change the definition of \Contract. Instead, it defines an often-useful \Contract structure that is likely to be supported with custom syntax in a language for \Contracts.
 
-We have so far been noncommittal about what types are available for \GVars and \AParamsDomains. We will see later that the types strongly affect expressivity. As a special case, the reader should convince themselves that any \Contract that uses only boolean (or other finite domain) types can be simulated by a \FSContract (using a much larger number of \States).
+This section does not actually change the definition of \Contract. Instead, it defines an often-useful \Contract structure that is likely to be supported with custom syntax in a \Contract-definition language.
+
+We have so far been noncommittal about what types are available for \GVars.% and \AParamsDomains.
+We will see later that the types strongly affect expressivity. As a special case, the reader should convince themselves that any \Contract that uses only boolean (or other finite domain) types can be simulated by a \FSContract (using a much larger number of \States).
 
 %Add a fourth component to the definition of \GlobalState: a finite set \EventSchemas called \FDeons. A \FDeon is a \FOb or a \FPerm. We will see soon that \FDeons are created by a new component that we add to the definition of \Transform.
 
