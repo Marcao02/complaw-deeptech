@@ -11,6 +11,12 @@
       , "idnum":  "S2222222B"
       , "nature": "natural"
       , "gender": "male"
+    },
+    { "fullname": "Carol"
+      , "idtype": "nric"
+      , "idnum":  "S3333333C"
+      , "nature": "natural"
+      , "gender": "female"
     }
   ],
   "securities": [ { "name": "ordinary shares",  "measure": "ByUnit" } ],
@@ -29,10 +35,13 @@
                                       "descripton" : "Alice doesn't change"} ] },
     { "holder": "Bob",   "holds": [ { "securityName": "ordinary shares", "units": 200,
                                       "description" : "Bob is added"
+                                    } ] },
+    { "holder": "Carol", "holds": [ { "securityName": "ordinary shares", "units": 300,
+                                      "description" : "Carol is added"
                                     } ] }
   ],
   "agreements": [ {"title" : "shareholdersAgreement",
                    "dated" : "1970-01-02",
-                   "parties" : ["Company","Alice","Bob"],
+                   "parties" : ["Company","Alice","Bob","Carol"],
                    "singleton": true } ]
 }

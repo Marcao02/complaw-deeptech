@@ -80,8 +80,8 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
   let hdiffs = pairBy holder holds (holdings before) (holdings after)
   vprint v $ show $ assocs hdiffs
 
-  let reorganizedHoldings = [ rdiff       (Holding hname (fromMaybe [] h1))
-                                          (Holding hname (fromMaybe [] h2))
+  let reorganizedHoldings = [ rdiff (Holding hname (fromMaybe [] h1))
+                                    (Holding hname (fromMaybe [] h2))
                             | (hname,(h1,h2)) <- assocs hdiffs
                             ]
   vprint v $ show reorganizedHoldings
@@ -89,6 +89,11 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
   -- diff the full companystate
   
   vprint True $ show $ rdiff before after
+
+  vprint v $ "now let's have a look at the business logic rules on the diffs"
+
+  -- apply the rules and deduce the required paperwork to effect the diffs
+  vprint v $ show $ applyRules ruleBase (rdiff before after)
   
 
 {-                               input json parsing                           -}

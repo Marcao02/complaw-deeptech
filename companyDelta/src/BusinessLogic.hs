@@ -11,6 +11,8 @@ import Control.Monad
 -- figuring out the types at runtime for some things that we really shouldn't have to.
 -- maybe we want Data.Data?
 import Data.Typeable
+import Data.Maybe
+import Debug.Trace (trace)
 
 -- graph
 import Data.Graph
@@ -31,6 +33,7 @@ data MembersResolution = MR { title :: String
 
 data Agreement = Ag { title :: String
                     , body  :: String
+                    , parties :: [PartyName]
                     , id    :: Int
                     , level :: AgLevel
                     } deriving (Show)
@@ -61,13 +64,21 @@ data Temporal = Pre
 data DurationSpec = DurationYMD Int Int Int
                   deriving (Show)
 
-data Rule = RuleDiff      Temporal MatchDiff      Paperwork
-          | RulePaper     Temporal MatchPaperwork Paperwork
--- RuleDiff Pre   X Y means: before we can do a thing that matches X, we must first do Y
--- RuleDiff Post  X Y means:  after we     do a thing that matches X, we must next  do Y by DurationSpec, as a relative deadline
--- RuleDiff Simul X Y means:   when we     do a thing that matches X, we must simultaneously do Y
+data Rule = RuleDiff { rulename :: String
+                     , temporal :: Temporal
+                     , matchdiff :: MatchDiff
+                     , d2p :: Tree Diff -> Paperwork
+                     }
+          | RulePaper { rulename :: String
+                      , temporal :: Temporal
+                      , matchpaperwork :: MatchPaperwork
+                      , p2p :: Paperwork -> Paperwork }
 
-type MatchDiff      = DiffBox -> Bool
+-- temporal Pre X Y means: before we can do a thing that matches X, we must first do Y
+-- temporal Post  X Y means:  after we     do a thing that matches X, we must next  do Y by DurationSpec, as a relative deadline
+-- temporal Simul X Y means:   when we     do a thing that matches X, we must simultaneously do Y
+
+type MatchDiff      = Diff -> Bool
 type MatchPaperwork = Paperwork -> Bool
 
 anyDiff :: MatchDiff
@@ -87,52 +98,108 @@ anyDiff = const True
 type Deps = [Paperwork]
 
 ruleBase :: [Rule]
-ruleBase = [ RuleDiff Pre shaChanged
-             (Paperwork
+ruleBase = [ RuleDiff "SHA changed" Pre shaChanged
+             (\difftree -> Paperwork
               [ DR "company to circulate deed of ratification and accession" "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement" 0
               , DR "company to sign aforesaid deed" "resolved, that the company should ratify the aforesaid deed" 1
               ]
-              [] [] 0) ]
-  where shaChanged :: MatchDiff
-        shaChanged (DiffBox (Update old new comment)) =
-          typeOf new == typeOf Contract
-          &&
-          case cast new of
-            Just wot -> (title :: Contract -> String) wot == "shareholdersAgreement"
-            Nothing -> False
-        shaChanged _ = False
-        -- jeebus, do i really need https://hackage.haskell.org/package/base-4.10.0.0/docs/Data-Typeable.html ?
-        isSha :: Contract -> Bool
-        isSha contract = (title (contract :: Contract) == "shareholdersAgreement")
+              ([] :: [MembersResolution])
+              [Ag
+               "DORA"
+               "The signatories hereby ratify and accede to the Shareholders Agreement."
+               (newParties $ difftree)
+               2
+               Deed
+              ] 0) ]
+  where
+    shaChanged :: MatchDiff
+    shaChanged (Diff Update old new comment) =
+      -- https://hackage.haskell.org/package/base-4.10.0.0/docs/Data-Typeable.html
+      let mydo = do guard $ comment == "changed Contract"
+                    trace ("mydo: new is " ++ show new) (Just ())
+                    dc <- (cast new :: Maybe Contract)
+                    trace ("mydo: after the dc <- cast, dc = " ++ show dc) (return True)
+      in trace ("shaChanged: mydo returned " ++ show mydo ++ " on " ++ show new) (fromMaybe False mydo)
+    shaChanged _ = trace "shaChanged: not an Update, returning false" False
+
+    isSha :: Contract -> Bool
+    isSha contract = trace ("isSha: am i a shareholders agreement?") ((title (contract :: Contract)) == "shareholdersAgreement")
+    -- you'd think the type inferencer could figure out that contract :: Contract
+
+    contractdiff :: Diff -> Maybe Contract
+    contractdiff (Diff Update old new comment) = cast new
 
 
- --                 { rootLabel =
- --                     "changed Contract"
- --                     Update
- --                     Contract
- --                       { parties = [ "Company" , "Alice" , "Bob" ]
- --                       , dated = 1970 (-01) (-02)
- --                       , title = "shareholdersAgreement"
- --                       , singleton = True
- --                       }
- --
+newParties :: Tree Diff -> [PartyName]
+newParties contract_tdb = do
+  -- extract the child diffbox matching "xpath"
+  -- CompanyState / Contracts / Contract.title="shareholdersAgreement" / PartyNames / Create
+  partyNames <- subForest contract_tdb
+  guard $ comment (rootLabel partyNames) == "changed PartyNames"
+  partyName <- subForest partyNames
+  guard $ comment (rootLabel partyName) == "from Nothing"
+  return $ fromMaybe "" $ (\diff -> case diff of
+                              (Diff Create old new comment) -> Just $ show new
+                              _ -> Nothing
+                          ) (rootLabel partyName)
 
-applyRules :: [Rule] -> Tree DiffBox -> Deps
+-- [ Node
+--     { rootLabel =
+--         Diff
+--           Update
+--           Just
+--           Contract
+--             { parties = [ "Alice" , "Company" ]
+--             , dated = 1970 (-01) (-01)
+--             , title = "shareholdersAgreement"
+--             , singleton = True
+--             }
+--           Just
+--           Contract
+--             { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
+--             , dated = 1970 (-01) (-02)
+--             , title = "shareholdersAgreement"
+--             , singleton = True
+--             }
+--           changed
+--           Contract
+--     , subForest =
+--         [ Node
+--             { rootLabel =
+--                 Diff
+--                   Update
+--                   Just
+--                   [ "Alice" , "Company" ]
+--                   Just
+--                   [ "Company" , "Alice" , "Bob" , "Carol" ]
+--                   changed
+--                   PartyNames
+--             , subForest =
+--                 [ Node
+--                     { rootLabel = Diff Create Nothing Just "Bob" from Nothing
+--                     , subForest = []
+--                     }
+--                 , Node
+--                     { rootLabel = Diff Create Nothing Just "Carol" from Nothing
+--                     , subForest = []
+--                     }
+--                 ]
+--             }                                                         
+  
+applyRules :: [Rule] -> Tree Diff -> Deps
 applyRules rulebase difftree =
   -- crunch through every diff in the tree
   -- testing every rule in the rulebase
-  
-  concat $ diff2paper <$> difftree
-  where diff2paper :: DiffBox -> Deps
-        diff2paper diff = do
-          rule <- rulebase
-          let (RuleDiff temporal matchDiff paper) = rule
-          guard (matchDiff diff)
-          return paper
-
-
-
-
+  let rootdeps = do
+        rule <- rulebase
+        let mdout = trace ("\napplyRules: " ++ rulename rule ++ ": testing rule on \"" ++ comment (rootLabel difftree) ++ "\"") (matchdiff rule (rootLabel difftree))
+        wtf <- trace ("applyRules: " ++ rulename rule ++ ": matchdiff result = " ++ show mdout) [True]
+        guard mdout
+        trace ("applyRules: " ++ rulename rule ++ " matchdiff rule fired on diff " ++ (comment $ rootLabel difftree)) return (d2p rule difftree)
+      children = concat $ applyRules rulebase <$> subForest difftree
+  in concat [rootdeps, children]
+    
+     
 
 {- changes to the Company -}
 
