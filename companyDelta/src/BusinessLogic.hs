@@ -115,87 +115,30 @@ ruleBase = [ RuleDiff "SHA changed" Pre shaChanged
     shaChanged :: MatchDiff
     shaChanged (Diff Update old new comment) =
       -- https://hackage.haskell.org/package/base-4.10.0.0/docs/Data-Typeable.html
-      let mydo = do guard $ comment == "changed Contract"
-                    trace ("mydo: new is " ++ show new) (Just ())
-                    dc <- (cast new :: Maybe Contract)
-                    trace ("mydo: after the dc <- cast, dc = " ++ show dc) (return True)
-      in trace ("shaChanged: mydo returned " ++ show mydo ++ " on " ++ show new) (fromMaybe False mydo)
-    shaChanged _ = trace "shaChanged: not an Update, returning false" False
-
-    isSha :: Contract -> Bool
-    isSha contract = trace ("isSha: am i a shareholders agreement?") ((title (contract :: Contract)) == "shareholdersAgreement")
-    -- you'd think the type inferencer could figure out that contract :: Contract
-
-    contractdiff :: Diff -> Maybe Contract
-    contractdiff (Diff Update old new comment) = cast new
-
+      fromMaybe False $ do mc <- (cast new :: Maybe (Maybe Contract))
+                           c  <- mc
+                           return $ title (c :: Contract) == "shareholdersAgreement"
+    shaChanged _ = False
 
 newParties :: Tree Diff -> [PartyName]
-newParties contract_tdb = do
+newParties contract_tdb = catMaybes $ catMaybes $ do
   -- extract the child diffbox matching "xpath"
   -- CompanyState / Contracts / Contract.title="shareholdersAgreement" / PartyNames / Create
-  partyNames <- subForest contract_tdb
-  guard $ comment (rootLabel partyNames) == "changed PartyNames"
-  partyName <- subForest partyNames
-  guard $ comment (rootLabel partyName) == "from Nothing"
-  return $ fromMaybe "" $ (\diff -> case diff of
-                              (Diff Create old new comment) -> Just $ show new
-                              _ -> Nothing
-                          ) (rootLabel partyName)
+  partyNames <- subForest contract_tdb; guard $ comment (rootLabel partyNames) == "changed PartyNames"
+  partyName  <- subForest partyNames;   guard $ comment (rootLabel partyName)  == "from Nothing"
+  return $ ((\diff -> case diff of
+                (Diff Create old new comment) -> (cast new :: Maybe (Maybe String))
+                _ -> Nothing
+            ) (rootLabel partyName))
 
--- [ Node
---     { rootLabel =
---         Diff
---           Update
---           Just
---           Contract
---             { parties = [ "Alice" , "Company" ]
---             , dated = 1970 (-01) (-01)
---             , title = "shareholdersAgreement"
---             , singleton = True
---             }
---           Just
---           Contract
---             { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
---             , dated = 1970 (-01) (-02)
---             , title = "shareholdersAgreement"
---             , singleton = True
---             }
---           changed
---           Contract
---     , subForest =
---         [ Node
---             { rootLabel =
---                 Diff
---                   Update
---                   Just
---                   [ "Alice" , "Company" ]
---                   Just
---                   [ "Company" , "Alice" , "Bob" , "Carol" ]
---                   changed
---                   PartyNames
---             , subForest =
---                 [ Node
---                     { rootLabel = Diff Create Nothing Just "Bob" from Nothing
---                     , subForest = []
---                     }
---                 , Node
---                     { rootLabel = Diff Create Nothing Just "Carol" from Nothing
---                     , subForest = []
---                     }
---                 ]
---             }                                                         
-  
 applyRules :: [Rule] -> Tree Diff -> Deps
 applyRules rulebase difftree =
   -- crunch through every diff in the tree
   -- testing every rule in the rulebase
   let rootdeps = do
         rule <- rulebase
-        let mdout = trace ("\napplyRules: " ++ rulename rule ++ ": testing rule on \"" ++ comment (rootLabel difftree) ++ "\"") (matchdiff rule (rootLabel difftree))
-        wtf <- trace ("applyRules: " ++ rulename rule ++ ": matchdiff result = " ++ show mdout) [True]
-        guard mdout
-        trace ("applyRules: " ++ rulename rule ++ " matchdiff rule fired on diff " ++ (comment $ rootLabel difftree)) return (d2p rule difftree)
+        guard (matchdiff rule (rootLabel difftree))
+        return (d2p rule difftree)
       children = concat $ applyRules rulebase <$> subForest difftree
   in concat [rootdeps, children]
     
