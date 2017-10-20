@@ -12,6 +12,7 @@ import Control.Monad
 -- maybe we want Data.Data?
 import Data.Typeable
 import Data.Maybe
+import Data.List (nub)
 import Debug.Trace (trace)
 
 -- graph
@@ -99,18 +100,36 @@ type Deps = [Paperwork]
 
 ruleBase :: [Rule]
 ruleBase = [ RuleDiff "SHA changed" Pre shaChanged
-             (\difftree -> Paperwork
-              [ DR "company to circulate deed of ratification and accession" "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement" 0
-              , DR "company to sign aforesaid deed" "resolved, that the company should ratify the aforesaid deed" 1
+             (\difftree ->
+               Paperwork
+              [ DR "company to circulate deed of ratification and accession"
+                   "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement"
+                   0
+              , DR "company to sign aforesaid deed"
+                   "resolved, that the company should ratify the aforesaid deed"
+                   1
               ]
               ([] :: [MembersResolution])
-              [Ag
-               "DORA"
-               "The signatories hereby ratify and accede to the Shareholders Agreement."
-               (newParties $ difftree)
-               2
-               Deed
-              ] 0) ]
+              [Ag "DORA"
+                  "The signatories hereby ratify and accede to the Shareholders Agreement."
+                  (newParties $ difftree)
+                  2
+                  Deed
+              ] 0)
+
+
+           , RuleDiff "new shareholder" Pre newHolding
+             (\difftree ->
+               Paperwork
+                 ([] :: [DirectorsResolution])
+                 ([] :: [MembersResolution])
+                 ([Ag "Investment Agreement"
+                   "The actual investment agreements between the Company and the investors in the new round."
+                   ("Company" : (investorsInRound $ difftree))
+                   3
+                   AgContract ])
+               1)
+           ]
   where
     shaChanged :: MatchDiff
     shaChanged (Diff Update old new comment) =
@@ -120,6 +139,43 @@ ruleBase = [ RuleDiff "SHA changed" Pre shaChanged
                            return $ title (c :: Contract) == "shareholdersAgreement"
     shaChanged _ = False
 
+    -- Holdings / Holding / HeldSecurities / HeldSecurity
+    newHolding :: MatchDiff
+    newHolding (Diff Update old new comment) =
+      fromMaybe False $ do mh <- (cast new :: Maybe (Maybe [Holding]))
+                           holdings <- mh
+                           trace ("holdings = " ++ show holdings) (return (length holdings > 1))
+    newHolding _ = False
+
+{- sequence for new investor
+1. (directors resolution) directors agree to issue new shares
+2. (directors resolution) directors request permission from members to issue new shares
+3. (members resolutions) members either hold an extraordinary general meeting or pass resolutions by written means approving the directors' plan
+4. (company notice to debtholders) if the new share issue triggers any convertible debt, company informs debtholders and revises the shareholder roster accordingly
+4. (company notice to shareholders) directors, writing on behalf of company, offer existing members pro-rata rights in the new share issue
+5. (company notice to shareholders) directors offer existing members excess rights in the new share issue
+6. (company notice to non-members) directors offer non-members participation in the new share issue
+7. (company generates and executes agreement) new investors sign DORA
+8. (company generates and executes agreement) old investors sign DORA
+9. (company generates and executes agreement) directors sign investment agreement with participating investors
+10. company files updated shareholding roster with acra
+-}
+
+investorsInRound :: Tree Diff -> [PartyName]
+investorsInRound holdings = nub $ catMaybes $ do
+  heldsecurity <- subForest holdings
+  let mmhss = (\diff -> case diff of
+                  (Diff Create Nothing new comment) -> cast new :: Maybe (Maybe [HeldSecurity])
+                  _ -> Nothing
+              ) (rootLabel heldsecurity)
+      mhss = fromMaybe Nothing mmhss
+      hss  = fromMaybe [] mhss
+  hs <- hss
+  return $ do
+    desc <- description hs
+    let d = head $ words desc
+    return d
+                    
 newParties :: Tree Diff -> [PartyName]
 newParties contract_tdb = catMaybes $ catMaybes $ do
   -- extract the child diffbox matching "xpath"
