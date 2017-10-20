@@ -47,15 +47,16 @@ To be a legal sequence, a path of corporate actions may be required to obey an o
 
 For example, the correct procedure for issuing new shares is:
 
-1. directors agree to issue new shares
-2. directors request permission from members to issue new shares
-3. members either hold an extraordinary general meeting or pass resolutions by written means approving the directors' plan
-4. directors offer existing members pro-rata rights in the new share issue
-5. directors offer existing members excess rightse in the new share issue
-6. directors offer non-members participation in the new share issue
-7. directors sign investment agreement with particpating investors
-8. new investors sign shareholders agreement
-9. old investors sign deed of ratification and accession
+1. (directors resolution) directors agree to issue new shares
+2. (directors resolution) directors request permission from members to issue new shares
+3. (members resolutions) members either hold an extraordinary general meeting or pass resolutions by written means approving the directors' plan
+4. (company notice to debtholders) if the new share issue triggers any convertible debt, company informs debtholders and revises the shareholder roster accordingly
+4. (company notice to shareholders) directors, writing on behalf of company, offer existing members pro-rata rights in the new share issue
+5. (company notice to shareholders) directors offer existing members excess rights in the new share issue
+6. (company notice to non-members) directors offer non-members participation in the new share issue
+7. (company generates and executes agreement) directors sign investment agreement with participating investors
+8. (company generates and executes agreement) new investors sign shareholders agreement
+9. (company generates and executes agreement) old investors sign deed of ratification and accession of shareholders agreement
 
 We use a dependency tree to model the sequence of these corporate actions. We collect nodes into node-groups, which we call dependency stages. Every document within a given dependency stage must be signed before documents within the next dependency stage can be signed.
 
@@ -64,7 +65,15 @@ We use a dependency tree to model the sequence of these corporate actions. We co
 We combine actions of the same type within the same dependency stage, into an aggregate document.
 
 For example, if a dependency stage contains three directors resolutions, the software should group those three directors resolutions into a single document for signature purposes.
- 
+
+## External Integrations
+
+Initially we hardcode the dependencies.
+
+It may be possible to represent the dependency rules using something like [SBVR](https://en.wikipedia.org/wiki/Semantics_of_Business_Vocabulary_and_Business_Rules).
+
+After we do that we can generate the legal sequence (using an SMT solver?) as a model that satisfies the rule constraints.
+
 
 ```
 20171009-14:49:24 mengwong@venice2:~/non-db-src/l/compiler/companyDelta% stack build && stack exec companyDelta-exe  -- examples/case1/before.json examples/case1/after.json | ppsh
