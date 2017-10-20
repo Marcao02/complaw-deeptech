@@ -92,22 +92,17 @@ Installing executable(s) in
 Registering companyDelta-0.1.0.0...
 Node
   { rootLabel =
-      Update
+      Diff
+        Update
+        Just
         CompanyState
-          { holders =
-              [ Holder
+          { parties =
+              [ Party
                   { fullname = "Alice"
                   , idtype = "passport"
                   , idnum = "E1111111B"
                   , nature = OtherNature "natural"
                   , gender = Female
-                  }
-              , Holder
-                  { fullname = "Bob"
-                  , idtype = "nric"
-                  , idnum = "S2222222B"
-                  , nature = OtherNature "natural"
-                  , gender = Male
                   }
               ]
           , securities =
@@ -118,8 +113,84 @@ Node
               Company
                 { name = "Acme Potato Pte. Ltd."
                 , jurisdiction = "Singapore"
+                , address = "1 Corporate Park, Singapore 139951"
                 , idtype = "UEN"
                 , idnum = "UEN11111111A"
+                , constitution =
+                    [ ConExp
+                        { title = "Constitution Default"
+                        , body = "The default constitution shall be substituted here."
+                        }
+                    ]
+                , directors = [ "Alice" ]
+                , secretary = "Alice"
+                }
+          , holdings =
+              [ Holding
+                  { holder = "Alice"
+                  , holds =
+                      [ HeldSecurity
+                          { securityName = "ordinary shares"
+                          , units = Just 100.0
+                          , money = Nothing
+                          , description = Nothing
+                          }
+                      ]
+                  }
+              ]
+          , agreements =
+              [ Contract
+                  { parties = [ "Alice" , "Company" ]
+                  , dated = 1970 (-01) (-01)
+                  , title = "shareholdersAgreement"
+                  , singleton = True
+                  }
+              ]
+          }
+        Just
+        CompanyState
+          { parties =
+              [ Party
+                  { fullname = "Alice"
+                  , idtype = "passport"
+                  , idnum = "E1111111B"
+                  , nature = OtherNature "natural"
+                  , gender = Female
+                  }
+              , Party
+                  { fullname = "Bob"
+                  , idtype = "nric"
+                  , idnum = "S2222222B"
+                  , nature = OtherNature "natural"
+                  , gender = Male
+                  }
+              , Party
+                  { fullname = "Carol"
+                  , idtype = "nric"
+                  , idnum = "S3333333C"
+                  , nature = OtherNature "natural"
+                  , gender = Female
+                  }
+              ]
+          , securities =
+              [ Security
+                  { name = "ordinary shares" , measure = OtherMeasure "ByUnit" }
+              ]
+          , company =
+              Company
+                { name = "Acme Potato Pte. Ltd."
+                , jurisdiction = "Singapore"
+                , address = "1 Corporate Park, Singapore 139951"
+                , idtype = "UEN"
+                , idnum = "UEN11111111A"
+                , constitution =
+                    [ ConExp
+                        { title = "Constitution Default"
+                        , body = "The default constitution shall be substituted here."
+                        }
+                    ]
+                , directors = [ "Alice" ]
+                , secretary = "Alice"
                 }
           , holdings =
               [ Holding
@@ -144,48 +215,123 @@ Node
                           }
                       ]
                   }
+              , Holding
+                  { holder = "Carol"
+                  , holds =
+                      [ HeldSecurity
+                          { securityName = "ordinary shares"
+                          , units = Just 300.0
+                          , money = Nothing
+                          , description = Just "Carol is added"
+                          }
+                      ]
+                  }
+              ]
+          , agreements =
+              [ Contract
+                  { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
+                  , dated = 1970 (-01) (-02)
+                  , title = "shareholdersAgreement"
+                  , singleton = True
+                  }
               ]
           }
-        "changed CompanyState"
+        changed
+        CompanyState
   , subForest =
       [ Node
           { rootLabel =
-              Update
-                [ Holder
+              Diff
+                Update
+                Just
+                [ Party
                     { fullname = "Alice"
                     , idtype = "passport"
                     , idnum = "E1111111B"
                     , nature = OtherNature "natural"
                     , gender = Female
                     }
-                , Holder
+                ]
+                Just
+                [ Party
+                    { fullname = "Alice"
+                    , idtype = "passport"
+                    , idnum = "E1111111B"
+                    , nature = OtherNature "natural"
+                    , gender = Female
+                    }
+                , Party
                     { fullname = "Bob"
                     , idtype = "nric"
                     , idnum = "S2222222B"
                     , nature = OtherNature "natural"
                     , gender = Male
                     }
+                , Party
+                    { fullname = "Carol"
+                    , idtype = "nric"
+                    , idnum = "S3333333C"
+                    , nature = OtherNature "natural"
+                    , gender = Female
+                    }
                 ]
-                "changed Holders"
+                changed
+                Holders
           , subForest =
               [ Node
                   { rootLabel =
-                      Create
-                        Holder
+                      Diff
+                        Create
+                        Nothing
+                        Just
+                        Party
                           { fullname = "Bob"
                           , idtype = "nric"
                           , idnum = "S2222222B"
                           , nature = OtherNature "natural"
                           , gender = Male
                           }
-                        "from Nothing"
+                        from
+                        Nothing
+                  , subForest = []
+                  }
+              , Node
+                  { rootLabel =
+                      Diff
+                        Create
+                        Nothing
+                        Just
+                        Party
+                          { fullname = "Carol"
+                          , idtype = "nric"
+                          , idnum = "S3333333C"
+                          , nature = OtherNature "natural"
+                          , gender = Female
+                          }
+                        from
+                        Nothing
                   , subForest = []
                   }
               ]
           }
       , Node
           { rootLabel =
-              Update
+              Diff
+                Update
+                Just
+                [ Holding
+                    { holder = "Alice"
+                    , holds =
+                        [ HeldSecurity
+                            { securityName = "ordinary shares"
+                            , units = Just 100.0
+                            , money = Nothing
+                            , description = Nothing
+                            }
+                        ]
+                    }
+                ]
+                Just
                 [ Holding
                     { holder = "Alice"
                     , holds =
@@ -208,12 +354,27 @@ Node
                             }
                         ]
                     }
+                , Holding
+                    { holder = "Carol"
+                    , holds =
+                        [ HeldSecurity
+                            { securityName = "ordinary shares"
+                            , units = Just 300.0
+                            , money = Nothing
+                            , description = Just "Carol is added"
+                            }
+                        ]
+                    }
                 ]
-                "changed Holdings"
+                changed
+                Holdings
           , subForest =
               [ Node
                   { rootLabel =
-                      Create
+                      Diff
+                        Create
+                        Nothing
+                        Just
                         [ HeldSecurity
                             { securityName = "ordinary shares"
                             , units = Just 200.0
@@ -221,8 +382,100 @@ Node
                             , description = Just "Bob is added"
                             }
                         ]
-                        "from Nothing"
+                        from
+                        Nothing
                   , subForest = []
+                  }
+              , Node
+                  { rootLabel =
+                      Diff
+                        Create
+                        Nothing
+                        Just
+                        [ HeldSecurity
+                            { securityName = "ordinary shares"
+                            , units = Just 300.0
+                            , money = Nothing
+                            , description = Just "Carol is added"
+                            }
+                        ]
+                        from
+                        Nothing
+                  , subForest = []
+                  }
+              ]
+          }
+      , Node
+          { rootLabel =
+              Diff
+                Update
+                Just
+                [ Contract
+                    { parties = [ "Alice" , "Company" ]
+                    , dated = 1970 (-01) (-01)
+                    , title = "shareholdersAgreement"
+                    , singleton = True
+                    }
+                ]
+                Just
+                [ Contract
+                    { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
+                    , dated = 1970 (-01) (-02)
+                    , title = "shareholdersAgreement"
+                    , singleton = True
+                    }
+                ]
+                changed
+                Contracts
+          , subForest =
+              [ Node
+                  { rootLabel =
+                      Diff
+                        Update
+                        Just
+                        Contract
+                          { parties = [ "Alice" , "Company" ]
+                          , dated = 1970 (-01) (-01)
+                          , title = "shareholdersAgreement"
+                          , singleton = True
+                          }
+                        Just
+                        Contract
+                          { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
+                          , dated = 1970 (-01) (-02)
+                          , title = "shareholdersAgreement"
+                          , singleton = True
+                          }
+                        changed
+                        Contract
+                  , subForest =
+                      [ Node
+                          { rootLabel =
+                              Diff
+                                Update
+                                Just
+                                [ "Alice" , "Company" ]
+                                Just
+                                [ "Company" , "Alice" , "Bob" , "Carol" ]
+                                changed
+                                PartyNames
+                          , subForest =
+                              [ Node
+                                  { rootLabel = Diff Create Nothing Just "Bob" from Nothing
+                                  , subForest = []
+                                  }
+                              , Node
+                                  { rootLabel = Diff Create Nothing Just "Carol" from Nothing
+                                  , subForest = []
+                                  }
+                              ]
+                          }
+                      , Node
+                          { rootLabel =
+                              Diff Replace Just "1970-01-01" Just "1970-01-02" change string
+                          , subForest = []
+                          }
+                      ]
                   }
               ]
           }
