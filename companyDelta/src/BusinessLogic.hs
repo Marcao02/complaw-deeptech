@@ -12,7 +12,7 @@ import Control.Monad
 -- maybe we want Data.Data?
 import Data.Typeable
 import Data.Maybe
-import Data.List (nub)
+import Data.List (nub, intercalate)
 import Debug.Trace (trace)
 
 -- graph
@@ -23,19 +23,19 @@ import Data.Tree
 
 data DirectorsResolution = DR { title :: String
                               , body  :: String
-                              , id    :: Int
                               } deriving (Show)
                            
 data MembersResolution = MR { title :: String
                             , body  :: String
-                            , id    :: Int
                             , level :: MRlevel
                             } deriving (Show)
+
+data MRlevel = Ordinary | Special
+             deriving (Show)
 
 data Agreement = Ag { title :: String
                     , body  :: String
                     , parties :: [PartyName]
-                    , id    :: Int
                     , level :: AgLevel
                     } deriving (Show)
 
@@ -44,36 +44,24 @@ data AgLevel = LOI | AgContract | Deed
 
 data Notice = Notice { title :: String
                      , body  :: String
-                     , id    :: Int
+                     , parties :: [PartyName]
                      } deriving (Show)
 
-data MRlevel = Ordinary | Special
-             deriving (Show)
-
-data Paperwork = Paperwork { dr :: [DirectorsResolution]
+data Paperwork = Paperwork { ptitle :: String
+                           , dr :: [DirectorsResolution]
                            , mr :: [MembersResolution]
                            , ag :: [Agreement]
-                           , id :: Int
+                           , nt :: [Notice]
                            }
                deriving (Show)
 
-data Temporal = Pre
-              | Post DurationSpec
+data Temporal = FirstNeed
+              | ForceWithin DurationSpec
               | Simul
               deriving (Show)
 
 data DurationSpec = DurationYMD Int Int Int
                   deriving (Show)
-
-data Rule = RuleDiff { rulename :: String
-                     , temporal :: Temporal
-                     , matchdiff :: MatchDiff
-                     , d2p :: Tree Diff -> Paperwork
-                     }
-          | RulePaper { rulename :: String
-                      , temporal :: Temporal
-                      , matchpaperwork :: MatchPaperwork
-                      , p2p :: Paperwork -> Paperwork }
 
 -- temporal Pre X Y means: before we can do a thing that matches X, we must first do Y
 -- temporal Post  X Y means:  after we     do a thing that matches X, we must next  do Y by DurationSpec, as a relative deadline
@@ -98,54 +86,117 @@ anyDiff = const True
 -- and we'll chuck the whole thing inside an RWST for maximum obfuscation
 type Deps = [Paperwork]
 
-ruleBase :: [Rule]
-ruleBase = [ RuleDiff "SHA changed" Pre shaChanged
-             (\difftree ->
-               Paperwork
-              [ DR "company to circulate deed of ratification and accession"
-                   "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement"
-                   0
-              , DR "company to sign aforesaid deed"
-                   "resolved, that the company should ratify the aforesaid deed"
-                   1
-              ]
-              ([] :: [MembersResolution])
-              [Ag "DORA"
-                  "The signatories hereby ratify and accede to the Shareholders Agreement."
-                  (newParties $ difftree)
-                  2
-                  Deed
-              ] 0)
-
-
-           , RuleDiff "new shareholder" Pre newHolding
-             (\difftree ->
-               Paperwork
-                 ([] :: [DirectorsResolution])
-                 ([] :: [MembersResolution])
-                 ([Ag "Investment Agreement"
-                   "The actual investment agreements between the Company and the investors in the new round."
-                   ("Company" : (investorsInRound $ difftree))
-                   3
-                   AgContract ])
-               1)
-           ]
+data DiffRule = DiffRule { rulename :: String
+                         , matchdiff :: MatchDiff
+                         , temporal :: Temporal
+                         , d2p :: Tree Diff -> Paperwork
+                         }
+diffRules :: [DiffRule]
+diffRules = [ DiffRule "SHA changed"             shaChanges                 FirstNeed ratifyDORA
+            , DiffRule  "new shareholder"        newHoldings                FirstNeed investmentAgreements
+            ]
   where
-    shaChanged :: MatchDiff
-    shaChanged (Diff Update old new comment) =
+    shaChanges (Diff Update old new comment) =
       -- https://hackage.haskell.org/package/base-4.10.0.0/docs/Data-Typeable.html
       fromMaybe False $ do mc <- (cast new :: Maybe (Maybe Contract))
                            c  <- mc
                            return $ title (c :: Contract) == "shareholdersAgreement"
-    shaChanged _ = False
+    shaChanges _ = False
+
+    ratifyDORA contractDiff =
+      Paperwork "ratify DORA"
+      ([ DR "company to circulate deed of ratification and accession"
+            "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement"
+       , DR "company to sign aforesaid deed"
+            "resolved, that the company should ratify the aforesaid deed"
+       ])
+      ([] :: [MembersResolution])
+      ([Ag "DORA"
+           "The signatories hereby ratify and accede to the Shareholders Agreement."
+           (newParties $ contractDiff)
+           Deed ])
+      ([] :: [Notice])
+
 
     -- Holdings / Holding / HeldSecurities / HeldSecurity
-    newHolding :: MatchDiff
-    newHolding (Diff Update old new comment) =
+    newHoldings (Diff Update old new comment) =
       fromMaybe False $ do mh <- (cast new :: Maybe (Maybe [Holding]))
                            holdings <- mh
-                           trace ("holdings = " ++ show holdings) (return (length holdings > 1))
-    newHolding _ = False
+                           return (length holdings > 1)
+    newHoldings _ = False
+
+    investmentAgreements holdingDiff =
+      Paperwork "actual investment agreements"
+      ([] :: [DirectorsResolution])
+      ([] :: [MembersResolution])
+      ([Ag "Investment Agreement"
+        "The actual investment agreements between the Company and the investors in the new round."
+        ("Company" : (investorsInRound $ holdingDiff))
+        AgContract ])
+      ([] :: [Notice])
+
+data PaperRule = PaperRule { rulename :: String
+                           , matchpaperwork :: MatchPaperwork
+                           , temporal :: Temporal
+                           , p2p :: Tree Diff -> Paperwork -> Paperwork }
+
+paperRules = [ PaperRule "prorata rights (excess)" equityInvestmentAgreements FirstNeed prorataNormal
+             , PaperRule "shareholder approval"    prorataOffer               FirstNeed shareholderApproval
+             , PaperRule "director proposal"       shareholderApprovalResos   FirstNeed directorApproval
+             ]
+  where
+-- make Dep a tuple containing the motivating difftree
+    equityInvestmentAgreements (Paperwork pt drs mrs ags notices) =
+      any (\ag -> case ag of (Ag "Investment Agreement" _ _ _) -> True; _ -> False) ags
+
+    prorataNormal csdt postpaper =
+      Paperwork "pro rata rights"
+      ([] :: [DirectorsResolution])
+      ([] :: [MembersResolution])
+      ([] :: [Agreement])
+      ([Notice "Pro Rata Rights Notice"
+           "The company proposes to issue new securities. As a member of the company, you have the right to participate. To maintain your proportional allocation, you would need to invest X. But you can indicate your interest in participating up to the full amount on offer -- if any other members do not choose to re-up, we will attempt to satisfy your excess interest"
+           (oldEquityHolders csdt)
+       ] :: [Notice])
+
+    prorataOffer (Paperwork "pro rata rights" drs mrs ags notices) = True
+    prorataOffer _ = False
+
+    shareholderApproval csdt postpaper =
+      Paperwork "shareholder approval"
+      ([] :: [DirectorsResolution])
+      ([MR "issue of new securities approved"
+        "Resolved, that the Directors be empowered to raise funds via an issue of new securities"
+        Special
+       ,MR "conversion of securities to equity approved"
+        "Resolved, that the Company issue equity securities in the future as needed to satisfy the terms of conversion described by the above securities"
+        Special
+       ] :: [MembersResolution])
+      ([] :: [Agreement])
+      ([] :: [Notice])
+
+    shareholderApprovalResos (Paperwork "shareholder approval" _ _ _ _) = True
+    shareholderApprovalResos _ = False
+
+    directorApproval csdt postpaper =
+      Paperwork "director resolutions"
+      ([DR "company to raise funds"
+           "resolved, that the company should raise funds by issuing XXXX amount of new securities"
+       ,DR "company to seek members' approval"
+           "resolved, that the approval of the members be sought through an EGM or equivalent resolutions by written means"
+       ])
+      ([] :: [MembersResolution])
+      ([] :: [Agreement])
+      ([] :: [Notice])
+
+
+oldEquityHolders :: Tree Diff -> [PartyName]
+oldEquityHolders csdt = case rootLabel csdt of
+  (Diff crud old new comment) -> let oldCS = do cs <- (cast old :: Maybe CompanyState)
+                                                return cs
+                                 in case oldCS of Just cs -> holder <$> holdings cs
+                                                  _ -> []
+  _ -> []
 
 {- sequence for new investor
 1. (directors resolution) directors agree to issue new shares
@@ -187,18 +238,35 @@ newParties contract_tdb = catMaybes $ catMaybes $ do
                 _ -> Nothing
             ) (rootLabel partyName))
 
-applyRules :: [Rule] -> Tree Diff -> Deps
-applyRules rulebase difftree =
+-- hm, maybe i want Pipes
+
+applyDrules :: [DiffRule] -> Tree Diff -> Deps
+applyDrules rulebase difftree =
   -- crunch through every diff in the tree
-  -- testing every rule in the rulebase
+  -- testing every diff rule in the rulebase
   let rootdeps = do
         rule <- rulebase
-        guard (matchdiff rule (rootLabel difftree))
-        return (d2p rule difftree)
-      children = concat $ applyRules rulebase <$> subForest difftree
-  in concat [rootdeps, children]
-    
-     
+        guard $ matchdiff rule (rootLabel difftree)
+        return $ d2p rule difftree
+      children = concat $ applyDrules rulebase <$> subForest difftree
+   in concat [rootdeps, children]
+
+-- TODO: this applies once. we need to keep applying until the dependency list stabilizes, i.e. stops growing
+applyPrules :: Tree Diff -> [PaperRule] -> [Paperwork] -> Maybe ([Paperwork], [Paperwork])
+applyPrules cs_treediff rulebase paperworks =
+  let deps = concatMap (applyPrule cs_treediff rulebase) paperworks
+  in if (length deps == 0)
+     then Nothing
+     else Just (deps, deps)
+
+applyPrule :: Tree Diff -> [PaperRule] -> Paperwork -> [Paperwork]
+applyPrule companystate_treediff rulebase pdep = do
+  rule <- rulebase
+  trace ("testing rule " ++ rulename (rule :: PaperRule) ++ " against paperwork dependency " ++ ptitle pdep) $
+        guard $ matchpaperwork rule pdep
+  return $ p2p rule companystate_treediff pdep
+  
+      
 
 {- changes to the Company -}
 

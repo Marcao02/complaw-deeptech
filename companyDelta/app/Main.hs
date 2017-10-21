@@ -34,6 +34,7 @@ import BusinessLogic
 -- various utilities
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.Map as Map
+import Data.List
 
 -- in the future, get aeson-schema to automatically produce even this parser
 
@@ -92,9 +93,18 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
 
   vprint v $ "now let's have a look at the business logic rules on the diffs"
 
-  -- apply the rules and deduce the required paperwork to effect the diffs
-  vprint v $ show $ applyRules ruleBase (rdiff before after)
-  
+  -- apply the diff->paperwork rules to get the first cut of dependencies
+  let deps1 = applyDrules diffRules (rdiff before after)
+  vprint v $ show $ deps1
+
+  -- apply the paperwork -> paperwork rules to get the second cut of dependencies
+  -- unfoldr :: (b -> Maybe (a, b)) -> b -> [a]
+  -- b == [Paperwork]
+  -- a == [Paperwork]
+  -- unfoldr ([Paperwork] -> Maybe ([Paperwork], [Paperwork])) -> [Paperwork] -> [[Paperwork]]
+  let deps2 = Data.List.unfoldr (applyPrules companydiffs paperRules) deps1
+  vprint v $ show $ join deps2
+
 
 {-                               input json parsing                           -}
 
