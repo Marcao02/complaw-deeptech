@@ -95,7 +95,6 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
 
   -- apply the diff->paperwork rules to get the first cut of dependencies
   let deps1 = applyDrules diffRules (rdiff before after)
-  vprint v $ show $ deps1
 
   -- apply the paperwork -> paperwork rules to get the second cut of dependencies
   -- unfoldr :: (b -> Maybe (a, b)) -> b -> [a]
@@ -103,7 +102,7 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
   -- a == [Paperwork]
   -- unfoldr ([Paperwork] -> Maybe ([Paperwork], [Paperwork])) -> [Paperwork] -> [[Paperwork]]
   let deps2 = Data.List.unfoldr (applyPrules companydiffs paperRules) deps1
-  vprint v $ show $ join deps2
+  vprint v $ show $ join [deps1, join deps2]
 
 
 {-                               input json parsing                           -}
