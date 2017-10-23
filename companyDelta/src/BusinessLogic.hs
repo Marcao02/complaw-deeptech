@@ -48,22 +48,8 @@ data Notice = Notice { title :: String
                      , parties :: [PartyName]
                      } deriving (Show)
 
-data TreeDiff2Paperwork = TreeDiff2Paperwork { ptitle :: Tree Diff -> String
-                                             , dt2dr :: [Tree Diff -> DirectorsResolution]
-                                             , dt2mr :: [Tree Diff -> MembersResolution]
-                                             , dt2ag :: [Tree Diff -> Agreement]
-                                             , dt2nt :: [Tree Diff -> Notice]
-                                             }
-
-data Paperwork2Paperwork = Paperwork2Paperwork { ptitle :: Paperwork -> String
-                                               , dt2dr :: [Paperwork -> DirectorsResolution]
-                                               , dt2mr :: [Paperwork -> MembersResolution]
-                                               , dt2ag :: [Paperwork -> Agreement]
-                                               , dt2nt :: [Paperwork -> Notice]
-                                               }
-
--- later, we have functions that concretize the above templates (TreeDiff2Paperwork and Paperwork2Paperwork)
--- into concrete Paperwork objects
+type TreeDiff2Paperwork  = Reader (Tree Diff) Paperwork
+type Paperwork2Paperwork = Reader Paperwork Paperwork
 
 data Paperwork = Paperwork { ptitle :: String
                            , dr :: [DirectorsResolution]
@@ -72,9 +58,6 @@ data Paperwork = Paperwork { ptitle :: String
                            , nt :: [Notice]
                            }
                deriving (Show)
-
--- it feels like this would be a good opportunity to apply the Reader Monad; am I on the right track?
-
 
 data Temporal = FirstNeed
               | ForceWithin DurationSpec
@@ -109,11 +92,11 @@ type Deps = [Paperwork]
 data DiffRule = DiffRule { rulename :: String
                          , matchdiff :: MatchDiff
                          , temporal :: Temporal
-                         , d2p :: Tree Diff -> PaperworkName
+                         , requires :: PaperworkName
                          }
 diffRules :: [DiffRule]
-diffRules = [ DiffRule "SHA changed"             shaChanges                 FirstNeed ratifyDORA
-            , DiffRule  "new shareholder"        newHoldings                FirstNeed investmentAgreements
+diffRules = [ DiffRule "SHA changed"       shaChanges  FirstNeed "ratify DORA"
+            , DiffRule "new shareholder"   newHoldings FirstNeed "actual investment agreements"
             ]
   where
     shaChanges (Diff Update old new comment) =
@@ -141,34 +124,40 @@ data PaperRule = PaperRule { rulename :: String
                            , temporal :: Temporal
                            , requires :: PaperworkName }
 
+diffTree2Paperworks :: Map PaperworkName TreeDiff2Paperwork
 diffTree2Paperworks = Map.fromList [
   let ptitle = "ratify DORA" in (
-    ptitle, TreeDiff2Paperwork (\dt -> ptitle)
-      ([ \dt -> DR "company to circulate deed of ratification and accession"
-            "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement"
-       , \dt -> DR "company to sign aforesaid deed"
-            "resolved, that the company should ratify the aforesaid deed"
-       ])
-      (\dt -> [] :: [Tree Diff -> MembersResolution])
-      ([\dt -> Ag "DORA"
-           "The signatories hereby ratify and accede to the Shareholders Agreement."
-           (newParties $ dt)
-           Deed ])
-      (\dt -> [] :: [Tree Diff -> Notice]))
-  ,
-  let ptitle = "actual investment agreements" in (
-    ptitle, TreeDiff2Paperwork (\dt -> ptitle)
-      ([] :: [Tree Diff -> DirectorsResolution])
-      ([] :: [Tree Diff -> MembersResolution])
-      ([\dt -> Ag "Investment Agreement"
-        "The actual investment agreements between the Company and the investors in the new round."
-        ("Company" : (investorsInRound $ dt))
-        AgContract ])
-      ([] :: [Tree Diff -> Notice])
-    )
-  ]
+    ptitle, do
+        dt <- ask
+        return (ptitle,
+          ([DR "company to circulate deed of ratification and accession"
+                "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement"
+           ,DR "company to sign aforesaid deed"
+                "resolved, that the company should ratify the aforesaid deed"
+           ])
+          ([] :: [MembersResolution])
+          ([Ag "DORA"
+               "The signatories hereby ratify and accede to the Shareholders Agreement."
+               (newParties $ dt)
+               Deed ])
+          ([] :: [Notice])))
+  ,let ptitle = "actual investment agreements" in (
+      ptitle, do
+          dt <- ask
+          return (ptitle,
+            ([] :: [Tree Diff -> DirectorsResolution])
+            ([] :: [Tree Diff -> MembersResolution])
+            ([\dt -> Ag "Investment Agreement"
+              "The actual investment agreements between the Company and the investors in the new round."
+              ("Company" : (investorsInRound $ dt))
+              AgContract ])
+            ([] :: [Tree Diff -> Notice])
+                 )
+      )
+   ]
 
-paperworks2Paperworks = Map.fromList [                                                  
+paperworks2Paperworks :: Map PaperworkName Paperwork2Paperwork
+paperworks2Paperworks = Map.fromList [
   let ptitle = "pro rata rights" in (
     ptitle, Paperwork ptitle
    ([] :: [DirectorsResolution])
