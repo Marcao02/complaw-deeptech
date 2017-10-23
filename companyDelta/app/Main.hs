@@ -78,14 +78,14 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
 
   -- diff the holdings
 
-  let hdiffs = pairBy holder holds (holdings before) (holdings after)
-  vprint v $ show $ assocs hdiffs
+--  let hdiffs = pairBy holder holds (holdings before) (holdings after)
+--  vprint v $ show $ assocs hdiffs
 
-  let reorganizedHoldings = [ rdiff (Holding hname (fromMaybe [] h1))
-                                    (Holding hname (fromMaybe [] h2))
-                            | (hname,(h1,h2)) <- assocs hdiffs
-                            ]
-  vprint v $ show reorganizedHoldings
+--  let reorganizedHoldings = [ rdiff (Holding hname (fromMaybe [] h1))
+--                                    (Holding hname (fromMaybe [] h2))
+--                            | (hname,(h1,h2)) <- assocs hdiffs
+--                            ]
+--  vprint v $ show reorganizedHoldings
 
   -- diff the full companystate
   

@@ -24,6 +24,7 @@ library
                      , text
                      , containers
                      , time
+                     , mtl
   default-language:    Haskell2010
 
 executable companyDelta-exe

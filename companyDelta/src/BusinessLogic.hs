@@ -6,6 +6,7 @@ module BusinessLogic where
 -- for the company data model
 import Company
 import CDiff
+import Control.Monad.Reader
 import Control.Monad
 
 -- figuring out the types at runtime for some things that we really shouldn't have to.
@@ -48,10 +49,9 @@ data Notice = Notice { title :: String
                      , parties :: [PartyName]
                      } deriving (Show)
 
-type TreeDiff2Paperwork  = Reader (Tree Diff) Paperwork
-type Paperwork2Paperwork = Reader Paperwork Paperwork
+type MkPaperwork a = Reader a Paperwork
 
-data Paperwork = Paperwork { ptitle :: String
+data Paperwork = Paperwork { ptitle :: PaperworkName
                            , dr :: [DirectorsResolution]
                            , mr :: [MembersResolution]
                            , ag :: [Agreement]
@@ -59,7 +59,9 @@ data Paperwork = Paperwork { ptitle :: String
                            }
                deriving (Show)
 
-data Temporal = FirstNeed
+type PaperworkName = String
+
+data Temporal = XY需要
               | ForceWithin DurationSpec
               | Simul
               deriving (Show)
@@ -94,9 +96,10 @@ data DiffRule = DiffRule { rulename :: String
                          , temporal :: Temporal
                          , requires :: PaperworkName
                          }
+
 diffRules :: [DiffRule]
-diffRules = [ DiffRule "SHA changed"       shaChanges  FirstNeed "ratify DORA"
-            , DiffRule "new shareholder"   newHoldings FirstNeed "actual investment agreements"
+diffRules = [ DiffRule "SHA changed"       shaChanges  XY需要 "ratify DORA"
+            , DiffRule "new shareholder"   newHoldings XY需要 "actual investment agreements"
             ]
   where
     shaChanges (Diff Update old new comment) =
@@ -106,8 +109,6 @@ diffRules = [ DiffRule "SHA changed"       shaChanges  FirstNeed "ratify DORA"
                            return $ title (c :: Contract) == "shareholdersAgreement"
     shaChanges _ = False
 
-    ratifyDORA contractDiff = "ratify DORA"
-
     -- Holdings / Holding / HeldSecurities / HeldSecurity
     newHoldings (Diff Update old new comment) =
       fromMaybe False $ do mh <- (cast new :: Maybe (Maybe [Holding]))
@@ -115,21 +116,12 @@ diffRules = [ DiffRule "SHA changed"       shaChanges  FirstNeed "ratify DORA"
                            return (length holdings > 1)
     newHoldings _ = False
 
-    investmentAgreements holdingDiff = actualInvestmentAgreements
-
-type PaperworkName = String
-
-data PaperRule = PaperRule { rulename :: String
-                           , matchpaperwork :: PaperworkName
-                           , temporal :: Temporal
-                           , requires :: PaperworkName }
-
-diffTree2Paperworks :: Map PaperworkName TreeDiff2Paperwork
+diffTree2Paperworks :: Map.Map PaperworkName (MkPaperwork (Tree Diff))
 diffTree2Paperworks = Map.fromList [
   let ptitle = "ratify DORA" in (
     ptitle, do
         dt <- ask
-        return (ptitle,
+        return (Paperwork ptitle
           ([DR "company to circulate deed of ratification and accession"
                 "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement"
            ,DR "company to sign aforesaid deed"
@@ -144,77 +136,73 @@ diffTree2Paperworks = Map.fromList [
   ,let ptitle = "actual investment agreements" in (
       ptitle, do
           dt <- ask
-          return (ptitle,
-            ([] :: [Tree Diff -> DirectorsResolution])
-            ([] :: [Tree Diff -> MembersResolution])
-            ([\dt -> Ag "Investment Agreement"
+          return (Paperwork ptitle
+            ([] :: [DirectorsResolution])
+            ([] :: [MembersResolution])
+            ([Ag "Investment Agreement"
               "The actual investment agreements between the Company and the investors in the new round."
               ("Company" : (investorsInRound $ dt))
               AgContract ])
-            ([] :: [Tree Diff -> Notice])
+            ([] :: [Notice])
                  )
       )
    ]
 
-paperworks2Paperworks :: Map PaperworkName Paperwork2Paperwork
+data PaperRule = PaperRule { rulename :: String
+                           , matchpaperwork :: PaperworkName
+                           , temporal :: Temporal
+                           , requires :: PaperworkName }
+
+paperworks2Paperworks :: Map.Map PaperworkName (MkPaperwork (Tree Diff,Paperwork))
 paperworks2Paperworks = Map.fromList [
   let ptitle = "pro rata rights" in (
-    ptitle, Paperwork ptitle
-   ([] :: [DirectorsResolution])
-   ([] :: [MembersResolution])
-   ([] :: [Agreement])
-   ([Notice "Pro Rata Rights Notice"
+    ptitle, do
+        (dt,p1) <- ask
+        return $ Paperwork ptitle
+          ([] :: [DirectorsResolution])
+          ([] :: [MembersResolution])
+          ([] :: [Agreement])
+          ([Notice "Pro Rata Rights Notice"
             "The company proposes to issue new securities. As a member of the company, you have the right to participate. To maintain your proportional allocation, you would need to invest X. But you can indicate your interest in participating up to the full amount on offer -- if any other members do not choose to re-up, we will attempt to satisfy your excess interest"
-           (oldEquityHolders csdt)
-    ] :: [Notice])
-  )
+            (oldEquityHolders dt)
+           ] :: [Notice])
+          )
+
   ,let ptitle = "shareholder approval" in (
-      ptitle, Paperwork ptitle
-      ([] :: [DirectorsResolution])
-      ([MR "issue of new securities approved"
-        "Resolved, that the Directors be empowered to raise funds via an issue of new securities"
-        Special
-       ,MR "conversion of securities to equity approved"
-        "Resolved, that the Company issue equity securities in the future as needed to satisfy the terms of conversion described by the above securities"
-        Special
-       ] :: [MembersResolution])
-      ([] :: [Agreement])
-      ([] :: [Notice])
-      )
-  , let ptitle = "director resolutions" in (
-      ptitle, Paperwork ptitle
-      ([DR "company to raise funds"
-           "resolved, that the company should raise funds by issuing XXXX amount of new securities"
-       ,DR "company to seek members' approval"
-           "resolved, that the approval of the members be sought through an EGM or equivalent resolutions by written means"
-       ])
-      ([] :: [MembersResolution])
-      ([] :: [Agreement])
-      ([] :: [Notice])
+      ptitle, do
+        (dt,p1) <- ask
+        return $ Paperwork ptitle
+          ([] :: [DirectorsResolution])
+          ([MR "issue of new securities approved"
+            "Resolved, that the Directors be empowered to raise funds via an issue of new securities"
+            Special
+           ,MR "conversion of securities to equity approved"
+            "Resolved, that the Company issue equity securities in the future as needed to satisfy the terms of conversion described by the above securities"
+            Special
+           ] :: [MembersResolution])
+          ([] :: [Agreement])
+          ([] :: [Notice])
+          )
+
+  ,let ptitle = "director resolutions" in (
+      ptitle, do
+          (dt,p1) <- ask
+          return $ Paperwork ptitle
+            [DR "company to raise funds"
+             "resolved, that the company should raise funds by issuing XXXX amount of new securities"
+            ,DR "company to seek members' approval"
+             "resolved, that the approval of the members be sought through an EGM or equivalent resolutions by written means"
+            ]
+            ([] :: [MembersResolution])
+            ([] :: [Agreement])
+            ([] :: [Notice])
       )
   ]
 
-paperRules = [ PaperRule "prorata rights (excess)" "actual investment agreements" FirstNeed "pro rata rights"
-             , PaperRule "shareholder approval"    "pro rata rights"              FirstNeed "shareholder approval"
-             , PaperRule "director proposal"       "shareholder approval"         FirstNeed "director resolutions"
+paperRules = [ PaperRule "prorata rights"          "actual investment agreements" XY需要 "pro rata rights"
+             , PaperRule "shareholder approval"    "pro rata rights"              XY需要 "shareholder approval"
+             , PaperRule "director proposal"       "shareholder approval"         XY需要 "director resolutions"
              ]
-  where
--- make Dep a tuple containing the motivating difftree
-    equityInvestmentAgreements (Paperwork pt drs mrs ags notices) =
-      any (\ag -> case ag of (Ag "Investment Agreement" _ _ _) -> True; _ -> False) ags
-
-    prorataNormal csdt postpaper =
-
-    prorataOffer (Paperwork "pro rata rights" drs mrs ags notices) = True
-    prorataOffer _ = False
-
-    shareholderApproval csdt postpaper =
-
-    shareholderApprovalResos (Paperwork "shareholder approval" _ _ _ _) = True
-    shareholderApprovalResos _ = False
-
-    directorApproval csdt postpaper =
-
 
 oldEquityHolders :: Tree Diff -> [PartyName]
 oldEquityHolders csdt = case rootLabel csdt of
@@ -273,11 +261,10 @@ applyDrules rulebase difftree =
   let rootdeps = do
         rule <- rulebase
         guard $ matchdiff rule (rootLabel difftree)
-        return $ d2p rule difftree
+        return $ runReader (diffTree2Paperworks Map.! (requires (rule :: DiffRule))) difftree
       children = concat $ applyDrules rulebase <$> subForest difftree
    in concat [rootdeps, children]
 
--- TODO: this applies once. we need to keep applying until the dependency list stabilizes, i.e. stops growing
 applyPrules :: Tree Diff -> [PaperRule] -> [Paperwork] -> Maybe ([Paperwork], [Paperwork])
 applyPrules cs_treediff rulebase paperworks =
   let deps = concatMap (applyPrule cs_treediff rulebase) paperworks
@@ -288,9 +275,9 @@ applyPrules cs_treediff rulebase paperworks =
 applyPrule :: Tree Diff -> [PaperRule] -> Paperwork -> [Paperwork]
 applyPrule companystate_treediff rulebase pdep = do
   rule <- rulebase
-  trace ("testing rule " ++ rulename (rule :: PaperRule) ++ " against paperwork dependency " ++ ptitle pdep) $
-        guard $ matchpaperwork rule == rulename pdep
-  return $ p2p rule companystate_treediff pdep
+  trace ("paperwork dependency " ++ ptitle pdep ++ "; testing rule " ++ rulename (rule :: PaperRule)) $
+        guard $ matchpaperwork rule == ptitle (pdep :: Paperwork)
+  trace ("rule fired; requires " ++ requires (rule :: PaperRule)) $ return $ runReader (paperworks2Paperworks Map.! (requires (rule :: PaperRule))) (companystate_treediff, pdep)
   
       
 
