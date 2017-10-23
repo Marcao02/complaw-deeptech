@@ -48,11 +48,11 @@ data Notice = Notice { title :: String
                      , parties :: [PartyName]
                      } deriving (Show)
 
-data TreeDiff2Paperwork = TreeDiff2Paperwork { ptitle :: Diff Tree -> String
-                                             , dt2dr :: [Diff Tree -> DirectorsResolution]
-                                             , dt2mr :: [Diff Tree -> MembersResolution]
-                                             , dt2ag :: [Diff Tree -> Agreement]
-                                             , dt2nt :: [Diff Tree -> Notice]
+data TreeDiff2Paperwork = TreeDiff2Paperwork { ptitle :: Tree Diff -> String
+                                             , dt2dr :: [Tree Diff -> DirectorsResolution]
+                                             , dt2mr :: [Tree Diff -> MembersResolution]
+                                             , dt2ag :: [Tree Diff -> Agreement]
+                                             , dt2nt :: [Tree Diff -> Notice]
                                              }
 
 data Paperwork2Paperwork = Paperwork2Paperwork { ptitle :: Paperwork -> String
