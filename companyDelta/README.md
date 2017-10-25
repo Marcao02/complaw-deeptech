@@ -7,43 +7,61 @@ Given two snapshots of a Company State, what corporate actions are required to t
 We model the state of a company as a data structure.
 
 A Company at a given time consists of
-- a set of shareholders
-- a set of securities
-- relations representing which shareholders hold how many securities
-- agreements with parties
-- the company constitution
+- a list of parties, which represent the other people in the universe of discourse
+- a list of securities (in the abstract), each of which has a name
+- a list of holdings, representing which parties hold how many of which concrete securities
+- a list of agreements with various parties
 - simple metadata like
   - the office address
   - legal jurisdiction
   - company number
   - list of directors
   - who is the corporate secretary
+  - company constitution
 
 ## Modeling Differences
 
 The differences between two states of a company are represented by a `Tree Diff`. At the highest level of the tree, the root node represents all the differences between old and new. At lower levels of the tree, the differences are represented by finger-grained chunks. The leaves of the tree represent the finest-grained differences.
 
-## Modeling State Transitions
+## Modeling the State Transition Graph
 
-Let a state be a node. Let a pair of states be two nodes in a graph.
+Think Git for a moment: each commit is a node in an ever-expanding graph of repository states.
 
-The diff between two states is represented by a path of edges between the two nodes.
+Now recall the Possible Words Hypothesis. Every state of the universe branches to even more states.
 
-The full path between the start and end states represents the full Diff tree.
+It's the same with modeling a company. Each state of the company is a node in the ever-expanding graph of possible states. For example, at any given node, it is possible, though unlikely, that Elon Musk could become a director of the company; that transition would be represented by a new node, where the state of the company includes Elon Musk on the list of directors, where previously he was not on the list. Unlikely, but not impossible, because Elon Musk is known to get bored with his existing portfolio of companies and occasionally seek new startups to run.
 
-Subpaths represent Diff subtrees. Each edge is an atomic corporate action, represented by a piece of Paperwork.
+The vast majority of nodes in the graph of a given company are virtual, like virtual particles appearing and disappearing in the froth of spacetime.
 
-For example:
-- directors resolution to change the address of the company
+For every actual company there is only one actual path through the graph of its history, that takes it to the current state.
+
+From the current state, we can branch to possible new states.
+
+So, back to the graph. Let a company state be a node. Let a pair of before & after states be two connected nodes in a graph. Before and after, start to finish, the two sides of any Diff.
+
+The difference between two states may be represented by a path of edges between the two nodes. Intermediate nodes represent incremental differences along the way from the start to the finish.
+
+The full path between the start and end states represents the full Diff tree discussed previously. Diff subtrees correspond to subpaths.
+
+Each edge between nodes is an atomic corporate action. Every corporate action takes the form of Paperwork.
+
+Examples of paperwork:
 - members resolution to appoint a board of directors
-- execution of an agreement
-- sending a notice to shareholders about a meeting
-- sending an instruction to the corporate secretary
+- directors resolution to change the address of the company
 - directors resolution to appoint a different corporate secretary
+- execution of an agreement with one or more other parties
+- sending an instruction to the corporate secretary (which we also model as a notice)
+- sending a notice to shareholders about a meeting
+
+Note that some of these paperwork examples are compound: sending a notice to shareholders involves one notice for each shareholder. If a company has five shareholders, then five notices are needed. In the graph, a parent node fans out to five edges, which converge back to the next state. The parent node has one inbound edge, which is of type Paperwork: "directors resolution to notify the shareholders." The parent node is of type State: "directors have resolved to notify the shareholders". Each outbound edge from that parent node is of type Paperwork: "send a notification to shareholder A/B/C/D/E." The single child node, which has five incoming edges, is of type State: "notifications have been sent to all shareholders A/B/C/D/E."
+
+Note also that the Before and After of any given Diff always map to two nodes in the graph, but any two nodes in the graph do not always map to a Diff. This is because the tree of diffs between company states does not suffer to observe every little intermediate state. The state transition graph contains plenty of little intermediate nodes which together form a sequence that get you from one company state to another, but which on their own do not move the needle.
 
 ## Ordering State Transition Dependencies
 
-To be a legal sequence, a path of corporate actions may be required to obey an ordering.
+To achieve a given diff transition between two nodes, one or more pieces of paperwork may be required: we contemplate a path of length N >= 1.
+
+To be a legal sequence, a path of corporate actions may be required to obey an ordering. Path A-C-B-D may be illegal, while path A-B-C-D is legal.
 
 For example, the correct procedure for issuing new shares is:
 
@@ -58,13 +76,15 @@ For example, the correct procedure for issuing new shares is:
 8. (company generates and executes agreement) new investors sign shareholders agreement
 9. (company generates and executes agreement) old investors sign deed of ratification and accession of shareholders agreement
 
-We use a dependency tree to model the sequence of these corporate actions. We collect nodes into node-groups, which we call dependency stages. Every document within a given dependency stage must be signed before documents within the next dependency stage can be signed.
+We use a dependency tree to model the sequence of these corporate actions. Every piece of paperwork is an edge between one node and another.   within a given dependency stage must be signed before documents within the next dependency stage can be signed.
 
 ## Aggregating State Transitions
 
-We combine actions of the same type within the same dependency stage, into an aggregate document.
+Sometimes we combine multiple edges into an aggregate document.
 
-For example, if a dependency stage contains three directors resolutions, the software should group those three directors resolutions into a single document for signature purposes.
+For example, if a sequence contains three directors resolutions, the software should group those three directors resolutions into a single document for signature purposes.
+
+However, if notices need to go to different shareholdes, then each edge is a separate document, even though those edges all lie between the same two nodes.
 
 ## External Integrations
 
