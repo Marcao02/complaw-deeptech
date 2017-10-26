@@ -89,7 +89,7 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
 
   -- diff the full companystate
   
-  vprint True $ show $ rdiff before after
+  vprint v $ show $ rdiff before after
 
   vprint v $ "now let's have a look at the business logic rules on the diffs"
 
@@ -102,7 +102,7 @@ main1 opts@(Options quiet v beforefilename afterfilename) = do
   -- a == [Paperwork]
   -- unfoldr ([Paperwork] -> Maybe ([Paperwork], [Paperwork])) -> [Paperwork] -> [[Paperwork]]
   let deps2 = Data.List.unfoldr (applyPrules companydiffs paperRules) deps1
-  vprint v $ show $ join [deps1, join deps2]
+  vprint True $ show $ join [deps1, join deps2]
 
 
 {-                               input json parsing                           -}

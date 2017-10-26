@@ -7,6 +7,18 @@
       , "gender": "female"
     }
   ],
+
+
+
+
+
+
+
+
+
+
+
+
   "securities": [ { "name": "ordinary shares",  "measure": "ByUnit" } ],
   "company": { "name": "Acme Potato Pte. Ltd."
                , "jurisdiction" : "Singapore"
@@ -20,8 +32,14 @@
              },
   "holdings": [
     { "holder": "Alice", "holds": [ { "securityName": "ordinary shares", "units": 100,
-                                      "descripton" : "Alice doesn't change"} ] }
+                                      "description" : "Alice doesn't change"} ] }
     ],
+
+
+
+
+
+
   "agreements": [ {"title" : "shareholdersAgreement",
                    "dated" : "1970-01-01",
                    "parties" : ["Alice","Company"],

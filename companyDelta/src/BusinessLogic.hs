@@ -69,9 +69,9 @@ data Temporal = XY需要
 data DurationSpec = DurationYMD Int Int Int
                   deriving (Show)
 
--- temporal Pre X Y means: before we can do a thing that matches X, we must first do Y
--- temporal Post  X Y means:  after we     do a thing that matches X, we must next  do Y by DurationSpec, as a relative deadline
--- temporal Simul X Y means:   when we     do a thing that matches X, we must simultaneously do Y
+-- temporal XY需要      X Y means: before we can do a thing that matches X, we must first do Y.  basically, X requires Y.
+-- temporal ForceWithin X Y means:  after we     do a thing that matches X, we must next  do Y by DurationSpec, as a relative deadline
+-- temporal Simul       X Y means:   when we     do a thing that matches X, we must simultaneously do Y
 
 type MatchDiff      = Diff -> Bool
 
@@ -92,7 +92,7 @@ anyDiff = const True
 type Deps = [Paperwork]
 
 data DiffRule = DiffRule { rulename :: String
-                         , matchdiff :: MatchDiff
+                         , matchdiff :: Diff -> Bool   -- does this rule fire against the given input diff?
                          , temporal :: Temporal
                          , requires :: PaperworkName
                          }
@@ -109,11 +109,12 @@ diffRules = [ DiffRule "SHA changed"       shaChanges  XY需要 "ratify DORA"
                            return $ title (c :: Contract) == "shareholdersAgreement"
     shaChanges _ = False
 
+    -- rule fires against a list of Holdings
     -- Holdings / Holding / HeldSecurities / HeldSecurity
     newHoldings (Diff Update old new comment) =
       fromMaybe False $ do mh <- (cast new :: Maybe (Maybe [Holding]))
                            holdings <- mh
-                           return (length holdings > 1)
+                           return (length holdings > 0)
     newHoldings _ = False
 
 diffTree2Paperworks :: Map.Map PaperworkName (MkPaperwork (Tree Diff))
@@ -205,11 +206,11 @@ paperRules = [ PaperRule "prorata rights"          "actual investment agreements
              ]
 
 oldEquityHolders :: Tree Diff -> [PartyName]
-oldEquityHolders csdt = case rootLabel csdt of
-  (Diff crud old new comment) -> let oldCS = do cs <- (cast old :: Maybe CompanyState)
-                                                return cs
-                                 in case oldCS of Just cs -> holder <$> holdings cs
-                                                  _ -> []
+oldEquityHolders csdt = trace ("oldEquityHolders: trying this thing " ++ (show $ rootLabel csdt)) $ case rootLabel csdt of
+  boop@(Diff crud old new comment) -> let oldCS = do cs <- (cast old :: Maybe CompanyState)
+                                                     trace ("cast succeeded; " ++ show cs) $ return cs
+                                      in trace ("oldEquityHolders: got myself a companystate") $ case oldCS of Just cs -> holder <$> holdings cs
+                                                                                                               _ -> ["blarp"]
   _ -> []
 
 {- sequence for new investor
@@ -253,6 +254,13 @@ newParties contract_tdb = catMaybes $ catMaybes $ do
             ) (rootLabel partyName))
 
 -- hm, maybe i want Pipes
+
+
+-- when constructing a Paperwork from its template,
+-- we give the Paperwork generator the following context:
+   -- the top level root Diff, which is always a CompanyState
+   -- the paperwork dependency graph as at the time of the construction of that Paperwork
+   -- the parent node within that graph that most proximally motivated the generation
 
 applyDrules :: [DiffRule] -> Tree Diff -> Deps
 applyDrules rulebase difftree =
