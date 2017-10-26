@@ -106,7 +106,7 @@ Sometimes the rules require that a certain edge be traversed within a certain de
 
 For example, one way for a general meeting of the shareholders to be valid, is that a notice to shareholders is sent at least 14 days before the meeting. That's a pre deadline.
 
-If a company resolves to change its address, then it has to file that change with the government within N days of the passage of the resolution. That's a post deadline.
+If a company edits its list of directors, then it has to file that change with the government within N days after the edit happens. That's a post deadline.
 
 ## Outputting the Graph
 
