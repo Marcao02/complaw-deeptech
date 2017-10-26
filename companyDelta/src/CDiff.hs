@@ -45,8 +45,8 @@ data Diff where
   Noop :: { comment :: String } -> Diff
 
 instance Show Diff where
-  show (Diff crud old new comment) = unwords ["Diff", (show crud), show old, show new, comment]
-  show (Noop comment) = unwords ["Noop", comment]
+  show (Diff crud old new comment) = unwords ["Diff", (show crud), show old, show new, show comment]
+  show (Noop comment) = unwords ["Noop", show comment]
 
 pruneNoops :: Tree Diff -> Maybe (Tree Diff)
 pruneNoops (Node (Noop _)     forest)   = Nothing
@@ -284,16 +284,16 @@ ndr s1 s2 str | s1 == s2  = Node (Noop "no change") []
               | otherwise = Node (Diff Replace (Just s1) (Just s2) str)  []
 
 instance RDiff String where
-  rdiff s1 s2 = ndr s1 s2 "change string"
+  rdiff s1 s2 = ndr s1 s2 (show "change string")
 
 instance RDiff Float where
-  rdiff s1 s2 = ndr s1 s2 ("change float from " ++ show s1 ++ " to " ++ show s2)
+  rdiff s1 s2 = ndr s1 s2 (show ("change float from " ++ show s1 ++ " to " ++ show s2))
   
 instance RDiff Int where
-  rdiff s1 s2 = ndr s1 s2 "change int"
+  rdiff s1 s2 = ndr s1 s2 (show "change int")
   
 instance RDiff Bool where
-  rdiff s1 s2 = ndr s1 s2 "change bool"
+  rdiff s1 s2 = ndr s1 s2 (show "change bool")
   
   
 {-
