@@ -53,6 +53,7 @@ data                 ConExp = ConExp { title :: String
                                      , body  :: String }
                             deriving (Show, Eq, Generic, ToJSON, FromJSON, Data, Typeable)
 
+-- TODO: use a Map to ensure that we don't have two securities with the same name
 data Security = Security { name :: String
                          , measure :: Measure
                          } deriving (Generic, ToJSON, FromJSON, Show, Eq, Data, Typeable)
@@ -86,6 +87,8 @@ instance FromJSON Measure where
     "bymoney" ->  ByMoney
     _         ->  OtherMeasure (T.unpack v)
 
+-- hm, do we also need to instance ToJSON or is that taken care of already? from Show, probably
+
 data Measurement = Units Int | Money Currency deriving (Show, Eq, Data, Typeable)
                       
 data EntityNature = Human | Corporate | AI | OtherNature String
@@ -94,9 +97,10 @@ data EntityNature = Human | Corporate | AI | OtherNature String
 instance FromJSON EntityNature where
   parseJSON = withText "nature" $ \v -> return $ case v of
     "human"     ->  Human
+    "natural"   ->  Human
     "corporate" ->  Corporate
     "AI"        ->  AI
-    _        ->  OtherNature (T.unpack v)
+    _           ->  OtherNature (T.unpack v)
 
 data Gender = Female | Male | Neutral | OtherGender String
             deriving (Show, Eq, Generic, ToJSON, Data, Typeable)

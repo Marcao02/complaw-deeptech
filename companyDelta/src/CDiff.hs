@@ -42,10 +42,10 @@ data Diff where
                                            , old  :: Maybe a
                                            , new  :: Maybe a
                                            , comment :: String } -> Diff
-  Noop :: { comment :: String } -> Diff
+  Noop ::                                  { comment :: String } -> Diff
 
 instance Show Diff where
-  show (Diff crud old new comment) = unwords ["Diff", (show crud), show old, show new, show comment]
+  show (Diff crud old new comment) = unwords ["Diff", show comment, show crud, show old, show new]
   show (Noop comment) = unwords ["Noop", show comment]
 
 pruneNoops :: Tree Diff -> Maybe (Tree Diff)
@@ -56,7 +56,11 @@ pruneNoops (Node d forest) = Just $ Node d (catMaybes $ map pruneNoops forest)
 class RDiff x where
   rdiff :: x -> x -> Tree Diff
 
-mkDiff :: (RDiff a, Show a, Typeable a) => String -> a -> a -> [Tree Diff] -> Tree Diff
+mkDiff :: (RDiff a, Show a, Typeable a) =>
+          String      -- the name
+       -> a -> a      -- the old and the new
+       -> [Tree Diff] -- the children -- provide this through recursion
+       -> Tree Diff   -- result is a Tree Diff
 mkDiff elName x y forest =
   let pruned = catMaybes $ pruneNoops <$> forest
   in mytrace ("mkDiff " ++ elName)
@@ -66,7 +70,7 @@ mkDiff elName x y forest =
      ) pruned
 
 instance RDiff () where
-  rdiff x y = Node (Noop "") []
+  rdiff x y = Node (Noop "unit") []
 
 -- argh, this doesn't work.
 -- instance RDiff DiffBox where
@@ -279,7 +283,10 @@ instance (Show a, RDiff a, Typeable a, RDiff a) => RDiff (Maybe a) where
   rdiff (Just x) (Just y) = rdiff x y
 
 -- syntactic sugar
-ndr :: (Show term, Eq term, Typeable term, RDiff term) => term -> term -> String -> Tree Diff
+ndr :: (Show term, Eq term, Typeable term, RDiff term) =>
+          term -> term
+       -> String
+       -> Tree Diff
 ndr s1 s2 str | s1 == s2  = Node (Noop "no change") []
               | otherwise = Node (Diff Replace (Just s1) (Just s2) str)  []
 

@@ -21,7 +21,7 @@ A Company at a given time consists of
 
 ## Modeling Differences
 
-The differences between two states of a company are represented by a `Tree Diff`. At the highest level of the tree, the root node represents all the differences between old and new. At lower levels of the tree, the differences are represented by finer-grained chunks. The leaves of the tree represent the finest-grained differences.
+The differences between two states of a company are represented by a `Tree Diff`. At the highest level of the tree, the root node represents all the differences between old and new. At lower levels of the tree, the differences are represented by finer-grained chunks. The leaves of the tree represent the finest-grained differences: if a date changes, we just record a Replace.
 
 ## Modeling the State Transition Graph
 
@@ -107,6 +107,10 @@ Sometimes the rules require that a certain edge be traversed within a certain de
 For example, one way for a general meeting of the shareholders to be valid, is that a notice to shareholders is sent at least 14 days before the meeting. That's a pre deadline.
 
 If a company edits its list of directors, then it has to file that change with the government within N days after the edit happens. That's a post deadline.
+
+## Rule Alternatives
+
+Sometimes there are multiple paths to validity. 
 
 ## Outputting the Graph
 
