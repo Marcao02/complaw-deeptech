@@ -17,7 +17,7 @@ A Company at a given time consists of
   - company number
   - list of directors
   - who is the corporate secretary
-  - company constitution
+  - company constitution (ha, ha, we said "simple" metadata but this isn't that simple.)
 
 ## Modeling Differences
 
@@ -94,7 +94,11 @@ Each piece of Paperwork may have zero or more signatories. You can think of thes
 
 "Every good idea will be discovered twice: once by a logician and once by a computer scientist." - Philip Wadler
 
-We get to reuse important ideas from graph theory like topological sorts. Once all the paperwork is generated, what can we start signing? If the documents have 
+We get to reuse important ideas from graph theory like topological sorts.
+
+Once all the paperwork is generated, what can we start signing? If the documents lie along a single path then the execution sequence is straightforward. If the graph of execution looks more like a bushy tree then we can start executing documents in parallel.
+
+Dependency graphs are not a new idea to anyone who has ever come across a Makefile or package management.
 
 ## Temporal Considerations
 
