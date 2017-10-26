@@ -21,13 +21,13 @@ A Company at a given time consists of
 
 ## Modeling Differences
 
-The differences between two states of a company are represented by a `Tree Diff`. At the highest level of the tree, the root node represents all the differences between old and new. At lower levels of the tree, the differences are represented by finger-grained chunks. The leaves of the tree represent the finest-grained differences.
+The differences between two states of a company are represented by a `Tree Diff`. At the highest level of the tree, the root node represents all the differences between old and new. At lower levels of the tree, the differences are represented by finer-grained chunks. The leaves of the tree represent the finest-grained differences.
 
 ## Modeling the State Transition Graph
 
 Think Git for a moment: each commit is a node in an ever-expanding graph of repository states.
 
-Now recall the Possible Words Hypothesis. Every state of the universe branches to even more states.
+Now recall the Possible Worlds Hypothesis. Every state of the universe branches to even more states.
 
 It's the same with modeling a company. Each state of the company is a node in the ever-expanding graph of possible states. For example, at any given node, it is possible, though unlikely, that Elon Musk could become a director of the company; that transition would be represented by a new node, where the state of the company includes Elon Musk on the list of directors, where previously he was not on the list. Unlikely, but not impossible, because Elon Musk is known to get bored with his existing portfolio of companies and occasionally seek new startups to run.
 
@@ -50,12 +50,13 @@ Examples of paperwork:
 - directors resolution to change the address of the company
 - directors resolution to appoint a different corporate secretary
 - execution of an agreement with one or more other parties
+- filing some record of a happening with the government (which we model as a notice)
 - sending an instruction to the corporate secretary (which we also model as a notice)
 - sending a notice to shareholders about a meeting
 
 Note that some of these paperwork examples are compound: sending a notice to shareholders involves one notice for each shareholder. If a company has five shareholders, then five notices are needed. In the graph, a parent node fans out to five edges, which converge back to the next state. The parent node has one inbound edge, which is of type Paperwork: "directors resolution to notify the shareholders." The parent node is of type State: "directors have resolved to notify the shareholders". Each outbound edge from that parent node is of type Paperwork: "send a notification to shareholder A/B/C/D/E." The single child node, which has five incoming edges, is of type State: "notifications have been sent to all shareholders A/B/C/D/E."
 
-Note also that the Before and After of any given Diff always map to two nodes in the graph, but any two nodes in the graph do not always map to a Diff. This is because the tree of diffs between company states does not suffer to observe every little intermediate state. The state transition graph contains plenty of little intermediate nodes which together form a sequence that get you from one company state to another, but which on their own do not move the needle.
+Note also that the Before and After of any given Diff always map to two nodes in the graph, but any two nodes in the graph do not always map to a Diff. This is because the tree of diffs between company states does not suffer to observe every little intermediate state. The state transition graph goes even finer-grained than the Diff Tree. The graph contains plenty of little intermediate nodes which together form a sequence that get you from one company state to another, but which on their own do not move the needle.
 
 ## Ordering State Transition Dependencies
 
@@ -69,14 +70,13 @@ For example, the correct procedure for issuing new shares is:
 2. (directors resolution) directors request permission from members to issue new shares
 3. (members resolutions) members either hold an extraordinary general meeting or pass resolutions by written means approving the directors' plan
 4. (company notice to debtholders) if the new share issue triggers any convertible debt, company informs debtholders and revises the shareholder roster accordingly
-4. (company notice to shareholders) directors, writing on behalf of company, offer existing members pro-rata rights in the new share issue
-5. (company notice to shareholders) directors offer existing members excess rights in the new share issue
+5. (company notice to shareholders) directors, writing on behalf of company, offer existing members pro-rata rights in the new share issue
 6. (company notice to non-members) directors offer non-members participation in the new share issue
 7. (company generates and executes agreement) directors sign investment agreement with participating investors
 8. (company generates and executes agreement) new investors sign shareholders agreement
 9. (company generates and executes agreement) old investors sign deed of ratification and accession of shareholders agreement
 
-We use a dependency tree to model the sequence of these corporate actions. Every piece of paperwork is an edge between one node and another.   within a given dependency stage must be signed before documents within the next dependency stage can be signed.
+We use a dependency tree to model the sequence of these corporate actions. Every piece of paperwork is an edge between one node and another. All paperwork within a given dependency stage must be signed before documents within the next dependency stage can be signed.
 
 ## Aggregating State Transitions
 
@@ -85,6 +85,28 @@ Sometimes we combine multiple edges into an aggregate document.
 For example, if a sequence contains three directors resolutions, the software should group those three directors resolutions into a single document for signature purposes.
 
 However, if notices need to go to different shareholdes, then each edge is a separate document, even though those edges all lie between the same two nodes.
+
+## Signatures
+
+Each piece of Paperwork may have zero or more signatories. You can think of these signatories as a special kind of children to each node -- each party has to sign, before the paperwork can be considered executed. The specific mode of execution depends on the (sub)type of paperwork. If it's a notice, then the notice has to be signed and sent. If it's a deed, it has to be witnessed. And so on.
+
+## Blowing Minds with Graph Theory
+
+"Every good idea will be discovered twice: once by a logician and once by a computer scientist." - Philip Wadler
+
+We get to reuse important ideas from graph theory like topological sorts. Once all the paperwork is generated, what can we start signing? If the documents have 
+
+## Temporal Considerations
+
+Sometimes the rules require that a certain edge be traversed within a certain deadline of some other edge. The deadline can be pre or post.
+
+For example, one way for a general meeting of the shareholders to be valid, is that a notice to shareholders is sent at least 14 days before the meeting. That's a pre deadline.
+
+If a company resolves to change its address, then it has to file that change with the government within N days of the passage of the resolution. That's a post deadline.
+
+## Outputting the Graph
+
+We want to display the graph to the user in the form of a bunch of D3 code that renders in a web browser.
 
 ## External Integrations
 
