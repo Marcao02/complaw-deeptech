@@ -7,6 +7,9 @@
 (declare-const equityFinancing_premoney Real)                                  ; the next-round financing's pre-money agreed valuation
 (declare-const equityFinancing_fdc      Real)                                  ; the next-round financing's pre-money fully diluted capitalization
 (declare-const equityFinancing_pps      Real)                                  ; the next-round financing's price per share for next round investors
+(declare-const equityFinancing_value    Real)                                  ; the next-round financing's total amount invested by Series A investors
+(declare-const equityFinancing_num_shares_subtotal Real)                       ; the next-round financing's number of shares assigned to incoming Series A investors
+(declare-const equityFinancing_num_shares_total Real)                          ; the next-round financing's total number of shares including conversion shares
 (declare-const equityFinancing_dilutePre Bool)                                 ; default: false; the SAFE/KISS instruments surprise the Series A investors by diluting them immediately
 
 ; the company has issued two types of instruments:
@@ -23,7 +26,7 @@
 (declare-const kiss_repayable Bool)    (declare-const safe_repayable Bool)     ; if (repayable) then { convertible promissory note } else { warrant }
 
 (assert (= safe_has_cap (> safe_cap 0))) (assert (= kiss_has_cap (> kiss_cap 0))) ; syntactic sugar -- set cap to 0 and we'll know what you mean
-(assert (< 0 safe_num_shares))           (assert (< 0 kiss_num_shares))           ; post conversion, the numbers of safe and kiss shares are positive
+(assert (<= 0 safe_num_shares))          (assert (<= 0 kiss_num_shares))          ; post conversion, the numbers of safe and kiss shares are positive
 
 ;
 ; business logic
@@ -64,7 +67,10 @@
 (assert (= non_kiss_shares (ite safe_repayable 0 safe_num_shares)))
 (assert (= non_safe_shares (ite kiss_repayable 0 kiss_num_shares)))
 
+; incoming series A investors get this many shares
+(assert (= equityFinancing_num_shares_subtotal (/ equityFinancing_value equityFinancing_pps)))
+
+; this many Series A shares are issued in total
+(assert (= equityFinancing_num_shares_total (+ equityFinancing_num_shares_subtotal safe_num_shares kiss_num_shares)))
+
 ; in future, for extra credit, extend this to any number of warrants after the style of KISS and SAFE, so we use a list of convertible security types rather than a single type
-
-(push 1)
-
