@@ -24,10 +24,10 @@
 (declare-const non_kiss_shares Real)   (declare-const non_safe_shares Real)    ; number of other shares that result from conversion, but are not due to the self-sibling security
 (declare-const kiss_value Real)        (declare-const safe_value Real)         ; amount of money invested
 (declare-const kiss_repayable Bool)    (declare-const kiss_force_include_safe Bool) ; if (not kiss_repayable) then safe includes the kiss in company capitalization.
-                                        ; kisses always exclude safe by default, unless we force inclusion.
+                                                                               ; kisses always exclude safe by default, unless we force inclusion.
 
 (assert (= safe_has_cap (> safe_cap 0))) (assert (= kiss_has_cap (> kiss_cap 0))) ; syntactic sugar -- set cap to 0 and we'll know what you mean
-(assert (<= 0 safe_num_shares))          (assert (<= 0 kiss_num_shares))          ; post conversion, the numbers of safe and kiss shares are positive
+(assert (<= 0 safe_num_shares))          (assert (<= 0 kiss_num_shares))          ; post conversion, the numbers of safe and kiss shares are nonnegative
 
 ;
 ; business logic
@@ -56,8 +56,8 @@
 
 ; what is the Series A premoney's fully diluted cap? well, it depends on whether the Series A investor knows about the SAFE/KISS investors,
 ; and whether the SAFE/KISS conversions are treated as part of the negotiated pre-money valuation, or not;
-; if they're not (dilutePre=false) then the Series A investor immediately gets diluted by the conversion
-; if they are,   (dilutePre=true)  then the SAFE/KISS investors are diluted by the conversion.
+; if they're not (dilutePre=false) then the Series A investor immediately gets "diluted" by the conversion
+; if they are,   (dilutePre=true)  then the SAFE/KISS investors are diluted by the conversion, and should have pro-rata rights in the triggering round.
 (assert (= equityFinancing_fdc (ite equityFinancing_dilutePre
                                     (+ initialStock kiss_num_shares safe_num_shares) ; dilutePre:  more favorable to Series A investors; their pre-money includes the SAFE/KISS investors
                                     initialStock)))                                  ; dilutePost: more favorable to SAFE/KISS investors; the Series A pre-money excludes the SAFE/KISS
