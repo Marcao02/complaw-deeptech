@@ -23,6 +23,7 @@
 (declare-const kiss_num_shares Real)   (declare-const safe_num_shares Real)    ; number of shares post conversion
 (declare-const non_kiss_shares Real)   (declare-const non_safe_shares Real)    ; number of other shares that result from conversion, but are not due to the self-sibling security
 (declare-const kiss_value Real)        (declare-const safe_value Real)         ; amount of money invested
+(declare-const kiss_post Real)         (declare-const safe_post Real)          ; amount of money the post-conversion shares are newly worth
 (declare-const kiss_repayable Bool)    (declare-const kiss_force_include_safe Bool) ; if (not kiss_repayable) then safe includes the kiss in company capitalization.
                                                                                ; kisses always exclude safe by default, unless we force inclusion.
 
@@ -46,10 +47,16 @@
 (assert (= safe_pps_fromdis (* (- 1 (/ safe_discount 100)) equityFinancing_pps)))
 (assert (= kiss_pps_fromdis (* (- 1 (/ kiss_discount 100)) equityFinancing_pps)))
 
+
+
 ; the SAFE/KISS price per share may be computed as the valuation cap divided by the fully diluted capitalization (from the point of view of the SAFE/KISS)
 ; this is the essential set of simultaneous equations: two unknowns, two equations.
 (assert (= kiss_pps_fromcap (/ kiss_cap (+ initialStock non_kiss_shares))))
 (assert (= safe_pps_fromcap (/ safe_cap (+ initialStock non_safe_shares))))
+
+; after the conversion, the shares should be worth a lot more
+(assert (= kiss_post (* kiss_num_shares equityFinancing_pps)))
+(assert (= safe_post (* safe_num_shares equityFinancing_pps)))
 
 ; the Series A price per share is the premoney valuation divided by the premoney's fully diluted cap
 (assert (= equityFinancing_pps (/ equityFinancing_premoney equityFinancing_fdc)))
@@ -73,5 +80,27 @@
 
 ; this many Series A shares are issued in total
 (assert (= equityFinancing_num_shares_total (+ equityFinancing_num_shares_subtotal safe_num_shares kiss_num_shares)))
+
+;
+; now we model the liquidity scenarios as opposed to the conversion scenarios
+;
+
+;; Safe cap discount
+;; 	(b)	Liquidity Event.  If there is a Liquidity Event before the expiration or termination of this instrument, the Investor will, at its option, either (i) receive a cash payment equal to the Purchase Amount (subject to the following paragraph) or (ii) automatically receive from the Company a number of shares of Common Stock equal to the Purchase Amount divided by the Liquidity Price, if the Investor fails to select the cash option. 
+
+;;	“Liquidity Price” means the price per share equal to the Valuation Cap divided by the Liquidity Capitalization.	
+
+;;	“Liquidity Capitalization” means the number, as of immediately prior to the Liquidity Event, of shares of Capital Stock (on an as-converted basis) outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities,
+;; but excluding:
+;;     (i) shares of Common Stock reserved and available for future grant under any equity incentive or similar plan;
+;;     (ii) this instrument;
+;;     (iii) other Safes; and
+;;     (iv) convertible promissory notes.
+
+;; KISS
+;;  Corporate Transaction.  In the event of a Corporate Transaction prior to the conversion of this KISS pursuant to Section 2.1 or 2.3, at Investor’s election, (i) this KISS shall be converted into that number of Conversion Shares equal to the quotient obtained by dividing the Purchase Price by the Conversion Price; or (ii) the Investor shall be paid the Corporate Transaction Payment, prior and in preference to any distribution of any of the cash or other assets of the Company to holders of the Company’s capital stock by reason of their ownership of such stock.  At least ten (10) days prior to the closing of the Corporate Transaction, the Company shall notify the Investor in writing of the terms of the Corporate Transaction.
+
+
+
 
 ; in future, for extra credit, extend this to any number of warrants after the style of KISS and SAFE, so we use a list of convertible security types rather than a single type
