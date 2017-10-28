@@ -25,7 +25,7 @@ Exclusion of other securities from an instrument's capitalization reduces the ho
 ## Example
 
 ```
-20171028-17:11:01 mengwong@venice2:~/non-db-src/l/compiler/linear_state_machine_language/examples/safe/smtlib% cat safe-pre.z3 safe-example1.z3 safe-post.z3 | z3 -in | perl -0 -ple 's/\n   //gs' | sort | grep -a define
+20171028-18:03:43 mengwong@venice2:~/non-db-src/l/compiler/linear_state_machine_language/examples/safe/smtlib% cat safe-pre.z3 safe-example1.z3 safe-post.z3 | z3 -in | perl -0 -ple 's/\n   //gs' | sort | grep -a define
   (define-fun equityFinancing_dilutePre () Bool false)
   (define-fun equityFinancing_fdc () Real 11000000.0)
   (define-fun equityFinancing_num_shares_subtotal () Real 1100000.0)
@@ -33,12 +33,13 @@ Exclusion of other securities from an instrument's capitalization reduces the ho
   (define-fun equityFinancing_pps () Real (/ 10.0 11.0))
   (define-fun equityFinancing_premoney () Real 10000000.0)
   (define-fun equityFinancing_value () Real 1000000.0)
-  (define-fun force_include_safe () Bool false)
   (define-fun initialStock () Real 11000000.0)
   (define-fun kiss_cap () Real 2000.0)
   (define-fun kiss_discount () Real 25.0)
+  (define-fun kiss_force_include_safe () Bool false)
   (define-fun kiss_has_cap () Bool true)
   (define-fun kiss_num_shares () Real 0.0)
+  (define-fun kiss_post () Real 0.0)
   (define-fun kiss_pps () Real (/ 1.0 5500.0))
   (define-fun kiss_pps_fromcap () Real (/ 1.0 5500.0))
   (define-fun kiss_pps_fromdis () Real (/ 15.0 22.0))
@@ -50,6 +51,7 @@ Exclusion of other securities from an instrument's capitalization reduces the ho
   (define-fun safe_discount () Real 0.0)
   (define-fun safe_has_cap () Bool true)
   (define-fun safe_num_shares () Real 220000.0)
+  (define-fun safe_post () Real 200000.0)
   (define-fun safe_pps () Real (/ 5.0 11.0))
   (define-fun safe_pps_fromcap () Real (/ 5.0 11.0))
   (define-fun safe_pps_fromdis () Real (/ 10.0 11.0))
