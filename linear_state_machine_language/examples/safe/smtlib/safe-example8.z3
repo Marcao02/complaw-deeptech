@@ -5,7 +5,6 @@
 (assert (= safe_value      20000))
 (assert (= safe_cap            0))
 (assert (= safe_discount      20))
-(assert (= safe_repayable false))
 
 (assert (= equityFinancing_value     400000))
 (assert (= equityFinancing_premoney 2000000))
@@ -16,8 +15,9 @@
 (assert (= kiss_value          0))
 (assert (= kiss_cap         2000))
 (assert (= kiss_discount      25))
-(assert (= kiss_repayable false))
 
+(assert (= kiss_repayable false))
+(assert (= kiss_force_include_safe false))
 (assert (= equityFinancing_dilutePre false))
 
 ;; •	Investor has purchased a safe for $20,000.  The Discount Rate is 80%.

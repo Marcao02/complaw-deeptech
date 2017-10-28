@@ -7,7 +7,6 @@
 (assert (= safe_value     100000))
 (assert (= safe_cap      8000000))
 (assert (= safe_discount       0))
-(assert (= safe_repayable false))
 
 (assert (= equityFinancing_premoney 8000000))
 (assert (= equityFinancing_value    2000000))
@@ -16,7 +15,9 @@
 (assert (= kiss_value          0))
 (assert (= kiss_cap         2000))
 (assert (= kiss_discount      25))
+
 (assert (= kiss_repayable false))
+(assert (= kiss_force_include_safe false))
 
 (assert (= equityFinancing_dilutePre false))
 

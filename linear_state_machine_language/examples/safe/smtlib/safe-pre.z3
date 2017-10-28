@@ -23,7 +23,8 @@
 (declare-const kiss_num_shares Real)   (declare-const safe_num_shares Real)    ; number of shares post conversion
 (declare-const non_kiss_shares Real)   (declare-const non_safe_shares Real)    ; number of other shares that result from conversion, but are not due to the self-sibling security
 (declare-const kiss_value Real)        (declare-const safe_value Real)         ; amount of money invested
-(declare-const kiss_repayable Bool)    (declare-const safe_repayable Bool)     ; if (repayable) then { convertible promissory note } else { warrant }
+(declare-const kiss_repayable Bool)    (declare-const kiss_force_include_safe Bool) ; if (not kiss_repayable) then safe includes the kiss in company capitalization.
+                                        ; kisses always exclude safe by default, unless we force inclusion.
 
 (assert (= safe_has_cap (> safe_cap 0))) (assert (= kiss_has_cap (> kiss_cap 0))) ; syntactic sugar -- set cap to 0 and we'll know what you mean
 (assert (<= 0 safe_num_shares))          (assert (<= 0 kiss_num_shares))          ; post conversion, the numbers of safe and kiss shares are positive
@@ -61,10 +62,10 @@
                                     (+ initialStock kiss_num_shares safe_num_shares) ; dilutePre:  more favorable to Series A investors; their pre-money includes the SAFE/KISS investors
                                     initialStock)))                                  ; dilutePost: more favorable to SAFE/KISS investors; the Series A pre-money excludes the SAFE/KISS
 
-; fully diluted capitalization includes warrants but excludes convertible promissory notes
-; so  if the other security is a warrant, we count its number of shares;
-; but if the other security is a convertible promissory note it makes no contribution to the fully diluted capitalization.
-(assert (= non_kiss_shares (ite safe_repayable 0 safe_num_shares)))
+; a KISS's fully diluted capitalization excludes Safes
+(assert (= non_kiss_shares (ite kiss_force_include_safe safe_num_shares 0)))
+
+; a SAFE's company capitalization includes KISS(Equity) but excludes KISS(Debt)
 (assert (= non_safe_shares (ite kiss_repayable 0 kiss_num_shares)))
 
 ; incoming series A investors get this many shares

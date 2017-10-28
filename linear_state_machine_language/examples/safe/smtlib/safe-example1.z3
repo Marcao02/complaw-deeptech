@@ -14,18 +14,17 @@
 (assert (= safe_cap      5000000))
 (assert (= safe_discount       0))
 
-; safes are pretty much always nonrepayable, so always a warrant
-(assert (= safe_repayable false))
-
 ; there is no KISS
 (assert (= kiss_value          0))
 (assert (= kiss_cap         2000))
 (assert (= kiss_discount      25))
 
-; kiss(debt)   is repayable and thus a convertible promissory note
-; kiss(equity) is not repayable and thus a warrant.
+; kiss(debt)   is repayable and thus a convertible promissory note, and excluded from a safe's notion of company capitalization.
+; kiss(equity) is not repayable and thus a warrant, and included in a safe's notion of company capitalization.
 (assert (= kiss_repayable false))
 
+; safes are pretty much always nonrepayable, unless we force an override
+(assert (= kiss_force_include_safe false))
 
 ; we follow YC SAFE's example and set a DilutePost style which appears to be more favorable to SAFE/KISS investors
 (assert (= equityFinancing_dilutePre false))
