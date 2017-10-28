@@ -78,7 +78,7 @@ Investors want this number to be as large as possible at the time of conversion 
 
 The simplest scenario is that the two instruments do not interact: neither one includes the other as part of the pre-conversion capitalization.
 
-#### The Safe(MFN), Safe(Discount, No Cap) ignore KISSes
+#### The Safe(MFN) and Safe(Discount, No Cap) ignore KISSes
 
 These variants of the Safe do not define a valuation cap, so only the discount is relevant to the conversion of the Safe. These variants do not compute company capitalization, so they are indifferent to the KISS.
 
@@ -104,9 +104,11 @@ The Safe(Cap) and Safe(Cap, No Discount) both define:
 
 Suppose the other instrument is a convertible promissory note, then (1)(C) says to ignore it, so the computation of the Safe(Cap) is insensitive to the conversion of the other instrument.
 
-But if the other instrument is a warrant or other convertile security, then it is included.
+But if the other instrument is a warrant or other convertible security, then it is included.
 
 A KISS(Debt) is a convertible promissory note, so it is excluded.
+
+(However, consider that the language says "immediately prior to the Equity Financing". Now, do we believe that immediately prior to the Equity Financing, the KISS(Debt) instruments have already converted? If we take this position, then we would include it.)
 
 #### The Safe(Cap) and Safe(Cap, No Discount) include KISS(Equity)
 
@@ -116,13 +118,15 @@ If it does, then it is included in the computation of company capitalization.
 
 If it does not, then it is excluded.
 
-A warrant entitles the owner to buy shares at a fixed price. But all the money in a KISS(Equity) and a Safe is paid up front, so it's not a warrant.
+A warrant entitles the owner to buy shares at a fixed price. But all the money in a KISS(Equity) and a Safe is paid up front, so it's not a warrant. It's a lot like a warrant, so says everybody, but it's not exactly a warrant.
 
 It's not debt, either, because it's not repayable. (The KISS(Debt) is repayable, so that's a convertible promissory note. But we're not talking about KISS(Debt) right now, we're talking about KISS(Equity).)
 
 I guess that makes the KISS(Equity) an "other convertible security".
 
 So the Safe has to count KISS(Equity) conversion as part of its fully diluted capitalization.
+
+Arguably it shouldn't do, because if you take a step back, Safes and KISSes are both seed-stage instruments hired to do the same job, and they expect to all convert simultaneously upon the next equity round. But a literalist reading of the Safe has the KISS(Equity) included in the fully-diluted capitalization, so that's that.
 
 ### Does the KISS include Safes in the fully diluted capitalization?
 
@@ -152,6 +156,12 @@ https://bothsidesofthetable.com/what-all-entrepreneurs-need-to-know-about-prorat
 
 If I had to make a call, I would say that the Safe converts simultaneously with the KISS, and does not convert to Common, and so should not be included in the FDC.
 
+Think about it: if the investor had used a Safe instead of a KISS, then it would be excluded, because siblings Safes exclude one another.
+
+If all the investors had used KISSes instead of Safes, then they would all be excluded, because sibling KISSes exclude one another.
+
+It doesn't make sense that just switching instruments should cause an unexpected bump to the FDC.
+
 ### Does the KISS include other KISSes in the fully diluted capitalization?
 
 No, for a couple reasons.
@@ -160,8 +170,7 @@ First, because all the KISSes are converting to Preferred, so they don't count a
 
 Second, because the "but excluding, for this purpose" line excludes the current KISS.
 
-Third, because most convertible instruments excude themselves and their classmates from the capitalization computation. Safes do explicitly. KISSes don't make the exclusion explicit, but exclusion would be consistent with standard practice.
-
+Third, because most convertible instruments exclude themselves and their classmates from the capitalization computation. Safes do explicitly. KISSes don't make the exclusion explicit, but exclusion would be consistent with standard practice.
 
 ### Mutually Recursive Definitions
 
@@ -213,4 +222,14 @@ The product of the valuation caps must be greater than the product of the amount
 If it is not, you will get a negative number of conversion shares.
 
 This is evident from inspection of the denominator of the `conv_x` formula above.
+
+# Comments
+
+## Transitivity
+
+Is a convertible security convertible to Common Stock if it needs to first be converted into some other security?
+
+    X -> Preferred -> Common
+
+Is X convertible to Common?
 
