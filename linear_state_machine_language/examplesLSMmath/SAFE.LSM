@@ -45,8 +45,6 @@ formal contract "SAFE"
 		at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 
 	start state InvestorInvests
-
-	state InvestorInvests
 		; Following syntax is shorthand for 4 "relievable must-next" edges that have the same
 		; subject and deadline expression
 		Company must-next by ∞ choose:
@@ -156,11 +154,12 @@ formal contract "SAFE"
 			investor_cash = dis_cashout
 			company_cash = COMPANY_CASH_AT_DISSOLUTION_EVENT - dis_cashout
 	following state:
-		Company relievably-must-next if (dis_cashout < PURCHASE_AMOUNT)
-			TransferAssets_D within discretionary
+		verified disjoint exhaustive:
+			Company relievably-must-next if (dis_cashout < PURCHASE_AMOUNT)
+				TransferAssets_D within discretionary
 
-		Company relievably-must-next if (dis_cashout == PURCHASE_AMOUNT)
-			Dissolution within discretionary
+			Company relievably-must-next if (dis_cashout == PURCHASE_AMOUNT)
+				Dissolve within discretionary
 
 	action TransferAssets_D by Company:
 		transform:
