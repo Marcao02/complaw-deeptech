@@ -1,0 +1,37 @@
+; This example demonstrates the need for a kind of obligation that can be "relieved" by another
+; participant doing a permitted action. See ../L4-LSM-Formal-Semantic-Latex/L4-LSM-semantics.pdf
+
+; Alice and Bob sign a contract to do an assignment as a team. The assignment has two problems,
+; ProbA and ProbB. It's Alice's responsibility to get ProbA done, and Bob's responsibility to
+; get ProbB done, but either, if they wish, may do the work of their partner. We're assuming that
+; problem solutions can't be checked automatically (say, they're Project Euler problems), so
+; comparing different solutions isn't necessary. The assignment is due on DueDate, and the
+; partners agree that either can submit the assignment early if it's finished, and that they
+; are jointly responsible for submitting it by DueDate.
+
+global vars:
+	probAsolved : boolean = false
+	probBsolved : boolean = false
+
+state WorkingOnAssignment:
+	Alice relievably-must-next SolveProbA by DueDate
+	Bob   relievably-must-next SolveProbB by DueDate
+	Alice may-next SolveProbB by DueDate
+	Bob   may-next SolveProbA by DueDate
+
+	(either Alice Bob) may-next Submit (before DueDate) if (probAsolved and probBsolved)
+	Alice relievably-must-next Submit (on DueDate)
+	Bob relievably-must-next Submit (on DueDate)
+
+action SolveProbA:
+	transitions to WorkingOnAssignment
+	transform:
+		probAsolved = true
+
+action SolveProbB:
+	transitions to WorkingOnAssignment
+	transform:
+		probBsolved = true
+
+action Submit:
+	transitions to Fulfilled
