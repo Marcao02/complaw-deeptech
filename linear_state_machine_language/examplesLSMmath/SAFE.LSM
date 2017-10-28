@@ -45,9 +45,9 @@ formal contract "SAFE"
 		at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 
 	start state InvestorInvests
-		; Following syntax is shorthand for 4 "relievable must-next" edges that have the same
+		; Following syntax is shorthand for 4 "relievable must" edges that have the same
 		; subject and deadline expression
-		Company must-next by ∞ choose:
+		Company must by ∞ choose:
 			CommitToEquityFinancing
 			CommitToLiquidityEvent(false) ; IPO
 			CommitToLiquidityEvent(true) ; change of control
@@ -55,30 +55,31 @@ formal contract "SAFE"
 
 
 	; ----------------- Equity Financing Event -------------------
+	; NOTE: PRA abbreviates pro rata agreement
 
 	action CommitToEquityFinancing by Company
-	state:
-		Company must-next-choose within discretionary:
-			DeliverDocsWithProRataAgreement_E
-			DeliverDocsWithoutProRataAgreement_E
-
-	action DeliverDocsWithProRataAgreement_E by Company
-	following state
-		Company must-next IssueSAFEPreferredStock_E within discretionary
-
-	action DeliverDocsWithoutProRataAgreement_E by Company
 	following state:
-		Company must-next SubmitProRataRightsAgreementForSigning_E within discretionary
+		Company must choose within discretionary:
+			DeliverDocsWithPRA_E
+			DeliverDocsWithoutPRA_E
+
+	action DeliverDocsWithPRA_E by Company
+	following state
+		Company must IssueSAFEPreferredStock_E within discretionary
+
+	action DeliverDocsWithoutPRA_E by Company
+	following state:
+		Company must SubmitProRataRightsAgreementForSigning_E within discretionary
 
 	action SubmitProRataRightsAgreementForSigning_E by Company
 	following state:
-		Investor must-next SignProRataAgreement_E within discretionary
+		Investor must SignPRA_E within discretionary
 		; TODO: Obviously this shouldn't be a *must*, since they ought to be able to send it back with proposed amendments/corrections
 		; That seems like something we should have a reusable module for.
 
-	action SignProRataAgreement_E by Investor:
+	action SignPRA_E by Investor:
 	following state:
-		Company must-next IssueSAFEPreferredStock_E within discretionary
+		Company must IssueSAFEPreferredStock_E within discretionary
 
 	action IssueSAFEPreferredStock_E by Company:
 		transform:
@@ -97,30 +98,30 @@ formal contract "SAFE"
 				; TODO "In connection with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			)
 	following state:
-		Investor may-next before discretionary₁:
+		Investor may before discretionary₁:
 			ChooseCashPayment_L
 			ChooseStockPayment_L
 
-		Company relievably-must-next AutoChooseStockPayment_L on discretionary_1
+		Company ~must AutoChooseStockPayment_L on discretionary_1
 
 	action AutoChooseStockPayment_L by Company
 	following state:
-		Company must-next TransferCommonStock_L within discretionary
+		Company must TransferCommonStock_L within discretionary
 
 	action ChooseStockPayment_L by Investor:
 	following state:
-		Company must-next TransferCommonStock_L within discretionary
+		Company must TransferCommonStock_L within discretionary
 
 	action TransferCommonStock_L by Company:
 		transform:
 			liq_price = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
 			investor_Common_Stocks += (PURCHASE_AMOUNT - liq_cashout) / liq_price
 	following state:
-		Company must-next DoLiquidityEvent by discretionary
+		Company must DoLiquidityEvent by discretionary
 
 	action ChooseCashPayment_L by Investor
 	following state:
-		Company must-next TransferCash_L within discretionary
+		Company must TransferCash_L within discretionary
 
 	action TransferCash_L by Company:
 		transform:
@@ -132,8 +133,8 @@ formal contract "SAFE"
 			investor_cash += liq_cashout
 			company_cash -= liq_cashout
 	following state:
-		Company mustif (liq_cashout < PURCHASE_AMOUNT) TransferCommonStock_L within discretionary₃
-		Company relievably-must-next DoLiquidityEvent on discretionary₃
+		Company must if (liq_cashout < PURCHASE_AMOUNT) TransferCommonStock_L within discretionary₃
+		Company must if (liq_cashout == PURCHASE_AMOUNT) DoLiquidityEvent within discretionary₃
 
 	action DoLiquidityEvent of Company transitions to Fulfilled
 
@@ -142,7 +143,7 @@ formal contract "SAFE"
 
 	action CommitToDissolution of Company
 	following state:
-		Company must-next TransferCash_D by discretionary
+		Company must TransferCash_D by discretionary
 
 	action TransferCash_D by Company:
 		transform:
@@ -155,10 +156,10 @@ formal contract "SAFE"
 			company_cash = COMPANY_CASH_AT_DISSOLUTION_EVENT - dis_cashout
 	following state:
 		verified disjoint exhaustive:
-			Company relievably-must-next if (dis_cashout < PURCHASE_AMOUNT)
+			Company must if (dis_cashout < PURCHASE_AMOUNT)
 				TransferAssets_D within discretionary
 
-			Company relievably-must-next if (dis_cashout == PURCHASE_AMOUNT)
+			Company must if (dis_cashout == PURCHASE_AMOUNT)
 				Dissolve within discretionary
 
 	action TransferAssets_D by Company:
@@ -166,6 +167,6 @@ formal contract "SAFE"
 			liq_price = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
 			investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))
 	following state:
-		Company must-next Dissolve within discretionary
+		Company must Dissolve within discretionary
 
 	action Dissolve of Company transitions to Fulfilled

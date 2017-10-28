@@ -81,7 +81,7 @@
 			(when_lowered := before24H)
 		)
 		(if (not contract_canceled)
-			(startInstace "PS Internet Provision" (Actors ISP Client))
+			(startInstance "PS Internet Provision" (Actors ISP Client))
 		)
 	)
 
