@@ -1,5 +1,6 @@
 ; This example demonstrates the need for a kind of obligation that can be "relieved" by another
 ; participant doing a permitted action. See ../L4-LSM-Formal-Semantic-Latex/L4-LSM-semantics.pdf
+; We are using "should" for that here.
 
 ; Alice and Bob sign a contract to do an assignment as a team. The assignment has two problems,
 ; ProbA and ProbB. It's Alice's responsibility to get ProbA done, and Bob's responsibility to
@@ -14,15 +15,15 @@ global vars:
 	probBsolved : boolean = false
 
 state WorkingOnAssignment:
-	Alice ~must SolveProbA by DueDate
-	Bob   ~must SolveProbB by DueDate
+	Alice should SolveProbA by DueDate
+	Bob   should SolveProbB by DueDate
 
 	Alice may SolveProbB by DueDate
 	Bob   may SolveProbA by DueDate
 
 	(either Alice Bob) may if (probAsolved and probBsolved) Submit before DueDate
-	Alice ~must Submit on DueDate
-	Bob ~must Submit on DueDate
+	Alice should Submit on DueDate
+	Bob should Submit on DueDate
 
 ; No `by ‹role›` means any role can do the action.
 action SolveProbA transitions to WorkingOnAssignment

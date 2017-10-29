@@ -9,6 +9,8 @@ contract params:
 	START_INVESTOR_CASH : $
 
 global vars:
+	; this will only be nonzero in a liquidity event involving Change of Control
+	investor_CoC_remaining_investment_L : $ = $0 ;# writeAtMostOnce
 	investor_Preferred_Stocks : ℕ = START_INVESTOR_PREFERRED_STOCKS  ;# writeAtMostOnce
 	investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  ;# writeAtMostOnce
 	liq_price : Option[$] = None 	;# writeAtMostOnce
@@ -29,10 +31,13 @@ oracle inputs:
 	LIQUIDITY_CAPITALIZATION : ℕ
 	INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS : %
 	COMPANY_CASH_AT_LIQUIDITY_EVENT : $
+	REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG : $
 
 	; for Dissolution
 	COMPANY_CASH_AT_DISSOLUTION_EVENT : $
 	INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS : %
+
+
 )
 
 definitions:
@@ -74,7 +79,8 @@ formal contract "SAFE"
 	action SubmitProRataRightsAgreementForSigning_E by Company
 	following state:
 		Investor must SignPRA_E within discretionary
-		; TODO: Obviously this shouldn't be a *must*, since they ought to be able to send it back with proposed amendments/corrections
+		; TODO: Obviously this shouldn't be a *must*, since they ought to be
+		; able to send it back with proposed amendments/corrections.
 		; That seems like something we should have a reusable module for.
 
 	action SignPRA_E by Investor:
@@ -94,15 +100,21 @@ formal contract "SAFE"
 
 	action CommitToLiquidityEvent(change_of_control:Bool) by Company:
 		transform
-			(if change_of_control
-				; TODO "In connection with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
+			liq_price = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
+			(if (change_of_control and REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG > 0)
+				let purchase_amount_reduction = INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS * REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG
+				investor_Common_Stocks += round(purchase_amount_reduction / liq_price)
+				investor_CoC_remaining_investment_L = PURCHASE_AMOUNT - purchase_amount_reduction
+				; "In connection with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			)
+			company_cash_remaining = COMPANY_CASH_AT_LIQUIDITY_EVENT - REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG
+
 	following state:
 		Investor may before discretionary₁:
 			ChooseCashPayment_L
 			ChooseStockPayment_L
 
-		Company ~must AutoChooseStockPayment_L on discretionary_1
+		Company should AutoChooseStockPayment_L on discretionary_1
 
 	action AutoChooseStockPayment_L by Company
 	following state:
@@ -114,8 +126,8 @@ formal contract "SAFE"
 
 	action TransferCommonStock_L by Company:
 		transform:
-			liq_price = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
-			investor_Common_Stocks += (PURCHASE_AMOUNT - liq_cashout) / liq_price
+			investor_Common_Stocks += round((investor_CoC_remaining_investment_L - liq_cashout) / liq_price)
+			; TODO: should we round that division up, down, or to nearest?
 	following state:
 		Company must DoLiquidityEvent by discretionary
 
@@ -126,15 +138,15 @@ formal contract "SAFE"
 	action TransferCash_L by Company:
 		transform:
 			liq_cashout = (
-				if (PURCHASE_AMOUNT ≤ (COMPANY_CASH_AT_LIQUIDITY_EVENT * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS))
-				then PURCHASE_AMOUNT
-				else (COMPANY_CASH_AT_LIQUIDITY_EVENT * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS)
+				if investor_CoC_remaining_investment_L ≤ (company_cash_remaining * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS)
+				then investor_CoC_remaining_investment_L
+				else company_cash_remaining * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS
 			)
 			investor_cash += liq_cashout
 			company_cash -= liq_cashout
 	following state:
-		Company must if (liq_cashout < PURCHASE_AMOUNT) TransferCommonStock_L within discretionary₃
-		Company must if (liq_cashout == PURCHASE_AMOUNT) DoLiquidityEvent within discretionary₃
+		Company must if (liq_cashout < investor_CoC_remaining_investment_L) TransferCommonStock_L within discretionary₃
+		Company must if (liq_cashout == investor_CoC_remaining_investment_L) DoLiquidityEvent within discretionary₃
 
 	action DoLiquidityEvent of Company transitions to Fulfilled
 
@@ -155,12 +167,12 @@ formal contract "SAFE"
 			investor_cash = dis_cashout
 			company_cash = COMPANY_CASH_AT_DISSOLUTION_EVENT - dis_cashout
 	following state:
-		verified disjoint exhaustive:
-			Company must if (dis_cashout < PURCHASE_AMOUNT)
-				TransferAssets_D within discretionary
+		; Don't need to specify that these are verified disjoint exhaustive. It's implied by definitions.
+		Company must if (dis_cashout < PURCHASE_AMOUNT)
+			TransferAssets_D within discretionary
 
-			Company must if (dis_cashout == PURCHASE_AMOUNT)
-				Dissolve within discretionary
+		Company must if (dis_cashout == PURCHASE_AMOUNT)
+			Dissolve within discretionary
 
 	action TransferAssets_D by Company:
 		transform:
