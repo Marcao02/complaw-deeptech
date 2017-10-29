@@ -17,7 +17,15 @@
 
 \noindent Click most terms (in \color{TermColor}this color\color{black}) to jump to their first underlined usage.
 
-{\bf Question: Should I remove relievable must-next edges?} Let $\evar$ be such an edge. First, change it to a may-next edge, keeping its transition guard. So its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next edges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
+\noindent {\bf NTS:}
+\begin{PPI}
+%\item Introduce a language for defining nonsingleton event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$.
+
+\item Should I remove relievable must-next edges? {\bf No.}
+
+This was the idea for removing: Let $\evar$ be such an edge. First, change it to a may-next edge, keeping its transition guard. So its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next edges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
+
+\end{PPI}
 
 \tableofcontents
 
@@ -196,9 +204,13 @@ $\GVarTypes \times \TimeStamps$ to \GVarTypes.
 \item The definition of the \TGuard of a \depTrans{a} is generalized: it may now depend on the values of the \GVars; i.e. it is now a relation on $\TimeStamps \times \GVarTypes$.
 \end{LPPI}
 
-The conditions on \TGuards are updated in unsurprising ways. For every \State $s$:
+Now an $\TGuard$ is a relation on $\TimeStamps \times \GVarTypes$, and an $\depTrans{s}$ $\evar$ is \introx{enabledz}{enabled} upon entering a \GlobalState $\tup{s,t,\tau}$ iff $\tguard{\evar}{t,\tau}$ is true.
+%\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}
 
-\noindent \introx{uaocz}{unique absolute obligation condition}: For every \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \mustntrans evaluates to true (on $G$) then every other \TGuard of $s$ evaluates to false.
+
+The three named conditions on \TGuards are updated as follows. For every \State $s$:
+
+\noindent \introx{uaocz}{unique absolute obligation condition}: For every \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \mustntrans evaluates to true (on $G$) then every other \TGuard of $s$ evaluates to false. 
 \medskip
 
 \noindent \introx{crocz}{role-unique relievable obligations condition}: For every \Role r and \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \rmustntrans with \Role $r$ evaluates to true (on $G$) then the \TGuard of every other of $s$'s \rmustntrans with \Role $r$ evaluates to false.
@@ -252,7 +264,7 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 	\item An \Event compatible with some \transition $e$ in $T_p$. And in this case the next state $s'$ must be $\trg{\evar}$, and $\sigma'$ must be $\itsTransform{a}(t,\sigma)$
 	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} This means that all of the \Roles whose \enabled \rmustntran expire earliest (at $t^*$) are jointly responsible for the breach.
 \end{PPI}
-The \bostgc ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
+The \bostgcz ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
 
 
 
@@ -273,21 +285,19 @@ The \bostgc ensures that one of those two cases will apply. In particular, it im
 Add to the definition of \Contract an assignment of types ($\TT$-tuples) to the \Actions. This allows \Events to have parameters. We refer to such a type as an \introxx{AParamsDomain}{action-parameters domain}{AParamsDomains}{action-parameters domains}, and the specific \AParamsDomain for \Action $a$ is $\itsAParamsDomain{a}$.
 
 \introxxoutside{EventSchema}{event schema}{EventSchemas}{event schemas}
-Each \depTrans{a} $\evar$ gets assigned an \introxxinside{event schema} called $\itsESConstructor{\evar}$. This is a function from $\GVarTypes \times \TimeStamps$ to a set of $\depEvents{a}$. Equivalently, it is a relation on $\GVarTypes \times \TimeStamps \times \depEvents{a}$, and that is likely how it will be represented in a \Contract-definition language. We call a set of $\depEvents{a}$ an \EventSchema. In many cases, an \EventSchema will be a singleton set. It is only for $\depEvents{\Env}$ that singleton \EventSchema allow us to express things that we couldn't otherwise; in all other cases, singleton \EventSchema can be simulated efficiently using $\GVars$. Nonetheless, we will recommend using singleton \EventSchema for events other than $\depEvents{\Env}$. Check for yourself that the definitions from the previous section do not need significant changes for singleton \EventSchema.
+Each \depTrans{a} $\evar$ gets assigned an \introxxinside{event schema} called $\itsESConstructor{\evar}$. An \EventSchema is a set of \Events that have the same \Action. We may think of an \EventSchema as a function from $\GVarTypes \times \TimeStamps$ to a set of $\depEvents{a}$ (for some fixed $a$). Equivalently, it is a relation on $\GVarTypes \times \TimeStamps \times \depEvents{a}$, and that is likely how it will be represented in a \Contract-definition language. %We call a set of $\depEvents{a}$ an \EventSchema. In many cases, an \EventSchema will be a singleton set. It is only for $\depEvents{\Env}$ that singleton \EventSchema allow us to express things that we couldn't otherwise; in all other cases, singleton \EventSchema can be simulated efficiently using $\GVars$. Nonetheless, we will recommend using singleton \EventSchema for events other than $\depEvents{\Env}$. Check for yourself that the definitions from the previous section do not need significant changes for singleton \EventSchema.
 
 {\it Non-singleton} \EventSchema are most useful for an infinite or large choice of \Actions (and, in the case of $\depEvents{\Env}$, for infinite or large nondeterminism).
 
-\EventSchema make it necessary to extend the definition of \compatible from its previous type $\Event \times \transition$ to $(\GlobalState \times \Event) \times \transition$. We say that \atransition $\evar$ is \introx{compatiblez}{compatible} with  $\tup{G,E} = \tup{\tup{s,t,\sigma},\tup{a,r,t,\tau}}$ iff
-$\evar$ is an \sOutTransition{s} with \Action $a$  and \Role $r$, and  $E$ is in $\itsESConstructor{\evar}(\sigma, t)$
+\EventSchema make it necessary to extend the definition of \compatible from its previous type $\Event \times \transition$ to $(\GlobalState \times \Event) \times \transition$. We say that \atransition $\evar$ is \introx{compatiblez}{compatible} with  $\tup{G,E} = \tup{\tup{s,t,\sigma},\tup{a,r,t',\tau}}$ iff
+$\evar$ is an \sOutTransition{s} with \Action $a$  and \Role $r$, and  $E$ is in $\itsESConstructor{\evar}(\sigma, t)$.
+
 %\end{LPPI}
 
+The three named conditions on \TGuards are the same as before, but we add one more. We now have both \EventSchema and \TGuards as ways of constraining when an \transition can be traversed. To reduce that redundancy we require, for every \State $s$:
 
-
-
-
-
-
-
+\noindent \introx{nesee}{nonempty event schema for enabled edges}: For every \GlobalState $G$ whose (local) \State is $s$, any \enabled $\depTrans{s}$ $\evar$ must have $\itsESConstructor{\evar}$ nonempty (at $G$).
+\medskip
 
 \subsection{Execution} \label{schemasexecution}
 
@@ -298,7 +308,7 @@ Again, we elaborate the previous definition, from Subsection \ref{gvarsexecution
 Let $E_1, E_2, \dots$ be a finite or infinite \trace. Let $G_i$ be the \GlobalState that follows $E_i$ for each $i$. A \Contract starts in its \startstate, with initial \gvarsassign given by \initvals.
 
 $G_0$ is $\tup{\startstate, 0, \initvals}$.
-Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce notational clutter, let us use the following aliases, and note that we have added a forth component $\epvar$ to the \Event: $\tau$ must be of type \itsAParamsDomain{a}.
+Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce notational clutter, let us use the following aliases, and note that we have added a forth component $\epvar$ to the \Event; $\tau$ must be of type \itsAParamsDomain{a}.
 %\[ G = \tup{s,t} = G_i \qquad  G' = \tup{s',t'} = G_{i+1} \qquad A = \tup{a_A, r_A, t_A} = A_i\]
 \[ G = \tup{s,t,\sigma} = G_i  \qquad E = \tup{a,r,t',\tau} =  E_i \qquad  G' = \tup{s',t', \sigma'} = G_{i+1}\]
 
