@@ -5,7 +5,7 @@
 
 * Upon `serving the monster burger`:
 	* `The challenge end time` is defined as the current time plus 1 hour, and
-	* `The Customer's amount owing` is set to $50, and
+	* `The Customer's amount owing` is then $50, and
 	* then, `the challenge continues`.
 
 * Whenever `the challenge continues`:
@@ -24,11 +24,11 @@
 	`the Restaurant` `violates its prompt-check guarantee` or
 	`the Restaurant` `violates its prompt-serve guarantee` or
 	`the Restaurant` `confirms the Customer is finished`
-  	then `the Customer's amount owing` is set to $0, and the contract is fulfilled.
+  	then `the Customer's amount owing` is $0, and `the contract` is fulfilled.
 
 * Upon `the Restaurant` `having disconfirmed the Customer is finished`:
 	* `the Customer` must `pay the bill` if the time reaches `the end of the challenge period`, and
 	* otherwise, `the challenge continues` (if the time is before `the end of the challenge period`).
 
-* If `the Customer` `pays the bill` then `the Customer's amount paid` is set to `the Customer's amount owing`, and `the Customer's amount owing` is set to $0, and the contract is fulfilled.
+* Upon `the Customer` `paying the bill`, `the Customer` `transfers` `the amount owing` to `the Restaurant`. `The amount owing` is then $0. Then `the contract` is fulfilled.
 
