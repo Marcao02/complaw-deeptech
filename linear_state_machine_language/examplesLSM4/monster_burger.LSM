@@ -133,7 +133,7 @@
 
 	(Action&State AnnounceMBFinished
 		; Whenever {Challenger} has just {action:AnnounceMBFinished}
-		; * Witin {MAX_CLAIM_VERIFICATION_DELAY}:
+		; * Within {MAX_CLAIM_VERIFICATION_DELAY}:
 		; 	* {Restaurant} should {action:CheckFinishedClaim}
 		; * Past {MAX_CLAIM_VERIFICATION_DELAY}:
 		;	* {LateCheck}

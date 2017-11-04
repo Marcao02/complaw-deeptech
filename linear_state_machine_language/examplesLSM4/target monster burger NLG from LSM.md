@@ -32,3 +32,25 @@
 
 * Upon `the Customer` `paying the bill`, `the Customer` `transfers` `the amount owing` to `the Restaurant`. `The amount owing` is then $0. Then `the contract` is fulfilled.
 
+
+
+
+###. start at a EBNF grammar commented out here
+<!-- ```
+<TransitionStatement> := ⟦Upon|Whenever⟧ <Event> <Statement>+
+<Action> := <AtomicAction> | <DefinedAction>
+<Event> := <AtomicEvent> | (<Role> having just <Action/past>) | (<Role> <Atomic Action/ing>)
+<ConditionalImmediateTransition> := (Event) | (if <Expression> <ImmediateTransition>)
+<DeonticIntro> := (<Role> (may|must|should) <Action> ⟦before|at or before⟧ <Event>) |
+				  (<Role> (may|must|should) <Action> [within <Duration>]) |
+				  (<Role> (must|may) later <Action> within <Duration>) |
+<ConditionalDeonticIntro> := <DeonticIntro> | (if <Expression> <ConditionalDeonticIntro>)
+<Statement> := <ConditionalDeonticIntro>
+			 | (verifiedDisjointExhaustive <ConditionalDeonticIntro>+)
+			 | (verifiedDisjoint <ConditionalDeonticIntro>+)
+			 | (<Number> ≤ traversals ≤ ⟦<Number>|nonconstant⟧)
+			 | (<Number> ≤ traversals)
+			 | (traversals ≤ <Number>)
+			 | (AllowedSubjects <Role>+)
+			 | <ConditionalImmediateTransition>
+``` -->

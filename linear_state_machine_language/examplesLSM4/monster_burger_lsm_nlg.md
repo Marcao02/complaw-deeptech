@@ -1,3 +1,4 @@
+```
 <TransitionStatement> := ⟦Upon|Whenever⟧ <Event> <Statement>+
 <Event> := <AtomicEvent> | (<Role> having just <Action>)
 <ConditionalImmediateTransition> := (Event) | (if <Expression> <ImmediateTransition>)
@@ -14,7 +15,7 @@
 			 | (traversals ≤ <Number>)
 			 | (AllowedSubjects <Role>+)
 			 | <ConditionalImmediateTransition>
-
+```
 
 
 * Upon `the Customer` `ordering the monster burger`:

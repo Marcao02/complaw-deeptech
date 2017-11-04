@@ -3,22 +3,49 @@
 ; If the grader rejects, then the student has till a second absolute deadline 26 to resubmit.
 ; The grader must accept a resubmitted assignment within 7 days of resubmission.
 
-state AssignmentOut:
+start state AssignmentOut:
 	Student must Submit at 11
+	Student may
+
+action Accept by Grader transitions to Fulfilled
 
 action Submit by Student
-following state:
-	Grader must (oneOf Accept Reject) within 7
+
+	following state:
+		Grader must (oneOf Accept Reject) within 7
 
 action Reject by Grader
-following state:
-	Student must Resubmit before 26
+
+	following state:
+		Student must Resubmit before 26
 
 action Resubmit by Student
-following state:
-	Grader must Accept within 7
 
-action Accept transitions to Fulfilled
+	following state:
+		Grader must Accept within 7
+
+; Accept translations: ‹accept›, ‹accept the assignment›, ‹accepting the assignment›
+
+; Here's our target generated English.
+; ‹accept› and ‹accept the assignment› and ‹accepting the assignment› are equivalent, and we're ok with saying so once explicitly, but ideally we would not have to tag them with their grammatical categories.
+; ‹resubmit› and ‹resubmitting their assignment› are equivalent.
+
+
+Upon ‹the grader› ‹accepting the assignment›, ‹the contract› is fulfilled.
+
+Upon ‹the assignment being released›:
+* ‹The student› must ‹submit› on ‹Nov 11›
+
+Upon ‹the student› ‹submitting their assignment›:
+* ‹The grader› must ‹accept› or ‹reject› ‹within 7 days›.
+
+Upon ‹the grader› ‹rejecting the assignment›:
+* ‹The student› must ‹resubmit› before ‹Nov 26›.
+
+Upon ‹the student› ‹resubmitting their assignment›:
+* ‹The grader› must ‹accept the assignment› ‹within 7 days>.
+
+
 
 
 ; Compare this to the SCL version from their paper. Which takes longer to understand? If you answer SCL, you are full of shit.
