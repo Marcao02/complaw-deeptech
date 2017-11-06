@@ -63,16 +63,12 @@
 			(amount_owing = MB_PRICE)
 		)
 		(verifiedDisjointExhaustive
-			(if (within? MAX_SERVE_DELAY)
-				(Restaurant should (ServeMB))
-			)
-			(if (not (within? MAX_SERVE_DELAY))
-				(PromptServeGuaranteeViolated)
-			)
+			(Restaurant may (ServeMB) (within MAX_SERVE_DELAY))
+			(PromptServeGuaranteeViolated (after MAX_SERVE_DELAY))
 		)
 	)
 
-	(Action&State (ServeMB)
+	(Action&State ServeMB
 		; Upon {Restaurant} having just {actionPast:ServeMB}:
 		; * {challenge_endlimit_timestamp} is defined as {TIME_TO_EAT_BURGER} after {event_start_time}, and
 		; * then {event:EatingMB}
@@ -88,7 +84,7 @@
 	)
 
 
-	(Event&State (PromptServeGuaranteeViolated)
+	(Event&State PromptServeGuaranteeViolated
 		; {event:PromptServeGuaranteeViolated} is "{Restaurant}'s Prompt Serve Guarantee violated"
 		; Upon {event:PromptServeGuaranteeViolated}, {amount_owing} is set to 0, and then the contract is fulfilled.
 
@@ -100,7 +96,7 @@
 		(Fulfilled)
 	)
 
-	(Event&State (EatingMB)
+	(Event&State EatingMB
 		; Whenever {event:EatingMB}
 		; * if the time is no later than {challenge_endlimit_timestamp},
 		;	* then {Challenger} may {action:AnnounceMBFinished}
@@ -117,17 +113,9 @@
         ; always the case that exactly one of the tests of the children conditionals is true.
         ; I think we should at least encourage this style of order-insensitive conditionals.
 		(verifiedDisjointExhaustive
-			(if (currentTimeBefore? (challenge_endlimit_timestamp))
-				(Challenger may (AnnounceMBFinished))
-			)
-
-			(if (currentTimeBetween? {challenge_endlimit_timestamp} (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp))
-				(Restaurant should (CheckFinishedClaim))
-			)
-
-			(if (currentTimeAfter? (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp))
-				(LateCheck)
-			)
+			(Challenger may (AnnounceMBFinished) (beforeO challenge_endlimit_timestamp))
+			(Restaurant should (CheckFinishedClaim) (afterC_withinC challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+			(LateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
 		)
 	)
 
@@ -142,12 +130,8 @@
 		(AllowedSubjects Challenger)
 
 		(verifiedDisjointExhaustive
-			(if (within? MAX_CLAIM_VERIFICATION_DELAY)
-				(Restaurant should (CheckFinishedClaim))
-			)
-			(if (not (within? MAX_CLAIM_VERIFICATION_DELAY))
-				(LateCheck)
-			)
+			(Restaurant should (CheckFinishedClaim) (withinC MAX_CLAIM_VERIFICATION_DELAY))
+			(LateCheck (at_next MAX_CLAIM_VERIFICATION_DELAY))
 		)
 	)
 
@@ -189,7 +173,7 @@
 				(EatingMB)
 			)
 			(if (currentTimeAfter? challenge_endlimit_timestamp)
-				(Customer must immediately (PayForMB))
+				(Customer should immediately (PayForMB))
 			)
 		)
 	)
