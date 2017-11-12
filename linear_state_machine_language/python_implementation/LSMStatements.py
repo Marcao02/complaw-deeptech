@@ -4,6 +4,7 @@ from constants_and_defined_types import GlobalVarId
 from parse_sexpr import SExpr, SExprOrStr
 
 
+
 class Term:
     pass
 
@@ -11,7 +12,7 @@ class GlobalVarDec(NamedTuple):
     name: GlobalVarId
     sort: str
     initval: Optional[Term]
-    modifier:SExpr
+    modifier:List[str]
 
     def __str__(self) -> str:
         return (' '.join(self.modifier) + ' ' if self.modifier else '') + \
@@ -62,10 +63,21 @@ class Atom(Term):
     def name(self) -> str:
         raise NotImplementedError
 
+class Float(Term):
+    def __init__(self,val:float) -> None:
+        self.val = val
+
+class Bool(Term):
+    def __init__(self,val:bool) -> None:
+        self.val = val
 
 class LocalVar(Atom):
     def __init__(self, name:str) -> None:
-        self.name = name
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
 
 class GlobalVar(Atom):
     def __init__(self, vardec:GlobalVarDec) -> None:

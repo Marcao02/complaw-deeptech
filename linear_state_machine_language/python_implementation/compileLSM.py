@@ -4,8 +4,8 @@ from LSMTop import *
 from parse_sexpr import prettySExprStr, SExpr, SExprOrStr, castse, STRING_LITERAL_MARKER, parse_file
 from state_diagram_generation import contractToDotFile
 from util import streqci, list_split, caststr, isFloat
-from typing import Tuple, cast, Optional
-from LSMStatements import Term, ContractParamDec
+from typing import Tuple, cast, Optional, List
+from LSMStatements import Term, ContractParamDec, Float, Bool
 
 class Assemble:
     def __init__(self, filename:str) -> None:
@@ -35,7 +35,8 @@ class Assemble:
                 assert isinstance(x,SExpr), type(x)
                 self._top.global_var_decs = self.global_vars(cast(SExpr, rem))
             elif head( CONTRACT_PARAMETERS_SECTION_LABEL ):
-                self._top.contract_params = {expr[0] : self.contract_param(expr) for expr in rem}
+                # assert all(isinstance(expr[0],str) for expr in rem)
+                self._top.contract_params = {caststr(expr[0]) : self.contract_param(expr) for expr in rem}
             elif head( CLAIMS_SECTION_LABEL ):
                 self._top.claims = self.claims(cast(SExpr,rem))
             elif head( ACTORS_SECTION_LABEL ):
@@ -67,10 +68,10 @@ class Assemble:
         for dec in l:
             try:
                 i = 0
-                modifiers = []
+                modifiers : List[str] = []
                 while True:
                     if dec[i] in VARIABLE_MODIFIERS:
-                        modifiers.append(dec[i])
+                        modifiers.append(caststr(dec[i]))
                         i += 1
                     else:
                         break
@@ -82,7 +83,7 @@ class Assemble:
                 if i+3 < len(dec) and dec[i+3] == ':=':
                     initval = self.parse_term(dec[i+4])
                 print('initval', initval)
-                rv[name] = GlobalVarDec(name, sort, initval, castse(modifiers))
+                rv[name] = GlobalVarDec(name, sort, initval, modifiers)
             except Exception as e:
                 logging.error("Problem processing " + str(dec))
                 raise e
@@ -127,29 +128,30 @@ class Assemble:
             #     estates = {caststr(esd[0]): self.event_state(cast(SExpr, esd)) for esd in event_state_decls}
 
             elif head(EVENTSTATE_LABEL) or head(ACTIONSTATE_LABEL):
+                estate_id : str
+                estate_data : SExpr
                 if isinstance(x[1], str):
                     # e.g. (Event&State SomethingHappens ...)
-                    estates[x[1]] = self.event_state(cast(SExpr,[[x[1]]] + x[2:]))
+                    estate_id = x[1]
+                    estate_data = castse(x[2:])
+                    estates[estate_id] = self.event_state(estate_id, None, estate_data)
                 else:
-                    # e.g. (Event&State (SomethingHappens param1 param2) ...)
-                    estates[x[1][0]] = self.event_state(cast(SExpr,x[1:]))
+                    # e.g. (Event&State (SomethingHappens param&sort1 param&sort2) ...)
+                    estate_id = caststr(x[1][0])
+                    estate_params = castse(x[1][1:])
+                    estate_data = castse(x[2:])
+                    estates[estate_id] = self.event_state(estate_id, estate_params, estate_data)
             else:
-                self.syntaxError(x, f"Unrecognized head {x[0]}")
+                self.syntaxError(l, f"Unrecognized head {x[0]}")
 
         return FormalContract(caststr(l[0][1]), estates, start_state)
 
-    def event_state(self, l:SExpr) -> EventState:
-        print(l[0])
-        es_id : EventStateId = caststr(l[0][0])
+    def event_state(self, es_id:EventStateId, params:Optional[SExpr], rest:SExpr) -> EventState:
         es = EventState(es_id)
         es.proper_actor_blocks = dict()
-
-        if len(l[0]) == 1:
-            es.params = None
-        else:
-            es.params = self.event_state_params(cast(List[str],l[0][1]))
-
-        for x in l[1:]:
+        if isinstance(params, SExpr):
+            es.params = self.event_state_params(cast(List[List[str]],params))
+        for x in rest:
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)
@@ -166,15 +168,15 @@ class Assemble:
                 for actorblock in actorblocks:
                     actor_id = caststr(actorblock[0])
                     deontic_keyword = caststr(actorblock[1])
-                    rest : SExpr
+                    rest2 : SExpr
                     deontic_guard : Term
                     try:
                         if deontic_keyword in DEONTIC_GUARD_MODALITIES:
                             deontic_guard = self.parse_term(cast(SExprOrStr,actorblock[2]))
-                            rest = castse(actorblock[3:])
+                            rest2 = castse(actorblock[3:])
                         else:
                             deontic_guard = None
-                            rest = castse(actorblock[2:])
+                            rest2 = castse(actorblock[2:])
                     except Exception as e:
                         logging.error("Problem possibly with deontic_keyword: " + str(deontic_keyword))
                         raise e
@@ -183,14 +185,12 @@ class Assemble:
                         es.proper_actor_blocks[actor_id] = set()
 
                     es.proper_actor_blocks[actor_id].update(
-                        self.actor_block(cast(List[SExpr],rest), es_id, actor_id, deontic_keyword, deontic_guard))
+                        self.actor_block(cast(List[SExpr],rest2), es_id, actor_id, deontic_keyword, deontic_guard))
 
 
         return es
 
-    def event_state_params(self, params:List[str]) -> ParamsDec:
-        parts = list_split(',', params)
-
+    def event_state_params(self, parts:List[List[str]]) -> ParamsDec:
         pdec : List[str]
         for pdec in parts:
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
@@ -249,11 +249,11 @@ class Assemble:
             if x in self._top.contract_params:
                 return ContractParam(self._top.contract_params[x])
             if isFloat(x):
-                return float(x)
+                return Float(float(x))
             if x == 'false':
-                return False
+                return Bool(False)
             if x == 'true':
-                return True
+                return Bool(True)
             if x == 'never':
                 return DeadlineLit(x)
             logging.warning('Unrecognized atom: ' + x + '. Treating as deadline literal.')
