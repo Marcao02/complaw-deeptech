@@ -38,8 +38,6 @@ class Assemble:
                 self._top.contract_params = {expr[0] : self.contract_param(expr) for expr in rem}
             elif head( CLAIMS_SECTION_LABEL ):
                 self._top.claims = self.claims(cast(SExpr,rem))
-            elif head( CLAIMS_SECTION_LABEL ):
-                self._top.claims = self.claims(cast(SExpr,rem))
             elif head( ACTORS_SECTION_LABEL ):
                 self._top.actors = self.actors(cast(List[str],rem))
             elif head( PROSE_CONTRACT_SECTION_LABEL ):
@@ -123,20 +121,35 @@ class Assemble:
                 start_state = id
                 self._referenced_event_stateids.add(id)
 
-            elif head(EVENT_STATES_SECTION_LABEL):
-                event_state_decls = x[1:]
-                estates = {caststr(esd[0]): self.event_state(cast(SExpr, esd)) for esd in event_state_decls}
+            # elif head(EVENT_STATES_SECTION_LABEL):
+            #     # DEPRECATED
+            #     event_state_decls = x[1:]
+            #     estates = {caststr(esd[0]): self.event_state(cast(SExpr, esd)) for esd in event_state_decls}
+
+            elif head(EVENTSTATE_LABEL) or head(ACTIONSTATE_LABEL):
+                if isinstance(x[1], str):
+                    # e.g. (Event&State SomethingHappens ...)
+                    estates[x[1]] = self.event_state(cast(SExpr,[[x[1]]] + x[2:]))
+                else:
+                    # e.g. (Event&State (SomethingHappens param1 param2) ...)
+                    estates[x[1][0]] = self.event_state(cast(SExpr,x[1:]))
+            else:
+                self.syntaxError(x, f"Unrecognized head {x[0]}")
 
         return FormalContract(caststr(l[0][1]), estates, start_state)
 
     def event_state(self, l:SExpr) -> EventState:
-        es_id : EventStateId = caststr(l[0])
+        print(l[0])
+        es_id : EventStateId = caststr(l[0][0])
         es = EventState(es_id)
         es.proper_actor_blocks = dict()
 
-        es.params = self.event_state_params(cast(List[str],l[1]))
+        if len(l[0]) == 1:
+            es.params = None
+        else:
+            es.params = self.event_state_params(cast(List[str],l[0][1]))
 
-        for x in l[2:]:
+        for x in l[1:]:
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)
@@ -180,7 +193,7 @@ class Assemble:
 
         pdec : List[str]
         for pdec in parts:
-            assert len(pdec) == 3, f"Expected [VARstr, ':', SORTstr] but got {pdec}"
+            assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
             self._top.sorts.add(pdec[2])
 
         rv = {pdec[0]:pdec[2] for pdec in parts}
@@ -219,7 +232,7 @@ class Assemble:
                 elif statement[1] == '-=':
                     return DecrementStatement(varname, rhs)
                 elif statement[1] == '*=':
-                    return TimesEqualsStatement(varname, rhs)    
+                    return TimesEqualsStatement(varname, rhs)
                 else:
                     raise Exception
                 return None # not reachable
@@ -248,7 +261,7 @@ class Assemble:
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
             return StringLit(caststr(x[1]))
         else:
-            pair = try_parse_infix(x) or try_parse_prefix(x)
+            pair = try_parse_infix(x) or try_parse_prefix(x) or try_parse_postfix(x)
             if not pair:
                 logging.error("Didn't recognize function symbol in: " + str(x))
                 self.syntaxError(x)
@@ -311,7 +324,7 @@ class Assemble:
             return None
 
 def try_parse_infix(lst:SExpr) -> Tuple[str, SExpr]:
-    try:        
+    try:
         if len(lst) == 3 and isinstance(lst[1],str):
             symb : str = lst[1]
             if symb in INFIX_FN_SYMBOLS:
@@ -323,7 +336,6 @@ def try_parse_infix(lst:SExpr) -> Tuple[str, SExpr]:
 
 
 def try_parse_prefix(lst:SExpr) -> Tuple[str, SExpr]:
-
     if isinstance(lst[0],str):
         symb = lst[0]
         if symb in PREFIX_FN_SYMBOLS:
@@ -333,15 +345,27 @@ def try_parse_prefix(lst:SExpr) -> Tuple[str, SExpr]:
                 return symb, castse(lst[1:])
     return None
 
+
+def try_parse_postfix(lst:SExpr) -> Tuple[str, SExpr]:
+    if isinstance(lst[1],str):
+        symb = lst[1]
+        if symb in POSTFIX_FN_SYMBOLS:
+            if len(lst) == 1:
+                return symb, castse([])
+            else:
+                return symb, castse( [lst[0]] + lst[2:] )
+    return None
+
+
 EXAMPLES = (
-    'examples/hvitved_printer.LSM',
-    'examples/hvitved_lease.LSM',
-    'examples/monster_burger.LSM',
-    'examples/SAFE.LSM',
-    'examples/hvitved_master_sales_agreement_simplified.LSM',
-    'examples/hvitved_master_sales_agreement_full.LSM',
-    'examples/hvitved_master_sales_agreement_full_with_ids.LSM',
-    'examples/hvitved_instalment_sale.LSM'
+    # '../examplesLSM4/hvitved_printer.LSM',
+    # '../examplesLSM4/hvitved_lease.LSM',
+    'examplesLSM4/monster_burger.LSM',
+    # '../examplesLSM4/SAFE.LSM',
+    # '../examplesLSM4/hvitved_master_sales_agreement_simplified.LSM',
+    # '../examplesLSM4/hvitved_master_sales_agreement_full.LSM',
+    # '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
+    # '../examplesLSM4/hvitved_instalment_sale.LSM'
 )
 
 

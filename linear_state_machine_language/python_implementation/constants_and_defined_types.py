@@ -30,6 +30,8 @@ PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_tim
                      'setAdd', 'setRemove', # sets
                      'tuple', 'fst', 'snd'}
 
+POSTFIX_FN_SYMBOLS = {'afterEntrance'}
+
 
 
 DEONTIC_MODALITIES = {'must','may','should'}
@@ -55,6 +57,9 @@ IMG_FILE_NAME_LABEL = "ImgFileName"
 CONTRACT_PARAMETERS_SECTION_LABEL = "ContractParams"
 EVENT_STATES_SECTION_LABEL = "EventStates"
 START_STATE_LABEL = "StartState"
+
+EVENTSTATE_LABEL = "Event&State"
+ACTIONSTATE_LABEL = "Action&State"
 
 
 CODE_BLOCK_LABEL = "Entrance"
