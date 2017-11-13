@@ -18,7 +18,7 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
-                    'or','and'}
+                    'or','and', 'after'}
 PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time', 'monthStartDay', 'monthEndDay',
                      'days', #'earliest',
                      'dateplus',
@@ -28,7 +28,9 @@ PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_tim
                      'enqueue', 'dequeue', 'discardTop', 'top',  # queues
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
                      'setAdd', 'setRemove', # sets
-                     'tuple', 'fst', 'snd'}
+                     'tuple', 'fst', 'snd',
+                     'within', 'at',
+                     'currentTimeNoLaterThan?', 'currentTimeAfter?'}
 
 POSTFIX_FN_SYMBOLS = {'afterEntrance'}
 
@@ -36,8 +38,8 @@ POSTFIX_FN_SYMBOLS = {'afterEntrance'}
 
 DEONTIC_MODALITIES = {'must','may','should'}
 DeonticModality = str
-DEONTIC_GUARD_MODALITIES = {'mustif','mayif','shouldif'}
-DEONTIC_KEYWORDS = DEONTIC_GUARD_MODALITIES.union(DEONTIC_MODALITIES)
+# DEONTIC_GUARD_MODALITIES = {'mustif','mayif','shouldif'}
+# DEONTIC_KEYWORDS = DEONTIC_GUARD_MODALITIES.union(DEONTIC_MODALITIES)
 DeonticKeyword = str
 
 DEADLINE_OPERATORS = {'by', 'within', 'on' ,'at', 'before', 'between'}
@@ -66,6 +68,6 @@ CODE_BLOCK_LABEL = "Entrance"
 NONACTION_BLOCK_LABEL = "Fallbacks"
 EVENT_STATE_DESCRIPTION_LABEL = "Description"
 EVENT_STATE_PROSE_REFS_LABEL = "ProseRefs"
-EVENT_STATE_ACTOR_BLOCKS_LABEL = "ActorEvents"
+OUT_TRANSITIONS_LABEL = "Next"
 FULFILLED_EVENT_STATE_LABEL = "Fulfilled"
 

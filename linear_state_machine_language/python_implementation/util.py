@@ -1,5 +1,8 @@
 from typing import Any, List, Callable, Iterable, cast, Dict
 
+def indent(i:int) -> str:
+    return 4*i*' '
+
 def caststr(x:Any) -> str:
     assert isinstance(x,str), x
     return cast(str,x)
@@ -33,6 +36,13 @@ def mapjoin(f:Callable[[Any],str], iter:Iterable[Any], delim:str) -> str:
 def isFloat(x:str) -> bool:
     try:
         y = float(x)
+        return True
+    except ValueError:
+        return False
+
+def isInt(x:str) -> bool:
+    try:
+        y = int(x)
         return True
     except ValueError:
         return False

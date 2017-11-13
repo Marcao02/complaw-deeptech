@@ -75,6 +75,9 @@ class LSMTop:
             for c in self.claims:
                 line(c,1)
 
+        for es in self.event_states():
+            line('\n')
+            rv += str(es)
 
 
         return rv

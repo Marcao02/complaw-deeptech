@@ -1,7 +1,7 @@
 # v 1.1.0
 
 import logging
-from typing import Union, List, Any, TypeVar, Sequence, cast
+from typing import Union, List, Any, TypeVar, Sequence, cast, Sized, Iterable
 from util import is_singleton_string_list, caststr
 
 STRING_LITERAL_MARKER = "STRLIT"
@@ -17,16 +17,46 @@ splits_word_only = {':','=',','}
 all_symb_tags = quotelike.union(left_groupers).union(';')
 
 
-class SExpr(List[Union['SExpr', str]]):
-    def __init__(self,symb,lst:List[Union['SExpr', str]]=None, line:int=None, col:int=None) -> None:
-        super().__init__(lst if lst else [])
+"""
+Formerly was a subtype of List[Union['SExpr', str]], but that exposed too many List methods, making bugs harder to find.
+Now a wrapper around a list of SExpr's and strings.
+"""
+class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
+    def __init__(self,
+                 symb:str, # member of left_groupers
+                 lst:List[Union['SExpr', str]] = None,
+                 line:int = None,
+                 col:int = None) -> None:
+        # super().__init__(lst if lst else [])
         self.symb = symb
+        self.lst = lst if lst else []
         self.line = line
         self.col = col
         assert isinstance(symb,str) and symb in all_symb_tags
 
+    def tillEnd(self,i:int) -> 'SExpr':
+        return SExpr(self.symb, self.lst[i:], self.line, self.col)
+
+    def __getitem__(self, item):
+        return self.lst.__getitem__(item)
+
+    def __len__(self):
+        return len(self.lst)
+
+    def __iter__(self):
+        return self.lst.__iter__()
+
+    def append(self, x:Union['SExpr',str]):
+        self.lst.append(x)
+
+    def __str__(self):
+        return str(self.lst)
+
+    def __repr__(self):
+        return repr(self.lst)
+
 def castse(x: Any) -> SExpr:
-    assert isinstance(x, list), x
+    # assert isinstance(x, list), x
     return cast(SExpr, x)
 
 SExprOrStr = Union[SExpr,str]
@@ -145,13 +175,17 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
                 skip_next_char = True
                 maybeAppendToken()
 
+            elif in_str_lit and char == '\n':
+                assert False, "\nNo linebreaks in strings, just to prevent hard-to-diagnose syntax errors. See line {} column {}".format(line,col)
+
+            elif in_str_lit:
+                word += char
+
             elif char in splits_word_only:
                 maybeAppendToken()
                 word = char
                 maybeAppendToken()
 
-            elif in_str_lit and char == '\n':
-                assert False, "\nNo linebreaks in strings, just to prevent hard-to-diagnose syntax errors. See line {} column {}".format(line,col)
 
             else:
                 word += char
@@ -181,7 +215,7 @@ def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
     indent : str = " "*nspaces
     if isinstance(l,str):
         return indent + caststr(l)
-    elif isinstance(l,list) and len(l) >= 1 and l[0] == STRING_LITERAL_MARKER:
+    elif isinstance(l,SExpr) and len(l) >= 1 and l[0] == STRING_LITERAL_MARKER:
         return indent + "`" + caststr(l[1]) + "`"
     else:
         lsymb = l.symb if isinstance(l,SExpr) else "("
@@ -193,7 +227,7 @@ def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
                 s += " " + x
             elif isinstance(x,list) and len(x) == 0:
                 s += "()"
-            elif isinstance(x,SExpr) and x.symb == '[' and is_singleton_string_list(x):
+            elif isinstance(x,SExpr) and x.symb == '[' and is_singleton_string_list(x.lst):
                 s += " [" + caststr(x[0]) + "]"
             elif isinstance(x,list) and len(x) >= 1 and x[0] == STRING_LITERAL_MARKER:
                 s += " `" + caststr(x[1]) + "`"

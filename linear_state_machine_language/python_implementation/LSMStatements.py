@@ -67,6 +67,16 @@ class Float(Term):
     def __init__(self,val:float) -> None:
         self.val = val
 
+    def __str__(self) -> str:
+        return str(self.val)
+
+class Int(Term):
+    def __init__(self,val:int) -> None:
+        self.val = val
+
+    def __str__(self) -> str:
+        return str(self.val)
+
 class Bool(Term):
     def __init__(self,val:bool) -> None:
         self.val = val

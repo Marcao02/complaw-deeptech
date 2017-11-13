@@ -3,9 +3,9 @@ import logging
 from LSMTop import *
 from parse_sexpr import prettySExprStr, SExpr, SExprOrStr, castse, STRING_LITERAL_MARKER, parse_file
 from state_diagram_generation import contractToDotFile
-from util import streqci, list_split, caststr, isFloat
+from util import streqci, list_split, caststr, isFloat, isInt
 from typing import Tuple, cast, Optional, List
-from LSMStatements import Term, ContractParamDec, Float, Bool
+from LSMStatements import Term, ContractParamDec, Float, Bool, Int
 
 class Assemble:
     def __init__(self, filename:str) -> None:
@@ -26,21 +26,21 @@ class Assemble:
         x : SExpr
         for x in l:
             assert len(x) >= 2, "Problem top-level: " + str(x)
-            rem = cast(SExpr,x[1:])
+            rem = x.tillEnd(1)
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)
 
             if   head( GLOBAL_VARS_SECTION_LABEL ):
                 assert isinstance(x,SExpr), type(x)
-                self._top.global_var_decs = self.global_vars(cast(SExpr, rem))
+                self._top.global_var_decs = self.global_vars(rem)
             elif head( CONTRACT_PARAMETERS_SECTION_LABEL ):
                 # assert all(isinstance(expr[0],str) for expr in rem)
                 self._top.contract_params = {caststr(expr[0]) : self.contract_param(expr) for expr in rem}
             elif head( CLAIMS_SECTION_LABEL ):
-                self._top.claims = self.claims(cast(SExpr,rem))
+                self._top.claims = self.claims(rem)
             elif head( ACTORS_SECTION_LABEL ):
-                self._top.actors = self.actors(cast(List[str],rem))
+                self._top.actors = self.actors(rem)
             elif head( PROSE_CONTRACT_SECTION_LABEL ):
                 self._top.prose_contract = self.prose_contract(cast(List[List[str]],rem))
             elif head( FORMAL_CONTRACT_SECTION_LABEL ):
@@ -96,10 +96,10 @@ class Assemble:
         # logging.info(str(rv))
         return rv
 
-    def actors(self, l:List[str]) -> List[str]:
+    def actors(self, s:SExpr) -> List[str]:
         # logging.info(str(l))
-        self.assertOrSyntaxError(all(isinstance(x, str) for x in l), castse(l), "Actors declaration S-expression should have the form (Actors Alice Bob)")
-        return cast(List,l).copy()
+        self.assertOrSyntaxError(all(isinstance(x, str) for x in s), s, "Actors declaration S-expression should have the form (Actors Alice Bob)")
+        return cast(List[str],s.lst.copy())
 
     def prose_contract(self, l: List[List[str]]) -> ProseContract:
         rv = {x[0]: x[1] for x in l}
@@ -109,6 +109,7 @@ class Assemble:
     def formal_contract(self, l:SExpr) -> FormalContract:
         estates: Dict[EventStateId, EventState] = dict()
         start_state: str   # EventState id
+        x: SExpr
 
         for x in l[1:]:
             assert len(x) >= 2
@@ -133,60 +134,78 @@ class Assemble:
                 if isinstance(x[1], str):
                     # e.g. (Event&State SomethingHappens ...)
                     estate_id = x[1]
-                    estate_data = castse(x[2:])
-                    estates[estate_id] = self.event_state(estate_id, None, estate_data)
+                    estate_data = x.tillEnd(2)
+                    estates[estate_id] = self.event_state(estate_id, None, estate_data, head(ACTIONSTATE_LABEL))
                 else:
                     # e.g. (Event&State (SomethingHappens param&sort1 param&sort2) ...)
                     estate_id = caststr(x[1][0])
                     estate_params = castse(x[1][1:])
-                    estate_data = castse(x[2:])
-                    estates[estate_id] = self.event_state(estate_id, estate_params, estate_data)
+                    estate_data = castse(x.tillEnd(2))
+                    estates[estate_id] = self.event_state(estate_id, estate_params, estate_data, head(ACTIONSTATE_LABEL))
             else:
                 self.syntaxError(l, f"Unrecognized head {x[0]}")
 
         return FormalContract(caststr(l[0][1]), estates, start_state)
 
-    def event_state(self, es_id:EventStateId, params:Optional[SExpr], rest:SExpr) -> EventState:
-        es = EventState(es_id)
-        es.proper_actor_blocks = dict()
+    def event_state(self, es_id:EventStateId, params:Optional[SExpr], rest:SExpr, is_action_state:bool) -> EventState:
+        es = EventState(es_id, is_action_state)
+        es.connections_by_role = dict()
+        x: SExpr
         if isinstance(params, SExpr):
             es.params = self.event_state_params(cast(List[List[str]],params))
         for x in rest:
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)
+
             if head(EVENT_STATE_DESCRIPTION_LABEL):
                 es.description = caststr(x[1][1]) # extract from STRLIT expression
+
             elif head(EVENT_STATE_PROSE_REFS_LABEL):
                 es.prose_refs = cast(List,x[1:]).copy()
+
             elif head(CODE_BLOCK_LABEL):
                 es.code_block = self.code_block(cast(List[SExpr],x[1:]), es)
+
             elif head(NONACTION_BLOCK_LABEL):
                 es.nonactor_block = self.nonactor_block(castse(x[1:]), es_id)
-            elif head(EVENT_STATE_ACTOR_BLOCKS_LABEL):
-                actorblocks = castse(x[1:])
-                for actorblock in actorblocks:
-                    actor_id = caststr(actorblock[0])
-                    deontic_keyword = caststr(actorblock[1])
-                    rest2 : SExpr
-                    deontic_guard : Term
-                    try:
-                        if deontic_keyword in DEONTIC_GUARD_MODALITIES:
-                            deontic_guard = self.parse_term(cast(SExprOrStr,actorblock[2]))
-                            rest2 = castse(actorblock[3:])
-                        else:
-                            deontic_guard = None
-                            rest2 = castse(actorblock[2:])
-                    except Exception as e:
-                        logging.error("Problem possibly with deontic_keyword: " + str(deontic_keyword))
-                        raise e
 
-                    if actor_id not in es.proper_actor_blocks:
-                        es.proper_actor_blocks[actor_id] = set()
+            elif head(OUT_TRANSITIONS_LABEL):
+                if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesDisjointExhaustive'):
+                    x = x[1]
+                    print("TODO: guardsDisjointExhaustive etc")
+                connections = castse(x.tillEnd(1))
+                for connection in connections:
+                    # Ah, this has actually changed substantially. There are no longer actor blocks.
 
-                    es.proper_actor_blocks[actor_id].update(
-                        self.actor_block(cast(List[SExpr],rest2), es_id, actor_id, deontic_keyword, deontic_guard))
+                    deontic_guard: Term = None
+                    if connection[0] == 'if':
+                        deontic_guard = self.parse_term(connection[1], es_id)
+                        connection = connection[2]
 
+                    print(connection)
+                    actor_id = caststr(connection[0])
+                    deontic_keyword = caststr(connection[1])
+                    rest2 : SExpr = connection.tillEnd(2)
+
+                    # try:
+                    #     if deontic_keyword in DEONTIC_GUARD_MODALITIES:
+                    #         deontic_guard = self.parse_term(cast(SExprOrStr,connection[2]))
+                    #         rest2 = castse(connection[3:])
+                    #     else:
+                    #         deontic_guard = None
+                    #         rest2 = castse(connection[2:])
+                    # except Exception as e:
+                    #     logging.error("Problem possibly with deontic_keyword: " + str(deontic_keyword))
+                    #     raise e
+
+                    if actor_id not in es.connections_by_role:
+                        es.connections_by_role[actor_id] = set()
+
+                    es.connections_by_role[actor_id].add(
+                        # self.actor_block(cast(List[SExpr],rest2), es_id, actor_id, deontic_keyword, deontic_guard))
+                        self.transition_clause(rest2, es_id, actor_id, deontic_keyword, deontic_guard)
+                    )
 
         return es
 
@@ -248,6 +267,8 @@ class Assemble:
                 return LocalVar(x)
             if x in self._top.contract_params:
                 return ContractParam(self._top.contract_params[x])
+            if isInt(x):
+                return Int(int(x))
             if isFloat(x):
                 return Float(float(x))
             if x == 'false':
@@ -280,29 +301,25 @@ class Assemble:
 
     def transition_clause(self, trans_spec:SExpr, src_es_id:EventStateId, actor_id:ActorId,
                           deontic_modality: Optional[DeonticKeyword] = None, deontic_guard: Optional[Term] = None) -> TransitionClause:
-        assert len(trans_spec) >= 3, f"See src EventState {src_es_id} actor section {actor_id} trans_spec {trans_spec}"
-        dest_id : str = caststr(trans_spec[0])
+        # assert len(trans_spec) >= 3, f"See src EventState {src_es_id} actor section {actor_id} trans_spec {trans_spec}"
+        self.assertOrSyntaxError(isinstance(trans_spec[0], SExpr), trans_spec)
+        dest_id : str = caststr(trans_spec[0][0])
         self._referenced_event_stateids.add(dest_id)
         tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, deontic_guard)
-        tc.args = castse(trans_spec[1])
+        tc.args = castse(trans_spec[0][1:])
 
-        ind = 2
-        if 'where' in trans_spec[2:]:
-            ind = trans_spec.index('where')
-            tc.where_clause = self.parse_term(castse(trans_spec[ind+1]))
-            ind = ind + 2
+        assert 'where' not in trans_spec
 
-        for deadline_keyword in DEADLINE_OPERATORS:
-            if deadline_keyword in trans_spec[2:]:
-                ind = trans_spec.index(deadline_keyword)
-                tc.deadline_clause = castse(trans_spec[ind:ind+2])
-                ind = ind + 2
-                # TODO
-                # tc.deadline_clause = DeadlineClause(trans_spec[ind], trans_spec[ind + 1:])
+        done_with_deadline = False
+        if len(trans_spec) > 1:
+            if trans_spec[1] in DEADLINE_KEYWORDS:
+                tc.deadline_clause = trans_spec[1]
+                done_with_deadline = True
 
-        # TODO conditions should be obsolete
-        tc.conditions = castse(trans_spec[ind:])
-        # print(tc.conditions)
+            if not done_with_deadline:
+                if len(trans_spec[1]) > 0 and trans_spec[1][0] in DEADLINE_OPERATORS:
+                    tc.deadline_clause = self.parse_term(trans_spec[1], src_es_id)
+
         return tc
 
     def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
@@ -360,7 +377,7 @@ def try_parse_postfix(lst:SExpr) -> Tuple[str, SExpr]:
 EXAMPLES = (
     # '../examplesLSM4/hvitved_printer.LSM',
     # '../examplesLSM4/hvitved_lease.LSM',
-    'examplesLSM4/monster_burger.LSM',
+    '../examplesLSM4/monster_burger.LSM',
     # '../examplesLSM4/SAFE.LSM',
     # '../examplesLSM4/hvitved_master_sales_agreement_simplified.LSM',
     # '../examplesLSM4/hvitved_master_sales_agreement_full.LSM',

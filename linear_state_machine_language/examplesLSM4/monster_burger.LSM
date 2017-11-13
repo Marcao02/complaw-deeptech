@@ -62,10 +62,12 @@
 		(Entrance
 			(amount_owing = MB_PRICE)
 		)
-		(verifiedDisjointExhaustive
-			(Restaurant may (ServeMB) (within MAX_SERVE_DELAY))
-			(PromptServeGuaranteeViolated (after MAX_SERVE_DELAY))
-		)
+		(Next
+            (deadlinesDisjointExhaustive
+            (Restaurant may (ServeMB) (within MAX_SERVE_DELAY))
+            (Env transpires (PromptServeGuaranteeViolated) (after MAX_SERVE_DELAY))
+            )
+        )
 	)
 
 	(Action&State ServeMB
@@ -80,7 +82,9 @@
 		(Entrance
 			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER afterEntrance))
 		)
-		(EatingMB)
+		(Next
+		    (Env transpires (EatingMB) immediately)
+		)
 	)
 
 
@@ -93,7 +97,9 @@
 		(Entrance
 			(amount_owing = 0)
 		)
-		(Fulfilled)
+		(Next
+		    (Env transpires (Fulfilled) immediately)
+		)
 	)
 
 	(Event&State EatingMB
@@ -109,14 +115,16 @@
 		; this state can be visited is possibly as small as 0, and can't be bounded by any constant number.
 		(0 ≤ visits ≤ nonconstant)
 
-		; LANG note: `verifiedDisjointExhaustive` will tell the static checker to verify that it is
-        ; always the case that exactly one of the tests of the children conditionals is true.
-        ; I think we should at least encourage this style of order-insensitive conditionals.
-		(verifiedDisjointExhaustive
-			(Challenger may (AnnounceMBFinished) (beforeO challenge_endlimit_timestamp))
-			(Restaurant should (CheckFinishedClaim) (afterC_withinC challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-			(LateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
-		)
+        (Next
+            ; LANG note: `verifiedDisjointExhaustive` will tell the static checker to verify that it is
+            ; always the case that exactly one of the tests of the children conditionals is true.
+            ; I think we should at least encourage this style of order-insensitive conditionals.
+            (deadlinesDisjointExhaustive
+            (Challenger may (AnnounceMBFinished) (beforeO challenge_endlimit_timestamp))
+            (Restaurant should (CheckFinishedClaim) (afterC_withinC challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+            (Env transpires (LateCheck) (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
+            )
+        )
 	)
 
 	(Action&State AnnounceMBFinished
@@ -129,10 +137,12 @@
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Challenger)
 
-		(verifiedDisjointExhaustive
-			(Restaurant should (CheckFinishedClaim) (withinC MAX_CLAIM_VERIFICATION_DELAY))
-			(LateCheck (at_next MAX_CLAIM_VERIFICATION_DELAY))
-		)
+        (Next
+            (deadlinesDisjointExhaustive
+            (Restaurant should (CheckFinishedClaim) (withinC MAX_CLAIM_VERIFICATION_DELAY))
+            (Env transpires (LateCheck) (at_nextC MAX_CLAIM_VERIFICATION_DELAY))
+            )
+        )
 	)
 
 	(Event&State LateCheck
@@ -143,18 +153,19 @@
 		(Entrance
 			(amount_owing = 0)
 		)
-		(Fulfilled)
+		(Next
+		    (Env transpires (Fulfilled))
+		)
 	)
 
-	(DefinedAction CheckFinishedClaim
+	(Action&State CheckFinishedClaim
 		; "either {VerifyFinishedClaim} or {RejectFinishedClaim}"
 
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Restaurant)
-
-		(choose
-			(VerifyFinishedClaim)
-			(RejectFinishedClaim)
+        (Next
+		    (Restaurant should (VerifyFinishedClaim) immediately)
+		    (Restaurant should (RejectFinishedClaim) immediately)
 		)
 	)
 
@@ -168,14 +179,16 @@
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Restaurant)
 
-		(verifiedDisjointExhaustive
-			(if (currentTimeNoLaterThan? challenge_endlimit_timestamp)
-				(EatingMB)
-			)
-			(if (currentTimeAfter? challenge_endlimit_timestamp)
-				(Customer should immediately (PayForMB))
-			)
-		)
+        (Next
+            (guardsDisjointExhaustive
+            (if (currentTimeNoLaterThan? challenge_endlimit_timestamp)
+                (Env transpires (EatingMB) immediately)
+            )
+            (if (currentTimeAfter? challenge_endlimit_timestamp)
+                (Customer should (PayForMB) immediately)
+            )
+            )
+        )
 	)
 
 	(Action&State PayForMB
@@ -191,7 +204,9 @@
 			(amount_paid = amount_owing)
 			(amount_owing = 0)
 		)
-		(Fulfilled)
+		(Next
+		    (Env transpires (Fulfilled))
+		)
 	)
 
 	(Action&State VerifyFinishedClaim
@@ -205,7 +220,9 @@
 		(Entrance
 			(amount_owing = 0)
 		)
-		(Fulfilled)
+		(Next
+		    (Env transpires (Fulfilled))
+		)
 	)
 
 )
