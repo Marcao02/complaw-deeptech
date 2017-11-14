@@ -2,6 +2,15 @@ SAFE.LSM in this directory is the L4 formalization of the Y-Combinator SAFE cont
 
 The ALL_CAPS parameters in the `contract params` and `oracle inputs` sections provide the numbers that contribute to the outcome of the contract. The parameters in `contract params` are set at the start of the contract. The parameters in `oracle inputs` may or may not come into play. The 2nd through 5th, for example, are defined only if the `Company` performs the action `CommitToLiquidityEvent`, and those numbers must be provided at that time.
 
+# Example L4 contracts
+We have written almost every example we've found in the literature in some version of L4. However, while we have been focused on improving the syntax and semantics of L4, the examples have suffered from bit rot. The examples in this directory are the most recent, and those in `../examplesLSM4` are next-to-most-recent. See also `ABOUT-this-directory.md`.
+
+# L4 Principles
+
+We have taken a lot of time to survey the literature on languages for writing computational contracts. Our language encorporates the best ideas from each of them, while avoiding some common choices that would severely limit the usefulness of the language. 
+Most languages for writing computational contracts are based on modal logic, and using them requires knowledge of modal logic. We decided that is too high a barrier to entry, and that the benefits of using the language of modal logic are small anyway. 
+Most languages for computational contracts are constructed to exploit the technology of model checking. We have found that design decision was arrived at in an uncritical way, and we believe that it has been the main cause of efficiency issues experienced by the various research groups. 
+
 # L4 Tutorial
 
 *Note*: The terminology and syntax used in this tutorial is out of date, but all the ideas are still present in the current version of L4.
