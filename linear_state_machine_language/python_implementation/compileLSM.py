@@ -167,9 +167,6 @@ class Assemble:
             elif head(CODE_BLOCK_LABEL):
                 es.code_block = self.code_block(cast(List[SExpr],x[1:]), es)
 
-            elif head(NONACTION_BLOCK_LABEL):
-                es.nonactor_block = self.nonactor_block(castse(x[1:]), es_id)
-
             elif head(OUT_TRANSITIONS_LABEL):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesDisjointExhaustive'):
                     x = x[1]
@@ -180,7 +177,7 @@ class Assemble:
 
                     deontic_guard: Term = None
                     if connection[0] == 'if':
-                        deontic_guard = self.parse_term(connection[1], es_id)
+                        deontic_guard = self.parse_term(connection[1], es)
                         connection = connection[2]
 
                     print(connection)
@@ -203,8 +200,7 @@ class Assemble:
                         es.connections_by_role[actor_id] = set()
 
                     es.connections_by_role[actor_id].add(
-                        # self.actor_block(cast(List[SExpr],rest2), es_id, actor_id, deontic_keyword, deontic_guard))
-                        self.transition_clause(rest2, es_id, actor_id, deontic_keyword, deontic_guard)
+                        self.transition_clause(rest2, es, actor_id, deontic_keyword, deontic_guard)
                     )
 
         return es
@@ -282,29 +278,19 @@ class Assemble:
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
             return StringLit(caststr(x[1]))
         else:
-            pair = try_parse_infix(x) or try_parse_prefix(x) or try_parse_postfix(x)
+            pair = maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)
             if not pair:
                 logging.error("Didn't recognize function symbol in: " + str(x))
                 self.syntaxError(x)
             return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
-        # return term
 
-    def actor_block(self, trans_specs:List[SExpr], src_esid: EventStateId,
-                    actor_id:ActorId,
-                    deontic_keyword: DeonticKeyword,
-                    deontic_guard:Term) -> Set[TransitionClause]:
-        return {self.transition_clause(tcs, src_esid, actor_id, deontic_keyword, deontic_guard) for tcs in trans_specs}
-
-    def nonactor_block(self, trans_specs:SExpr, src_esid: EventStateId) -> Set[TransitionClause]:
-        assert trans_specs is not None
-        return {self.nonactor_transition_clause(tcs, src_esid) for tcs in trans_specs}
-
-    def transition_clause(self, trans_spec:SExpr, src_es_id:EventStateId, actor_id:ActorId,
+    def transition_clause(self, trans_spec:SExpr, src_es:EventState, actor_id:ActorId,
                           deontic_modality: Optional[DeonticKeyword] = None, deontic_guard: Optional[Term] = None) -> TransitionClause:
         # assert len(trans_spec) >= 3, f"See src EventState {src_es_id} actor section {actor_id} trans_spec {trans_spec}"
         self.assertOrSyntaxError(isinstance(trans_spec[0], SExpr), trans_spec)
         dest_id : str = caststr(trans_spec[0][0])
         self._referenced_event_stateids.add(dest_id)
+        src_es_id = src_es.name
         tc = TransitionClause(src_es_id, dest_id, actor_id, deontic_modality, deontic_guard)
         tc.args = castse(trans_spec[0][1:])
 
@@ -313,64 +299,52 @@ class Assemble:
         done_with_deadline = False
         if len(trans_spec) > 1:
             if trans_spec[1] in DEADLINE_KEYWORDS:
-                tc.deadline_clause = trans_spec[1]
+                tc.deadline_clause = self.parse_term(trans_spec[1], src_es)
                 done_with_deadline = True
 
             if not done_with_deadline:
                 if len(trans_spec[1]) > 0 and trans_spec[1][0] in DEADLINE_OPERATORS:
-                    tc.deadline_clause = self.parse_term(trans_spec[1], src_es_id)
+                    tc.deadline_clause = self.parse_term(trans_spec[1], src_es)
 
         return tc
 
-    def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
-        try:
-            dest_id: str = trans_spec[0]
-            self._referenced_event_stateids.add(dest_id)
-            tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL, None)
-            tc.args = trans_spec[1]
-            if len(trans_spec) > 2:
-                if trans_spec[2] in DEADLINE_OPERATORS:
-                    tc.conditions = trans_spec[2:4]
-                else:
-                    # assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
-                    tc.conditions = trans_spec[2:4]
-                return tc
-            return tc
-        except Exception:
-            logging.error(f"Problem processing {src_es_id} trans: " + str(trans_spec))
-            return None
+    # def nonactor_transition_clause(self,trans_spec, src_es_id:EventStateId) -> TransitionClause:
+    #     try:
+    #         dest_id: str = trans_spec[0]
+    #         self._referenced_event_stateids.add(dest_id)
+    #         tc = TransitionClause(src_es_id, dest_id, NONACTION_BLOCK_LABEL, None)
+    #         tc.args = trans_spec[1]
+    #         if len(trans_spec) > 2:
+    #             if trans_spec[2] in DEADLINE_OPERATORS:
+    #                 tc.conditions = trans_spec[2:4]
+    #             else:
+    #                 # assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
+    #                 tc.conditions = trans_spec[2:4]
+    #             return tc
+    #         return tc
+    #     except Exception:
+    #         logging.error(f"Problem processing {src_es_id} trans: " + str(trans_spec))
+    #         return None
 
-def try_parse_infix(lst:SExpr) -> Tuple[str, SExpr]:
-    try:
-        if len(lst) == 3 and isinstance(lst[1],str):
-            symb : str = lst[1]
-            if symb in INFIX_FN_SYMBOLS:
-                return symb, castse([lst[0]] + lst[2:])
-        return None
-    except:
-        print("try_parse_infix")
-        return None
-
-
-def try_parse_prefix(lst:SExpr) -> Tuple[str, SExpr]:
-    if isinstance(lst[0],str):
-        symb = lst[0]
+def maybe_as_prefix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
+    if isinstance(se[0],str):
+        symb = se[0]
         if symb in PREFIX_FN_SYMBOLS:
-            if len(lst) == 1:
-                return symb, castse([])
-            else:
-                return symb, castse(lst[1:])
+            return symb, se.tillEnd(1)
     return None
 
+def maybe_as_infix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
+    if len(se) == 3 and isinstance(se[1],str):
+        symb : str = se[1]
+        if symb in INFIX_FN_SYMBOLS:
+            return symb, se.withDropped(1)
+    return None
 
-def try_parse_postfix(lst:SExpr) -> Tuple[str, SExpr]:
-    if isinstance(lst[1],str):
-        symb = lst[1]
+def maybe_as_postfix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
+    if isinstance(se[-1],str):
+        symb = se[-1]
         if symb in POSTFIX_FN_SYMBOLS:
-            if len(lst) == 1:
-                return symb, castse([])
-            else:
-                return symb, castse( [lst[0]] + lst[2:] )
+            return symb, se.fromStartToExclusive(len(se) - 1)
     return None
 
 

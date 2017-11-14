@@ -18,7 +18,7 @@ def eventStateAsDotNodeStr(es: EventState, all_actors: List[str]) -> str:
 
 
 def transitionAsDotArcStr(tc: TransitionClause) -> str:
-    if tc.actor_id == NONACTION_BLOCK_LABEL:
+    if tc.actor_id == ENV_ROLE:
         return f"{tc.src_id} -> {tc.dest_id} [style=dashed]"
     else:
         return f"{tc.src_id} -> {tc.dest_id}"

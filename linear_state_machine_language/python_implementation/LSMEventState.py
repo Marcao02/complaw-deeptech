@@ -36,7 +36,7 @@ class TransitionClause:
 
         self.conditions : SExpr = None # deadline and guard
         self.where_clause : Term = None
-        self.deadline_clause : SExpr = None
+        self.deadline_clause : Term = None
         self.enabled_guard = enabled_guard
 
     def __str__(self) -> str:
