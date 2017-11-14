@@ -15,23 +15,28 @@
 
 %In this version, all events are actions, and a special role \introx{Env}{Env} is used to model events with no role.
 
-\noindent Click most terms (in \color{TermColor}this color\color{black}) to jump to their first underlined usage.
+\noindent 
 
-\noindent {\bf NTS:}
-\begin{PPI}
-\item {\bf How to read this document}
-\item Section and Connection
+%\noindent {\bf NTS:}
+%\begin{PPI}
+%\item {\bf How to read this document}
+%\item State $\to$ Section and Edge $\to$ Connection
 %\item Introduce a language for defining nonsingleton event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$.
-
-\item Should I remove relievable must-next edges? {\bf No.}
-
-This was the idea for removing: Let $\evar$ be such an edge. First, change it to a may-next edge, keeping its transition guard. So its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next edges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
-
-\end{PPI}
+%\item Should I remove relievable must-next edges? {\bf No.}
+%
+%This was the idea for removing: Let $\evar$ be such an edge. First, change it to a may-next edge, keeping its transition guard. So its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next edges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
+%\end{PPI}
 
 \tableofcontents
 
+\section{How to Read this Document} 
+{\bf Please note} that we have not yet taken the time to make this document as widely accessible as it will be eventually, because the contents are still changing frequently.
 
+This document defines the programming language-independent mathematical model that we will use to define the semantics of our formal contracts language L4. This document also serves as the specification for the formal contract datatype that our natural language generation, formal verification, and visualization software will use.
+
+The the next three sections contain complete formal contract model definitions, with Section \ref{globalvars} extending the model defined in Section \ref{basics}, and Section \ref{eventparams} extending the model defined in Section \ref{globalvars}. Section \ref{eventparams} is currently the most complete writeup of the L4 semantics. 
+
+Click most terms (in \color{TermColor}this color\color{black}) to jump to their first underlined usage.
 
 \section{Events, Time, Traces, Finite State Contracts} \label{basics}
 
@@ -44,16 +49,16 @@ An \introxx{Event}{event}{Events}{events} $E$ is composed of an \introxx{Action}
 
 A \introxx{trace}{trace}{traces}{traces} is a sequence of \Events. The \TimeStamps of the \Events must be nondecreasing. Thus, within the smallest unit of time, any number of \Events can happen; however, they are always strictly ordered. The idea here is that we want \Events to be strictly ordered for simplicity and to minimize the size of the space of execution traces, but if we made the \TimeStamps strictly increasing, we would need to be working at a level of granularity for time that is at least one level smaller than the smallest unit of time that would appear in an informal version of the contract (at least when \TimeUnit = days, since contracts that use days as their minimum unit generally do not require that all \Events happen on different days).
 
-A \Contract has a fixed finite number of \introxx{States}{states}{State}{state}, one of which is designated the \introx{startstate}{start state}, and which includes at least the following:
+A \Contract has a fixed finite number of \introxx{States}{sections}{State}{section}, one of which is designated the \introx{startstate}{start section}, and which includes at least the following:
 \begin{LPPI}
 \item \introx{fulfilled}{fulfilled}
 \item \intro{$\breached{X}$} for each nonempty subset $X$ of the \Roles. There is also an \Action \intro{$\breaches{X}$} for each such $X$, and $\intro{\breach{X}{t}}$ is defined as the \Event $\tup{\breaches{X}, \Env, t}$
 \end{LPPI}
-Between any two events in a \trace, the \Contract is in some \introx{GlobalState}{global state} $G$ which consists of at least a \State $\state{G}$ and a timestamp $\entranceTime{G}$ (in Section \ref{globalvars}, global variables will be added).
+Between any two events in a \trace, the \Contract is in some \introx{GlobalState}{global state} $G$ which consists of at least a \State $\state{G}$ and a \TimeStamp $\entranceTime{G}$ (in Section \ref{globalvars}, global variables will be added).
 
 \medskip
 
-A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{skeleton}{skeleton}; the nodes are the \States, and each directed edge, which we will call an \introxx{transition}{\nameforedge}{transitions}{\nameforedges}, is labeled with an \Action. The \skeleton is the part of the \Contract that is easy to visualize. Some notation:
+A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{Map}{map}; the nodes are the \States, and each directed edge, which we will call an \introxx{transition}{\nameforedge}{transitions}{\nameforedges}, is labeled with an \Action. The \Map is the part of the \Contract that is easy to visualize. Some notation:
 
 \newcommand{\atransition}{an \transition}
 
@@ -84,7 +89,7 @@ We say that \atransition $\evar$ and an \Event $E = \tup{a,r,t}$ are \introx{com
 
 
 Since the environment \Env cannot breach a contract or be {\it obligated} to do anything, no $\depTrans{\Env}$ can be a \mustntran or a \rmustntran.
-That completes the definition of the finite directed graph \skeleton of a \Contract.
+That completes the definition of the finite directed graph \Map of a \Contract.
 
 \medskip
 
@@ -337,12 +342,12 @@ The \bostgc ensures that one of those two cases will apply. In particular, it im
 
 
 \section{May-Later and Must-Later}  \label{slater}
-
+WIP
 
 This section does not actually change the definition of \Contract. Instead, it defines an often-useful \Contract structure that is likely to be supported with custom syntax in a \Contract-definition language.
 
 We have so far been noncommittal about what types are available for \GVars.% and \AParamsDomains.
-We will see later that the types strongly affect expressivity. As a special case, the reader should convince themselves that any \Contract that uses only boolean (or other finite domain) types can be simulated by a \FSContract (using a much larger number of \States).
+We will see later that the types strongly affect expressiveness. As a special case, the reader should convince themselves that any \Contract that uses only boolean (or other finite domain) types can be simulated by a \FSContract (using a much larger number of \States).
 
 %accounted for outcome of operation to be successful, to be technically faulty, a failure commercially, a unilateral failure
 %to ensure that when the contract / clause finishes, there will be no more pending obligations left (that's the condition for the conclusion of the transaction) (edited)

@@ -24,7 +24,7 @@
 	(amount_paid                       		: Price = 0)
 )
 
-(Actors Challenger Restaurant)
+(Roles Challenger Restaurant)
 
 (ContractParams
 	(MB_PRICE                     : Price    = $50)
@@ -45,9 +45,15 @@
 
 (FormalContract
 	"Monster Burger"
-	(StartState MonsterBurgerOrdered)
+	(StartSection ChallengerHasNotOrdered)
 
-	(Event&State MonsterBurgerOrdered
+	(Section ChallengerHasNotOrdered
+		(Next
+			(Challenger may (OrderMonsterBurger) nodeadline)
+		)
+	)
+
+	(Action&State OrderMonsterBurger
 		; {actionPast:MonsterBurgerOrdered} is "ordered a Monster Burger"
 		; Upon {Challenger} having just {actionPast:MonsterBurgerOrdered}:
 		; * {amount_owing} is set to {MB_PRICE}
@@ -58,6 +64,7 @@
 		; LANG note: static checker directive, which tells the static checker that this state
 		; is visited exactly once in any execution.
 		(visits == 1) ;
+		(AllowedSubjects Challenger)
 
 		(Entrance
 			(amount_owing = MB_PRICE)
