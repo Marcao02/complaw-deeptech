@@ -9,6 +9,9 @@ contract params:
 	START_INVESTOR_CASH : $
 
 global vars:
+	has_cap : Bool = (VALUATION_CAP > $0)
+	has_discount : Bool = (DISCOUNT_PERCENT > $0)
+
 	; this will only be nonzero in a liquidity event
 	investor_remaining_investment_L : $ = $0 ;# writeAtMostOnce
 	investor_Preferred_Stocks : ℕ = START_INVESTOR_PREFERRED_STOCKS  ;# writeAtMostOnce
@@ -37,8 +40,6 @@ oracle inputs:
 	COMPANY_CASH_AT_DISSOLUTION_EVENT : $
 	INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS : %
 
-
-)
 
 definitions:
 	DiscountRate = 100 - DISCOUNT_PERCENT

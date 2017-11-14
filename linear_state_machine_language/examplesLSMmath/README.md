@@ -1,0 +1,5 @@
+SAFE.LSM in this directory is the L4 formalization of the Y-Combinator SAFE contract with a valuation cap and discount. The versions without a valuation cap and/or discount are special cases (see `has_cap` and `has_discount` in `global vars` section).
+
+The ALL_CAPS parameters in the `contract params` and `oracle inputs` sections provide the numbers that contribute to the outcome of the contract. The parameters in `contract params` are set at the start of the contract. The parameters in `oracle inputs` may or may not come into play. The 2nd through 5th, for example, are defined only if the `Company` performs the action `CommitToLiquidityEvent`, and those numbers must be provided at that time.
+
+For a general, much more thorough, but technically out of date tutorial on L4, see `../LSM2_tutorial.md`
