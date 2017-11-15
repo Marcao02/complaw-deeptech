@@ -18,11 +18,11 @@
 %\newcommand{\GVars}{\legterm{global variables}}
 %\newcommand{\GVarTypes}{\legterm{GVarTypes}}
 
-\newcommand{\nameforedge}{edge}
-\newcommand{\nameforaedge}{a edge}
-\newcommand{\nameforedges}{edges}
-\newcommand{\evar}{e}
-\newcommand{\epvar}{\tau}
+\newcommand{\nameforedge}{connection}
+\newcommand{\nameforaedge}{a connection}
+\newcommand{\nameforedges}{connections}
+\newcommand{\evar}{c}
+\newcommand{\epvar}{\tau} % ep ???
 
 \newcommand{\depTrans}[1]{\ensuremath{#1\textsf{-\nameforedge}}}
 \newcommand{\depTranss}[1]{\ensuremath{#1\textsf{-\nameforedges}}}
@@ -37,7 +37,7 @@
 \newcommand{\itsTransform}[1]{\ensuremath{\textsf{transform}_{#1}}}
 
 % Properties of \transitions
-\newcommand{\tguard}[2]{\ensuremath{\textsf{edgeGuard}_{#1}(#2)}}
+\newcommand{\tguard}[2]{\ensuremath{\textsf{connectionGuard}_{#1}(#2)}}
 \newcommand{\deadline}[2]{\ensuremath{\textsf{deadline}_{#1}(#2)}}
 \newcommand{\role}[1]{\ensuremath{\textsf{role}_{#1}}}
 \newcommand{\actionname}[1]{\ensuremath{\textsf{actionName}_{#1}}}

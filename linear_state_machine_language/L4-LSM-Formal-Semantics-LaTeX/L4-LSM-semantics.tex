@@ -17,15 +17,14 @@
 
 \noindent 
 
-%\noindent {\bf NTS:}
-%\begin{PPI}
-%\item {\bf How to read this document}
-%\item State $\to$ Section and Edge $\to$ Connection
-%\item Introduce a language for defining nonsingleton event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$.
-%\item Should I remove relievable must-next edges? {\bf No.}
+\noindent {\bf NTS and todo:}
+\begin{PPI}
+\item State $\to$ Section and Edge $\to$ Connection
+\item Introduce a language for defining nonsingleton event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$. {\bf No}. That can be part of L4, but in the mathematical model it would just be messy.
+%\item Should I remove relievable must-next \nameforedges? {\bf No.}
 %
-%This was the idea for removing: Let $\evar$ be such an edge. First, change it to a may-next edge, keeping its transition guard. So its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next edges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
-%\end{PPI}
+%This was the idea for removing: Let $\evar$ be such \nameforaedge. First, change it to a may-next \nameforedge, keeping its transition guard. Its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next \nameforedges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
+\end{PPI}
 
 \tableofcontents
 
@@ -58,16 +57,14 @@ Between any two events in a \trace, the \Contract is in some \introx{GlobalState
 
 \medskip
 
-A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{Map}{map}; the nodes are the \States, and each directed edge, which we will call an \introxx{transition}{\nameforedge}{transitions}{\nameforedges}, is labeled with an \Action. The \Map is the part of the \Contract that is easy to visualize. Some notation:
-
-\newcommand{\atransition}{an \transition}
+A \Contract has a finite directed edge-labeled multigraph\footnote{By this I mean there may be multiple edges from one node to another, but they must have different labels.} which we might call its \introx{Map}{map}; the nodes are the \States, and each directed edge, which we will call a \introxx{connection}{\nameforedge}{connections}{\nameforedges}, is labeled with an \Action. The \Map is the part of the \Contract that is easy to visualize. Some notation:
 
 \begin{LPPI}
-\item For $r$ a \Role, an \intro{\depTrans{r}} is \atransition whose \Role is $r$.
-\item For $a$ an \Action, an \intro{\depEvent{a}} (\intro{\depTrans{a}}) is an \Event (\transition) whose \Action is $a$.
-\item For $s$ a \State, the \intro{\sInTransitions{s}} (\intro{\sOutTransitions{s}}) are the edges coming into (going out of) $s$.
+\item For $r$ a \Role, an \intro{\depTrans{r}} is \nameforaedge whose \Role is $r$.
+\item For $a$ an \Action, an \intro{\depEvent{a}} (respectively \intro{\depTrans{a}}) is an \Event (respectively \connection) whose \Action is $a$.
+\item For $s$ a \State, the \intro{\sInTransitions{s}} (\intro{\sOutTransitions{s}}) are the \nameforedges (edges) coming into (going out of) $s$.
 \end{LPPI}
-Every \transition is one of the following three types. They will be explained in more detail in the next section.
+Every \connection is one of the following three types. They will be explained in more detail in the next section.
 \introxxoutside{mustntran}{must-next \nameforedge}{mustntrans}{must-next \nameforedges}
 \introxxoutside{rmustntran}{relievable must-next \nameforedge}{rmustntrans}{relievable must-next \nameforedges}
 \introxxoutside{mayntran}{may-next \nameforedge}{mayntrans}{may-next \nameforedges}
@@ -76,9 +73,9 @@ Every \transition is one of the following three types. They will be explained in
 \item A \introxxinside{relievable must-next \nameforedge} defines the most used kind of obligated \Events. These are obligations that are relieved by the performance of a permitted {\Event} {\it by some other} agent.
 \item A \introxxinside{must-next \nameforedge} defines the strongest kind of obligated \Events.
 \end{LPPI}
-Note that the events defined by \rmustntrans and \mustntrans are also considered permitted \Events.
+Note that the events defined by \rmustntrans and \mustntrans are also considered permitted \Events. That completes the definition of the finite directed graph ``\Map'' view of a \Contract.
 
-We say that \atransition $\evar$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters.
+We say that \nameforaedge $\evar$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters.
 \medskip
 
 
@@ -88,26 +85,27 @@ We say that \atransition $\evar$ and an \Event $E = \tup{a,r,t}$ are \introx{com
 %\introxx{mayntran}{may next transition}{mayntrans}{may next transitions}
 
 
-Since the environment \Env cannot breach a contract or be {\it obligated} to do anything, no $\depTrans{\Env}$ can be a \mustntran or a \rmustntran.
-That completes the definition of the finite directed graph \Map of a \Contract.
+%Since the environment \Env cannot breach a contract or be {\it obligated} to do anything, no $\depTrans{\Env}$ can be a \mustntran or a \rmustntran.
+
+
 
 \medskip
 
-Each \transition $\evar$ is also associated with a \introxx{TGuard}{edge guard}{TGuards}{edge guards} $\tguard{\evar}{\cdot}$ relation. For \FSContracts, it is just a relation on \TimeStamps,
-and \atransition $\evar$ is \introx{enabled}{enabled} upon entering a \GlobalState with \TimeStamp $t$ iff $\tguard{\evar}{t}$ is true.\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}
+Each \connection $\evar$ is also associated with a relation $\tguard{\evar}{\cdot}$ called its \introxx{TGuard}{connection guard}{TGuards}{connection guards}.\footnote{But note that in L4 programs, the relation may often be the trivial always-true relation.} For \FSContracts, it is just a relation on \TimeStamps,
+and \nameforaedge\xspace $\evar$ is \introx{enabled}{enabled} upon entering a \GlobalState with \TimeStamp $t$ iff $\tguard{\evar}{t}$ is true.\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \connections get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}
 
 \medskip
 
-Each \transition $\evar$ is also associated with a \introx{DeadlineFn}{deadline function} $\deadline{\evar}{\cdot}$, which yields a \introxx{Deadline}{deadline}{Deadlines}{deadlines}. $\deadline{\evar}{t}$ is either a \TimeStamp after $t$, or the special element \introx{nodeadline}{$\infty$}. The \Deadline for \atransition is when:
+Each \connection $\evar$ is also associated with a \introx{DeadlineFn}{deadline function} $\deadline{\evar}{\cdot}$, which yields a \introxx{Deadline}{deadline}{Deadlines}{deadlines}. $\deadline{\evar}{t}$ is either a \TimeStamp after $t$, or the special element \introx{nodeadline}{$\infty$}. The \Deadline for \nameforaedge is when:
 %special elements \introx{discr}{discretionary} or \introx{nodeadline}{nodeadline}.
 % A \Deadline is either
 
 \begin{LPPI}
 	\item an \enabled \mayntran (a kind of permission) expires\footnote{Todo: expires should probably be a defined term.}.
 	\item an \enabled \mustntran (the strong form of obligation) causes a breach by $\role{\evar}$\footnote{Which recall, in this formal model means a transition to the state \breached{\{\role{\evar}\}}} if a \compatible \Event has not been performed by the deadline.
-	\item an \enabled \rmustntran (the weak form of obligation) causes a possibly-joint breach by $\role{\evar}$ if a \compatible \Event has not been performed by the deadline {\bf and} no other permitted \Event is performed by the deadline.
+	\item an \enabled \rmustntran (the weak form of obligation) causes a possibly-joint breach by $\role{\evar}$ if a \compatible \Event has not been performed by its \Deadline\xspace {\bf and} no other permitted \Event is performed by its \Deadline.
 	\end{LPPI}
-For \FSContracts, a \DeadlineFn is just a function from \TimeStamps to $\TimeUnit \cup \TimeStamps$. If $d$ is such a function, and a state is entered at \TimeStamp $t$, then:
+For \FSContracts, a \DeadlineFn is just a function from \TimeStamps to $\TimeUnit \cup \TimeStamps$. If $d$ is such a function, and a \State is entered at \TimeStamp $t$, then:
 \begin{LPPI}
 \item If $d(t) \in \TimeStamps$, the deadline is $d(t)$.
 	\item If $d(t) \in \TimeUnit$, the deadline is $t + d(t)$.
@@ -122,7 +120,7 @@ The \TGuards must satisfy the following conditions, which would be statically ve
 \noindent \introx{croc}{choiceless relievable obligations condition}: For every \Role r and \TimeStamp t, if one of $r$'s \rmustntrans's \TGuards evaluates to true (at $t$) then any other \rmustntrans for $r$ evaluate to false (at $t$).
 \medskip
 
-\noindent \introx{bostgc}{breach or somewhere to go condition}: If it is possible for all the \enabled non-\Env \transitions to expire simultaneously, without causing a breach (which entails that there are no enabled \mustntrans or \rmustntrans) then there must be an \depTrans{\Env} with \Deadline $\infty$.
+\noindent \introx{bostgc}{breach or somewhere to go condition}: If it is possible for all the \enabled non-\Env \connections to expire simultaneously, without causing a breach (which entails that there are no enabled \mustntrans or \rmustntrans) then there must be an \depTrans{\Env} with \Deadline $\infty$.
 \smallskip
 
 
@@ -140,7 +138,7 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 %\[ G = \tup{s,t} = G_i \qquad  G' = \tup{s',t'} = G_{i+1} \qquad A = \tup{a_A, r_A, t_A} = A_i\]
 \[ G = \tup{s,t} = G_i  \qquad E = \tup{a,r,t'} = E_i \qquad  G' = \tup{s',t'} = G_{i+1}\]
 
-{\bf Case 1}: There is some \enabled \mustntran $\evar$ in $G$. If there is any other \enabled \transition, then this \Contract (not just this \trace) violates the \uaoc, and so is invalid.\footnote{Recall that a language (tool) for \FSContracts will verify that such a thing can't happen.}
+{\bf Case 1}: There is some \enabled \mustntran $\evar$ in $G$. If there is any other \enabled \connection, then this \Contract (not just this \trace) violates the \uaoc, and so is invalid.\footnote{Recall that a language (tool) for \FSContracts will verify that such a thing can't happen.}
 \begin{PPI}
     \item If $E$ is \compatible with $\evar$ and $E$ happens within $\evar$'s deadline, then the next state must be $\trg{\evar}$.\footnote{i.e. if $t' \leq \deadline{\evar}{t}$ then $s' = \trg{\evar}$.} This means $E$ fulfilled the obligation created by $\evar$.
         \item Otherwise, $\role{e}$ must be $r$ and $E$ must be $\breach{r}{\deadline{\evar}{t} + 1}$. %Otherwise, If
@@ -148,14 +146,14 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 %    \item[(c)] If $E$ is \compatible with $\evar$ and $E$ happens after $\evar$'s deadline, then $\role{\evar}$ solely breaches the contract.
 \end{PPI}
 
-{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \transitions whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.}  let $T_p$ be the resulting set of \transitions. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\transitions} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
+{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \connections whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.}  let $T_p$ be the resulting set of \connections. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\connections} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
 \begin{PPI}
-	\item An \Event compatible with some \transition in $T_p$.
+	\item An \Event compatible with some \connection in $T_p$.
 	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} This means that all of the \Roles whose \enabled \rmustntran expire earliest (at $t^*$) are jointly responsible for the breach.
 \end{PPI}
 The \bostgc ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
 
-%Then $A$ must be \compatible with one of the \transitions in that filtered set.
+%Then $A$ must be \compatible with one of the \connections in that filtered set.
 
 %\pagebreak
 %%\item If $t'$ is within $\evar$'s deadline, there are two subcases:
@@ -173,7 +171,7 @@ The \bostgc ensures that one of those two cases will apply. In particular, it im
 %
 %Otherwise ($t'$ is past $\evar$'s deadline), the next state {\it must} be $\evar's$ \Role's \breach state, and moreover we specify that $t'$ is exactly one \TimeUnit past the deadline.\footnote{So $G' = \tup{\breached{\{\role{\evar}\}}, \deadline{\evar}{t} + 1}$.} Thus, when a \breach occurs because of a missed deadline, the final  \TimeStamp is maximally early.\\
 %
-%{\bf Case 2}: There is no \enabled \mustntran. Let $T$ be the \enabled \mayntrans of $s$.\footnote{i.e. the set of $\evar$ such that $\tguard{\evar}{t}$ is true.} Compute the deadline for each \transition in $T$, and discard the \transitions whose deadline has passed by the time $A$ happens.\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.} Then $A$ must be \compatible with one of the \transitions in that filtered set.
+%{\bf Case 2}: There is no \enabled \mustntran. Let $T$ be the \enabled \mayntrans of $s$.\footnote{i.e. the set of $\evar$ such that $\tguard{\evar}{t}$ is true.} Compute the deadline for each \connection in $T$, and discard the \connections whose deadline has passed by the time $A$ happens.\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.} Then $A$ must be \compatible with one of the \connections in that filtered set.
 
 
 
@@ -194,7 +192,7 @@ The \bostgc ensures that one of those two cases will apply. In particular, it im
 
 We introduce a set of basic datatypes $\TT$, which includes at least $\BB, \NN$, and $\ZZ$. Add to the definition of \Contract a fixed finite set of typed \introxxinside{global vars}. The \GVars are ordered, so we may describe their collective types as a single tuple $\introxinside{gvartypes} \in \TT^* $.
 
-Add to the definition of \GlobalState an assignment of values to the \GVars. We'll call such an assignment a \introx{gvarsassign}{global vars assignment}. A particular \gvarsassign \introx{initvals}{initvals} for the values of the \GVars in the unique \startstate is required for a \Contract. A \Contract-definition language that introduces a notion of \Contract template should define that in terms of an assignment of parameters to \initvals.
+Add to the definition of \GlobalState an assignment of values to the \GVars. We'll call such an assignment a \introx{gvarsassign}{global vars assignment}. A particular \gvarsassign \introx{initvals}{initvals} for the values of the \GVars in the unique \startstate is required for a \Contract; thus, our a technical definition of a \Contract is fully-instantiated, without parameters. Thus, for example, there is no \Contract representation of {\it the} Y-Combinator SAFE startup financing agreement, but there is a \Contract representation of every fully instantiated signed instance of it. This is not a restriction: any \Contract-definition language, such as L4, will really be a \Contract-template definition language. Making contract parameters part of the mathematical model at this point would only serve to make the model more cumbersome.\footnote{Later, if we need to write in \LaTeX\xspace about composing contracts, we may introduce a \Contract-template mathematical model.} %   that introduces a notion of \Contract template should define that in terms of an assignment of parameters to \initvals.
 
 %\begin{LPPI}
 %\item
@@ -208,22 +206,23 @@ Add to the definition of \GlobalState an assignment of values to the \GVars. We'
 \item Each \Action $a$ additionally has a \gvTransform, denoted \itsTransform{a}, which is a function from
 $\GVarTypes \times \TimeStamps$ to \GVarTypes.
 %$\GVarTypes \times \itsAParamsDomain{a} \times \TimeStamps$ to \GVarTypes.
-\item The definition of the \TGuard of a \depTrans{a} is generalized: it may now depend on the values of the \GVars; i.e. it is now a relation on $\TimeStamps \times \GVarTypes$.
+\item The definition of the \TGuard of an \depTrans{a} is generalized: it may now depend on the values of the \GVars; i.e. it is now a relation on $\TimeStamps \times \GVarTypes$.
 \end{LPPI}
 
-Now an $\TGuard$ is a relation on $\TimeStamps \times \GVarTypes$, and an $\depTrans{s}$ $\evar$ is \introx{enabledz}{enabled} upon entering a \GlobalState $\tup{s,t,\tau}$ iff $\tguard{\evar}{t,\tau}$ is true.
-%\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \transitions get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}
+Now a \TGuard is a relation on $\TimeStamps \times \GVarTypes$, and an $\depTrans{s}$ $\evar$ is \introx{enabledz}{enabled} upon entering a \GlobalState $\tup{s,t,\tau}$ iff $\tguard{\evar}{t,\tau}$ is true.
+%\footnote{Currently, LSM examples are written assuming the \TGuards of a \State s's \connections get evaluated only once upon entering the \State. It would also be reasonable to guess that they get evaluated once per \TimeUnit while the \Contract is in that state. This is not ideal.}
 
 
 The three named conditions on \TGuards are updated as follows. For every \State $s$:
+\medskip
 
-\noindent \introx{uaocz}{unique absolute obligation condition}: For every \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \mustntrans evaluates to true (on $G$) then every other \TGuard of $s$ evaluates to false. 
+\noindent \introx{uaocz}{unique unrelievable obligation condition}: For every \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \mustntrans evaluates to true (on $G$) then every other \TGuard of $s$ evaluates to false. 
 \medskip
 
 \noindent \introx{crocz}{role-unique relievable obligations condition}: For every \Role r and \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \rmustntrans with \Role $r$ evaluates to true (on $G$) then the \TGuard of every other of $s$'s \rmustntrans with \Role $r$ evaluates to false.
 \medskip
 
-\noindent \introx{bostgcz}{breach or somewhere to go condition}: If it is possible for all the \enabled non-\Env \transitions to expire simultaneously, without causing a breach (which entails that there are no enabled \mustntrans or \rmustntrans) then there must be an \depTrans{\Env} with \Deadline \nodeadline.
+\noindent \introx{bostgcz}{breach or somewhere to go condition}: If it is possible for all the \enabled non-\Env \connections to expire simultaneously, without causing a breach (which entails that there are no enabled \mustntrans or \rmustntrans) then there must be an \depTrans{\Env} with \Deadline \nodeadline.
 
 
 %\noindent The \uaoc is updated: Let $T$ be the set of \TGuards of the \mustntrans of some \State $s$. For any \GVars assignment $\sigma$ and \TimeStamp $t$, at most one of the \TGuards in $T$ evaluates to true. {\bf Todo}\footnote{Later will be: For any \GVars assignment $\sigma$ and \TimeStamp $t$ that makes $s$'s precondition true, at most one of the \TGuards in $T$ evaluates to true.}
@@ -259,16 +258,16 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 %\[ G = \tup{s,t} = G_i \qquad  G' = \tup{s',t'} = G_{i+1} \qquad A = \tup{a_A, r_A, t_A} = A_i\]
 \[ G = \tup{s,t,\sigma} = G_i  \qquad E = \tup{a,r,t'} =  E_i \qquad  G' = \tup{s',t', \sigma'} = G_{i+1}\]
 
-{\bf Case 1}: There is some \enabled \mustntran $\evar$ in $G$. If there is any other \enabled \transition, then this \Contract (not just this \trace) violates the \uaocz, and so is invalid.\footnote{Recall that a language (tool) for \Contracts will verify that such a thing can't happen.}
+{\bf Case 1}: There is some \enabled \mustntran $\evar$ in $G$. If there is any other \enabled \connection, then this \Contract (not just this \trace) violates the \uaocz, and so is invalid.\footnote{Recall that a language (tool) for \Contracts will verify that such a thing can't happen.}
 \begin{PPI}
     \item If $E$ is \compatible with $\evar$ and $E$ happens within $\evar$'s deadline ($t' \leq \deadline{\evar}{t}$), then the next state $s'$ must be $\trg{\evar}$, and $\sigma'$ must be $\itsTransform{a}(t,\sigma)$. This means $E$ fulfilled the obligation created by $\evar$.
     \item Otherwise, $\role{e}$ must be $r$ and $E$ must be $\breach{r}{\deadline{\evar}{t} + 1}$ and $\sigma' = \sigma$. %Otherwise, If $E$ is not \compatible with $\evar$ then $\role{\evar}$ solely breaches the contract. We specify that $E$ must be
 %    \item[(c)] If $E$ is \compatible with $\evar$ and $E$ happens after $\evar$'s deadline, then $\role{\evar}$ solely breaches the contract.
 \end{PPI}
 
-{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \transitions whose deadline has passed by the time $E$ happens\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.};  let $T_p$ be the resulting set of \transitions. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\transitions} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
+{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \connections whose deadline has passed by the time $E$ happens\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.};  let $T_p$ be the resulting set of \connections. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\connections} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
 \begin{PPI}
-	\item An \Event compatible with some \transition $e$ in $T_p$. And in this case the next state $s'$ must be $\trg{\evar}$, and $\sigma'$ must be $\itsTransform{a}(t,\sigma)$
+	\item An \Event compatible with some \connection $e$ in $T_p$. And in this case the next state $s'$ must be $\trg{\evar}$, and $\sigma'$ must be $\itsTransform{a}(t,\sigma)$
 	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} This means that all of the \Roles whose \enabled \rmustntran expire earliest (at $t^*$) are jointly responsible for the breach.
 \end{PPI}
 The \bostgcz ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
@@ -296,14 +295,14 @@ Each \depTrans{a} $\evar$ gets assigned an \introxxinside{event schema} called $
 
 {\it Non-singleton} \EventSchema are most useful for an infinite or large choice of \Actions (and, in the case of $\depEvents{\Env}$, for infinite or large nondeterminism).
 
-\EventSchema make it necessary to extend the definition of \compatible from its previous type $\Event \times \transition$ to $(\GlobalState \times \Event) \times \transition$. We say that \atransition $\evar$ is \introx{compatiblez}{compatible} with  $\tup{G,E} = \tup{\tup{s,t,\sigma},\tup{a,r,t',\tau}}$ iff
+\EventSchema make it necessary to extend the definition of \compatible from its previous type $\Event \times \connection$ to $(\GlobalState \times \Event) \times \connection$. We say that \nameforaedge $\evar$ is \introx{compatiblez}{compatible} with  $\tup{G,E} = \tup{\tup{s,t,\sigma},\tup{a,r,t',\tau}}$ iff
 $\evar$ is an \sOutTransition{s} with \Action $a$  and \Role $r$, and  $E$ is in $\itsESConstructor{\evar}(\sigma, t)$.
 
 %\end{LPPI}
 
-The three named conditions on \TGuards are the same as before, but we add one more. We now have both \EventSchema and \TGuards as ways of constraining when an \transition can be traversed. To reduce that redundancy we require, for every \State $s$:
+The three named conditions on \TGuards are the same as before, but we add one more. We now have both \EventSchema and \TGuards as ways of constraining when an \connection can be traversed. To reduce that redundancy we require, for every \State $s$:
 
-\noindent \introx{nesee}{nonempty event schema for enabled edges}: For every \GlobalState $G$ whose (local) \State is $s$, any \enabled $\depTrans{s}$ $\evar$ must have $\itsESConstructor{\evar}$ nonempty (at $G$).
+\noindent \introx{nesee}{nonempty event schema for enabled \nameforedges}: For every \GlobalState $G$ whose (local) \State is $s$, any \enabled $\depTrans{s}$ $\evar$ must have $\itsESConstructor{\evar}$ nonempty (at $G$).
 \medskip
 
 \subsection{Execution} \label{schemasexecution}
@@ -319,16 +318,16 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 %\[ G = \tup{s,t} = G_i \qquad  G' = \tup{s',t'} = G_{i+1} \qquad A = \tup{a_A, r_A, t_A} = A_i\]
 \[ G = \tup{s,t,\sigma} = G_i  \qquad E = \tup{a,r,t',\tau} =  E_i \qquad  G' = \tup{s',t', \sigma'} = G_{i+1}\]
 
-{\bf Case 1}: There is some \enabled \mustntran $\evar$ in $G$. If there is any other \enabled \transition, then this \Contract (not just this \trace) violates the \uaocz, and so is invalid.\footnote{Recall that a language (tool) for \Contracts will verify that such a thing can't happen.}
+{\bf Case 1}: There is some \enabled \mustntran $\evar$ in $G$. If there is any other \enabled \connection, then this \Contract (not just this \trace) violates the \uaocz, and so is invalid.\footnote{Recall that a language (tool) for \Contracts will verify that such a thing can't happen.}
 \begin{PPI}
     \item If $E$ is \compatible with $\evar$ and $E$ happens within $\evar$'s deadline ($t' \leq \deadline{\evar}{t}$), then the next state $s'$ must be $\trg{\evar}$, and $\sigma'$ must be $\itsTransform{a}(t,\sigma)$. This means $E$ fulfilled the obligation created by $\evar$.
     \item Otherwise, $\role{e}$ must be $r$ and $E$ must be $\breach{r}{\deadline{\evar}{t} + 1}$ and $\sigma' = \sigma$. %Otherwise, If $E$ is not \compatible with $\evar$ then $\role{\evar}$ solely breaches the contract. We specify that $E$ must be
 %    \item[(c)] If $E$ is \compatible with $\evar$ and $E$ happens after $\evar$'s deadline, then $\role{\evar}$ solely breaches the contract.
 \end{PPI}
 
-{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \transitions whose deadline has passed by the time $E$ happens\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.};  let $T_p$ be the resulting set of \transitions. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\transitions} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
+{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \connections whose deadline has passed by the time $E$ happens\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.};  let $T_p$ be the resulting set of \connections. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\connections} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
 \begin{PPI}
-	\item An \Event compatible with some \transition $e$ in $T_p$. And in this case the next state $s'$ must be $\trg{\evar}$, and $\sigma'$ must be $\itsTransform{a}(t,\sigma)$
+	\item An \Event compatible with some \connection $e$ in $T_p$. And in this case the next state $s'$ must be $\trg{\evar}$, and $\sigma'$ must be $\itsTransform{a}(t,\sigma)$
 	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} This means that all of the \Roles whose \enabled \rmustntran expire earliest (at $t^*$) are jointly responsible for the breach.
 \end{PPI}
 The \bostgc ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
@@ -355,7 +354,7 @@ We will see later that the types strongly affect expressiveness. As a special ca
 %Add a fourth component to the definition of \GlobalState: a finite set \EventSchemas called \FDeons. A \FDeon is a \FOb or a \FPerm. We will see soon that \FDeons are created by a new component that we add to the definition of \Transform.
 
 
-%\FDeons, aside from being distinguished from \transitions by a label, have the same components as \transitions.
+%\FDeons, aside from being distinguished from \connections by a label, have the same components as \connections.
 
 
 \end{document}
