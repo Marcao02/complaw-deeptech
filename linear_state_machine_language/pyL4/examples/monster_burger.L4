@@ -70,7 +70,7 @@
 		)
 		(Next
             (deadlinesDisjointExhaustive
-            (Restaurant may (ServeMB) (within MAX_SERVE_DELAY))
+            (Restaurant should (ServeMB) (within MAX_SERVE_DELAY))
             (Env transpires (PromptServeGuaranteeViolated) (after MAX_SERVE_DELAY))
             )
         )
@@ -169,8 +169,8 @@
 		(AllowedSubjects Restaurant)
 
         (Next
-		    (Restaurant should (VerifyFinishedClaim) immediately)
-		    (Restaurant should (RejectFinishedClaim) immediately)
+		    (Restaurant weakly-must (VerifyFinishedClaim) immediately)
+		    (Restaurant weakly-must (RejectFinishedClaim) immediately)
 		)
 	)
 
@@ -189,7 +189,7 @@
                 (Env transpires (EatingMB) immediately)
             )
             (if (currentTimeAfter? challenge_endlimit_timestamp)
-                (Customer should (PayForMB) immediately)
+                (Customer must (PayForMB) immediately)
             )
             )
         )

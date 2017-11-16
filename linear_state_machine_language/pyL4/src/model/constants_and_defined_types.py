@@ -42,7 +42,7 @@ POSTFIX_FN_SYMBOLS = {'afterEntrance'}
 
 
 
-DEONTIC_MODALITIES = {'must','may','should'}
+DEONTIC_MODALITIES = {'must','may','should','weakly-must'}
 DeonticModality = str
 # DEONTIC_GUARD_MODALITIES = {'mustif','mayif','shouldif'}
 # DEONTIC_KEYWORDS = DEONTIC_GUARD_MODALITIES.union(DEONTIC_MODALITIES)

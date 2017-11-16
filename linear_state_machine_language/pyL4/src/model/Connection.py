@@ -4,6 +4,7 @@ from model.constants_and_defined_types import *
 from model.statements import Term
 from model.Action import ActionId
 from model.SExpr import SExpr
+from model.util import indent
 
 class Connection(NamedTuple):
     src_id: SectionId
@@ -14,17 +15,23 @@ class Connection(NamedTuple):
     deadline_clause: Term
     enabled_guard: Optional[Term]
 
-    def __str__(self) -> str:
-        rv : str
+    def toStr(self, i:int) -> str:
+        rv : str = ""
+        indent_level = i
+        if self.enabled_guard:
+            rv = indent(indent_level) + "if " + str(self.enabled_guard) + ":\n"
+            indent_level += 1
+
         if self.action_id == FULFILLED_SECTION_LABEL and str(self.deadline_clause) == 'immediately':
-            return FULFILLED_SECTION_LABEL
+            rv += indent(indent_level) + FULFILLED_SECTION_LABEL
+            return rv
         # if self.action_id == FULFILLED_SECTION_LABEL:
         #     print(self.deadline_clause)
 
         if self.role_id == ENV_ROLE:
-            rv = self.action_id
+            rv += indent(indent_level) + self.action_id
         else:
-            rv = f"{self.role_id} {self.deontic_modality} {self.action_id}"
+            rv += indent(indent_level) + f"{self.role_id} {self.deontic_modality} {self.action_id}"
 
         if self.args:
             rv += f"({mapjoin(str , self.args, ', ')})"

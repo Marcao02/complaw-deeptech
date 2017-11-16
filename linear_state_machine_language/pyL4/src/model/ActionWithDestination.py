@@ -12,6 +12,8 @@ def derived_trigger_id(dest_id:str):
 class ActionWithDestination(NamedTuple):
     action: Action
     section: Section
+    # when True this compound action-section declaration gets its name from self.action.action_id
+    # when False gets its name from self.section.section_id
     is_action_type_compound: bool
 
     def __str__(self):
@@ -36,7 +38,6 @@ class ActionWithDestination(NamedTuple):
             if not did_heading:
                 rv += indent(1) + "next:\n"
                 did_heading = True
-            rv += indent(2) + str(t)
-            rv += "\n"
+            rv += t.toStr(2) + "\n"
 
         return rv

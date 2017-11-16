@@ -3,7 +3,7 @@ from typing import Tuple, cast, Optional, List
 
 from model.util import streqci, list_split, caststr, isFloat, isInt
 from model.statements import Term, ContractParamDec, Float, Bool, Int
-from model.LSMContract import *
+from model.L4Contract import *
 from parse_sexpr import prettySExprStr, SExpr, SExprOrStr, castse, STRING_LITERAL_MARKER, parse_file
 from state_diagram_generation import contractToDotFile
 from model.constants_and_defined_types import *
@@ -17,7 +17,7 @@ from model.ActionWithDestination import *
 
 class LSMConstructor:
     def __init__(self, filename:str) -> None:
-        self._top : LSMContract = LSMContract(filename)
+        self._top : L4Contract = L4Contract(filename)
         # includes ActionWithDestination
         self._referenced_section_ids: Set[SectionId] = set()
         self._referenced_action_ids: Set[ActionId] = set()
@@ -32,7 +32,7 @@ class LSMConstructor:
         if not test:
             self.syntaxError(expr, msg)
 
-    def top(self, l:List[SExpr]) -> LSMContract:
+    def top(self, l:List[SExpr]) -> L4Contract:
         x : SExpr
         for x in l:
             assert len(x) >= 2, "Problem top-level: " + str(x)
@@ -355,6 +355,8 @@ class LSMConstructor:
         if role_id not in src_section.connections_by_role:
             src_section.connections_by_role[role_id] = list()
         deontic_keyword = caststr(expr[1])
+        # if deontic_keyword == "should":
+        #     deontic_keyword = "weakly must"
         action_id: str = caststr(expr[2][0])
         args = castse(expr[2][1:])
 

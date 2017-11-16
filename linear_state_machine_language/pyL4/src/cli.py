@@ -1,7 +1,7 @@
 import logging
 from parse_sexpr import parse_file, prettySExprStr
 from rich_model_from_sexpr import LSMConstructor
-from model.LSMContract import LSMContract
+from model.L4Contract import L4Contract
 
 EXAMPLES_ROOT = "./"
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
                 print(prettySExprStr(parsed))
 
             assembler = LSMConstructor(path)
-            prog : LSMContract = assembler.top(parsed)
+            prog : L4Contract = assembler.top(parsed)
 
             if 'printPretty' in sys.argv:
                 print(prog)
@@ -49,8 +49,9 @@ if __name__ == '__main__':
 
 
     logging.warning("""
-    Todo:
-        enabled guards         
+    Todo:        
+        graphviz generation
+        interpreter         
     """
 )
 

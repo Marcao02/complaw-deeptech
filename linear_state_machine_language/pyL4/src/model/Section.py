@@ -38,7 +38,6 @@ class Section:
             rv += indent(1) + "description: " + section_description
 
         for t in self.connections():
-            rv += indent(1) + str(t)
-            rv += "\n"
+            rv += str(t) + "\n"
 
         return rv
