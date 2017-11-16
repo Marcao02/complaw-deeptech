@@ -40,7 +40,7 @@ class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
         return SExpr(self.symb, self.lst[i:], self.line, self.col)
 
     def fromStartToExclusive(self,i:int) -> 'SExpr':
-        return SExpr(self.symb, self.lst[:i+1], self.line, self.col)
+        return SExpr(self.symb, self.lst[:i], self.line, self.col)
 
     def withDropped(self,i:int) -> 'SExpr':
         return SExpr(self.symb, self.lst[:i] + self.lst[i+1:], self.line, self.col)

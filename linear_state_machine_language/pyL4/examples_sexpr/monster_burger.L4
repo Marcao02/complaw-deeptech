@@ -70,8 +70,8 @@
 		)
 		(Next
             (deadlinesDisjointExhaustive
-            (Restaurant should (ServeMB) (within MAX_SERVE_DELAY))
-            (Env transpires (PromptServeGuaranteeViolated) (after MAX_SERVE_DELAY))
+            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
+            (Env transpires (PromptServeGuaranteeViolated) (nonstrictly-after MAX_SERVE_DELAY))
             )
         )
 	)
@@ -126,8 +126,8 @@
             ; always the case that exactly one of the tests of the children conditionals is true.
             ; I think we should at least encourage this style of order-insensitive conditionals.
             (deadlinesDisjointExhaustive
-            (Challenger may (AnnounceMBFinished) (beforeO challenge_endlimit_timestamp))
-            (Restaurant should (CheckFinishedClaim) (afterC_withinC challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
+            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
             (Env transpires (LateCheck) (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
             )
         )
@@ -144,8 +144,8 @@
 
         (Next
             (deadlinesDisjointExhaustive
-            (Restaurant should (CheckFinishedClaim) (withinC MAX_CLAIM_VERIFICATION_DELAY))
-            (Env transpires (LateCheck) (after_exactly MAX_CLAIM_VERIFICATION_DELAY))
+            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
+            (Env transpires (LateCheck) (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
             )
         )
 	)

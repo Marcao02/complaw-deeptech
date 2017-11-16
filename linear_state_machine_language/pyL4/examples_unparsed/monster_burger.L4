@@ -20,12 +20,12 @@ action RequestCookMB:
     transform:
         amount_owing := @MB_PRICE
     next:
-        Restaurant should ServeMB (within @MAX_SERVE_DELAY)
-        PromptServeGuaranteeViolated (after @MAX_SERVE_DELAY)
+        Restaurant should ServeMB (strictly-within @MAX_SERVE_DELAY)
+        PromptServeGuaranteeViolated
 
 action ServeMB:
     transform:
-        challenge_endlimit_timestamp := (afterEntrance @TIME_TO_EAT_BURGER afterEntrance)
+        challenge_endlimit_timestamp := (@TIME_TO_EAT_BURGER afterEntrance)
     next:
         EatingMB
 
@@ -37,14 +37,14 @@ section PromptServeGuaranteeViolated:
 
 section EatingMB:
     next:
-        Challenger may AnnounceMBFinished (beforeO @challenge_endlimit_timestamp)
-        Restaurant should CheckFinishedClaim (afterC_withinC @challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
-        LateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY @challenge_endlimit_timestamp))
+        Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
+        Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
+        LateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
 
 action AnnounceMBFinished:
     next:
-        Restaurant should CheckFinishedClaim (withinC @MAX_CLAIM_VERIFICATION_DELAY)
-        LateCheck (after_exactly @MAX_CLAIM_VERIFICATION_DELAY)
+        Restaurant should CheckFinishedClaim
+        LateCheck (after-exactly @MAX_CLAIM_VERIFICATION_DELAY)
 
 section LateCheck:
     transform:
@@ -59,14 +59,14 @@ action CheckFinishedClaim:
 
 action RejectFinishedClaim:
     next:
-        if (currentTimeNoLaterThan? @challenge_endlimit_timestamp):
+        if (currentTimeNoLaterThan? challenge_endlimit_timestamp):
             EatingMB
-        if (currentTimeAfter? @challenge_endlimit_timestamp):
+        if (currentTimeAfter? challenge_endlimit_timestamp):
             Customer must PayForMB immediately
 
 action PayForMB:
     transform:
-        amount_paid := @amount_owing
+        amount_paid := amount_owing
         amount_owing := 0
     next:
         Fulfilled

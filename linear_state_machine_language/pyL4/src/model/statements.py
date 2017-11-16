@@ -1,6 +1,6 @@
 import logging
 from typing import List, Union, Optional, NamedTuple
-from model.constants_and_defined_types import GlobalVarId
+from model.constants_and_defined_types import *
 from model.SExpr import SExpr, SExprOrStr
 
 
@@ -50,14 +50,20 @@ class FnApp(Term):
         self.args = args
 
     def __str__(self):
-        return "({} {})".format(self.head, " ".join([str(x) for x in self.args]))
+        if self.head in PREFIX_FN_SYMBOLS:
+            return f"({self.head} {' '.join([str(x) for x in self.args])})"
+        elif self.head in POSTFIX_FN_SYMBOLS:
+            return f"({' '.join([str(x) for x in self.args])} {self.head})"
+        else:
+            assert self.head in INFIX_FN_SYMBOLS and len(self.args) == 2
+            return f"({self.args[0]} {self.head} {self.args[1]})"
 
 class Atom(Term):
     def __init__(self) -> None:
         pass
 
     def __str__(self):
-        return "@" + self.name
+        return self.name
 
     @property
     def name(self) -> str:
@@ -100,6 +106,9 @@ class GlobalVar(Atom):
 class ContractParam(Atom):
     def __init__(self, paramdec:ContractParamDec) -> None:
         self.paramdec = paramdec
+
+    def __str__(self):
+        return '@' + self.name
 
     @property
     def name(self) -> str:

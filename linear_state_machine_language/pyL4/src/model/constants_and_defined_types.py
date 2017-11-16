@@ -18,8 +18,8 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
-DEADLINE_OPERATORS = {'by', 'within', 'on' ,'at', 'before', 'between', 'after',
-                      'beforeO', 'afterC_withinC','withinC', 'after_exactly'}
+DEADLINE_OPERATORS = {'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
+                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-and-within', 'after-exactly'}
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
 DURATION_SYMBOLS = {'discretionary'}
 

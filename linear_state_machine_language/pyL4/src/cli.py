@@ -53,9 +53,11 @@ if __name__ == '__main__':
 
     logging.warning("""
     Todo:        
-        typecheck!
+        typecheck!                        
         translate more examples
+        deadlinesDisjointExhaustive and guardsDisjointExhaustive
         
+        fn symbol types
         interpreter            
         
         graphviz generation
