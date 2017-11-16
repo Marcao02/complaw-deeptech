@@ -1,0 +1,89 @@
+------
+File: 
+
+ContractParams:
+    MB_PRICE : Price := $50
+    TIME_TO_EAT_BURGER : Duration := 1H
+    MAX_SERVE_DELAY : Duration := 20M
+    MAX_CLAIM_VERIFICATION_DELAY : Duration := 10M
+    MAX_REFUND_DELAY : Duration := 10M
+
+GlobalVars:
+    writeonce challenge_endlimit_timestamp : Timestamp
+    amount_owing : Price
+    amount_paid : Price
+
+
+section MonsterBurgerUncooked:
+    Challenger must RequestCookMB (by 8pm)
+
+
+action RequestCookMB:
+    transform:
+        amount_owing := @MB_PRICE
+    next:
+        Restaurant should ServeMB (within @MAX_SERVE_DELAY)
+        PromptServeGuaranteeViolated (after @MAX_SERVE_DELAY)
+
+
+action ServeMB:
+    transform:
+        challenge_endlimit_timestamp := (afterEntrance @TIME_TO_EAT_BURGER afterEntrance)
+    next:
+        EatingMB
+
+
+section PromptServeGuaranteeViolated:
+    transform:
+        amount_owing := 0
+    next:
+        Fulfilled
+
+
+section EatingMB:
+    next:
+        Challenger may AnnounceMBFinished (beforeO @challenge_endlimit_timestamp)
+        Restaurant should CheckFinishedClaim (afterC_withinC @challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
+        LateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY @challenge_endlimit_timestamp))
+
+
+action AnnounceMBFinished:
+    next:
+        Restaurant should CheckFinishedClaim (withinC @MAX_CLAIM_VERIFICATION_DELAY)
+        LateCheck (after_exactly @MAX_CLAIM_VERIFICATION_DELAY)
+
+
+section LateCheck:
+    transform:
+        amount_owing := 0
+    next:
+        Fulfilled
+
+
+action CheckFinishedClaim:
+    next:
+        Restaurant weakly-must VerifyFinishedClaim immediately
+        Restaurant weakly-must RejectFinishedClaim immediately
+
+
+action RejectFinishedClaim:
+    next:
+        if (currentTimeNoLaterThan? @challenge_endlimit_timestamp):
+            EatingMB
+        if (currentTimeAfter? @challenge_endlimit_timestamp):
+            Customer must PayForMB immediately
+
+
+action PayForMB:
+    transform:
+        amount_paid := @amount_owing
+        amount_owing := 0
+    next:
+        Fulfilled
+
+
+action VerifyFinishedClaim:
+    transform:
+        amount_owing := 0
+    next:
+        Fulfilled

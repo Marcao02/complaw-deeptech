@@ -15,9 +15,9 @@ from model.ActionWithDestination import *
 
 # def l4_model_from_sexpr(sexpr: List[SExpr])
 
-class LSMConstructor:
-    def __init__(self, filename:str) -> None:
-        self._top : L4Contract = L4Contract(filename)
+class L4ContractConstructor:
+    def __init__(self, filename:Optional[str] = None) -> None:
+        self._top : L4Contract = L4Contract(filename or '')
         # includes ActionWithDestination
         self._referenced_section_ids: Set[SectionId] = set()
         self._referenced_action_ids: Set[ActionId] = set()
@@ -230,7 +230,7 @@ class LSMConstructor:
                     self._top.connections.add(newconnection)
 
             # else:
-            #     logging.warning("todo: handle " + x[0] + " in LSMConstructor.section")
+            #     logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.section")
 
             # elif head(EVENT_STATE_PROSE_REFS_LABEL):
             #     section.prose_refs = cast(List,x[1:]).copy()
@@ -255,7 +255,7 @@ class LSMConstructor:
                 a.global_state_transform = self.global_state_transform(cast(List[SExpr],x[1:]), a)
 
             else:
-                logging.warning("todo: handle " + x[0] + " in LSMConstructor.action")
+                logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.action")
 
             # elif head(EVENT_STATE_PROSE_REFS_LABEL):
             #     es.prose_refs = cast(List,x[1:]).copy()
@@ -355,8 +355,6 @@ class LSMConstructor:
         if role_id not in src_section.connections_by_role:
             src_section.connections_by_role[role_id] = list()
         deontic_keyword = caststr(expr[1])
-        # if deontic_keyword == "should":
-        #     deontic_keyword = "weakly must"
         action_id: str = caststr(expr[2][0])
         args = castse(expr[2][1:])
 

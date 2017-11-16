@@ -1,21 +1,22 @@
 import logging
 from parse_sexpr import parse_file, prettySExprStr
-from rich_model_from_sexpr import LSMConstructor
+from rich_model_from_sexpr import L4ContractConstructor
 from model.L4Contract import L4Contract
+from model.util import writeFile, writeReadOnlyFile
 
-EXAMPLES_ROOT = "./"
+# '../examplesLSM4/hvitved_printer.LSM',
+# '../examplesLSM4/hvitved_lease.LSM',
+# '../examplesLSM4/SAFE.LSM',
+# '../examplesLSM4/hvitved_master_sales_agreement_simplified.LSM',
+# '../examplesLSM4/hvitved_master_sales_agreement_full.LSM',
+# '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
+# '../examplesLSM4/hvitved_instalment_sale.LSM'
+EXAMPLES = ['monster_burger.L4']
 
-EXAMPLES = map( lambda x: EXAMPLES_ROOT + x, (
-    # '../examplesLSM4/hvitved_printer.LSM',
-    # '../examplesLSM4/hvitved_lease.LSM',
-    'examples/monster_burger.L4',
-    # '../examplesLSM4/SAFE.LSM',
-    # '../examplesLSM4/hvitved_master_sales_agreement_simplified.LSM',
-    # '../examplesLSM4/hvitved_master_sales_agreement_full.LSM',
-    # '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
-    # '../examplesLSM4/hvitved_instalment_sale.LSM'
-))
+EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
+EXAMPLE_SEXPR_ = map( lambda x: EXAMPLES_SEXPR_ROOT + x, EXAMPLES )
 
+EXAMPLES_UNPARSED_ROOT = "./examples_unparsed/"
 
 
 if __name__ == '__main__':
@@ -31,28 +32,34 @@ if __name__ == '__main__':
         doctest.testmod()
 
     if 'examples' in sys.argv:
-        for path in EXAMPLES:
+        for filename in EXAMPLES:
+            in_path = EXAMPLES_SEXPR_ROOT + filename
             if 'printSExpr' in sys.argv:
-                print("\nLooking at file " + path + ":\n")
-            parsed = parse_file(path)
+                print("\nLooking at file " + filename + ":\n")
+            parsed = parse_file(in_path)
             if 'printSExpr' in sys.argv:
                 print(prettySExprStr(parsed))
 
-            assembler = LSMConstructor(path)
+            assembler = L4ContractConstructor()
             prog : L4Contract = assembler.top(parsed)
 
             if 'printPretty' in sys.argv:
-                print(prog)
+                unparsed = str(prog)
+                print(unparsed)
+                writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, unparsed)
 
-            if 'dot' in sys.argv:
-                contractToDotFile(prog)
-
+            # if 'dot' in sys.argv:
+            #     contractToDotFile(prog)
 
     logging.warning("""
     Todo:        
         graphviz generation
-        interpreter         
+        interpreter
+        translate all the examples
+        ✓ `examples` -> `examples_sexpr`
+        ✓ output pretty printed files to `examples_unparsed`
+        typecheck!
     """
 )
 
-# prog = LSMConstructor().top(parse_file(EXAMPLES[0]))
+# prog = L4ContractConstructor().top(parse_file(EXAMPLES[0]))

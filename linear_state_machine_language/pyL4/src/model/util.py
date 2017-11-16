@@ -55,3 +55,14 @@ def dictSetOrInc(d:Dict[str,int], key:str, init:int ) -> None:
         d[key] += 1
     else:
         d[key] = init
+
+def writeFile(path:str, contents:str) -> None:
+    f = open(path, 'w')
+    f.write(contents)
+    f.close()
+
+def writeReadOnlyFile(path:str, contents:str) -> None:
+    from os import system
+    system(f'chmod u+w {path}')
+    writeFile(path, contents)
+    system(f'chmod a-w {path}')
