@@ -44,7 +44,7 @@
 )
 
 (FormalContract
-	"Monster Burger (this contract already signed)"
+	"Monster Burger"
 	(StartSection MonsterBurgerUncooked)
 
 	(Section MonsterBurgerUncooked

@@ -4,7 +4,7 @@ from model.constants_and_defined_types import *
 from model.statements import Term
 from model.Action import ActionId
 from model.SExpr import SExpr
-from model.util import indent
+from model.util import indent, mapjoin
 
 class Connection(NamedTuple):
     src_id: SectionId

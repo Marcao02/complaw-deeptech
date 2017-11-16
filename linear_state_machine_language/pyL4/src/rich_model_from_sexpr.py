@@ -52,7 +52,7 @@ class L4ContractConstructor:
                 self._top.claims = self.claims(rem)
 
             elif head( ROLES_SECTION_LABEL ):
-                self._top.actors = self.actors(rem)
+                self._top.roles = self.actors(rem)
 
             elif head( PROSE_CONTRACT_SECTION_LABEL ):
                 self._top.prose_contract = self.prose_contract(cast(List[List[str]],rem))
@@ -122,9 +122,7 @@ class L4ContractConstructor:
         return rv
 
     def formal_contract(self, l:SExpr) -> None:
-        self._top.sections_by_id: Dict[SectionId, Section] = dict()
-        self._top.start_section: str   # Section id
-        self._top.contract_name = l[0]
+        self._top.contract_name = l[0][1] # [1] because STRLIT sexpr
         x: SExpr
 
         for x in l[1:]:
@@ -135,9 +133,9 @@ class L4ContractConstructor:
 
             if head(START_SECTION_LABEL):
                 self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
-                id = caststr(x[1])
-                self._top.start_section = id
-                self._referenced_section_ids.add(id)
+                section_id = caststr(x[1])
+                self._top.start_section = section_id
+                self._referenced_section_ids.add(section_id)
 
             elif head(ACTION_LABEL):
                 # (Action VerbAndParams transitionsto body)
@@ -168,11 +166,9 @@ class L4ContractConstructor:
                 self._top.ordered_declarations.append(section)
 
             elif head(COMPOUND_A) or head(COMPOUND_S):
-                action_id: str
+                act_id: str
                 dest_id: str
                 id : str
-
-                action: Action
                 params : Optional[SExpr]
                 body = x.tillEnd(2)
                 if isinstance(x[1], str):
@@ -186,14 +182,14 @@ class L4ContractConstructor:
 
                 if head(COMPOUND_S):
                     dest_id = id
-                    action_id = derived_trigger_id(dest_id)
+                    act_id = derived_trigger_id(dest_id)
                 else:
-                    action_id = id
-                    dest_id = derived_destination_id(action_id)
+                    act_id = id
+                    dest_id = derived_destination_id(act_id)
 
 
-                action = self.action(action_id, dest_id, params, body, True)
-                self._top.actions_by_id[action_id] = action
+                action = self.action(act_id, dest_id, params, body, True)
+                self._top.actions_by_id[act_id] = action
 
                 section = self.section(dest_id, body, True)
                 self._top.sections_by_id[dest_id] = section
@@ -227,7 +223,7 @@ class L4ContractConstructor:
                 connection_exprs = castse(x.tillEnd(1))
                 for connection_expr in connection_exprs:
                     newconnection = self.connection(connection_expr, section)
-                    self._top.connections.add(newconnection)
+                    self._top.connections.append(newconnection)
 
             # else:
             #     logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.section")
@@ -237,7 +233,7 @@ class L4ContractConstructor:
 
         return section
 
-    def action(self, action_id:ActionId, dest_id:SectionId, params:Optional[SExpr], rest:SExpr, is_compound = False) -> Section:
+    def action(self, action_id:ActionId, dest_id:SectionId, params:Optional[SExpr], rest:SExpr, is_compound = False) -> Action:
         a = Action(action_id, dest_id)
         a.is_compound = is_compound
         x: SExpr
@@ -292,7 +288,7 @@ class L4ContractConstructor:
                 lvd = LocalVarDec(varname, rhs, sort)
                 if varname in a.local_vars:
                     self.syntaxError(statement, "Redeclaration of local variable")
-                es.local_vars[varname] = lvd
+                a.local_vars[varname] = lvd
                 return lvd
             else:
                 assert len(statement) == 3, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
@@ -377,6 +373,7 @@ class L4ContractConstructor:
                         enabled_guard=enabled_guard)
 
         src_section.connections_by_role[role_id].append(c)
+        return c
 
     # def nonactor_transition_clause(self,trans_spec, src_es_id:SectionId) -> Connection:
     #     try:

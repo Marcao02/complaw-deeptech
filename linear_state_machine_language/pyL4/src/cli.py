@@ -3,6 +3,7 @@ from parse_sexpr import parse_file, prettySExprStr
 from rich_model_from_sexpr import L4ContractConstructor
 from model.L4Contract import L4Contract
 from model.util import writeFile, writeReadOnlyFile
+from state_diagram_generation import contractToDotFile
 
 # '../examplesLSM4/hvitved_printer.LSM',
 # '../examplesLSM4/hvitved_lease.LSM',
@@ -16,7 +17,7 @@ EXAMPLES = ['monster_burger.L4']
 EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
 EXAMPLE_SEXPR_ = map( lambda x: EXAMPLES_SEXPR_ROOT + x, EXAMPLES )
 
-EXAMPLES_UNPARSED_ROOT = "./examples_unparsed/"
+EXAMPLES_UNPARSED_ROOT = "./examples_unparsed_gen/"
 
 
 if __name__ == '__main__':
@@ -48,8 +49,11 @@ if __name__ == '__main__':
                 print(unparsed)
                 writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, unparsed)
 
-            # if 'dot' in sys.argv:
-            #     contractToDotFile(prog)
+            if 'dot' in sys.argv:
+                contractToDotFile(prog, "examples_graphviz_gen" , True)
+
+            for x in prog.sections_by_id:
+                print(x)
 
     logging.warning("""
     Todo:        

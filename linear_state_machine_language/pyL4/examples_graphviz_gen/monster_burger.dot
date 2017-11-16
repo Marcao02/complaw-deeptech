@@ -1,0 +1,42 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Monster_Burger {
+	RequestCookMB[label=RequestCookMB,shape=box];
+	ServeMB[label=ServeMB,shape=box];
+	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
+	EnterEatingMB[label=EnterEatingMB,shape=box];
+	AnnounceMBFinished[label=AnnounceMBFinished,shape=box];
+	EnterLateCheck[label=EnterLateCheck,shape=box];
+	CheckFinishedClaim[label=CheckFinishedClaim,shape=box];
+	RejectFinishedClaim[label=RejectFinishedClaim,shape=box];
+	PayForMB[label=PayForMB,shape=box];
+	VerifyFinishedClaim[label=VerifyFinishedClaim,shape=box];
+	MonsterBurgerUncooked[label=MonsterBurgerUncooked];
+	AfterRequestCookMB[label=AfterRequestCookMB];
+	AfterServeMB[label=AfterServeMB];
+	PromptServeGuaranteeViolated[label=PromptServeGuaranteeViolated];
+	EatingMB[label=EatingMB];
+	AfterAnnounceMBFinished[label=AfterAnnounceMBFinished];
+	LateCheck[label=LateCheck];
+	AfterCheckFinishedClaim[label=AfterCheckFinishedClaim];
+	AfterRejectFinishedClaim[label=AfterRejectFinishedClaim];
+	AfterPayForMB[label=AfterPayForMB];
+	AfterVerifyFinishedClaim[label=AfterVerifyFinishedClaim];
+	MonsterBurgerUncooked -> RequestCookMB;
+	AfterRequestCookMB -> ServeMB;
+	AfterRequestCookMB -> PromptServeGuaranteeViolated [style=dashed];
+	AfterServeMB -> EatingMB [style=dashed];
+	PromptServeGuaranteeViolated -> Fulfilled [style=dashed];
+	EatingMB -> AnnounceMBFinished;
+	EatingMB -> CheckFinishedClaim;
+	EatingMB -> LateCheck [style=dashed];
+	AfterAnnounceMBFinished -> CheckFinishedClaim;
+	AfterAnnounceMBFinished -> LateCheck [style=dashed];
+	LateCheck -> Fulfilled [style=dashed];
+	AfterCheckFinishedClaim -> VerifyFinishedClaim;
+	AfterCheckFinishedClaim -> RejectFinishedClaim;
+	AfterRejectFinishedClaim -> EatingMB [style=dashed];
+	AfterRejectFinishedClaim -> PayForMB;
+	AfterPayForMB -> Fulfilled [style=dashed];
+	AfterVerifyFinishedClaim -> Fulfilled [style=dashed];
+}
