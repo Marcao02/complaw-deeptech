@@ -53,12 +53,12 @@ if __name__ == '__main__':
 
     logging.warning("""
     Todo:        
-        graphviz generation
-        interpreter
-        translate all the examples
-        ✓ `examples` -> `examples_sexpr`
-        ✓ output pretty printed files to `examples_unparsed`
         typecheck!
+        translate more examples
+        
+        interpreter            
+        
+        graphviz generation
     """
 )
 

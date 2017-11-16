@@ -56,17 +56,16 @@ class L4Contract:
             nonlocal rv
             rv += (tabs * '    ') + str(thing) + "\n"
 
-        titleline = "File: " + self.filename
+        titleline = "file: " + self.filename
         line(len(titleline)*'-')
         line(titleline)
 
         if len(self.contract_params) > 0:
-            line("\nContractParams:")
+            line("\ncontract params:")
             for cp in self.contract_params.values():
                 line(cp, 1)
 
-
-        line('\nGlobalVars:')
+        line('\nglobal vars:')
         for gv in self.global_var_decs.values():
             line(gv,1)
 
@@ -76,7 +75,7 @@ class L4Contract:
                 line(c,1)
 
         for x in self.ordered_declarations:
-            line('\n')
+            line('')
             rv += str(x)
 
 
