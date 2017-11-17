@@ -69,7 +69,7 @@
 			(amount_owing = MB_PRICE)
 		)
 		(Next
-            (deadlinesDisjointExhaustive
+            (deadlinesPartitionFuture
 	            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
 	            (PromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY))
             )
@@ -122,9 +122,9 @@
 		(AllowedSubjects Env)
 
         (Next
-            ; LANG note: `deadlinesDisjointExhaustive` will tell the static checker to verify 
+            ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify
             ; that the deadline expressions partition the future.            
-            (deadlinesDisjointExhaustive
+            (deadlinesPartitionFuture
 	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
 	            (LateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
@@ -142,7 +142,7 @@
 		(AllowedSubjects Challenger)
 
         (Next
-            (deadlinesDisjointExhaustive
+            (deadlinesPartitionFuture
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
 	            (LateCheck (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
             )

@@ -67,10 +67,8 @@ if __name__ == '__main__':
         Unrecognized atoms
         translate more examples
             Hvitved master sales agreement
-        deadlinesDisjointExhaustive and guardsDisjointExhaustive
-        
-        fn symbol types
-        interpreter                            
+        deadlinesPartitionFuture and guardsDisjointExhaustive
+                                            
     """
 )
 

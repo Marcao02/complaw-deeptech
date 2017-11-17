@@ -201,7 +201,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 section.section_description = caststr(x[1][1]) # extract from STRLIT expression
 
             elif head(OUT_CONNECTIONS_LABEL):
-                if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesDisjointExhaustive'):
+                if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesPartitionFuture'):
                     x = x[1]
                     todo_once("guardsDisjointExhaustive etc in section()")
                 connection_exprs = castse(x.tillEnd(1))
