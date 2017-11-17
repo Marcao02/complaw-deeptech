@@ -16,62 +16,62 @@ global vars:
 section MonsterBurgerUncooked:
     Challenger must RequestCookMB (by 8pm)
 
-action RequestCookMB:
+action-compound RequestCookMB:
     transform:
         amount_owing := @MB_PRICE
     next:
         Restaurant should ServeMB (strictly-within @MAX_SERVE_DELAY)
         PromptServeGuaranteeViolated
 
-action ServeMB:
+action-compound ServeMB:
     transform:
         challenge_endlimit_timestamp := (@TIME_TO_EAT_BURGER afterEntrance)
     next:
         EatingMB
 
-section PromptServeGuaranteeViolated:
+section-compound PromptServeGuaranteeViolated:
     transform:
         amount_owing := 0
     next:
         Fulfilled
 
-section EatingMB:
+section-compound EatingMB:
     next:
         Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
         Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
         LateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
 
-action AnnounceMBFinished:
+action-compound AnnounceMBFinished:
     next:
         Restaurant should CheckFinishedClaim
         LateCheck (after-exactly @MAX_CLAIM_VERIFICATION_DELAY)
 
-section LateCheck:
+section-compound LateCheck:
     transform:
         amount_owing := 0
     next:
         Fulfilled
 
-action CheckFinishedClaim:
+action-compound CheckFinishedClaim:
     next:
         Restaurant weakly-must VerifyFinishedClaim immediately
         Restaurant weakly-must RejectFinishedClaim immediately
 
-action RejectFinishedClaim:
+action-compound RejectFinishedClaim:
     next:
         if (currentTimeNoLaterThan? challenge_endlimit_timestamp):
             EatingMB
         if (currentTimeAfter? challenge_endlimit_timestamp):
             Customer must PayForMB immediately
 
-action PayForMB:
+action-compound PayForMB:
     transform:
         amount_paid := amount_owing
         amount_owing := 0
     next:
         Fulfilled
 
-action VerifyFinishedClaim:
+action-compound VerifyFinishedClaim:
     transform:
         amount_owing := 0
     next:

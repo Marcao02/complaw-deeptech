@@ -1,9 +1,11 @@
 # from typing import Union, List, Dict, Any, Tuple
-from typing import Set, NamedTuple, Iterable
+from typing import Set, NamedTuple, Iterable, Any
 from model.Section import *
 from model.Action import Action
 from model.Connection import *
-from model.ActionWithDestination import ActionWithDestination
+from model.GlobalStateTransform import GlobalStateTransform
+from model.ActionWithDestination import ActionWithDestination, derived_trigger_id
+
 
 class L4Contract:
     def __init__(self, filename:str) -> None:
@@ -28,25 +30,64 @@ class L4Contract:
 
         self.ordered_declarations : List[Union[Action,Section,ActionWithDestination]] = list()
 
-    # def can_transition(self, transid1, transid2) -> bool:
-    #     return self.construct_main_part.can_transition(transid1, transid2)
+        self.max_section_id_len = 0
+        self.max_action_id_len = 0
+
     #
     # def connections(self) -> Iterator[Connection]:
     #     return self.construct_main_part.connections()
+
+    def action_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
+        cursection = self.section(sectionid)
+        for c in cursection.connections():
+            if isinstance(c, ConnectionToAction):
+                if c.action_id == actionid:
+                    return True
+            elif isinstance(c, ConnectionToSection):
+                if derived_trigger_id(c.dest_id) == actionid:
+                    return True
+            else:
+                raise NotImplementedError
+
+        return False
+
+
+    # def can_transition(self, sectionid1:SectionId, sectionid2:SectionId) -> bool:
+    #     if sectionid1 is None:
+    #         return sectionid2 == self.start_section
+    #
+    #     cursection = self.section(sectionid1)
+    #     for c in cursection.connections():
+    #         if isinstance(c, ConnectionToAction):
+    #             action = self.action(c.action_id)
+    #             if action.dest_section_id == sectionid2:
+    #                 return True
+    #         elif isinstance(c, ConnectionToSection):
+    #             if c.dest_id == sectionid2:
+    #                 return True
+    #         else:
+    #             raise NotImplementedError
+    #
+    #     return False
+
+    def transitions(self) -> Iterator[Connection]:
+        for sec in self.sections_iter():
+            for c in sec.connections():
+                yield c
 
     def sections_iter(self) -> Iterable[Section]:
         return self.sections_by_id.values()
     def section_ids(self) -> Iterable[SectionId]:
         return self.sections_by_id.keys()
-    def section(self, anid:SectionId):
-        return self.sections_by_id[anid]
+    def section(self, anid:SectionId) -> Optional[Section]:
+        return self.sections_by_id[anid] if anid in self.sections_by_id else None
     
     def actions_iter(self) -> Iterable[Action]:
         return self.actions_by_id.values()
     def action_ids(self) -> Iterable[ActionId]:
         return self.actions_by_id.keys()
-    def action(self, anid: ActionId):
-        return self.actions_by_id[anid]
+    def action(self, anid: ActionId) -> Optional[Action]:
+        return self.actions_by_id[anid] if anid in self.actions_by_id else None
 
     def varDecObj(self, varname:str, sec:Section = None) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
         if varname in self.global_var_decs:

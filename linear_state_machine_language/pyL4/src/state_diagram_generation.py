@@ -38,7 +38,9 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
     actions_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
     connections_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
 
-    compounds_str = mapjoin(lambda x: f"{x.action.action_id} -> {x.section.section_id} [style=dashed]", l4file.actionDestPair_by_id.values(), ";\n\t")
+    compounds_str = mapjoin(lambda x: f"{x.action.action_id} -> {x.section.section_id} [style=dashed]",
+                            l4file.actionDestPair_by_id.values(),
+                            ";\n\t")
 
     return f"""// THIS IS A GENERATED FILE. DO NOT EDIT.
 

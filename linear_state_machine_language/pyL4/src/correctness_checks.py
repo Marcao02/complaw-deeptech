@@ -1,17 +1,17 @@
 import logging
-from typing import Set, Union
+from typing import Set, Union, Any
 
 from model.ActionWithDestination import is_derived_destination_id, is_derived_trigger_id
 from model.constants_and_defined_types import *
 from model.L4Contract import L4Contract
 
 # just for typing!!
-class L4ContractConstructor:
+class L4ContractConstructorInterface:
     top : L4Contract
     referenced_section_ids: Set[SectionId]
     referenced_action_ids: Set[ActionId]
 
-def referenced_nonderived_section_ids_equal_defined_nonderived_section_ids(it:any) -> bool:
+def referenced_nonderived_section_ids_equal_defined_nonderived_section_ids(it:L4ContractConstructorInterface) -> bool:
     referenced_nonderived_section_ids = set(filter( lambda x: not is_derived_destination_id(x), it.top.section_ids())
                                             ).union([FULFILLED_SECTION_LABEL])
     if  it.referenced_section_ids != set(referenced_nonderived_section_ids):
@@ -24,7 +24,7 @@ Defined (+ '{FULFILLED_SECTION_LABEL}'): {str(sorted(set(referenced_nonderived_s
         return False
     return True
 
-def referenced_nonderived_action_ids_equal_defined_nonderived_action_ids(it:any) -> bool:
+def referenced_nonderived_action_ids_equal_defined_nonderived_action_ids(it:L4ContractConstructorInterface) -> bool:
     referenced_nonderived_action_ids = set(filter( lambda x: not is_derived_trigger_id(x), it.top.action_ids()))
     if  it.referenced_action_ids != set(referenced_nonderived_action_ids):
         logging.warning(

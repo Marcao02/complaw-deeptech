@@ -3,9 +3,8 @@ from typing import Iterator, List,  Set, Optional, NamedTuple
 
 from model.constants_and_defined_types import *
 from model.util import indent
-from model.GlobalStateTransform import GlobalStateTransform
 from model.statements import *
-from model.Connection import Connection
+from model.Connection import Connection, ConnectionToAction, ConnectionToSection
 
 
 class Section:
@@ -24,9 +23,6 @@ class Section:
     #     print("BROKEN")
     #     return list(self.connections_by_role.keys())
     #
-    # def can_transition_to(self, dest_id:str) -> bool:
-    #     return any(t.dest_id == dest_id for t in self.connections())
-
     def connections(self) -> Iterator[Connection]:
         for role_subset in self.connections_by_role.values():
             for t in role_subset:

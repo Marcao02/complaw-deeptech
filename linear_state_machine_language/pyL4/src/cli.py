@@ -5,6 +5,8 @@ from correctness_checks import test_fns
 from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
 
+import interpreter
+
 # '../examplesLSM4/hvitved_printer.LSM',
 # '../examplesLSM4/hvitved_lease.LSM',
 # '../examplesLSM4/SAFE.LSM',
@@ -43,6 +45,8 @@ if __name__ == '__main__':
             assembler = L4ContractConstructor()
             prog = assembler.l4contract(parsed)
 
+            print(prog.max_section_id_len, prog.max_action_id_len)
+
             if 'printPretty' in sys.argv:
                 unparsed = str(prog)
                 print(unparsed)
@@ -57,13 +61,8 @@ if __name__ == '__main__':
                     print( check.__name__ + " ok" )
 
     print("""\n\n
-    Todo:        
-        ✓ currently there's an inconsistecy that some Connections have a section id as their action id.
-            idea 1: Every connection is a ConnectionToAction or a ConnectionToSection.
-                    Then I would only need Env for proper environment events, as opposed to for any section-to-section connection.
-            idea 2: AfterA is an action for every A and EnterS is a Section for every S. These get created only when used.
-            idea 3 (can be combined with previous): Similar to idea 1, but still in the formal model go through the trivial EnterS action.
-                    In other words, ConnectionToSection is an L4 feature, not an LSM feature.  
+    Todo:
+        refactor ActionWithDestination, 2 classes        
                     
         Unrecognized atoms
         translate more examples

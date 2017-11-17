@@ -1,5 +1,6 @@
 from typing import Tuple, cast
 
+from correctness_checks import L4ContractConstructorInterface
 from model.util import streqci, caststr, isFloat, isInt, todo_once
 from model.L4Contract import *
 from parse_sexpr import castse, STRING_LITERAL_MARKER
@@ -7,7 +8,7 @@ from model.Connection import *
 from model.ActionWithDestination import *
 
 
-class L4ContractConstructor:
+class L4ContractConstructor(L4ContractConstructorInterface):
     def __init__(self, filename:Optional[str] = None) -> None:
         self.top : L4Contract = L4Contract(filename or '')
         # includes ActionWithDestination
@@ -211,6 +212,7 @@ class L4ContractConstructor:
             elif head(PROSE_REFS_LABEL):
                 section.prose_refs = cast(List,x[1:]).copy()
 
+        self.top.max_section_id_len = max(len(section_id), self.top.max_section_id_len)
         return section
 
     def action(self, action_id:ActionId, dest_id:SectionId, params:Optional[SExpr], rest:SExpr, is_compound = False) -> Action:
@@ -237,6 +239,7 @@ class L4ContractConstructor:
             #     Can't do this because send compound action-section declarations through this function
             #     logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.action")
 
+        self.top.max_action_id_len = max(len(action_id), self.top.max_action_id_len)
         return a
 
     def action_params(self, parts:List[List[str]]) -> ParamsDec:

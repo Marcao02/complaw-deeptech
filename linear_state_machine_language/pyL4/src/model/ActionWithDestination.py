@@ -23,9 +23,9 @@ class ActionWithDestination(NamedTuple):
     def __str__(self):
         # rv = f"action with destination {self.action.action_id}"
         if self.is_action_type_compound:
-            rv = f"action {self.action.action_id}"
+            rv = f"action-compound {self.action.action_id}"
         else:
-            rv = f"section {self.section.section_id}"
+            rv = f"section-compound {self.section.section_id}"
 
         if self.action.params:
             rv += f'({mapjoin(str, self.action.params, ", ")}) '
