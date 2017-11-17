@@ -70,8 +70,8 @@
 		)
 		(Next
             (deadlinesDisjointExhaustive
-            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
-            (Env transpires (PromptServeGuaranteeViolated) (nonstrictly-after MAX_SERVE_DELAY))
+	            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
+	            (PromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY))
             )
         )
 	)
@@ -89,7 +89,7 @@
 			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER afterEntrance))
 		)
 		(Next
-		    (Env transpires (EatingMB) immediately)
+		    (EatingMB immediately)
 		)
 	)
 
@@ -104,7 +104,7 @@
 			(amount_owing = 0)
 		)
 		(Next
-		    (Env transpires (Fulfilled) immediately)
+		    (Fulfilled immediately)
 		)
 	)
 
@@ -122,13 +122,12 @@
 		(AllowedSubjects Env)
 
         (Next
-            ; LANG note: `verifiedDisjointExhaustive` will tell the static checker to verify that it is
-            ; always the case that exactly one of the tests of the children conditionals is true.
-            ; I think we should at least encourage this style of order-insensitive conditionals.
+            ; LANG note: `deadlinesDisjointExhaustive` will tell the static checker to verify 
+            ; that the deadline expressions partition the future.            
             (deadlinesDisjointExhaustive
-            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
-            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-            (Env transpires (LateCheck) (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
+	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
+	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+	            (LateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
             )
         )
 	)
@@ -144,8 +143,8 @@
 
         (Next
             (deadlinesDisjointExhaustive
-            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
-            (Env transpires (LateCheck) (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
+	            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
+	            (LateCheck (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
             )
         )
 	)
@@ -159,7 +158,7 @@
 			(amount_owing = 0)
 		)
 		(Next
-		    (Env transpires (Fulfilled))
+		    (Fulfilled immediately)
 		)
 	)
 
@@ -184,13 +183,16 @@
 		(AllowedSubjects Restaurant)
 
         (Next
+        	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
+            ; always the case that exactly one of the tests of the children conditionals is true.            
             (guardsDisjointExhaustive
-            (if (currentTimeNoLaterThan? challenge_endlimit_timestamp)
-                (Env transpires (EatingMB) immediately)
-            )
-            (if (currentTimeAfter? challenge_endlimit_timestamp)
-                (Customer must (PayForMB) immediately)
-            )
+            	; I think we should encourage this style of order-insensitive conditionals.
+	            (if (currentTimeNoLaterThan? challenge_endlimit_timestamp)
+	                (EatingMB immediately)
+	            )
+	            (if (currentTimeAfter? challenge_endlimit_timestamp)
+	                (Customer must (PayForMB) immediately)
+	            )
             )
         )
 	)
@@ -209,7 +211,7 @@
 			(amount_owing = 0)
 		)
 		(Next
-		    (Env transpires (Fulfilled) immediately)
+		    (Fulfilled immediately)
 		)
 	)
 
@@ -225,7 +227,7 @@
 			(amount_owing = 0)
 		)
 		(Next
-		    (Env transpires (Fulfilled) immediately)
+		    (Fulfilled immediately)
 		)
 	)
 

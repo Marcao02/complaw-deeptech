@@ -34,13 +34,23 @@ def connectionAsDotArcStr(con: Connection) -> str:
 def contractToDotFileStr(l4file: L4Contract) -> str:
     # graphname = l4file.formal_contract.name[1]
     cleaned_graphname = "_".join(l4file.contract_name.split(' '))
-    nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
+    sections_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
     actions_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
-    rv = "// THIS IS A GENERATED FILE. DO NOT EDIT.\n\n"
-    rv += "digraph " + cleaned_graphname + " {\n\t"
-    transitions_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
-    rv += actions_str + ";\n\t" + nodes_str + ";\n\t" + transitions_str + ";\n}"
-    return rv
+    connections_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
+
+    compounds_str = mapjoin(lambda x: f"{x.action.action_id} -> {x.section.section_id} [style=dashed]", l4file.actionDestPair_by_id.values(), ";\n\t")
+
+    return f"""// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph {cleaned_graphname} {{    
+    {sections_str}
+    
+    {actions_str}
+ 
+    {connections_str}
+    
+    {compounds_str}
+}}"""
 
 def contractToDotFile(l4file: L4Contract, rootpath = 'out', verbose=False) -> None:
     # replace spaces with underscores

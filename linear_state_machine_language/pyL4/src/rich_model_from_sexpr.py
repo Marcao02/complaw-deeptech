@@ -219,7 +219,7 @@ class L4ContractConstructor:
             elif head(OUT_CONNECTIONS_LABEL):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesDisjointExhaustive'):
                     x = x[1]
-                    print("TODO: guardsDisjointExhaustive etc")
+                    logging.warning("TODO: guardsDisjointExhaustive etc")
                 connection_exprs = castse(x.tillEnd(1))
                 for connection_expr in connection_exprs:
                     newconnection = self.connection(connection_expr, section)
@@ -347,16 +347,30 @@ class L4ContractConstructor:
             enabled_guard = self.parse_term(expr[1], src_section)
             expr = expr[2]
 
-        role_id = caststr(expr[0])
-        if role_id not in src_section.connections_by_role:
-            src_section.connections_by_role[role_id] = list()
-        deontic_keyword = caststr(expr[1])
-        action_id: str = caststr(expr[2][0])
-        args = castse(expr[2][1:])
+        role_id : str
+        deontic_keyword : str
+        action_id : str
+        args : Optional[Term]
+
+        if len(expr) == 2:
+            role_id = ENV_ROLE
+            if role_id not in src_section.connections_by_role:
+                src_section.connections_by_role[role_id] = list()
+            deontic_keyword = "transpires"
+            action_id = expr[0]
+            args = None
+            rem = expr.tillEnd(1)
+        else:
+            role_id = caststr(expr[0])
+            if role_id not in src_section.connections_by_role:
+                src_section.connections_by_role[role_id] = list()
+            deontic_keyword = caststr(expr[1])
+            action_id: str = caststr(expr[2][0])
+            args = castse(expr[2][1:])
+            rem = expr.tillEnd(3)
 
         self._referenced_action_ids.add(action_id)
 
-        rem = expr.tillEnd(3)
         deadline_clause : Term = None
         if len(rem) >= 1:
             assert len(rem) == 1

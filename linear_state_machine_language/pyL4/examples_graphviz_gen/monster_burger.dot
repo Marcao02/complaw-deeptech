@@ -1,17 +1,7 @@
 // THIS IS A GENERATED FILE. DO NOT EDIT.
 
-digraph Monster_Burger {
-	RequestCookMB[label=RequestCookMB,shape=box];
-	ServeMB[label=ServeMB,shape=box];
-	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
-	EnterEatingMB[label=EnterEatingMB,shape=box];
-	AnnounceMBFinished[label=AnnounceMBFinished,shape=box];
-	EnterLateCheck[label=EnterLateCheck,shape=box];
-	CheckFinishedClaim[label=CheckFinishedClaim,shape=box];
-	RejectFinishedClaim[label=RejectFinishedClaim,shape=box];
-	PayForMB[label=PayForMB,shape=box];
-	VerifyFinishedClaim[label=VerifyFinishedClaim,shape=box];
-	MonsterBurgerUncooked[label=MonsterBurgerUncooked];
+digraph Monster_Burger {    
+    MonsterBurgerUncooked[label=MonsterBurgerUncooked];
 	AfterRequestCookMB[label=AfterRequestCookMB];
 	AfterServeMB[label=AfterServeMB];
 	PromptServeGuaranteeViolated[label=PromptServeGuaranteeViolated];
@@ -21,8 +11,20 @@ digraph Monster_Burger {
 	AfterCheckFinishedClaim[label=AfterCheckFinishedClaim];
 	AfterRejectFinishedClaim[label=AfterRejectFinishedClaim];
 	AfterPayForMB[label=AfterPayForMB];
-	AfterVerifyFinishedClaim[label=AfterVerifyFinishedClaim];
-	MonsterBurgerUncooked -> RequestCookMB;
+	AfterVerifyFinishedClaim[label=AfterVerifyFinishedClaim]
+    
+    RequestCookMB[label=RequestCookMB,shape=box];
+	ServeMB[label=ServeMB,shape=box];
+	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
+	EnterEatingMB[label=EnterEatingMB,shape=box];
+	AnnounceMBFinished[label=AnnounceMBFinished,shape=box];
+	EnterLateCheck[label=EnterLateCheck,shape=box];
+	CheckFinishedClaim[label=CheckFinishedClaim,shape=box];
+	RejectFinishedClaim[label=RejectFinishedClaim,shape=box];
+	PayForMB[label=PayForMB,shape=box];
+	VerifyFinishedClaim[label=VerifyFinishedClaim,shape=box]
+ 
+    MonsterBurgerUncooked -> RequestCookMB;
 	AfterRequestCookMB -> ServeMB;
 	AfterRequestCookMB -> PromptServeGuaranteeViolated [style=dashed];
 	AfterServeMB -> EatingMB [style=dashed];
@@ -38,5 +40,16 @@ digraph Monster_Burger {
 	AfterRejectFinishedClaim -> EatingMB [style=dashed];
 	AfterRejectFinishedClaim -> PayForMB;
 	AfterPayForMB -> Fulfilled [style=dashed];
-	AfterVerifyFinishedClaim -> Fulfilled [style=dashed];
+	AfterVerifyFinishedClaim -> Fulfilled [style=dashed]
+    
+    RequestCookMB -> AfterRequestCookMB [style=dashed];
+	ServeMB -> AfterServeMB [style=dashed];
+	EnterPromptServeGuaranteeViolated -> PromptServeGuaranteeViolated [style=dashed];
+	EnterEatingMB -> EatingMB [style=dashed];
+	AnnounceMBFinished -> AfterAnnounceMBFinished [style=dashed];
+	EnterLateCheck -> LateCheck [style=dashed];
+	CheckFinishedClaim -> AfterCheckFinishedClaim [style=dashed];
+	RejectFinishedClaim -> AfterRejectFinishedClaim [style=dashed];
+	PayForMB -> AfterPayForMB [style=dashed];
+	VerifyFinishedClaim -> AfterVerifyFinishedClaim [style=dashed]
 }
