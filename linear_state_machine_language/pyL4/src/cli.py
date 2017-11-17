@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     print("""\n\n
     Todo:        
-        currently there's an inconsistecy that some Connections have a section id as their action id.
+        ✓ currently there's an inconsistecy that some Connections have a section id as their action id.
             idea 1: Every connection is a ConnectionToAction or a ConnectionToSection.
                     Then I would only need Env for proper environment events, as opposed to for any section-to-section connection.
             idea 2: AfterA is an action for every A and EnterS is a Section for every S. These get created only when used.
@@ -67,6 +67,7 @@ if __name__ == '__main__':
                     
         Unrecognized atoms
         translate more examples
+            Hvitved master sales agreement
         deadlinesDisjointExhaustive and guardsDisjointExhaustive
         
         fn symbol types
