@@ -11,7 +11,7 @@ from model.L4Contract import L4Contract
 from model.statements import *
 from model.Connection import Connection, ConnectionToAction, ConnectionToSection
 from model.Section import Section
-from rich_model_from_sexpr import L4ContractConstructor
+from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
 from model.constants_and_defined_types import GlobalVarId
 from model.util import hasNotNone, dictSetOrInc, todo_once

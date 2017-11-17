@@ -1,4 +1,3 @@
-(LSMVersion 4.0.0)
 
 ; NOTE TO MENG (24 Sep 2017)
 ; The comment block just inside each *&State declaration is not literal suggested concrete syntax.

@@ -1,6 +1,6 @@
 import logging
 from parse_sexpr import parse_file, prettySExprStr
-from rich_model_from_sexpr import L4ContractConstructor
+from sexpr_to_L4Contract import L4ContractConstructor
 from correctness_checks import test_fns
 from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
