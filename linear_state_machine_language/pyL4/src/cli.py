@@ -2,7 +2,7 @@ import logging
 from parse_sexpr import parse_file, prettySExprStr
 from rich_model_from_sexpr import L4ContractConstructor
 from model.L4Contract import L4Contract
-from model.util import writeFile, writeReadOnlyFile
+from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
 
 # '../examplesLSM4/hvitved_printer.LSM',
@@ -22,7 +22,6 @@ EXAMPLES_UNPARSED_ROOT = "./examples_unparsed_gen/"
 
 if __name__ == '__main__':
     import sys
-    print(parse_file)
 
     logging.basicConfig(
         format="[%(levelname)s] %(funcName)s: %(message)s",
@@ -52,15 +51,17 @@ if __name__ == '__main__':
             if 'dot' in sys.argv:
                 contractToDotFile(prog, "examples_graphviz_gen" , True)
 
-            for x in prog.sections_by_id:
-                print(x)
+            # for x in prog.sections_by_id:
+            #     print(x)
 
     logging.warning("""
     Todo:        
         currently there's an inconsistecy that some Connections have a section id as their action id.
-            idea 1: Every connection is a ConnectionToAction or a ConnectionToSection
-                    then I would only need Env for proper environment events, as opposed to for any section-to-section connection
-            idea 2: AfterA is an action for every A and EnterS is a Section for every S. These get created only when used. 
+            idea 1: Every connection is a ConnectionToAction or a ConnectionToSection.
+                    Then I would only need Env for proper environment events, as opposed to for any section-to-section connection.
+            idea 2: AfterA is an action for every A and EnterS is a Section for every S. These get created only when used.
+            idea 3 (can be combined with previous): Similar to idea 1, but still in the formal model go through the trivial EnterS action.
+                    In other words, ConnectionToSection is an L4 feature, not an LSM feature.  
                     
         translate more examples
         deadlinesDisjointExhaustive and guardsDisjointExhaustive

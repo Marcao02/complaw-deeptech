@@ -1,4 +1,4 @@
-from typing import Dict, Union, List, Any
+from typing import Dict
 
 Sort = str
 SectionId = str
@@ -73,7 +73,7 @@ ENV_ROLE = "Env"
 CODE_BLOCK_LABEL = "Entrance"
 SECTION_DESCRIPTION_LABEL = "Description"
 ACTION_DESCRIPTION_LABEL = "Description"
-EVENT_STATE_PROSE_REFS_LABEL = "ProseRefs"
+PROSE_REFS_LABEL = "ProseRefs"
 OUT_CONNECTIONS_LABEL = "Next"
 FULFILLED_SECTION_LABEL = "Fulfilled"
 

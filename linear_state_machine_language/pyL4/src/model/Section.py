@@ -16,8 +16,9 @@ class Section:
 
         self.section_description: Optional[str] = None
 
-        # self.prose_refs: List[str] = None
         self.is_compound = False
+
+        self.prose_refs: List[str] = []
 
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")

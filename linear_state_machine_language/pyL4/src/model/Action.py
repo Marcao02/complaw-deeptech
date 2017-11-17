@@ -1,8 +1,3 @@
-# from typing import Union, List, Dict, Any, Tuple, Callable
-from typing import Iterator, List,  Set, Optional, NamedTuple
-
-from model.constants_and_defined_types import *
-from model.util import indent
 from model.GlobalStateTransform import GlobalStateTransform
 from model.statements import *
 
@@ -19,7 +14,8 @@ class Action:
         self.local_vars: Dict[str,LocalVarDec] = dict()
 
         self.is_compound = False
-        # self.prose_refs : List[str] = None
+
+        self.prose_refs : List[str] = []
 
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")

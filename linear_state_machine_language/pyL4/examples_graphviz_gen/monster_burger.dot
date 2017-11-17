@@ -26,21 +26,21 @@ digraph Monster_Burger {
  
     MonsterBurgerUncooked -> RequestCookMB;
 	AfterRequestCookMB -> ServeMB;
-	AfterRequestCookMB -> PromptServeGuaranteeViolated [style=dashed];
-	AfterServeMB -> EatingMB [style=dashed];
-	PromptServeGuaranteeViolated -> Fulfilled [style=dashed];
+	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
+	AfterServeMB -> EnterEatingMB [style=dashed];
+	PromptServeGuaranteeViolated -> EnterFulfilled [style=dashed];
 	EatingMB -> AnnounceMBFinished;
 	EatingMB -> CheckFinishedClaim;
-	EatingMB -> LateCheck [style=dashed];
+	EatingMB -> EnterLateCheck [style=dashed];
 	AfterAnnounceMBFinished -> CheckFinishedClaim;
-	AfterAnnounceMBFinished -> LateCheck [style=dashed];
-	LateCheck -> Fulfilled [style=dashed];
+	AfterAnnounceMBFinished -> EnterLateCheck [style=dashed];
+	LateCheck -> EnterFulfilled [style=dashed];
 	AfterCheckFinishedClaim -> VerifyFinishedClaim;
 	AfterCheckFinishedClaim -> RejectFinishedClaim;
-	AfterRejectFinishedClaim -> EatingMB [style=dashed];
+	AfterRejectFinishedClaim -> EnterEatingMB [style=dashed];
 	AfterRejectFinishedClaim -> PayForMB;
-	AfterPayForMB -> Fulfilled [style=dashed];
-	AfterVerifyFinishedClaim -> Fulfilled [style=dashed]
+	AfterPayForMB -> EnterFulfilled [style=dashed];
+	AfterVerifyFinishedClaim -> EnterFulfilled [style=dashed]
     
     RequestCookMB -> AfterRequestCookMB [style=dashed];
 	ServeMB -> AfterServeMB [style=dashed];

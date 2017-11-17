@@ -1,5 +1,3 @@
-# from typing import Union, List, Set, Dict, Any, Tuple, Callable, Iterator
-from model.util import mapjoin
 from model.L4Contract import *
 
 COLORS = ('Blue', 'Red')
@@ -25,14 +23,16 @@ def actionAsDotNodeStr(act: Action, all_actors: List[str]) -> str:
 
 
 def connectionAsDotArcStr(con: Connection) -> str:
-    if con.role_id == ENV_ROLE:
-        return f"{con.src_id} -> {con.action_id} [style=dashed]"
-    else:
+    if isinstance(con, ConnectionToSection):
+        return f"{con.src_id} -> Enter{con.dest_id} [style=dashed]"
+    elif isinstance(con, ConnectionToAction):
         return f"{con.src_id} -> {con.action_id}"
+    else:
+        raise NotImplementedError
 
 
 def contractToDotFileStr(l4file: L4Contract) -> str:
-    # graphname = l4file.formal_contract.name[1]
+    # graphname = l4file.construct_main_part.name[1]
     cleaned_graphname = "_".join(l4file.contract_name.split(' '))
     sections_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
     actions_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
@@ -54,7 +54,6 @@ digraph {cleaned_graphname} {{
 
 def contractToDotFile(l4file: L4Contract, rootpath = 'out', verbose=False) -> None:
     # replace spaces with underscores
-    print(l4file.contract_name)
     cleaned_contract_name = "_".join(l4file.contract_name.split(' '))
 
     if l4file.img_file_name:

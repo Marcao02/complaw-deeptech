@@ -29,10 +29,10 @@ class L4Contract:
         self.ordered_declarations : List[Union[Action,Section,ActionWithDestination]] = list()
 
     # def can_transition(self, transid1, transid2) -> bool:
-    #     return self.formal_contract.can_transition(transid1, transid2)
+    #     return self.construct_main_part.can_transition(transid1, transid2)
     #
     # def connections(self) -> Iterator[Connection]:
-    #     return self.formal_contract.connections()
+    #     return self.construct_main_part.connections()
 
     def sections_iter(self) -> Iterable[Section]:
         return self.sections_by_id.values()

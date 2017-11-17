@@ -1,12 +1,13 @@
 from model.Action import Action
 from model.Section import Section
-from typing import List, Union, Optional, NamedTuple
+from typing import NamedTuple
 from model.util import indent
+from model.constants_and_defined_types import ActionId, SectionId
 
-def derived_destination_id(action_id:str):
+def derived_destination_id(action_id:str) -> SectionId:
     return "After" + action_id
 
-def derived_trigger_id(dest_id:str):
+def derived_trigger_id(dest_id:str) -> ActionId:
     return "Enter" + dest_id
 
 class ActionWithDestination(NamedTuple):

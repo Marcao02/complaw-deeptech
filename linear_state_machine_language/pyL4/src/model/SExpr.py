@@ -1,10 +1,6 @@
-# v 1.1.0
+# v 2.0.0
 
-import logging
-from typing import Union, List, Any, TypeVar, Sequence, cast, Sized, Iterable
-from model.util import is_singleton_string_list, caststr
-
-print(caststr)
+from typing import Union, List, Any, cast, Sized, Iterable
 
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"

@@ -1,19 +1,11 @@
-import logging
-from typing import Tuple, cast, Optional, List
+from typing import Tuple, cast
 
-from model.util import streqci, list_split, caststr, isFloat, isInt
-from model.statements import Term, ContractParamDec, Float, Bool, Int
+from model.util import streqci, caststr, isFloat, isInt
 from model.L4Contract import *
-from parse_sexpr import prettySExprStr, SExpr, SExprOrStr, castse, STRING_LITERAL_MARKER, parse_file
-from state_diagram_generation import contractToDotFile
-from model.constants_and_defined_types import *
-
+from parse_sexpr import castse, STRING_LITERAL_MARKER
+from model.Connection import *
 from model.ActionWithDestination import *
 
-
-
-
-# def l4_model_from_sexpr(sexpr: List[SExpr])
 
 class L4ContractConstructor:
     def __init__(self, filename:Optional[str] = None) -> None:
@@ -58,7 +50,7 @@ class L4ContractConstructor:
                 self._top.prose_contract = self.prose_contract(cast(List[List[str]],rem))
 
             elif head( FORMAL_CONTRACT_SECTION_LABEL ):
-                self.formal_contract(rem)
+                self.construct_main_part(rem)
 
             elif head( DOT_FILE_NAME_LABEL ):
                 self._top.dot_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
@@ -66,10 +58,11 @@ class L4ContractConstructor:
                 self._top.img_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
         if  self._referenced_section_ids != set(self._top.section_ids()).union([FULFILLED_SECTION_LABEL]):
-            print(
-            f"ISSUE\n:Set of referenced section ids ≠ set of declared section ids (plus '{FULFILLED_SECTION_LABEL}'):\n" +
-            "Referenced           : " + str(sorted(self._referenced_section_ids)) + "\n" +
-            f"Defined + '{FULFILLED_SECTION_LABEL}': " + str(sorted(set(self._top.section_ids()).union([FULFILLED_SECTION_LABEL])))
+            logging.warning(
+            f"""
+ISSUE: Set of referenced section ids ≠ set of declared section ids (plus '{FULFILLED_SECTION_LABEL}'):
+    Referenced           : {str(sorted(self._referenced_section_ids))} 
+    Defined (+ '{FULFILLED_SECTION_LABEL}'): {str(sorted(set(self._top.section_ids()).union([FULFILLED_SECTION_LABEL])))}"""
             )
 
         return self._top
@@ -121,7 +114,7 @@ class L4ContractConstructor:
         # logging.info(str(rv))
         return rv
 
-    def formal_contract(self, l:SExpr) -> None:
+    def construct_main_part(self, l:SExpr) -> None:
         self._top.contract_name = l[0][1] # [1] because STRLIT sexpr
         x: SExpr
 
@@ -201,8 +194,6 @@ class L4ContractConstructor:
             else:
                 self.syntaxError(l, f"Unrecognized head {x[0]}")
 
-        # return FormalContract(caststr(l[0][1]), sections, start_section)
-
 
     def section(self, section_id:SectionId, rest:SExpr, is_compound = False) -> Section:
         section = Section(section_id)
@@ -225,11 +216,8 @@ class L4ContractConstructor:
                     newconnection = self.connection(connection_expr, section)
                     self._top.connections.append(newconnection)
 
-            # else:
-            #     logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.section")
-
-            # elif head(EVENT_STATE_PROSE_REFS_LABEL):
-            #     section.prose_refs = cast(List,x[1:]).copy()
+            elif head(PROSE_REFS_LABEL):
+                section.prose_refs = cast(List,x[1:]).copy()
 
         return section
 
@@ -250,12 +238,12 @@ class L4ContractConstructor:
             elif head(CODE_BLOCK_LABEL):
                 a.global_state_transform = self.global_state_transform(cast(List[SExpr],x[1:]), a)
 
-            else:
-                logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.action")
+            elif head(PROSE_REFS_LABEL):
+                a.prose_refs = x[1:].lst
 
-            # elif head(EVENT_STATE_PROSE_REFS_LABEL):
-            #     es.prose_refs = cast(List,x[1:]).copy()
-
+            # else:
+            #     Can't do this because send compound action-section declarations through this function
+            #     logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.action")
 
         return a
 
@@ -341,6 +329,17 @@ class L4ContractConstructor:
                 self.syntaxError(x)
             return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
 
+    def deadline_clause(self, expr:SExpr, src_section:Section) -> Optional[Term]:
+        assert len(expr) == 1
+        if expr[0] in DEADLINE_KEYWORDS:
+            assert len(expr) == 1
+            return self.parse_term(expr[0], src_section)
+        else:
+            assert len(castse(expr[0])) > 1
+            if expr[0][0] in DEADLINE_OPERATORS:
+                return self.parse_term(expr[0], src_section)
+        return None
+
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
         enabled_guard: Term = None
         if expr[0] == 'if':
@@ -348,64 +347,50 @@ class L4ContractConstructor:
             expr = expr[2]
 
         role_id : str
-        deontic_keyword : str
-        action_id : str
-        args : Optional[Term]
+        dest_section_or_action_id : str
+        args : Optional[SExpr]
+        con_type : ConnectionType
 
         if len(expr) == 2:
+            con_type = ConnectionType.toSection
             role_id = ENV_ROLE
             if role_id not in src_section.connections_by_role:
                 src_section.connections_by_role[role_id] = list()
-            deontic_keyword = "transpires"
-            action_id = expr[0]
+            dest_section_or_action_id = expr[0]
+            self._referenced_section_ids.add(dest_section_or_action_id)
             args = None
             rem = expr.tillEnd(1)
         else:
+            con_type = ConnectionType.toAction
             role_id = caststr(expr[0])
             if role_id not in src_section.connections_by_role:
                 src_section.connections_by_role[role_id] = list()
             deontic_keyword = caststr(expr[1])
-            action_id: str = caststr(expr[2][0])
+            dest_section_or_action_id = caststr(expr[2][0])
+            self._referenced_action_ids.add(dest_section_or_action_id)
             args = castse(expr[2][1:])
             rem = expr.tillEnd(3)
 
-        self._referenced_action_ids.add(action_id)
+        assert len(rem) >= 1
+        deadline_clause = self.deadline_clause(rem, src_section)
 
-        deadline_clause : Term = None
-        if len(rem) >= 1:
-            assert len(rem) == 1
-            if rem[0] in DEADLINE_KEYWORDS:
-                assert len(rem) == 1
-                deadline_clause = self.parse_term(rem[0], src_section)
-            else:
-                assert len(castse(rem[0])) > 1
-                if rem[0][0] in DEADLINE_OPERATORS:
-                    deadline_clause = self.parse_term(rem[0], src_section)
+        c : Connection
+        if con_type == ConnectionType.toAction:
+            c = ConnectionToAction(src_id=src_section.section_id, role_id=role_id, args=args,
+                                   deadline_clause=deadline_clause, enabled_guard=enabled_guard,
+                                   action_id=dest_section_or_action_id,
+                                   deontic_modality = deontic_keyword)
+        elif con_type == ConnectionType.toSection:
+            c = ConnectionToSection(src_id=src_section.section_id, role_id=role_id, args=args,
+                                    deadline_clause=deadline_clause, enabled_guard=enabled_guard,
+                                    action_id=derived_trigger_id(dest_section_or_action_id),
+                                    dest_id=dest_section_or_action_id)
 
-        c = Connection(src_id=src_section.section_id, role_id=role_id, action_id=action_id, args=args,
-                        deontic_modality=deontic_keyword, deadline_clause=deadline_clause,
-                        enabled_guard=enabled_guard)
+        else:
+            raise NotImplementedError()
 
         src_section.connections_by_role[role_id].append(c)
         return c
-
-    # def nonactor_transition_clause(self,trans_spec, src_es_id:SectionId) -> Connection:
-    #     try:
-    #         dest_id: str = trans_spec[0]
-    #         self._referenced_section_ids.add(dest_id)
-    #         tc = Connection(src_es_id, dest_id, NONACTION_BLOCK_LABEL, None)
-    #         tc.args = trans_spec[1]
-    #         if len(trans_spec) > 2:
-    #             if trans_spec[2] in DEADLINE_OPERATORS:
-    #                 tc.conditions = trans_spec[2:4]
-    #             else:
-    #                 # assert trans_spec[2] in DEADLINE_KEYWORDS, trans_spec[2] + ' is not a deadline keyword'
-    #                 tc.conditions = trans_spec[2:4]
-    #             return tc
-    #         return tc
-    #     except Exception:
-    #         logging.error(f"Problem processing {src_es_id} trans: " + str(trans_spec))
-    #         return None
 
 def maybe_as_prefix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if isinstance(se[0],str):
