@@ -6,9 +6,12 @@ from model.constants_and_defined_types import ActionId, SectionId
 
 def derived_destination_id(action_id:str) -> SectionId:
     return "After" + action_id
-
 def derived_trigger_id(dest_id:str) -> ActionId:
     return "Enter" + dest_id
+def is_derived_destination_id(action_id:str) -> bool:
+    return action_id.startswith("After")
+def is_derived_trigger_id(dest_id:str) -> bool:
+    return dest_id.startswith("Enter")
 
 class ActionWithDestination(NamedTuple):
     action: Action

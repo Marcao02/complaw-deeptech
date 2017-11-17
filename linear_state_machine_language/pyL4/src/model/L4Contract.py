@@ -36,11 +36,17 @@ class L4Contract:
 
     def sections_iter(self) -> Iterable[Section]:
         return self.sections_by_id.values()
-    def section_ids(self) -> Iterable[str]:
+    def section_ids(self) -> Iterable[SectionId]:
         return self.sections_by_id.keys()
-
-    def section(self, id:str):
-        return self.sections_by_id[id]
+    def section(self, anid:SectionId):
+        return self.sections_by_id[anid]
+    
+    def actions_iter(self) -> Iterable[Action]:
+        return self.actions_by_id.values()
+    def action_ids(self) -> Iterable[ActionId]:
+        return self.actions_by_id.keys()
+    def action(self, anid: ActionId):
+        return self.actions_by_id[anid]
 
     def varDecObj(self, varname:str, sec:Section = None) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
         if varname in self.global_var_decs:

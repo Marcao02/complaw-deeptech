@@ -1,7 +1,7 @@
 import logging
 from parse_sexpr import parse_file, prettySExprStr
 from rich_model_from_sexpr import L4ContractConstructor
-from model.L4Contract import L4Contract
+from correctness_checks import test_fns
 from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
                 print(prettySExprStr(parsed))
 
             assembler = L4ContractConstructor()
-            prog : L4Contract = assembler.top(parsed)
+            prog = assembler.l4contract(parsed)
 
             if 'printPretty' in sys.argv:
                 unparsed = str(prog)
@@ -51,10 +51,12 @@ if __name__ == '__main__':
             if 'dot' in sys.argv:
                 contractToDotFile(prog, "examples_graphviz_gen" , True)
 
-            # for x in prog.sections_by_id:
-            #     print(x)
+            print("\nRunning correctness checks...")
+            for check in test_fns:
+                if check(assembler):
+                    print( check.__name__ + " ok" )
 
-    logging.warning("""
+    print("""\n\n
     Todo:        
         currently there's an inconsistecy that some Connections have a section id as their action id.
             idea 1: Every connection is a ConnectionToAction or a ConnectionToSection.
@@ -63,6 +65,7 @@ if __name__ == '__main__':
             idea 3 (can be combined with previous): Similar to idea 1, but still in the formal model go through the trivial EnterS action.
                     In other words, ConnectionToSection is an L4 feature, not an LSM feature.  
                     
+        Unrecognized atoms
         translate more examples
         deadlinesDisjointExhaustive and guardsDisjointExhaustive
         

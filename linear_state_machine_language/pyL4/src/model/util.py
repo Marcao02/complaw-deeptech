@@ -1,4 +1,5 @@
-from typing import Any, List, Callable, Iterable, cast, Dict
+from typing import Any, List, Callable, Iterable, cast, Dict, Set
+import logging
 
 def indent(i:int) -> str:
     return 4*i*' '
@@ -66,3 +67,15 @@ def writeReadOnlyFile(path:str, contents:str) -> None:
     system(f'chmod u+w {path}')
     writeFile(path, contents)
     system(f'chmod a-w {path}')
+
+warnings_given : Set[str] = set()
+def warn_once(msg) -> None:
+    if not msg in warnings_given:
+        logging.warning(msg)
+        warnings_given.add(msg)
+
+todos_given : Set[str] = set()
+def todo_once(msg) -> None:
+    if not msg in todos_given:
+        print("TODO: " + msg)
+        todos_given.add(msg)

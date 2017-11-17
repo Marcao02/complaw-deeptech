@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, NamedTuple
+from typing import Optional, NamedTuple, Union
 
 from model.constants_and_defined_types import *
 from model.statements import Term

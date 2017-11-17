@@ -76,4 +76,4 @@ def contractToDotFile(l4file: L4Contract, rootpath = 'out', verbose=False) -> No
     import os
     os.system(command)
     if verbose:
-        print('If successful generated png image will be at:\n\t' + img_path + '\n')
+        print('If successful, generated png image will be at:\n\t' + img_path + '\n')
