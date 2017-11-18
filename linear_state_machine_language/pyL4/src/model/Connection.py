@@ -10,7 +10,7 @@ from model.util import indent, mapjoin
 class ConnectionType(Enum):
     toSection = 1
     toAction = 2
-    toEnvEvent = 3
+    toEnvAction = 3
 
 class ConnectionToAction(NamedTuple):
     src_id: SectionId
@@ -52,7 +52,7 @@ class ConnectionToSection(NamedTuple):
     role_id: RoleId # should be ENV_ROLE always
     action_id: ActionId # should be derived_trigger_id(role_id)
     dest_id: SectionId
-    args: Optional[SExpr]
+    # args: Optional[SExpr]
     deadline_clause: Term
     enabled_guard: Optional[Term]
 
@@ -70,8 +70,8 @@ class ConnectionToSection(NamedTuple):
         assert self.role_id == ENV_ROLE
         rv += indent(indent_level) + self.dest_id
 
-        if self.args:
-            rv += f"({mapjoin(str , self.args, ', ')})"
+        # if self.args:
+        #     rv += f"({mapjoin(str , self.args, ', ')})"
 
         if str(self.deadline_clause) == 'immediately':
             return rv
@@ -89,5 +89,26 @@ class ConnectionToEnvAction(NamedTuple):
     args: Optional[SExpr]
     deadline_clause: Term
     enabled_guard: Optional[Term]
+
+    def toStr(self, i:int) -> str:
+        rv : str = ""
+        indent_level = i
+        if self.enabled_guard:
+            rv = indent(indent_level) + "if " + str(self.enabled_guard) + ":\n"
+            indent_level += 1
+
+        assert self.role_id == ENV_ROLE
+        rv += indent(indent_level) + self.action_id
+
+        if self.args:
+            rv += f"({mapjoin(str , self.args, ', ')})"
+
+        if str(self.deadline_clause) == 'immediately':
+            return rv
+
+        if self.deadline_clause:
+            rv += " " + str(self.deadline_clause)
+
+        return rv
 
 Connection = Union[ConnectionToSection, ConnectionToAction, ConnectionToEnvAction]

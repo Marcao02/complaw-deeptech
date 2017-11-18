@@ -14,7 +14,11 @@ import interpreter
 # '../examplesLSM4/hvitved_master_sales_agreement_full.LSM',
 # '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
 # '../examplesLSM4/hvitved_instalment_sale.LSM'
-EXAMPLES = ['monster_burger.L4']
+EXAMPLES = [
+    # 'monster_burger.l4',
+    'hvitved_instalment_sale--separate_sections_actions.l4',
+    'hvitved_instalment_sale.l4'
+]
 
 EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
 EXAMPLE_SEXPR_ = map( lambda x: EXAMPLES_SEXPR_ROOT + x, EXAMPLES )
@@ -42,10 +46,14 @@ if __name__ == '__main__':
             if 'printSExpr' in sys.argv:
                 print(prettySExprStr(parsed))
 
-            assembler = L4ContractConstructor()
+            assembler = L4ContractConstructor(filename)
             prog = assembler.l4contract(parsed)
 
-            print(prog.max_section_id_len, prog.max_action_id_len)
+            # print( prog.action_ids() )
+            # print( prog.section_ids() )
+            # print( prog.actionDestPair_by_id.values() )
+
+            # print(prog.max_section_id_len, prog.max_action_id_len)
 
             if 'printPretty' in sys.argv:
                 unparsed = str(prog)
@@ -53,7 +61,7 @@ if __name__ == '__main__':
                 writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, unparsed)
 
             if 'dot' in sys.argv:
-                contractToDotFile(prog, "examples_graphviz_gen" , True)
+                contractToDotFile(prog, "examples_graphviz_gen" , True, True)
 
             print("\nRunning correctness checks...")
             for check in test_fns:

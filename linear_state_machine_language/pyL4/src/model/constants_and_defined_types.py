@@ -19,7 +19,9 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
 DEADLINE_OPERATORS = {'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
-                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-and-within', 'after-exactly'}
+                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-and-within', 'after-exactly',
+                      'dateFromDayInMonthIndexAndMonthIndex', 'nextMonthIndex'
+                      }
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
 DURATION_SYMBOLS = {'discretionary'}
 
@@ -70,10 +72,13 @@ COMPOUND_S = "CompoundAsSection"
 
 ENV_ROLE = "Env"
 
+TRANSITIONS_TO_LABEL = "TransitionsTo"
 CODE_BLOCK_LABEL = "Entrance"
 SECTION_DESCRIPTION_LABEL = "Description"
 ACTION_DESCRIPTION_LABEL = "Description"
 PROSE_REFS_LABEL = "ProseRefs"
 OUT_CONNECTIONS_LABEL = "Next"
+
 FULFILLED_SECTION_LABEL = "Fulfilled"
+
 

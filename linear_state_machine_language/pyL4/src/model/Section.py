@@ -28,7 +28,7 @@ class Section:
             for t in role_subset:
                 yield t
 
-    def __str__(self):
+    def __str__(self) -> str:
         rv = f"section {self.section_id}:\n"
 
         if self.section_description:
@@ -38,3 +38,6 @@ class Section:
             rv += t.toStr(1) + "\n"
 
         return rv
+
+    def __repr__(self) -> str:
+        return str(self)

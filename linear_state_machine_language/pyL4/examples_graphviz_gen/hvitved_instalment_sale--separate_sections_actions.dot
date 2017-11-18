@@ -1,0 +1,24 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Instalment_Sale_Hvitved {    
+    WaitingForFirstDayOfNextMonth[label=WaitingForFirstDayOfNextMonth];
+	AfterPayInstallment[label=AfterPayInstallment];
+	AfterPayLastInstallment[label=AfterPayLastInstallment]
+    
+    EnterWaitingForFirstDayOfNextMonth[label=EnterWaitingForFirstDayOfNextMonth,shape=box];
+	PayInstallment[label=PayInstallment,shape=box];
+	PayLastInstallment[label=PayLastInstallment,shape=box]    
+    
+    WaitingForFirstDayOfNextMonth -> PayInstallment;
+	WaitingForFirstDayOfNextMonth -> PayLastInstallment;
+	AfterPayInstallment -> EnterWaitingForFirstDayOfNextMonth;
+	AfterPayLastInstallment -> EnterFulfilled
+    
+    EnterWaitingForFirstDayOfNextMonth -> WaitingForFirstDayOfNextMonth [style=dashed];
+	PayInstallment -> AfterPayInstallment [style=dashed];
+	PayLastInstallment -> AfterPayLastInstallment [style=dashed];
+	
+    
+    
+        
+}

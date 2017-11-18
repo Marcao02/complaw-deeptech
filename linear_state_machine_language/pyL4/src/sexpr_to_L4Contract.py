@@ -136,12 +136,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     action_id = x[1]
                     action = self.action(action_id, destination_id, None, action_body)
                     self.top.actions_by_id[action_id] = action
+                    print("action_id", action_id)
                 else:
                     # e.g. (Action (SomethingHappens param&sort1 param&sort2) ...)
                     action_id = caststr(x[1][0])
                     action_params = castse(x[1][1:])
                     action = self.action(action_id, destination_id, action_params, action_body)
                     self.top.actions_by_id[action_id] = action
+                    print("action_id?", action_id)
                 self.top.ordered_declarations.append(action)
 
             elif head(SECTION_LABEL):
@@ -235,6 +237,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(PROSE_REFS_LABEL):
                 a.prose_refs = x[1:].lst
 
+            elif head(TRANSITIONS_TO_LABEL):
+                a.dest_section_id = x[1]
+
             # else:
             #     Can't do this because send compound action-section declarations through this function
             #     logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.action")
@@ -325,14 +330,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
 
     def deadline_clause(self, expr:SExpr, src_section:Section) -> Optional[Term]:
-        assert len(expr) == 1
-        if expr[0] in DEADLINE_KEYWORDS:
-            assert len(expr) == 1
-            return self.parse_term(expr[0], src_section)
+
+        if expr in DEADLINE_KEYWORDS:
+            return self.parse_term(expr, src_section)
         else:
-            assert len(castse(expr[0])) > 1
-            if expr[0][0] in DEADLINE_OPERATORS:
-                return self.parse_term(expr[0], src_section)
+            assert len(expr) > 1
+            if expr[0] in DEADLINE_OPERATORS:
+                return self.parse_term(expr, src_section)
         return None
 
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
@@ -347,11 +351,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         con_type : ConnectionType
 
         if len(expr) == 2:
-            con_type = ConnectionType.toSection
+            dest_section_or_action_id = expr[0]
+            # con_type = ConnectionType.toSection
+            con_type = ConnectionType.toEnvAction
             role_id = ENV_ROLE
             if role_id not in src_section.connections_by_role:
                 src_section.connections_by_role[role_id] = list()
-            dest_section_or_action_id = expr[0]
+
             if not is_derived_trigger_id(dest_section_or_action_id):
                 self.referenced_section_ids.add(dest_section_or_action_id)
             args = None
@@ -369,7 +375,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rem = expr.tillEnd(3)
 
         assert len(rem) >= 1
-        deadline_clause = self.deadline_clause(rem, src_section)
+        deadline_clause = self.deadline_clause(rem[0], src_section)
 
         c : Connection
         if con_type == ConnectionType.toAction:
@@ -378,13 +384,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                                    action_id=dest_section_or_action_id,
                                    deontic_modality = deontic_keyword)
         elif con_type == ConnectionType.toSection:
-            c = ConnectionToSection(src_id=src_section.section_id, role_id=role_id, args=args,
+            c = ConnectionToSection(src_id=src_section.section_id, role_id=role_id,
                                     deadline_clause=deadline_clause, enabled_guard=enabled_guard,
                                     action_id=derived_trigger_id(dest_section_or_action_id),
                                     dest_id=dest_section_or_action_id)
 
-        else:
-            raise NotImplementedError()
+        elif con_type == ConnectionType.toEnvAction:
+            c = ConnectionToEnvAction(src_id=src_section.section_id, role_id=role_id,
+                                    deadline_clause=deadline_clause, enabled_guard=enabled_guard,
+                                    action_id=derived_trigger_id(dest_section_or_action_id),
+                                    args = None
+                                    )
+
 
         src_section.connections_by_role[role_id].append(c)
         return c

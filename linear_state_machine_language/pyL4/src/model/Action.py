@@ -30,3 +30,6 @@ class Action:
             rv += str(self.global_state_transform)
             rv += "\n"
         return rv
+
+    def __repr__(self) -> str:
+        return str(self)

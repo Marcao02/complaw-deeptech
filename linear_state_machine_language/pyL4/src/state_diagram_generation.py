@@ -1,3 +1,4 @@
+from model.ActionWithDestination import derived_destination_id
 from model.L4Contract import *
 
 COLORS = ('Blue', 'Red')
@@ -27,36 +28,53 @@ def connectionAsDotArcStr(con: Connection) -> str:
         return f"{con.src_id} -> Enter{con.dest_id} [style=dashed]"
     elif isinstance(con, ConnectionToAction):
         return f"{con.src_id} -> {con.action_id}"
-    else:
-        raise NotImplementedError
+    elif isinstance(con, ConnectionToEnvAction):
+        return f"{con.src_id} -> {con.action_id}"
 
 
 def contractToDotFileStr(l4file: L4Contract) -> str:
     # graphname = l4file.construct_main_part.name[1]
     cleaned_graphname = "_".join(l4file.contract_name.split(' '))
-    sections_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
-    actions_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
-    connections_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
+    section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
+    action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
 
-    compounds_str = mapjoin(lambda x: f"{x.action.action_id} -> {x.section.section_id} [style=dashed]",
+    compound_connections_str = mapjoin(lambda x: f"{x.action.action_id} -> {x.section.section_id} [style=dashed]",
                             l4file.actionDestPair_by_id.values(),
                             ";\n\t")
+    connections_from_actions_str = ""
+    for action in l4file.actions_iter():
+        if not (action.action_id in l4file.actionDestPair_by_id or derived_destination_id(action.action_id) in l4file.actionDestPair_by_id):
+            print("got here?")
+            connections_from_actions_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
+
+    connections_from_sections_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
 
     return f"""// THIS IS A GENERATED FILE. DO NOT EDIT.
 
 digraph {cleaned_graphname} {{    
-    {sections_str}
+    {section_nodes_str}
     
-    {actions_str}
- 
-    {connections_str}
+    {action_nodes_str}    
     
-    {compounds_str}
+    {connections_from_sections_str}
+    
+    {connections_from_actions_str}
+    
+    {compound_connections_str}
+        
 }}"""
+    # {compound_connections_str}
+    #
+    # {noncompound_connections_str}
+    # {compounds_str2}
 
-def contractToDotFile(l4file: L4Contract, rootpath = 'out', verbose=False) -> None:
-    # replace spaces with underscores
-    cleaned_contract_name = "_".join(l4file.contract_name.split(' '))
+def contractToDotFile(l4file: L4Contract, rootpath = 'out', use_filename = True, verbose = False) -> None:
+    if use_filename:
+        print("filename:", l4file.filename)
+        cleaned_contract_name = l4file.filename[:-3]
+    else:
+        # replace spaces with underscores
+        cleaned_contract_name = "_".join(l4file.contract_name.split(' '))
 
     if l4file.img_file_name:
         img_path = f"{rootpath}/{l4file.img_file_name}"
