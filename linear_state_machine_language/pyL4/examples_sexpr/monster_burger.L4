@@ -52,7 +52,7 @@
 		)
 	)
 
-	(CompoundAsAction RequestCookMB
+	(Action RequestCookMB
 		; {actionPast:MonsterBurgerOrdered} is "ordered a Monster Burger"
 		; Upon {Challenger} having just {actionPast:MonsterBurgerOrdered}:
 		; * {amount_owing} is set to {MB_PRICE}
@@ -61,53 +61,71 @@
 		; * Past {MAX_SERVE_DELAY}, {event:PromptServeGuaranteeViolated}
 		; LANG note: static checker directive, which tells the static checker that this state
 		; is visited exactly once in any execution.
+		; (TransitionsTo AfterRequestCookMB)
 		(visits == 1) ;
 		(AllowedSubjects Challenger)
 
 		(Entrance
 			(amount_owing = MB_PRICE)
 		)
+	)
+	(Section AfterRequestCookMB
 		(Next
             (deadlinesPartitionFuture
 	            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
-	            (PromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY))
+	            (EnterPromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY))
             )
         )
 	)
 
-	(CompoundAsAction ServeMB
+	(Action ServeMB
 		; Upon {Restaurant} having just {actionPast:ServeMB}:
 		; * {challenge_endlimit_timestamp} is defined as {TIME_TO_EAT_BURGER} after {event_start_time}, and
 		; * then {event:EatingMB}
 		; LANG note: static checker directive, which tells the static checker that the number of times
 		; this state can be visited is 0 or 1, and that both endpoints are possible.
+		; (TransitionsTo AfterServeMB)
 		(0 ≤ visits ≤ 1)
 		(AllowedSubjects Restaurant)
 
 		(Entrance
 			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER afterEntrance))
 		)
+	)
+	(Section AfterServeMB
 		(Next
-		    (EatingMB immediately)
+		    (EnterEatingMB immediately)
 		)
 	)
 
 
-	(CompoundAsSection PromptServeGuaranteeViolated
+	(Action EnterPromptServeGuaranteeViolated
 		; {event:PromptServeGuaranteeViolated} is "{Restaurant}'s Prompt Serve Guarantee violated"
 		; Upon {event:PromptServeGuaranteeViolated}, {amount_owing} is set to 0, and then the contract is fulfilled.
+		; (TransitionsTo PromptServeGuaranteeViolated)
 		(0 ≤ visits ≤ 1)
 		(AllowedSubjects Env)
 
 		(Entrance
 			(amount_owing = 0)
 		)
+	)
+	(Section PromptServeGuaranteeViolated
+		; {event:PromptServeGuaranteeViolated} is "{Restaurant}'s Prompt Serve Guarantee violated"
+		; Upon {event:PromptServeGuaranteeViolated}, {amount_owing} is set to 0, and then the contract is fulfilled.
 		(Next
-		    (Fulfilled immediately)
+		    (EnterFulfilled immediately)
 		)
 	)
 
-	(CompoundAsSection EatingMB
+	(Action EnterEatingMB
+		; LANG note: static checker directive, which tells the static checker that the number of times
+		; this state can be visited is possibly as small as 0, and can't be bounded by any constant number.
+		; (TransitionsTo EatingMB)
+		(0 ≤ visits ≤ nonconstant)
+		(AllowedSubjects Env)
+	)
+	(Section EatingMB
 		; Whenever {event:EatingMB}
 		; * if the time is no later than {challenge_endlimit_timestamp},
 		;	* then {Challenger} may {action:AnnounceMBFinished}
@@ -122,72 +140,82 @@
 
         (Next
             ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify
-            ; that the deadline expressions partition the future.            
+            ; that the deadline expressions partition the future.
             (deadlinesPartitionFuture
 	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-	            (LateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
+	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
             )
         )
 	)
 
-	(CompoundAsAction AnnounceMBFinished
+	(Action AnnounceMBFinished
+		; (TransitionsTo AfterAnnounceMBFinished)
+		(AllowedSubjects Challenger)
+	)
+	(Section AfterAnnounceMBFinished
 		; Whenever {Challenger} has just {action:AnnounceMBFinished}
 		; * Within {MAX_CLAIM_VERIFICATION_DELAY}:
 		; 	* {Restaurant} should {action:CheckFinishedClaim}
 		; * Past {MAX_CLAIM_VERIFICATION_DELAY}:
 		;	* {LateCheck}
 		(0 ≤ visits ≤ nonconstant)
-		(AllowedSubjects Challenger)
-
-        (Next
+		(Next
             (deadlinesPartitionFuture
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
-	            (LateCheck (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
+	            (EnterLateCheck (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
             )
         )
 	)
 
-	(CompoundAsSection LateCheck
-		; Upon {event:LateCheck}, {amount_owing} is set to 0, and then the contract is fulfilled.
+	(Action EnterLateCheck
+		; (TransitionsTo LateCheck)
 		(0 ≤ visits ≤ 1)
 		(AllowedSubjects Env)
-
 		(Entrance
 			(amount_owing = 0)
 		)
+	)
+	(Section LateCheck
+		; Upon {event:LateCheck}, {amount_owing} is set to 0, and then the contract is fulfilled.
+		(0 ≤ visits ≤ 1)
 		(Next
-		    (Fulfilled immediately)
+		    (EnterFulfilled immediately)
 		)
 	)
 
-	(CompoundAsAction CheckFinishedClaim
+	(Action CheckFinishedClaim
 		; "either {VerifyFinishedClaim} or {RejectFinishedClaim}"
+		; (TransitionsTo AfterCheckFinishedClaim)
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Restaurant)
-
-        (Next
+	)
+	(Section AfterCheckFinishedClaim
+		(Next
 		    (Restaurant weakly-must (VerifyFinishedClaim) immediately)
 		    (Restaurant weakly-must (RejectFinishedClaim) immediately)
 		)
 	)
 
-	(CompoundAsAction RejectFinishedClaim
+
+	(Action RejectFinishedClaim
 		; Whenever {Restaurant} {action:RejectFinishedClaim}:
 		; * if the time is no later than {challenge_endlimit_timestamp}
 		;	* then {event:EatingMB}""
 		; * if the time has passed {challenge_endlimit_timestamp}
 		; 	* then {Customer} must immediately {PayForMB}
+		; (TransitionsTo AfterRejectFinishedClaim)
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Restaurant)
-
+	)
+	(Section AfterRejectFinishedClaim
         (Next
         	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
-            ; always the case that exactly one of the tests of the children conditionals is true.            
+            ; always the case that exactly one of the tests of the children conditionals is true.
             (guardsDisjointExhaustive
             	; I think we should encourage this style of order-insensitive conditionals.
 	            (if (currentTimeNoLaterThan? challenge_endlimit_timestamp)
-	                (EatingMB immediately)
+	                (EnterEatingMB immediately)
 	            )
 	            (if (currentTimeAfter? challenge_endlimit_timestamp)
 	                (Customer must (PayForMB) immediately)
@@ -196,12 +224,12 @@
         )
 	)
 
-	(CompoundAsAction PayForMB
+	(Action PayForMB
 		; Upon {Customer} having just {action:PayForMB}:
 		; * {amount_paid} is defined as {amount_owing}, and then
 		; * {amount_owing} is set to 0", and then
 		; * the contract is fulfilled
-
+		; (TransitionsTo AfterPayForMB)
 		(0 ≤ visits ≤ 1)
 		(AllowedSubjects Challenger)
 
@@ -209,28 +237,32 @@
 			(amount_paid = amount_owing)
 			(amount_owing = 0)
 		)
+	)
+	(Section AfterPayForMB
 		(Next
-		    (Fulfilled immediately)
+		    (EnterFulfilled immediately)
 		)
 	)
 
-	(CompoundAsAction VerifyFinishedClaim
+	(Action VerifyFinishedClaim
 		; Upon {Restaurant} having just {action:VerifyFinishedClaim}:
 		; * {amount_owing} is set to 0", and then
 		; * the contract is fulfilled
-
+		; (TransitionsTo AfterVerifyFinishedClaim)
 		(0 ≤ visits ≤ 1)
 		(AllowedSubjects Restaurant)
 
 		(Entrance
 			(amount_owing = 0)
 		)
+	)
+	(Section AfterVerifyFinishedClaim
 		(Next
-		    (Fulfilled immediately)
+		    (EnterFulfilled immediately)
 		)
 	)
 
 )
 
-(DotFileName 'monster_burger.dot')
-(ImgFileName 'monster_burger.png')
+; (DotFileName 'monster_burger.dot')
+; (ImgFileName 'monster_burger.png')

@@ -1,5 +1,5 @@
-------
-file: 
+-----------------------
+file: monster_burger.l4
 
 contract params:
     MB_PRICE : Price := $50
@@ -16,63 +16,79 @@ global vars:
 section MonsterBurgerUncooked:
     Challenger must RequestCookMB (by 8pm)
 
-action-compound RequestCookMB:
+action RequestCookMB transitions to AfterRequestCookMB:
     transform:
         amount_owing := @MB_PRICE
-    next:
-        Restaurant should ServeMB (strictly-within @MAX_SERVE_DELAY)
-        PromptServeGuaranteeViolated
 
-action-compound ServeMB:
+
+section AfterRequestCookMB:
+    Restaurant should ServeMB (strictly-within @MAX_SERVE_DELAY)
+    EnterPromptServeGuaranteeViolated
+
+action ServeMB transitions to AfterServeMB:
     transform:
         challenge_endlimit_timestamp := (@TIME_TO_EAT_BURGER afterEntrance)
-    next:
-        EatingMB
 
-section-compound PromptServeGuaranteeViolated:
+
+section AfterServeMB:
+    EnterEatingMB
+
+action EnterPromptServeGuaranteeViolated transitions to PromptServeGuaranteeViolated:
     transform:
         amount_owing := 0
-    next:
-        Fulfilled
 
-section-compound EatingMB:
-    next:
-        Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
-        Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
-        LateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
 
-action-compound AnnounceMBFinished:
-    next:
-        Restaurant should CheckFinishedClaim
-        LateCheck (after-exactly @MAX_CLAIM_VERIFICATION_DELAY)
+section PromptServeGuaranteeViolated:
+    EnterFulfilled
 
-section-compound LateCheck:
+action EnterEatingMB transitions to EatingMB:
+
+section EatingMB:
+    Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
+    Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
+    EnterLateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
+
+action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
+
+section AfterAnnounceMBFinished:
+    Restaurant should CheckFinishedClaim
+    EnterLateCheck (after-exactly @MAX_CLAIM_VERIFICATION_DELAY)
+
+action EnterLateCheck transitions to LateCheck:
     transform:
         amount_owing := 0
-    next:
-        Fulfilled
 
-action-compound CheckFinishedClaim:
-    next:
-        Restaurant weakly-must VerifyFinishedClaim immediately
-        Restaurant weakly-must RejectFinishedClaim immediately
 
-action-compound RejectFinishedClaim:
-    next:
-        if (currentTimeNoLaterThan? challenge_endlimit_timestamp):
-            EatingMB
-        if (currentTimeAfter? challenge_endlimit_timestamp):
-            Customer must PayForMB immediately
+section LateCheck:
+    EnterFulfilled
 
-action-compound PayForMB:
+action CheckFinishedClaim transitions to AfterCheckFinishedClaim:
+
+section AfterCheckFinishedClaim:
+    Restaurant weakly-must VerifyFinishedClaim immediately
+    Restaurant weakly-must RejectFinishedClaim immediately
+
+action RejectFinishedClaim transitions to AfterRejectFinishedClaim:
+
+section AfterRejectFinishedClaim:
+    if (currentTimeNoLaterThan? challenge_endlimit_timestamp):
+        EnterEatingMB
+    if (currentTimeAfter? challenge_endlimit_timestamp):
+        Customer must PayForMB immediately
+
+action PayForMB transitions to AfterPayForMB:
     transform:
         amount_paid := amount_owing
         amount_owing := 0
-    next:
-        Fulfilled
 
-action-compound VerifyFinishedClaim:
+
+section AfterPayForMB:
+    EnterFulfilled
+
+action VerifyFinishedClaim transitions to AfterVerifyFinishedClaim:
     transform:
         amount_owing := 0
-    next:
-        Fulfilled
+
+
+section AfterVerifyFinishedClaim:
+    EnterFulfilled

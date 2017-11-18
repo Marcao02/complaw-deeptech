@@ -4,7 +4,7 @@ from model.Section import *
 from model.Action import Action
 from model.Connection import *
 from model.GlobalStateTransform import GlobalStateTransform
-from model.ActionWithDestination import ActionWithDestination, derived_trigger_id
+
 
 
 class L4Contract:
@@ -25,10 +25,9 @@ class L4Contract:
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
-        self.actionDestPair_by_id: Dict[ActionId, ActionWithDestination] = dict()
         self.connections: List[Connection] = list()
 
-        self.ordered_declarations : List[Union[Action,Section,ActionWithDestination]] = list()
+        self.ordered_declarations : List[Union[Action,Section]] = list()
 
         self.max_section_id_len = 0
         self.max_action_id_len = 0
@@ -127,3 +126,15 @@ class L4Contract:
 
 
         return rv
+
+
+def derived_destination_id(action_id:str) -> SectionId:
+    return "After" + action_id
+def derived_trigger_id(dest_id:str) -> ActionId:
+    return "Enter" + dest_id
+def is_derived_destination_id(action_id:str) -> bool:
+    return action_id.startswith("After")
+def is_derived_trigger_id(dest_id:str) -> bool:
+    return dest_id.startswith("Enter")
+def derived_trigger_id_to_section_id(action_id:str) -> SectionId:
+    return action_id[5:]

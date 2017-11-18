@@ -22,25 +22,25 @@ digraph Monster_Burger {
 	CheckFinishedClaim[label=CheckFinishedClaim,shape=box];
 	RejectFinishedClaim[label=RejectFinishedClaim,shape=box];
 	PayForMB[label=PayForMB,shape=box];
-	VerifyFinishedClaim[label=VerifyFinishedClaim,shape=box]
- 
+	VerifyFinishedClaim[label=VerifyFinishedClaim,shape=box]    
+    
     MonsterBurgerUncooked -> RequestCookMB;
 	AfterRequestCookMB -> ServeMB;
-	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
-	AfterServeMB -> EnterEatingMB [style=dashed];
-	PromptServeGuaranteeViolated -> EnterFulfilled [style=dashed];
+	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated;
+	AfterServeMB -> EnterEatingMB;
+	PromptServeGuaranteeViolated -> EnterFulfilled;
 	EatingMB -> AnnounceMBFinished;
 	EatingMB -> CheckFinishedClaim;
-	EatingMB -> EnterLateCheck [style=dashed];
+	EatingMB -> EnterLateCheck;
 	AfterAnnounceMBFinished -> CheckFinishedClaim;
-	AfterAnnounceMBFinished -> EnterLateCheck [style=dashed];
-	LateCheck -> EnterFulfilled [style=dashed];
+	AfterAnnounceMBFinished -> EnterLateCheck;
+	LateCheck -> EnterFulfilled;
 	AfterCheckFinishedClaim -> VerifyFinishedClaim;
 	AfterCheckFinishedClaim -> RejectFinishedClaim;
-	AfterRejectFinishedClaim -> EnterEatingMB [style=dashed];
+	AfterRejectFinishedClaim -> EnterEatingMB;
 	AfterRejectFinishedClaim -> PayForMB;
-	AfterPayForMB -> EnterFulfilled [style=dashed];
-	AfterVerifyFinishedClaim -> EnterFulfilled [style=dashed]
+	AfterPayForMB -> EnterFulfilled;
+	AfterVerifyFinishedClaim -> EnterFulfilled
     
     RequestCookMB -> AfterRequestCookMB [style=dashed];
 	ServeMB -> AfterServeMB [style=dashed];
@@ -51,5 +51,6 @@ digraph Monster_Burger {
 	CheckFinishedClaim -> AfterCheckFinishedClaim [style=dashed];
 	RejectFinishedClaim -> AfterRejectFinishedClaim [style=dashed];
 	PayForMB -> AfterPayForMB [style=dashed];
-	VerifyFinishedClaim -> AfterVerifyFinishedClaim [style=dashed]
+	VerifyFinishedClaim -> AfterVerifyFinishedClaim [style=dashed];
+	        
 }

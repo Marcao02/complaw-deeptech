@@ -1,4 +1,4 @@
-from model.ActionWithDestination import derived_destination_id
+
 from model.L4Contract import *
 
 COLORS = ('Blue', 'Red')
@@ -38,14 +38,9 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
     section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
     action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
 
-    compound_connections_str = mapjoin(lambda x: f"{x.action.action_id} -> {x.section.section_id} [style=dashed]",
-                            l4file.actionDestPair_by_id.values(),
-                            ";\n\t")
     connections_from_actions_str = ""
     for action in l4file.actions_iter():
-        if not (action.action_id in l4file.actionDestPair_by_id or derived_destination_id(action.action_id) in l4file.actionDestPair_by_id):
-            print("got here?")
-            connections_from_actions_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
+        connections_from_actions_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
 
     connections_from_sections_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
 
@@ -58,15 +53,8 @@ digraph {cleaned_graphname} {{
     
     {connections_from_sections_str}
     
-    {connections_from_actions_str}
-    
-    {compound_connections_str}
-        
+    {connections_from_actions_str}        
 }}"""
-    # {compound_connections_str}
-    #
-    # {noncompound_connections_str}
-    # {compounds_str2}
 
 def contractToDotFile(l4file: L4Contract, rootpath = 'out', use_filename = True, verbose = False) -> None:
     if use_filename:

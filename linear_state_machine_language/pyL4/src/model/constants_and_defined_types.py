@@ -67,8 +67,6 @@ START_SECTION_LABEL = "StartSection"
 
 SECTION_LABEL = "Section"
 ACTION_LABEL = "Action"
-COMPOUND_A = "CompoundAsAction"
-COMPOUND_S = "CompoundAsSection"
 
 ENV_ROLE = "Env"
 

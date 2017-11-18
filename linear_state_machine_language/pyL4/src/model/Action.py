@@ -2,9 +2,9 @@ from model.GlobalStateTransform import GlobalStateTransform
 from model.statements import *
 
 class Action:
-    def __init__(self, action_id: str, dest_section_id: str) -> None:
+    def __init__(self, action_id) -> None:
         self.action_id = action_id
-        self.dest_section_id = dest_section_id
+        self.dest_section_id : str
 
         self.params : Optional[Dict[str,str]] = None # str param -> str sort
         self.global_state_transform : Optional[GlobalStateTransform] = None
@@ -22,7 +22,7 @@ class Action:
     #     return list(self.connections_by_role.keys())
 
     def __str__(self):
-        rv = f"action {self.action_id}"
+        rv = f"action {self.action_id} transitions to {self.dest_section_id}"
         if self.params:
             rv += f'({mapjoin(str, self.params, ", ")}) '
         rv += ":\n"

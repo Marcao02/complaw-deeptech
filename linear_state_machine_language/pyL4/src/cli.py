@@ -15,9 +15,9 @@ import interpreter
 # '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
 # '../examplesLSM4/hvitved_instalment_sale.LSM'
 EXAMPLES = [
-    # 'monster_burger.l4',
-    'hvitved_instalment_sale--separate_sections_actions.l4',
-    'hvitved_instalment_sale.l4'
+    'monster_burger.l4',
+    'hvitved_instalment_sale.l4',
+    # 'hvitved_instalment_sale.l4'
 ]
 
 EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
@@ -51,8 +51,6 @@ if __name__ == '__main__':
 
             # print( prog.action_ids() )
             # print( prog.section_ids() )
-            # print( prog.actionDestPair_by_id.values() )
-
             # print(prog.max_section_id_len, prog.max_action_id_len)
 
             if 'printPretty' in sys.argv:
@@ -69,9 +67,7 @@ if __name__ == '__main__':
                     print( check.__name__ + " ok" )
 
     print("""\n\n
-    Todo:
-        refactor ActionWithDestination, 2 classes        
-                    
+    Todo:        
         Unrecognized atoms
         translate more examples
             Hvitved master sales agreement

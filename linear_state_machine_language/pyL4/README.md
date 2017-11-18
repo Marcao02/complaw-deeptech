@@ -31,11 +31,13 @@ To typecheck, from `pyL4` do `mypy src/cli.py`.
 
 `should` in L4 is, for the sake of execution, a synonym of `may`. We will differentiate between the two in other situations though, e.g. to define the "happy paths".
 
-Everything in `ActionWithDestination` is a superfluous L4 feature, which is not required or used by the LSM model. An `ActionWithDestination` is an (`Action`,`Section`) pair defined by one declaration in L4. This will be refactored, but currently `ActionWithDestination.is_action_type_compound` when `True` means the `ActionWithDestination` gets its id (name) from the `Action` part, and when `False` means it gets its id from the `Section` part. In the former case, if the `Action` id is A, then the id of the `Section` will be AfterA. In the latter case, if the `Section` id is S, then the id of the `Action` will be EnterS.
+About leaving out `(TransitionsTo ‹section_id›`...
 
-In LSM, there is only one type of `Connection`, which has a role, action, and a few other things.
-In L4, there are ConnectionToAction, ConnectionToSection, and ConnectionToEnvAction. They are just conveniences:
+**Todo: update LaTeX to add "env action" as a connection type.**
 
-* ConnectionToSection has no `deontic_modality` but has an extra `dest_id` (a `Section` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.
-* ConnectionToEnvAction has no `deontic_modality` and its `role_id` is always `ENV_ROLE`.
+<!--In LSM, there is only one type of `Connection`, which has a role, action, and a few other things.-->
+<!--In L4, there are ConnectionToAction, ConnectionToEnvAction. They are just conveniences:-->
+
+<!--* ConnectionToSection has no `deontic_modality` but has an extra `dest_id` (a `Section` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
+<!--* ConnectionToEnvAction has no `deontic_modality` and its `role_id` is always `ENV_ROLE`.-->
 

@@ -1,6 +1,6 @@
 import logging
 
-from model.ActionWithDestination import derived_trigger_id
+
 
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",

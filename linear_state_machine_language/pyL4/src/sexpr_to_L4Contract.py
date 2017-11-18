@@ -1,19 +1,20 @@
-from typing import Tuple, cast
+from typing import Tuple, cast, Callable
+
 
 from correctness_checks import L4ContractConstructorInterface
 from model.util import streqci, caststr, isFloat, isInt, todo_once
 from model.L4Contract import *
 from parse_sexpr import castse, STRING_LITERAL_MARKER
 from model.Connection import *
-from model.ActionWithDestination import *
+
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):
     def __init__(self, filename:Optional[str] = None) -> None:
         self.top : L4Contract = L4Contract(filename or '')
-        # includes ActionWithDestination
         self.referenced_section_ids: Set[SectionId] = set()
         self.referenced_action_ids: Set[ActionId] = set()
+        self.after_model_build_requirements : List[Callable[bool]]
 
     def syntaxError(self, expr: SExpr, msg:str = None):
         raise SyntaxError((msg if msg else "") +
@@ -124,26 +125,20 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.referenced_section_ids.add(section_id)
 
             elif head(ACTION_LABEL):
-                # (Action VerbAndParams transitionsto body)
                 action_id : str
-                action_data : SExpr
                 action : Action
-                assert len(x[2]) == 2
-                destination_id = caststr(x[2][1])
-                action_body = x.tillEnd(3)
+                action_body = x.tillEnd(2)
                 if isinstance(x[1], str):
                     # e.g. (Action SomethingHappens ...)
                     action_id = x[1]
-                    action = self.action(action_id, destination_id, None, action_body)
+                    action = self.action(action_id, None, action_body)
                     self.top.actions_by_id[action_id] = action
-                    print("action_id", action_id)
                 else:
                     # e.g. (Action (SomethingHappens param&sort1 param&sort2) ...)
                     action_id = caststr(x[1][0])
                     action_params = castse(x[1][1:])
-                    action = self.action(action_id, destination_id, action_params, action_body)
+                    action = self.action(action_id, action_params, action_body)
                     self.top.actions_by_id[action_id] = action
-                    print("action_id?", action_id)
                 self.top.ordered_declarations.append(action)
 
             elif head(SECTION_LABEL):
@@ -152,39 +147,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 section = self.section(section_id, section_data)
                 self.top.sections_by_id[section_id] = section
                 self.top.ordered_declarations.append(section)
-
-            elif head(COMPOUND_A) or head(COMPOUND_S):
-                act_id: str
-                dest_id: str
-                id : str
-                params : Optional[SExpr]
-                body = x.tillEnd(2)
-                if isinstance(x[1], str):
-                    # e.g. (ActionWithDest SomethingHappens ...)
-                    id = x[1]
-                    params = None
-                else:
-                    # e.g. (Action (SomethingHappens param&sort1 param&sort2) ...)
-                    id = caststr(x[1][0])
-                    params = castse(x[1][1:])
-
-                if head(COMPOUND_S):
-                    dest_id = id
-                    act_id = derived_trigger_id(dest_id)
-                else:
-                    act_id = id
-                    dest_id = derived_destination_id(act_id)
-
-
-                action = self.action(act_id, dest_id, params, body, True)
-                self.top.actions_by_id[act_id] = action
-
-                section = self.section(dest_id, body, True)
-                self.top.sections_by_id[dest_id] = section
-
-                pair = ActionWithDestination(action, section, head(COMPOUND_A))
-                self.top.actionDestPair_by_id[id] = pair
-                self.top.ordered_declarations.append(pair)
 
             else:
                 self.syntaxError(l, f"Unrecognized head {x[0]}")
@@ -217,34 +179,43 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.top.max_section_id_len = max(len(section_id), self.top.max_section_id_len)
         return section
 
-    def action(self, action_id:ActionId, dest_id:SectionId, params:Optional[SExpr], rest:SExpr, is_compound = False) -> Action:
-        a = Action(action_id, dest_id)
-        a.is_compound = is_compound
+    def action(self, action_id:ActionId, params_sexpr:Optional[SExpr], rest:SExpr) -> Action:
+        a = Action(action_id)
+        dest_section_id : Optional[str] = None
         x: SExpr
-        if isinstance(params, SExpr):
-            a.params = self.action_params(cast(List[List[str]], params))
+        if isinstance(params_sexpr, SExpr):
+            params = self.action_params(cast(List[List[str]], params_sexpr))
         for x in rest:
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)
 
             if head(ACTION_DESCRIPTION_LABEL):
-                a.action_description = caststr(x[1][1]) # extract from STRLIT expression
+                a.action_description : str = caststr(x[1][1]) # extract from STRLIT expression
 
             elif head(CODE_BLOCK_LABEL):
-                a.global_state_transform = self.global_state_transform(cast(List[SExpr],x[1:]), a)
+                a.global_state_transform : GlobalStateTransform = self.global_state_transform(cast(List[SExpr],x[1:]), a)
 
             elif head(PROSE_REFS_LABEL):
-                a.prose_refs = x[1:].lst
+                a.prose_refs : List[str] = x[1:].lst
 
             elif head(TRANSITIONS_TO_LABEL):
-                a.dest_section_id = x[1]
+                dest_section_id : str = x[1]
 
-            # else:
-            #     Can't do this because send compound action-section declarations through this function
-            #     logging.warning("todo: handle " + x[0] + " in L4ContractConstructor.action")
+            else:
+                todo_once(f"Handle {x[0]}")
+
+        if dest_section_id:
+            a.dest_section_id = dest_section_id
+        else:
+            if is_derived_trigger_id(a.action_id):
+                a.dest_section_id = derived_trigger_id_to_section_id(a.action_id)
+            else:
+                a.dest_section_id = derived_destination_id(a.action_id)
+
 
         self.top.max_action_id_len = max(len(action_id), self.top.max_action_id_len)
+
         return a
 
     def action_params(self, parts:List[List[str]]) -> ParamsDec:
@@ -383,18 +354,20 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                                    deadline_clause=deadline_clause, enabled_guard=enabled_guard,
                                    action_id=dest_section_or_action_id,
                                    deontic_modality = deontic_keyword)
-        elif con_type == ConnectionType.toSection:
-            c = ConnectionToSection(src_id=src_section.section_id, role_id=role_id,
-                                    deadline_clause=deadline_clause, enabled_guard=enabled_guard,
-                                    action_id=derived_trigger_id(dest_section_or_action_id),
-                                    dest_id=dest_section_or_action_id)
+        # elif con_type == ConnectionType.toSection:
+        #     c = ConnectionToSection(src_id=src_section.section_id, role_id=role_id,
+        #                             deadline_clause=deadline_clause, enabled_guard=enabled_guard,
+        #                             action_id=derived_trigger_id(dest_section_or_action_id),
+        #                             dest_id=dest_section_or_action_id)
 
         elif con_type == ConnectionType.toEnvAction:
             c = ConnectionToEnvAction(src_id=src_section.section_id, role_id=role_id,
                                     deadline_clause=deadline_clause, enabled_guard=enabled_guard,
-                                    action_id=derived_trigger_id(dest_section_or_action_id),
+                                    action_id=dest_section_or_action_id,
                                     args = None
                                     )
+        else:
+            raise NotImplementedError
 
 
         src_section.connections_by_role[role_id].append(c)

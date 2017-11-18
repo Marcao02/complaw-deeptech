@@ -1,9 +1,9 @@
 import logging
 from typing import Set, Union, Any
 
-from model.ActionWithDestination import is_derived_destination_id, is_derived_trigger_id
 from model.constants_and_defined_types import *
-from model.L4Contract import L4Contract
+from model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id
+
 
 # just for typing!!
 class L4ContractConstructorInterface:
