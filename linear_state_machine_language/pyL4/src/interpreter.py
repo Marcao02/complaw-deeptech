@@ -9,7 +9,7 @@ from typing import NamedTuple, NewType, Set, Union, Tuple, List, Any, Dict, cast
 
 from model.L4Contract import L4Contract
 from model.statements import *
-from model.Connection import Connection, ConnectionToAction, ConnectionToSection
+from model.Connection import Connection, ConnectionToAction, ConnectionToEnvAction
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
@@ -100,11 +100,8 @@ class ExecEnv:
             todo_once("check enabled guard")
             if not deadline_ok:
                 continue
-            if isinstance(c, ConnectionToAction):
+            if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
                 if c.action_id == actionid:
-                    return True
-            elif isinstance(c, ConnectionToSection):
-                if derived_trigger_id(c.dest_id) == actionid:
                     return True
             else:
                 raise NotImplementedError
@@ -218,7 +215,7 @@ traces = {
         event('ContractLive'),
         event('NewOrder',[40]),
     ],
-    'examples/hvitved_lease.LSM': [
+    'examples_sexpr/hvitved_lease.LSM': [
         event('Move_In'),
         event('Lease_Term_Started'),
         event('EnsureApartmentReady'),
@@ -244,7 +241,7 @@ traces = {
         event('Move_Out'),
         event('Month_Started'),
     ],
-    'examples_sexpr/monster_burger.L4': [
+    'examples_sexpr/monster_burger.l4': [
         # event('MonsterBurgerUncooked'), # implicit
         event('RequestCookMB'),
         event('ServeMB'),
@@ -264,7 +261,7 @@ traces = {
 if __name__ == '__main__':
     import sys
 
-    EXAMPLES = ['examples_sexpr/monster_burger.L4']
+    EXAMPLES = ['examples_sexpr/monster_burger.l4']
     for path in EXAMPLES:
         parsed = parse_file(path)
         if 'print' in sys.argv:

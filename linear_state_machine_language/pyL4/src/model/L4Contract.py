@@ -39,11 +39,8 @@ class L4Contract:
     def action_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)
         for c in cursection.connections():
-            if isinstance(c, ConnectionToAction):
+            if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
                 if c.action_id == actionid:
-                    return True
-            elif isinstance(c, ConnectionToSection):
-                if derived_trigger_id(c.dest_id) == actionid:
                     return True
             else:
                 raise NotImplementedError

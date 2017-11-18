@@ -14,7 +14,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.top : L4Contract = L4Contract(filename or '')
         self.referenced_section_ids: Set[SectionId] = set()
         self.referenced_action_ids: Set[ActionId] = set()
-        self.after_model_build_requirements : List[Callable[bool]]
+        self.after_model_build_requirements : List[Callable[[],bool]]
 
     def syntaxError(self, expr: SExpr, msg:str = None):
         raise SyntaxError((msg if msg else "") +
@@ -181,7 +181,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def action(self, action_id:ActionId, params_sexpr:Optional[SExpr], rest:SExpr) -> Action:
         a = Action(action_id)
-        dest_section_id : Optional[str] = None
+        dest_section_id = None
         x: SExpr
         if isinstance(params_sexpr, SExpr):
             params = self.action_params(cast(List[List[str]], params_sexpr))
@@ -191,16 +191,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(ACTION_DESCRIPTION_LABEL):
-                a.action_description : str = caststr(x[1][1]) # extract from STRLIT expression
+                a.action_description = caststr(x[1][1]) # extract from STRLIT expression
 
             elif head(CODE_BLOCK_LABEL):
-                a.global_state_transform : GlobalStateTransform = self.global_state_transform(cast(List[SExpr],x[1:]), a)
+                a.global_state_transform= self.global_state_transform(cast(List[SExpr],x[1:]), a)
 
             elif head(PROSE_REFS_LABEL):
-                a.prose_refs : List[str] = x[1:].lst
+                a.prose_refs  = x[1:].lst
 
             elif head(TRANSITIONS_TO_LABEL):
-                dest_section_id : str = x[1]
+                dest_section_id = x[1]
 
             else:
                 todo_once(f"Handle {x[0]}")

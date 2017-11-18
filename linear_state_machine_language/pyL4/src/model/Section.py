@@ -4,7 +4,7 @@ from typing import Iterator, List,  Set, Optional, NamedTuple
 from model.constants_and_defined_types import *
 from model.util import indent
 from model.statements import *
-from model.Connection import Connection, ConnectionToAction, ConnectionToSection
+from model.Connection import Connection, ConnectionToEnvAction
 
 
 class Section:
@@ -32,7 +32,7 @@ class Section:
         rv = f"section {self.section_id}:\n"
 
         if self.section_description:
-            rv += indent(1) + "description: " + section_description
+            rv += indent(1) + "description: " + self.section_description
 
         for t in self.connections():
             rv += t.toStr(1) + "\n"

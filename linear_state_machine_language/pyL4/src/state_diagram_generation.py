@@ -24,12 +24,12 @@ def actionAsDotNodeStr(act: Action, all_actors: List[str]) -> str:
 
 
 def connectionAsDotArcStr(con: Connection) -> str:
-    if isinstance(con, ConnectionToSection):
-        return f"{con.src_id} -> Enter{con.dest_id} [style=dashed]"
-    elif isinstance(con, ConnectionToAction):
+    if isinstance(con, ConnectionToAction):
         return f"{con.src_id} -> {con.action_id}"
     elif isinstance(con, ConnectionToEnvAction):
         return f"{con.src_id} -> {con.action_id}"
+    else:
+        raise NotImplementedError
 
 
 def contractToDotFileStr(l4file: L4Contract) -> str:

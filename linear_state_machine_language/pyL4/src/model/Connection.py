@@ -47,39 +47,6 @@ class ConnectionToAction(NamedTuple):
             rv += " " + str(self.deadline_clause)
         return rv
 
-class ConnectionToSection(NamedTuple):
-    src_id: SectionId
-    role_id: RoleId # should be ENV_ROLE always
-    action_id: ActionId # should be derived_trigger_id(role_id)
-    dest_id: SectionId
-    # args: Optional[SExpr]
-    deadline_clause: Term
-    enabled_guard: Optional[Term]
-
-    def toStr(self, i:int) -> str:
-        rv : str = ""
-        indent_level = i
-        if self.enabled_guard:
-            rv = indent(indent_level) + "if " + str(self.enabled_guard) + ":\n"
-            indent_level += 1
-
-        if self.dest_id == FULFILLED_SECTION_LABEL and str(self.deadline_clause) == 'immediately':
-            rv += indent(indent_level) + FULFILLED_SECTION_LABEL
-            return rv
-
-        assert self.role_id == ENV_ROLE
-        rv += indent(indent_level) + self.dest_id
-
-        # if self.args:
-        #     rv += f"({mapjoin(str , self.args, ', ')})"
-
-        if str(self.deadline_clause) == 'immediately':
-            return rv
-
-        if self.deadline_clause:
-            rv += " " + str(self.deadline_clause)
-
-        return rv
 
 class ConnectionToEnvAction(NamedTuple):
     # NOT YET IMPLEMENTED
@@ -111,4 +78,4 @@ class ConnectionToEnvAction(NamedTuple):
 
         return rv
 
-Connection = Union[ConnectionToSection, ConnectionToAction, ConnectionToEnvAction]
+Connection = Union[ConnectionToAction, ConnectionToEnvAction]
