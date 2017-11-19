@@ -8,12 +8,14 @@
 
 (Roles Challenger Restaurant)
 
+(TimeUnit Minutes)
+
 (ContractParams
-	(MB_PRICE                     : Price    = $50)
-	(TIME_TO_EAT_BURGER           : Duration = 1H)
-	(MAX_SERVE_DELAY              : Duration = 20M)
-	(MAX_CLAIM_VERIFICATION_DELAY : Duration = 10M)
-	(MAX_REFUND_DELAY             : Duration = 10M)
+	(MB_PRICE                     : Price    = 50)
+	(TIME_TO_EAT_BURGER           : Duration = 60)
+	(MAX_SERVE_DELAY              : Duration = 20)
+	(MAX_CLAIM_VERIFICATION_DELAY : Duration = 10)
+	(MAX_REFUND_DELAY             : Duration = 10)
 )
 
 (ProseContract
@@ -31,7 +33,7 @@
 
 	(Section MonsterBurgerUncooked
 		(Next
-			(Challenger must (RequestCookMB) (by 8pm))
+			(Challenger must (RequestCookMB) (within 30))
 		)
 	)
 

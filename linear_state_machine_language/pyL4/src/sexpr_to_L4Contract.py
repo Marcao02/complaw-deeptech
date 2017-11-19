@@ -205,6 +205,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(TRANSITIONS_TO_LABEL):
                 dest_section_id = x[1]
 
+            elif 'traversals' in x or 'visits' in x:
+                todo_once("handle `traversals`/`visits` conjectures")
+
             else:
                 todo_once(f"Handle {x[0]}")
 
@@ -311,6 +314,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             assert len(expr) > 1
             if expr[0] in DEADLINE_OPERATORS:
                 return self.parse_term(expr, src_section)
+            else:
+                logging.error("Unhandled case in L4ContractConstructor.deadline_clause(): " + str(expr))
         return None
 
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
@@ -350,6 +355,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         assert len(rem) >= 1
         deadline_clause = self.deadline_clause(rem[0], src_section)
+        assert deadline_clause is not None, str(rem)
 
         c : Connection
         if con_type == ConnectionType.toAction:

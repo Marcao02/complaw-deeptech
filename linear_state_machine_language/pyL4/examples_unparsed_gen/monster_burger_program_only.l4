@@ -2,11 +2,11 @@
 file: monster_burger_program_only.l4
 
 contract params:
-    MB_PRICE : Price := $50
-    TIME_TO_EAT_BURGER : Duration := 1H
-    MAX_SERVE_DELAY : Duration := 20M
-    MAX_CLAIM_VERIFICATION_DELAY : Duration := 10M
-    MAX_REFUND_DELAY : Duration := 10M
+    MB_PRICE : Price := 50
+    TIME_TO_EAT_BURGER : Duration := 60
+    MAX_SERVE_DELAY : Duration := 20
+    MAX_CLAIM_VERIFICATION_DELAY : Duration := 10
+    MAX_REFUND_DELAY : Duration := 10
 
 global vars:
     writeonce challenge_endlimit_timestamp : Timestamp
@@ -14,7 +14,7 @@ global vars:
     amount_paid : Price
 
 section MonsterBurgerUncooked:
-    Challenger must RequestCookMB (by 8pm)
+    Challenger must RequestCookMB (within 30)
 
 action RequestCookMB transitions to AfterRequestCookMB:
     transform:
@@ -23,7 +23,7 @@ action RequestCookMB transitions to AfterRequestCookMB:
 
 section AfterRequestCookMB:
     Restaurant should ServeMB (strictly-within @MAX_SERVE_DELAY)
-    EnterPromptServeGuaranteeViolated
+    EnterPromptServeGuaranteeViolated (nonstrictly-after @MAX_SERVE_DELAY)
 
 action ServeMB transitions to AfterServeMB:
     transform:
@@ -51,7 +51,7 @@ section EatingMB:
 action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
 
 section AfterAnnounceMBFinished:
-    Restaurant should CheckFinishedClaim
+    Restaurant should CheckFinishedClaim (nonstrictly-within @MAX_CLAIM_VERIFICATION_DELAY)
     EnterLateCheck (after-exactly @MAX_CLAIM_VERIFICATION_DELAY)
 
 action EnterLateCheck transitions to LateCheck:

@@ -4,7 +4,7 @@ from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransformStatement import *
 from model.GlobalVarDec import GlobalVarDec
-from model.Literal import StringLit
+from model.Literal import StringLit, Literal, DeadlineLit
 from model.Term import FnApp
 
 logging.basicConfig(
@@ -18,7 +18,7 @@ from model.Connection import ConnectionToAction, ConnectionToEnvAction
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
-from model.constants_and_defined_types import GlobalVarId, ActionId
+from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS
 from model.util import hasNotNone, dictSetOrInc, todo_once
 
 # Nat = NewType('Nat',int)
@@ -46,7 +46,8 @@ FN_SYMB_INTERP = {
     '<': lambda x,y: x < y,
     '>': lambda x,y: x > y,
     'and': lambda x,y: x and y,
-    'or': lambda x,y: x or y }
+    'or': lambda x,y: x or y
+}
 
 PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time', 'monthStartDay', 'monthEndDay',
                      'days', #'earliest',
@@ -90,7 +91,7 @@ class ExecEnv:
             if not self._top.action_sometimes_available_from_section(self._section_id, next_action_id):
                 logging.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id}")
                 continue
-            if self.action_available_from_cur_section(next_action_id):
+            if self.action_available_from_cur_section(next_action_id, next_timestamp):
                 if verbose:
                     sec_pad = ' '*(prog.max_section_id_len-len(self._section_id))
                     act_pad = ' '*(prog.max_action_id_len-len(next_action_id))
@@ -100,9 +101,9 @@ class ExecEnv:
                 continue
             logging.error("No evaluation rule matched for " + str(eventi))
 
-    def action_available_from_cur_section(self, actionid:ActionId) -> bool:
+    def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
         for c in self.cur_section().connections():
-            deadline_ok = self.evalDeadlineClause( cast(Any,c).deadline_clause )
+            deadline_ok = self.evalDeadlineClause( cast(Any,c).deadline_clause, next_timestamp )
             todo_once("check enabled guard")
             if not deadline_ok:
                 continue
@@ -144,6 +145,7 @@ class ExecEnv:
 
         if isinstance(stmt, LocalVarDec):
             assert self._top.varDecObj(stmt.varname) is None
+            print('evalStatement LocalVarDec: ' + str(stmt))
             value = self.evalTerm(stmt.value_expr)
             self._varvals[stmt.varname] = value
         elif isinstance(stmt, VarAssignStatement):
@@ -152,6 +154,7 @@ class ExecEnv:
             if isinstance(vardec, GlobalVarDec):
                 if vardec.isWriteOnceMore() and self._var_write_cnt[stmt.varname] >= 2:
                     raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
+            print('evalStatement: ' + str(stmt))
             dictSetOrInc(self._var_write_cnt, stmt.varname, init=1)
             # todo: use vardec for runtime type checking
             value = self.evalTerm(stmt.value_expr)
@@ -166,12 +169,17 @@ class ExecEnv:
             varobj = self._top.varDecObj(stmt.varname)
             value = self.evalTerm(stmt.value_expr)
             self._varvals[stmt.varname] = self._varvals[stmt.varname] - int(value)
+        else:
+            logging.error("Unhandled GlobalStateTransformStatement: " + str(stml))
 
-    def evalTerm(self, term:Term) -> Any:
+    def evalTerm(self, term:Term, next_timestamp:Optional[TimeStamp] = None) -> Any:
+        assert term is not None
         # print('evalTerm: ', term)
         if isinstance(term, FnApp):
-            return self.evalFnApp(term)
-        elif isinstance(term, StringLit):
+            return self.evalFnApp(term, next_timestamp)
+        elif isinstance(term, DeadlineLit):
+            logging.error("got here finally?")
+        elif isinstance(term, Literal):
             return term.lit
         elif isinstance(term, LocalVar):
             assert hasNotNone(self._varvals, term.name), term.name
@@ -182,22 +190,38 @@ class ExecEnv:
         elif isinstance(term, ContractParam):
             assert hasNotNone(self._contract_param_vals, term.name), term.name
             return self._contract_param_vals[term.name]
-        elif isinstance(term, BoundVar):
-            raise NotImplementedError(str(term))
-            # return term.atom
         else:
+            logging.error("evalTerm unhandled case for: " + str(term))
             return term
 
-    def evalDeadlineClause(self, deadline_clause:Term) -> bool:
-        # todo_once("evalDeadlineClause")
+    def evalDeadlineClause(self, deadline_clause:Term, next_timestamp:TimeStamp) -> bool:
+        assert deadline_clause is not None
         # return True
-        return cast(bool, self.evalTerm(deadline_clause))
+        rv = cast(bool, self.evalTerm(deadline_clause, next_timestamp))
+        assert rv is not None
+        print('evalDeadlineClause: ', rv)
+        return rv
 
-    def evalFnApp(self, fnapp:FnApp) -> Any:
+    def evalFnApp(self, fnapp:FnApp, next_timestamp:TimeStamp) -> Any:
         fn = fnapp.head
-        args = (self.evalTerm(x) for x in fnapp.args)
+        args = tuple(self.evalTerm(x,next_timestamp) for x in fnapp.args)
         if fn in FN_SYMB_INTERP:
             return cast(Any,FN_SYMB_INTERP[fn])(args)
+        elif fn in DEADLINE_OPERATORS:
+            if fn == 'by':
+                assert len(args) == 1
+                return next_timestamp <= args[0]
+            # elif
+            elif fn == 'within':
+                assert len(args) == 1
+                return next_timestamp <= self._timestamp + int(args[0])
+            elif fn == 'strictly-within':
+                assert len(args) == 1
+                return next_timestamp < self._timestamp + int(args[0])
+            else:
+                logging.error("Unhandled deadline fn symbol: " + fn)
+        else:
+            logging.error("Unhandled fn symbol: " + fn)
         return 0
 
 

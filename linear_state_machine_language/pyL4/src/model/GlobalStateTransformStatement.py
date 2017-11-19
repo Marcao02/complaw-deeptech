@@ -28,6 +28,9 @@ class InCodeConjectureStatement(GlobalStateTransformStatement):
     def __init__(self, exprs:List) -> None:
         self.value_exprs = exprs
 
+    def __str__(self) -> str:
+        return "prove " + str(self.value_exprs)
+
 class IncrementStatement(GlobalStateTransformStatement):
     def __init__(self, varname:str, value_expr:Term) -> None:
         self.varname = varname

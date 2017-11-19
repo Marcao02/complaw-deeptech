@@ -1,4 +1,4 @@
-from typing import List, Union, Optional, NamedTuple
+from typing import List, Union
 
 from model.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS
 
