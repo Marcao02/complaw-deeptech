@@ -32,7 +32,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def l4contract(self, l:List[SExpr]) -> L4Contract:
         x : SExpr
         for x in l:
-            assert len(x) >= 2, "Problem top-level: " + str(x)
+            #assert len(x) >= 2, "Problem top-level: " + str(x)
             rem = x.tillEnd(1)
             def head(constant:str) -> bool:
                 nonlocal x
