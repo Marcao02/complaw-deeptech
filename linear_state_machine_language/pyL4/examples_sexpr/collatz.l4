@@ -1,0 +1,47 @@
+(ContractParams
+	(START : ℕ = 99)
+)
+
+(GlobalVars
+	(x : ℕ = start)
+)
+
+(Roles) ; only the environment Env
+
+(FormalContract
+	(StartSection Ongoing)
+
+	(Section Ongoing
+		(Next
+			(if ((x == 0) or (x == 1))
+				(EnterFulfilled immediately)
+			)
+			(if ((x > 1) and (even x))
+				(DivideBy2 immediately)
+			)
+			(if ((x > 1) and (odd x))
+				(TripplePlus1 immediately)
+			)
+		)
+	)
+
+	(Action DivideBy2
+		(TransitionsTo Ongoing)
+		(Entrance
+			(x = (x / 2))
+		)
+	)
+
+	(Action TripplePlus1
+		(TransitionsTo Ongoing)
+		(Entrance
+			(x = ((3 * x) + 1))
+		)
+	)
+
+	(Action EnterFulfilled
+		(traversals == 1)
+		(TransitionsTo Fulfilled)
+	)
+
+)

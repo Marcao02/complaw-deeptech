@@ -1,0 +1,28 @@
+----------------
+file: collatz.l4
+
+contract params:
+    START : ℕ := 99
+
+global vars:
+    x : ℕ
+
+section Ongoing:
+    if ((x == 0) or (x == 1)):
+        EnterFulfilled
+    if ((x > 1) and (even x)):
+        DivideBy2
+    if ((x > 1) and (odd x)):
+        TripplePlus1
+
+action DivideBy2 transitions to Ongoing:
+    transform:
+        x := (x / 2)
+
+
+action TripplePlus1 transitions to Ongoing:
+    transform:
+        x := ((3 * x) + 1)
+
+
+action EnterFulfilled transitions to Fulfilled:

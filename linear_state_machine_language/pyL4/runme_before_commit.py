@@ -2,7 +2,7 @@ import os, sys
 
 
 def runit(s, optional_s=""):
-    print(f"\n\nRunning {optional_s} `{s}`...")
+    print(f"\n============================================\nRunning {optional_s} `{s}`...")
     os.system(s)
 
 if "print" in sys.argv:
