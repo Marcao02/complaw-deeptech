@@ -19,7 +19,7 @@ Install mypy with
 
 `python3.6 -m pip install -U mypy`
 
-To typecheck, from `pyL4` do `mypy src/cli.py`.
+To typecheck, from `pyL4` do `mypy src`.
 
 ## Running
 `python3.6 src/cli.py examples printPretty printSExpr dot`

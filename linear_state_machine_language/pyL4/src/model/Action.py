@@ -1,5 +1,8 @@
+from typing import Optional, Dict, List
 from model.GlobalStateTransform import GlobalStateTransform
-from model.statements import *
+from model.GlobalStateTransformStatement import LocalVarDec
+from model.util import mapjoin
+
 
 class Action:
     def __init__(self, action_id) -> None:

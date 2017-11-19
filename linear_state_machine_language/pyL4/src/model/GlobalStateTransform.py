@@ -1,10 +1,10 @@
 from typing import List
 
-from model.statements import CodeBlockStatement
+from model.GlobalStateTransformStatement import GlobalStateTransformStatement
 
 
 class GlobalStateTransform:
-    def __init__(self, statements: List[CodeBlockStatement]) -> None:
+    def __init__(self, statements: List[GlobalStateTransformStatement]) -> None:
         self.statements = statements
 
     def __str__(self):

@@ -1,12 +1,15 @@
+import logging
 from typing import Tuple, cast, Callable
 
-
 from correctness_checks import L4ContractConstructorInterface
-from model.util import streqci, caststr, isFloat, isInt, todo_once
+from model.GlobalStateTransform import *
+from model.BoundVar import LocalVar, GlobalVar, ContractParam
+from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
+from model.Literal import *
+from model.Term import FnApp
+from model.util import streqci, caststr, isFloat, isInt, todo_once
 from parse_sexpr import castse, STRING_LITERAL_MARKER
-from model.Connection import *
-
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):
@@ -231,7 +234,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def global_state_transform(self, statements:List[SExpr], a:Action) -> GlobalStateTransform:
         return GlobalStateTransform([self.global_state_transform_statement_dispatch(x,a) for x in statements])
 
-    def global_state_transform_statement_dispatch(self, statement:SExpr, a:Action) -> CodeBlockStatement:
+    def global_state_transform_statement_dispatch(self, statement:SExpr, a:Action) -> GlobalStateTransformStatement:
         try:
             if statement[0] == 'conjecture':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
@@ -273,17 +276,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in self.top.global_var_decs:
                 return GlobalVar(self.top.global_var_decs[x])
             if parent_action and (x in parent_action.local_vars):
-                return LocalVar(x)
+                return LocalVar(parent_action.local_vars[x])
             if x in self.top.contract_params:
                 return ContractParam(self.top.contract_params[x])
             if isInt(x):
-                return Int(int(x))
+                return IntLit(int(x))
             if isFloat(x):
-                return Float(float(x))
+                return FloatLit(float(x))
             if x == 'false':
-                return Bool(False)
+                return BoolLit(False)
             if x == 'true':
-                return Bool(True)
+                return BoolLit(True)
             if x == 'never':
                 return DeadlineLit(x)
             if x in DEADLINE_KEYWORDS:

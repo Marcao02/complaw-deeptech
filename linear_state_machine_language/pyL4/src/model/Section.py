@@ -3,7 +3,6 @@ from typing import Iterator, List,  Set, Optional, NamedTuple
 
 from model.constants_and_defined_types import *
 from model.util import indent
-from model.statements import *
 from model.Connection import Connection, ConnectionToEnvAction
 
 

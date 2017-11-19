@@ -1,0 +1,94 @@
+------------------------------------
+file: monster_burger_program_only.l4
+
+contract params:
+    MB_PRICE : Price := $50
+    TIME_TO_EAT_BURGER : Duration := 1H
+    MAX_SERVE_DELAY : Duration := 20M
+    MAX_CLAIM_VERIFICATION_DELAY : Duration := 10M
+    MAX_REFUND_DELAY : Duration := 10M
+
+global vars:
+    writeonce challenge_endlimit_timestamp : Timestamp
+    amount_owing : Price
+    amount_paid : Price
+
+section MonsterBurgerUncooked:
+    Challenger must RequestCookMB (by 8pm)
+
+action RequestCookMB transitions to AfterRequestCookMB:
+    transform:
+        amount_owing := @MB_PRICE
+
+
+section AfterRequestCookMB:
+    Restaurant should ServeMB (strictly-within @MAX_SERVE_DELAY)
+    EnterPromptServeGuaranteeViolated
+
+action ServeMB transitions to AfterServeMB:
+    transform:
+        challenge_endlimit_timestamp := (@TIME_TO_EAT_BURGER afterEntrance)
+
+
+section AfterServeMB:
+    EnterEatingMB
+
+action EnterPromptServeGuaranteeViolated transitions to PromptServeGuaranteeViolated:
+    transform:
+        amount_owing := 0
+
+
+section PromptServeGuaranteeViolated:
+    EnterFulfilled
+
+action EnterEatingMB transitions to EatingMB:
+
+section EatingMB:
+    Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
+    Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
+    EnterLateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
+
+action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
+
+section AfterAnnounceMBFinished:
+    Restaurant should CheckFinishedClaim
+    EnterLateCheck (after-exactly @MAX_CLAIM_VERIFICATION_DELAY)
+
+action EnterLateCheck transitions to LateCheck:
+    transform:
+        amount_owing := 0
+
+
+section LateCheck:
+    EnterFulfilled
+
+action CheckFinishedClaim transitions to AfterCheckFinishedClaim:
+
+section AfterCheckFinishedClaim:
+    Restaurant weakly-must VerifyFinishedClaim immediately
+    Restaurant weakly-must RejectFinishedClaim immediately
+
+action RejectFinishedClaim transitions to AfterRejectFinishedClaim:
+
+section AfterRejectFinishedClaim:
+    if (currentTimeNoLaterThan? challenge_endlimit_timestamp):
+        EnterEatingMB
+    if (currentTimeAfter? challenge_endlimit_timestamp):
+        Customer must PayForMB immediately
+
+action PayForMB transitions to AfterPayForMB:
+    transform:
+        amount_paid := amount_owing
+        amount_owing := 0
+
+
+section AfterPayForMB:
+    EnterFulfilled
+
+action VerifyFinishedClaim transitions to AfterVerifyFinishedClaim:
+    transform:
+        amount_owing := 0
+
+
+section AfterVerifyFinishedClaim:
+    EnterFulfilled

@@ -1,9 +1,13 @@
 # from typing import Union, List, Dict, Any, Tuple
 from typing import Set, NamedTuple, Iterable, Any
+
+from model.ContractClaim import ContractClaim
+from model.ContractParamDec import ContractParamDec
+from model.GlobalStateTransformStatement import LocalVarDec
+from model.GlobalVarDec import GlobalVarDec
 from model.Section import *
 from model.Action import Action
 from model.Connection import *
-from model.GlobalStateTransform import GlobalStateTransform
 
 
 

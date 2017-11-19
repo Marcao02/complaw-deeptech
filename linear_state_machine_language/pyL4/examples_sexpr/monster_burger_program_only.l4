@@ -1,0 +1,200 @@
+; See monster_burger.l4 for version of this with more comments and an NLG mockup.
+
+(GlobalVars
+	(writeonce challenge_endlimit_timestamp : Timestamp )
+	(amount_owing                      		: Price = 0)
+	(amount_paid                       		: Price = 0)
+)
+
+(Roles Challenger Restaurant)
+
+(ContractParams
+	(MB_PRICE                     : Price    = $50)
+	(TIME_TO_EAT_BURGER           : Duration = 1H)
+	(MAX_SERVE_DELAY              : Duration = 20M)
+	(MAX_CLAIM_VERIFICATION_DELAY : Duration = 10M)
+	(MAX_REFUND_DELAY             : Duration = 10M)
+)
+
+(ProseContract
+	(P1 'A monster burger (MB) challenge is between a customer and the Restaurant.')
+	(P2 'A customer can only enter one MB challenge per visit to the Restaurant.')
+	(P3 'If the customer finishes the MB within {TIME_TO_EAT_BURGER} of being served, the burger is free. Otherwise, they owe {MB_PRICE} for the burger.')
+	(P4 'When a customer orders a MB, the restaurant guarantees they will serve the burger within {MAX_SERVE_DELAY}. Otherwise, the customer is not obligated to pay for the burger (but the restaurant may still serve the burger late).')
+	(P5 'The customer can claim to be finished early, upon which the restaurant must within ({MAX_CLAIM_VERIFICATION_DELAY}, or by the end of the {TIME_TO_EAT_BURGER} challenge period -- whichever comes first) confirm or reject the claim. If no such "early finish" claim is made, the restaurant checks after {TIME_TO_EAT_BURGER} from serving time')
+	(P6 'Any other food or drink that the customer wishes to consume while doing the MB challenge must be ordered on a separate bill.')
+)
+
+(FormalContract
+	"Monster Burger"
+	(StartSection MonsterBurgerUncooked)
+
+	(Section MonsterBurgerUncooked
+		(Next
+			(Challenger must (RequestCookMB) (by 8pm))
+		)
+	)
+
+	(Action RequestCookMB
+		(traversals == 1) ;  LANG note: static checker directive, which tells the static checker to prove that this action occurs exactly once in any execution that ends in Fulfilled
+		(AllowedSubjects Challenger)
+		(TransitionsTo AfterRequestCookMB) ; LANG note: Optional; this is the default value.
+
+		(Entrance
+			(amount_owing = MB_PRICE)
+		)
+	)
+	(Section AfterRequestCookMB
+		(visits == 1) ; LANG note: Similar to (traversal == 1) but for Sections.
+		(Next
+            (deadlinesPartitionFuture
+	            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
+	            (EnterPromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY))
+            )
+        )
+	)
+
+	(Action ServeMB
+		(0 ≤ traversals ≤ 1)
+		(AllowedSubjects Restaurant)
+
+		(Entrance
+			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER afterEntrance))
+		)
+	)
+	(Section AfterServeMB
+		(0 ≤ visits ≤ 1)
+		(Next
+		    (EnterEatingMB immediately)
+		)
+	)
+
+
+	(Action EnterPromptServeGuaranteeViolated
+		(0 ≤ traversals ≤ 1)
+		(AllowedSubjects Env)
+		(Entrance
+			(amount_owing = 0)
+		)
+	)
+	(Section PromptServeGuaranteeViolated
+		(0 ≤ visits ≤ 1)
+		(Next
+		    (EnterFulfilled immediately)
+		)
+	)
+
+	(Action EnterEatingMB
+		(0 ≤ traversals ≤ nonconstant) ; LANG note: nonconstant means can't be bounded by any numeral
+		(AllowedSubjects Env)
+	)
+	(Section EatingMB
+		(0 ≤ visits ≤ nonconstant)
+		(AllowedSubjects Env)
+
+        (Next
+            (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
+	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
+	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
+            )
+        )
+	)
+
+	(Action AnnounceMBFinished
+		(0 ≤ traversals ≤ nonconstant)
+		(AllowedSubjects Challenger)
+	)
+	(Section AfterAnnounceMBFinished
+		(0 ≤ visits ≤ nonconstant)
+		(Next
+            (deadlinesPartitionFuture
+	            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
+	            (EnterLateCheck (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
+            )
+        )
+	)
+
+	(Action EnterLateCheck
+		(0 ≤ traversals ≤ 1)
+		(AllowedSubjects Env)
+		(Entrance
+			(amount_owing = 0)
+		)
+	)
+	(Section LateCheck
+		(0 ≤ visits ≤ 1)
+		(Next
+		    (EnterFulfilled immediately)
+		)
+	)
+
+	(Action CheckFinishedClaim
+		(0 ≤ traversals ≤ nonconstant)
+		(AllowedSubjects Restaurant)
+	)
+	(Section AfterCheckFinishedClaim
+		(0 ≤ visits ≤ nonconstant)
+		(Next
+		    (Restaurant weakly-must (VerifyFinishedClaim) immediately)
+		    (Restaurant weakly-must (RejectFinishedClaim) immediately)
+		)
+	)
+
+
+	(Action RejectFinishedClaim
+		(0 ≤ traversals ≤ nonconstant)
+		(AllowedSubjects Restaurant)
+	)
+	(Section AfterRejectFinishedClaim
+        (0 ≤ visits ≤ nonconstant)
+        (Next
+        	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
+            ; always the case that exactly one of the tests of the children conditionals is true.
+            (guardsDisjointExhaustive
+            	; I think we should encourage this style of order-insensitive conditionals.
+	            (if (currentTimeNoLaterThan? challenge_endlimit_timestamp)
+	                (EnterEatingMB immediately)
+	            )
+	            (if (currentTimeAfter? challenge_endlimit_timestamp)
+	                (Customer must (PayForMB) immediately)
+	            )
+            )
+        )
+	)
+
+	(Action PayForMB
+		(0 ≤ traversals ≤ 1)
+		(AllowedSubjects Challenger)
+
+		(Entrance
+			(amount_paid = amount_owing)
+			(amount_owing = 0)
+		)
+	)
+	(Section AfterPayForMB
+		(0 ≤ visits ≤ 1)
+		(Next
+		    (EnterFulfilled immediately)
+		)
+	)
+
+	(Action VerifyFinishedClaim
+		(0 ≤ traversals ≤ 1)
+		(AllowedSubjects Restaurant)
+
+		(Entrance
+			(amount_owing = 0)
+		)
+	)
+	(Section AfterVerifyFinishedClaim
+		(0 ≤ visits ≤ 1)
+		(Next
+		    (EnterFulfilled immediately)
+		)
+	)
+
+)
+
+(DotFileName 'monster_burger.dot')
+(ImgFileName 'monster_burger.png')

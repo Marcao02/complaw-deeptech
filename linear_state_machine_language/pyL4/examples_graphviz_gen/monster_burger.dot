@@ -1,6 +1,7 @@
 // THIS IS A GENERATED FILE. DO NOT EDIT.
 
 digraph Monster_Burger {    
+    Fulfilled[label=Fufilled];
     MonsterBurgerUncooked[label=MonsterBurgerUncooked];
 	AfterRequestCookMB[label=AfterRequestCookMB];
 	AfterServeMB[label=AfterServeMB];
@@ -13,6 +14,7 @@ digraph Monster_Burger {
 	AfterPayForMB[label=AfterPayForMB];
 	AfterVerifyFinishedClaim[label=AfterVerifyFinishedClaim]
     
+    EnterFulfilled[label=EnterFufilled,shape=box];
     RequestCookMB[label=RequestCookMB,shape=box];
 	ServeMB[label=ServeMB,shape=box];
 	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
@@ -23,6 +25,8 @@ digraph Monster_Burger {
 	RejectFinishedClaim[label=RejectFinishedClaim,shape=box];
 	PayForMB[label=PayForMB,shape=box];
 	VerifyFinishedClaim[label=VerifyFinishedClaim,shape=box]    
+    
+    EnterFulfilled -> Fulfilled;
     
     MonsterBurgerUncooked -> RequestCookMB;
 	AfterRequestCookMB -> ServeMB;

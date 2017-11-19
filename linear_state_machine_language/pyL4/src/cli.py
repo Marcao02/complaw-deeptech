@@ -15,7 +15,8 @@ import interpreter
 # '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
 # '../examplesLSM4/hvitved_instalment_sale.LSM'
 EXAMPLES = [
-    'monster_burger.l4',
+    # 'monster_burger.l4',
+    'monster_burger_program_only.l4',
     'hvitved_instalment_sale.l4',
     # 'hvitved_instalment_sale.l4'
 ]

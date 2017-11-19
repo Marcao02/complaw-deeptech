@@ -1,0 +1,40 @@
+--------------------------------
+file: hvitved_instalment_sale.l4
+
+contract params:
+    INTEREST_RATE : ℚ := 0.1
+    TOTAL_DUE_BEFORE_CLOSING : ℕ := 9500
+    MIN_PAYMENT : ℕ := 500
+    DUE_AT_CLOSING : ℕ := 500
+
+global vars:
+    balance_remaining : TOTAL_DUE_BEFORE_CLOSING
+    contract_month : 0
+
+action EnterWaitingForFirstDayOfNextMonth transitions to WaitingForFirstDayOfNextMonth:
+
+section WaitingForFirstDayOfNextMonth:
+    if (contract_month < 23):
+        Buyer must PayInstallment(a) (on (dateFromDayInMonthIndexAndMonthIndex 1 (nextMonthIndex )))
+    if (contract_month == 23):
+        Buyer must PayLastInstallment(a) (on (dateFromDayInMonthIndexAndMonthIndex 1 (nextMonthIndex )))
+
+action PayInstallment transitions to AfterPayInstallment:
+    transform:
+        <model.GlobalStateTransformStatement.InCodeConjectureStatement object at 0x104724358>
+        <model.GlobalStateTransformStatement.InCodeConjectureStatement object at 0x104724828>
+        balance_remaining -= amount
+        balance_remaining *= (1 + @INTEREST_RATE)
+
+
+section AfterPayInstallment:
+    WaitingForFirstDayOfNextMonth
+
+action PayLastInstallment transitions to AfterPayLastInstallment:
+    transform:
+        <model.GlobalStateTransformStatement.InCodeConjectureStatement object at 0x104724ac8>
+        balance := 0
+
+
+section AfterPayLastInstallment:
+    Fulfilled

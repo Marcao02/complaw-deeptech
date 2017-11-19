@@ -1,9 +1,8 @@
 from enum import Enum
 from typing import Optional, NamedTuple, Union
 
+from model.Term import Term
 from model.constants_and_defined_types import *
-from model.statements import Term
-from model.Action import ActionId
 from model.SExpr import SExpr
 from model.util import indent, mapjoin
 

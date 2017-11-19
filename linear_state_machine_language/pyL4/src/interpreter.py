@@ -1,19 +1,24 @@
 import logging
 
-
+from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam
+from model.ContractParamDec import ContractParamDec
+from model.GlobalStateTransformStatement import *
+from model.GlobalVarDec import GlobalVarDec
+from model.Literal import StringLit
+from model.Term import FnApp
 
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",
     level=logging.INFO )
-from typing import NamedTuple, NewType, Set, Union, Tuple, List, Any, Dict, cast
+from typing import Tuple, Any, cast, Dict
 
 from model.L4Contract import L4Contract
-from model.statements import *
-from model.Connection import Connection, ConnectionToAction, ConnectionToEnvAction
+
+from model.Connection import ConnectionToAction, ConnectionToEnvAction
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
-from model.constants_and_defined_types import GlobalVarId
+from model.constants_and_defined_types import GlobalVarId, ActionId
 from model.util import hasNotNone, dictSetOrInc, todo_once
 
 # Nat = NewType('Nat',int)
@@ -93,6 +98,7 @@ class ExecEnv:
                 self._section_id = action.dest_section_id
                 self._timestamp = next_timestamp
                 continue
+            logging.error("No evaluation rule matched for " + str(eventi))
 
     def action_available_from_cur_section(self, actionid:ActionId) -> bool:
         for c in self.cur_section().connections():
@@ -134,7 +140,7 @@ class ExecEnv:
         for statement in action.global_state_transform.statements:
             self.evalStatement(statement)
 
-    def evalStatement(self, stmt:CodeBlockStatement):
+    def evalStatement(self, stmt:GlobalStateTransformStatement):
 
         if isinstance(stmt, LocalVarDec):
             assert self._top.varDecObj(stmt.varname) is None
@@ -176,15 +182,16 @@ class ExecEnv:
         elif isinstance(term, ContractParam):
             assert hasNotNone(self._contract_param_vals, term.name), term.name
             return self._contract_param_vals[term.name]
-        elif isinstance(term, Atom):
-            raise Exception(term)
-            return term.atom
+        elif isinstance(term, BoundVar):
+            raise NotImplementedError(str(term))
+            # return term.atom
         else:
             return term
 
     def evalDeadlineClause(self, deadline_clause:Term) -> bool:
-        todo_once("evalDeadlineClause")
-        return True
+        # todo_once("evalDeadlineClause")
+        # return True
+        return cast(bool, self.evalTerm(deadline_clause))
 
     def evalFnApp(self, fnapp:FnApp) -> Any:
         fn = fnapp.head

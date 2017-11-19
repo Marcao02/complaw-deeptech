@@ -1,4 +1,3 @@
-
 from model.L4Contract import *
 
 COLORS = ('Blue', 'Red')
@@ -47,9 +46,13 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
     return f"""// THIS IS A GENERATED FILE. DO NOT EDIT.
 
 digraph {cleaned_graphname} {{    
+    Fulfilled[label=Fufilled];
     {section_nodes_str}
     
+    EnterFulfilled[label=EnterFufilled,shape=box];
     {action_nodes_str}    
+    
+    EnterFulfilled -> Fulfilled;
     
     {connections_from_sections_str}
     

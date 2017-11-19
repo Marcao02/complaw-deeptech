@@ -61,7 +61,6 @@
 		; * Past {MAX_SERVE_DELAY}, {event:PromptServeGuaranteeViolated}
 		; LANG note: static checker directive, which tells the static checker that this state
 		; is visited exactly once in any execution.
-		; (TransitionsTo AfterRequestCookMB)
 		(visits == 1) ;
 		(AllowedSubjects Challenger)
 
@@ -102,7 +101,6 @@
 	(Action EnterPromptServeGuaranteeViolated
 		; {event:PromptServeGuaranteeViolated} is "{Restaurant}'s Prompt Serve Guarantee violated"
 		; Upon {event:PromptServeGuaranteeViolated}, {amount_owing} is set to 0, and then the contract is fulfilled.
-		; (TransitionsTo PromptServeGuaranteeViolated)
 		(0 ≤ visits ≤ 1)
 		(AllowedSubjects Env)
 
@@ -121,7 +119,6 @@
 	(Action EnterEatingMB
 		; LANG note: static checker directive, which tells the static checker that the number of times
 		; this state can be visited is possibly as small as 0, and can't be bounded by any constant number.
-		; (TransitionsTo EatingMB)
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Env)
 	)
@@ -169,7 +166,7 @@
 	)
 
 	(Action EnterLateCheck
-		; (TransitionsTo LateCheck)
+		; Upon {event:LateCheck}, {amount_owing} is set to 0, and then the contract is fulfilled.
 		(0 ≤ visits ≤ 1)
 		(AllowedSubjects Env)
 		(Entrance
@@ -177,7 +174,6 @@
 		)
 	)
 	(Section LateCheck
-		; Upon {event:LateCheck}, {amount_owing} is set to 0, and then the contract is fulfilled.
 		(0 ≤ visits ≤ 1)
 		(Next
 		    (EnterFulfilled immediately)
@@ -186,7 +182,6 @@
 
 	(Action CheckFinishedClaim
 		; "either {VerifyFinishedClaim} or {RejectFinishedClaim}"
-		; (TransitionsTo AfterCheckFinishedClaim)
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Restaurant)
 	)
@@ -204,7 +199,6 @@
 		;	* then {event:EatingMB}""
 		; * if the time has passed {challenge_endlimit_timestamp}
 		; 	* then {Customer} must immediately {PayForMB}
-		; (TransitionsTo AfterRejectFinishedClaim)
 		(0 ≤ visits ≤ nonconstant)
 		(AllowedSubjects Restaurant)
 	)
