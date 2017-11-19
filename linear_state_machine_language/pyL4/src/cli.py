@@ -5,7 +5,6 @@ from correctness_checks import test_fns
 from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
 
-import interpreter
 
 # '../examplesLSM4/hvitved_printer.LSM',
 # '../examplesLSM4/hvitved_lease.LSM',

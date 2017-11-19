@@ -7,7 +7,7 @@ from model.SExpr import SExpr
 from model.util import indent, mapjoin
 
 class ConnectionType(Enum):
-    toSection = 1
+    # toSection = 1 # not used anymore
     toAction = 2
     toEnvAction = 3
 
@@ -16,9 +16,10 @@ class ConnectionToAction(NamedTuple):
     role_id: RoleId
     action_id: ActionId
     args: Optional[SExpr]
-    deontic_modality: DeonticModality
     deadline_clause: Term
     enabled_guard: Optional[Term]
+
+    deontic_modality: DeonticModality
 
     def toStr(self, i:int) -> str:
         rv : str = ""

@@ -28,7 +28,7 @@ action PayInstallment transitions to AfterPayInstallment:
 
 
 section AfterPayInstallment:
-    WaitingForFirstDayOfNextMonth
+    EnterWaitingForFirstDayOfNextMonth
 
 action PayLastInstallment transitions to AfterPayLastInstallment:
     transform:
@@ -37,4 +37,4 @@ action PayLastInstallment transitions to AfterPayLastInstallment:
 
 
 section AfterPayLastInstallment:
-    Fulfilled
+    EnterFulfilled

@@ -1,13 +1,15 @@
 from typing import Optional, Dict, List
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import LocalVarDec
-from model.util import mapjoin
+from model.SExpr import SExpr
+from model.util import mapjoin, indent
 
 
 class Action:
     def __init__(self, action_id) -> None:
         self.action_id = action_id
         self.dest_section_id : str
+        self.traversal_bounds: Optional[SExpr] = None
 
         self.params : Optional[Dict[str,str]] = None # str param -> str sort
         self.global_state_transform : Optional[GlobalStateTransform] = None
@@ -20,6 +22,8 @@ class Action:
 
         self.prose_refs : List[str] = []
 
+
+
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")
     #     return list(self.connections_by_role.keys())
@@ -29,6 +33,8 @@ class Action:
         if self.params:
             rv += f'({mapjoin(str, self.params, ", ")}) '
         rv += ":\n"
+        if self.traversal_bounds:
+            rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
         if self.global_state_transform:
             rv += str(self.global_state_transform)
             rv += "\n"

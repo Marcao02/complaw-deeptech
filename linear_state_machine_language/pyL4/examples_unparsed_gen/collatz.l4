@@ -26,3 +26,4 @@ action TripplePlus1 transitions to Ongoing:
 
 
 action EnterFulfilled transitions to Fulfilled:
+    prove traversals == 1

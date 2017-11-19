@@ -180,6 +180,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(PROSE_REFS_LABEL):
                 section.prose_refs = cast(List,x[1:]).copy()
 
+            elif 'visits' in x or 'traversals' in x:
+                section.visit_bounds = x # self.parse_term(x, None, section)
+
+            else:
+                todo_once(f"Handle {x[0]} in section dec")
+
         self.top.max_section_id_len = max(len(section_id), self.top.max_section_id_len)
         return section
 
@@ -209,10 +215,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.referenced_nonderived_section_ids.add(dest_section_id)
 
             elif 'traversals' in x or 'visits' in x:
-                todo_once("handle `traversals`/`visits` conjectures")
+                a.traversal_bounds = x # self.parse_term(x, None, a)
 
             else:
-                todo_once(f"Handle {x[0]}")
+                todo_once(f"Handle {x[0]} in action dec")
 
         if dest_section_id:
             a.dest_section_id = dest_section_id

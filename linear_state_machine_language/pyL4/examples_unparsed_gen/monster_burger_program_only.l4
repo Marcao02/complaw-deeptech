@@ -17,75 +17,94 @@ section MonsterBurgerUncooked:
     Challenger must RequestCookMB (within 30)
 
 action RequestCookMB transitions to AfterRequestCookMB:
+    prove traversals == 1
     transform:
         amount_owing := MB_PRICE
 
 
 section AfterRequestCookMB:
+    prove visits == 1
     Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
     EnterPromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY)
 
 action ServeMB transitions to AfterServeMB:
+    prove 0 ≤ traversals ≤ 1
     transform:
         challenge_endlimit_timestamp := (unitsAfterEntrance TIME_TO_EAT_BURGER)
 
 
 section AfterServeMB:
+    prove 0 ≤ visits ≤ 1
     EnterEatingMB
 
 action EnterPromptServeGuaranteeViolated transitions to PromptServeGuaranteeViolated:
+    prove 0 ≤ traversals ≤ 1
     transform:
         amount_owing := 0
 
 
 section PromptServeGuaranteeViolated:
+    prove 0 ≤ visits ≤ 1
     EnterFulfilled
 
 action EnterEatingMB transitions to EatingMB:
+    prove 0 ≤ traversals ≤ nonconstant
 
 section EatingMB:
+    prove 0 ≤ visits ≤ nonconstant
     Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
     Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
     EnterLateCheck (at (unitsAfter MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
 
 action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
+    prove 0 ≤ traversals ≤ nonconstant
 
 section AfterAnnounceMBFinished:
+    prove 0 ≤ visits ≤ nonconstant
     Restaurant should CheckFinishedClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
     EnterLateCheck (at (unitsAfterEntrance MAX_CLAIM_VERIFICATION_DELAY))
 
 action EnterLateCheck transitions to LateCheck:
+    prove 0 ≤ traversals ≤ 1
     transform:
         amount_owing := 0
 
 
 section LateCheck:
+    prove 0 ≤ visits ≤ 1
     EnterFulfilled
 
 action CheckFinishedClaim transitions to AfterCheckFinishedClaim:
+    prove 0 ≤ traversals ≤ nonconstant
 
 section AfterCheckFinishedClaim:
+    prove 0 ≤ visits ≤ nonconstant
     Restaurant weakly-must VerifyFinishedClaim immediately
     Restaurant weakly-must RejectFinishedClaim immediately
 
 action RejectFinishedClaim transitions to AfterRejectFinishedClaim:
+    prove 0 ≤ traversals ≤ nonconstant
 
 section AfterRejectFinishedClaim:
+    prove 0 ≤ visits ≤ nonconstant
     if (currentTimeNoLaterThan? challenge_endlimit_timestamp):
         EnterEatingMB
     if (currentTimeAfter? challenge_endlimit_timestamp):
         Customer must PayForMB immediately
 
 action PayForMB transitions to AfterPayForMB:
+    prove 0 ≤ traversals ≤ 1
     transform:
         amount_paid := amount_owing
         amount_owing := 0
 
 
 section AfterPayForMB:
+    prove 0 ≤ visits ≤ 1
     EnterFulfilled
 
 action VerifyFinishedClaim transitions to Fulfilled:
+    prove 0 ≤ traversals ≤ 1
     transform:
         amount_owing := 0
 
