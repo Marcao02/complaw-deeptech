@@ -135,7 +135,7 @@ class ExecEnv:
                 raise NotImplementedError
         return False
 
-    def apply_action(self, action:Action, params:ActionParamsValue, next_timestamp: TimeStamp):
+    def apply_action(self, action:Action, params:List[ActionParamsValue], next_timestamp: TimeStamp):
         if action.global_state_transform:
             self.evalCodeBlock(action.global_state_transform)
         self._section_id = action.dest_section_id
@@ -163,7 +163,7 @@ class ExecEnv:
 
     def evalCodeBlock(self, transform:GlobalStateTransform):
         # print("\nevalCodeBlock\n")
-        # action = self._top.action(event.action_id)
+        # action = self._top.action(nextTSEvent.action_id)
         # if not action.global_state_transform:
         #     return
         for statement in transform.statements:
@@ -264,60 +264,64 @@ def evalLSM(trace:Trace, prog:L4Contract):
 
 
 timestamp = 0
-def event(action_id:ActionId, params=ActionParamsValue, same_timestamp=False):
+def nextTSEvent(action_id:ActionId, params=ActionParamsValue):
     global timestamp
     params = params or []
-    if not same_timestamp:
-        timestamp += 1
+    timestamp += 1
+    return Event(action_id=action_id, timestamp=timestamp, params=params)
+
+def sameTSEvent(action_id:ActionId, params=ActionParamsValue):
+    params = params or []
     return Event(action_id=action_id, timestamp=timestamp, params=params)
 
 traces = {
-    'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
-        event('Start'),
-        event('ContractLive'),
-        event('NewOrder',[50]),
-        event('ContractLive'),
-        event('NewOrder',[40]),
-    ],
-    'examples_sexpr/hvitved_lease.LSM': [
-        event('Move_In'),
-        event('Lease_Term_Started'),
-        event('EnsureApartmentReady'),
-        event('Month_Started'),
-        event('PayRent'),
-        event('Month_Ended'),
-        event('Month_Started'),
-        event('RentDue'),
-        event('PayRent'),
-        event('Month_Ended'),
-        event('Month_Started'),
-        event('Request_Termination_At_Rent_Or_Before'),
-        event('PayRent'),
-        event('Month_Ended'),
-        event('Month_Started'),
-        event('PayRent'),
-        event('Month_Ended'),
-        event('Month_Started'),
-        event('PayRent'),
-        event('Request_Termination_After_Rent'),
-        event('Month_Ended'),
-        event('Lease_Term_Ended'),
-        event('Move_Out'),
-        event('Month_Started'),
-    ],
+    # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
+    #     nextTSEvent('Start'),
+    #     nextTSEvent('ContractLive'),
+    #     nextTSEvent('NewOrder',[50]),
+    #     nextTSEvent('ContractLive'),
+    #     nextTSEvent('NewOrder',[40]),
+    # ],
+    # 'examples_sexpr/hvitved_lease.LSM': [
+    #     nextTSEvent('Move_In'),
+    #     nextTSEvent('Lease_Term_Started'),
+    #     nextTSEvent('EnsureApartmentReady'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('RentDue'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('Request_Termination_At_Rent_Or_Before'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Request_Termination_After_Rent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Lease_Term_Ended'),
+    #     nextTSEvent('Move_Out'),
+    #     nextTSEvent('Month_Started'),
+    # ],
     'examples_sexpr/monster_burger_program_only.l4': [
-        # event('MonsterBurgerUncooked'), # implicit
-        event('RequestCookMB'),
-        event('ServeMB'),
-        event('EnterEatingMB', None, True),
-        event('AnnounceMBFinished'),
-        event('CheckFinishedClaim'),
-        event('RejectFinishedClaim', None, False),
-        event('EnterEatingMB', None, True),
-        event('AnnounceMBFinished'),
-        event('CheckFinishedClaim'),
-        event('VerifyFinishedClaim', None, True)
-    ]
+        # nextTSEvent('MonsterBurgerUncooked'), # implicit
+        nextTSEvent('RequestCookMB'),
+        nextTSEvent('ServeMB'),
+        sameTSEvent('EnterEatingMB'),
+        nextTSEvent('AnnounceMBFinished'),
+        nextTSEvent('CheckFinishedClaim'),
+        sameTSEvent('RejectFinishedClaim'),
+        sameTSEvent('EnterEatingMB'),
+        nextTSEvent('AnnounceMBFinished'),
+        nextTSEvent('CheckFinishedClaim'),
+        sameTSEvent('VerifyFinishedClaim')
+    ],
+
 }
 
 

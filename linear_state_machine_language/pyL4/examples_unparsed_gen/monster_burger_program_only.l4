@@ -18,16 +18,16 @@ section MonsterBurgerUncooked:
 
 action RequestCookMB transitions to AfterRequestCookMB:
     transform:
-        amount_owing := @MB_PRICE
+        amount_owing := MB_PRICE
 
 
 section AfterRequestCookMB:
-    Restaurant should ServeMB (strictly-within @MAX_SERVE_DELAY)
-    EnterPromptServeGuaranteeViolated (nonstrictly-after @MAX_SERVE_DELAY)
+    Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
+    EnterPromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY)
 
 action ServeMB transitions to AfterServeMB:
     transform:
-        challenge_endlimit_timestamp := (@TIME_TO_EAT_BURGER afterEntrance)
+        challenge_endlimit_timestamp := (unitsAfterEntrance TIME_TO_EAT_BURGER)
 
 
 section AfterServeMB:
@@ -45,14 +45,14 @@ action EnterEatingMB transitions to EatingMB:
 
 section EatingMB:
     Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
-    Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp @MAX_CLAIM_VERIFICATION_DELAY)
-    EnterLateCheck (at (after @MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
+    Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
+    EnterLateCheck (at (unitsAfter MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
 
 action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
 
 section AfterAnnounceMBFinished:
-    Restaurant should CheckFinishedClaim (nonstrictly-within @MAX_CLAIM_VERIFICATION_DELAY)
-    EnterLateCheck (after-exactly @MAX_CLAIM_VERIFICATION_DELAY)
+    Restaurant should CheckFinishedClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
+    EnterLateCheck (at (unitsAfterEntrance MAX_CLAIM_VERIFICATION_DELAY))
 
 action EnterLateCheck transitions to LateCheck:
     transform:
@@ -85,10 +85,7 @@ action PayForMB transitions to AfterPayForMB:
 section AfterPayForMB:
     EnterFulfilled
 
-action VerifyFinishedClaim transitions to AfterVerifyFinishedClaim:
+action VerifyFinishedClaim transitions to Fulfilled:
     transform:
         amount_owing := 0
 
-
-section AfterVerifyFinishedClaim:
-    EnterFulfilled

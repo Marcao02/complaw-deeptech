@@ -51,7 +51,7 @@ class L4Contract:
 
         return False
 
-    def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
+    def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> Set[ActionId]:
         cursection = self.section(sectionid)
         rv : Set[ActionId] = set()
         for c in cursection.connections():

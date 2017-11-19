@@ -24,7 +24,7 @@ action PayInstallment transitions to AfterPayInstallment:
         prove (event_start_date == (monthStartDay ))
         prove (amount ≤ balance)
         balance_remaining -= amount
-        balance_remaining *= (1 + @INTEREST_RATE)
+        balance_remaining *= (1 + INTEREST_RATE)
 
 
 section AfterPayInstallment:
@@ -32,7 +32,7 @@ section AfterPayInstallment:
 
 action PayLastInstallment transitions to AfterPayLastInstallment:
     transform:
-        prove (amount == (balance + @DUE_AT_CLOSING))
+        prove (amount == (balance + DUE_AT_CLOSING))
         balance := 0
 
 

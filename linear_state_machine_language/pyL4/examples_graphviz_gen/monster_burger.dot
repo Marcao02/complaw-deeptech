@@ -11,8 +11,7 @@ digraph Monster_Burger {
 	LateCheck[label=LateCheck];
 	AfterCheckFinishedClaim[label=AfterCheckFinishedClaim];
 	AfterRejectFinishedClaim[label=AfterRejectFinishedClaim];
-	AfterPayForMB[label=AfterPayForMB];
-	AfterVerifyFinishedClaim[label=AfterVerifyFinishedClaim]
+	AfterPayForMB[label=AfterPayForMB]
     
     EnterFulfilled[label=EnterFufilled,shape=box];
     RequestCookMB[label=RequestCookMB,shape=box];
@@ -43,8 +42,7 @@ digraph Monster_Burger {
 	AfterCheckFinishedClaim -> RejectFinishedClaim;
 	AfterRejectFinishedClaim -> EnterEatingMB;
 	AfterRejectFinishedClaim -> PayForMB;
-	AfterPayForMB -> EnterFulfilled;
-	AfterVerifyFinishedClaim -> EnterFulfilled
+	AfterPayForMB -> EnterFulfilled
     
     RequestCookMB -> AfterRequestCookMB [style=dashed];
 	ServeMB -> AfterServeMB [style=dashed];
@@ -55,6 +53,6 @@ digraph Monster_Burger {
 	CheckFinishedClaim -> AfterCheckFinishedClaim [style=dashed];
 	RejectFinishedClaim -> AfterRejectFinishedClaim [style=dashed];
 	PayForMB -> AfterPayForMB [style=dashed];
-	VerifyFinishedClaim -> AfterVerifyFinishedClaim [style=dashed];
+	VerifyFinishedClaim -> Fulfilled [style=dashed];
 	        
 }
