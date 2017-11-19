@@ -145,9 +145,9 @@ def derived_destination_id(action_id:str) -> SectionId:
     return "After" + action_id
 def derived_trigger_id(dest_id:str) -> ActionId:
     return "Enter" + dest_id
-def is_derived_destination_id(action_id:str) -> bool:
-    return action_id.startswith("After")
-def is_derived_trigger_id(dest_id:str) -> bool:
-    return dest_id.startswith("Enter")
+def is_derived_destination_id(section_id:SectionId) -> bool:
+    return section_id.startswith("After")
+def is_derived_trigger_id(action_id:ActionId) -> bool:
+    return action_id.startswith("Enter")
 def derived_trigger_id_to_section_id(action_id:str) -> SectionId:
     return action_id[5:]

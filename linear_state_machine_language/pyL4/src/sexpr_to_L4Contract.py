@@ -15,8 +15,8 @@ from parse_sexpr import castse, STRING_LITERAL_MARKER
 class L4ContractConstructor(L4ContractConstructorInterface):
     def __init__(self, filename:Optional[str] = None) -> None:
         self.top : L4Contract = L4Contract(filename or '')
-        self.referenced_section_ids: Set[SectionId] = set()
-        self.referenced_action_ids: Set[ActionId] = set()
+        self.referenced_nonderived_section_ids: Set[SectionId] = set()
+        self.referenced_nonderived_action_ids: Set[ActionId] = set()
         self.after_model_build_requirements : List[Callable[[],bool]]
 
     def syntaxError(self, expr: SExpr, msg:str = None):
@@ -125,7 +125,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
                 section_id = caststr(x[1])
                 self.top.start_section = section_id
-                self.referenced_section_ids.add(section_id)
+                if not is_derived_destination_id(section_id):
+                    self.referenced_nonderived_section_ids.add(section_id)
 
             elif head(ACTION_LABEL):
                 action_id : str
@@ -204,7 +205,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head(TRANSITIONS_TO_LABEL):
                 dest_section_id = x[1]
-                self.referenced_section_ids.add(x[1])
+                if not is_derived_destination_id(dest_section_id):
+                    self.referenced_nonderived_section_ids.add(dest_section_id)
 
             elif 'traversals' in x or 'visits' in x:
                 todo_once("handle `traversals`/`visits` conjectures")
@@ -217,6 +219,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             if is_derived_trigger_id(a.action_id):
                 a.dest_section_id = derived_trigger_id_to_section_id(a.action_id)
+                self.referenced_nonderived_section_ids.add(a.dest_section_id)
             else:
                 a.dest_section_id = derived_destination_id(a.action_id)
 
@@ -339,7 +342,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 src_section.connections_by_role[role_id] = list()
 
             if not is_derived_trigger_id(dest_section_or_action_id):
-                self.referenced_action_ids.add(dest_section_or_action_id)
+                self.referenced_nonderived_action_ids.add(dest_section_or_action_id)
             args = None
             rem = expr.tillEnd(1)
         else:
@@ -350,7 +353,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             deontic_keyword = caststr(expr[1])
             dest_section_or_action_id = caststr(expr[2][0])
             if not is_derived_trigger_id(dest_section_or_action_id):
-                self.referenced_action_ids.add(dest_section_or_action_id)
+                self.referenced_nonderived_action_ids.add(dest_section_or_action_id)
             args = castse(expr[2][1:])
             rem = expr.tillEnd(3)
 

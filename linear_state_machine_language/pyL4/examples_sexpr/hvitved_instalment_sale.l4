@@ -58,7 +58,7 @@
 
 	(Section AfterPayInstallment
 		(Next
-			(WaitingForFirstDayOfNextMonth immediately)
+			(EnterWaitingForFirstDayOfNextMonth immediately)
 		)
 	)
 
@@ -72,7 +72,7 @@
 
 	(Section AfterPayLastInstallment
 		(Next
-			(Fulfilled immediately)
+			(EnterFulfilled immediately)
 		)
 	)
 )
