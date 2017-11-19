@@ -204,6 +204,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head(TRANSITIONS_TO_LABEL):
                 dest_section_id = x[1]
+                self.referenced_section_ids.add(x[1])
 
             elif 'traversals' in x or 'visits' in x:
                 todo_once("handle `traversals`/`visits` conjectures")
@@ -338,7 +339,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 src_section.connections_by_role[role_id] = list()
 
             if not is_derived_trigger_id(dest_section_or_action_id):
-                self.referenced_section_ids.add(dest_section_or_action_id)
+                self.referenced_action_ids.add(dest_section_or_action_id)
             args = None
             rem = expr.tillEnd(1)
         else:
