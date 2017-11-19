@@ -1,8 +1,15 @@
-import os
+import os, sys
 
 
-os.system("python3.6 src/cli.py examples printPretty printSExpr dot")
-os.system("python3.6 src/interpreter.py")
+def runit(s, optional_s=""):
+    print(f"\n\nRunning {optional_s} `{s}`...")
+    os.system(s)
 
-print("\n\nRunning typechecker...")
-os.system("mypy src/cli.py")
+if "print" in sys.argv:
+    runit("python3.6 src/cli.py examples printPretty printSExpr dot")
+else:
+    runit("python3.6 src/cli.py examples")
+
+runit("python3.6 src/interpreter.py")
+
+runit("mypy src/cli.py", "typechecker")
