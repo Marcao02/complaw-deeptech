@@ -15,9 +15,9 @@ action EnterWaitingForFirstDayOfNextMonth transitions to WaitingForFirstDayOfNex
 
 section WaitingForFirstDayOfNextMonth:
     if (contract_month < 23):
-        Buyer must PayInstallment(a) (on (dateFromDayInMonthIndexAndMonthIndex 1 (nextMonthIndex )))
+        Buyer must PayInstallment(a) (on (dateFromDayAndMonthIndices 1 (nextMonthIndex )))
     if (contract_month == 23):
-        Buyer must PayLastInstallment(a) (on (dateFromDayInMonthIndexAndMonthIndex 1 (nextMonthIndex )))
+        Buyer must PayLastInstallment(a) (on (dateFromDayAndMonthIndices 1 (nextMonthIndex )))
 
 action PayInstallment transitions to AfterPayInstallment:
     transform:

@@ -18,12 +18,12 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
-DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
-                        'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
+DEADLINE_PREDICATES = { # THESE MUST ALL BE PREFIX CURRENTLY
+                      'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
                       'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-and-within', 'after-exactly',
-                      'dateFromDayAndMonthIndices', 'nextMonthIndex', 'within', 'nonstrictly-after',
-                      'nonstrictly-within'
-                      }
+                      'within', 'nonstrictly-after', 'nonstrictly-within'}
+DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
+                      'dateFromDayAndMonthIndices', 'nextMonthIndex' }
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
 DURATION_SYMBOLS = {'discretionary'}
 
@@ -33,7 +33,7 @@ PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_tim
                      'days', #'earliest',
                      'dateplus',
                      'ifthenelse',
-                     'max', 'ceil',
+                     'max', 'ceil', 'even', 'odd',
                      'not',
                      'enqueue', 'dequeue', 'discardTop', 'top',  # queues
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
@@ -41,7 +41,7 @@ PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_tim
                      'tuple', 'fst', 'snd',
                      'currentTimeNoLaterThan?', 'currentTimeAfter?',
                      'unitsAfter', 'unitsAfterEntrance'
-                     }.union(DEADLINE_OPERATORS)
+                     }.union(DEADLINE_OPERATORS, DEADLINE_PREDICATES)
 
 POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 

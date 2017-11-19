@@ -20,7 +20,7 @@ from model.Connection import ConnectionToAction, ConnectionToEnvAction
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
-from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS
+from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES
 from model.util import hasNotNone, dictSetOrInc, todo_once
 
 # Nat = NewType('Nat',int)
@@ -248,7 +248,7 @@ class ExecEnv:
         elif fn == "unitsAfterEntrance":
             assert len(evaluated_args) == 1
             return evaluated_args[0] + next_timestamp
-        elif fn in DEADLINE_OPERATORS:
+        elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
             if fn in DEADLINE_OP_INTERP:
                 return cast(Any, DEADLINE_OP_INTERP[fn])(self._timestamp, next_timestamp, evaluated_args)
             else:

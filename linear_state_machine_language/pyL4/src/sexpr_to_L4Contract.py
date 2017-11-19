@@ -313,7 +313,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return self.parse_term(expr, src_section)
         else:
             assert len(expr) > 1
-            if expr[0] in DEADLINE_OPERATORS:
+            if expr[0] in DEADLINE_PREDICATES:
                 return self.parse_term(expr, src_section)
             else:
                 logging.error("Unhandled case in L4ContractConstructor.deadline_clause(): " + str(expr))
