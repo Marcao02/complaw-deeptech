@@ -40,7 +40,7 @@ class L4Contract:
     # def connections(self) -> Iterator[Connection]:
     #     return self.construct_main_part.connections()
 
-    def action_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
+    def action_is_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)
         for c in cursection.connections():
             if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
@@ -50,6 +50,18 @@ class L4Contract:
                 raise NotImplementedError
 
         return False
+
+    def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
+        cursection = self.section(sectionid)
+        rv : Set[ActionId] = set()
+        for c in cursection.connections():
+            if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
+                if c.action_id == actionid:
+                    rv.add(c.action_id)
+            else:
+                raise NotImplementedError
+
+        return rv
 
 
     # def can_transition(self, sectionid1:SectionId, sectionid2:SectionId) -> bool:

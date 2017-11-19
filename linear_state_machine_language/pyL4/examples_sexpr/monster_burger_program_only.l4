@@ -61,7 +61,7 @@
 		(AllowedSubjects Restaurant)
 
 		(Entrance
-			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER afterEntrance))
+			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER unitsAfterEntrance))
 		)
 	)
 	(Section AfterServeMB
@@ -98,7 +98,7 @@
             (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
 	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY after challenge_endlimit_timestamp)))
+	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
             )
         )
 	)
@@ -112,7 +112,7 @@
 		(Next
             (deadlinesPartitionFuture
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
-	            (EnterLateCheck (after-exactly MAX_CLAIM_VERIFICATION_DELAY))
+	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
             )
         )
 	)
@@ -182,6 +182,7 @@
 	)
 
 	(Action VerifyFinishedClaim
+		(TransitionsTo Fulfilled)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Restaurant)
 
@@ -189,12 +190,8 @@
 			(amount_owing = 0)
 		)
 	)
-	(Section AfterVerifyFinishedClaim
-		(0 ≤ visits ≤ 1)
-		(Next
-		    (EnterFulfilled immediately)
-		)
-	)
+
+
 
 )
 

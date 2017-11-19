@@ -1,7 +1,9 @@
 import logging
 
+from model.Action import Action
 from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam
 from model.ContractParamDec import ContractParamDec
+from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import *
 from model.GlobalVarDec import GlobalVarDec
 from model.Literal import StringLit, Literal, DeadlineLit
@@ -49,6 +51,18 @@ FN_SYMB_INTERP = {
     'or': lambda x,y: x or y
 }
 
+DEADLINE_OP_INTERP = {
+    'by': lambda curt, nextt_, args: (nextt_ <= args[0]),
+    'within': lambda curt, nextt_, args: (nextt_ <= curt + args[0]),
+    'nonstrictly-within': lambda curt, nextt_, args: (nextt_ <= curt + args[0]),
+    'strictly-within': lambda curt, nextt_, args: (nextt_ < curt + args[0]),
+    'strictly-before': lambda curt, nextt_, args: (nextt_ < args[0]),
+    'nonstrictly-after-and-within': lambda curt, nextt_, args: args[0] <= nextt_ <= curt + args[1],
+    'at': lambda curt, nextt_, args: (nextt_ == args[0]),
+    'after': lambda curt, nextt_, args: (nextt_ == args[0]),
+}
+
+
 PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time', 'monthStartDay', 'monthEndDay',
                      'days', #'earliest',
                      'dateplus',
@@ -81,27 +95,34 @@ class ExecEnv:
             eventi = trace[i]
             next_action_id, next_timestamp = eventi.action_id, eventi.timestamp
             
-            if not(self._timestamp is None or self._timestamp < next_timestamp):
-                logging.error(f"Event timestamps must be strictly increasing: {next_timestamp} !> {self._timestamp}")
+            if not(self._timestamp is None or self._timestamp <= next_timestamp):
+                logging.error(f"Event timestamps must be increasing: {next_timestamp} < {self._timestamp}")
                 continue
+
             action = self._top.action(next_action_id)
             if not action:
                 logging.error(f"Don't recongize action id {next_action_id}")
                 continue
-            if not self._top.action_sometimes_available_from_section(self._section_id, next_action_id):
-                logging.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id}")
+
+            if not self._top.action_is_sometimes_available_from_section(self._section_id, next_action_id):
+                logging.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-connection exists).")
                 continue
+
             if self.action_available_from_cur_section(next_action_id, next_timestamp):
                 if verbose:
                     sec_pad = ' '*(prog.max_section_id_len-len(self._section_id))
                     act_pad = ' '*(prog.max_action_id_len-len(next_action_id))
                     print(f"{self._section_id}{sec_pad} --{next_action_id}-->{act_pad} {action.dest_section_id}")
-                self._section_id = action.dest_section_id
-                self._timestamp = next_timestamp
+                self.apply_action(action, eventi.params, next_timestamp)
                 continue
-            logging.error("No evaluation rule matched for " + str(eventi))
+            else:
+                logging.error(f"{next_action_id}-connection exists in {self._section_id} but is disabled.")
+
+            logging.error("Stopping evaluation")
+            return
 
     def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
+        todo_once("this needs to depend on action parameters")
         for c in self.cur_section().connections():
             deadline_ok = self.evalDeadlineClause( cast(Any,c).deadline_clause, next_timestamp )
             todo_once("check enabled guard")
@@ -114,6 +135,12 @@ class ExecEnv:
                 raise NotImplementedError
         return False
 
+    def apply_action(self, action:Action, params:ActionParamsValue, next_timestamp: TimeStamp):
+        if action.global_state_transform:
+            self.evalCodeBlock(action.global_state_transform)
+        self._section_id = action.dest_section_id
+        self._timestamp = next_timestamp
+
 
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
         for (var,dec) in decs.items():
@@ -121,7 +148,7 @@ class ExecEnv:
                 self._varvals[var] = None
                 dictSetOrInc(self._var_write_cnt, var, init=0)
             else:
-                self._varvals[var] = self.evalTerm(dec.initval)
+                self._varvals[var] = self.evalTerm(dec.initval, 0)
                 dictSetOrInc(self._var_write_cnt, var, init=1)
             # print('evalGlobalVarDecs: ', var, dec, self._var_write_cnt[var])
 
@@ -130,23 +157,24 @@ class ExecEnv:
         for (name,dec) in decs.items():
             # print(dec)
             if not(dec.value_expr is None):
-                self._contract_param_vals[name] = self.evalTerm(dec.value_expr)
+                self._contract_param_vals[name] = self.evalTerm(dec.value_expr, 0)
             else:
                 self._contract_param_vals[name] = None
 
-    def evalCodeBlock(self, event:Event):
-        action = self._top.action(event.action_id)
-        if not action.global_state_transform:
-            return
-        for statement in action.global_state_transform.statements:
+    def evalCodeBlock(self, transform:GlobalStateTransform):
+        # print("\nevalCodeBlock\n")
+        # action = self._top.action(event.action_id)
+        # if not action.global_state_transform:
+        #     return
+        for statement in transform.statements:
             self.evalStatement(statement)
 
     def evalStatement(self, stmt:GlobalStateTransformStatement):
 
         if isinstance(stmt, LocalVarDec):
             assert self._top.varDecObj(stmt.varname) is None
-            print('evalStatement LocalVarDec: ' + str(stmt))
-            value = self.evalTerm(stmt.value_expr)
+            # print('evalStatement LocalVarDec: ' + str(stmt))
+            value = self.evalTerm(stmt.value_expr, self._timestamp)
             self._varvals[stmt.varname] = value
         elif isinstance(stmt, VarAssignStatement):
             vardec = self._top.varDecObj(stmt.varname)
@@ -154,40 +182,49 @@ class ExecEnv:
             if isinstance(vardec, GlobalVarDec):
                 if vardec.isWriteOnceMore() and self._var_write_cnt[stmt.varname] >= 2:
                     raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
-            print('evalStatement: ' + str(stmt))
+            # else:
+            #     raise NotImplementedError("Non-GlobalVar assign statement unhandled")
+            # print('evalStatement: ' + str(stmt))
             dictSetOrInc(self._var_write_cnt, stmt.varname, init=1)
             # todo: use vardec for runtime type checking
-            value = self.evalTerm(stmt.value_expr)
+            value = self.evalTerm(stmt.value_expr, self._timestamp)
             self._varvals[stmt.varname] = value
         elif isinstance(stmt, IncrementStatement):
             vardec = self._top.varDecObj(stmt.varname)
             # todo: use vardec for runtime type checking
-            value = self.evalTerm(stmt.value_expr)
+            value = self.evalTerm(stmt.value_expr, self._timestamp)
             assert self._varvals[stmt.varname] is not None, "Tried to increment uninitialized variable `" + stmt.varname + "`"
             self._varvals[stmt.varname] = self._varvals[stmt.varname] + int(value)
         elif isinstance(stmt, DecrementStatement):
             varobj = self._top.varDecObj(stmt.varname)
-            value = self.evalTerm(stmt.value_expr)
+            value = self.evalTerm(stmt.value_expr, self._timestamp)
             self._varvals[stmt.varname] = self._varvals[stmt.varname] - int(value)
         else:
-            logging.error("Unhandled GlobalStateTransformStatement: " + str(stml))
+            logging.error("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
-    def evalTerm(self, term:Term, next_timestamp:Optional[TimeStamp] = None) -> Any:
+    def evalTerm(self, term:Term, next_timestamp:TimeStamp) -> Any:
         assert term is not None
+        assert next_timestamp is not None
         # print('evalTerm: ', term)
         if isinstance(term, FnApp):
             return self.evalFnApp(term, next_timestamp)
         elif isinstance(term, DeadlineLit):
-            logging.error("got here finally?")
+            # print("DeadlineLit: ", term)
+            return next_timestamp == self._timestamp
+            # logging.error("got here finally?")
         elif isinstance(term, Literal):
             return term.lit
         elif isinstance(term, LocalVar):
             assert hasNotNone(self._varvals, term.name), term.name
             return self._varvals[term.name]
         elif isinstance(term, GlobalVar):
-            assert hasNotNone(self._varvals, term.name), term.name
+            # print(self._contract_param_vals)
+            # print(self._varvals)
+            assert hasNotNone(self._varvals, term.name), "Global var " + term.name + " should have a value but doesn't."
             return self._varvals[term.name]
         elif isinstance(term, ContractParam):
+            # print("ContractParam case of evalTerm: ", term)
+            # print(self._contract_param_vals[term.name], type(self._contract_param_vals[term.name]))
             assert hasNotNone(self._contract_param_vals, term.name), term.name
             return self._contract_param_vals[term.name]
         else:
@@ -199,25 +236,21 @@ class ExecEnv:
         # return True
         rv = cast(bool, self.evalTerm(deadline_clause, next_timestamp))
         assert rv is not None
-        print('evalDeadlineClause: ', rv)
+        # print('evalDeadlineClause: ', rv)
         return rv
 
     def evalFnApp(self, fnapp:FnApp, next_timestamp:TimeStamp) -> Any:
         fn = fnapp.head
-        args = tuple(self.evalTerm(x,next_timestamp) for x in fnapp.args)
+        # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
+        evaluated_args = tuple(self.evalTerm(x,next_timestamp) for x in fnapp.args)
         if fn in FN_SYMB_INTERP:
-            return cast(Any,FN_SYMB_INTERP[fn])(args)
+            return cast(Any,FN_SYMB_INTERP[fn])(evaluated_args)
+        elif fn == "unitsAfterEntrance":
+            assert len(evaluated_args) == 1
+            return evaluated_args[0] + next_timestamp
         elif fn in DEADLINE_OPERATORS:
-            if fn == 'by':
-                assert len(args) == 1
-                return next_timestamp <= args[0]
-            # elif
-            elif fn == 'within':
-                assert len(args) == 1
-                return next_timestamp <= self._timestamp + int(args[0])
-            elif fn == 'strictly-within':
-                assert len(args) == 1
-                return next_timestamp < self._timestamp + int(args[0])
+            if fn in DEADLINE_OP_INTERP:
+                return cast(Any, DEADLINE_OP_INTERP[fn])(self._timestamp, next_timestamp, evaluated_args)
             else:
                 logging.error("Unhandled deadline fn symbol: " + fn)
         else:
@@ -231,12 +264,12 @@ def evalLSM(trace:Trace, prog:L4Contract):
 
 
 timestamp = 0
-def event(action_id:ActionId, params=ActionParamsValue):
+def event(action_id:ActionId, params=ActionParamsValue, same_timestamp=False):
     global timestamp
-    timestamp += 1
     params = params or []
+    if not same_timestamp:
+        timestamp += 1
     return Event(action_id=action_id, timestamp=timestamp, params=params)
-
 
 traces = {
     'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
@@ -272,18 +305,18 @@ traces = {
         event('Move_Out'),
         event('Month_Started'),
     ],
-    'examples_sexpr/monster_burger.l4': [
+    'examples_sexpr/monster_burger_program_only.l4': [
         # event('MonsterBurgerUncooked'), # implicit
         event('RequestCookMB'),
         event('ServeMB'),
-        event('EnterEatingMB'),
+        event('EnterEatingMB', None, True),
         event('AnnounceMBFinished'),
         event('CheckFinishedClaim'),
-        event('RejectFinishedClaim'),
-        event('EnterEatingMB'),
+        event('RejectFinishedClaim', None, False),
+        event('EnterEatingMB', None, True),
         event('AnnounceMBFinished'),
         event('CheckFinishedClaim'),
-        event('VerifyFinishedClaim'),
+        event('VerifyFinishedClaim', None, True)
     ]
 }
 
@@ -292,7 +325,7 @@ traces = {
 if __name__ == '__main__':
     import sys
 
-    EXAMPLES = ['examples_sexpr/monster_burger.l4']
+    EXAMPLES = ['examples_sexpr/monster_burger_program_only.l4']
     for path in EXAMPLES:
         parsed = parse_file(path)
         if 'print' in sys.argv:

@@ -18,7 +18,8 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
-DEADLINE_OPERATORS = {'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
+DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
+                        'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
                       'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-and-within', 'after-exactly',
                       'dateFromDayInMonthIndexAndMonthIndex', 'nextMonthIndex', 'within', 'nonstrictly-after',
                       'nonstrictly-within'
@@ -27,7 +28,7 @@ DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
 DURATION_SYMBOLS = {'discretionary'}
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
-                    'or','and', 'after'}
+                    'or','and', 'unitsAfter'}
 PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time', 'monthStartDay', 'monthEndDay',
                      'days', #'earliest',
                      'dateplus',
@@ -38,10 +39,11 @@ PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_tim
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
                      'setAdd', 'setRemove', # sets
                      'tuple', 'fst', 'snd',
-                     'currentTimeNoLaterThan?', 'currentTimeAfter?'
+                     'currentTimeNoLaterThan?', 'currentTimeAfter?',
+                     'unitsAfter', 'unitsAfterEntrance'
                      }.union(DEADLINE_OPERATORS)
 
-POSTFIX_FN_SYMBOLS = {'afterEntrance'}
+POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 
 
 
