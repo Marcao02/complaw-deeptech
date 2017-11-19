@@ -322,6 +322,13 @@ traces = {
         sameTSEvent('VerifyFinishedClaim')
     ],
 
+
+    # 'examples_sexpr/hvitved_instalment_sale.l4': [
+    #     # nextTSEvent('MonsterBurgerUncooked'), # implicit
+    #     nextTSEvent('EnterWaitingForFirstDayOfNextMonth'),
+    #
+    # ],
+
 }
 
 

@@ -34,13 +34,13 @@
 			; so I am being lazy and interpreting it literally.
 			(if (contract_month < 23)
 				(Buyer must (PayInstallment a)
-					(on (dateFromDayInMonthIndexAndMonthIndex 1 (nextMonthIndex)))
+					(on (dateFromDayAndMonthIndices 1 (nextMonthIndex)))
 					(where ((MIN_PAYMENT ≤ a ) and (a ≤ balance_remaining))))
 			)
 
 			(if (contract_month == 23)
 				(Buyer must (PayLastInstallment a)
-					(on (dateFromDayInMonthIndexAndMonthIndex 1 (nextMonthIndex)))
+					(on (dateFromDayAndMonthIndices 1 (nextMonthIndex)))
 					(where (a == (balance + DUE_AT_CLOSING))))
 			)
 		)

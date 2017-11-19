@@ -21,7 +21,7 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                         'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
                       'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-and-within', 'after-exactly',
-                      'dateFromDayInMonthIndexAndMonthIndex', 'nextMonthIndex', 'within', 'nonstrictly-after',
+                      'dateFromDayAndMonthIndices', 'nextMonthIndex', 'within', 'nonstrictly-after',
                       'nonstrictly-within'
                       }
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
