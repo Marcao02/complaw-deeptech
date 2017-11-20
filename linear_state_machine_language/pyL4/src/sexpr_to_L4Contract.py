@@ -3,7 +3,7 @@ from typing import Tuple, cast, Callable
 
 from correctness_checks import L4ContractConstructorInterface
 from model.GlobalStateTransform import *
-from model.BoundVar import LocalVar, GlobalVar, ContractParam
+from model.BoundVar import LocalVar, GlobalVar, ContractParam, ConnectionDeclActionParam, ActionDeclActionParam
 from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
@@ -66,7 +66,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def contract_param(self, expr) -> ContractParamDec:
         self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : type := term)" )
-        return ContractParamDec(expr[0], expr[2], self.parse_term(expr[4]))
+        return ContractParamDec(expr[0], expr[2], self.term(expr[4]))
 
     def global_vars(self, l:SExpr) -> Dict[str,GlobalVarDec]:
         rv = dict()
@@ -86,7 +86,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 initval : Optional[Term] = None
                 if i+3 < len(dec) and dec[i+3] == ':=':
-                    initval = self.parse_term(dec[i+4])
+                    initval = self.term(dec[i + 4])
 
                 rv[name] = GlobalVarDec(name, sort, initval, modifiers)
             except Exception as e:
@@ -140,7 +140,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 else:
                     # e.g. (Action (SomethingHappens param&sort1 param&sort2) ...)
                     action_id = caststr(x[1][0])
-                    action_params = castse(x[1][1:])
+                    action_params = cast(List[List[str]], x[1][1:])
                     action = self.action(action_id, action_params, action_body)
                     self.top.actions_by_id[action_id] = action
                 self.top.ordered_declarations.append(action)
@@ -181,7 +181,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 section.prose_refs = cast(List,x[1:]).copy()
 
             elif 'visits' in x or 'traversals' in x:
-                section.visit_bounds = x # self.parse_term(x, None, section)
+                section.visit_bounds = x # self.term(x, None, section)
 
             else:
                 todo_once(f"Handle {x[0]} in section dec")
@@ -189,12 +189,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.top.max_section_id_len = max(len(section_id), self.top.max_section_id_len)
         return section
 
-    def action(self, action_id:ActionId, params_sexpr:Optional[SExpr], rest:SExpr) -> Action:
+    def action(self, action_id:ActionId, params_sexpr:Optional[List[List[str]]], rest:SExpr) -> Action:
         a = Action(action_id)
         dest_section_id = None
         x: SExpr
-        if isinstance(params_sexpr, SExpr):
-            params = self.action_params(cast(List[List[str]], params_sexpr))
+        if params_sexpr is not None: #isinstance(params_sexpr, SExpr):
+            a.params = self.action_params(params_sexpr)
         for x in rest:
             def head(constant:str) -> bool:
                 nonlocal x
@@ -215,7 +215,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.referenced_nonderived_section_ids.add(dest_section_id)
 
             elif 'traversals' in x or 'visits' in x:
-                a.traversal_bounds = x # self.parse_term(x, None, a)
+                a.traversal_bounds = x # self.term(x, None, a)
 
             else:
                 todo_once(f"Handle {x[0]} in action dec")
@@ -247,27 +247,27 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def global_state_transform(self, statements:List[SExpr], a:Action) -> GlobalStateTransform:
         return GlobalStateTransform([self.global_state_transform_statement_dispatch(x,a) for x in statements])
 
-    def global_state_transform_statement_dispatch(self, statement:SExpr, a:Action) -> GlobalStateTransformStatement:
+    def global_state_transform_statement_dispatch(self, statement:SExpr, parent_action:Action) -> GlobalStateTransformStatement:
         try:
             if statement[0] == 'conjecture':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
-                rhs = self.parse_term(statement[1])
+                rhs = self.term(statement[1], None, parent_action)
                 return InCodeConjectureStatement(cast(List,rhs))
             elif statement[0] == 'local':
                 self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type := term)')
                 self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
                                           'Local var dec should have form (local name : type := term)')
                 sort = caststr(statement[3])
-                rhs = self.parse_term(statement[5])
+                rhs = self.term(statement[5])
                 varname = caststr(statement[1])
                 lvd = LocalVarDec(varname, rhs, sort)
-                if varname in a.local_vars:
+                if varname in parent_action.local_vars:
                     self.syntaxError(statement, "Redeclaration of local variable")
-                a.local_vars[varname] = lvd
+                parent_action.local_vars[varname] = lvd
                 return lvd
             else:
                 assert len(statement) == 3, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
-                rhs = self.parse_term(statement[2])
+                rhs = self.term(statement[2], None, parent_action)
                 varname = caststr(statement[0])
                 if statement[1] == ':=' or statement[1] == "=":
                     return VarAssignStatement(varname, rhs)
@@ -284,7 +284,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             logging.error(f"Problem with {statement}")
             raise e
 
-    def parse_term(self, x:Union[str,SExpr], parent_section:Optional[Section] = None, parent_action:Optional[Action] = None) -> Term:
+    def term(self, x:Union[str, SExpr],
+             parent_section : Optional[Section] = None, parent_action : Optional[Action] = None,
+             parent_connection : Optional[Connection] = None) -> Term:
         if isinstance(x,str):
             if x in self.top.global_var_decs:
                 return GlobalVar(self.top.global_var_decs[x])
@@ -304,6 +306,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return DeadlineLit(x)
             if x in DEADLINE_KEYWORDS:
                 return DeadlineLit(x)
+            if parent_connection and parent_connection.args and x in parent_connection.args:
+                return ConnectionDeclActionParam(x, parent_connection )
+            if parent_action and parent_action.params and x in parent_action.params:
+                return ActionDeclActionParam(x, parent_action)
 
             logging.warning('Unrecognized atom: ' + x + '. Treating as deadline literal.')
             return DeadlineLit(x)
@@ -312,87 +318,67 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             pair = maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)
             if pair:
-                return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
+                return FnApp(
+                    pair[0],
+                    [self.term(arg, parent_section, parent_action, parent_connection) for arg in pair[1]]
+                )
             else:
                 self.syntaxError(x)
                 raise SyntaxError("Didn't recognize function symbol in: " + str(x))
 
 
-    def deadline_clause(self, expr:SExpr, src_section:Section) -> Optional[Term]:
-
+    def deadline_clause(self, expr:SExpr, src_section:Section) -> Term:
         if expr in DEADLINE_KEYWORDS:
-            return self.parse_term(expr, src_section)
+            return self.term(expr, src_section)
         else:
             assert len(expr) > 1
             if expr[0] in DEADLINE_PREDICATES:
-                return self.parse_term(expr, src_section)
+                return self.term(expr, src_section)
             else:
                 logging.error("Unhandled case in L4ContractConstructor.deadline_clause(): " + str(expr))
-        return None
+        raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
 
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
         enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
-            enabled_guard = self.parse_term(expr[1], src_section)
+            enabled_guard = self.term(expr[1], src_section)
             expr = expr[2]
 
         role_id : str
-        dest_section_or_action_id : str
-        args : Optional[SExpr]
-        con_type : ConnectionType
-
+        action_id : str
+        args : Optional[List[str]]
+        rv : Connection
         if len(expr) == 2:
-            dest_section_or_action_id = expr[0]
-            # con_type = ConnectionType.toSection
-            con_type = ConnectionType.toEnvAction
+            action_id = expr[0]
             role_id = ENV_ROLE
-            if role_id not in src_section.connections_by_role:
-                src_section.connections_by_role[role_id] = list()
-
-            if not is_derived_trigger_id(dest_section_or_action_id):
-                self.referenced_nonderived_action_ids.add(dest_section_or_action_id)
+            if not is_derived_trigger_id(action_id):
+                self.referenced_nonderived_action_ids.add(action_id)
             args = None
             rem = expr.tillEnd(1)
+            rv = ConnectionToEnvAction(src_section.section_id, action_id, args, enabled_guard)
         else:
-            con_type = ConnectionType.toAction
             role_id = caststr(expr[0])
-            if role_id not in src_section.connections_by_role:
-                src_section.connections_by_role[role_id] = list()
             deontic_keyword = caststr(expr[1])
-            dest_section_or_action_id = caststr(expr[2][0])
-            if not is_derived_trigger_id(dest_section_or_action_id):
-                self.referenced_nonderived_action_ids.add(dest_section_or_action_id)
-            args = castse(expr[2][1:])
+            action_id = caststr(expr[2][0])
+            if not is_derived_trigger_id(action_id):
+                self.referenced_nonderived_action_ids.add(action_id)
+            args = cast(List[str], expr[2][1:])
+            rv = ConnectionToAction(src_section.section_id, role_id, action_id, args, enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 
+        if role_id not in src_section.connections_by_role:
+            src_section.connections_by_role[role_id] = list()
         assert len(rem) >= 1
-        deadline_clause = self.deadline_clause(rem[0], src_section)
-        assert deadline_clause is not None, str(rem)
 
-        c : Connection
-        if con_type == ConnectionType.toAction:
-            c = ConnectionToAction(src_id=src_section.section_id, role_id=role_id, args=args,
-                                   deadline_clause=deadline_clause, enabled_guard=enabled_guard,
-                                   action_id=dest_section_or_action_id,
-                                   deontic_modality = deontic_keyword)
-        # elif con_type == ConnectionType.toSection:
-        #     c = ConnectionToSection(src_id=src_section.section_id, role_id=role_id,
-        #                             deadline_clause=deadline_clause, enabled_guard=enabled_guard,
-        #                             action_id=derived_trigger_id(dest_section_or_action_id),
-        #                             dest_id=dest_section_or_action_id)
+        rv.deadline_clause = self.deadline_clause(rem[0], src_section)
+        assert rv.deadline_clause is not None, str(rem)
 
-        elif con_type == ConnectionType.toEnvAction:
-            c = ConnectionToEnvAction(src_id=src_section.section_id, role_id=role_id,
-                                    deadline_clause=deadline_clause, enabled_guard=enabled_guard,
-                                    action_id=dest_section_or_action_id,
-                                    args = None
-                                    )
-        else:
-            raise NotImplementedError
+        for x in rem[1:]:
+            if x[0] == "where":
+                rv.where_clause = self.term(x[1], src_section, None, rv)
 
-
-        src_section.connections_by_role[role_id].append(c)
-        return c
+        src_section.connections_by_role[role_id].append(rv)
+        return rv
 
 def maybe_as_prefix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if isinstance(se[0],str):

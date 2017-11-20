@@ -1,5 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple
-from typing import Set, NamedTuple, Iterable, Any
+from typing import Set, NamedTuple, Iterable, Any, Union
 
 from model.ContractClaim import ContractClaim
 from model.ContractParamDec import ContractParamDec

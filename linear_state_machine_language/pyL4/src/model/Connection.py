@@ -1,25 +1,32 @@
-from enum import Enum
-from typing import Optional, NamedTuple, Union
+from typing import Optional, List
 
 from model.Term import Term
 from model.constants_and_defined_types import *
-from model.SExpr import SExpr
 from model.util import indent, mapjoin
 
-class ConnectionType(Enum):
-    # toSection = 1 # not used anymore
-    toAction = 2
-    toEnvAction = 3
+class Connection:
+    def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
+                        args: Optional[List[str]], enabled_guard: Optional[Term]) -> None:
+        self.src_id = src_id
+        self.role_id = role_id
+        self.action_id = action_id
+        self.args = args
+        self.enabled_guard = enabled_guard
 
-class ConnectionToAction(NamedTuple):
-    src_id: SectionId
-    role_id: RoleId
-    action_id: ActionId
-    args: Optional[SExpr]
-    deadline_clause: Term
-    enabled_guard: Optional[Term]
+        self.deadline_clause: Term
+        self.where_clause: Optional[Term] = None
 
-    deontic_modality: DeonticModality
+    def toStr(self, i:int) -> str:
+        raise NotImplemented
+
+
+class ConnectionToAction(Connection):
+    def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
+                        args: Optional[List[str]], enabled_guard: Optional[Term],
+                        deontic_modality: DeonticModality) -> None:
+        super().__init__(src_id, role_id, action_id, args, enabled_guard)
+
+        self.deontic_modality = deontic_modality
 
     def toStr(self, i:int) -> str:
         rv : str = ""
@@ -48,14 +55,10 @@ class ConnectionToAction(NamedTuple):
         return rv
 
 
-class ConnectionToEnvAction(NamedTuple):
-    # NOT YET IMPLEMENTED
-    src_id: SectionId
-    role_id: RoleId
-    action_id: ActionId
-    args: Optional[SExpr]
-    deadline_clause: Term
-    enabled_guard: Optional[Term]
+class ConnectionToEnvAction(Connection):
+    def __init__(self, src_id: SectionId, action_id: ActionId,
+                        args: Optional[List[str]], enabled_guard: Optional[Term]) -> None:
+        super().__init__(src_id, ENV_ROLE, action_id, args, enabled_guard)
 
     def toStr(self, i:int) -> str:
         rv : str = ""
@@ -77,5 +80,3 @@ class ConnectionToEnvAction(NamedTuple):
             rv += " " + str(self.deadline_clause)
 
         return rv
-
-Connection = Union[ConnectionToAction, ConnectionToEnvAction]

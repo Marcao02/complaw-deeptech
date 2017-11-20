@@ -14,8 +14,8 @@ from state_diagram_generation import contractToDotFile
 # '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
 # '../examplesLSM4/hvitved_instalment_sale.LSM'
 EXAMPLES = [
-    'collatz.l4',
-    'monster_burger_program_only.l4',
+    # 'collatz.l4',
+    # 'monster_burger_program_only.l4',
     'hvitved_instalment_sale.l4',
 
 ]

@@ -24,12 +24,11 @@ DEADLINE_PREDICATES = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'within', 'nonstrictly-after', 'nonstrictly-within'}
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex' }
-DEADLINE_KEYWORDS = {'immediately', 'nodeadline'}
-DURATION_SYMBOLS = {'discretionary'}
+DEADLINE_KEYWORDS = {'immediately', 'nodeadline','discretionary'}
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}
-PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time', 'monthStartDay', 'monthEndDay',
+PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'eventTimestamp', 'monthStartDay', 'monthEndDay',
                      'days', #'earliest',
                      'dateplus',
                      'ifthenelse',

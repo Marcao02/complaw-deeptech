@@ -41,7 +41,7 @@
 			(if (contract_month == 23)
 				(Buyer must (PayLastInstallment a)
 					(on (dateFromDayAndMonthIndices 1 (nextMonthIndex)))
-					(where (a == (balance + DUE_AT_CLOSING))))
+					(where (a == (balance_remaining + DUE_AT_CLOSING))))
 			)
 		)
 	)
@@ -49,8 +49,8 @@
 	(Action (PayInstallment(amount:ℕ))
 		(TransitionsTo AfterPayInstallment)
 		(Entrance ; neither of the conjecture statements is necessary
-			(conjecture (event_start_date == (monthStartDay)))
-			(conjecture (amount ≤ balance)) ; overpaying is forbidden
+			(conjecture ((eventTimestamp) == (monthStartDay)))
+			(conjecture (amount ≤ balance_remaining)) ; overpaying is forbidden
 			(balance_remaining -= amount)
 			(balance_remaining *= (1 + INTEREST_RATE))
 		)
@@ -65,8 +65,8 @@
 	(Action (PayLastInstallment(amount:ℕ))
 		(TransitionsTo AfterPayLastInstallment)
 		(Entrance ; neither of these statements is necessary
-			(conjecture (amount == (balance + DUE_AT_CLOSING)))
-			(balance = 0)
+			(conjecture (amount == (balance_remaining + DUE_AT_CLOSING)))
+			(balance_remaining = 0)
 		)
 	)
 
