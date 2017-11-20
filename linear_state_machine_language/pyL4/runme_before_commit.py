@@ -12,4 +12,4 @@ else:
 
 runit("python3.6 src/interpreter.py")
 
-runit("mypy src/cli.py", "typechecker")
+runit("export MYPYPATH=./src; mypy src", "typechecker")
