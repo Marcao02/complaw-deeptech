@@ -19,13 +19,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
         self.after_model_build_requirements : List[Callable[[],bool]]
 
-    def syntaxError(self, expr: SExpr, msg:str = None):
+    def syntaxError(self, expr: SExpr, msg:Optional[str] = None):
         raise SyntaxError((msg if msg else "") +
                           "\n" + str(expr) +
                           "\nline " + str(cast(SExpr, expr).line) +
                           "\n" + str(self.top.filename))
 
-    def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:str = None):
+    def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None):
         if not test:
             self.syntaxError(expr, msg)
 
@@ -84,7 +84,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 sort = caststr(dec[i+2])
                 self.top.sorts.add(sort)
 
-                initval : Term = None
+                initval : Optional[Term] = None
                 if i+3 < len(dec) and dec[i+3] == ':=':
                     initval = self.parse_term(dec[i+4])
 
@@ -311,10 +311,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return StringLit(caststr(x[1]))
         else:
             pair = maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)
-            if not pair:
-                logging.error("Didn't recognize function symbol in: " + str(x))
+            if pair:
+                return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
+            else:
                 self.syntaxError(x)
-            return FnApp(pair[0], [self.parse_term(arg) for arg in pair[1]])
+                raise SyntaxError("Didn't recognize function symbol in: " + str(x))
+
 
     def deadline_clause(self, expr:SExpr, src_section:Section) -> Optional[Term]:
 
@@ -329,7 +331,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return None
 
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
-        enabled_guard: Term = None
+        enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             enabled_guard = self.parse_term(expr[1], src_section)
             expr = expr[2]

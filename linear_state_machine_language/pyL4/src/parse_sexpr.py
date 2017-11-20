@@ -10,7 +10,7 @@ class SExprBuilder:
         # self.stack: List[SExpr] = [castse([])] # TODO not actually an SExpr...
         self.stack: List[SExpr] = [SExpr('(',[],1,1)]  # TODO not actually an SExpr...
 
-    def openParenSeq(self,symb,line:int=None,col:int=None):
+    def openParenSeq(self,symb,line:int,col:int):
         self.stack.append(SExpr(symb, [], line, col))
 
     def appendTokenInCurScope(self,token): 
@@ -109,7 +109,7 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
                 else:
                     in_str_lit = True
                     str_lit_quote = char
-                    builder.openParenSeq(char)
+                    builder.openParenSeq(char, line, col)
                     builder.appendTokenInCurScope(STRING_LITERAL_MARKER)
 
             elif i < len(string)-1 and (char + string[i+1]) in double_splits_word_only:

@@ -91,8 +91,9 @@ class L4Contract:
         return self.sections_by_id.values()
     def section_ids(self) -> Iterable[SectionId]:
         return self.sections_by_id.keys()
-    def section(self, anid:SectionId) -> Optional[Section]:
-        return self.sections_by_id[anid] if anid in self.sections_by_id else None
+    def section(self, anid:SectionId) -> Section:
+        assert anid in self.sections_by_id
+        return self.sections_by_id[anid]
     
     def actions_iter(self) -> Iterable[Action]:
         return self.actions_by_id.values()
@@ -101,13 +102,18 @@ class L4Contract:
     def action(self, anid: ActionId) -> Optional[Action]:
         return self.actions_by_id[anid] if anid in self.actions_by_id else None
 
-    def varDecObj(self, varname:str, sec:Section = None) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
+    def varDecObj(self, varname:str) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
         if varname in self.global_var_decs:
             return self.global_var_decs[varname]
-        # elif varname in sec.local_vars:
-        #     return sec.local_vars[varname]
         else:
             return None
+    # def varDecObj(self, varname:str, sec:Optional[Section] = None) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
+    #     if varname in self.global_var_decs:
+    #         return self.global_var_decs[varname]
+    #     elif isinstance(sec,Section) and varname in sec.local_vars:
+    #         return sec.local_vars[varname]
+    #     else:
+    #         return None
 
     def __str__(self) -> str:
         rv = ''

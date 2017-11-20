@@ -22,9 +22,9 @@ Now a wrapper around a list of SExpr's and strings.
 class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
     def __init__(self,
                  symb:str, # member of left_groupers
-                 lst:List[Union['SExpr', str]] = None,
-                 line:int = None,
-                 col:int = None) -> None:
+                 lst: List[Union['SExpr', str]],
+                 line: int,
+                 col: int) -> None:
         # super().__init__(lst if lst else [])
         self.symb = symb
         self.lst = lst if lst else []

@@ -1,3 +1,14 @@
+; Should these 4 terms just be natural numbers?
+`Common Stock` ⊆ `Capital Stock`
+`Preferred Stock` ⊆ `Capital Stock`
+
+`Common Stock` + `Preferred Stock` ≤ `Capital Stock`
+
+`Company Capitalization` : ℕ
+`Conversion Price` := min(`Safe Price`, `Discount Price`)
+
+`EquityFinancingPrice` : ℕ
+
 actors: Investor, Company
 
 contract params:
@@ -12,8 +23,8 @@ global vars:
 	has_cap : Bool = (VALUATION_CAP > $0)
 	has_discount : Bool = (DISCOUNT_PERCENT > $0)
 
-	; this will only be nonzero in a liquidity event
-	investor_remaining_investment_L : $ = $0 ;# writeAtMostOnce
+	; this will only be non-None in a liquidity event
+	investor_remaining_investment_L : Option[$] = None ;# writeAtMostOnce
 	investor_Preferred_Stocks : ℕ = START_INVESTOR_PREFERRED_STOCKS  ;# writeAtMostOnce
 	investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  ;# writeAtMostOnce
 	liq_price : Option[$] = None 	;# writeAtMostOnce
@@ -50,7 +61,7 @@ formal contract "SAFE"
 	apply to all actions and states:
 		at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 
-	start state InvestorInvests
+	start section InvestorInvests
 		; Following syntax is shorthand for 4 "relievable must" edges that have the same
 		; subject and deadline expression
 		Company must by ∞ choose:
@@ -62,36 +73,38 @@ formal contract "SAFE"
 
 	; ----------------- Equity Financing Event -------------------
 	; NOTE: PRA abbreviates pro rata agreement
+	; `_E` is just a redundant notational reminder that the action/section
+	; is associated with the equity event case.
 
 	action CommitToEquityFinancing by Company
-	following state:
+	following section:
 		Company must choose within discretionary:
 			DeliverDocsWithPRA_E
 			DeliverDocsWithoutPRA_E
 
 	action DeliverDocsWithPRA_E by Company
-	following state
+	following section:
 		Company must IssueSAFEPreferredStock_E within discretionary
 
 	action DeliverDocsWithoutPRA_E by Company
-	following state:
+	following section:
 		Company must SubmitProRataRightsAgreementForSigning_E within discretionary
 
 	action SubmitProRataRightsAgreementForSigning_E by Company
-	following state:
+	following section:
 		Investor must SignPRA_E within discretionary
 		; TODO: Obviously this shouldn't be a *must*, since they ought to be
 		; able to send it back with proposed amendments/corrections.
 		; That seems like something we should have a reusable module for.
 
 	action SignPRA_E by Investor:
-	following state:
+	following section:
 		Company must IssueSAFEPreferredStock_E within discretionary
 
 	action IssueSAFEPreferredStock_E by Company:
 		transform:
 			investor_SAFE_Preferred_Stocks += PURCHASE_AMOUNT / COMPANY_CAPITALIZATION
-	following state:
+	following section:
 		Company must DoEquityFinancing within discretionary
 
 	action DoEquityFinancing of Company transitions to Fulfilled
@@ -111,8 +124,7 @@ formal contract "SAFE"
 				investor_remaining_investment_L = PURCHASE_AMOUNT
 			)
 			company_cash_remaining = COMPANY_CASH_AT_LIQUIDITY_EVENT - REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG
-
-	following state:
+	following section:
 		Investor may before discretionary₁:
 			ChooseCashPayment_L
 			ChooseStockPayment_L
@@ -120,22 +132,22 @@ formal contract "SAFE"
 		Company should AutoChooseStockPayment_L on discretionary_1
 
 	action AutoChooseStockPayment_L by Company
-	following state:
+	following section:
 		Company must TransferCommonStock_L within discretionary
 
 	action ChooseStockPayment_L by Investor:
-	following state:
+	following section:
 		Company must TransferCommonStock_L within discretionary
 
 	action TransferCommonStock_L by Company:
 		transform:
 			investor_Common_Stocks += round((investor_remaining_investment_L - liq_cashout) / liq_price)
 			; TODO: should we round that division up, down, or to nearest?
-	following state:
+	following section:
 		Company must DoLiquidityEvent by discretionary
 
 	action ChooseCashPayment_L by Investor
-	following state:
+	following section:
 		Company must TransferCash_L within discretionary
 
 	action TransferCash_L by Company:
@@ -147,7 +159,7 @@ formal contract "SAFE"
 			)
 			investor_cash += liq_cashout
 			company_cash -= liq_cashout
-	following state:
+	following section:
 		Company must if (liq_cashout < investor_remaining_investment_L) TransferCommonStock_L within discretionary₃
 		Company must if (liq_cashout == investor_remaining_investment_L) DoLiquidityEvent within discretionary₃
 
@@ -157,7 +169,7 @@ formal contract "SAFE"
 	; ----------------- Dissolution Event -------------------
 
 	action CommitToDissolution of Company
-	following state:
+	following section:
 		Company must TransferCash_D by discretionary
 
 	action TransferCash_D by Company:
@@ -169,7 +181,7 @@ formal contract "SAFE"
 			)
 			investor_cash = dis_cashout
 			company_cash = COMPANY_CASH_AT_DISSOLUTION_EVENT - dis_cashout
-	following state:
+	following section:
 		; Don't need to specify that following two `must`s are verified disjoint exhaustive,
 		; becase it's implied by the definitions.
 		Company must if (dis_cashout < PURCHASE_AMOUNT)
@@ -182,7 +194,7 @@ formal contract "SAFE"
 		transform:
 			liq_price = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
 			investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))
-	following state:
+	following section:
 		Company must Dissolve within discretionary
 
 	action Dissolve of Company transitions to Fulfilled
