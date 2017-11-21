@@ -21,7 +21,7 @@ from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
 from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES
-from model.util import hasNotNone, dictSetOrInc, todo_once
+from model.util import hasNotNone, dictSetOrInc, todo_once, chcast
 
 # Nat = NewType('Nat',int)
 # TimeStamp = NewType('TimeStamp',Nat)
@@ -35,6 +35,12 @@ class Event(NamedTuple):
     role_id: str
     timestamp: TimeStamp
     params: Dict[str,ActionParamsValue]
+
+class EventConsumptionResult:
+    pass
+
+class BreachResult(EventConsumptionResult):
+    pass
 
 Trace = List[Event]
 
@@ -99,7 +105,7 @@ class ExecEnv:
             next_action_id, next_timestamp = eventi.action_id, eventi.timestamp
             
             if not(self._timestamp is None or self._timestamp <= next_timestamp):
-                logging.error(f"Event timestamps must be increasing: {next_timestamp} < {self._timestamp}")
+                logging.error(f"Event timestamps must be non-decreasing, but current {self._timestamp} > next {next_timestamp}")
                 continue
 
             action = self._top.action(next_action_id)
@@ -111,6 +117,8 @@ class ExecEnv:
                 logging.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-connection exists).")
                 continue
 
+            # result = self.attempt_consume_next_event(eventi):
+            # if result.successful:
             if self.action_available_from_cur_section(next_action_id, next_timestamp):
                 if verbose:
                     sec_pad = ' '*(prog.max_section_id_len-len(self._section_id))
@@ -124,6 +132,22 @@ class ExecEnv:
             logging.error("Stopping evaluation")
             return
 
+    # def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
+    #     active_strong_obligs : Set[str] = set()
+    #     active_weak_obligs : Set[str] = set()
+    #     active_permissions : Set[str] = set()
+    #     active_env_connection : Set[str] = set()
+    #
+    #     for c in self.cur_section().connections():
+    #         if c.enabled_guard:
+    #             self.evalTerm(c.enabled_guard, None)
+
+
+
+
+
+
+
     def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
         todo_once("this needs to depend on action parameters")
         for c in self.cur_section().connections():
@@ -134,8 +158,8 @@ class ExecEnv:
             else:
                 raise NotImplementedError
 
-            deadline_ok = self.evalDeadlineClause(cast(Any, c).deadline_clause, next_timestamp)
-            print("deadline_ok", deadline_ok)
+            deadline_ok = self.evalDeadlineClause(c.deadline_clause, next_timestamp)
+            # print("deadline_ok", deadline_ok)
             if deadline_ok:
                 return True
         return False
@@ -223,7 +247,7 @@ class ExecEnv:
         else:
             logging.error("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
-    def evalTerm(self, term:Term, next_timestamp:TimeStamp) -> Any:
+    def evalTerm(self, term:Term, next_timestamp:Optional[TimeStamp]) -> Any:
         assert term is not None
         assert next_timestamp is not None
         # print('evalTerm: ', term)
@@ -259,12 +283,12 @@ class ExecEnv:
     def evalDeadlineClause(self, deadline_clause:Term, next_timestamp:TimeStamp) -> bool:
         assert deadline_clause is not None
         # return True
-        rv = cast(bool, self.evalTerm(deadline_clause, next_timestamp))
+        rv = chcast(bool, self.evalTerm(deadline_clause, next_timestamp))
         assert rv is not None
         # print('evalDeadlineClause: ', rv)
         return rv
 
-    def evalFnApp(self, fnapp:FnApp, next_timestamp:TimeStamp) -> Any:
+    def evalFnApp(self, fnapp:FnApp, next_timestamp: Optional[TimeStamp]) -> Any:
         fn = fnapp.head
         # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
         evaluated_args = tuple(self.evalTerm(x,next_timestamp) for x in fnapp.args)
@@ -272,8 +296,10 @@ class ExecEnv:
             return cast(Any,FN_SYMB_INTERP[fn])(evaluated_args)
         elif fn == "unitsAfterEntrance":
             assert len(evaluated_args) == 1
+            assert next_timestamp is not None
             return evaluated_args[0] + next_timestamp
         elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
+            assert next_timestamp is not None
             if fn in DEADLINE_OP_INTERP:
                 return cast(Any, DEADLINE_OP_INTERP[fn])(self._timestamp, next_timestamp, evaluated_args)
             else:

@@ -1,7 +1,7 @@
 from model.SExpr import *
 from typing import Union, List, Any, TypeVar, Sequence, cast, Sized, Iterable
 
-from model.util import caststr, is_singleton_string_list
+from model.util import is_singleton_string_list, chcaststr
 
 
 class SExprBuilder:
@@ -157,9 +157,9 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
 def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
     indent : str = " "*nspaces
     if isinstance(l,str):
-        return indent + caststr(l)
+        return indent + l
     elif isinstance(l,SExpr) and len(l) >= 1 and l[0] == STRING_LITERAL_MARKER:
-        return indent + "`" + caststr(l[1]) + "`"
+        return indent + "`" + chcaststr(l[1]) + "`"
     else:
         lsymb = l.symb if isinstance(l,SExpr) else "("
         rsymb = grouper_map[l.symb] if isinstance(l,SExpr) else ")"
@@ -171,9 +171,9 @@ def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
             elif isinstance(x,list) and len(x) == 0:
                 s += "()"
             elif isinstance(x,SExpr) and x.symb == '[' and is_singleton_string_list(x.lst):
-                s += " [" + caststr(x[0]) + "]"
+                s += " [" + chcaststr(x[0]) + "]"
             elif isinstance(x,list) and len(x) >= 1 and x[0] == STRING_LITERAL_MARKER:
-                s += " `" + caststr(x[1]) + "`"
+                s += " `" + chcaststr(x[1]) + "`"
             else:
                 s += "\n" + prettySExprStr(x, nspaces + 4)
                 line_broke = True

@@ -1,4 +1,4 @@
-from typing import Any, List, Callable, Iterable, cast, Dict, Set
+from typing import Any, List, Callable, Iterable, cast, Dict, Set, TypeVar, Type
 import logging
 
 def indent(i:int) -> str:
@@ -6,6 +6,15 @@ def indent(i:int) -> str:
 
 def caststr(x:Any) -> str:
     assert isinstance(x,str), x
+    return cast(str,x)
+
+T = TypeVar('T')
+def chcast(tp:Type[T],x:Any) -> T:
+    assert isinstance(x,tp), f"{str(x)} is a {type(x)} but this chcast requires a {tp}."
+    return cast(T,x)
+
+def chcaststr(x:Any) -> str:
+    assert isinstance(x,str), f"{str(x)} is a {type(x)} but this chcast requires a str."
     return cast(str,x)
 
 def streqci(s1:Any,s2:Any) -> bool:

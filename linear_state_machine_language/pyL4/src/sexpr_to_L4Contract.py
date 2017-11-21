@@ -8,7 +8,7 @@ from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
 from model.Term import FnApp
-from model.util import streqci, caststr, isFloat, isInt, todo_once
+from model.util import streqci, chcaststr, isFloat, isInt, todo_once
 from parse_sexpr import castse, STRING_LITERAL_MARKER
 
 
@@ -43,7 +43,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head( CONTRACT_PARAMETERS_SECTION_LABEL ):
                 # assert all(isinstance(expr[0],str) for expr in rem)
-                self.top.contract_params = {caststr(expr[0]) : self.contract_param(expr) for expr in rem}
+                self.top.contract_params = {chcaststr(expr[0]) : self.contract_param(expr) for expr in rem}
 
             elif head( CLAIMS_SECTION_LABEL ):
                 self.top.claims = self.claims(rem)
@@ -58,9 +58,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.construct_main_part(rem)
 
             elif head( DOT_FILE_NAME_LABEL ):
-                self.top.dot_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+                self.top.dot_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
             elif head( IMG_FILE_NAME_LABEL ):
-                self.top.img_file_name = caststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+                self.top.img_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
         return self.top
 
@@ -76,12 +76,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 modifiers : List[str] = []
                 while True:
                     if dec[i] in VARIABLE_MODIFIERS:
-                        modifiers.append(caststr(dec[i]))
+                        modifiers.append(chcaststr(dec[i]))
                         i += 1
                     else:
                         break
-                name = caststr(dec[i])
-                sort = caststr(dec[i+2])
+                name = chcaststr(dec[i])
+                sort = chcaststr(dec[i+2])
                 self.top.sorts.add(sort)
 
                 initval : Optional[Term] = None
@@ -124,7 +124,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             if head(START_SECTION_LABEL):
                 self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
-                section_id = caststr(x[1])
+                section_id = chcaststr(x[1])
                 self.top.start_section = section_id
                 if not is_derived_destination_id(section_id):
                     self.referenced_nonderived_section_ids.add(section_id)
@@ -140,14 +140,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.top.actions_by_id[action_id] = action
                 else:
                     # e.g. (Action (SomethingHappens param&sort1 param&sort2) ...)
-                    action_id = caststr(x[1][0])
+                    action_id = chcaststr(x[1][0])
                     action_params = cast(List[List[str]], x[1][1:])
                     action = self.action(action_id, action_params, action_body)
                     self.top.actions_by_id[action_id] = action
                 self.top.ordered_declarations.append(action)
 
             elif head(SECTION_LABEL):
-                section_id = caststr(x[1])
+                section_id = chcaststr(x[1])
                 section_data = x.tillEnd(2)
                 section = self.section(section_id, section_data)
                 self.top.sections_by_id[section_id] = section
@@ -167,7 +167,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(SECTION_DESCRIPTION_LABEL):
-                section.section_description = caststr(x[1][1]) # extract from STRLIT expression
+                section.section_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(OUT_CONNECTIONS_LABEL):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesPartitionFuture'):
@@ -202,7 +202,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(ACTION_DESCRIPTION_LABEL):
-                a.action_description = caststr(x[1][1]) # extract from STRLIT expression
+                a.action_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(CODE_BLOCK_LABEL):
                 a.global_state_transform= self.global_state_transform(cast(List[SExpr],x[1:]), a)
@@ -258,9 +258,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type := term)')
                 self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
                                           'Local var dec should have form (local name : type := term)')
-                sort = caststr(statement[3])
+                sort = chcaststr(statement[3])
                 rhs = self.term(statement[5])
-                varname = caststr(statement[1])
+                varname = chcaststr(statement[1])
                 lvd = LocalVarDec(varname, rhs, sort)
                 if varname in parent_action.local_vars:
                     self.syntaxError(statement, "Redeclaration of local variable")
@@ -269,7 +269,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 assert len(statement) == 3, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
                 rhs = self.term(statement[2], None, parent_action)
-                varname = caststr(statement[0])
+                varname = chcaststr(statement[0])
                 if statement[1] == ':=' or statement[1] == "=":
                     return VarAssignStatement(varname, rhs)
                 elif statement[1] == '+=':
@@ -315,7 +315,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             logging.warning('Unrecognized atom: ' + x + '. Treating as deadline literal.')
             return DeadlineLit(x)
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
-            return StringLit(caststr(x[1]))
+            return StringLit(chcaststr(x[1]))
         else:
             pair = maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)
             if pair:
@@ -358,9 +358,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rem = expr.tillEnd(1)
             rv = ConnectionToEnvAction(src_section.section_id, action_id, args, enabled_guard)
         else:
-            role_id = caststr(expr[0])
-            deontic_keyword = caststr(expr[1])
-            action_id = caststr(expr[2][0])
+            role_id = chcaststr(expr[0])
+            deontic_keyword = chcaststr(expr[1])
+            action_id = chcaststr(expr[2][0])
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
             args = cast(List[str], expr[2][1:])
