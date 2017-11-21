@@ -10,8 +10,8 @@ contract params:
 
 global vars:
     writeonce challenge_endlimit_timestamp : Timestamp
-    amount_owing : Price
-    amount_paid : Price
+    amount_owing : Price := 0
+    amount_paid : Price := 0
 
 section MonsterBurgerUncooked:
     Challenger must RequestCookMB (within 30)

@@ -13,7 +13,7 @@ class GlobalVarDec(NamedTuple):
     def __str__(self) -> str:
         return (' '.join(self.modifier) + ' ' if self.modifier else '') + \
                self.name + " : " + self.sort + \
-               (" := " + str(self.initval) if self.initval else '')
+               (" := " + str(self.initval) if (self.initval is not None) else '')
 
     def isWriteOnceMore(self) -> bool:
         return 'writeOnceMore' in self.modifier

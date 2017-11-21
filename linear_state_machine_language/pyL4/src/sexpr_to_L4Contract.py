@@ -85,9 +85,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.sorts.add(sort)
 
                 initval : Optional[Term] = None
-                if i+3 < len(dec) and dec[i+3] == ':=':
+                if i+3 < len(dec) and (dec[i+3] == ':=' or dec[i+3] == '='):
                     initval = self.term(dec[i + 4])
-
+                # print("sort: ", str(sort))
+                # print("initval: ", str(initval))
                 rv[name] = GlobalVarDec(name, sort, initval, modifiers)
             except Exception as e:
                 logging.error("Problem processing " + str(dec))
@@ -252,7 +253,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if statement[0] == 'conjecture':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
                 rhs = self.term(statement[1], None, parent_action)
-                return InCodeConjectureStatement(cast(List,rhs))
+                return InCodeConjectureStatement(rhs)
             elif statement[0] == 'local':
                 self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type := term)')
                 self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
