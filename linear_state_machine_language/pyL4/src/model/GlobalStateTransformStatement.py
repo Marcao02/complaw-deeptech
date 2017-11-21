@@ -25,11 +25,11 @@ class LocalVarDec(VarAssignStatement):
         return f"{self.varname} := {str(self.value_expr)}"
 
 class InCodeConjectureStatement(GlobalStateTransformStatement):
-    def __init__(self, exprs:List) -> None:
-        self.value_exprs = exprs
+    def __init__(self, prop:Term) -> None:
+        self.value_expr = prop
 
     def __str__(self) -> str:
-        return "prove " + str(self.value_exprs)
+        return "prove " + str(self.value_expr)
 
 class IncrementStatement(GlobalStateTransformStatement):
     def __init__(self, varname:str, value_expr:Term) -> None:

@@ -6,17 +6,17 @@ from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
 
 
-# '../examplesLSM4/hvitved_printer.LSM',
-# '../examplesLSM4/hvitved_lease.LSM',
-# '../examplesLSM4/SAFE.LSM',
-# '../examplesLSM4/hvitved_master_sales_agreement_simplified.LSM',
-# '../examplesLSM4/hvitved_master_sales_agreement_full.LSM',
-# '../examplesLSM4/hvitved_master_sales_agreement_full_with_ids.LSM',
-# '../examplesLSM4/hvitved_instalment_sale.LSM'
+# '../hvitved_printer.LSM',
+# '../hvitved_lease.LSM',
+# '../SAFE.LSM',
+# '../hvitved_master_sales_agreement_simplified.LSM',
+# '../hvitved_master_sales_agreement_full.LSM',
+# '../hvitved_master_sales_agreement_full_with_ids.LSM',
+# '../hvitved_instalment_sale.LSM'
 EXAMPLES = [
-    # 'collatz.l4',
-    # 'monster_burger_program_only.l4',
-    'hvitved_instalment_sale.l4',
+    'collatz.l4',
+    'monster_burger_program_only.l4',
+    'hvitved_instalment_sale--simplified_time.l4',
 
 ]
 

@@ -1,7 +1,7 @@
 import logging
 
 from model.Action import Action
-from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam
+from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import *
@@ -32,8 +32,9 @@ ActionParamsValue = Union[Tuple[Any], str, int, TimeStamp]
 
 class Event(NamedTuple):
     action_id: str
+    role_id: str
     timestamp: TimeStamp
-    params: List[ActionParamsValue]
+    params: Dict[str,ActionParamsValue]
 
 Trace = List[Event]
 
@@ -59,7 +60,8 @@ DEADLINE_OP_INTERP = {
     'strictly-before': lambda curt, nextt_, args: (nextt_ < args[0]),
     'nonstrictly-after-and-within': lambda curt, nextt_, args: args[0] <= nextt_ <= curt + args[1],
     'at': lambda curt, nextt_, args: (nextt_ == args[0]),
-    'after': lambda curt, nextt_, args: (nextt_ == args[0]),
+    'after': lambda curt, nextt_, args: (nextt_ == args[0]), # ??
+    'after-exactly': lambda curt, nextt_, args: (nextt_ == args[0]),
 }
 
 
@@ -82,6 +84,7 @@ class ExecEnv:
         self._contract_param_vals: Dict[str, Any] = dict()
         self._section_id: str = prog.start_section
         self._timestamp = 0
+        self.cur_action_params : Optional[Dict[str, ActionParamsValue]]
 
     def cur_section(self) -> Section:
         return self._top.section(self._section_id)
@@ -124,20 +127,25 @@ class ExecEnv:
     def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
         todo_once("this needs to depend on action parameters")
         for c in self.cur_section().connections():
-            deadline_ok = self.evalDeadlineClause( cast(Any,c).deadline_clause, next_timestamp )
             todo_once("check enabled guard")
-            if not deadline_ok:
-                continue
             if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
-                if c.action_id == actionid:
-                    return True
+                if c.action_id != actionid:
+                    continue
             else:
                 raise NotImplementedError
+
+            deadline_ok = self.evalDeadlineClause(cast(Any, c).deadline_clause, next_timestamp)
+            print("deadline_ok", deadline_ok)
+            if deadline_ok:
+                return True
         return False
 
-    def apply_action(self, action:Action, params:List[ActionParamsValue], next_timestamp: TimeStamp):
+    def apply_action(self, action:Action, params:Dict[str,ActionParamsValue], next_timestamp: TimeStamp):
         if action.global_state_transform:
+            self.cur_action_params = params
             self.evalCodeBlock(action.global_state_transform)
+            self.cur_action_params = None
+
         self._section_id = action.dest_section_id
         self._timestamp = next_timestamp
 
@@ -146,9 +154,11 @@ class ExecEnv:
         for (var,dec) in decs.items():
             if dec.initval is None:
                 self._varvals[var] = None
+                print(f"Global var {var} has no initial value.")
                 dictSetOrInc(self._var_write_cnt, var, init=0)
             else:
                 self._varvals[var] = self.evalTerm(dec.initval, 0)
+                print(f"Global var {var} has initial value {self._varvals[var]}.")
                 dictSetOrInc(self._var_write_cnt, var, init=1)
             # print('evalGlobalVarDecs: ', var, dec, self._var_write_cnt[var])
 
@@ -176,29 +186,40 @@ class ExecEnv:
             # print('evalStatement LocalVarDec: ' + str(stmt))
             value = self.evalTerm(stmt.value_expr, self._timestamp)
             self._varvals[stmt.varname] = value
+
         elif isinstance(stmt, VarAssignStatement):
             vardec = self._top.varDecObj(stmt.varname)
             # print(self._var_write_cnt[stmt.varname])
             if isinstance(vardec, GlobalVarDec):
                 if vardec.isWriteOnceMore() and self._var_write_cnt[stmt.varname] >= 2:
                     raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
-            # else:
-            #     raise NotImplementedError("Non-GlobalVar assign statement unhandled")
-            # print('evalStatement: ' + str(stmt))
+            else:
+                raise NotImplementedError("Non-GlobalVar assign statement unhandled")
             dictSetOrInc(self._var_write_cnt, stmt.varname, init=1)
             # todo: use vardec for runtime type checking
             value = self.evalTerm(stmt.value_expr, self._timestamp)
             self._varvals[stmt.varname] = value
-        elif isinstance(stmt, IncrementStatement):
+
+        elif isinstance(stmt, (IncrementStatement,DecrementStatement,TimesEqualsStatement)):
             vardec = self._top.varDecObj(stmt.varname)
             # todo: use vardec for runtime type checking
             value = self.evalTerm(stmt.value_expr, self._timestamp)
-            assert self._varvals[stmt.varname] is not None, "Tried to increment uninitialized variable `" + stmt.varname + "`"
-            self._varvals[stmt.varname] = self._varvals[stmt.varname] + int(value)
-        elif isinstance(stmt, DecrementStatement):
-            varobj = self._top.varDecObj(stmt.varname)
-            value = self.evalTerm(stmt.value_expr, self._timestamp)
-            self._varvals[stmt.varname] = self._varvals[stmt.varname] - int(value)
+            if not stmt.varname in self._varvals:
+                logging.error(stmt.varname + " should be in the execution environment, but isn't.")
+            assert self._varvals[stmt.varname] is not None, "Tried to increment/decrement/scale uninitialized variable `" + stmt.varname + "`"
+
+            if isinstance(stmt, IncrementStatement):
+                self._varvals[stmt.varname] = self._varvals[stmt.varname] + int(value)
+            elif isinstance(stmt, DecrementStatement):
+                self._varvals[stmt.varname] = self._varvals[stmt.varname] - int(value)
+            elif isinstance(stmt, TimesEqualsStatement):
+                self._varvals[stmt.varname] = self._varvals[stmt.varname] * int(value)
+            else:
+                raise Exception('should be impossible')
+
+        elif isinstance(stmt, InCodeConjectureStatement):
+            print("conjecture " + str(stmt))
+
         else:
             logging.error("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
@@ -227,6 +248,10 @@ class ExecEnv:
             # print(self._contract_param_vals[term.name], type(self._contract_param_vals[term.name]))
             assert hasNotNone(self._contract_param_vals, term.name), term.name
             return self._contract_param_vals[term.name]
+        elif isinstance(term,ActionDeclActionParam):
+            if self.cur_action_params and term.name in self.cur_action_params:
+                return self.cur_action_params[term.name]
+            print("Trying to evaluate ActionDeclActionParam but didn't find it in the execution context.")
         else:
             logging.error("evalTerm unhandled case for: " + str(term))
             return term
@@ -264,15 +289,15 @@ def evalLSM(trace:Trace, prog:L4Contract):
 
 
 timestamp = 0
-def nextTSEvent(action_id:ActionId, params=ActionParamsValue):
+def nextTSEvent(action_id:ActionId, role_id:str, params=Dict[str,ActionParamsValue]):
     global timestamp
     params = params or []
     timestamp += 1
-    return Event(action_id=action_id, timestamp=timestamp, params=params)
+    return Event(action_id=action_id, role_id=role_id, timestamp=timestamp, params=params)
 
-def sameTSEvent(action_id:ActionId, params=ActionParamsValue):
+def sameTSEvent(action_id:ActionId, role_id:str, params=ActionParamsValue):
     params = params or []
-    return Event(action_id=action_id, timestamp=timestamp, params=params)
+    return Event(action_id=action_id, role_id=role_id, timestamp=timestamp, params=params)
 
 traces = {
     # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
@@ -309,25 +334,26 @@ traces = {
     #     nextTSEvent('Month_Started'),
     # ],
     'examples_sexpr/monster_burger_program_only.l4': [
-        # nextTSEvent('MonsterBurgerUncooked'), # implicit
-        nextTSEvent('RequestCookMB'),
-        nextTSEvent('ServeMB'),
-        sameTSEvent('EnterEatingMB'),
-        nextTSEvent('AnnounceMBFinished'),
-        nextTSEvent('CheckFinishedClaim'),
-        sameTSEvent('RejectFinishedClaim'),
-        sameTSEvent('EnterEatingMB'),
-        nextTSEvent('AnnounceMBFinished'),
-        nextTSEvent('CheckFinishedClaim'),
-        sameTSEvent('VerifyFinishedClaim')
+        # start section implicit
+        nextTSEvent('RequestCookMB', 'Challenger'),
+        nextTSEvent('ServeMB', 'Restaurant'),
+        sameTSEvent('EnterEatingMB', 'Env'),
+        nextTSEvent('AnnounceMBFinished', 'Challenger'),
+        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
+        sameTSEvent('RejectFinishedClaim', 'Restaurant'),
+        sameTSEvent('EnterEatingMB', 'Env'),
+        nextTSEvent('AnnounceMBFinished','Challenger'),
+        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
+        sameTSEvent('VerifyFinishedClaim', 'Restaurant')
     ],
 
 
-    # 'examples_sexpr/hvitved_instalment_sale.l4': [
-    #     # nextTSEvent('MonsterBurgerUncooked'), # implicit
-    #     nextTSEvent('EnterWaitingForFirstDayOfNextMonth'),
-    #
-    # ],
+    'examples_sexpr/hvitved_instalment_sale--simplified_time.l4': [
+        # start section implicit
+        Event('PayInstallment', 'Buyer', 30, {'amount':501}),
+        Event('PayInstallment', 'Buyer', 60, {'amount':501} )
+
+    ],
 
 }
 
@@ -336,8 +362,12 @@ traces = {
 if __name__ == '__main__':
     import sys
 
-    EXAMPLES = ['examples_sexpr/monster_burger_program_only.l4']
+    EXAMPLES = [
+        'examples_sexpr/monster_burger_program_only.l4',
+        'examples_sexpr/hvitved_instalment_sale--simplified_time.l4'
+    ]
     for path in EXAMPLES:
+        print("\n" + path)
         parsed = parse_file(path)
         if 'print' in sys.argv:
             print(prettySExprStr(parsed))
