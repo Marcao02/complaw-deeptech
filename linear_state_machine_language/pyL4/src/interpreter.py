@@ -347,8 +347,57 @@ def event(action_id:str, role_id:str, timestamp:int, params=Dict[str, ActionPara
     return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=timestamp,
                  params=cast(ActionParamSubst, params))
 
+from cli import EXAMPLES_SEXPR_ROOT
+
 traces = {
-    # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
+    'toy_and_teaching/monster_burger_program_only.l4': [
+        # start section implicit
+        nextTSEvent('RequestCookMB', 'Challenger'),
+        nextTSEvent('ServeMB', 'Restaurant'),
+        sameTSEvent('EnterEatingMB', 'Env'),
+        nextTSEvent('AnnounceMBFinished', 'Challenger'),
+        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
+        sameTSEvent('RejectFinishedClaim', 'Restaurant'),
+        sameTSEvent('EnterEatingMB', 'Env'),
+        nextTSEvent('AnnounceMBFinished','Challenger'),
+        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
+        sameTSEvent('VerifyFinishedClaim', 'Restaurant')
+    ],
+
+
+    'from_academic_lit/hvitved_instalment_sale--simplified_time.l4': [
+        # start section implicit
+        event('PayInstallment', 'Buyer', 30, {'amount':501}),
+        event('PayInstallment', 'Buyer', 60, {'amount':501} )
+
+    ],
+
+}
+
+
+
+if __name__ == '__main__':
+    import sys
+
+    EXAMPLES_TO_RUN = [
+        'toy_and_teaching/monster_burger_program_only.l4',
+        'from_academic_lit/hvitved_instalment_sale--simplified_time.l4'
+    ]
+    for subpath in EXAMPLES_TO_RUN:
+        print("\n" + subpath)
+        path = EXAMPLES_SEXPR_ROOT + subpath
+        parsed = parse_file(path)
+        if 'print' in sys.argv:
+            print(prettySExprStr(parsed))
+
+        assembler = L4ContractConstructor(path)
+        prog : L4Contract = assembler.l4contract(parsed)
+
+        evalLSM(traces[subpath], prog)
+
+
+
+# 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
     #     nextTSEvent('Start'),
     #     nextTSEvent('ContractLive'),
     #     nextTSEvent('NewOrder',[50]),
@@ -381,45 +430,3 @@ traces = {
     #     nextTSEvent('Move_Out'),
     #     nextTSEvent('Month_Started'),
     # ],
-    'examples_sexpr/monster_burger_program_only.l4': [
-        # start section implicit
-        nextTSEvent('RequestCookMB', 'Challenger'),
-        nextTSEvent('ServeMB', 'Restaurant'),
-        sameTSEvent('EnterEatingMB', 'Env'),
-        nextTSEvent('AnnounceMBFinished', 'Challenger'),
-        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
-        sameTSEvent('RejectFinishedClaim', 'Restaurant'),
-        sameTSEvent('EnterEatingMB', 'Env'),
-        nextTSEvent('AnnounceMBFinished','Challenger'),
-        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
-        sameTSEvent('VerifyFinishedClaim', 'Restaurant')
-    ],
-
-
-    'examples_sexpr/hvitved_instalment_sale--simplified_time.l4': [
-        # start section implicit
-        event('PayInstallment', 'Buyer', 30, {'amount':501}),
-        event('PayInstallment', 'Buyer', 60, {'amount':501} )
-
-    ],
-
-}
-
-
-
-if __name__ == '__main__':
-    import sys
-
-    EXAMPLES = [
-        'examples_sexpr/monster_burger_program_only.l4',
-        'examples_sexpr/hvitved_instalment_sale--simplified_time.l4'
-    ]
-    for path in EXAMPLES:
-        print("\n" + path)
-        parsed = parse_file(path)
-        if 'print' in sys.argv:
-            print(prettySExprStr(parsed))
-        assembler = L4ContractConstructor(path)
-        prog : L4Contract = assembler.l4contract(parsed)
-        evalLSM(traces[path], prog)
-

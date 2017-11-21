@@ -1,5 +1,5 @@
-------------------------------------
-file: monster_burger_program_only.l4
+-----------------------------------------------------
+file: toy_and_teaching/monster_burger_program_only.l4
 
 contract params:
     MB_PRICE : Price := 50

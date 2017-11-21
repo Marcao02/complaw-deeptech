@@ -1,11 +1,11 @@
-----------------
-file: collatz.l4
+---------------------------
+file: degenerate/collatz.l4
 
 contract params:
     START : ℕ := 99
 
 global vars:
-    x : ℕ := start
+    x : ℕ := START
 
 section Ongoing:
     if ((x == 0) or (x == 1)):

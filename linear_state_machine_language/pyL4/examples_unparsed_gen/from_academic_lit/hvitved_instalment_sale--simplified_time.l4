@@ -1,5 +1,5 @@
--------------------------------------------------
-file: hvitved_instalment_sale--simplified_time.l4
+-------------------------------------------------------------------
+file: from_academic_lit/hvitved_instalment_sale--simplified_time.l4
 
 contract params:
     INTEREST_RATE : ℚ := 0.1
@@ -15,9 +15,9 @@ action EnterWaitingForFirstDayOfNextMonth transitions to WaitingForFirstDayOfNex
 
 section WaitingForFirstDayOfNextMonth:
     if (next_payment_month < 23):
-        Buyer must PayInstallment(a) (after-exactly 30)
+        Buyer must PayInstallment(amount) (after-exactly 30)
     if (next_payment_month == 23):
-        Buyer must PayLastInstallment(a) (after-exactly 30)
+        Buyer must PayLastInstallment(amount) (after-exactly 30)
 
 action PayInstallment transitions to WaitingForFirstDayOfNextMonth(amount) :
     transform:

@@ -195,5 +195,6 @@
 
 )
 
-(DotFileName 'monster_burger.dot')
-(ImgFileName 'monster_burger.png')
+; don't use these options for examples in the repo. a canonical name will be chosen.
+; (DotFileName 'monster_burger.dot')
+; (ImgFileName 'monster_burger.png')

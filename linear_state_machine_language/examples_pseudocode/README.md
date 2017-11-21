@@ -1,9 +1,9 @@
-SAFE.LSM in this directory is the L4 formalization of the Y-Combinator SAFE contract with a valuation cap and discount. The versions without a valuation cap and/or discount are special cases (see `has_cap` and `has_discount` in `global vars` section).
+SAFE.LSM in this directory is the L4-pseudocode (to be promoted to L4-code soon) formalization of the Y-Combinator SAFE contract with a valuation cap and discount. The versions without a valuation cap and/or discount are special cases (see `has_cap` and `has_discount` in `global vars` section).
 
 The ALL_CAPS parameters in the `contract params` and `oracle inputs` sections provide the numbers that contribute to the outcome of the contract. The parameters in `contract params` are set at the start of the contract. The parameters in `oracle inputs` may or may not come into play. The 2nd through 5th, for example, are defined only if the `Company` performs the action `CommitToLiquidityEvent`, and those numbers must be provided at that time.
 
 # Example L4 contracts
-We have written almost every example we've found in the literature in some version of L4. However, while we have been focused on improving the syntax and semantics of L4, the examples have suffered from bit rot. The examples in this directory are the most recent, and those in `../examplesLSM4` are next-to-most-recent. See also `ABOUT-this-directory.md`.
+We have written almost every example we've found in the literature in some version of L4. However, while we have been focused on improving the syntax and semantics of L4, the examples have suffered from bit rot. The examples in this directory are the most recent, and those in `../examples_to_port_to_pyL4/examplesLSM4` are next-to-most-recent. See also `ABOUT-this-directory.md`.
 
 # L4 Principles
 
@@ -18,7 +18,7 @@ Most languages for computational contracts are constructed to exploit the techno
 L4/LSM, for Linear State Machine, is a working name for this language/computation model. A longer but more descriptive name would be Event-Driven Linear State Machine. "Linear" means the computation is single-threaded, which every software engineer knows is good for comprehensibility. The same is true in contracts. It is important to note, though, that this does not actually preclude the modeling of concurrent contracts. With the use of a data structure to, for an example of one kind of simulation, represent the tuple of the current states of all threads, even contracts with lots of concurrency can be simulated by LSM programs of similar size. Parallel efficiency is the main reason we use concurrent programming models in software generally, but for contracts that does not seem to be a concern.
 I hope that "state machine" does not make people assume finite state. 
 
-This tutorial will take you through a formalization of a simplification of one of the example informal contracts that Hvitved used in his thesis. It is simplified in that it doesn't include anything about payment. There are two full versions, [one using lists](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examplesLSM2/hvitved_master_sales_agreement_full.LSM) and [the other using sets](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examplesLSM2/hvitved_master_sales_agreement_full_with_ids.LSM). The simplified version is [here](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examplesLSM2/hvitved_master_sales_agreement_simplified.LSM).
+This tutorial will take you through a formalization of a simplification of one of the example informal contracts that Hvitved used in his thesis. It is simplified in that it doesn't include anything about payment. There are two full versions, [one using lists](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM2/hvitved_master_sales_agreement_full.LSM) and [the other using sets](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM2/hvitved_master_sales_agreement_full_with_ids.LSM). The simplified version is [here](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM2/hvitved_master_sales_agreement_simplified.LSM).
 
 L4/LSM unashamedly encourages the use of global vars. They will be ideal for prose contract isomorphism -- consider how infrequently scoped variables are used in English prose (pronouns don't count). They will also be ideal for hooking up to interactive visualization/customization widgets. 
 
@@ -56,7 +56,7 @@ The next bit is pretty self-explanatory. A reactive T variable is like a 0-argum
 		(orderable_units : ℕ := (MAX_UNITS - units_ordered))
 	)
 
-The next part defines ids for clauses/sections of the prose contract, so that we can link them to parts of the formal contract. For this example, I have not yet done the linking. [hvitved\_printer.LSM](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examplesLSM2/hvitved_printer_explicit_deontic.LSM) has linking, but the linking doesn't do anything yet. This text is verbatim from Hvitved's thesis.
+The next part defines ids for clauses/sections of the prose contract, so that we can link them to parts of the formal contract. For this example, I have not yet done the linking. [hvitved\_printer.LSM](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM2/hvitved_printer_explicit_deontic.LSM) has linking, but the linking doesn't do anything yet. This text is verbatim from Hvitved's thesis.
 
 	(ProseContract 
 	 	(P1 'The master agreement between Vendor and Customer is for 1000 printers, with a unit price of €100. The agreement is valid for one year, starting 2011-01-01.')

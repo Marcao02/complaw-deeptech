@@ -5,26 +5,14 @@ from correctness_checks import test_fns
 from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
 
-
-# '../hvitved_printer.LSM',
-# '../hvitved_lease.LSM',
-# '../SAFE.LSM',
-# '../hvitved_master_sales_agreement_simplified.LSM',
-# '../hvitved_master_sales_agreement_full.LSM',
-# '../hvitved_master_sales_agreement_full_with_ids.LSM',
-# '../hvitved_instalment_sale.LSM'
-EXAMPLES = [
-    'collatz.l4',
-    'monster_burger_program_only.l4',
-    'hvitved_instalment_sale--simplified_time.l4',
-
-]
-
 EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
-EXAMPLE_SEXPR_ = map( lambda x: EXAMPLES_SEXPR_ROOT + x, EXAMPLES )
-
 EXAMPLES_UNPARSED_ROOT = "./examples_unparsed_gen/"
 
+EXAMPLES = [
+    'degenerate/collatz.l4',
+    'toy_and_teaching/monster_burger_program_only.l4',
+    'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+]
 
 if __name__ == '__main__':
     import sys
@@ -76,5 +64,3 @@ if __name__ == '__main__':
     #     deadlinesPartitionFuture and guardsDisjointExhaustive
     #
     # """)
-
-# prog = L4ContractConstructor().top(parse_file(EXAMPLES[0]))

@@ -1,8 +1,8 @@
 # L4 Linear State Machine (LSM) Language
 
-Read [LSM Tutorial](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/LSM2_tutorial.md) first.
+Read [LSM Tutorial](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/out-of-date_LSM_tutorial.md) first.
 
-Most of the [example contracts](https://github.com/legalese/legalese-compiler/tree/master/linear_state_machine_language/examplesLSM2) are problems from Tom Hvitved's PhD thesis. He wrote executable contracts in the language CSL that he developed. CSL influenced L4/LSM, but in the end they use quite different approaches. 
+Most of the [example contracts](https://github.com/legalese/legalese-compiler/tree/master/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM2) are problems from Tom Hvitved's PhD thesis. He wrote executable contracts in the language CSL that he developed. CSL influenced L4/LSM, but in the end they use quite different approaches. 
 
 ## Dependencies
 You'll need to install Python 3.6 because the code uses format strings e.g. `f"text {code} text"` and Named Tuple syntax. It will be installed alongside any other python versions you have, so don't worry about it breaking anything. Also, some version of Python 3 is needed to recognize the static typing annotations. 
@@ -19,13 +19,25 @@ Install mypy with
 
 `python3.6 -m pip install -U mypy`
 
-Then
+Then 
 
-`mypy compileLSM.py`
+`cd pyL4`
+
+`python3.6 src/run_me_before_commit.py tconly`
 
 ## Running
-`python3.6 compileLSM examples`
+`cd pyL4`
 
-or `python3.6 compileLSM examples print`
+`python3.6 src/run_me_before_commit.py`
 
-or `python3.6 compileLSM examples print dot`
+`python3.6 src/run_me_before_commit.py tconly`
+
+`python3.6 src/interpreter.py`
+
+`python3.6 src/cli.py examples`
+
+`python3.6 src/cli.py examples examples print`
+
+`python3.6 src/cli.py examples print dot`
+
+
