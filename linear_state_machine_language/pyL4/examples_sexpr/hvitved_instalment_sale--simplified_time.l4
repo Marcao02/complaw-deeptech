@@ -33,15 +33,15 @@
 			; note contract says payments happen on the first day of the month, not on-or-before.
 			; so I am being lazy and interpreting it literally.
 			(if (next_payment_month < 23)
-				(Buyer must (PayInstallment a)
+				(Buyer must (PayInstallment amount)
 					(after-exactly 30)
-					(where ((MIN_PAYMENT ≤ a ) and (a ≤ balance_remaining))))
+					(where ((MIN_PAYMENT ≤ amount ) and (amount ≤ balance_remaining))))
 			)
 
 			(if (next_payment_month == 23)
-				(Buyer must (PayLastInstallment a)
+				(Buyer must (PayLastInstallment amount)
 					(after-exactly 30)
-					(where (a == (balance_remaining + DUE_AT_CLOSING))))
+					(where (amount == (balance_remaining + DUE_AT_CLOSING))))
 			)
 		)
 	)

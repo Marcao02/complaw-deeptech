@@ -8,7 +8,7 @@ from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
 from model.Term import FnApp
-from model.util import streqci, chcaststr, isFloat, isInt, todo_once
+from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid
 from parse_sexpr import castse, STRING_LITERAL_MARKER
 
 
@@ -43,7 +43,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head( CONTRACT_PARAMETERS_SECTION_LABEL ):
                 # assert all(isinstance(expr[0],str) for expr in rem)
-                self.top.contract_params = {chcaststr(expr[0]) : self.contract_param(expr) for expr in rem}
+                self.top.contract_params = {castid(ContractParamId,expr[0]) : self.contract_param(expr) for expr in rem}
 
             elif head( CLAIMS_SECTION_LABEL ):
                 self.top.claims = self.claims(rem)
@@ -68,8 +68,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : type := term)" )
         return ContractParamDec(expr[0], expr[2], self.term(expr[4]))
 
-    def global_vars(self, l:SExpr) -> Dict[str,GlobalVarDec]:
-        rv = dict()
+    def global_vars(self, l:SExpr) -> Dict[GlobalVarId,GlobalVarDec]:
+        rv : Dict[GlobalVarId, GlobalVarDec] = dict()
         for dec in l:
             try:
                 i = 0
@@ -80,8 +80,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         i += 1
                     else:
                         break
-                name = chcaststr(dec[i])
-                sort = chcaststr(dec[i+2])
+                name = cast(GlobalVarId, chcaststr(dec[i]))
+                sort = cast(SortId, chcaststr(dec[i + 2]))
                 self.top.sorts.add(sort)
 
                 initval : Optional[Term] = None
@@ -102,13 +102,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         # logging.info(str(rv))
         return rv
 
-    def actors(self, s:SExpr) -> List[str]:
+    def actors(self, s:SExpr) -> List[RoleId]:
         # logging.info(str(l))
         self.assertOrSyntaxError(all(isinstance(x, str) for x in s), s, "Actors declaration S-expression should have the form (Actors Alice Bob)")
-        return cast(List[str],s.lst.copy())
+        return cast(List[RoleId],s.lst.copy())
 
     def prose_contract(self, l: List[List[str]]) -> ProseContract:
-        rv = {x[0]: x[1] for x in l}
+        rv = {castid(ProseClauseId,x[0]): x[1] for x in l}
         # logging.info(str(rv))
         return rv
 
@@ -124,30 +124,30 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             if head(START_SECTION_LABEL):
                 self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
-                section_id = chcaststr(x[1])
+                section_id = cast(SectionId, chcaststr(x[1]))
                 self.top.start_section = section_id
                 if not is_derived_destination_id(section_id):
                     self.referenced_nonderived_section_ids.add(section_id)
 
             elif head(ACTION_LABEL):
-                action_id : str
+                action_id : ActionId
                 action : Action
                 action_body = x.tillEnd(2)
                 if isinstance(x[1], str):
                     # e.g. (Action SomethingHappens ...)
-                    action_id = x[1]
+                    action_id = cast(ActionId, x[1])
                     action = self.action(action_id, None, action_body)
                     self.top.actions_by_id[action_id] = action
                 else:
                     # e.g. (Action (SomethingHappens param&sort1 param&sort2) ...)
-                    action_id = chcaststr(x[1][0])
+                    action_id = cast(ActionId, chcaststr(x[1][0]))
                     action_params = cast(List[List[str]], x[1][1:])
                     action = self.action(action_id, action_params, action_body)
                     self.top.actions_by_id[action_id] = action
                 self.top.ordered_declarations.append(action)
 
             elif head(SECTION_LABEL):
-                section_id = chcaststr(x[1])
+                section_id = cast(SectionId, chcaststr(x[1]))
                 section_data = x.tillEnd(2)
                 section = self.section(section_id, section_data)
                 self.top.sections_by_id[section_id] = section
@@ -239,9 +239,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         pdec : List[str]
         for pdec in parts:
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
-            self.top.sorts.add(pdec[2])
+            self.top.sorts.add(castid(SortId,pdec[2]))
 
-        rv = {pdec[0]:pdec[2] for pdec in parts}
+        rv = {castid(ActionParamId,pdec[0]) : castid(SortId,pdec[2]) for pdec in parts}
         # logging.info(str(rv))
         return rv
 
@@ -260,7 +260,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                                           'Local var dec should have form (local name : type := term)')
                 sort = chcaststr(statement[3])
                 rhs = self.term(statement[5])
-                varname = chcaststr(statement[1])
+                varname = castid(LocalVarId,statement[1])
                 lvd = LocalVarDec(varname, rhs, sort)
                 if varname in parent_action.local_vars:
                     self.syntaxError(statement, "Redeclaration of local variable")
@@ -269,15 +269,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 assert len(statement) == 3, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
                 rhs = self.term(statement[2], None, parent_action)
-                varname = chcaststr(statement[0])
+                varname2 = castid(LocalOrGlobalVarId, statement[0])
                 if statement[1] == ':=' or statement[1] == "=":
-                    return VarAssignStatement(varname, rhs)
+                    return VarAssignStatement(varname2, rhs)
                 elif statement[1] == '+=':
-                    return IncrementStatement(varname, rhs)
+                    return IncrementStatement(varname2, rhs)
                 elif statement[1] == '-=':
-                    return DecrementStatement(varname, rhs)
+                    return DecrementStatement(varname2, rhs)
                 elif statement[1] == '*=':
-                    return TimesEqualsStatement(varname, rhs)
+                    return TimesEqualsStatement(varname2, rhs)
                 else:
                     raise Exception
                 return None # not reachable
@@ -290,11 +290,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
              parent_connection : Optional[Connection] = None) -> Term:
         if isinstance(x,str):
             if x in self.top.global_var_decs:
-                return GlobalVar(self.top.global_var_decs[x])
+                return GlobalVar(self.top.global_var_decs[cast(GlobalVarId,x)])
             if parent_action and (x in parent_action.local_vars):
-                return LocalVar(parent_action.local_vars[x])
+                return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
             if x in self.top.contract_params:
-                return ContractParam(self.top.contract_params[x])
+                return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
             if isInt(x):
                 return IntLit(int(x))
             if isFloat(x):
@@ -308,12 +308,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in DEADLINE_KEYWORDS:
                 return DeadlineLit(x)
             if parent_connection and parent_connection.args and x in parent_connection.args:
-                return ConnectionDeclActionParam(x, parent_connection )
+                return ConnectionDeclActionParam(cast(ConnectionActionParamId, x), parent_connection )
             if parent_action and parent_action.params and x in parent_action.params:
-                return ActionDeclActionParam(x, parent_action)
+                return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
+            raise SyntaxError(f'Unrecognized atom: {x}')
 
-            logging.warning('Unrecognized atom: ' + x + '. Treating as deadline literal.')
-            return DeadlineLit(x)
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
             return StringLit(chcaststr(x[1]))
         else:
@@ -345,12 +344,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             enabled_guard = self.term(expr[1], src_section)
             expr = expr[2]
 
-        role_id : str
-        action_id : str
-        args : Optional[List[str]]
+        role_id : RoleId
+        action_id : ActionId
+        args : Optional[List[ConnectionActionParamId]]
         rv : Connection
         if len(expr) == 2:
-            action_id = expr[0]
+            action_id = castid(ActionId, expr[0])
             role_id = ENV_ROLE
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
@@ -358,12 +357,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rem = expr.tillEnd(1)
             rv = ConnectionToEnvAction(src_section.section_id, action_id, args, enabled_guard)
         else:
-            role_id = chcaststr(expr[0])
-            deontic_keyword = chcaststr(expr[1])
-            action_id = chcaststr(expr[2][0])
+            role_id = castid(RoleId, expr[0])
+            deontic_keyword = castid(DeonticModality, expr[1])
+            action_id = castid(ActionId, expr[2][0])
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
-            args = cast(List[str], expr[2][1:])
+            args = cast(List[ConnectionActionParamId], expr[2][1:])
             rv = ConnectionToAction(src_section.section_id, role_id, action_id, args, enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 

@@ -19,13 +19,13 @@ class L4Contract:
         self.img_file_name: Optional[str] = None  # for graphviz output
         self.prose_contract : Dict[ProseClauseId, str] = dict() # mapping clause id string to clause string
 
-        self.start_section: SectionId = "to be assigned"
+        self.start_section = cast(SectionId,"to be assigned")
 
         self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
         self.claims : List[ContractClaim] = []
-        self.roles : List[str] = []
-        self.contract_params : Dict[str, ContractParamDec] = dict()
-        self.sorts : Set[Sort] = set()
+        self.roles : List[RoleId] = []
+        self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
+        self.sorts : Set[SortId] = set()
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
@@ -104,7 +104,7 @@ class L4Contract:
 
     def varDecObj(self, varname:str) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
         if varname in self.global_var_decs:
-            return self.global_var_decs[varname]
+            return self.global_var_decs[cast(GlobalVarId,varname)]
         else:
             return None
     # def varDecObj(self, varname:str, sec:Optional[Section] = None) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
@@ -147,13 +147,13 @@ class L4Contract:
         return rv
 
 
-def derived_destination_id(action_id:str) -> SectionId:
-    return "After" + action_id
-def derived_trigger_id(dest_id:str) -> ActionId:
-    return "Enter" + dest_id
+def derived_destination_id(action_id:ActionId) -> SectionId:
+    return cast(SectionId, "After" + action_id)
+def derived_trigger_id(dest_id:SectionId) -> ActionId:
+    return cast(ActionId, "Enter" + dest_id)
+def derived_trigger_id_to_section_id(action_id:ActionId) -> SectionId:
+    return cast(SectionId, action_id[5:])
 def is_derived_destination_id(section_id:SectionId) -> bool:
     return section_id.startswith("After")
 def is_derived_trigger_id(action_id:ActionId) -> bool:
     return action_id.startswith("Enter")
-def derived_trigger_id_to_section_id(action_id:str) -> SectionId:
-    return action_id[5:]

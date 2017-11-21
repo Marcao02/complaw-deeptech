@@ -1,14 +1,19 @@
-from typing import Dict
+from typing import Dict, NewType, cast
 
-Sort = str
-SectionId = str
-ActionId = str
-RoleId = str
-ProseClauseId = str
-GlobalVarId = str
+SortId = NewType('SortId', str)
+SectionId = NewType('SectionId',str)
+ActionId = NewType('ActionId',str)
+RoleId = NewType('RoleId',str)
+ProseClauseId = NewType('ProseClauseId',str)
+GlobalVarId = NewType('GlobalVarId',str)
+LocalVarId = NewType('LocalVarId',str)
+LocalOrGlobalVarId = NewType('LocalOrGlobalVarId',str)
+ActionParamId = NewType('ActionParamId',str)
+ContractParamId = NewType('ContractParamId',str)
+ConnectionActionParamId = NewType('ConnectionActionParamId',str)
 
-ProseContract = Dict[str,str]
-ParamsDec = Dict[str,Sort]
+ProseContract = Dict[ProseClauseId,str]
+ParamsDec = Dict[ActionParamId, SortId]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
@@ -47,10 +52,9 @@ POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 
 
 DEONTIC_MODALITIES = {'must','may','should','weakly-must'}
-DeonticModality = str
+DeonticModality = NewType('DeonticModality',str)
 # DEONTIC_GUARD_MODALITIES = {'mustif','mayif','shouldif'}
 # DEONTIC_KEYWORDS = DEONTIC_GUARD_MODALITIES.union(DEONTIC_MODALITIES)
-DeonticKeyword = str
 
 
 # These are not actually case sensitive
@@ -70,7 +74,7 @@ START_SECTION_LABEL = "StartSection"
 SECTION_LABEL = "Section"
 ACTION_LABEL = "Action"
 
-ENV_ROLE = "Env"
+ENV_ROLE = cast(RoleId,"Env")
 
 TRANSITIONS_TO_LABEL = "TransitionsTo"
 CODE_BLOCK_LABEL = "Entrance"
@@ -79,6 +83,6 @@ ACTION_DESCRIPTION_LABEL = "Description"
 PROSE_REFS_LABEL = "ProseRefs"
 OUT_CONNECTIONS_LABEL = "Next"
 
-FULFILLED_SECTION_LABEL = "Fulfilled"
+FULFILLED_SECTION_LABEL = cast(SectionId, "Fulfilled")
 
 

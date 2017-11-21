@@ -17,6 +17,10 @@ def chcaststr(x:Any) -> str:
     assert isinstance(x,str), f"{str(x)} is a {type(x)} but this chcast requires a str."
     return cast(str,x)
 
+def castid(tp:Type[T],x:Any) -> T:
+    assert isinstance(x,str), f"{str(x)} is a {type(x)} but this chcast requires a {tp}."
+    return cast(T,x)
+
 def streqci(s1:Any,s2:Any) -> bool:
     # ci for case insensitive
     return isinstance(s1,str) and isinstance(s2,str) and s1.lower() == s2.lower()
@@ -57,10 +61,12 @@ def isInt(x:str) -> bool:
     except ValueError:
         return False
 
-def hasNotNone(d:Dict[str,Any], x:str) -> bool:
+S = TypeVar('S',bound=str)
+
+def hasNotNone(d:Dict[S,Any], x:S) -> bool:
     return (x in d) and not(d[x] is None)
 
-def dictSetOrInc(d:Dict[str,int], key:str, init:int ) -> None:
+def dictSetOrInc(d:Dict[S,int], key:S, init:int ) -> None:
     if key in d:
         d[key] += 1
     else:

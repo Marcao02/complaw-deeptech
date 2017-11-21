@@ -8,7 +8,7 @@ from model.Connection import Connection, ConnectionToEnvAction
 
 
 class Section:
-    def __init__(self, section_id: str) -> None:
+    def __init__(self, section_id: SectionId) -> None:
         self.section_id = section_id
 
         self.visit_bounds: Optional[SExpr] = None

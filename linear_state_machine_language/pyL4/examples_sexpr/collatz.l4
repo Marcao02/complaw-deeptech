@@ -8,7 +8,7 @@
 )
 
 (GlobalVars
-	(x : ℕ = start)
+	(x : ℕ = START)
 )
 
 (Roles) ; only the environment Env

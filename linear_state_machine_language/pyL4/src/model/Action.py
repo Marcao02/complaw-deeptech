@@ -2,21 +2,24 @@ from typing import Optional, Dict, List
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.SExpr import SExpr
+from model.constants_and_defined_types import ActionParamId, SortId, LocalVarId, SectionId, ActionId
 from model.util import mapjoin, indent
 
 
+
+
 class Action:
-    def __init__(self, action_id) -> None:
+    def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id
-        self.dest_section_id : str
+        self.dest_section_id : SectionId
         self.traversal_bounds: Optional[SExpr] = None
 
-        self.params : Optional[Dict[str,str]] = None # str param -> str sort
+        self.params : Optional[Dict[ActionParamId,SortId]] = None # str param -> str sort
         self.global_state_transform : Optional[GlobalStateTransform] = None
 
         self.action_description: Optional[str] = None
 
-        self.local_vars: Dict[str,LocalVarDec] = dict()
+        self.local_vars: Dict[LocalVarId,LocalVarDec] = dict()
 
         self.is_compound = False
 

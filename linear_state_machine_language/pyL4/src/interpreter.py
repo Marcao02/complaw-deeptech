@@ -20,7 +20,8 @@ from model.Connection import ConnectionToAction, ConnectionToEnvAction
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
-from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES
+from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
+    ConnectionActionParamId, ContractParamId, SectionId, ActionParamId
 from model.util import hasNotNone, dictSetOrInc, todo_once, chcast
 
 # Nat = NewType('Nat',int)
@@ -28,13 +29,14 @@ from model.util import hasNotNone, dictSetOrInc, todo_once, chcast
 Nat = int
 TimeStamp = Nat
 
-ActionParamsValue = Union[Tuple[Any], str, int, TimeStamp]
+ActionParamValue = Union[Tuple[Any], str, int, TimeStamp]
+ActionParamSubst = Dict[ActionParamId, ActionParamValue]
 
 class Event(NamedTuple):
-    action_id: str
-    role_id: str
+    action_id: ActionId
+    role_id: RoleId
     timestamp: TimeStamp
-    params: Dict[str,ActionParamsValue]
+    params: ActionParamSubst
 
 class EventConsumptionResult:
     pass
@@ -85,12 +87,12 @@ PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_tim
 class ExecEnv:
     def __init__(self, prog:L4Contract) -> None:
         self._top : L4Contract = prog
-        self._varvals : Dict[str, Any] = dict()
-        self._var_write_cnt : Dict[str, int] = dict()
-        self._contract_param_vals: Dict[str, Any] = dict()
-        self._section_id: str = prog.start_section
+        self._varvals : Dict[LocalOrGlobalVarId, Any] = dict()
+        self._var_write_cnt : Dict[LocalOrGlobalVarId, int] = dict()
+        self._contract_param_vals: Dict[ContractParamId, Any] = dict()
+        self._section_id: SectionId = prog.start_section
         self._timestamp = 0
-        self.cur_action_params : Optional[Dict[str, ActionParamsValue]]
+        self.cur_action_param_subst_from_event : Optional[Dict[ActionParamId, ActionParamValue]]
 
     def cur_section(self) -> Section:
         return self._top.section(self._section_id)
@@ -133,14 +135,23 @@ class ExecEnv:
             return
 
     # def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
-    #     active_strong_obligs : Set[str] = set()
-    #     active_weak_obligs : Set[str] = set()
-    #     active_permissions : Set[str] = set()
-    #     active_env_connection : Set[str] = set()
+    #     active_strong_obligs : List[ConnectionToAction] = list()
+    #     active_weak_obligs : List[ConnectionToAction] = list()
+    #     active_permissions : List[ConnectionToAction] = list()
+    #     active_env_connection : List[ConnectionToEnvAction] = list()
     #
     #     for c in self.cur_section().connections():
+    #         enabled = True
     #         if c.enabled_guard:
-    #             self.evalTerm(c.enabled_guard, None)
+    #             if not chcast(bool, self.evalTerm(c.enabled_guard, None)):
+    #                 enabled = False
+    #
+    #         if enabled:
+    #             if isinstance(c,ConnectionToEnvAction):
+    #                 active_env_connection.append(c)
+    #             else:
+    #                 assert isinstance(c, ConnectionToAction)
+    #                 if c.deontic_modality
 
 
 
@@ -164,18 +175,18 @@ class ExecEnv:
                 return True
         return False
 
-    def apply_action(self, action:Action, params:Dict[str,ActionParamsValue], next_timestamp: TimeStamp):
+    def apply_action(self, action:Action, params:ActionParamSubst, next_timestamp: TimeStamp):
         if action.global_state_transform:
-            self.cur_action_params = params
+            self.cur_action_param_subst_from_event = params
             self.evalCodeBlock(action.global_state_transform)
-            self.cur_action_params = None
+            self.cur_action_param_subst_from_event = None
 
         self._section_id = action.dest_section_id
         self._timestamp = next_timestamp
 
 
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
-        for (var,dec) in decs.items():
+        for (var,dec) in cast(Dict[LocalOrGlobalVarId, GlobalVarDec],decs).items():
             if dec.initval is None:
                 self._varvals[var] = None
                 print(f"Global var {var} has no initial value.")
@@ -187,7 +198,7 @@ class ExecEnv:
             # print('evalGlobalVarDecs: ', var, dec, self._var_write_cnt[var])
 
 
-    def evalContractParamDecs(self, decs : Dict[str, ContractParamDec]):
+    def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
         for (name,dec) in decs.items():
             # print(dec)
             if not(dec.value_expr is None):
@@ -245,7 +256,7 @@ class ExecEnv:
             print("conjecture " + str(stmt))
 
         else:
-            logging.error("Unhandled GlobalStateTransformStatement: " + str(stmt))
+            raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
     def evalTerm(self, term:Term, next_timestamp:Optional[TimeStamp]) -> Any:
         assert term is not None
@@ -260,22 +271,27 @@ class ExecEnv:
         elif isinstance(term, Literal):
             return term.lit
         elif isinstance(term, LocalVar):
-            assert hasNotNone(self._varvals, term.name), term.name
-            return self._varvals[term.name]
+            assert hasNotNone(self._varvals, cast(LocalOrGlobalVarId,term.name)), term.name
+            return self._varvals[cast(LocalOrGlobalVarId,term.name)]
         elif isinstance(term, GlobalVar):
             # print(self._contract_param_vals)
             # print(self._varvals)
-            assert hasNotNone(self._varvals, term.name), "Global var " + term.name + " should have a value but doesn't."
-            return self._varvals[term.name]
+            assert hasNotNone(self._varvals, cast(LocalOrGlobalVarId, term.name)), "Global var " + term.name + " should have a value but doesn't."
+            return self._varvals[cast(LocalOrGlobalVarId, term.name)]
         elif isinstance(term, ContractParam):
             # print("ContractParam case of evalTerm: ", term)
             # print(self._contract_param_vals[term.name], type(self._contract_param_vals[term.name]))
             assert hasNotNone(self._contract_param_vals, term.name), term.name
             return self._contract_param_vals[term.name]
         elif isinstance(term,ActionDeclActionParam):
-            if self.cur_action_params and term.name in self.cur_action_params:
-                return self.cur_action_params[term.name]
-            print("Trying to evaluate ActionDeclActionParam but didn't find it in the execution context.")
+            if self.cur_action_param_subst_from_event:
+                if term.name in self.cur_action_param_subst_from_event:
+                    return self.cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
+                todo_once("HACK!")
+                if "_" + term.name in self.cur_action_param_subst_from_event:
+                    return self.cur_action_param_subst_from_event[cast(ActionParamId, '_'+term.name)]
+
+            logging.error("Trying to evaluate ActionDeclActionParam but didn't find it in the execution context.")
         else:
             logging.error("evalTerm unhandled case for: " + str(term))
             return term
@@ -315,15 +331,21 @@ def evalLSM(trace:Trace, prog:L4Contract):
 
 
 timestamp = 0
-def nextTSEvent(action_id:ActionId, role_id:str, params=Dict[str,ActionParamsValue]):
+def nextTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]):
     global timestamp
     params = params or []
     timestamp += 1
-    return Event(action_id=action_id, role_id=role_id, timestamp=timestamp, params=params)
+    return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
+                 params= cast(ActionParamSubst, params))
 
-def sameTSEvent(action_id:ActionId, role_id:str, params=ActionParamsValue):
+def sameTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]):
     params = params or []
-    return Event(action_id=action_id, role_id=role_id, timestamp=timestamp, params=params)
+    return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
+                 params=cast(ActionParamSubst, params))
+
+def event(action_id:str, role_id:str, timestamp:int, params=Dict[str, ActionParamValue]):
+    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=timestamp,
+                 params=cast(ActionParamSubst, params))
 
 traces = {
     # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
@@ -376,8 +398,8 @@ traces = {
 
     'examples_sexpr/hvitved_instalment_sale--simplified_time.l4': [
         # start section implicit
-        Event('PayInstallment', 'Buyer', 30, {'amount':501}),
-        Event('PayInstallment', 'Buyer', 60, {'amount':501} )
+        event('PayInstallment', 'Buyer', 30, {'amount':501}),
+        event('PayInstallment', 'Buyer', 60, {'amount':501} )
 
     ],
 

@@ -6,7 +6,7 @@ from model.util import indent, mapjoin
 
 class Connection:
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[str]], enabled_guard: Optional[Term]) -> None:
+                        args: Optional[List[ConnectionActionParamId]], enabled_guard: Optional[Term]) -> None:
         self.src_id = src_id
         self.role_id = role_id
         self.action_id = action_id
@@ -22,7 +22,7 @@ class Connection:
 
 class ConnectionToAction(Connection):
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[str]], enabled_guard: Optional[Term],
+                        args: Optional[List[ConnectionActionParamId]], enabled_guard: Optional[Term],
                         deontic_modality: DeonticModality) -> None:
         super().__init__(src_id, role_id, action_id, args, enabled_guard)
 
@@ -57,7 +57,7 @@ class ConnectionToAction(Connection):
 
 class ConnectionToEnvAction(Connection):
     def __init__(self, src_id: SectionId, action_id: ActionId,
-                        args: Optional[List[str]], enabled_guard: Optional[Term]) -> None:
+                        args: Optional[List[ConnectionActionParamId]], enabled_guard: Optional[Term]) -> None:
         super().__init__(src_id, ENV_ROLE, action_id, args, enabled_guard)
 
     def toStr(self, i:int) -> str:
