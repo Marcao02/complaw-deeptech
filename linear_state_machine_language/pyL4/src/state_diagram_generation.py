@@ -7,14 +7,14 @@ def colorStr(role_id, role_ids):
     return COLORS[role_ids.index(role_id)]
 
 
-def sectionAsDotNodeStr(sect: Section, all_actors: List[str]) -> str:
+def sectionAsDotNodeStr(sect: Section) -> str:
     # vulnerableActors = sect.vulnerableParties()
     # if len(vulnerableActors) == 1:
     #     return f"{sect.section_id}[label={sect.section_id},color={colorStr(vulnerableActors[0], all_actors)}]"
     # else:
     return f"{sect.section_id}[label={sect.section_id}]"
 
-def actionAsDotNodeStr(act: Action, all_actors: List[str]) -> str:
+def actionAsDotNodeStr(act: Action) -> str:
     # vulnerableActors = sect.vulnerableParties()
     # if len(vulnerableActors) == 1:
     #     return f"{sect.section_id}[label={sect.section_id},color={colorStr(vulnerableActors[0], all_actors)}]"
@@ -34,8 +34,10 @@ def connectionAsDotArcStr(con: Connection) -> str:
 def contractToDotFileStr(l4file: L4Contract) -> str:
     # graphname = l4file.construct_main_part.name[1]
     cleaned_graphname = "_".join(l4file.contract_name.split(' '))
-    section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
-    action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
+    # section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
+    # action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
+    section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x), l4file.sections_iter(), ";\n\t")
+    action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x), l4file.actions_by_id.values(), ";\n\t")
 
     connections_from_actions_str = ""
     for action in l4file.actions_iter():

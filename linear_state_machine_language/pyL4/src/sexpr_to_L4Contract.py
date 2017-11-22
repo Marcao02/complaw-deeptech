@@ -8,7 +8,7 @@ from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
 from model.Term import FnApp
-from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid
+from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, contract_bug
 from parse_sexpr import castse, STRING_LITERAL_MARKER
 
 
@@ -335,13 +335,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if expr[0] in DEADLINE_PREDICATES:
                 return self.term(expr, src_section)
             else:
-                logging.error("Unhandled case in L4ContractConstructor.deadline_clause(): " + str(expr))
+                contract_bug("Unhandled deadline predicate in L4ContractConstructor.deadline_clause(): " + str(expr))
         raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
 
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
-        enabled_guard: Optional[Term] = None
+        entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
-            enabled_guard = self.term(expr[1], src_section)
+            entrance_enabled_guard = self.term(expr[1], src_section)
             expr = expr[2]
 
         role_id : RoleId
@@ -355,7 +355,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.referenced_nonderived_action_ids.add(action_id)
             args = None
             rem = expr.tillEnd(1)
-            rv = ConnectionToEnvAction(src_section.section_id, action_id, args, enabled_guard)
+            rv = ConnectionToEnvAction(src_section.section_id, action_id, args, entrance_enabled_guard)
         else:
             role_id = castid(RoleId, expr[0])
             deontic_keyword = castid(DeonticModality, expr[1])
@@ -363,7 +363,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
             args = cast(List[ConnectionActionParamId], expr[2][1:])
-            rv = ConnectionToAction(src_section.section_id, role_id, action_id, args, enabled_guard, deontic_keyword)
+            rv = ConnectionToAction(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 
         if role_id not in src_section.connections_by_role:

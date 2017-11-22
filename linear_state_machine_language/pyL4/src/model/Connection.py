@@ -6,12 +6,12 @@ from model.util import indent, mapjoin
 
 class Connection:
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[ConnectionActionParamId]], enabled_guard: Optional[Term]) -> None:
+                        args: Optional[List[ConnectionActionParamId]], entrance_enabled_guard: Optional[Term]) -> None:
         self.src_id = src_id
         self.role_id = role_id
         self.action_id = action_id
         self.args = args
-        self.enabled_guard = enabled_guard
+        self.entrance_enabled_guard = entrance_enabled_guard
 
         self.deadline_clause: Term
         self.where_clause: Optional[Term] = None
@@ -22,17 +22,17 @@ class Connection:
 
 class ConnectionToAction(Connection):
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[ConnectionActionParamId]], enabled_guard: Optional[Term],
+                        args: Optional[List[ConnectionActionParamId]], entrance_enabled_guard: Optional[Term],
                         deontic_modality: DeonticModality) -> None:
-        super().__init__(src_id, role_id, action_id, args, enabled_guard)
+        super().__init__(src_id, role_id, action_id, args, entrance_enabled_guard)
 
         self.deontic_modality = deontic_modality
 
     def toStr(self, i:int) -> str:
         rv : str = ""
         indent_level = i
-        if self.enabled_guard:
-            rv = indent(indent_level) + "if " + str(self.enabled_guard) + ":\n"
+        if self.entrance_enabled_guard:
+            rv = indent(indent_level) + "if " + str(self.entrance_enabled_guard) + ":\n"
             indent_level += 1
 
         if self.action_id == FULFILLED_SECTION_LABEL and str(self.deadline_clause) == 'immediately':
@@ -57,14 +57,14 @@ class ConnectionToAction(Connection):
 
 class ConnectionToEnvAction(Connection):
     def __init__(self, src_id: SectionId, action_id: ActionId,
-                        args: Optional[List[ConnectionActionParamId]], enabled_guard: Optional[Term]) -> None:
-        super().__init__(src_id, ENV_ROLE, action_id, args, enabled_guard)
+                        args: Optional[List[ConnectionActionParamId]], entrance_enabled_guard: Optional[Term]) -> None:
+        super().__init__(src_id, ENV_ROLE, action_id, args, entrance_enabled_guard)
 
     def toStr(self, i:int) -> str:
         rv : str = ""
         indent_level = i
-        if self.enabled_guard:
-            rv = indent(indent_level) + "if " + str(self.enabled_guard) + ":\n"
+        if self.entrance_enabled_guard:
+            rv = indent(indent_level) + "if " + str(self.entrance_enabled_guard) + ":\n"
             indent_level += 1
 
         assert self.role_id == ENV_ROLE

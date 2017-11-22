@@ -33,7 +33,7 @@
 
 	(Section MonsterBurgerUncooked
 		(Next
-			(Challenger must (RequestCookMB) (within 30))
+			(Challenger must (RequestCookMB) (nonstrictly-within 30))
 		)
 	)
 
@@ -51,7 +51,7 @@
 		(Next
             (deadlinesPartitionFuture
 	            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
-	            (EnterPromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY))
+	            (EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY))
             )
         )
 	)
@@ -97,7 +97,7 @@
         (Next
             (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
 	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
-	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
 	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
             )
         )
@@ -155,10 +155,10 @@
             ; always the case that exactly one of the tests of the children conditionals is true.
             (guardsDisjointExhaustive
             	; I think we should encourage this style of order-insensitive conditionals.
-	            (if (currentTimeNoLaterThan? challenge_endlimit_timestamp)
+	            (if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp)
 	                (EnterEatingMB immediately)
 	            )
-	            (if (currentTimeAfter? challenge_endlimit_timestamp)
+	            (if (entranceTimeAfter-ts? challenge_endlimit_timestamp)
 	                (Customer must (PayForMB) immediately)
 	            )
             )

@@ -1,5 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple
-from typing import Set, NamedTuple, Iterable, Any, Union
+from typing import Set, NamedTuple, Iterable, Any, Union, Sequence
 
 from model.ContractClaim import ContractClaim
 from model.ContractParamDec import ContractParamDec
@@ -22,8 +22,8 @@ class L4Contract:
         self.start_section = cast(SectionId,"to be assigned")
 
         self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
-        self.claims : List[ContractClaim] = []
-        self.roles : List[RoleId] = []
+        self.claims : Iterable[ContractClaim] = []
+        self.roles : Iterable[RoleId] = []
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
         self.sorts : Set[SortId] = set()
 

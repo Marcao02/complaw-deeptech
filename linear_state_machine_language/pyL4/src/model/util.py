@@ -94,3 +94,8 @@ def todo_once(msg) -> None:
     if not msg in todos_given:
         print("TODO: " + msg)
         todos_given.add(msg)
+
+class ContractBug(Exception):
+    pass
+def contract_bug(msg:str) -> None:
+    raise ContractBug(msg)

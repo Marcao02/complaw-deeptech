@@ -1,4 +1,5 @@
 import logging
+from itertools import chain
 
 from model.Action import Action
 from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam
@@ -12,17 +13,17 @@ from model.Term import FnApp
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",
     level=logging.INFO )
-from typing import Tuple, Any, cast, Dict
+from typing import Tuple, Any, cast, Dict, Iterable, Iterator
 
 from model.L4Contract import L4Contract
 
-from model.Connection import ConnectionToAction, ConnectionToEnvAction
+from model.Connection import ConnectionToAction, ConnectionToEnvAction, Connection
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
 from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
     ConnectionActionParamId, ContractParamId, SectionId, ActionParamId
-from model.util import hasNotNone, dictSetOrInc, todo_once, chcast
+from model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug
 
 # Nat = NewType('Nat',int)
 # TimeStamp = NewType('TimeStamp',Nat)
@@ -31,6 +32,8 @@ TimeStamp = Nat
 
 ActionParamValue = Union[Tuple[Any], str, int, TimeStamp]
 ActionParamSubst = Dict[ActionParamId, ActionParamValue]
+
+feedback = logging
 
 class Event(NamedTuple):
     action_id: ActionId
@@ -42,12 +45,21 @@ class EventConsumptionResult:
     pass
 
 class BreachResult(EventConsumptionResult):
+    def __init__(self, role_ids:Iterable[RoleId], msg:str) -> None:
+        self.role_ids = role_ids
+        self.msg = msg
+
+class ContractFlawedError(EventConsumptionResult):
     pass
+
+class EventConsumptionOk(EventConsumptionResult):
+    pass
+
 
 Trace = List[Event]
 
 FN_SYMB_INTERP = {
-    '+': sum,
+    '+': lambda *args: sum(args),
     '-': lambda x,y: x - y,
     '/': lambda x,y: x / y,
     '*': lambda x,y: x * y,
@@ -57,32 +69,28 @@ FN_SYMB_INTERP = {
     '<': lambda x,y: x < y,
     '>': lambda x,y: x > y,
     'and': lambda x,y: x and y,
-    'or': lambda x,y: x or y
+    'or': lambda x,y: x or y,
+    'unitsAfter' : lambda x,y: x + y
 }
 
 DEADLINE_OP_INTERP = {
-    'by': lambda curt, nextt_, args: (nextt_ <= args[0]),
-    'within': lambda curt, nextt_, args: (nextt_ <= curt + args[0]),
-    'nonstrictly-within': lambda curt, nextt_, args: (nextt_ <= curt + args[0]),
-    'strictly-within': lambda curt, nextt_, args: (nextt_ < curt + args[0]),
-    'strictly-before': lambda curt, nextt_, args: (nextt_ < args[0]),
-    'nonstrictly-after-and-within': lambda curt, nextt_, args: args[0] <= nextt_ <= curt + args[1],
-    'at': lambda curt, nextt_, args: (nextt_ == args[0]),
-    'after': lambda curt, nextt_, args: (nextt_ == args[0]), # ??
-    'after-exactly': lambda curt, nextt_, args: (nextt_ == args[0]),
+    'by': lambda entrance_ts, event_ts, args_ts: (event_ts <= args_ts[0]),
+
+    'nonstrictly-within': lambda entrance_ts, event_ts, args_dur: (event_ts <= entrance_ts + args_dur[0]),
+    'strictly-within': lambda entrance_ts, event_ts, args_dur: (event_ts < entrance_ts + args_dur[0]),
+
+    'nonstrictly-before': lambda entrance_ts, event_ts, args_t: (event_ts <= args_t[0]),
+    'strictly-before': lambda entrance_ts, event_ts, args_t: (event_ts < args_t[0]),
+    
+    'nonstrictly-after-ts-and-within': lambda entrance_ts, event_ts, args: args[0] <= event_ts <= entrance_ts + args[1],
+    
+    'at': lambda entrance_ts, event_ts, args_ts: (event_ts == args_ts[0]),
+    'immediately-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts == args_ts[0] + 1),
+    'after-exact-duration': lambda entrance_ts, event_ts, args_dur: (event_ts == entrance_ts + args_dur[0]),
+    'strictly-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts > args_ts[0]), # ??
+    'nonstrictly-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts >= args_ts[0]),
 }
 
-
-PREFIX_FN_SYMBOLS = {'contract_start_date', 'event_start_date', 'event_start_time', 'monthStartDay', 'monthEndDay',
-                     'days', #'earliest',
-                     'dateplus',
-                     'ifthenelse',
-                     'max', 'ceil',
-                     'not',
-                     'enqueue', 'dequeue', 'discardTop', 'top',  # queues
-                     'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
-                     'setAdd', 'setRemove', # sets
-                     'tuple', 'fst', 'snd'}
 
 class ExecEnv:
     def __init__(self, prog:L4Contract) -> None:
@@ -91,7 +99,7 @@ class ExecEnv:
         self._var_write_cnt : Dict[LocalOrGlobalVarId, int] = dict()
         self._contract_param_vals: Dict[ContractParamId, Any] = dict()
         self._section_id: SectionId = prog.start_section
-        self._timestamp = 0
+        self._sec_entrance_timestamp = 0
         self.cur_action_param_subst_from_event : Optional[Dict[ActionParamId, ActionParamValue]]
 
     def cur_section(self) -> Section:
@@ -105,23 +113,24 @@ class ExecEnv:
         for i in range(len(trace)):
             eventi = trace[i]
             next_action_id, next_timestamp = eventi.action_id, eventi.timestamp
-            
-            if not(self._timestamp is None or self._timestamp <= next_timestamp):
-                logging.error(f"Event timestamps must be non-decreasing, but current {self._timestamp} > next {next_timestamp}")
+
+            if not(self._sec_entrance_timestamp is None or self._sec_entrance_timestamp <= next_timestamp):
+                feedback.error(
+                    f"Event timestamps must be non-decreasing, but current {self._sec_entrance_timestamp} > next {next_timestamp}")
                 continue
 
             action = self._top.action(next_action_id)
             if not action:
-                logging.error(f"Don't recongize action id {next_action_id}")
+                feedback.error(f"Don't recongize action id {next_action_id}")
                 continue
 
             if not self._top.action_is_sometimes_available_from_section(self._section_id, next_action_id):
-                logging.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-connection exists).")
+                feedback.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-connection exists).")
                 continue
 
-            # result = self.attempt_consume_next_event(eventi):
-            # if result.successful:
-            if self.action_available_from_cur_section(next_action_id, next_timestamp):
+            result = self.attempt_consume_next_event(eventi)
+            if isinstance(result, EventConsumptionOk):
+            # if self.action_available_from_cur_section(next_action_id, next_timestamp):
                 if verbose:
                     sec_pad = ' '*(prog.max_section_id_len-len(self._section_id))
                     act_pad = ' '*(prog.max_action_id_len-len(next_action_id))
@@ -129,33 +138,89 @@ class ExecEnv:
                 self.apply_action(action, eventi.params, next_timestamp)
                 continue
             else:
-                logging.error(f"{next_action_id}-connection exists in {self._section_id} but is disabled.")
+                feedback.error(f"{next_action_id}-connection exists in {self._section_id} but is disabled:\n", result)
 
-            logging.error("Stopping evaluation")
+
+            feedback.error("Stopping evaluation")
             return
 
-    # def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
-    #     active_strong_obligs : List[ConnectionToAction] = list()
-    #     active_weak_obligs : List[ConnectionToAction] = list()
-    #     active_permissions : List[ConnectionToAction] = list()
-    #     active_env_connection : List[ConnectionToEnvAction] = list()
-    #
-    #     for c in self.cur_section().connections():
-    #         enabled = True
-    #         if c.enabled_guard:
-    #             if not chcast(bool, self.evalTerm(c.enabled_guard, None)):
-    #                 enabled = False
-    #
-    #         if enabled:
-    #             if isinstance(c,ConnectionToEnvAction):
-    #                 active_env_connection.append(c)
-    #             else:
-    #                 assert isinstance(c, ConnectionToAction)
-    #                 if c.deontic_modality
+    def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
+        entrance_enabled_strong_obligs : List[ConnectionToAction] = list()
+        entrance_enabled_weak_obligs : List[ConnectionToAction] = list()
+        entrance_enabled_permissions : List[ConnectionToAction] = list()
+        entrance_enabled_env_connections : List[ConnectionToEnvAction] = list()
+
+        c: Connection
+
+        for c in self.cur_section().connections():
+            entrance_enabled = True
+            if c.entrance_enabled_guard:
+                # next_timestamp param to evalTerm is None because enabled-guards
+                # are evaluated only at section entrance time.
+                if not chcast(bool, self.evalTerm(c.entrance_enabled_guard, None)):
+                    entrance_enabled = False
+
+            if entrance_enabled:
+                if isinstance(c,ConnectionToEnvAction):
+                    entrance_enabled_env_connections.append(c)
+                else:
+                    assert isinstance(c, ConnectionToAction)
+                    if c.deontic_modality == 'may' or c.deontic_modality == 'should':
+                        entrance_enabled_permissions.append(c)
+                    elif c.deontic_modality == 'must':
+                        entrance_enabled_strong_obligs.append(c)
+                    elif c.deontic_modality == 'weakly-must':
+                        entrance_enabled_weak_obligs.append(c)
+                    else:
+                        assert False
 
 
+        # CASE 1: 1 or more entrance-enabled strong obligations
+        if len(entrance_enabled_strong_obligs) > 1:
+            contract_bug("There are multiple active strong obligations. This is an error.")
+            return ContractFlawedError()
+        if len(entrance_enabled_strong_obligs) == 1:
+            if len(entrance_enabled_weak_obligs) > 0 or len(entrance_enabled_permissions) > 0 or len(entrance_enabled_env_connections) > 0:
+                contract_bug("There is exactly one active strong obligation, but there is also at least one active permission, environment-action, or weak-obligation. This is an error.")
+                return ContractFlawedError()
+            else:
+                deadline_ok = self.evalDeadlineClause(c.deadline_clause, event.timestamp)
+                # print("deadline_ok", deadline_ok)
+                if deadline_ok:
+                    return EventConsumptionOk()
+                else:
+                    return BreachResult(set([event.role_id]), f"Strong obligation of {event.role_id} expired.")
 
 
+        # CASE 2: 0 entrance-enabled strong obligations (SO connections)
+        present_enabled_weak_obligs = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_weak_obligs )
+        present_enabled_permissions = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_permissions )
+        present_enabled_env_connections = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_env_connections )
+
+        present_enabled_nonSO_connections : Iterator[Connection] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_connections)
+
+        todo_once("where clauses in attempt_consume_next_event")
+
+        # CASE 2a: `event` compatible with exactly one present-enabled non-SO connection
+        compatible_present_enabled_nonSO_connections = list(filter(
+            lambda c: c.action_id == event.action_id and c.role_id == event.role_id,
+            present_enabled_nonSO_connections ))
+        if len(compatible_present_enabled_nonSO_connections) == 1:
+            return EventConsumptionOk()
+
+        # CASE 2b: `event` compatible with more than one present-enabled non-SO connections
+        # ...This is actually ok as long as deadlinesPartitionFuture isn't used.
+        if len(compatible_present_enabled_nonSO_connections) > 1:
+            return EventConsumptionOk()
+
+        # CASE 2c: `event` compatible with 0 present-enabled non-SO connections
+        # This is a breach. We need to determine what subset of the roles is at fault
+        # You're at fault if you had an entrance-enabled weak obligation (which now expired,
+        # from previous cases).
+        breach_roles = filter(
+            lambda r: len( list(filter(lambda c: c.role_id == r, entrance_enabled_weak_obligs)) ) > 0,
+            self._top.roles )
+        return BreachResult(breach_roles, f"{breach_roles} had weak obligations that they didn't fulfill in time.")
 
 
 
@@ -182,7 +247,7 @@ class ExecEnv:
             self.cur_action_param_subst_from_event = None
 
         self._section_id = action.dest_section_id
-        self._timestamp = next_timestamp
+        self._sec_entrance_timestamp = next_timestamp
 
 
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
@@ -219,7 +284,7 @@ class ExecEnv:
         if isinstance(stmt, LocalVarDec):
             assert self._top.varDecObj(stmt.varname) is None
             # print('evalStatement LocalVarDec: ' + str(stmt))
-            value = self.evalTerm(stmt.value_expr, self._timestamp)
+            value = self.evalTerm(stmt.value_expr, self._sec_entrance_timestamp)
             self._varvals[stmt.varname] = value
 
         elif isinstance(stmt, VarAssignStatement):
@@ -232,15 +297,15 @@ class ExecEnv:
                 raise NotImplementedError("Non-GlobalVar assign statement unhandled")
             dictSetOrInc(self._var_write_cnt, stmt.varname, init=1)
             # todo: use vardec for runtime type checking
-            value = self.evalTerm(stmt.value_expr, self._timestamp)
+            value = self.evalTerm(stmt.value_expr, self._sec_entrance_timestamp)
             self._varvals[stmt.varname] = value
 
         elif isinstance(stmt, (IncrementStatement,DecrementStatement,TimesEqualsStatement)):
             vardec = self._top.varDecObj(stmt.varname)
             # todo: use vardec for runtime type checking
-            value = self.evalTerm(stmt.value_expr, self._timestamp)
+            value = self.evalTerm(stmt.value_expr, self._sec_entrance_timestamp)
             if not stmt.varname in self._varvals:
-                logging.error(stmt.varname + " should be in the execution environment, but isn't.")
+                contract_bug(f"Variable {stmt.varname} should be in the execution environment, but isn't.")
             assert self._varvals[stmt.varname] is not None, "Tried to increment/decrement/scale uninitialized variable `" + stmt.varname + "`"
 
             if isinstance(stmt, IncrementStatement):
@@ -258,16 +323,15 @@ class ExecEnv:
         else:
             raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
-    def evalTerm(self, term:Term, next_timestamp:Optional[TimeStamp]) -> Any:
+    def evalTerm(self, term:Term, next_event_timestamp:Optional[TimeStamp]) -> Any:
         assert term is not None
-        assert next_timestamp is not None
+        # next_event_timestamp will be None when evaluating an entrance-guard
         # print('evalTerm: ', term)
         if isinstance(term, FnApp):
-            return self.evalFnApp(term, next_timestamp)
+            return self.evalFnApp(term, next_event_timestamp)
         elif isinstance(term, DeadlineLit):
             # print("DeadlineLit: ", term)
-            return next_timestamp == self._timestamp
-            # logging.error("got here finally?")
+            return next_event_timestamp == self._sec_entrance_timestamp
         elif isinstance(term, Literal):
             return term.lit
         elif isinstance(term, LocalVar):
@@ -291,37 +355,41 @@ class ExecEnv:
                 if "_" + term.name in self.cur_action_param_subst_from_event:
                     return self.cur_action_param_subst_from_event[cast(ActionParamId, '_'+term.name)]
 
-            logging.error("Trying to evaluate ActionDeclActionParam but didn't find it in the execution context.")
+            contract_bug("Trying to get subst value of an ActionDeclActionParam but didn't find it in the execution context.")
         else:
-            logging.error("evalTerm unhandled case for: " + str(term))
+            contract_bug("evalTerm unhandled case for: " + str(term))
             return term
 
     def evalDeadlineClause(self, deadline_clause:Term, next_timestamp:TimeStamp) -> bool:
         assert deadline_clause is not None
         # return True
         rv = chcast(bool, self.evalTerm(deadline_clause, next_timestamp))
-        assert rv is not None
         # print('evalDeadlineClause: ', rv)
         return rv
 
-    def evalFnApp(self, fnapp:FnApp, next_timestamp: Optional[TimeStamp]) -> Any:
+    def evalFnApp(self, fnapp:FnApp, next_event_timestamp: Optional[TimeStamp]) -> Any:
         fn = fnapp.head
         # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
-        evaluated_args = tuple(self.evalTerm(x,next_timestamp) for x in fnapp.args)
+        evaluated_args = tuple(self.evalTerm(x, next_event_timestamp) for x in fnapp.args)
         if fn in FN_SYMB_INTERP:
-            return cast(Any,FN_SYMB_INTERP[fn])(evaluated_args)
+            return cast(Any,FN_SYMB_INTERP[fn])(*evaluated_args)
+        elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
+            assert next_event_timestamp is not None
+            if fn in DEADLINE_OP_INTERP:
+                return cast(Any, DEADLINE_OP_INTERP[fn])(self._sec_entrance_timestamp, next_event_timestamp, evaluated_args)
+            else:
+                contract_bug(f"Unhandled deadline fn symbol: {fn}")
         elif fn == "unitsAfterEntrance":
             assert len(evaluated_args) == 1
-            assert next_timestamp is not None
-            return evaluated_args[0] + next_timestamp
-        elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
-            assert next_timestamp is not None
-            if fn in DEADLINE_OP_INTERP:
-                return cast(Any, DEADLINE_OP_INTERP[fn])(self._timestamp, next_timestamp, evaluated_args)
-            else:
-                logging.error("Unhandled deadline fn symbol: " + fn)
+            return evaluated_args[0] + self._sec_entrance_timestamp
+        elif fn == 'entranceTimeNoLaterThan-ts?':
+            assert len(evaluated_args) == 1
+            return self._sec_entrance_timestamp <= evaluated_args[0]
+        elif fn == 'entranceTimeAfter-ts?':
+            assert len(evaluated_args) == 1
+            return self._sec_entrance_timestamp > evaluated_args[0]
         else:
-            logging.error("Unhandled fn symbol: " + fn)
+            contract_bug(f"Unhandled fn symbol: {fn}")
         return 0
 
 

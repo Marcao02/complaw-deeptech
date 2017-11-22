@@ -146,10 +146,10 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 %    \item[(c)] If $E$ is \compatible with $\evar$ and $E$ happens after $\evar$'s deadline, then $\role{\evar}$ solely breaches the contract.
 \end{PPI}
 
-{\bf Case 2}: There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \connections whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.}  let $T_p$ be the resulting set of \connections. From the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\connections} {\it whose deadline is not the unique minimal \TimeStamp $t^*$ within that set}; let $T_o$ be the resulting set, and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
+{\bf Case 2}: {\bf This is correct, but obtuse -- over-concise.} There is no \enabled \mustntran in $G$. From the set of \enabled \mayntrans of $s$ {\bf and} the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the \connections whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.}  let $T_p$ be the resulting set of \connections (the $p$ is for permission). Separately, from the set of \enabled \rmustntrans in $G$, compute the deadline for each, and discard the {\connections} {\it that do not expire until after the unique minimal expiry \TimeStamp $t^*$ within the set}; let $T_o$ be the resulting set (the $o$ is for obligation), and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
 \begin{PPI}
 	\item An \Event compatible with some \connection in $T_p$.
-	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} This means that all of the \Roles whose \enabled \rmustntran expire earliest (at $t^*$) are jointly responsible for the breach.
+	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} In this case means that all of the \Roles whose \enabled \rmustntran expire earliest (at $t^*$) are jointly responsible for the breach.
 \end{PPI}
 The \bostgc ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
 

@@ -1,3 +1,4 @@
+# from enum import Enum
 from typing import Dict, NewType, cast
 
 SortId = NewType('SortId', str)
@@ -25,8 +26,8 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 
 DEADLINE_PREDICATES = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
-                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-and-within', 'after-exactly',
-                      'within', 'nonstrictly-after', 'nonstrictly-within'}
+                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within', 'after-exactly',
+                      'within', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'}
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex' }
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline','discretionary'}
@@ -43,13 +44,11 @@ PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'eventTimestamp', 'monthStartDay'
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
                      'setAdd', 'setRemove', # sets
                      'tuple', 'fst', 'snd',
-                     'currentTimeNoLaterThan?', 'currentTimeAfter?',
-                     'unitsAfter', 'unitsAfterEntrance'
+                     'entranceTimeNoLaterThan-ts?', 'entranceTimeAfter-ts?'
+
                      }.union(DEADLINE_OPERATORS, DEADLINE_PREDICATES)
 
 POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
-
-
 
 DEONTIC_MODALITIES = {'must','may','should','weakly-must'}
 DeonticModality = NewType('DeonticModality',str)

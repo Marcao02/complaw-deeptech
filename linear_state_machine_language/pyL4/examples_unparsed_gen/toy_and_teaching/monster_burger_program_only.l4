@@ -25,7 +25,7 @@ action RequestCookMB transitions to AfterRequestCookMB:
 section AfterRequestCookMB:
     prove visits == 1
     Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
-    EnterPromptServeGuaranteeViolated (nonstrictly-after MAX_SERVE_DELAY)
+    EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY)
 
 action ServeMB transitions to AfterServeMB:
     prove 0 ≤ traversals ≤ 1
@@ -53,7 +53,7 @@ action EnterEatingMB transitions to EatingMB:
 section EatingMB:
     prove 0 ≤ visits ≤ nonconstant
     Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
-    Restaurant should CheckFinishedClaim (nonstrictly-after-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
+    Restaurant should CheckFinishedClaim (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
     EnterLateCheck (at (unitsAfter MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
 
 action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
@@ -87,9 +87,9 @@ action RejectFinishedClaim transitions to AfterRejectFinishedClaim:
 
 section AfterRejectFinishedClaim:
     prove 0 ≤ visits ≤ nonconstant
-    if (currentTimeNoLaterThan? challenge_endlimit_timestamp):
+    if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp):
         EnterEatingMB
-    if (currentTimeAfter? challenge_endlimit_timestamp):
+    if (entranceTimeAfter-ts? challenge_endlimit_timestamp):
         Customer must PayForMB immediately
 
 action PayForMB transitions to AfterPayForMB:

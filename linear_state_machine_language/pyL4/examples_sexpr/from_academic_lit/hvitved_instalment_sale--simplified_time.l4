@@ -34,13 +34,13 @@
 			; so I am being lazy and interpreting it literally.
 			(if (next_payment_month < 23)
 				(Buyer must (PayInstallment amount)
-					(after-exactly 30)
+					(after-exact-duration 30)
 					(where ((MIN_PAYMENT ≤ amount ) and (amount ≤ balance_remaining))))
 			)
 
 			(if (next_payment_month == 23)
 				(Buyer must (PayLastInstallment amount)
-					(after-exactly 30)
+					(after-exact-duration 30)
 					(where (amount == (balance_remaining + DUE_AT_CLOSING))))
 			)
 		)
