@@ -2,7 +2,8 @@ import logging
 from itertools import chain
 
 from model.Action import Action
-from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam
+from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam, \
+    ConnectionDeclActionParam
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import *
@@ -13,7 +14,7 @@ from model.Term import FnApp
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",
     level=logging.INFO )
-from typing import Tuple, Any, cast, Dict, Iterable, Iterator
+from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence
 
 from model.L4Contract import L4Contract
 
@@ -56,7 +57,7 @@ class EventConsumptionOk(EventConsumptionResult):
     pass
 
 
-Trace = List[Event]
+Trace = Sequence[Event]
 
 FN_SYMB_INTERP = {
     '+': lambda *args: sum(args),
@@ -128,6 +129,7 @@ class ExecEnv:
                 feedback.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-connection exists).")
                 continue
 
+            self.cur_action_param_subst_from_event = eventi.params
             result = self.attempt_consume_next_event(eventi)
             if isinstance(result, EventConsumptionOk):
             # if self.action_available_from_cur_section(next_action_id, next_timestamp):
@@ -136,6 +138,7 @@ class ExecEnv:
                     act_pad = ' '*(prog.max_action_id_len-len(next_action_id))
                     print(f"{self._section_id}{sec_pad} --{next_action_id}-->{act_pad} {action.dest_section_id}")
                 self.apply_action(action, eventi.params, next_timestamp)
+                self.cur_action_param_subst_from_event = None
                 continue
             else:
                 feedback.error(f"{next_action_id}-connection exists in {self._section_id} but is disabled:\n", result)
@@ -181,15 +184,24 @@ class ExecEnv:
             return ContractFlawedError()
         if len(entrance_enabled_strong_obligs) == 1:
             if len(entrance_enabled_weak_obligs) > 0 or len(entrance_enabled_permissions) > 0 or len(entrance_enabled_env_connections) > 0:
-                contract_bug("There is exactly one active strong obligation, but there is also at least one active permission, environment-action, or weak-obligation. This is an error.")
+                contract_bug("There is exactly one active strong obligation, but there is also at least one "
+                             "active permission, environment-action, or weak obligation. This is an error.")
                 return ContractFlawedError()
             else:
-                deadline_ok = self.evalDeadlineClause(c.deadline_clause, event.timestamp)
-                # print("deadline_ok", deadline_ok)
-                if deadline_ok:
-                    return EventConsumptionOk()
+                if not self.event_connection_compatible(event, entrance_enabled_strong_obligs[0]):
+                    contract_bug(f"There is exactly one active strong obligation\n"
+                                 f"\t{entrance_enabled_strong_obligs[0]}\n"
+                                 f"but it is not compatible with the current event\n"
+                                 f"\t{event}\n"
+                                 f"Environment looks like:\n"
+                                 f"{self.environ_tostr()}")
                 else:
-                    return BreachResult(set([event.role_id]), f"Strong obligation of {event.role_id} expired.")
+                    deadline_ok = self.evalDeadlineClause(c.deadline_clause, event.timestamp)
+                    # print("deadline_ok", deadline_ok)
+                    if deadline_ok:
+                        return EventConsumptionOk()
+                    else:
+                        return BreachResult(set([event.role_id]), f"Strong obligation of {event.role_id} expired.")
 
 
         # CASE 2: 0 entrance-enabled strong obligations (SO connections)
@@ -203,7 +215,7 @@ class ExecEnv:
 
         # CASE 2a: `event` compatible with exactly one present-enabled non-SO connection
         compatible_present_enabled_nonSO_connections = list(filter(
-            lambda c: c.action_id == event.action_id and c.role_id == event.role_id,
+            lambda c: self.event_connection_compatible(event,c),
             present_enabled_nonSO_connections ))
         if len(compatible_present_enabled_nonSO_connections) == 1:
             return EventConsumptionOk()
@@ -222,7 +234,18 @@ class ExecEnv:
             self._top.roles )
         return BreachResult(breach_roles, f"{breach_roles} had weak obligations that they didn't fulfill in time.")
 
+    def event_connection_compatible(self, event:Event, connection:Connection):
+        if not connection.where_clause:
+            return event.role_id == connection.role_id and event.action_id == connection.action_id
 
+        print("Action-param subst:", self.cur_action_param_subst_from_event)
+        rv = (event.role_id == connection.role_id and event.action_id == connection.action_id and
+              self.evalTerm(connection.where_clause, event.timestamp) )
+
+        return rv
+
+    def environ_tostr(self) -> str:
+        return f"{str(self._varvals)}\n{str(self.cur_action_param_subst_from_event)}\n{str(self._contract_param_vals)}"
 
     def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
         todo_once("this needs to depend on action parameters")
@@ -242,9 +265,7 @@ class ExecEnv:
 
     def apply_action(self, action:Action, params:ActionParamSubst, next_timestamp: TimeStamp):
         if action.global_state_transform:
-            self.cur_action_param_subst_from_event = params
             self.evalCodeBlock(action.global_state_transform)
-            self.cur_action_param_subst_from_event = None
 
         self._section_id = action.dest_section_id
         self._sec_entrance_timestamp = next_timestamp
@@ -318,7 +339,11 @@ class ExecEnv:
                 raise Exception('should be impossible')
 
         elif isinstance(stmt, InCodeConjectureStatement):
-            print("conjecture " + str(stmt))
+            # print("conjecture " + str(stmt))
+            assert self.evalTerm(stmt.value_expr, None), f"""Conjecture {stmt.value_expr} is false! Variable values and action params:
+            {str(self._varvals)}
+            {str(self.cur_action_param_subst_from_event)}
+            """
 
         else:
             raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
@@ -354,10 +379,17 @@ class ExecEnv:
                 todo_once("HACK!")
                 if "_" + term.name in self.cur_action_param_subst_from_event:
                     return self.cur_action_param_subst_from_event[cast(ActionParamId, '_'+term.name)]
-
             contract_bug("Trying to get subst value of an ActionDeclActionParam but didn't find it in the execution context.")
+        elif isinstance(term, ConnectionDeclActionParam):
+            if self.cur_action_param_subst_from_event:
+                if term.name in self.cur_action_param_subst_from_event:
+                    return self.cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
+                todo_once("HACK!")
+                if "_" + term.name in self.cur_action_param_subst_from_event:
+                    return self.cur_action_param_subst_from_event[cast(ActionParamId, '_'+term.name)]
+            contract_bug("Trying to get subst value of a ConnectionDeclActionParam but didn't find it in the execution context.")
         else:
-            contract_bug("evalTerm unhandled case for: " + str(term))
+            contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
             return term
 
     def evalDeadlineClause(self, deadline_clause:Term, next_timestamp:TimeStamp) -> bool:
@@ -399,26 +431,26 @@ def evalLSM(trace:Trace, prog:L4Contract):
 
 
 timestamp = 0
-def nextTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]):
+def nextTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]) -> Event:
     global timestamp
     params = params or []
     timestamp += 1
     return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
                  params= cast(ActionParamSubst, params))
 
-def sameTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]):
+def sameTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]) -> Event:
     params = params or []
     return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
                  params=cast(ActionParamSubst, params))
 
-def event(action_id:str, role_id:str, timestamp:int, params=Dict[str, ActionParamValue]):
+def event(action_id:str, role_id:str, timestamp:int, params=Dict[str, ActionParamValue]) -> Event:
     return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=timestamp,
                  params=cast(ActionParamSubst, params))
 
 from cli import EXAMPLES_SEXPR_ROOT
 
-traces = {
-    'toy_and_teaching/monster_burger_program_only.l4': [
+traces : Sequence[ Tuple[str, Sequence[Event]] ] = (
+    ('toy_and_teaching/monster_burger_program_only.l4', (
         # start section implicit
         nextTSEvent('RequestCookMB', 'Challenger'),
         nextTSEvent('ServeMB', 'Restaurant'),
@@ -430,18 +462,19 @@ traces = {
         nextTSEvent('AnnounceMBFinished','Challenger'),
         nextTSEvent('CheckFinishedClaim', 'Restaurant'),
         sameTSEvent('VerifyFinishedClaim', 'Restaurant')
-    ],
+     )),
 
 
-    'from_academic_lit/hvitved_instalment_sale--simplified_time.l4': [
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', (
         # start section implicit
-        event('PayInstallment', 'Buyer', 30, {'amount':501}),
-        event('PayInstallment', 'Buyer', 60, {'amount':501} )
+        event('PayInstallment', 'Buyer', 30, {'amount':500}),
+        event('PayInstallment', 'Buyer', 60, {'amount':500}),
+        event('PayInstallment', 'Buyer', 90, {'amount':8000}),
+        event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
 
-    ],
+    )),
 
-}
-
+)
 
 
 if __name__ == '__main__':
@@ -451,17 +484,19 @@ if __name__ == '__main__':
         'toy_and_teaching/monster_burger_program_only.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4'
     ]
-    for subpath in EXAMPLES_TO_RUN:
-        print("\n" + subpath)
-        path = EXAMPLES_SEXPR_ROOT + subpath
-        parsed = parse_file(path)
-        if 'print' in sys.argv:
-            print(prettySExprStr(parsed))
+    for trace in traces:
+        subpath = trace[0]
+        if subpath in EXAMPLES_TO_RUN:
+            print("\n" + subpath)
+            path = EXAMPLES_SEXPR_ROOT + subpath
+            parsed = parse_file(path)
+            if 'print' in sys.argv:
+                print(prettySExprStr(parsed))
 
-        assembler = L4ContractConstructor(path)
-        prog : L4Contract = assembler.l4contract(parsed)
+            assembler = L4ContractConstructor(path)
+            prog : L4Contract = assembler.l4contract(parsed)
 
-        evalLSM(traces[subpath], prog)
+            evalLSM(trace[1], prog)
 
 
 

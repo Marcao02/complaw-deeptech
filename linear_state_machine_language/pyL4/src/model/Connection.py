@@ -19,6 +19,9 @@ class Connection:
     def toStr(self, i:int) -> str:
         raise NotImplemented
 
+    def __str__(self) -> str:
+        return self.toStr(0)
+
 
 class ConnectionToAction(Connection):
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
@@ -52,7 +55,12 @@ class ConnectionToAction(Connection):
 
         if self.deadline_clause:
             rv += " " + str(self.deadline_clause)
+
+        if self.where_clause:
+            rv += " where " + str(self.where_clause)
+
         return rv
+
 
 
 class ConnectionToEnvAction(Connection):

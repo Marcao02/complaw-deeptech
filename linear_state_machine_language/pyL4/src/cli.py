@@ -62,5 +62,6 @@ if __name__ == '__main__':
     #     translate more examples
     #         Hvitved master sales agreement
     #     deadlinesPartitionFuture and guardsDisjointExhaustive
+    #     breach Event objects that a trace must end with if it's a breach, rather than using a subclass of EventConsumptionResult
     #
     # """)
