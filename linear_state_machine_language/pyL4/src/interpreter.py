@@ -14,7 +14,7 @@ from model.Term import FnApp
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",
     level=logging.INFO )
-from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence
+from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType
 
 from model.L4Contract import L4Contract
 
@@ -28,8 +28,8 @@ from model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug
 
 # Nat = NewType('Nat',int)
 # TimeStamp = NewType('TimeStamp',Nat)
-Nat = int
-TimeStamp = Nat
+Nat = NewType('Nat',int)
+TimeStamp = NewType('TimeStamp',Nat)
 
 ActionParamValue = Union[Tuple[Any], str, int, TimeStamp]
 ActionParamSubst = Dict[ActionParamId, ActionParamValue]
@@ -41,6 +41,8 @@ class Event(NamedTuple):
     role_id: RoleId
     timestamp: TimeStamp
     params: ActionParamSubst
+
+# def breachEvent(action_id:ActionId, role_ids:Iterable[RoleId], timestamp:TimeStamp)
 
 class EventConsumptionResult:
     pass
@@ -100,7 +102,7 @@ class ExecEnv:
         self._var_write_cnt : Dict[LocalOrGlobalVarId, int] = dict()
         self._contract_param_vals: Dict[ContractParamId, Any] = dict()
         self._section_id: SectionId = prog.start_section
-        self._sec_entrance_timestamp = 0
+        self._sec_entrance_timestamp = cast(TimeStamp,0)
         self.cur_action_param_subst_from_event : Optional[Dict[ActionParamId, ActionParamValue]]
 
     def cur_section(self) -> Section:
@@ -278,7 +280,7 @@ class ExecEnv:
                 print(f"Global var {var} has no initial value.")
                 dictSetOrInc(self._var_write_cnt, var, init=0)
             else:
-                self._varvals[var] = self.evalTerm(dec.initval, 0)
+                self._varvals[var] = self.evalTerm(dec.initval, cast(TimeStamp,0))
                 print(f"Global var {var} has initial value {self._varvals[var]}.")
                 dictSetOrInc(self._var_write_cnt, var, init=1)
             # print('evalGlobalVarDecs: ', var, dec, self._var_write_cnt[var])
@@ -288,7 +290,7 @@ class ExecEnv:
         for (name,dec) in decs.items():
             # print(dec)
             if not(dec.value_expr is None):
-                self._contract_param_vals[name] = self.evalTerm(dec.value_expr, 0)
+                self._contract_param_vals[name] = self.evalTerm(dec.value_expr, cast(TimeStamp,0))
             else:
                 self._contract_param_vals[name] = None
 
@@ -430,11 +432,12 @@ def evalLSM(trace:Trace, prog:L4Contract):
     return env.evalLSM(trace, verbose=True)
 
 
-timestamp = 0
+timestamp = cast(TimeStamp,0)
+# reveal_type(timestamp)
 def nextTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]) -> Event:
     global timestamp
     params = params or []
-    timestamp += 1
+    timestamp = cast(TimeStamp,1)
     return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
                  params= cast(ActionParamSubst, params))
 
@@ -444,7 +447,7 @@ def sameTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]) 
                  params=cast(ActionParamSubst, params))
 
 def event(action_id:str, role_id:str, timestamp:int, params=Dict[str, ActionParamValue]) -> Event:
-    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=timestamp,
+    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=cast(TimeStamp,timestamp),
                  params=cast(ActionParamSubst, params))
 
 from cli import EXAMPLES_SEXPR_ROOT
