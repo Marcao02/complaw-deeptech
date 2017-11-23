@@ -76,7 +76,7 @@ ACTION_LABEL = "Action"
 ENV_ROLE = cast(RoleId,"Env")
 
 TRANSITIONS_TO_LABEL = "TransitionsTo"
-CODE_BLOCK_LABEL = "Entrance"
+CODE_BLOCK_LABEL = "StateTransform"
 SECTION_DESCRIPTION_LABEL = "Description"
 ACTION_DESCRIPTION_LABEL = "Description"
 PROSE_REFS_LABEL = "ProseRefs"

@@ -42,7 +42,7 @@
 		(AllowedSubjects Challenger)
 		(TransitionsTo AfterRequestCookMB) ; LANG note: Optional; this is the default value.
 
-		(Entrance
+		(StateTransform
 			(amount_owing = MB_PRICE)
 		)
 	)
@@ -60,7 +60,7 @@
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Restaurant)
 
-		(Entrance
+		(StateTransform
 			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER unitsAfterEntrance))
 		)
 	)
@@ -75,7 +75,7 @@
 	(Action EnterPromptServeGuaranteeViolated
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Env)
-		(Entrance
+		(StateTransform
 			(amount_owing = 0)
 		)
 	)
@@ -120,7 +120,7 @@
 	(Action EnterLateCheck
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Env)
-		(Entrance
+		(StateTransform
 			(amount_owing = 0)
 		)
 	)
@@ -169,7 +169,7 @@
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Challenger)
 
-		(Entrance
+		(StateTransform
 			(amount_paid = amount_owing)
 			(amount_owing = 0)
 		)
@@ -186,7 +186,7 @@
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Restaurant)
 
-		(Entrance
+		(StateTransform
 			(amount_owing = 0)
 		)
 	)

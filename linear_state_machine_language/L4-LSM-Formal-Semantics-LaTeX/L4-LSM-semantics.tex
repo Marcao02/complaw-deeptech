@@ -41,10 +41,24 @@ Click most terms (in \color{TermColor}this color\color{black}) to jump to their 
 
 This section defines a complete-but-limited model of contracts, called \\ \introxx{FSContracts}{simple contracts}{FSContract}{simple contract}, and also gives definitions that will be used for the full definition of \introxx{Contracts}{contracts}{Contract}{contract} in Section \ref{globalvars}.
 
-Every \Contract specifies a \introxx{TimeUnit}{time unit}{TimeUnits}{time units}; it is the smallest unit of time that one writes constraints about or does arithmetic with. We expect it will most often be days. A \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps} is a natural number that we think of as being in units \TimeUnit.
+Every \Contract specifies a \introxx{TimeUnit}{time unit}{TimeUnits}{time units}; it is the smallest unit of time that one writes constraints about or does arithmetic with. We expect it will most often be days or hours. A \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps} is a natural number that we think of as being in units \TimeUnit.
 
-An \introxx{Event}{event}{Events}{events} $E$ is composed of an \introxx{Action}{action}{Actions}{actions} $action_E$, a \introxx{Role}{role}{Roles}{roles} $role_E$, a \TimeStamp $timestamp_E$, and optionally some parameters (but parameters will not be introduced until Section \ref{globalvars}) $actionparams_E$. The \Actions and \Roles are fixed finite sets. In this first version of the L4 mathematical model, there is exactly one participant of each \Role.
-{\bf All events are modelled as actions}, and a special \Role \introx{Env}{Env}  is used to model events that have no agent (i.e. \Role).
+
+
+An \introxx{Event}{event}{Events}{events} $E$ is composed of an \introxx{Action}{action}{Actions}{actions} 
+\newcommand{\eaction}[1]{\Action_{#1}}
+$\eaction{E}$, 
+a \introxx{Role}{role}{Roles}{roles} 
+\newcommand{\erole}[1]{\Role_{#1}}
+$\erole{E}$, 
+a \TimeStamp 
+\newcommand{\etimestamp}[1]{\TimeStamp_{#1}}
+$\etimestamp{E}$, 
+and optionally some parameters (but parameters will not be introduced until Section \ref{globalvars}) 
+\newcommand{\eactionparams}[1]{\textsf{actionParams}_{#1}}
+$\eactionparams{E}$. 
+The \Actions and \Roles are fixed finite sets. In this first version of the L4 mathematical model, there is exactly one participant of each \Role.
+{\bf All events are modelled as actions}, and a special \Role \introx{Env}{Env} is used to model actions that have no subject.
 
 A \introxx{trace}{trace}{traces}{traces} is a sequence of \Events. The \TimeStamps of the \Events must be nondecreasing. Thus, within the smallest unit of time, any number of \Events can happen; however, they are always strictly ordered. The idea here is that we want \Events to be strictly ordered for simplicity and to minimize the size of the space of execution traces, but if we made the \TimeStamps strictly increasing, we would need to be working at a level of granularity for time that is at least one level smaller than the smallest unit of time that would appear in an informal version of the contract (at least when \TimeUnit = days, since contracts that use days as their minimum unit generally do not require that all \Events happen on different days).
 

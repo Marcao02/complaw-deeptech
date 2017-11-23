@@ -32,14 +32,14 @@
 
 	(Action DivideBy2
 		(TransitionsTo Ongoing)
-		(Entrance
+		(StateTransform
 			(x = (x / 2))
 		)
 	)
 
 	(Action TripplePlus1
 		(TransitionsTo Ongoing)
-		(Entrance
+		(StateTransform
 			(x = ((3 * x) + 1))
 		)
 	)
