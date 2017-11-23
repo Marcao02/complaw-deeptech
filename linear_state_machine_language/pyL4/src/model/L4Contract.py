@@ -33,9 +33,6 @@ class L4Contract:
 
         self.ordered_declarations : List[Union[Action,Section]] = list()
 
-        self.max_section_id_len = 0
-        self.max_action_id_len = 0
-
     #
     # def connections(self) -> Iterator[Connection]:
     #     return self.construct_main_part.connections()

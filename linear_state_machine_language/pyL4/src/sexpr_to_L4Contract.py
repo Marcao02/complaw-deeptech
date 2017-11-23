@@ -187,7 +187,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 todo_once(f"Handle {x[0]} in section dec")
 
-        self.top.max_section_id_len = max(len(section_id), self.top.max_section_id_len)
         return section
 
     def action(self, action_id:ActionId, params_sexpr:Optional[List[List[str]]], rest:SExpr) -> Action:
@@ -229,9 +228,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.referenced_nonderived_section_ids.add(a.dest_section_id)
             else:
                 a.dest_section_id = derived_destination_id(a.action_id)
-
-
-        self.top.max_action_id_len = max(len(action_id), self.top.max_action_id_len)
 
         return a
 

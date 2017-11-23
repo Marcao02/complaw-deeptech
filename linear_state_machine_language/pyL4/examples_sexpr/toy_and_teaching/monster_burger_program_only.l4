@@ -98,7 +98,7 @@
             (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
 	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
+	            (EnterLateCheck (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
             )
         )
 	)
@@ -112,7 +112,7 @@
 		(Next
             (deadlinesPartitionFuture
 	            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
-	            (EnterLateCheck (at (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
+	            (EnterLateCheck (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
             )
         )
 	)

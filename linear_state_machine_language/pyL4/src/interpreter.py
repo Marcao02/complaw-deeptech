@@ -23,7 +23,7 @@ from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
 from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
-    ConnectionActionParamId, ContractParamId, SectionId, ActionParamId
+    ConnectionActionParamId, ContractParamId, SectionId, ActionParamId, FULFILLED_SECTION_LABEL
 from model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug
 
 # Nat = NewType('Nat',int)
@@ -40,9 +40,10 @@ class Event(NamedTuple):
     action_id: ActionId
     role_id: RoleId
     timestamp: TimeStamp
-    params: ActionParamSubst
+    params: Optional[ActionParamSubst]
 
-# def breachEvent(action_id:ActionId, role_ids:Iterable[RoleId], timestamp:TimeStamp)
+def breachSectionId(*role_ids:RoleId):
+    return "breach_" + "_".join(role_ids)
 
 class EventConsumptionResult:
     pass
@@ -60,6 +61,9 @@ class EventConsumptionOk(EventConsumptionResult):
 
 
 Trace = Sequence[Event]
+class CompleteTrace(NamedTuple):
+    events: Trace
+    final_section: str  # will need to be a SectionId
 
 FN_SYMB_INTERP = {
     '+': lambda *args: sum(args),
@@ -87,12 +91,20 @@ DEADLINE_OP_INTERP = {
     
     'nonstrictly-after-ts-and-within': lambda entrance_ts, event_ts, args: args[0] <= event_ts <= entrance_ts + args[1],
     
-    'at': lambda entrance_ts, event_ts, args_ts: (event_ts == args_ts[0]),
+    'at-ts': lambda entrance_ts, event_ts, args_ts: (event_ts == args_ts[0]),
     'immediately-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts == args_ts[0] + 1),
     'after-exact-duration': lambda entrance_ts, event_ts, args_dur: (event_ts == entrance_ts + args_dur[0]),
     'strictly-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts > args_ts[0]), # ??
     'nonstrictly-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts >= args_ts[0]),
 }
+
+def event_to_action_str(event:Event):
+    if event.params:
+        params_str = ", ".join([f"{key}: {event.params[key]}" for key in event.params.keys()])
+        return f"{event.action_id}({params_str})"
+    else:
+        return f"{event.action_id}"
+
 
 
 class ExecEnv:
@@ -103,15 +115,24 @@ class ExecEnv:
         self._contract_param_vals: Dict[ContractParamId, Any] = dict()
         self._section_id: SectionId = prog.start_section
         self._sec_entrance_timestamp = cast(TimeStamp,0)
-        self.cur_action_param_subst_from_event : Optional[Dict[ActionParamId, ActionParamValue]]
+        self._cur_action_param_subst_from_event : Optional[Dict[ActionParamId, ActionParamValue]]
 
     def cur_section(self) -> Section:
         return self._top.section(self._section_id)
 
-    def evalLSM(self, trace:Trace, verbose=False):
+    def evalLSM(self, trace:Trace, finalSectionId:Optional[SectionId] = None, verbose=False):
         prog = self._top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
+
+        max_section_id_len = max(max(
+            len(self._top.action(event.action_id).dest_section_id) for event in trace
+        ), len(finalSectionId))
+        max_action_str_len = max(
+            len(event_to_action_str(event)) for event in trace
+        )
+
+        print(event_to_action_str(trace[0]))
 
         for i in range(len(trace)):
             eventi = trace[i]
@@ -131,23 +152,42 @@ class ExecEnv:
                 feedback.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-connection exists).")
                 continue
 
-            self.cur_action_param_subst_from_event = eventi.params
+            self._cur_action_param_subst_from_event = eventi.params
             result = self.attempt_consume_next_event(eventi)
+            actionstr = event_to_action_str(eventi)
             if isinstance(result, EventConsumptionOk):
-            # if self.action_available_from_cur_section(next_action_id, next_timestamp):
                 if verbose:
-                    sec_pad = ' '*(prog.max_section_id_len-len(self._section_id))
-                    act_pad = ' '*(prog.max_action_id_len-len(next_action_id))
-                    print(f"{self._section_id}{sec_pad} --{next_action_id}-->{act_pad} {action.dest_section_id}")
+                    sec_pad = ' '*(max_section_id_len-len(self._section_id))
+                    act_pad = ' '*(max_action_str_len-len(actionstr))
+                    print(f"{self._section_id}{sec_pad} --{actionstr}-->{act_pad} {action.dest_section_id}")
                 self.apply_action(action, eventi.params, next_timestamp)
-                self.cur_action_param_subst_from_event = None
+                self._cur_action_param_subst_from_event = None
                 continue
+            elif isinstance(result, BreachResult):
+                breach_section_id = breachSectionId(*result.role_ids)
+                if verbose:
+                    sec_pad = ' '*(max_section_id_len-len(self._section_id))
+                    act_pad = ' '*(max_action_str_len-len(actionstr))
+                    print(f"{self._section_id}{sec_pad} --{actionstr}-->{act_pad} {breach_section_id}")
+                self._section_id = breach_section_id
+
+                todo_once("timestamp in transition to breach")
+                self._cur_action_param_subst_from_event = None
+
+                assert i == len(trace) - 1, "Trace predix results in a breach, but there are more events after."
+
+                break
             else:
-                feedback.error(f"{next_action_id}-connection exists in {self._section_id} but is disabled:\n", result)
+                assert False, "Can't get here?"
 
+            # else:
+            #     feedback.error(f"{next_action_id}-connection exists in {self._section_id} but is disabled:\n", result)
 
-            feedback.error("Stopping evaluation")
-            return
+            # feedback.error("Stopping evaluation")
+            # return
+
+        if finalSectionId:
+            assert self._section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self._section_id}"
 
     def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
         entrance_enabled_strong_obligs : List[ConnectionToAction] = list()
@@ -213,8 +253,6 @@ class ExecEnv:
 
         present_enabled_nonSO_connections : Iterator[Connection] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_connections)
 
-        todo_once("where clauses in attempt_consume_next_event")
-
         # CASE 2a: `event` compatible with exactly one present-enabled non-SO connection
         compatible_present_enabled_nonSO_connections = list(filter(
             lambda c: self.event_connection_compatible(event,c),
@@ -240,14 +278,14 @@ class ExecEnv:
         if not connection.where_clause:
             return event.role_id == connection.role_id and event.action_id == connection.action_id
 
-        print("Action-param subst:", self.cur_action_param_subst_from_event)
+        # print("Action-param subst:", self._cur_action_param_subst_from_event)
         rv = (event.role_id == connection.role_id and event.action_id == connection.action_id and
               self.evalTerm(connection.where_clause, event.timestamp) )
 
         return rv
 
     def environ_tostr(self) -> str:
-        return f"{str(self._varvals)}\n{str(self.cur_action_param_subst_from_event)}\n{str(self._contract_param_vals)}"
+        return f"{str(self._varvals)}\n{str(self._cur_action_param_subst_from_event)}\n{str(self._contract_param_vals)}"
 
     def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
         todo_once("this needs to depend on action parameters")
@@ -272,19 +310,17 @@ class ExecEnv:
         self._section_id = action.dest_section_id
         self._sec_entrance_timestamp = next_timestamp
 
-
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
         for (var,dec) in cast(Dict[LocalOrGlobalVarId, GlobalVarDec],decs).items():
             if dec.initval is None:
                 self._varvals[var] = None
-                print(f"Global var {var} has no initial value.")
+                # print(f"Global var {var} has no initial value.")
                 dictSetOrInc(self._var_write_cnt, var, init=0)
             else:
                 self._varvals[var] = self.evalTerm(dec.initval, cast(TimeStamp,0))
-                print(f"Global var {var} has initial value {self._varvals[var]}.")
+                # print(f"Global var {var} has initial value {self._varvals[var]}.")
                 dictSetOrInc(self._var_write_cnt, var, init=1)
             # print('evalGlobalVarDecs: ', var, dec, self._var_write_cnt[var])
-
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
         for (name,dec) in decs.items():
@@ -344,7 +380,7 @@ class ExecEnv:
             # print("conjecture " + str(stmt))
             assert self.evalTerm(stmt.value_expr, None), f"""Conjecture {stmt.value_expr} is false! Variable values and action params:
             {str(self._varvals)}
-            {str(self.cur_action_param_subst_from_event)}
+            {str(self._cur_action_param_subst_from_event)}
             """
 
         else:
@@ -375,20 +411,20 @@ class ExecEnv:
             assert hasNotNone(self._contract_param_vals, term.name), term.name
             return self._contract_param_vals[term.name]
         elif isinstance(term,ActionDeclActionParam):
-            if self.cur_action_param_subst_from_event:
-                if term.name in self.cur_action_param_subst_from_event:
-                    return self.cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
+            if self._cur_action_param_subst_from_event:
+                if term.name in self._cur_action_param_subst_from_event:
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
                 todo_once("HACK!")
-                if "_" + term.name in self.cur_action_param_subst_from_event:
-                    return self.cur_action_param_subst_from_event[cast(ActionParamId, '_'+term.name)]
+                if "_" + term.name in self._cur_action_param_subst_from_event:
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId, '_' + term.name)]
             contract_bug("Trying to get subst value of an ActionDeclActionParam but didn't find it in the execution context.")
         elif isinstance(term, ConnectionDeclActionParam):
-            if self.cur_action_param_subst_from_event:
-                if term.name in self.cur_action_param_subst_from_event:
-                    return self.cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
+            if self._cur_action_param_subst_from_event:
+                if term.name in self._cur_action_param_subst_from_event:
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
                 todo_once("HACK!")
-                if "_" + term.name in self.cur_action_param_subst_from_event:
-                    return self.cur_action_param_subst_from_event[cast(ActionParamId, '_'+term.name)]
+                if "_" + term.name in self._cur_action_param_subst_from_event:
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId, '_' + term.name)]
             contract_bug("Trying to get subst value of a ConnectionDeclActionParam but didn't find it in the execution context.")
         else:
             contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
@@ -427,33 +463,36 @@ class ExecEnv:
         return 0
 
 
-def evalLSM(trace:Trace, prog:L4Contract):
+def evalTrace(trace:Union[Trace,CompleteTrace], prog:L4Contract):
     env = ExecEnv(prog)
-    return env.evalLSM(trace, verbose=True)
+    if isinstance(trace, CompleteTrace):
+        return env.evalLSM(trace.events, finalSectionId=cast(SectionId,trace.final_section), verbose=True)
+    else:
+        return env.evalLSM(trace, verbose=True)
 
 
 timestamp = cast(TimeStamp,0)
 # reveal_type(timestamp)
-def nextTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]) -> Event:
+def nextTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
     global timestamp
-    params = params or []
     timestamp = cast(TimeStamp,1)
     return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
-                 params= cast(ActionParamSubst, params))
+                 params= cast(ActionParamSubst, params) if params else None)
 
-def sameTSEvent(action_id:str, role_id:str, params=Dict[str, ActionParamValue]) -> Event:
-    params = params or []
+def sameTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
+    params = params or dict()
     return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
-                 params=cast(ActionParamSubst, params))
+                 params=cast(ActionParamSubst, params) if params else None)
 
-def event(action_id:str, role_id:str, timestamp:int, params=Dict[str, ActionParamValue]) -> Event:
+def event(action_id:str, role_id:str, timestamp:int, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
+    params = params or dict()
     return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=cast(TimeStamp,timestamp),
-                 params=cast(ActionParamSubst, params))
+                 params=cast(ActionParamSubst, params) if params else None)
 
 from cli import EXAMPLES_SEXPR_ROOT
 
-traces : Sequence[ Tuple[str, Sequence[Event]] ] = (
-    ('toy_and_teaching/monster_burger_program_only.l4', (
+traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
+    ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace((
         # start section implicit
         nextTSEvent('RequestCookMB', 'Challenger'),
         nextTSEvent('ServeMB', 'Restaurant'),
@@ -465,17 +504,39 @@ traces : Sequence[ Tuple[str, Sequence[Event]] ] = (
         nextTSEvent('AnnounceMBFinished','Challenger'),
         nextTSEvent('CheckFinishedClaim', 'Restaurant'),
         sameTSEvent('VerifyFinishedClaim', 'Restaurant')
-     )),
+        ), FULFILLED_SECTION_LABEL)
+     ),
 
 
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', (
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
         # start section implicit
         event('PayInstallment', 'Buyer', 30, {'amount':500}),
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8000}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
+        ), FULFILLED_SECTION_LABEL)
+    ),
 
-    )),
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
+        event('PayInstallment', 'Buyer', 30, {'amount':499}),
+        ), breachSectionId('Buyer'))
+    ),
+
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
+        event('PayInstallment', 'Buyer', 30, {'amount':500}),
+        event('PayInstallment', 'Buyer', 60, {'amount':500}),
+        event('PayInstallment', 'Buyer', 90, {'amount':7999}),
+        event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
+        ), breachSectionId('Buyer'))
+    ),
+
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
+        event('PayInstallment', 'Buyer', 30, {'amount':500}),
+        event('PayInstallment', 'Buyer', 60, {'amount':500}),
+        event('PayInstallment', 'Buyer', 90, {'amount':8500}),
+        event('PayLastInstallment', 'Buyer', 120, {'amount':500}),
+        ), FULFILLED_SECTION_LABEL)
+    )
 
 )
 
@@ -499,7 +560,7 @@ if __name__ == '__main__':
             assembler = L4ContractConstructor(path)
             prog : L4Contract = assembler.l4contract(parsed)
 
-            evalLSM(trace[1], prog)
+            evalTrace(trace[1], prog)
 
 
 

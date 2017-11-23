@@ -25,7 +25,7 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
 DEADLINE_PREDICATES = { # THESE MUST ALL BE PREFIX CURRENTLY
-                      'by', 'strictly-within', 'on' ,'at', 'nonstrictly-before', 'between', 'after',
+                      'by', 'strictly-within', 'on' ,'at-ts', 'nonstrictly-before', 'between', 'after',
                       'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within', 'after-exactly',
                       'within', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'}
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
