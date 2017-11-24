@@ -17,88 +17,57 @@ section MonsterBurgerUncooked:
     Challenger must RequestCookMB (nonstrictly-within 30)
 
 action RequestCookMB transitions to AfterRequestCookMB:
-    prove traversals == 1
     transform:
         amount_owing := MB_PRICE
 
 section AfterRequestCookMB:
-    prove visits == 1
     Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
     EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY)
 
-action ServeMB transitions to AfterServeMB:
-    prove 0 ≤ traversals ≤ 1
+action ServeMB transitions to EatingMB:
     transform:
         challenge_endlimit_timestamp := (TIME_TO_EAT_BURGER unitsAfterEntrance)
 
-section AfterServeMB:
-    prove 0 ≤ visits ≤ 1
-    EnterEatingMB
-
-action EnterPromptServeGuaranteeViolated transitions to PromptServeGuaranteeViolated:
-    prove 0 ≤ traversals ≤ 1
+action EnterPromptServeGuaranteeViolated transitions to Fulfilled:
     transform:
         amount_owing := 0
-
-section PromptServeGuaranteeViolated:
-    prove 0 ≤ visits ≤ 1
-    EnterFulfilled
 
 action EnterEatingMB transitions to EatingMB:
-    prove 0 ≤ traversals ≤ nonconstant
 
 section EatingMB:
-    prove 0 ≤ visits ≤ nonconstant
-    Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
-    Restaurant should CheckFinishedClaim (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
-    EnterLateCheck (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
+    Challenger may EnterAnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
+    Restaurant should CheckCompletitionClaim (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
+    TimeToCheckCompletitionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
 
-action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
-    prove 0 ≤ traversals ≤ nonconstant
+action EnterAnnounceMBFinished transitions to AnnounceMBFinished:
 
-section AfterAnnounceMBFinished:
-    prove 0 ≤ visits ≤ nonconstant
-    Restaurant should CheckFinishedClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
-    EnterLateCheck (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
+section AnnounceMBFinished:
+    Restaurant should CheckCompletitionClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
+    TimeToCheckCompletitionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
 
-action EnterLateCheck transitions to LateCheck:
-    prove 0 ≤ traversals ≤ 1
+action TimeToCheckCompletitionExpires transitions to Fulfilled:
     transform:
         amount_owing := 0
 
-section LateCheck:
-    prove 0 ≤ visits ≤ 1
-    EnterFulfilled
+action CheckCompletitionClaim transitions to AfterCheckCompletitionClaim:
 
-action CheckFinishedClaim transitions to AfterCheckFinishedClaim:
-    prove 0 ≤ traversals ≤ nonconstant
+section AfterCheckCompletitionClaim:
+    Restaurant weakly-must VerifyCompletitionClaim immediately
+    Restaurant weakly-must RejectCompletitionClaim immediately
 
-section AfterCheckFinishedClaim:
-    prove 0 ≤ visits ≤ nonconstant
-    Restaurant weakly-must VerifyFinishedClaim immediately
-    Restaurant weakly-must RejectFinishedClaim immediately
+action RejectCompletitionClaim transitions to AfterRejectCompletitionClaim:
 
-action RejectFinishedClaim transitions to AfterRejectFinishedClaim:
-    prove 0 ≤ traversals ≤ nonconstant
-
-section AfterRejectFinishedClaim:
-    prove 0 ≤ visits ≤ nonconstant
+section AfterRejectCompletitionClaim:
     if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp):
         EnterEatingMB
     if (entranceTimeAfter-ts? challenge_endlimit_timestamp):
         Customer must PayForMB immediately
 
-action PayForMB transitions to AfterPayForMB:
-    prove 0 ≤ traversals ≤ 1
+action PayForMB transitions to Fulfilled:
     transform:
         amount_paid := amount_owing
         amount_owing := 0
 
-section AfterPayForMB:
-    prove 0 ≤ visits ≤ 1
-    EnterFulfilled
-
-action VerifyFinishedClaim transitions to Fulfilled:
-    prove 0 ≤ traversals ≤ 1
+action VerifyCompletitionClaim transitions to Fulfilled:
     transform:
         amount_owing := 0

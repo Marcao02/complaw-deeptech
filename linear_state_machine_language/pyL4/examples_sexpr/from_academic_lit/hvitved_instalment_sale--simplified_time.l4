@@ -24,10 +24,6 @@
 	"Instalment Sale Hvitved"
 	(StartSection WaitingForFirstDayOfNextMonth)
 
-	(Action EnterWaitingForFirstDayOfNextMonth
-		(TransitionsTo WaitingForFirstDayOfNextMonth)
-	)
-
 	(Section WaitingForFirstDayOfNextMonth
 		(Next
 			; note contract says payments happen on the first day of the month, not on-or-before.

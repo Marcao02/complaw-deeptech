@@ -36,8 +36,8 @@ class Section:
         if self.section_description:
             rv += indent(1) + "description: " + self.section_description + "\n"
 
-        if self.visit_bounds:
-            rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
+        # if self.visit_bounds:
+        #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
 
         for t in self.connections():
             rv += t.toStr(1) + "\n"

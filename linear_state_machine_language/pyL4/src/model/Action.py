@@ -35,8 +35,8 @@ class Action:
         rv += ":\n"
         for pre in self.preconditions:
             rv += indent(1) + "pre: " + str(pre) + "\n"
-        if self.traversal_bounds:
-            rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
+        # if self.traversal_bounds:
+        #     rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
         if self.global_state_transform:
             rv += str(self.global_state_transform)
             rv += "\n"

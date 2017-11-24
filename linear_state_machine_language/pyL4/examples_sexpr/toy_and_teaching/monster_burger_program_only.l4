@@ -38,9 +38,11 @@
 	)
 
 	(Action RequestCookMB
-		(traversals == 1) ;  LANG note: static checker directive, which tells the static checker to prove that this action occurs exactly once in any execution that ends in Fulfilled
+	    (TransitionsTo AfterRequestCookMB) ; LANG note: Optional; this is the default value.
+	    ;  LANG note: static checker directive, which tells the static checker to prove that this action occurs exactly once in any execution that ends in Fulfilled
+		(traversals == 1)
 		(AllowedSubjects Challenger)
-		(TransitionsTo AfterRequestCookMB) ; LANG note: Optional; this is the default value.
+
 
 		(StateTransform
 			(amount_owing = MB_PRICE)
@@ -57,6 +59,7 @@
 	)
 
 	(Action ServeMB
+		(TransitionsTo EatingMB)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Restaurant)
 
@@ -64,25 +67,14 @@
 			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER unitsAfterEntrance))
 		)
 	)
-	(Section AfterServeMB
-		(0 ≤ visits ≤ 1)
-		(Next
-		    (EnterEatingMB immediately)
-		)
-	)
 
 
 	(Action EnterPromptServeGuaranteeViolated
+		(TransitionsTo Fulfilled)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Env)
 		(StateTransform
 			(amount_owing = 0)
-		)
-	)
-	(Section PromptServeGuaranteeViolated
-		(0 ≤ visits ≤ 1)
-		(Next
-		    (EnterFulfilled immediately)
 		)
 	)
 
@@ -95,59 +87,54 @@
 
         (Next
             (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
-	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
-	            (Restaurant should (CheckFinishedClaim) (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-	            (EnterLateCheck (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
+	            (Challenger may (EnterAnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
+	            (Restaurant should (CheckCompletitionClaim) (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+	            (TimeToCheckCompletitionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
             )
         )
 	)
 
-	(Action AnnounceMBFinished
+	(Action EnterAnnounceMBFinished
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Challenger)
 	)
-	(Section AfterAnnounceMBFinished
+	(Section AnnounceMBFinished
 		(0 ≤ visits ≤ nonconstant)
 		(Next
             (deadlinesPartitionFuture
-	            (Restaurant should (CheckFinishedClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
-	            (EnterLateCheck (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
+	            (Restaurant should (CheckCompletitionClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
+	            (TimeToCheckCompletitionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
             )
         )
 	)
 
-	(Action EnterLateCheck
+	(Action TimeToCheckCompletitionExpires
+		(TransitionsTo Fulfilled)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Env)
 		(StateTransform
 			(amount_owing = 0)
 		)
 	)
-	(Section LateCheck
-		(0 ≤ visits ≤ 1)
-		(Next
-		    (EnterFulfilled immediately)
-		)
-	)
 
-	(Action CheckFinishedClaim
+	(Action CheckCompletitionClaim
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Restaurant)
 	)
-	(Section AfterCheckFinishedClaim
+	(Section AfterCheckCompletitionClaim
 		(0 ≤ visits ≤ nonconstant)
 		(Next
-		    (Restaurant weakly-must (VerifyFinishedClaim) immediately)
-		    (Restaurant weakly-must (RejectFinishedClaim) immediately)
+		    (Restaurant weakly-must (VerifyCompletitionClaim) immediately)
+		    (Restaurant weakly-must (RejectCompletitionClaim) immediately)
 		)
 	)
 
 
-	(Action RejectFinishedClaim
+	(Action RejectCompletitionClaim
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Restaurant)
 	)
-	(Section AfterRejectFinishedClaim
+	(Section AfterRejectCompletitionClaim
         (0 ≤ visits ≤ nonconstant)
         (Next
         	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
@@ -165,6 +152,7 @@
 	)
 
 	(Action PayForMB
+		(TransitionsTo Fulfilled)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Challenger)
 
@@ -173,14 +161,9 @@
 			(amount_owing = 0)
 		)
 	)
-	(Section AfterPayForMB
-		(0 ≤ visits ≤ 1)
-		(Next
-		    (EnterFulfilled immediately)
-		)
-	)
 
-	(Action VerifyFinishedClaim
+
+	(Action VerifyCompletitionClaim
 		(TransitionsTo Fulfilled)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Restaurant)

@@ -5,8 +5,7 @@ digraph Instalment_Sale_Hvitved {
     WaitingForFirstDayOfNextMonth[label=WaitingForFirstDayOfNextMonth]
     
      
-    EnterWaitingForFirstDayOfNextMonth[label=EnterWaitingForFirstDayOfNextMonth,shape=box];
-	PayInstallment[label=PayInstallment,shape=box];
+    PayInstallment[label=PayInstallment,shape=box];
 	PayLastInstallment[label=PayLastInstallment,shape=box]    
     
     
@@ -14,7 +13,6 @@ digraph Instalment_Sale_Hvitved {
     WaitingForFirstDayOfNextMonth -> PayInstallment;
 	WaitingForFirstDayOfNextMonth -> PayLastInstallment
     
-    EnterWaitingForFirstDayOfNextMonth -> WaitingForFirstDayOfNextMonth [style=dashed];
-	PayInstallment -> WaitingForFirstDayOfNextMonth [style=dashed];
+    PayInstallment -> WaitingForFirstDayOfNextMonth [style=dashed];
 	PayLastInstallment -> Fulfilled [style=dashed]        
 }

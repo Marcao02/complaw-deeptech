@@ -11,8 +11,6 @@ global vars:
     balance_remaining : ℕ := TOTAL_DUE_BEFORE_CLOSING
     next_payment_month : ℕ := 0
 
-action EnterWaitingForFirstDayOfNextMonth transitions to WaitingForFirstDayOfNextMonth:
-
 section WaitingForFirstDayOfNextMonth:
     if MIN_PAYMENT ≤ balance_remaining and next_payment_month < 23:
         Buyer weakly-must PayInstallment(amount) (after-exact-duration 30) where MIN_PAYMENT ≤ amount and amount ≤ balance_remaining

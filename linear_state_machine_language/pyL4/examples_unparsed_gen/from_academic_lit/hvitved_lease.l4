@@ -60,7 +60,6 @@ section AfterPayRent:
         Landlord may RequestTerminationFromAfterPayRent (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
 
 action EnterMonthEnded transitions to MonthEnded:
-    prove 1 ≤ traversals ≤ nonconstant
 
 section MonthEnded:
     pre: (sectionEntranceTimestamp ) ≤ lease_term_end
@@ -74,7 +73,6 @@ section MonthEnded:
         Landlord may RequestTerminationFromMonthEnded (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
 
 action EnterLeaseTermEnded transitions to LeaseTermEnded:
-    prove 1 ≤ traversals ≤ nonconstant
 
 section LeaseTermEnded:
     if lease_terminated:

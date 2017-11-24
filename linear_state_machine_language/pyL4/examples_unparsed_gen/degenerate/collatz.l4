@@ -24,4 +24,3 @@ action TripplePlus1 transitions to Ongoing:
         x := 3 * x + 1
 
 action EnterFulfilled transitions to Fulfilled:
-    prove traversals == 1
