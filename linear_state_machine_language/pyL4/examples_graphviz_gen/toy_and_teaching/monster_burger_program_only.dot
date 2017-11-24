@@ -13,7 +13,7 @@ digraph Monster_Burger {
 	AfterRejectFinishedClaim[label=AfterRejectFinishedClaim];
 	AfterPayForMB[label=AfterPayForMB]
     
-    EnterFulfilled[label=EnterFufilled,shape=box];
+     
     RequestCookMB[label=RequestCookMB,shape=box];
 	ServeMB[label=ServeMB,shape=box];
 	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
@@ -25,24 +25,24 @@ digraph Monster_Burger {
 	PayForMB[label=PayForMB,shape=box];
 	VerifyFinishedClaim[label=VerifyFinishedClaim,shape=box]    
     
-    EnterFulfilled -> Fulfilled;
+    
     
     MonsterBurgerUncooked -> RequestCookMB;
 	AfterRequestCookMB -> ServeMB;
-	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated;
-	AfterServeMB -> EnterEatingMB;
-	PromptServeGuaranteeViolated -> EnterFulfilled;
+	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
+	AfterServeMB -> EnterEatingMB [style=dashed];
+	PromptServeGuaranteeViolated -> EnterFulfilled [style=dashed];
 	EatingMB -> AnnounceMBFinished;
 	EatingMB -> CheckFinishedClaim;
-	EatingMB -> EnterLateCheck;
+	EatingMB -> EnterLateCheck [style=dashed];
 	AfterAnnounceMBFinished -> CheckFinishedClaim;
-	AfterAnnounceMBFinished -> EnterLateCheck;
-	LateCheck -> EnterFulfilled;
+	AfterAnnounceMBFinished -> EnterLateCheck [style=dashed];
+	LateCheck -> EnterFulfilled [style=dashed];
 	AfterCheckFinishedClaim -> VerifyFinishedClaim;
 	AfterCheckFinishedClaim -> RejectFinishedClaim;
-	AfterRejectFinishedClaim -> EnterEatingMB;
+	AfterRejectFinishedClaim -> EnterEatingMB [style=dashed];
 	AfterRejectFinishedClaim -> PayForMB;
-	AfterPayForMB -> EnterFulfilled
+	AfterPayForMB -> EnterFulfilled [style=dashed]
     
     RequestCookMB -> AfterRequestCookMB [style=dashed];
 	ServeMB -> AfterServeMB [style=dashed];
@@ -53,6 +53,5 @@ digraph Monster_Burger {
 	CheckFinishedClaim -> AfterCheckFinishedClaim [style=dashed];
 	RejectFinishedClaim -> AfterRejectFinishedClaim [style=dashed];
 	PayForMB -> AfterPayForMB [style=dashed];
-	VerifyFinishedClaim -> Fulfilled [style=dashed];
-	        
+	VerifyFinishedClaim -> Fulfilled [style=dashed]        
 }

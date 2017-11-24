@@ -14,7 +14,7 @@ global vars:
     amount_paid : Price := 0
 
 section MonsterBurgerUncooked:
-    Challenger must RequestCookMB (within 30)
+    Challenger must RequestCookMB (nonstrictly-within 30)
 
 action RequestCookMB transitions to AfterRequestCookMB:
     prove traversals == 1
@@ -30,7 +30,7 @@ section AfterRequestCookMB:
 action ServeMB transitions to AfterServeMB:
     prove 0 ≤ traversals ≤ 1
     transform:
-        challenge_endlimit_timestamp := (unitsAfterEntrance TIME_TO_EAT_BURGER)
+        challenge_endlimit_timestamp := (TIME_TO_EAT_BURGER unitsAfterEntrance)
 
 
 section AfterServeMB:
@@ -54,7 +54,7 @@ section EatingMB:
     prove 0 ≤ visits ≤ nonconstant
     Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
     Restaurant should CheckFinishedClaim (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
-    EnterLateCheck (at (unitsAfter MAX_CLAIM_VERIFICATION_DELAY challenge_endlimit_timestamp))
+    EnterLateCheck (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp))
 
 action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
     prove 0 ≤ traversals ≤ nonconstant
@@ -62,7 +62,7 @@ action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
 section AfterAnnounceMBFinished:
     prove 0 ≤ visits ≤ nonconstant
     Restaurant should CheckFinishedClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
-    EnterLateCheck (at (unitsAfterEntrance MAX_CLAIM_VERIFICATION_DELAY))
+    EnterLateCheck (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
 
 action EnterLateCheck transitions to LateCheck:
     prove 0 ≤ traversals ≤ 1

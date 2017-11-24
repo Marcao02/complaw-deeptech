@@ -198,6 +198,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         for x in rest:
             def head(constant:str) -> bool:
                 nonlocal x
+                if len(x) == 0:
+                    print("problem", x)
                 return streqci(x[0], constant)
 
             if head(ACTION_DESCRIPTION_LABEL):
@@ -319,8 +321,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     [self.term(arg, parent_section, parent_action, parent_connection) for arg in pair[1]]
                 )
             else:
-                self.syntaxError(x)
-                raise SyntaxError("Didn't recognize function symbol in: " + str(x))
+                self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
+                # raise SyntaxError()
 
 
     def deadline_clause(self, expr:SExpr, src_section:Section) -> Term:

@@ -25,7 +25,7 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
 DEADLINE_PREDICATES = { # THESE MUST ALL BE PREFIX CURRENTLY
-                      'by', 'strictly-within', 'on' ,'at-ts', 'nonstrictly-before', 'between', 'after',
+                      'by', 'strictly-within', 'on-ts' ,'at-ts', 'nonstrictly-before', 'between', 'after',
                       'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within', 'after-exactly',
                       'within', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'}
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
@@ -34,11 +34,11 @@ DEADLINE_KEYWORDS = {'immediately', 'nodeadline','discretionary'}
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}
-PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'eventTimestamp', 'monthStartDay', 'monthEndDay',
-                     'days', #'earliest',
+PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'eventTimestamp', 'monthStartDay', 'monthEndDay',
+                     'days', 'earliest',
                      'dateplus',
                      'ifthenelse',
-                     'max', 'ceil', 'even', 'odd',
+                     'max', 'min', 'ceil', 'even', 'odd',
                      'not',
                      'enqueue', 'dequeue', 'discardTop', 'top',  # queues
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists

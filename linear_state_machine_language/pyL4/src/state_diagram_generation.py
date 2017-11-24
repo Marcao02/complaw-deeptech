@@ -26,7 +26,7 @@ def connectionAsDotArcStr(con: Connection) -> str:
     if isinstance(con, ConnectionToAction):
         return f"{con.src_id} -> {con.action_id}"
     elif isinstance(con, ConnectionToEnvAction):
-        return f"{con.src_id} -> {con.action_id}"
+        return f"{con.src_id} -> {con.action_id} [style=dashed]"
     else:
         raise NotImplementedError
 
@@ -39,9 +39,8 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
     section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x), l4file.sections_iter(), ";\n\t")
     action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x), l4file.actions_by_id.values(), ";\n\t")
 
-    connections_from_actions_str = ""
-    for action in l4file.actions_iter():
-        connections_from_actions_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
+    actions_to_sections_str = mapjoin(
+        lambda action: f"{action.action_id} -> {action.dest_section_id} [style=dashed]", l4file.actions_iter(), ";\n\t")
 
     connections_from_sections_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
 
@@ -51,14 +50,14 @@ digraph {cleaned_graphname} {{
     Fulfilled[label=Fufilled];
     {section_nodes_str}
     
-    EnterFulfilled[label=EnterFufilled,shape=box];
+    {'EnterFulfilled[label=EnterFufilled,shape=box];' if 'EnterFulfilled' in l4file.actions_by_id else ''} 
     {action_nodes_str}    
     
-    EnterFulfilled -> Fulfilled;
+    {'EnterFulfilled -> Fulfilled;' if 'EnterFulfilled' in l4file.actions_by_id else ''}
     
     {connections_from_sections_str}
     
-    {connections_from_actions_str}        
+    {actions_to_sections_str}        
 }}"""
 
 def contractToDotFile(l4file: L4Contract, rootpath = 'out', use_filename = True, verbose = False) -> None:

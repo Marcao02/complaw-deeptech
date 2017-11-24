@@ -44,7 +44,7 @@ def list_split(by:str, lst:List[str]) -> List[List[str]]:
     return lists
 
 
-def mapjoin(f:Callable[[Any],str], iter:Iterable[Any], delim:str) -> str:
+def mapjoin(f:Callable[[Any],str], iter:Iterable[Any], delim:str='') -> str:
     return delim.join(map(f,iter))
 
 def isFloat(x:str) -> bool:
@@ -73,7 +73,7 @@ def dictSetOrInc(d:Dict[S,int], key:S, init:int ) -> None:
         d[key] = init
 
 def writeFile(path:str, contents:str) -> None:
-    f = open(path, 'w')
+    f = open(path, 'w', encoding='utf8')
     f.write(contents)
     f.close()
 
