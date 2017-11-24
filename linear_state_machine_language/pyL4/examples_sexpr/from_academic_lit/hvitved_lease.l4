@@ -83,8 +83,8 @@
 	(Section MonthStarted
 		(Next
 			(Tenant weakly-must (PayRent) (by ((monthStartDay) + MAX_RENT_DELAY)))
-			(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
-			(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)
+			(apply-macro RequestTerminationConnectionMacroTenant MonthStarted)
+			(apply-macro RequestTerminationConnectionMacroLandlord MonthStarted)
 		)
 	)
 
@@ -96,8 +96,8 @@
 	(Section AfterPayRent
 		(Next
 			(EnterMonthEnded (on-ts (monthEndDay)))
-			(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
-			(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)
+			(apply-macro RequestTerminationConnectionMacroTenant AfterPayRent)
+			(apply-macro RequestTerminationConnectionMacroLandlord AfterPayRent)
 		)
 	)
 

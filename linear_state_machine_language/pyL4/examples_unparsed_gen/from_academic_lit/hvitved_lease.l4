@@ -49,9 +49,9 @@ action EnterMonthStarted transitions to MonthStarted:
 section MonthStarted:
     Tenant weakly-must PayRent (by ((monthStartDay ) + MAX_RENT_DELAY))
     if (not lease_terminated):
-        Tenant may RequestTerminationFromMonthEnded (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+        Tenant may RequestTerminationFromMonthStarted (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
     if (not lease_terminated):
-        Landlord may RequestTerminationFromMonthEnded (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+        Landlord may RequestTerminationFromMonthStarted (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
 
 action PayRent transitions to AfterPayRent:
     transform:
@@ -61,9 +61,9 @@ action PayRent transitions to AfterPayRent:
 section AfterPayRent:
     EnterMonthEnded (on-ts (monthEndDay ))
     if (not lease_terminated):
-        Tenant may RequestTerminationFromMonthEnded (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+        Tenant may RequestTerminationFromAfterPayRent (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
     if (not lease_terminated):
-        Landlord may RequestTerminationFromMonthEnded (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+        Landlord may RequestTerminationFromAfterPayRent (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
 
 action EnterMonthEnded transitions to MonthEnded:
     prove 1 ≤ traversals ≤ nonconstant

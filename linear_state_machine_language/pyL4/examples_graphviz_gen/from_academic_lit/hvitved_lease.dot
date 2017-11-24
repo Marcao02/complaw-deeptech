@@ -26,11 +26,11 @@ digraph Lease_Hvitved {
     Start -> EnsureApartmentReady;
 	AfterEnsureApartmentReady -> StartLeaseTerm [style=dashed];
 	MonthStarted -> PayRent;
-	MonthStarted -> RequestTerminationFromMonthEnded;
-	MonthStarted -> RequestTerminationFromMonthEnded;
+	MonthStarted -> RequestTerminationFromMonthStarted;
+	MonthStarted -> RequestTerminationFromMonthStarted;
 	AfterPayRent -> EnterMonthEnded [style=dashed];
-	AfterPayRent -> RequestTerminationFromMonthEnded;
-	AfterPayRent -> RequestTerminationFromMonthEnded;
+	AfterPayRent -> RequestTerminationFromAfterPayRent;
+	AfterPayRent -> RequestTerminationFromAfterPayRent;
 	MonthEnded -> EnterLeaseTermEnded [style=dashed];
 	MonthEnded -> EnterMonthStarted [style=dashed];
 	MonthEnded -> RequestTerminationFromMonthEnded;
