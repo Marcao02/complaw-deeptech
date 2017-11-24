@@ -35,13 +35,13 @@ action EnterPromptServeGuaranteeViolated transitions to Fulfilled:
 action EnterEatingMB transitions to EatingMB:
 
 section EatingMB:
-    Challenger may EnterAnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
+    Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
     Restaurant should CheckCompletitionClaim (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
     TimeToCheckCompletitionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
 
-action EnterAnnounceMBFinished transitions to AnnounceMBFinished:
+action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
 
-section AnnounceMBFinished:
+section AfterAnnounceMBFinished:
     Restaurant should CheckCompletitionClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
     TimeToCheckCompletitionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
 

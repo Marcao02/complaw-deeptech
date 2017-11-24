@@ -496,14 +496,13 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         # start section implicit
         nextTSEvent('RequestCookMB', 'Challenger'),
         nextTSEvent('ServeMB', 'Restaurant'),
-        sameTSEvent('EnterEatingMB', 'Env'),
         nextTSEvent('AnnounceMBFinished', 'Challenger'),
-        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
-        sameTSEvent('RejectFinishedClaim', 'Restaurant'),
+        nextTSEvent('CheckCompletionClaim', 'Restaurant'),
+        sameTSEvent('RejectCompletionClaim', 'Restaurant'),
         sameTSEvent('EnterEatingMB', 'Env'),
         nextTSEvent('AnnounceMBFinished','Challenger'),
-        nextTSEvent('CheckFinishedClaim', 'Restaurant'),
-        sameTSEvent('VerifyFinishedClaim', 'Restaurant')
+        nextTSEvent('CheckCompletionClaim', 'Restaurant'),
+        sameTSEvent('VerifyCompletionClaim', 'Restaurant')
         ), FULFILLED_SECTION_LABEL)
      ),
 

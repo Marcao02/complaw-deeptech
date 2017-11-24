@@ -5,7 +5,7 @@ digraph Monster_Burger {
     MonsterBurgerUncooked[label=MonsterBurgerUncooked];
 	AfterRequestCookMB[label=AfterRequestCookMB];
 	EatingMB[label=EatingMB];
-	AnnounceMBFinished[label=AnnounceMBFinished];
+	AfterAnnounceMBFinished[label=AfterAnnounceMBFinished];
 	AfterCheckCompletitionClaim[label=AfterCheckCompletitionClaim];
 	AfterRejectCompletitionClaim[label=AfterRejectCompletitionClaim]
     
@@ -14,7 +14,7 @@ digraph Monster_Burger {
 	ServeMB[label=ServeMB,shape=box];
 	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
 	EnterEatingMB[label=EnterEatingMB,shape=box];
-	EnterAnnounceMBFinished[label=EnterAnnounceMBFinished,shape=box];
+	AnnounceMBFinished[label=AnnounceMBFinished,shape=box];
 	TimeToCheckCompletitionExpires[label=TimeToCheckCompletitionExpires,shape=box];
 	CheckCompletitionClaim[label=CheckCompletitionClaim,shape=box];
 	RejectCompletitionClaim[label=RejectCompletitionClaim,shape=box];
@@ -26,11 +26,11 @@ digraph Monster_Burger {
     MonsterBurgerUncooked -> RequestCookMB;
 	AfterRequestCookMB -> ServeMB;
 	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
-	EatingMB -> EnterAnnounceMBFinished;
+	EatingMB -> AnnounceMBFinished;
 	EatingMB -> CheckCompletitionClaim;
 	EatingMB -> TimeToCheckCompletitionExpires [style=dashed];
-	AnnounceMBFinished -> CheckCompletitionClaim;
-	AnnounceMBFinished -> TimeToCheckCompletitionExpires [style=dashed];
+	AfterAnnounceMBFinished -> CheckCompletitionClaim;
+	AfterAnnounceMBFinished -> TimeToCheckCompletitionExpires [style=dashed];
 	AfterCheckCompletitionClaim -> VerifyCompletitionClaim;
 	AfterCheckCompletitionClaim -> RejectCompletitionClaim;
 	AfterRejectCompletitionClaim -> EnterEatingMB [style=dashed];
@@ -40,7 +40,7 @@ digraph Monster_Burger {
 	ServeMB -> EatingMB [style=dashed];
 	EnterPromptServeGuaranteeViolated -> Fulfilled [style=dashed];
 	EnterEatingMB -> EatingMB [style=dashed];
-	EnterAnnounceMBFinished -> AnnounceMBFinished [style=dashed];
+	AnnounceMBFinished -> AfterAnnounceMBFinished [style=dashed];
 	TimeToCheckCompletitionExpires -> Fulfilled [style=dashed];
 	CheckCompletitionClaim -> AfterCheckCompletitionClaim [style=dashed];
 	RejectCompletitionClaim -> AfterRejectCompletitionClaim [style=dashed];

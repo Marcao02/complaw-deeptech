@@ -2,6 +2,7 @@
 from typing import Iterator, List,  Set, Optional, NamedTuple
 
 from model.SExpr import SExpr
+from model.Term import Term
 from model.constants_and_defined_types import *
 from model.util import indent, mapjoin
 from model.Connection import Connection, ConnectionToEnvAction
@@ -14,7 +15,7 @@ class Section:
         self.section_description: Optional[str] = None
         self.prose_refs: List[str] = []
 
-        self.preconditions: List[SExpr] = []
+        self.preconditions: List[Term] = []
 
         self.connections_by_role: Dict[RoleId, List[Connection]] = dict()
 

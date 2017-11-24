@@ -87,28 +87,28 @@
 
         (Next
             (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
-	            (Challenger may (EnterAnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
-	            (Restaurant should (CheckCompletitionClaim) (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-	            (TimeToCheckCompletitionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
+	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
+	            (Restaurant should (CheckCompletionClaim) (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+	            (TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
             )
         )
 	)
 
-	(Action EnterAnnounceMBFinished
+	(Action AnnounceMBFinished
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Challenger)
 	)
-	(Section AnnounceMBFinished
+	(Section AfterAnnounceMBFinished
 		(0 ≤ visits ≤ nonconstant)
 		(Next
             (deadlinesPartitionFuture
-	            (Restaurant should (CheckCompletitionClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
-	            (TimeToCheckCompletitionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
+	            (Restaurant should (CheckCompletionClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
+	            (TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
             )
         )
 	)
 
-	(Action TimeToCheckCompletitionExpires
+	(Action TimeToCheckCompletionExpires
 		(TransitionsTo Fulfilled)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Env)
@@ -117,24 +117,24 @@
 		)
 	)
 
-	(Action CheckCompletitionClaim
+	(Action CheckCompletionClaim
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Restaurant)
 	)
-	(Section AfterCheckCompletitionClaim
+	(Section AfterCheckCompletionClaim
 		(0 ≤ visits ≤ nonconstant)
 		(Next
-		    (Restaurant weakly-must (VerifyCompletitionClaim) immediately)
-		    (Restaurant weakly-must (RejectCompletitionClaim) immediately)
+		    (Restaurant weakly-must (VerifyCompletionClaim) immediately)
+		    (Restaurant weakly-must (RejectCompletionClaim) immediately)
 		)
 	)
 
 
-	(Action RejectCompletitionClaim
+	(Action RejectCompletionClaim
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Restaurant)
 	)
-	(Section AfterRejectCompletitionClaim
+	(Section AfterRejectCompletionClaim
         (0 ≤ visits ≤ nonconstant)
         (Next
         	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
@@ -163,7 +163,7 @@
 	)
 
 
-	(Action VerifyCompletitionClaim
+	(Action VerifyCompletionClaim
 		(TransitionsTo Fulfilled)
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Restaurant)
