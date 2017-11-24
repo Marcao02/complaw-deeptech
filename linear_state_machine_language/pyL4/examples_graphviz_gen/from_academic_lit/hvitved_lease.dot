@@ -1,0 +1,48 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Lease_Hvitved {    
+    Fulfilled[label=Fufilled];
+    Start[label=Start];
+	AfterEnsureApartmentReady[label=AfterEnsureApartmentReady];
+	MonthStarted[label=MonthStarted];
+	AfterPayRent[label=AfterPayRent];
+	MonthEnded[label=MonthEnded];
+	LeaseTermEnded[label=LeaseTermEnded]
+    
+     
+    RequestTerminationFromMonthStarted[label=RequestTerminationFromMonthStarted,shape=box];
+	RequestTerminationFromAfterPayRent[label=RequestTerminationFromAfterPayRent,shape=box];
+	RequestTerminationFromMonthEnded[label=RequestTerminationFromMonthEnded,shape=box];
+	EnsureApartmentReady[label=EnsureApartmentReady,shape=box];
+	StartLeaseTerm[label=StartLeaseTerm,shape=box];
+	EnterMonthStarted[label=EnterMonthStarted,shape=box];
+	PayRent[label=PayRent,shape=box];
+	EnterMonthEnded[label=EnterMonthEnded,shape=box];
+	EnterLeaseTermEnded[label=EnterLeaseTermEnded,shape=box];
+	MoveOut[label=MoveOut,shape=box]    
+    
+    
+    
+    Start -> EnsureApartmentReady;
+	AfterEnsureApartmentReady -> StartLeaseTerm [style=dashed];
+	MonthStarted -> PayRent;
+	MonthStarted -> RequestTerminationFromMonthStarted;
+	AfterPayRent -> EnterMonthEnded [style=dashed];
+	AfterPayRent -> RequestTerminationFromAfterPayRent;
+	MonthEnded -> EnterLeaseTermEnded [style=dashed];
+	MonthEnded -> EnterMonthStarted [style=dashed];
+	MonthEnded -> RequestTerminationFromMonthEnded;
+	LeaseTermEnded -> MoveOut;
+	LeaseTermEnded -> StartLeaseTerm [style=dashed]
+    
+    RequestTerminationFromMonthStarted -> MonthStarted [style=dashed];
+	RequestTerminationFromAfterPayRent -> AfterPayRent [style=dashed];
+	RequestTerminationFromMonthEnded -> MonthEnded [style=dashed];
+	EnsureApartmentReady -> AfterEnsureApartmentReady [style=dashed];
+	StartLeaseTerm -> MonthStarted [style=dashed];
+	EnterMonthStarted -> MonthStarted [style=dashed];
+	PayRent -> AfterPayRent [style=dashed];
+	EnterMonthEnded -> MonthEnded [style=dashed];
+	EnterLeaseTermEnded -> LeaseTermEnded [style=dashed];
+	MoveOut -> Fulfilled [style=dashed]        
+}

@@ -1,0 +1,145 @@
+
+(Roles Landlord Tenant)
+
+(TimeUnit D)
+
+(ContractParams
+	(DAYS_IN_A_MONTH : TimeUnit := 30) ; 30 days
+	(LEASE_DURATION : TimeUnit := (6 * 30)) ; 6 months
+	(RENT : Money = 1000)
+	(MAX_RENT_DELAY : TimeUnit := 7) ; 7 days
+	(MIN_TERMINATION_NOTICE : TimeUnit := (1 * 30)) ; 1 month
+)
+
+(ProseContract
+	(P1 'The term of this lease is for {LEASE_DURATION} months, beginning on {LEASE_TERM_START}. At the expiration of said term, the lease will automatically be renewed for a period of one month unless either party (Landlord or Tenant) notifies the other of its intention to terminate the lease at least one month before its expiration date.')
+	(P2 'The lease is for 1 apartment, which is provided by Landlord throughout the term.')
+	(P3 'Tenant agrees to pay the amount of {RENT} per month, each payment due within {MAX_DAYS_RENT_DELAY} days of the start of each month.')
+)
+
+(GlobalVars
+	(lease_term_start : ℕ )		; formerly never : Date
+	(lease_term_end : ℕ )		; formerly never : Date
+	(writeOnceMore lease_terminated : Bool := false)
+	(branchUnaffecting inconly total_rent_paid : ℕ := 0)
+)
+
+(str-arg-macro RequestTerminationConnectionMacroTenant SectionId
+	(if (not lease_terminated)
+		(Tenant may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH))))
+	)
+)
+(str-arg-macro RequestTerminationConnectionMacroLandlord SectionId
+	(if (not lease_terminated)
+		(Landlord may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH))))
+	)
+)
+
+(str-arg-macro RequestTerminationActionMacro SectionId
+	(Action RequestTerminationFromSectionId
+		(StateTransform
+			(lease_terminated := true)
+		)
+		(TransitionsTo SectionId)
+		(AllowedSubjects Landlord Tenant)
+	)
+)
+
+(FormalContract
+	"Lease Hvitved"
+	(StartSection Start)
+
+	(Section Start
+		(Next
+			(Landlord must (EnsureApartmentReady) immediately)
+		)
+	)
+
+	(apply-macro RequestTerminationActionMacro MonthStarted)
+	(apply-macro RequestTerminationActionMacro AfterPayRent)
+	(apply-macro RequestTerminationActionMacro MonthEnded)
+
+	(Action EnsureApartmentReady
+		(AllowedRoles Landlord)
+	)
+	(Section AfterEnsureApartmentReady
+		(Next
+			(StartLeaseTerm immediately)
+		)
+	)
+
+	(Action StartLeaseTerm
+		(StateTransform
+			(conjecture ((eventTimestamp) == (monthStartDay)))
+			(lease_term_start := (eventTimestamp))
+			(lease_term_end := ((eventTimestamp) + LEASE_DURATION))
+		)
+		(TransitionsTo MonthStarted)
+	)
+
+	(Action EnterMonthStarted
+	)
+
+	(Section MonthStarted
+		(Next
+			(Tenant weakly-must (PayRent) (by ((monthStartDay) + MAX_RENT_DELAY)))
+			(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
+			(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)
+		)
+	)
+
+	(Action PayRent
+		(StateTransform
+			(total_rent_paid += 1000)
+		)
+	)
+	(Section AfterPayRent
+		(Next
+			(EnterMonthEnded (on-ts (monthEndDay)))
+			(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
+			(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)
+		)
+	)
+
+	(Action EnterMonthEnded
+		(1 ≤ traversals ≤ nonconstant)
+		(AllowedSubjects Env)
+	)
+	(Section MonthEnded
+		(Pre ((sectionEntranceTimestamp) ≤ lease_term_end))
+		(Next
+			(if (lease_term_end ≤ ((sectionEntranceTimestamp) + 1))
+				(EnterLeaseTermEnded (on-ts lease_term_end))
+			)
+			(if (lease_term_end > ((sectionEntranceTimestamp) + 1))
+				(EnterMonthStarted (after-exact-duration 1))
+			)
+			(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
+			(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)
+		)
+	)
+
+	(Action EnterLeaseTermEnded
+		(1 ≤ traversals ≤ nonconstant)
+		(AllowedSubjects Env)
+	)
+	(Section LeaseTermEnded
+		(Next
+			(if lease_terminated
+				(Tenant must (MoveOut) immediately)
+			)
+			(if (not lease_terminated)
+				(StartLeaseTerm immediately)
+			)
+		)
+	)
+
+	(Action MoveOut
+		(TransitionsTo Fulfilled)
+	)
+
+
+)
+
+; (DotFileName 'hvitved_lease_pitstops.dot')
+; (ImgFileName 'hvitved_lease_pitstops.png')

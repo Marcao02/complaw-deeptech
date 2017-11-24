@@ -56,12 +56,17 @@ DeonticModality = NewType('DeonticModality',str)
 # DEONTIC_KEYWORDS = DEONTIC_GUARD_MODALITIES.union(DEONTIC_MODALITIES)
 
 
+APPLY_MACRO_LABEL = "apply-macro"
+
+
 # These are not actually case sensitive
 GLOBAL_VARS_SECTION_LABEL = "GlobalVars"
 CLAIMS_SECTION_LABEL = "Claims"
 PROSE_CONTRACT_SECTION_LABEL = "ProseContract"
 FORMAL_CONTRACT_SECTION_LABEL = "FormalContract"
 ROLES_SECTION_LABEL = "Roles"
+TIME_UNIT_DEC_LABEL = "TimeUnit"
+STR_ARG_MACRO_DEC_LABEL = "str-arg-macro"
 DOT_FILE_NAME_LABEL = "DotFileName"
 IMG_FILE_NAME_LABEL = "ImgFileName"
 

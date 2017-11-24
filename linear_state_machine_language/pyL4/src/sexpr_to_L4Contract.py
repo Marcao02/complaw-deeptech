@@ -8,7 +8,7 @@ from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
 from model.Term import FnApp
-from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, contract_bug
+from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, contract_bug, chcast
 from parse_sexpr import castse, STRING_LITERAL_MARKER
 
 
@@ -38,7 +38,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 nonlocal x
                 return streqci(x[0], constant)
 
-            if   head( GLOBAL_VARS_SECTION_LABEL ):
+            if   head( STR_ARG_MACRO_DEC_LABEL):
+                macroname = chcaststr(x[1])
+                macroparam = chcaststr(x[2])
+                macrobody = chcast(SExpr, x[3])
+                self.top.str_arg_macros[ macroname ] = StringArgMacro(macroparam, macrobody)
+
+            elif   head( GLOBAL_VARS_SECTION_LABEL ):
                 self.top.global_var_decs = self.global_vars(rem)
 
             elif head( CONTRACT_PARAMETERS_SECTION_LABEL ):
@@ -57,10 +63,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head( FORMAL_CONTRACT_SECTION_LABEL ):
                 self.construct_main_part(rem)
 
+            elif head( TIME_UNIT_DEC_LABEL ):
+                self.top.time_unit = chcaststr(x[1])
+
             elif head( DOT_FILE_NAME_LABEL ):
                 self.top.dot_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
             elif head( IMG_FILE_NAME_LABEL ):
                 self.top.img_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+
+
+
+            else:
+                raise Exception("Unsupported: ", x[0])
 
         return self.top
 
@@ -112,6 +126,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         # logging.info(str(rv))
         return rv
 
+    def handle_apply_macro(self, x:SExpr) -> SExpr:
+        macroname = chcaststr(x[1])
+        macro = self.top.str_arg_macros[macroname]
+        arg = chcaststr(x[2])
+        return macro.subst(arg)
+
+
     def construct_main_part(self, l:SExpr) -> None:
         self.top.contract_name = l[0][1] # [1] because STRLIT sexpr
         x: SExpr
@@ -121,6 +142,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)
+
+            if  head(APPLY_MACRO_LABEL):
+                x = self.handle_apply_macro(x)
 
             if head(START_SECTION_LABEL):
                 self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
@@ -175,6 +199,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     todo_once("guardsDisjointExhaustive etc in section()")
                 connection_exprs = castse(x.tillEnd(1))
                 for connection_expr in connection_exprs:
+                    if connection_expr[0] == APPLY_MACRO_LABEL:
+                        connection_expr = self.handle_apply_macro(connection_expr)
+
                     newconnection = self.connection(connection_expr, section)
                     self.top.connections.append(newconnection)
 

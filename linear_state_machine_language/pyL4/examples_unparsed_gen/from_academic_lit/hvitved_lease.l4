@@ -1,0 +1,84 @@
+----------------------------------------
+file: from_academic_lit/hvitved_lease.l4
+
+contract params:
+    DAYS_IN_A_MONTH : TimeUnit := 30
+    LEASE_DURATION : TimeUnit := (6 * 30)
+    RENT : Money := 1000
+    MAX_RENT_DELAY : TimeUnit := 7
+    MIN_TERMINATION_NOTICE : TimeUnit := (1 * 30)
+
+global vars:
+    lease_term_start : ℕ
+    lease_term_end : ℕ
+    writeOnceMore lease_terminated : Bool := False
+    branchUnaffecting inconly total_rent_paid : ℕ := 0
+
+section Start:
+    Landlord must EnsureApartmentReady immediately
+
+action RequestTerminationFromMonthStarted transitions to MonthStarted:
+    transform:
+        lease_terminated := True
+
+
+action RequestTerminationFromAfterPayRent transitions to AfterPayRent:
+    transform:
+        lease_terminated := True
+
+
+action RequestTerminationFromMonthEnded transitions to MonthEnded:
+    transform:
+        lease_terminated := True
+
+
+action EnsureApartmentReady transitions to AfterEnsureApartmentReady:
+
+section AfterEnsureApartmentReady:
+    StartLeaseTerm
+
+action StartLeaseTerm transitions to MonthStarted:
+    transform:
+        prove ((eventTimestamp ) == (monthStartDay ))
+        lease_term_start := (eventTimestamp )
+        lease_term_end := ((eventTimestamp ) + LEASE_DURATION)
+
+
+action EnterMonthStarted transitions to MonthStarted:
+
+section MonthStarted:
+    Tenant weakly-must PayRent (by ((monthStartDay ) + MAX_RENT_DELAY))
+    if (not lease_terminated):
+        Tenant may RequestTerminationFromMonthStarted (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+
+action PayRent transitions to AfterPayRent:
+    transform:
+        total_rent_paid += 1000
+
+
+section AfterPayRent:
+    EnterMonthEnded (on-ts (monthEndDay ))
+    if (not lease_terminated):
+        Tenant may RequestTerminationFromAfterPayRent (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+
+action EnterMonthEnded transitions to MonthEnded:
+    prove 1 ≤ traversals ≤ nonconstant
+
+section MonthEnded:
+    if (lease_term_end ≤ ((sectionEntranceTimestamp ) + 1)):
+        EnterLeaseTermEnded (on-ts lease_term_end)
+    if (lease_term_end > ((sectionEntranceTimestamp ) + 1)):
+        EnterMonthStarted (after-exact-duration 1)
+    if (not lease_terminated):
+        Tenant may RequestTerminationFromMonthEnded (by (earliest ((monthStartDay ) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))
+
+action EnterLeaseTermEnded transitions to LeaseTermEnded:
+    prove 1 ≤ traversals ≤ nonconstant
+
+section LeaseTermEnded:
+    if lease_terminated:
+        Tenant must MoveOut immediately
+    if (not lease_terminated):
+        StartLeaseTerm
+
+action MoveOut transitions to Fulfilled:

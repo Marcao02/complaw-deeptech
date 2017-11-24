@@ -64,3 +64,14 @@ def castse(x: Any) -> SExpr:
     return cast(SExpr, x)
 
 SExprOrStr = Union[SExpr,str]
+
+def sexpr_subst_string(sexpr_or_str: SExprOrStr, str_to_replace: str, replacement_str: str) -> SExprOrStr:
+    if isinstance(sexpr_or_str, str):
+        return sexpr_or_str.replace(str_to_replace, replacement_str)
+    else:
+        return SExpr(
+            symb = sexpr_or_str.symb.replace(str_to_replace, replacement_str),
+            lst = list(map(lambda child: sexpr_subst_string(child, str_to_replace, replacement_str), sexpr_or_str.lst)),
+            line = sexpr_or_str.line,
+            col = sexpr_or_str.col
+        )

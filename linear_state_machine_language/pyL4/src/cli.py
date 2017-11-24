@@ -12,6 +12,7 @@ EXAMPLES = [
     'degenerate/collatz.l4',
     'toy_and_teaching/monster_burger_program_only.l4',
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+    'from_academic_lit/hvitved_lease.l4',
 ]
 
 if __name__ == '__main__':

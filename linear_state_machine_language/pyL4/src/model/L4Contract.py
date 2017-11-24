@@ -1,6 +1,7 @@
 # from typing import Union, List, Dict, Any, Tuple
 from typing import Set, NamedTuple, Iterable, Any, Union, Sequence
 
+from StringArgMacro import StringArgMacro
 from model.ContractClaim import ContractClaim
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransformStatement import LocalVarDec
@@ -15,8 +16,6 @@ class L4Contract:
     def __init__(self, filename:str) -> None:
         self.filename = filename
         self.contract_name : str = "to be set"
-        self.dot_file_name : Optional[str] = None # for input file to graphviz
-        self.img_file_name: Optional[str] = None  # for graphviz output
         self.prose_contract : Dict[ProseClauseId, str] = dict() # mapping clause id string to clause string
 
         self.start_section = cast(SectionId,"to be assigned")
@@ -32,6 +31,13 @@ class L4Contract:
         self.connections: List[Connection] = list()
 
         self.ordered_declarations : List[Union[Action,Section]] = list()
+
+        self.str_arg_macros : Dict[str, StringArgMacro] = dict()
+
+        self.time_unit : str = "none given"
+
+        self.dot_file_name: Optional[str] = None  # for input file to graphviz
+        self.img_file_name: Optional[str] = None  # for graphviz output
 
     #
     # def connections(self) -> Iterator[Connection]:
