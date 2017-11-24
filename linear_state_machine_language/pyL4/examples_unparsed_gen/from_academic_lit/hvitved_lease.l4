@@ -18,10 +18,19 @@ section Start:
     Landlord must EnsureApartmentReady immediately
 
 action RequestTerminationFromMonthStarted transitions to MonthStarted:
+    transform:
+        lease_terminated := True
+
 
 action RequestTerminationFromAfterPayRent transitions to AfterPayRent:
+    transform:
+        lease_terminated := True
+
 
 action RequestTerminationFromMonthEnded transitions to MonthEnded:
+    transform:
+        lease_terminated := True
+
 
 action EnsureApartmentReady transitions to AfterEnsureApartmentReady:
 

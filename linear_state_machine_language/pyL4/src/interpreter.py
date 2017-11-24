@@ -42,7 +42,7 @@ class Event(NamedTuple):
     timestamp: TimeStamp
     params: Optional[ActionParamSubst]
 
-def breachSectionId(*role_ids:RoleId):
+def breachSectionId(*role_ids:str):
     return "breach_" + "_".join(role_ids)
 
 class EventConsumptionResult:
@@ -127,7 +127,7 @@ class ExecEnv:
 
         max_section_id_len = max(max(
             len(self._top.action(event.action_id).dest_section_id) for event in trace
-        ), len(finalSectionId))
+        ), len(finalSectionId) if finalSectionId else 0)
         max_action_str_len = max(
             len(event_to_action_str(event)) for event in trace
         )
@@ -303,7 +303,7 @@ class ExecEnv:
                 return True
         return False
 
-    def apply_action(self, action:Action, params:ActionParamSubst, next_timestamp: TimeStamp):
+    def apply_action(self, action:Action, params:Optional[ActionParamSubst], next_timestamp: TimeStamp):
         if action.global_state_transform:
             self.evalCodeBlock(action.global_state_transform)
 

@@ -102,8 +102,11 @@ class L4Contract:
         return self.actions_by_id.values()
     def action_ids(self) -> Iterable[ActionId]:
         return self.actions_by_id.keys()
-    def action(self, anid: ActionId) -> Optional[Action]:
-        return self.actions_by_id[anid] if anid in self.actions_by_id else None
+    def action(self, anid: ActionId) -> Action:
+        if anid not in self.actions_by_id:
+            raise SyntaxError(f"No Action found with it {anid}")
+        return self.actions_by_id[anid]
+        # return self.actions_by_id[anid] if anid in self.actions_by_id else None
 
     def varDecObj(self, varname:str) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
         if varname in self.global_var_decs:

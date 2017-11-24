@@ -188,7 +188,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 nonlocal x
                 return streqci(x[0], constant)
 
-            if head(SECTION_DESCRIPTION_LABEL):
+            if head(SECTION_PRECONDITION_LABEL):
+                section.preconditions.append(x[1])
+
+            elif head(SECTION_DESCRIPTION_LABEL):
                 section.section_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(OUT_CONNECTIONS_LABEL):
@@ -228,7 +231,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     print("problem", x)
                 return streqci(x[0], constant)
 
-            if head(ACTION_DESCRIPTION_LABEL):
+            if head(ACTION_PRECONDITION_LABEL):
+                a.preconditions.append(x[1])
+
+            elif head(ACTION_POSTCONDITION_LABEL):
+                a.postconditions.append(x[1])
+
+            elif head(ACTION_DESCRIPTION_LABEL):
                 a.action_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(CODE_BLOCK_LABEL):
@@ -277,6 +286,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def global_state_transform_statement_dispatch(self, statement:SExpr, parent_action:Action) -> GlobalStateTransformStatement:
         try:
+            if statement[0] == APPLY_MACRO_LABEL:
+                statement = self.handle_apply_macro(statement)
+
             if statement[0] == 'conjecture':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
                 rhs = self.term(statement[1], None, parent_action)
@@ -341,8 +353,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             raise SyntaxError(f'Unrecognized atom: {x}')
 
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
+            raise Exception("can this still happen??")
             return StringLit(chcaststr(x[1]))
-        else:
+
+        else: # SExpr
+            if x[0] == APPLY_MACRO_LABEL:
+                x = self.handle_apply_macro(x)
+
             pair = maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)
             if pair:
                 return FnApp(
@@ -351,7 +368,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 )
             else:
                 self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
-                # raise SyntaxError()
+                raise SyntaxError() # this is just to get mypy to not complain about missing return statement
 
 
     def deadline_clause(self, expr:SExpr, src_section:Section) -> Term:

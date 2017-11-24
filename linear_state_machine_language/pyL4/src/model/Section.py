@@ -10,16 +10,14 @@ from model.Connection import Connection, ConnectionToEnvAction
 class Section:
     def __init__(self, section_id: SectionId) -> None:
         self.section_id = section_id
-
         self.visit_bounds: Optional[SExpr] = None
+        self.section_description: Optional[str] = None
+        self.is_compound = False
+        self.prose_refs: List[str] = []
+
+        self.preconditions: List[SExpr] = []
 
         self.connections_by_role: Dict[RoleId, List[Connection]] = dict()
-
-        self.section_description: Optional[str] = None
-
-        self.is_compound = False
-
-        self.prose_refs: List[str] = []
 
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")

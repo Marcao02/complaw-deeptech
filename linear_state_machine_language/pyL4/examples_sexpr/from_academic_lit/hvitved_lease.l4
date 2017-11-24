@@ -24,18 +24,18 @@
 	(branchUnaffecting inconly total_rent_paid : ℕ := 0)
 )
 
-(str-arg-macro RequestTerminationConnectionMacroTenant SectionId
+(Macro RequestTerminationConnectionMacroTenant SectionId
 	(if (not lease_terminated)
 		(Tenant may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH))))
 	)
 )
-(str-arg-macro RequestTerminationConnectionMacroLandlord SectionId
+(Macro RequestTerminationConnectionMacroLandlord SectionId
 	(if (not lease_terminated)
 		(Landlord may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH))))
 	)
 )
 
-(str-arg-macro RequestTerminationActionMacro SectionId
+(Macro RequestTerminationActionMacro SectionId
 	(Action RequestTerminationFromSectionId
 		(StateTransform
 			(lease_terminated := true)

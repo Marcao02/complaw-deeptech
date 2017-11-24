@@ -61,7 +61,7 @@ PROSE_CONTRACT_AREA_LABEL = "ProseContract"
 FORMAL_CONTRACT_AREA_LABEL = "FormalContract"
 ROLES_DEC_LABEL = "Roles"
 TIME_UNIT_DEC_LABEL = "TimeUnit"
-STR_ARG_MACRO_DEC_LABEL = "str-arg-macro"
+STR_ARG_MACRO_DEC_LABEL = "Macro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"
 TOPLEVEL_CLAIMS_AREA_LABEL = "Claims"
 DOT_FILE_NAME_LABEL = "DotFileName"
@@ -76,6 +76,7 @@ ACTION_LABEL = "Action"
 # ------------Inside a section declaration------------
 ALLOWED_SUBJECTS_DEC_LABEL = "AllowedSubjects"
 SECTION_DESCRIPTION_LABEL = "Description"
+SECTION_PRECONDITION_LABEL = "Pre"
 PROSE_REFS_LABEL = "ProseRefs"
 OUT_CONNECTIONS_LABEL = "Next"
 
@@ -83,6 +84,9 @@ OUT_CONNECTIONS_LABEL = "Next"
 TRANSITIONS_TO_LABEL = "TransitionsTo"
 CODE_BLOCK_LABEL = "StateTransform"
 ACTION_DESCRIPTION_LABEL = "Description"
+ACTION_PRECONDITION_LABEL = "Pre"
+ACTION_POSTCONDITION_LABEL = "Post"
+
 
 # ------------Misc------------
 FULFILLED_SECTION_LABEL = cast(SectionId, "Fulfilled")

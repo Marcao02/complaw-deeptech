@@ -14,19 +14,15 @@ class Action:
         self.dest_section_id : SectionId
         self.traversal_bounds: Optional[SExpr] = None
         self.allowed_subjects: Optional[SExpr] = None
+        self.action_description: Optional[str] = None
+        self.local_vars: Dict[LocalVarId,LocalVarDec] = dict()
+        self.is_compound = False
 
         self.params : Optional[Dict[ActionParamId,SortId]] = None # str param -> str sort
         self.global_state_transform : Optional[GlobalStateTransform] = None
-
-        self.action_description: Optional[str] = None
-
-        self.local_vars: Dict[LocalVarId,LocalVarDec] = dict()
-
-        self.is_compound = False
-
+        self.preconditions: List[SExpr] = []
+        self.postconditions: List[SExpr] = []
         self.prose_refs : List[str] = []
-
-
 
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")
