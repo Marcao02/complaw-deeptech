@@ -92,7 +92,6 @@
 	)
 	(Section EatingMB
 		(0 ≤ visits ≤ nonconstant)
-		(AllowedSubjects Env)
 
         (Next
             (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.

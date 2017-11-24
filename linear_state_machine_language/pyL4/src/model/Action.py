@@ -13,6 +13,7 @@ class Action:
         self.action_id = action_id
         self.dest_section_id : SectionId
         self.traversal_bounds: Optional[SExpr] = None
+        self.allowed_subjects: Optional[SExpr] = None
 
         self.params : Optional[Dict[ActionParamId,SortId]] = None # str param -> str sort
         self.global_state_transform : Optional[GlobalStateTransform] = None

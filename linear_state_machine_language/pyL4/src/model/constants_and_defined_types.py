@@ -52,41 +52,38 @@ POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 
 DEONTIC_MODALITIES = {'must','may','should','weakly-must'}
 DeonticModality = NewType('DeonticModality',str)
-# DEONTIC_GUARD_MODALITIES = {'mustif','mayif','shouldif'}
-# DEONTIC_KEYWORDS = DEONTIC_GUARD_MODALITIES.union(DEONTIC_MODALITIES)
 
+# Aside form "Misc" group, the following are not actually case sensitive
 
-APPLY_MACRO_LABEL = "apply-macro"
-
-
-# These are not actually case sensitive
-GLOBAL_VARS_SECTION_LABEL = "GlobalVars"
-CLAIMS_SECTION_LABEL = "Claims"
-PROSE_CONTRACT_SECTION_LABEL = "ProseContract"
-FORMAL_CONTRACT_SECTION_LABEL = "FormalContract"
-ROLES_SECTION_LABEL = "Roles"
+# ------------Top-level declarations------------
+GLOBAL_VARS_AREA_LABEL = "GlobalVars"
+PROSE_CONTRACT_AREA_LABEL = "ProseContract"
+FORMAL_CONTRACT_AREA_LABEL = "FormalContract"
+ROLES_DEC_LABEL = "Roles"
 TIME_UNIT_DEC_LABEL = "TimeUnit"
 STR_ARG_MACRO_DEC_LABEL = "str-arg-macro"
+CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"
+TOPLEVEL_CLAIMS_AREA_LABEL = "Claims"
 DOT_FILE_NAME_LABEL = "DotFileName"
 IMG_FILE_NAME_LABEL = "ImgFileName"
 
-
-CONTRACT_PARAMETERS_SECTION_LABEL = "ContractParams"
-# EVENT_STATES_SECTION_LABEL = "Sections"
+# ------------Inside main formal contract declarations------------
+APPLY_MACRO_LABEL = "apply-macro"
 START_SECTION_LABEL = "StartSection"
-
 SECTION_LABEL = "Section"
 ACTION_LABEL = "Action"
 
-ENV_ROLE = cast(RoleId,"Env")
-
-TRANSITIONS_TO_LABEL = "TransitionsTo"
-CODE_BLOCK_LABEL = "StateTransform"
+# ------------Inside a section declaration------------
+ALLOWED_SUBJECTS_DEC_LABEL = "AllowedSubjects"
 SECTION_DESCRIPTION_LABEL = "Description"
-ACTION_DESCRIPTION_LABEL = "Description"
 PROSE_REFS_LABEL = "ProseRefs"
 OUT_CONNECTIONS_LABEL = "Next"
 
+# ------------Inside an action declaration------------
+TRANSITIONS_TO_LABEL = "TransitionsTo"
+CODE_BLOCK_LABEL = "StateTransform"
+ACTION_DESCRIPTION_LABEL = "Description"
+
+# ------------Misc------------
 FULFILLED_SECTION_LABEL = cast(SectionId, "Fulfilled")
-
-
+ENV_ROLE = cast(RoleId,"Env")

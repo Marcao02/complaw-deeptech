@@ -8,7 +8,7 @@ from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
 from model.Term import FnApp
-from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, contract_bug, chcast
+from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 from parse_sexpr import castse, STRING_LITERAL_MARKER
 
 
@@ -44,23 +44,23 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 macrobody = chcast(SExpr, x[3])
                 self.top.str_arg_macros[ macroname ] = StringArgMacro(macroparam, macrobody)
 
-            elif   head( GLOBAL_VARS_SECTION_LABEL ):
+            elif   head(GLOBAL_VARS_AREA_LABEL):
                 self.top.global_var_decs = self.global_vars(rem)
 
-            elif head( CONTRACT_PARAMETERS_SECTION_LABEL ):
+            elif head(CONTRACT_PARAMETERS_AREA_LABEL):
                 # assert all(isinstance(expr[0],str) for expr in rem)
                 self.top.contract_params = {castid(ContractParamId,expr[0]) : self.contract_param(expr) for expr in rem}
 
-            elif head( CLAIMS_SECTION_LABEL ):
+            elif head(TOPLEVEL_CLAIMS_AREA_LABEL):
                 self.top.claims = self.claims(rem)
 
-            elif head( ROLES_SECTION_LABEL ):
+            elif head(ROLES_DEC_LABEL):
                 self.top.roles = self.actors(rem)
 
-            elif head( PROSE_CONTRACT_SECTION_LABEL ):
+            elif head(PROSE_CONTRACT_AREA_LABEL):
                 self.top.prose_contract = self.prose_contract(cast(List[List[str]], rem))
 
-            elif head( FORMAL_CONTRACT_SECTION_LABEL ):
+            elif head(FORMAL_CONTRACT_AREA_LABEL):
                 self.construct_main_part(rem)
 
             elif head( TIME_UNIT_DEC_LABEL ):
@@ -70,8 +70,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.dot_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
             elif head( IMG_FILE_NAME_LABEL ):
                 self.top.img_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
-
-
 
             else:
                 raise Exception("Unsupported: ", x[0])
@@ -212,6 +210,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 section.visit_bounds = x # self.term(x, None, section)
 
             else:
+                self.syntaxError(x, f"Unsupported declaration type {x[0]} in section {section_id}")
                 todo_once(f"Handle {x[0]} in section dec")
 
         return section
@@ -245,6 +244,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif 'traversals' in x or 'visits' in x:
                 a.traversal_bounds = x # self.term(x, None, a)
+
+            elif head(ALLOWED_SUBJECTS_DEC_LABEL):
+                a.allowed_subjects = x[1:]
 
             else:
                 todo_once(f"Handle {x[0]} in action dec")
@@ -360,7 +362,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if expr[0] in DEADLINE_PREDICATES:
                 return self.term(expr, src_section)
             else:
-                contract_bug("Unhandled deadline predicate in L4ContractConstructor.deadline_clause(): " + str(expr))
+                self.syntaxError(expr, "Unhandled deadline predicate in L4ContractConstructor.deadline_clause(): " + str(expr))
         raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
 
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
