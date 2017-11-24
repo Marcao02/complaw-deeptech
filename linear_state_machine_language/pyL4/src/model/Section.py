@@ -12,7 +12,6 @@ class Section:
         self.section_id = section_id
         self.visit_bounds: Optional[SExpr] = None
         self.section_description: Optional[str] = None
-        self.is_compound = False
         self.prose_refs: List[str] = []
 
         self.preconditions: List[SExpr] = []
@@ -31,8 +30,11 @@ class Section:
     def __str__(self) -> str:
         rv = f"section {self.section_id}:\n"
 
+        for pre in self.preconditions:
+            rv += indent(1) + "pre: " + str(pre) + "\n"
+
         if self.section_description:
-            rv += indent(1) + "description: " + self.section_description
+            rv += indent(1) + "description: " + self.section_description + "\n"
 
         if self.visit_bounds:
             rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"

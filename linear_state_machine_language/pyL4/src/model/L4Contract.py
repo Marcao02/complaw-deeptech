@@ -141,7 +141,7 @@ class L4Contract:
             line(gv,1)
 
         if self.claims:
-            line('\nClaims:')
+            line('\nclaims:')
             for c in self.claims:
                 line(c,1)
 

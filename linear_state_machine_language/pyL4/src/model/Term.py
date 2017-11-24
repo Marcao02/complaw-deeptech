@@ -15,9 +15,13 @@ class FnApp(Term):
 
     def __str__(self):
         if self.head in PREFIX_FN_SYMBOLS:
-            return f"({self.head} {' '.join([str(x) for x in self.args])})"
+            if self.head == 'not':
+                return f"¬{self.args[0]}"
+            else:
+                return f"({self.head} {' '.join([str(x) for x in self.args])})"
         elif self.head in POSTFIX_FN_SYMBOLS:
             return f"({' '.join([str(x) for x in self.args])} {self.head})"
         else:
             assert self.head in INFIX_FN_SYMBOLS and len(self.args) == 2
-            return f"({self.args[0]} {self.head} {self.args[1]})"
+            return f"{self.args[0]} {self.head} {self.args[1]}"
+            # return f"({self.args[0]} {self.head} {self.args[1]})"

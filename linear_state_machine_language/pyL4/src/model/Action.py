@@ -33,11 +33,16 @@ class Action:
         if self.params:
             rv += f'({mapjoin(str, self.params, ", ")}) '
         rv += ":\n"
+        for pre in self.preconditions:
+            rv += indent(1) + "pre: " + str(pre) + "\n"
         if self.traversal_bounds:
             rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
         if self.global_state_transform:
             rv += str(self.global_state_transform)
             rv += "\n"
+
+        for pre in self.postconditions:
+            rv += indent(1) + "post: " + str(pre) + "\n"
         return rv
 
     def __repr__(self) -> str:

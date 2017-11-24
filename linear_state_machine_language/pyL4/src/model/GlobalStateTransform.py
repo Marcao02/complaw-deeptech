@@ -17,5 +17,8 @@ class GlobalStateTransform:
         for statement in self.statements:
             line(statement, 2)
 
+        # kill the final \n
+        rv = rv[:-1]
+
         return rv
 

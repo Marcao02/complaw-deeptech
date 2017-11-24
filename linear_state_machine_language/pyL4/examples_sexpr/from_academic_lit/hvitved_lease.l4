@@ -70,7 +70,7 @@
 
 	(Action StartLeaseTerm
 		(StateTransform
-			(conjecture ((eventTimestamp) == (monthStartDay)))
+			; (conjecture ((eventTimestamp) == (monthStartDay)))
 			(lease_term_start := (eventTimestamp))
 			(lease_term_end := ((eventTimestamp) + LEASE_DURATION))
 		)

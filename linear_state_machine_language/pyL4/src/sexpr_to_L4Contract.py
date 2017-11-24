@@ -179,9 +179,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.syntaxError(l, f"Unrecognized head {x[0]}")
 
 
-    def section(self, section_id:SectionId, rest:SExpr, is_compound = False) -> Section:
+    def section(self, section_id:SectionId, rest:SExpr) -> Section:
         section = Section(section_id)
-        section.is_compound = is_compound
         x: SExpr
         for x in rest:
             def head(constant:str) -> bool:
@@ -189,7 +188,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(SECTION_PRECONDITION_LABEL):
-                section.preconditions.append(x[1])
+                section.preconditions.append( self.term(x[1], section) )
 
             elif head(SECTION_DESCRIPTION_LABEL):
                 section.section_description = chcaststr(x[1][1]) # extract from STRLIT expression
@@ -232,10 +231,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(ACTION_PRECONDITION_LABEL):
-                a.preconditions.append(x[1])
+                a.preconditions.append(self.term(x[1], None, a))
 
             elif head(ACTION_POSTCONDITION_LABEL):
-                a.postconditions.append(x[1])
+                a.postconditions.append(self.term(x[1], None, a))
 
             elif head(ACTION_DESCRIPTION_LABEL):
                 a.action_description = chcaststr(x[1][1]) # extract from STRLIT expression

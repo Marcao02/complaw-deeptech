@@ -14,20 +14,18 @@ global vars:
 action EnterWaitingForFirstDayOfNextMonth transitions to WaitingForFirstDayOfNextMonth:
 
 section WaitingForFirstDayOfNextMonth:
-    if ((MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23)):
-        Buyer weakly-must PayInstallment(amount) (after-exact-duration 30) where ((MIN_PAYMENT ≤ amount) and (amount ≤ balance_remaining))
-    Buyer weakly-must PayLastInstallment(amount) (after-exact-duration 30) where (amount == (balance_remaining + DUE_AT_CLOSING))
+    if MIN_PAYMENT ≤ balance_remaining and next_payment_month < 23:
+        Buyer weakly-must PayInstallment(amount) (after-exact-duration 30) where MIN_PAYMENT ≤ amount and amount ≤ balance_remaining
+    Buyer weakly-must PayLastInstallment(amount) (after-exact-duration 30) where amount == balance_remaining + DUE_AT_CLOSING
 
 action PayInstallment transitions to WaitingForFirstDayOfNextMonth(amount) :
     transform:
-        prove (amount ≤ balance_remaining)
+        prove amount ≤ balance_remaining
         balance_remaining -= amount
-        balance_remaining *= (1 + INTEREST_RATE)
+        balance_remaining *= 1 + INTEREST_RATE
         next_payment_month += 1
-
 
 action PayLastInstallment transitions to Fulfilled(amount) :
     transform:
-        prove (amount == (balance_remaining + DUE_AT_CLOSING))
+        prove amount == balance_remaining + DUE_AT_CLOSING
         balance_remaining := 0
-
