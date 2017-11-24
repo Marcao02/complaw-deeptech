@@ -104,7 +104,7 @@ class L4Contract:
         return self.actions_by_id.keys()
     def action(self, anid: ActionId) -> Action:
         if anid not in self.actions_by_id:
-            raise SyntaxError(f"No Action found with it {anid}")
+            raise SyntaxError(f"No Action found with id {anid}")
         return self.actions_by_id[anid]
         # return self.actions_by_id[anid] if anid in self.actions_by_id else None
 
