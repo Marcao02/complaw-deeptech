@@ -1,0 +1,87 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph SAFE {    
+    Fulfilled[label=Fufilled];
+    InvestorInvests[label=InvestorInvests];
+	AfterCommitToEquityFinancing[label=AfterCommitToEquityFinancing];
+	AfterDeliverDocsWithPRA_E[label=AfterDeliverDocsWithPRA_E];
+	AfterDeliverDocsWithoutPRA_E[label=AfterDeliverDocsWithoutPRA_E];
+	AfterSubmitProRataRightsAgreementForSigning_E[label=AfterSubmitProRataRightsAgreementForSigning_E];
+	AfterSignPRA_E[label=AfterSignPRA_E];
+	AfterIssueSAFEPreferredStock_E[label=AfterIssueSAFEPreferredStock_E];
+	AfterCommitToLiquidityEvent[label=AfterCommitToLiquidityEvent];
+	AfterAutoChooseStockPayment_L[label=AfterAutoChooseStockPayment_L];
+	AfterChooseStockPayment_L[label=AfterChooseStockPayment_L];
+	AfterTransferCommonStock_L[label=AfterTransferCommonStock_L];
+	AfterChooseCashPayment_L[label=AfterChooseCashPayment_L];
+	AfterTransferCash_L[label=AfterTransferCash_L];
+	AfterCommitToDissolution[label=AfterCommitToDissolution];
+	AfterTransferCash_D[label=AfterTransferCash_D];
+	AfterTransferAssets_D[label=AfterTransferAssets_D]
+    
+     
+    CommitToEquityFinancing[label=CommitToEquityFinancing,shape=box];
+	DeliverDocsWithPRA_E[label=DeliverDocsWithPRA_E,shape=box];
+	DeliverDocsWithoutPRA_E[label=DeliverDocsWithoutPRA_E,shape=box];
+	SubmitProRataRightsAgreementForSigning_E[label=SubmitProRataRightsAgreementForSigning_E,shape=box];
+	SignPRA_E[label=SignPRA_E,shape=box];
+	IssueSAFEPreferredStock_E[label=IssueSAFEPreferredStock_E,shape=box];
+	DoEquityFinancing[label=DoEquityFinancing,shape=box];
+	CommitToLiquidityEvent[label=CommitToLiquidityEvent,shape=box];
+	AutoChooseStockPayment_L[label=AutoChooseStockPayment_L,shape=box];
+	ChooseStockPayment_L[label=ChooseStockPayment_L,shape=box];
+	TransferCommonStock_L[label=TransferCommonStock_L,shape=box];
+	ChooseCashPayment_L[label=ChooseCashPayment_L,shape=box];
+	TransferCash_L[label=TransferCash_L,shape=box];
+	DoLiquidityEvent[label=DoLiquidityEvent,shape=box];
+	CommitToDissolution[label=CommitToDissolution,shape=box];
+	TransferCash_D[label=TransferCash_D,shape=box];
+	TransferAssets_D[label=TransferAssets_D,shape=box];
+	Dissolve[label=Dissolve,shape=box]    
+    
+    
+    
+    InvestorInvests -> CommitToEquityFinancing;
+	InvestorInvests -> CommitToLiquidityEvent;
+	InvestorInvests -> CommitToLiquidityEvent;
+	InvestorInvests -> CommitToDissolution;
+	AfterCommitToEquityFinancing -> DeliverDocsWithPRA_E;
+	AfterCommitToEquityFinancing -> DeliverDocsWithoutPRA_E;
+	AfterDeliverDocsWithPRA_E -> IssueSAFEPreferredStock_E;
+	AfterDeliverDocsWithoutPRA_E -> SubmitProRataRightsAgreementForSigning_E;
+	AfterSubmitProRataRightsAgreementForSigning_E -> SignPRA_E;
+	AfterSignPRA_E -> IssueSAFEPreferredStock_E;
+	AfterIssueSAFEPreferredStock_E -> DoEquityFinancing;
+	AfterCommitToLiquidityEvent -> ChooseCashPayment_L;
+	AfterCommitToLiquidityEvent -> ChooseStockPayment_L;
+	AfterCommitToLiquidityEvent -> AutoChooseStockPayment_L;
+	AfterAutoChooseStockPayment_L -> TransferCommonStock_L;
+	AfterChooseStockPayment_L -> TransferCommonStock_L;
+	AfterTransferCommonStock_L -> DoLiquidityEvent;
+	AfterChooseCashPayment_L -> TransferCash_L;
+	AfterTransferCash_L -> TransferCommonStock_L;
+	AfterTransferCash_L -> DoLiquidityEvent;
+	AfterCommitToDissolution -> TransferCash_D;
+	AfterTransferCash_D -> TransferAssets_D;
+	AfterTransferCash_D -> Dissolve;
+	AfterTransferAssets_D -> Dissolve
+    
+    CommitToEquityFinancing -> AfterCommitToEquityFinancing [style=dashed];
+	DeliverDocsWithPRA_E -> AfterDeliverDocsWithPRA_E [style=dashed];
+	DeliverDocsWithoutPRA_E -> AfterDeliverDocsWithoutPRA_E [style=dashed];
+	SubmitProRataRightsAgreementForSigning_E -> AfterSubmitProRataRightsAgreementForSigning_E [style=dashed];
+	SignPRA_E -> AfterSignPRA_E [style=dashed];
+	IssueSAFEPreferredStock_E -> AfterIssueSAFEPreferredStock_E [style=dashed];
+	DoEquityFinancing -> Fulfilled [style=dashed];
+	CommitToLiquidityEvent -> AfterCommitToLiquidityEvent [style=dashed];
+	AutoChooseStockPayment_L -> AfterAutoChooseStockPayment_L [style=dashed];
+	ChooseStockPayment_L -> AfterChooseStockPayment_L [style=dashed];
+	TransferCommonStock_L -> AfterTransferCommonStock_L [style=dashed];
+	ChooseCashPayment_L -> AfterChooseCashPayment_L [style=dashed];
+	TransferCash_L -> AfterTransferCash_L [style=dashed];
+	DoLiquidityEvent -> Fulfilled [style=dashed];
+	CommitToDissolution -> AfterCommitToDissolution [style=dashed];
+	TransferCash_D -> AfterTransferCash_D [style=dashed];
+	TransferAssets_D -> AfterTransferAssets_D [style=dashed];
+	Dissolve -> Fulfilled [style=dashed]        
+}

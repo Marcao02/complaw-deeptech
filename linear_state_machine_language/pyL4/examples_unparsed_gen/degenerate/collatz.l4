@@ -15,12 +15,12 @@ section Ongoing:
     if x > 1 and (odd x):
         TripplePlus1
 
-action DivideBy2 transitions to Ongoing:
+action DivideBy2()  transitions to Ongoing:
     transform:
         x := x / 2
 
-action TripplePlus1 transitions to Ongoing:
+action TripplePlus1()  transitions to Ongoing:
     transform:
         x := 3 * x + 1
 
-action EnterFulfilled transitions to Fulfilled:
+action EnterFulfilled()  transitions to Fulfilled

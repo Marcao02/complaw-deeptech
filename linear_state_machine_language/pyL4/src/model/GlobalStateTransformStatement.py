@@ -3,12 +3,32 @@ from typing import List, Union, Optional, NamedTuple
 
 from model.Term import Term
 from model.constants_and_defined_types import LocalVarId, LocalOrGlobalVarId
-from model.util import castid
+from model.util import castid, indent
 
 
 class GlobalStateTransformStatement:
     """ Just the common parent """
-    pass
+    def toStr(self, i:int):
+        return indent(i) + str(self)
+
+
+class IfElse(GlobalStateTransformStatement):
+    def __init__(self, test:Term,
+                 true_branch:List[GlobalStateTransformStatement],
+                 false_branch: List[GlobalStateTransformStatement]) -> None:
+        self.test = test
+        self.true_branch = true_branch
+        self.false_branch = false_branch
+
+    def toStr(self,i:int):
+        rv = indent(i) + f"if {self.test}:\n"
+        for x in self.true_branch:
+            rv += indent(i+1) + str(x)
+        rv += "\n" + indent(i) + "else:\n"
+        for x in self.false_branch:
+            rv += indent(i + 1) + str(x)
+        return rv
+
 
 class VarAssignStatement(GlobalStateTransformStatement):
     def __init__(self, varname:LocalOrGlobalVarId, value_expr:Term) -> None:

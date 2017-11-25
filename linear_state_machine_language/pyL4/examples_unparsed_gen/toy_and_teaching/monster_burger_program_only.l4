@@ -16,7 +16,7 @@ global vars:
 section MonsterBurgerUncooked:
     Challenger must RequestCookMB (nonstrictly-within 30)
 
-action RequestCookMB transitions to AfterRequestCookMB:
+action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
         amount_owing := MB_PRICE
 
@@ -24,38 +24,38 @@ section AfterRequestCookMB:
     Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
     EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY)
 
-action ServeMB transitions to EatingMB:
+action ServeMB()  transitions to EatingMB:
     transform:
         challenge_endlimit_timestamp := (TIME_TO_EAT_BURGER unitsAfterEntrance)
 
-action EnterPromptServeGuaranteeViolated transitions to Fulfilled:
+action EnterPromptServeGuaranteeViolated()  transitions to Fulfilled:
     transform:
         amount_owing := 0
 
-action EnterEatingMB transitions to EatingMB:
+action EnterEatingMB()  transitions to EatingMB
 
 section EatingMB:
     Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
     Restaurant should CheckCompletionClaim (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
     TimeToCheckCompletionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
 
-action AnnounceMBFinished transitions to AfterAnnounceMBFinished:
+action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
 
 section AfterAnnounceMBFinished:
     Restaurant should CheckCompletionClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
     TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
 
-action TimeToCheckCompletionExpires transitions to Fulfilled:
+action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:
         amount_owing := 0
 
-action CheckCompletionClaim transitions to AfterCheckCompletionClaim:
+action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
 
 section AfterCheckCompletionClaim:
     Restaurant weakly-must VerifyCompletionClaim immediately
     Restaurant weakly-must RejectCompletionClaim immediately
 
-action RejectCompletionClaim transitions to AfterRejectCompletionClaim:
+action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
 
 section AfterRejectCompletionClaim:
     if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp):
@@ -63,11 +63,11 @@ section AfterRejectCompletionClaim:
     if (entranceTimeAfter-ts? challenge_endlimit_timestamp):
         Customer must PayForMB immediately
 
-action PayForMB transitions to Fulfilled:
+action PayForMB()  transitions to Fulfilled:
     transform:
         amount_paid := amount_owing
         amount_owing := 0
 
-action VerifyCompletionClaim transitions to Fulfilled:
+action VerifyCompletionClaim()  transitions to Fulfilled:
     transform:
         amount_owing := 0

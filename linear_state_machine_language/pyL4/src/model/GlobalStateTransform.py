@@ -1,6 +1,7 @@
 from typing import List
 
 from model.GlobalStateTransformStatement import GlobalStateTransformStatement
+from model.util import indent
 
 
 class GlobalStateTransform:
@@ -11,11 +12,11 @@ class GlobalStateTransform:
         rv = ""
         def line(s, newindent=0):
             nonlocal rv
-            rv += 4*newindent*" " + str(s) + "\n"
+            rv += indent(newindent) + s + "\n"
 
         line("transform:",1)
         for statement in self.statements:
-            line(statement, 2)
+            rv += statement.toStr(2) + "\n"
 
         # kill the final \n
         rv = rv[:-1]

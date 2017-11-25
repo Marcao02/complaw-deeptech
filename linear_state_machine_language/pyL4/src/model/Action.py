@@ -30,17 +30,22 @@ class Action:
     #     return list(self.connections_by_role.keys())
 
     def __str__(self):
-        rv = f"action {self.action_id} transitions to {self.dest_section_id}"
+        rv = f"action {self.action_id}"
         if self.params:
             rv += f'({mapjoin(str, self.params, ", ")}) '
-        rv += ":\n"
+        else:
+            rv += "() " # makes it look better with python syntax highlighting
+        rv +=  f" transitions to {self.dest_section_id}"
+        if len(self.preconditions) > 0 or self.global_state_transform or len(self.postconditions) > 0:
+            rv += ":\n"
+        else:
+            rv += "\n" # nothing more in this action decl
         for pre in self.preconditions:
             rv += indent(1) + "pre: " + str(pre) + "\n"
         # if self.traversal_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
         if self.global_state_transform:
-            rv += str(self.global_state_transform)
-            rv += "\n"
+            rv += str(self.global_state_transform) + "\n"
 
         for pre in self.postconditions:
             rv += indent(1) + "post: " + str(pre) + "\n"

@@ -7,6 +7,7 @@ from model.BoundVar import LocalVar, GlobalVar, ContractParam, ConnectionDeclAct
 from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
+from model.SExpr import SExprOrStr
 from model.Term import FnApp
 from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 from model.StringArgMacro import StringArgMacro
@@ -20,11 +21,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
         self.after_model_build_requirements : List[Callable[[],bool]]
 
-    def syntaxError(self, expr: SExpr, msg:Optional[str] = None):
-        raise SyntaxError((msg if msg else "") +
-                          "\n" + str(expr) +
-                          "\nline " + str(cast(SExpr, expr).line) +
-                          "\n" + str(self.top.filename))
+    def syntaxError(self, expr: SExprOrStr, msg:Optional[str] = None):
+        if isinstance(expr,SExpr):
+            raise SyntaxError((msg if msg else "") +
+                              "\n" + str(expr) +
+                              "\nline " + str(cast(SExpr, expr).line) +
+                              "\n" + str(self.top.filename))
+        else:
+            raise SyntaxError((msg if msg else "") +
+                              "\n" + str(self.top.filename))
 
     def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None):
         if not test:
@@ -66,6 +71,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head( TIME_UNIT_DEC_LABEL ):
                 self.top.time_unit = chcaststr(x[1])
+
+            elif head( DEFINITIONS_AREA ):
+                self.top.definitions = self.definitions(rem)
 
             elif head( DOT_FILE_NAME_LABEL ):
                 self.top.dot_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
@@ -119,6 +127,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         # logging.info(str(l))
         self.assertOrSyntaxError(all(isinstance(x, str) for x in s), s, "Actors declaration S-expression should have the form (Actors Alice Bob)")
         return cast(List[RoleId],s.lst.copy())
+
+    def definitions(self, s:SExpr) -> Dict[DefinitionId, Definition]:
+        self.assertOrSyntaxError(all(len(x) == 3 for x in s), s,
+                                 "Definition declaration S-expressions should have the form (id = SExpr)")
+        return {x[0] : Definition(x[0],x[2]) for x in s}
 
     def prose_contract(self, l: List[List[str]]) -> ProseContract:
         rv = {castid(ProseClauseId,x[0]): x[1] for x in l}
@@ -305,8 +318,20 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.syntaxError(statement, "Redeclaration of local variable")
                 parent_action.local_vars[varname] = lvd
                 return lvd
+            elif statement[0] == 'if':
+                test = self.term(statement[1], None, parent_action, None)
+                self.assertOrSyntaxError( isinstance(statement[2],SExpr) and isinstance(statement[4],SExpr), statement )
+                true_branch = [
+                    self.global_state_transform_statement_dispatch(inner, parent_action) for inner in statement[2]
+                ]
+                self.assertOrSyntaxError(statement[3] == 'else', statement)
+                false_branch = [
+                    self.global_state_transform_statement_dispatch(inner, parent_action) for inner in statement[4]
+                ]
+                return IfElse(test, true_branch, false_branch)
+
             else:
-                assert len(statement) == 3, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement)
+                self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement))
                 rhs = self.term(statement[2], None, parent_action)
                 varname2 = castid(LocalOrGlobalVarId, statement[0])
                 if statement[1] == ':=' or statement[1] == "=":
@@ -350,6 +375,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return ConnectionDeclActionParam(cast(ConnectionActionParamId, x), parent_connection )
             if parent_action and parent_action.params and x in parent_action.params:
                 return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
+            if x in self.top.definitions:
+                return self.term(self.top.definitions[castid(DefinitionId,x)].body, parent_section, parent_action, parent_connection)
             raise SyntaxError(f'Unrecognized atom: {x}')
 
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
@@ -403,10 +430,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             role_id = castid(RoleId, expr[0])
             deontic_keyword = castid(DeonticModality, expr[1])
-            action_id = castid(ActionId, expr[2][0])
+            if isinstance(expr[2],str):
+                action_id = castid(ActionId,expr[2])
+                args = None
+            else:
+                action_id = castid(ActionId, (expr[2][0]))
+                args = cast(List[ConnectionActionParamId], expr[2][1:])
+
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
-            args = cast(List[ConnectionActionParamId], expr[2][1:])
+
             rv = ConnectionToAction(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 

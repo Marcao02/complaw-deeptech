@@ -5,6 +5,7 @@ from model.Action import Action
 from model.Connection import *
 from model.ContractClaim import ContractClaim
 from model.ContractParamDec import ContractParamDec
+from model.Definition import Definition
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.GlobalVarDec import GlobalVarDec
 from model.Section import *
@@ -24,6 +25,7 @@ class L4Contract:
         self.roles : Iterable[RoleId] = []
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
         self.sorts : Set[SortId] = set()
+        self.definitions : Dict[DefinitionId, Definition] = dict()
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()

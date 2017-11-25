@@ -3,6 +3,7 @@ from typing import Dict, NewType, cast, Union, Tuple, Any
 
 SortId = NewType('SortId', str)
 SectionId = NewType('SectionId',str)
+DefinitionId = NewType('DefinitionId', str)
 ActionId = NewType('ActionId',str)
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)
@@ -44,7 +45,7 @@ PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'even
                      'days', 'earliest',
                      'dateplus',
                      'ifthenelse',
-                     'max', 'min', 'ceil', 'even', 'odd',
+                     'max', 'min', 'ceil', 'even', 'odd', 'round',
                      'not',
                      'enqueue', 'dequeue', 'discardTop', 'top',  # queues
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
@@ -70,6 +71,7 @@ TIME_UNIT_DEC_LABEL = "TimeUnit"
 STR_ARG_MACRO_DEC_LABEL = "Macro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"
 TOPLEVEL_CLAIMS_AREA_LABEL = "Claims"
+DEFINITIONS_AREA = "Definitions"
 DOT_FILE_NAME_LABEL = "DotFileName"
 IMG_FILE_NAME_LABEL = "ImgFileName"
 
