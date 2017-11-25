@@ -30,10 +30,8 @@
 		(Landlord may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))) ))
 
 (Macro RequestTerminationActionMacro SectionId
-	(Action RequestTerminationFromSectionId
-		(StateTransform (lease_terminated := true))
-		(TransitionsTo SectionId)
-		(AllowedSubjects Landlord Tenant) ))
+	(Action RequestTerminationFromSectionId (AllowedSubjects Landlord Tenant) (TransitionsTo SectionId)
+		(StateTransform (lease_terminated := true))		))
 
 (FormalContract
 	"Lease Hvitved"
@@ -68,9 +66,8 @@
 			(apply-macro RequestTerminationConnectionMacroTenant AfterPayRent)
 			(apply-macro RequestTerminationConnectionMacroLandlord AfterPayRent)  ))
 
-	(Action EnterMonthEnded
-		(1 ≤ traversals ≤ nonconstant)
-		(AllowedSubjects Env) )
+	(Action EnterMonthEnded (AllowedSubjects Env)
+		(1 ≤ traversals ≤ nonconstant) )
 	(Section MonthEnded
 		(Pre ((sectionEntranceTimestamp) ≤ lease_term_end))
 		(Next
@@ -81,9 +78,8 @@
 			(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
 			(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)   ))
 
-	(Action EnterLeaseTermEnded
-		(1 ≤ traversals ≤ nonconstant)
-		(AllowedSubjects Env)  )
+	(Action EnterLeaseTermEnded (AllowedSubjects Env)
+		(1 ≤ traversals ≤ nonconstant)  )
 	(Section LeaseTermEnded
 		(Next
 			(if lease_terminated (Tenant must (MoveOut) immediately))

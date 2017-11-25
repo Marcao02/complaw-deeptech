@@ -1,5 +1,5 @@
 # from enum import Enum
-from typing import Dict, NewType, cast
+from typing import Dict, NewType, cast, Union, Tuple, Any
 
 SortId = NewType('SortId', str)
 SectionId = NewType('SectionId',str)
@@ -15,6 +15,12 @@ ConnectionActionParamId = NewType('ConnectionActionParamId',str)
 
 ProseContract = Dict[ProseClauseId,str]
 ParamsDec = Dict[ActionParamId, SortId]
+
+Nat = NewType('Nat',int)
+TimeStamp = NewType('TimeStamp',Nat)
+
+ActionParamValue = Union[Tuple[Any], str, int, TimeStamp]
+ActionParamSubst = Dict[ActionParamId, ActionParamValue]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',

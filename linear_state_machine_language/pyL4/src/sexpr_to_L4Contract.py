@@ -9,6 +9,7 @@ from model.L4Contract import *
 from model.Literal import *
 from model.Term import FnApp
 from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
+from model.StringArgMacro import StringArgMacro
 from parse_sexpr import castse, STRING_LITERAL_MARKER
 
 

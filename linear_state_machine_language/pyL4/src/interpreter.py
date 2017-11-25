@@ -23,16 +23,9 @@ from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
 from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
-    ConnectionActionParamId, ContractParamId, SectionId, ActionParamId, FULFILLED_SECTION_LABEL
+    ConnectionActionParamId, ContractParamId, SectionId, ActionParamId, FULFILLED_SECTION_LABEL, ActionParamSubst, \
+    TimeStamp, ActionParamValue
 from model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug
-
-# Nat = NewType('Nat',int)
-# TimeStamp = NewType('TimeStamp',Nat)
-Nat = NewType('Nat',int)
-TimeStamp = NewType('TimeStamp',Nat)
-
-ActionParamValue = Union[Tuple[Any], str, int, TimeStamp]
-ActionParamSubst = Dict[ActionParamId, ActionParamValue]
 
 feedback = logging
 

@@ -6,8 +6,8 @@ digraph Monster_Burger {
 	AfterRequestCookMB[label=AfterRequestCookMB];
 	EatingMB[label=EatingMB];
 	AfterAnnounceMBFinished[label=AfterAnnounceMBFinished];
-	AfterCheckCompletitionClaim[label=AfterCheckCompletitionClaim];
-	AfterRejectCompletitionClaim[label=AfterRejectCompletitionClaim]
+	AfterCheckCompletionClaim[label=AfterCheckCompletionClaim];
+	AfterRejectCompletionClaim[label=AfterRejectCompletionClaim]
     
      
     RequestCookMB[label=RequestCookMB,shape=box];
@@ -15,11 +15,11 @@ digraph Monster_Burger {
 	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
 	EnterEatingMB[label=EnterEatingMB,shape=box];
 	AnnounceMBFinished[label=AnnounceMBFinished,shape=box];
-	TimeToCheckCompletitionExpires[label=TimeToCheckCompletitionExpires,shape=box];
-	CheckCompletitionClaim[label=CheckCompletitionClaim,shape=box];
-	RejectCompletitionClaim[label=RejectCompletitionClaim,shape=box];
+	TimeToCheckCompletionExpires[label=TimeToCheckCompletionExpires,shape=box];
+	CheckCompletionClaim[label=CheckCompletionClaim,shape=box];
+	RejectCompletionClaim[label=RejectCompletionClaim,shape=box];
 	PayForMB[label=PayForMB,shape=box];
-	VerifyCompletitionClaim[label=VerifyCompletitionClaim,shape=box]    
+	VerifyCompletionClaim[label=VerifyCompletionClaim,shape=box]    
     
     
     
@@ -27,23 +27,23 @@ digraph Monster_Burger {
 	AfterRequestCookMB -> ServeMB;
 	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
 	EatingMB -> AnnounceMBFinished;
-	EatingMB -> CheckCompletitionClaim;
-	EatingMB -> TimeToCheckCompletitionExpires [style=dashed];
-	AfterAnnounceMBFinished -> CheckCompletitionClaim;
-	AfterAnnounceMBFinished -> TimeToCheckCompletitionExpires [style=dashed];
-	AfterCheckCompletitionClaim -> VerifyCompletitionClaim;
-	AfterCheckCompletitionClaim -> RejectCompletitionClaim;
-	AfterRejectCompletitionClaim -> EnterEatingMB [style=dashed];
-	AfterRejectCompletitionClaim -> PayForMB
+	EatingMB -> CheckCompletionClaim;
+	EatingMB -> TimeToCheckCompletionExpires [style=dashed];
+	AfterAnnounceMBFinished -> CheckCompletionClaim;
+	AfterAnnounceMBFinished -> TimeToCheckCompletionExpires [style=dashed];
+	AfterCheckCompletionClaim -> VerifyCompletionClaim;
+	AfterCheckCompletionClaim -> RejectCompletionClaim;
+	AfterRejectCompletionClaim -> EnterEatingMB [style=dashed];
+	AfterRejectCompletionClaim -> PayForMB
     
     RequestCookMB -> AfterRequestCookMB [style=dashed];
 	ServeMB -> EatingMB [style=dashed];
 	EnterPromptServeGuaranteeViolated -> Fulfilled [style=dashed];
 	EnterEatingMB -> EatingMB [style=dashed];
 	AnnounceMBFinished -> AfterAnnounceMBFinished [style=dashed];
-	TimeToCheckCompletitionExpires -> Fulfilled [style=dashed];
-	CheckCompletitionClaim -> AfterCheckCompletitionClaim [style=dashed];
-	RejectCompletitionClaim -> AfterRejectCompletitionClaim [style=dashed];
+	TimeToCheckCompletionExpires -> Fulfilled [style=dashed];
+	CheckCompletionClaim -> AfterCheckCompletionClaim [style=dashed];
+	RejectCompletionClaim -> AfterRejectCompletionClaim [style=dashed];
 	PayForMB -> Fulfilled [style=dashed];
-	VerifyCompletitionClaim -> Fulfilled [style=dashed]        
+	VerifyCompletionClaim -> Fulfilled [style=dashed]        
 }

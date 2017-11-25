@@ -1,15 +1,14 @@
 # from typing import Union, List, Dict, Any, Tuple
-from typing import Set, NamedTuple, Iterable, Any, Union, Sequence
+from typing import Iterable, Any, Union
 
-from StringArgMacro import StringArgMacro
+from model.Action import Action
+from model.Connection import *
 from model.ContractClaim import ContractClaim
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.GlobalVarDec import GlobalVarDec
 from model.Section import *
-from model.Action import Action
-from model.Connection import *
-
+from model.StringArgMacro import StringArgMacro
 
 
 class L4Contract:
