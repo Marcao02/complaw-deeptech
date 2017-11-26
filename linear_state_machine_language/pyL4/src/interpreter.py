@@ -24,7 +24,7 @@ from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
 from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
     ConnectionActionParamId, ContractParamId, SectionId, ActionParamId, FULFILLED_SECTION_LABEL, ActionParamSubst, \
-    TimeStamp, ActionParamValue
+    TimeStamp, ActionParamValue, ENV_ROLE
 from model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug
 
 feedback = logging
@@ -57,12 +57,15 @@ Trace = Sequence[Event]
 class CompleteTrace(NamedTuple):
     events: Trace
     final_section: str  # will need to be a SectionId
+    contract_param_subst: Dict[str,Any]
 
 FN_SYMB_INTERP = {
     '+': lambda *args: sum(args),
     '-': lambda x,y: x - y,
     '/': lambda x,y: x / y,
     '*': lambda x,y: x * y,
+    'even': lambda x: x % 2 == 0,
+    'odd': lambda x: x % 2 == 1,
     '==': lambda x,y: x == y,
     '≤': lambda x,y: x <= y,
     '≥': lambda x,y: x >= y,
@@ -124,8 +127,6 @@ class ExecEnv:
         max_action_str_len = max(
             len(event_to_action_str(event)) for event in trace
         )
-
-        print(event_to_action_str(trace[0]))
 
         for i in range(len(trace)):
             eventi = trace[i]
@@ -459,6 +460,10 @@ class ExecEnv:
 def evalTrace(trace:Union[Trace,CompleteTrace], prog:L4Contract):
     env = ExecEnv(prog)
     if isinstance(trace, CompleteTrace):
+        for contract_param in trace.contract_param_subst:
+            litobj = chcast(Literal, prog.contract_params[castid(ContractParamId, contract_param)].value_expr)
+            litobj.lit = trace.contract_param_subst[contract_param]
+
         return env.evalLSM(trace.events, finalSectionId=cast(SectionId,trace.final_section), verbose=True)
     else:
         return env.evalLSM(trace, verbose=True)
@@ -477,7 +482,7 @@ def sameTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, ActionPara
     return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
                  params=cast(ActionParamSubst, params) if params else None)
 
-def event(action_id:str, role_id:str, timestamp:int, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
+def event(action_id:str, role_id:str = ENV_ROLE, timestamp:int = 0, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
     params = params or dict()
     return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=cast(TimeStamp,timestamp),
                  params=cast(ActionParamSubst, params) if params else None)
@@ -496,7 +501,7 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         nextTSEvent('AnnounceMBFinished','Challenger'),
         nextTSEvent('CheckCompletionClaim', 'Restaurant'),
         sameTSEvent('VerifyCompletionClaim', 'Restaurant')
-        ), FULFILLED_SECTION_LABEL)
+        ), FULFILLED_SECTION_LABEL, {})
      ),
 
 
@@ -506,12 +511,12 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8000}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
-        ), FULFILLED_SECTION_LABEL)
+        ), FULFILLED_SECTION_LABEL, {})
     ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
         event('PayInstallment', 'Buyer', 30, {'amount':499}),
-        ), breachSectionId('Buyer'))
+        ), breachSectionId('Buyer'), {})
     ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
@@ -519,7 +524,7 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':7999}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
-        ), breachSectionId('Buyer'))
+        ), breachSectionId('Buyer'), {})
     ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
@@ -527,9 +532,26 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8500}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':500}),
-        ), FULFILLED_SECTION_LABEL)
-    )
+        ), FULFILLED_SECTION_LABEL, {})
+    ),
 
+    ('degenerate/collatz.l4', CompleteTrace((
+        event('DivideBy2'),
+        event('DivideBy2'),
+        event('TripplePlus1'),
+        event('DivideBy2'),
+        event('TripplePlus1'),
+        event('DivideBy2'),
+        event('DivideBy2'),
+        event('DivideBy2'),
+        event('DivideBy2'),
+        event('EnterFulfilled'),
+        ), FULFILLED_SECTION_LABEL, {'START':12})
+    ),
+    # ('serious/SAFE.l4',CompleteTrace((
+    #     ...
+    #     ), FULFILLED_SECTION_LABEL)
+    # )
 )
 
 
@@ -538,7 +560,8 @@ if __name__ == '__main__':
 
     EXAMPLES_TO_RUN = [
         'toy_and_teaching/monster_burger_program_only.l4',
-        'from_academic_lit/hvitved_instalment_sale--simplified_time.l4'
+        'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+        'degenerate/collatz.l4',
     ]
     for trace in traces:
         subpath = trace[0]

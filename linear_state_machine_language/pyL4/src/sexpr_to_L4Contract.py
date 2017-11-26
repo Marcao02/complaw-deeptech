@@ -146,7 +146,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
 
     def construct_main_part(self, l:SExpr) -> None:
-        self.top.contract_name = l[0][1] # [1] because STRLIT sexpr
+        self.assertOrSyntaxError(l[0][0] == STRING_LITERAL_MARKER, l[0], f"Immediately after the {FORMAL_CONTRACT_AREA_LABEL} keyword should be a string literal that gives the contract's name")
+        self.top.contract_name = chcaststr(l[0][1]) # [1] because STRLIT sexpr
         x: SExpr
 
         for x in l[1:]:

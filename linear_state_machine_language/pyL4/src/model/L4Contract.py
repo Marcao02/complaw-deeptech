@@ -18,7 +18,7 @@ class L4Contract:
         self.contract_name : str = "to be set"
         self.prose_contract : Dict[ProseClauseId, str] = dict() # mapping clause id string to clause string
 
-        self.start_section_id = cast(SectionId, "to be assigned")
+        self.start_section_id = cast(SectionId, "start section id to be assigned")
 
         self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
@@ -96,7 +96,7 @@ class L4Contract:
     def section_ids(self) -> Iterable[SectionId]:
         return self.sections_by_id.keys()
     def section(self, anid:SectionId) -> Section:
-        assert anid in self.sections_by_id, f"section id {anid} not found"
+        assert anid in self.sections_by_id, f"section id '{anid}' not found"
         return self.sections_by_id[anid]
     
     def actions_iter(self) -> Iterable[Action]:

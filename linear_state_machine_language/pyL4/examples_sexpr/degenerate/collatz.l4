@@ -13,7 +13,7 @@
 
 (Roles) ; only the environment Env
 
-(FormalContract
+(FormalContract "Collatz"
 	(StartSection Ongoing)
 
 	(Section Ongoing
