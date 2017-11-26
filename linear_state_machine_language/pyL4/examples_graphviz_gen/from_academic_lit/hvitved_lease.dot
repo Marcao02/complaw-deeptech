@@ -47,5 +47,6 @@ digraph Lease_Hvitved {
 	PayRent -> AfterPayRent [style=dashed];
 	EnterMonthEnded -> MonthEnded [style=dashed];
 	EnterLeaseTermEnded -> LeaseTermEnded [style=dashed];
-	MoveOut -> Fulfilled [style=dashed]        
+	MoveOut -> Fulfilled [style=dashed];
+	        
 }

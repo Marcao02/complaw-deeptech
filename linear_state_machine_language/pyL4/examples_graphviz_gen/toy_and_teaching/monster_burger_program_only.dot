@@ -3,11 +3,7 @@
 digraph Monster_Burger {    
     Fulfilled[label=Fufilled];
     MonsterBurgerUncooked[label=MonsterBurgerUncooked];
-	AfterRequestCookMB[label=AfterRequestCookMB];
-	EatingMB[label=EatingMB];
-	AfterAnnounceMBFinished[label=AfterAnnounceMBFinished];
-	AfterCheckCompletionClaim[label=AfterCheckCompletionClaim];
-	AfterRejectCompletionClaim[label=AfterRejectCompletionClaim]
+	EatingMB[label=EatingMB]
     
      
     RequestCookMB[label=RequestCookMB,shape=box];
@@ -24,26 +20,23 @@ digraph Monster_Burger {
     
     
     MonsterBurgerUncooked -> RequestCookMB;
-	AfterRequestCookMB -> ServeMB;
-	AfterRequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
+	RequestCookMB -> ServeMB;
+	RequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
 	EatingMB -> AnnounceMBFinished;
 	EatingMB -> CheckCompletionClaim;
 	EatingMB -> TimeToCheckCompletionExpires [style=dashed];
-	AfterAnnounceMBFinished -> CheckCompletionClaim;
-	AfterAnnounceMBFinished -> TimeToCheckCompletionExpires [style=dashed];
-	AfterCheckCompletionClaim -> VerifyCompletionClaim;
-	AfterCheckCompletionClaim -> RejectCompletionClaim;
-	AfterRejectCompletionClaim -> EnterEatingMB [style=dashed];
-	AfterRejectCompletionClaim -> PayForMB
+	AnnounceMBFinished -> CheckCompletionClaim;
+	AnnounceMBFinished -> TimeToCheckCompletionExpires [style=dashed];
+	CheckCompletionClaim -> VerifyCompletionClaim;
+	CheckCompletionClaim -> RejectCompletionClaim;
+	RejectCompletionClaim -> EnterEatingMB [style=dashed];
+	RejectCompletionClaim -> PayForMB
     
-    RequestCookMB -> AfterRequestCookMB [style=dashed];
-	ServeMB -> EatingMB [style=dashed];
+    ServeMB -> EatingMB [style=dashed];
 	EnterPromptServeGuaranteeViolated -> Fulfilled [style=dashed];
 	EnterEatingMB -> EatingMB [style=dashed];
-	AnnounceMBFinished -> AfterAnnounceMBFinished [style=dashed];
 	TimeToCheckCompletionExpires -> Fulfilled [style=dashed];
-	CheckCompletionClaim -> AfterCheckCompletionClaim [style=dashed];
-	RejectCompletionClaim -> AfterRejectCompletionClaim [style=dashed];
 	PayForMB -> Fulfilled [style=dashed];
-	VerifyCompletionClaim -> Fulfilled [style=dashed]        
+	VerifyCompletionClaim -> Fulfilled [style=dashed];
+	        
 }

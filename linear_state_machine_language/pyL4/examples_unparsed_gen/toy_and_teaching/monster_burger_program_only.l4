@@ -19,10 +19,9 @@ section MonsterBurgerUncooked:
 action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
         amount_owing := MB_PRICE
-
-section AfterRequestCookMB:
-    Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
-    EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY)
+    following section:
+        Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
+        EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY)
 
 action ServeMB()  transitions to EatingMB:
     transform:
@@ -40,28 +39,25 @@ section EatingMB:
     TimeToCheckCompletionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
-
-section AfterAnnounceMBFinished:
-    Restaurant should CheckCompletionClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
-    TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
+    following section:
+        Restaurant should CheckCompletionClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
+        TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:
         amount_owing := 0
 
 action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
-
-section AfterCheckCompletionClaim:
-    Restaurant weakly-must VerifyCompletionClaim immediately
-    Restaurant weakly-must RejectCompletionClaim immediately
+    following section:
+        Restaurant weakly-must VerifyCompletionClaim immediately
+        Restaurant weakly-must RejectCompletionClaim immediately
 
 action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
-
-section AfterRejectCompletionClaim:
-    if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp):
-        EnterEatingMB
-    if (entranceTimeAfter-ts? challenge_endlimit_timestamp):
-        Customer must PayForMB immediately
+    following section:
+        if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp):
+            EnterEatingMB
+        if (entranceTimeAfter-ts? challenge_endlimit_timestamp):
+            Customer must PayForMB immediately
 
 action PayForMB()  transitions to Fulfilled:
     transform:

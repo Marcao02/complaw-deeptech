@@ -19,6 +19,11 @@ class Section:
 
         self.connections_by_role: Dict[RoleId, List[Connection]] = dict()
 
+        self.parent_action_id : Optional[ActionId] = None
+
+    def is_anon(self) -> bool:
+        return self.parent_action_id is not None
+
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")
     #     return list(self.connections_by_role.keys())
@@ -28,20 +33,26 @@ class Section:
             for t in role_subset:
                 yield t
 
-    def __str__(self) -> str:
-        rv = f"section {self.section_id}:\n"
+    def __str__(self):
+        return self.toStr(0)
+
+    def toStr(self,i:int) -> str:
+        if self.parent_action_id is None:
+            rv = indent(i) + f"section {self.section_id}:\n"
+        else:
+            rv = indent(i) + f"following section:\n"
 
         for pre in self.preconditions:
-            rv += indent(1) + "pre: " + str(pre) + "\n"
+            rv += indent(i+1) + "pre: " + str(pre) + "\n"
 
         if self.section_description:
-            rv += indent(1) + "description: " + self.section_description + "\n"
+            rv += indent(i+1) + "description: " + self.section_description + "\n"
 
         # if self.visit_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
 
         for t in self.connections():
-            rv += t.toStr(1) + "\n"
+            rv += t.toStr(i+1) + "\n"
 
         return rv
 

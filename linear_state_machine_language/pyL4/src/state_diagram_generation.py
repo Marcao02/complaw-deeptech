@@ -1,4 +1,5 @@
 from model.L4Contract import *
+from model.util import chcast, chcaststr
 
 COLORS = ('Blue', 'Red')
 
@@ -22,11 +23,16 @@ def actionAsDotNodeStr(act: Action) -> str:
     return f'{act.action_id}[label={act.action_id},shape=box]'
 
 
-def connectionAsDotArcStr(con: Connection) -> str:
+def connectionAsDotArcStr(con: Connection, l4file:L4Contract) -> str:
+    srcid : str = con.src_id
+    section = l4file.section(con.src_id)
+    if section.is_anon():
+        srcid = chcaststr(section.parent_action_id)
+
     if isinstance(con, ConnectionToAction):
-        return f"{con.src_id} -> {con.action_id}"
+        return f"{srcid} -> {con.action_id}"
     elif isinstance(con, ConnectionToEnvAction):
-        return f"{con.src_id} -> {con.action_id} [style=dashed]"
+        return f"{srcid} -> {con.action_id} [style=dashed]"
     else:
         raise NotImplementedError
 
@@ -34,15 +40,23 @@ def connectionAsDotArcStr(con: Connection) -> str:
 def contractToDotFileStr(l4file: L4Contract) -> str:
     # graphname = l4file.construct_main_part.name[1]
     cleaned_graphname = "_".join(l4file.contract_name.split(' '))
-    # section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x, l4file.roles), l4file.sections_iter(), ";\n\t")
-    # action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x, l4file.roles), l4file.actions_by_id.values(), ";\n\t")
-    section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x), l4file.sections_iter(), ";\n\t")
+    section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x),
+                                filter(lambda s: not s.is_anon(), l4file.sections_iter()),
+                                ";\n\t")
     action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x), l4file.actions_by_id.values(), ";\n\t")
 
-    actions_to_sections_str = mapjoin(
-        lambda action: f"{action.action_id} -> {action.dest_section_id} [style=dashed]", l4file.actions_iter(), ";\n\t")
+    # actions_to_sections_str = mapjoin(
+    #     lambda action: f"{action.action_id} -> {action.dest_section_id} [style=dashed]", l4file.actions_iter(), ";\n\t")
+    actions_to_sections_str = ""
+    for action in l4file.actions_iter():
+        if not action.following_anon_section:
+            actions_to_sections_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
+        else:
+            pass
 
-    connections_from_sections_str = mapjoin(connectionAsDotArcStr, l4file.connections, ";\n\t")
+    connections_from_sections_str = mapjoin( lambda c: connectionAsDotArcStr(c,l4file), l4file.connections, ";\n\t")
+
+
 
     return f"""// THIS IS A GENERATED FILE. DO NOT EDIT.
 

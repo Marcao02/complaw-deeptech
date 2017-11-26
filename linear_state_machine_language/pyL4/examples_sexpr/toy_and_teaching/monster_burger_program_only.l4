@@ -38,25 +38,25 @@
 	)
 
 	(Action RequestCookMB
-	    (TransitionsTo AfterRequestCookMB) ; LANG note: Optional; this is the default value.
 	    ;  LANG note: static checker directive, which tells the static checker to prove that this action occurs exactly once in any execution that ends in Fulfilled
 		(traversals == 1)
 		(AllowedSubjects Challenger)
 
-
 		(StateTransform
 			(amount_owing = MB_PRICE)
 		)
+
+		(FollowingSection
+			(visits == 1) ; LANG note: Similar to (traversal == 1) but for Sections.
+			(Next
+	            (deadlinesPartitionFuture
+		            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
+		            (EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY))
+	            )
+	        )
+		)
 	)
-	(Section AfterRequestCookMB
-		(visits == 1) ; LANG note: Similar to (traversal == 1) but for Sections.
-		(Next
-            (deadlinesPartitionFuture
-	            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
-	            (EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY))
-            )
-        )
-	)
+
 
 	(Action ServeMB
 		(TransitionsTo EatingMB)
@@ -97,15 +97,16 @@
 	(Action AnnounceMBFinished
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Challenger)
-	)
-	(Section AfterAnnounceMBFinished
-		(0 ≤ visits ≤ nonconstant)
-		(Next
-            (deadlinesPartitionFuture
-	            (Restaurant should (CheckCompletionClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
-	            (TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
-            )
-        )
+
+		(FollowingSection
+			(0 ≤ visits ≤ nonconstant)
+			(Next
+	            (deadlinesPartitionFuture
+		            (Restaurant should (CheckCompletionClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
+		            (TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
+	            )
+	        )
+		)
 	)
 
 	(Action TimeToCheckCompletionExpires
@@ -120,12 +121,13 @@
 	(Action CheckCompletionClaim
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Restaurant)
-	)
-	(Section AfterCheckCompletionClaim
-		(0 ≤ visits ≤ nonconstant)
-		(Next
-		    (Restaurant weakly-must (VerifyCompletionClaim) immediately)
-		    (Restaurant weakly-must (RejectCompletionClaim) immediately)
+
+		(FollowingSection
+			(0 ≤ visits ≤ nonconstant)
+			(Next
+			    (Restaurant weakly-must (VerifyCompletionClaim) immediately)
+			    (Restaurant weakly-must (RejectCompletionClaim) immediately)
+			)
 		)
 	)
 
@@ -133,22 +135,23 @@
 	(Action RejectCompletionClaim
 		(0 ≤ traversals ≤ nonconstant)
 		(AllowedSubjects Restaurant)
-	)
-	(Section AfterRejectCompletionClaim
-        (0 ≤ visits ≤ nonconstant)
-        (Next
-        	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
-            ; always the case that exactly one of the tests of the children conditionals is true.
-            (guardsDisjointExhaustive
-            	; I think we should encourage this style of order-insensitive conditionals.
-	            (if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp)
-	                (EnterEatingMB immediately)
+
+		(FollowingSection
+	        (0 ≤ visits ≤ nonconstant)
+	        (Next
+	        	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
+	            ; always the case that exactly one of the tests of the children conditionals is true.
+	            (guardsDisjointExhaustive
+	            	; I think we should encourage this style of order-insensitive conditionals.
+		            (if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp)
+		                (EnterEatingMB immediately)
+		            )
+		            (if (entranceTimeAfter-ts? challenge_endlimit_timestamp)
+		                (Customer must (PayForMB) immediately)
+		            )
 	            )
-	            (if (entranceTimeAfter-ts? challenge_endlimit_timestamp)
-	                (Customer must (PayForMB) immediately)
-	            )
-            )
-        )
+	        )
+		)
 	)
 
 	(Action PayForMB

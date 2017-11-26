@@ -83,5 +83,6 @@ digraph SAFE {
 	CommitToDissolution -> AfterCommitToDissolution [style=dashed];
 	TransferCash_D -> AfterTransferCash_D [style=dashed];
 	TransferAssets_D -> AfterTransferAssets_D [style=dashed];
-	Dissolve -> Fulfilled [style=dashed]        
+	Dissolve -> Fulfilled [style=dashed];
+	        
 }

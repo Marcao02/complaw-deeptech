@@ -96,7 +96,7 @@ class L4Contract:
     def section_ids(self) -> Iterable[SectionId]:
         return self.sections_by_id.keys()
     def section(self, anid:SectionId) -> Section:
-        assert anid in self.sections_by_id
+        assert anid in self.sections_by_id, f"section id {anid} not found"
         return self.sections_by_id[anid]
     
     def actions_iter(self) -> Iterable[Action]:

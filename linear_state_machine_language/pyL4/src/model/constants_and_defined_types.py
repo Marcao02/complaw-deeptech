@@ -94,6 +94,7 @@ CODE_BLOCK_LABEL = "StateTransform"
 ACTION_DESCRIPTION_LABEL = "Description"
 ACTION_PRECONDITION_LABEL = "Pre"
 ACTION_POSTCONDITION_LABEL = "Post"
+FOLLOWING_SECTION_DEC_LABEL = "FollowingSection"
 
 
 # ------------Misc------------

@@ -254,10 +254,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 a.action_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(CODE_BLOCK_LABEL):
-                a.global_state_transform= self.global_state_transform(cast(List[SExpr],x[1:]), a)
+                a.global_state_transform= self.global_state_transform(cast(List[SExpr],x.tillEnd(1).lst), a)
 
             elif head(PROSE_REFS_LABEL):
-                a.prose_refs  = x[1:].lst
+                a.prose_refs  = cast(List[str], x.tillEnd(1).lst)
 
             elif head(TRANSITIONS_TO_LABEL):
                 dest_section_id = x[1]
@@ -268,7 +268,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 a.traversal_bounds = x # self.term(x, None, a)
 
             elif head(ALLOWED_SUBJECTS_DEC_LABEL):
-                a.allowed_subjects = x[1:]
+                a.allowed_subjects = x.tillEnd(1)
+
+            elif head(FOLLOWING_SECTION_DEC_LABEL):
+                anon_sect_id : str
+                if is_derived_trigger_id(action_id):
+                    anon_sect_id = derived_trigger_id_to_section_id(action_id)
+                else:
+                    anon_sect_id = derived_destination_id(action_id)
+                a.following_anon_section  = self.section(anon_sect_id, x.tillEnd(1))
+                a.following_anon_section.parent_action_id = action_id
+                self.top.sections_by_id[a.following_anon_section.section_id] = a.following_anon_section
 
             else:
                 todo_once(f"Handle {x[0]} in action dec")

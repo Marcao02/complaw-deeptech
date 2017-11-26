@@ -2,6 +2,7 @@ from typing import Optional, Dict, List
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.SExpr import SExpr
+from model.Section import Section
 from model.Term import Term
 from model.constants_and_defined_types import ActionParamId, SortId, LocalVarId, SectionId, ActionId
 from model.util import mapjoin, indent
@@ -18,6 +19,8 @@ class Action:
         self.action_description: Optional[str] = None
         self.local_vars: Dict[LocalVarId,LocalVarDec] = dict()
         self.is_compound = False
+
+        self.following_anon_section : Optional[Section] = None
 
         self.params : Optional[Dict[ActionParamId,SortId]] = None # str param -> str sort
         self.global_state_transform : Optional[GlobalStateTransform] = None
@@ -49,6 +52,11 @@ class Action:
 
         for pre in self.postconditions:
             rv += indent(1) + "post: " + str(pre) + "\n"
+
+        if self.following_anon_section:
+            anon_section_str = self.following_anon_section.toStr(1)
+            rv += anon_section_str
+
         return rv
 
     def __repr__(self) -> str:
