@@ -387,6 +387,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
             if x in self.top.definitions:
                 return self.term(self.top.definitions[castid(DefinitionId,x)].body, parent_section, parent_action, parent_connection)
+            print("parent_action.params", parent_action.params)
             raise SyntaxError(f'Unrecognized atom: {x}')
 
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:

@@ -4,18 +4,23 @@ file: serious/SAFE.l4
 contract params:
     PURCHASE_AMOUNT : $ := 100000
     VALUATION_CAP : $ := 100
+    DISCOUNT_RATE : ℝ := 0.8
     START_INVESTOR_COMMON_STOCKS : ℕ := 0
     START_INVESTOR_PREFERRED_STOCKS : ℕ := 0
     START_INVESTOR_CASH : $ := 0
 
 global vars:
     has_cap : Bool := VALUATION_CAP > 0
+    has_discount : Bool := DISCOUNT_RATE < 1
     writeAtMostOnce investor_remaining_investment_L : $
     writeAtMostOnce investor_Preferred_Stocks : ℕ := START_INVESTOR_PREFERRED_STOCKS
     writeAtMostOnce investor_Common_Stocks : ℕ := START_INVESTOR_COMMON_STOCKS
     writeAtMostOnce liq_price : $
     writeAtMostOnce liq_cashout : $ := 0
     writeAtMostOnce investor_cash : $ := START_INVESTOR_CASH
+    writeAtMostOnce safe_price : $
+    writeAtMostOnce discount_price : $
+    writeAtMostOnce conversion_price : $
     writeAtMostOnce company_cash_remaining : ℕ
     writeAtMostOnce investor_percent_of_cashout_investor_investments : %
     writeAtMostOnce dis_cashout : $
@@ -47,9 +52,12 @@ action SignPRA()  transitions to AfterSignPRA
     following section:
         Company must IssueSAFEPreferredStock discretionary
 
-action IssueSAFEPreferredStock(company_capitalization)  transitions to AfterIssueSAFEPreferredStock:
+action IssueSAFEPreferredStock(company_capitalization, initial_price_per_share_standard_preferred_stock)  transitions to AfterIssueSAFEPreferredStock:
     transform:
-        investor_SAFE_Preferred_Stocks += PURCHASE_AMOUNT / company_capitalization
+        safe_price := VALUATION_CAP / company_capitalization
+        discount_price := initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE
+        conversion_price := (min safe_price discount_price)
+        investor_SAFE_Preferred_Stocks += PURCHASE_AMOUNT / conversion_price
     following section:
         Company must DoEquityFinancing discretionary
 
