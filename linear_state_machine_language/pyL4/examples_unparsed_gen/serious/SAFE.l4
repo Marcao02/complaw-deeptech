@@ -27,37 +27,31 @@ section InvestorInvests:
     Company weakly-must CommitToDissolution nodeadline
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
+    following section:
+        Company weakly-must DeliverDocsWithPRA discretionary
+        Company weakly-must DeliverDocsWithoutPRA discretionary
 
-section AfterCommitToEquityFinancing:
-    Company weakly-must DeliverDocsWithPRA_E discretionary
-    Company weakly-must DeliverDocsWithoutPRA_E discretionary
+action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
+    following section:
+        Company must IssueSAFEPreferredStock discretionary
 
-action DeliverDocsWithPRA_E()  transitions to AfterDeliverDocsWithPRA_E
+action DeliverDocsWithoutPRA()  transitions to AfterDeliverDocsWithoutPRA
+    following section:
+        Company must SubmitProRataRightsAgreementForSigning discretionary
 
-section AfterDeliverDocsWithPRA_E:
-    Company must IssueSAFEPreferredStock_E discretionary
+action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRataRightsAgreementForSigning
+    following section:
+        Investor must SignPRA discretionary
 
-action DeliverDocsWithoutPRA_E()  transitions to AfterDeliverDocsWithoutPRA_E
+action SignPRA()  transitions to AfterSignPRA
+    following section:
+        Company must IssueSAFEPreferredStock discretionary
 
-section AfterDeliverDocsWithoutPRA_E:
-    Company must SubmitProRataRightsAgreementForSigning_E discretionary
-
-action SubmitProRataRightsAgreementForSigning_E()  transitions to AfterSubmitProRataRightsAgreementForSigning_E
-
-section AfterSubmitProRataRightsAgreementForSigning_E:
-    Investor must SignPRA_E discretionary
-
-action SignPRA_E()  transitions to AfterSignPRA_E
-
-section AfterSignPRA_E:
-    Company must IssueSAFEPreferredStock_E discretionary
-
-action IssueSAFEPreferredStock_E(company_capitalization)  transitions to AfterIssueSAFEPreferredStock_E:
+action IssueSAFEPreferredStock(company_capitalization)  transitions to AfterIssueSAFEPreferredStock:
     transform:
         investor_SAFE_Preferred_Stocks += PURCHASE_AMOUNT / company_capitalization
-
-section AfterIssueSAFEPreferredStock_E:
-    Company must DoEquityFinancing discretionary
+    following section:
+        Company must DoEquityFinancing discretionary
 
 action DoEquityFinancing()  transitions to Fulfilled
 
@@ -70,33 +64,28 @@ action CommitToLiquidityEvent(change_of_control, _investor_percent_of_cashout_in
         else:
             investor_remaining_investment_L := PURCHASE_AMOUNT
         company_cash_remaining := company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg
+    following section:
+        Investor may ChooseCashPayment discretionary
+        Investor may ChooseStockPayment discretionary
+        Company should AutoChooseStockPayment discretionary
 
-section AfterCommitToLiquidityEvent:
-    Investor may ChooseCashPayment_L discretionary
-    Investor may ChooseStockPayment_L discretionary
-    Company should AutoChooseStockPayment_L discretionary
+action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
+    following section:
+        Company must TransferCommonStock discretionary
 
-action AutoChooseStockPayment_L()  transitions to AfterAutoChooseStockPayment_L
+action ChooseStockPayment()  transitions to AfterChooseStockPayment
+    following section:
+        Company must TransferCommonStock discretionary
 
-section AfterAutoChooseStockPayment_L:
-    Company must TransferCommonStock_L discretionary
-
-action ChooseStockPayment_L()  transitions to AfterChooseStockPayment_L
-
-section AfterChooseStockPayment_L:
-    Company must TransferCommonStock_L discretionary
-
-action TransferCommonStock_L()  transitions to AfterTransferCommonStock_L:
+action TransferCommonStock()  transitions to AfterTransferCommonStock:
     transform:
         investor_Common_Stocks += (round investor_remaining_investment_L - liq_cashout / liq_price)
+    following section:
+        Company must DoLiquidityEvent discretionary
 
-section AfterTransferCommonStock_L:
-    Company must DoLiquidityEvent discretionary
-
-action ChooseCashPayment_L()  transitions to AfterChooseCashPayment_L
-
-section AfterChooseCashPayment_L:
-    Company must TransferCash_L discretionary
+action ChooseCashPayment()  transitions to AfterChooseCashPayment
+    following section:
+        Company must TransferCash_L discretionary
 
 action TransferCash_L()  transitions to AfterTransferCash_L:
     transform:
@@ -106,19 +95,17 @@ action TransferCash_L()  transitions to AfterTransferCash_L:
             liq_cashout := company_cash_remaining * investor_percent_of_cashout_investor_investments
         investor_cash += liq_cashout
         company_cash -= liq_cashout
-
-section AfterTransferCash_L:
-    if liq_cashout < investor_remaining_investment_L:
-        Company must TransferCommonStock_L discretionary
-    if liq_cashout == investor_remaining_investment_L:
-        Company must DoLiquidityEvent discretionary
+    following section:
+        if liq_cashout < investor_remaining_investment_L:
+            Company must TransferCommonStock discretionary
+        if liq_cashout == investor_remaining_investment_L:
+            Company must DoLiquidityEvent discretionary
 
 action DoLiquidityEvent()  transitions to Fulfilled
 
 action CommitToDissolution()  transitions to AfterCommitToDissolution
-
-section AfterCommitToDissolution:
-    Company must TransferCash_D discretionary
+    following section:
+        Company must TransferCash_D discretionary
 
 action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dissolving_investor_investments)  transitions to AfterTransferCash_D:
     transform:
@@ -128,19 +115,17 @@ action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dis
             dis_cashout := company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments
         investor_cash := dis_cashout
         company_cash := company_cash_at_dissolution_event - dis_cashout
+    following section:
+        if dis_cashout < PURCHASE_AMOUNT:
+            Company must TransferAssets discretionary
+        if dis_cashout == PURCHASE_AMOUNT:
+            Company must Dissolve discretionary
 
-section AfterTransferCash_D:
-    if dis_cashout < PURCHASE_AMOUNT:
-        Company must TransferAssets_D discretionary
-    if dis_cashout == PURCHASE_AMOUNT:
-        Company must Dissolve discretionary
-
-action TransferAssets_D(liquidity_capitalization)  transitions to AfterTransferAssets_D:
+action TransferAssets(liquidity_capitalization)  transitions to AfterTransferAssets:
     transform:
         liq_price := VALUATION_CAP / liquidity_capitalization
         investor_Common_Stocks += PURCHASE_AMOUNT - dis_cashout / liq_price
-
-section AfterTransferAssets_D:
-    Company must Dissolve discretionary
+    following section:
+        Company must Dissolve discretionary
 
 action Dissolve()  transitions to Fulfilled

@@ -78,37 +78,43 @@
 	; `_E` is just a redundant notational reminder that the action/section
 	; is associated with the equity event case.
 
-	(Action CommitToEquityFinancing (AllowedSubjects Company))
-	(Section AfterCommitToEquityFinancing
-		(Next
-			(Company weakly-must DeliverDocsWithPRA_E discretionary)
-			(Company weakly-must DeliverDocsWithoutPRA_E discretionary)
+	(Action CommitToEquityFinancing (AllowedSubjects Company)
+		(FollowingSection
+			(Next
+				(Company weakly-must DeliverDocsWithPRA discretionary)
+				(Company weakly-must DeliverDocsWithoutPRA discretionary)
+			)
 		)
 	)
 
-	(Action DeliverDocsWithPRA_E (AllowedSubjects Company))
-	(Section AfterDeliverDocsWithPRA_E
-		(Next (Company must IssueSAFEPreferredStock_E discretionary))  )
+	(Action DeliverDocsWithPRA (AllowedSubjects Company)
+		(FollowingSection
+			(Next (Company must IssueSAFEPreferredStock discretionary))  )
+	)
 
-	(Action DeliverDocsWithoutPRA_E (AllowedSubjects Company))
-	(Section AfterDeliverDocsWithoutPRA_E
-		(Next (Company must SubmitProRataRightsAgreementForSigning_E discretionary))  )
+	(Action DeliverDocsWithoutPRA (AllowedSubjects Company)
+		(FollowingSection
+			(Next (Company must SubmitProRataRightsAgreementForSigning discretionary))  )
+	)
 
-	(Action SubmitProRataRightsAgreementForSigning_E  (AllowedSubjects Company))
-	(Section AfterSubmitProRataRightsAgreementForSigning_E
-		; TODO: Obviously this shouldn't be a *must*, since they ought to be
-		; able to send it back with proposed amendments/corrections.
-		; That seems like something we should have a reusable module for.
-		(Next (Investor must SignPRA_E discretionary))  )
+	(Action SubmitProRataRightsAgreementForSigning  (AllowedSubjects Company)
+		(FollowingSection
+			; TODO: Obviously this shouldn't be a *must*, since they ought to be
+			; able to send it back with proposed amendments/corrections.
+			; That seems like something we should have a reusable module for.
+			(Next (Investor must SignPRA discretionary))  )
+	)
 
-	(Action SignPRA_E (AllowedSubjects Investor))
-	(Section AfterSignPRA_E
-		(Next (Company must IssueSAFEPreferredStock_E discretionary))  )
+	(Action SignPRA (AllowedSubjects Investor)
+		(FollowingSection
+			(Next (Company must IssueSAFEPreferredStock discretionary))  )
+	)
 
-	(Action (IssueSAFEPreferredStock_E(company_capitalization : ℕ)) (AllowedSubjects Company)
-		(StateTransform  (investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT / company_capitalization)))  )
-	(Section AfterIssueSAFEPreferredStock_E
-		(Next (Company must DoEquityFinancing discretionary))  )
+	(Action (IssueSAFEPreferredStock(company_capitalization : ℕ)) (AllowedSubjects Company)
+		(StateTransform  (investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT / company_capitalization)))
+		(FollowingSection
+			(Next (Company must DoEquityFinancing discretionary))  )
+	)
 
 	(Action DoEquityFinancing (AllowedSubjects Company) (TransitionsTo Fulfilled))
 
@@ -134,35 +140,39 @@
 			))
 			(company_cash_remaining = (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
 		)
-	)
 
-	(Section AfterCommitToLiquidityEvent
-		(Next
-			(Investor may ChooseCashPayment_L discretionary)
-			(Investor may ChooseStockPayment_L discretionary)
-			(Company should AutoChooseStockPayment_L discretionary)
+
+		(FollowingSection
+			(Next
+				(Investor may ChooseCashPayment discretionary)
+				(Investor may ChooseStockPayment discretionary)
+				(Company should AutoChooseStockPayment discretionary)
+			)
 		)
 	)
 
-	(Action AutoChooseStockPayment_L (AllowedSubjects Company))
-	(Section AfterAutoChooseStockPayment_L (Next (Company must TransferCommonStock_L discretionary)))
+	(Action AutoChooseStockPayment (AllowedSubjects Company)
+		(FollowingSection (Next (Company must TransferCommonStock discretionary)))
+	)
 
-	(Action ChooseStockPayment_L (AllowedSubjects Investor))
-	(Section AfterChooseStockPayment_L (Next (Company must TransferCommonStock_L discretionary)))
+	(Action ChooseStockPayment (AllowedSubjects Investor)
+		(FollowingSection (Next (Company must TransferCommonStock discretionary)))
+	)
 
-	(Action TransferCommonStock_L (AllowedSubjects Company)
+	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
+			; TODO: should we round that division up, down, or to nearest?
 			(investor_Common_Stocks += (round ((investor_remaining_investment_L - liq_cashout) / liq_price)))
 		)
-	)
-			; TODO: should we round that division up, down, or to nearest?
-	(Section AfterTransferCommonStock_L
-		(Next (Company must DoLiquidityEvent discretionary))
+		(FollowingSection
+			(Next (Company must DoLiquidityEvent discretionary))
+		)
 	)
 
-	(Action ChooseCashPayment_L (AllowedSubjects Investor))
-	(Section AfterChooseCashPayment_L
-		(Next (Company must TransferCash_L discretionary))
+	(Action ChooseCashPayment (AllowedSubjects Investor)
+		(FollowingSection
+			(Next (Company must TransferCash_L discretionary))
+		)
 	)
 
 	(Action TransferCash_L (AllowedSubjects Company)
@@ -176,14 +186,15 @@
 			(investor_cash += liq_cashout)
 			(company_cash -= liq_cashout)
 		)
-	)
-	(Section AfterTransferCash_L
-		(Next
-			(if (liq_cashout < investor_remaining_investment_L)
-				(Company must TransferCommonStock_L discretionary) )
 
-			(if (liq_cashout == investor_remaining_investment_L)
-				(Company must DoLiquidityEvent discretionary)
+		(FollowingSection
+			(Next
+				(if (liq_cashout < investor_remaining_investment_L)
+					(Company must TransferCommonStock discretionary) )
+
+				(if (liq_cashout == investor_remaining_investment_L)
+					(Company must DoLiquidityEvent discretionary)
+				)
 			)
 		)
 	)
@@ -193,8 +204,9 @@
 
 	; ----------------- Dissolution Event -------------------
 
-	(Action CommitToDissolution (AllowedSubjects Company))
-	(Section AfterCommitToDissolution (Next (Company must TransferCash_D discretionary))  )
+	(Action CommitToDissolution (AllowedSubjects Company)
+		(FollowingSection (Next (Company must TransferCash_D discretionary))  )
+	)
 
 
 	(Action (TransferCash_D (company_cash_at_dissolution_event: $)
@@ -212,24 +224,26 @@
 			(investor_cash = dis_cashout)
 			(company_cash = (company_cash_at_dissolution_event - dis_cashout))
 		)
-	)
-	(Section AfterTransferCash_D
-		; Don't need to specify that following two `must`s are verified disjoint exhaustive,
-		; becase it's implied by the definitions.
-		(Next
-			(if (dis_cashout < PURCHASE_AMOUNT)
-				(Company must TransferAssets_D discretionary)  )
-			(if (dis_cashout == PURCHASE_AMOUNT)
-				(Company must Dissolve discretionary)     )
+
+		(FollowingSection
+			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
+			; becase it's implied by the definitions.
+			(Next
+				(if (dis_cashout < PURCHASE_AMOUNT)
+					(Company must TransferAssets discretionary)  )
+				(if (dis_cashout == PURCHASE_AMOUNT)
+					(Company must Dissolve discretionary)     )
+			)
 		)
 	)
 
-	(Action (TransferAssets_D (liquidity_capitalization:$))
+	(Action (TransferAssets (liquidity_capitalization:$))
 		(AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))   ))
-	(Section AfterTransferAssets_D (Next (Company must Dissolve discretionary)))
+			(investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))   )
+		(FollowingSection  (Next (Company must Dissolve discretionary)))
+	)
 
 
 	(Action Dissolve (AllowedSubjects Company) (TransitionsTo Fulfilled))
