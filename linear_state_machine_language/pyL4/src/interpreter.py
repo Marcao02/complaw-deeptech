@@ -461,8 +461,12 @@ def evalTrace(trace:Union[Trace,CompleteTrace], prog:L4Contract):
     env = ExecEnv(prog)
     if isinstance(trace, CompleteTrace):
         for contract_param in trace.contract_param_subst:
-            litobj = chcast(Literal, prog.contract_params[castid(ContractParamId, contract_param)].value_expr)
-            litobj.lit = trace.contract_param_subst[contract_param]
+            supplied_val = trace.contract_param_subst[contract_param]
+            paramdec = prog.contract_params[castid(ContractParamId, contract_param)]
+            if isinstance(paramdec.value_expr,Literal):
+                paramdec.value_expr.lit = supplied_val
+            else:
+                paramdec.value_expr = L4ContractConstructor.literal(supplied_val)
 
         return env.evalLSM(trace.events, finalSectionId=cast(SectionId,trace.final_section), verbose=True)
     else:

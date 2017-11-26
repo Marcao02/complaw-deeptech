@@ -360,6 +360,20 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             logging.error(f"Problem with {statement}")
             raise e
 
+    @staticmethod
+    def literal(x:str) -> Term:
+        if isInt(x):
+            return IntLit(int(x))
+        if isFloat(x):
+            return FloatLit(float(x))
+        if x == 'false':
+            return BoolLit(False)
+        if x == 'true':
+            return BoolLit(True)
+        if x == 'never':
+            return DeadlineLit(x)
+        raise SyntaxError(f'Unrecognized atom: {x}')
+
     def term(self, x:Union[str, SExpr],
              parent_section : Optional[Section] = None, parent_action : Optional[Action] = None,
              parent_connection : Optional[Connection] = None) -> Term:
@@ -370,16 +384,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
             if x in self.top.contract_params:
                 return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
-            if isInt(x):
-                return IntLit(int(x))
-            if isFloat(x):
-                return FloatLit(float(x))
-            if x == 'false':
-                return BoolLit(False)
-            if x == 'true':
-                return BoolLit(True)
-            if x == 'never':
-                return DeadlineLit(x)
             if x in DEADLINE_KEYWORDS:
                 return DeadlineLit(x)
             if parent_connection and parent_connection.args and x in parent_connection.args:
@@ -388,8 +392,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
             if x in self.top.definitions:
                 return self.term(self.top.definitions[castid(DefinitionId,x)].body, parent_section, parent_action, parent_connection)
-
-            raise SyntaxError(f'Unrecognized atom: {x}')
+            return L4ContractConstructor.literal(x)
+            # if isInt(x):
+            #     return IntLit(int(x))
+            # if isFloat(x):
+            #     return FloatLit(float(x))
+            # if x == 'false':
+            #     return BoolLit(False)
+            # if x == 'true':
+            #     return BoolLit(True)
+            # if x == 'never':
+            #     return DeadlineLit(x)
 
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
             raise Exception("can this still happen??")
