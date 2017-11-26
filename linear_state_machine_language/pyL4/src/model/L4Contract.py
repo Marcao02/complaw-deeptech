@@ -18,7 +18,7 @@ class L4Contract:
         self.contract_name : str = "to be set"
         self.prose_contract : Dict[ProseClauseId, str] = dict() # mapping clause id string to clause string
 
-        self.start_section = cast(SectionId,"to be assigned")
+        self.start_section_id = cast(SectionId, "to be assigned")
 
         self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []

@@ -106,7 +106,7 @@ class ExecEnv:
         self._varvals : Dict[LocalOrGlobalVarId, Any] = dict()
         self._var_write_cnt : Dict[LocalOrGlobalVarId, int] = dict()
         self._contract_param_vals: Dict[ContractParamId, Any] = dict()
-        self._section_id: SectionId = prog.start_section
+        self._section_id: SectionId = prog.start_section_id
         self._sec_entrance_timestamp = cast(TimeStamp,0)
         self._cur_action_param_subst_from_event : Optional[Dict[ActionParamId, ActionParamValue]]
 

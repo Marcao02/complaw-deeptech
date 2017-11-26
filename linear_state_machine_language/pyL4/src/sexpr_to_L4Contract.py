@@ -161,7 +161,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if head(START_SECTION_LABEL):
                 self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
                 section_id = cast(SectionId, chcaststr(x[1]))
-                self.top.start_section = section_id
+                self.top.start_section_id = section_id
                 if not is_derived_destination_id(section_id):
                     self.referenced_nonderived_section_ids.add(section_id)
 
@@ -387,7 +387,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
             if x in self.top.definitions:
                 return self.term(self.top.definitions[castid(DefinitionId,x)].body, parent_section, parent_action, parent_connection)
-            print("parent_action.params", parent_action.params)
+
             raise SyntaxError(f'Unrecognized atom: {x}')
 
         elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:

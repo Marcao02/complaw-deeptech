@@ -6,7 +6,7 @@ from model.util import writeReadOnlyFile
 from state_diagram_generation import contractToDotFile
 
 EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
-EXAMPLES_UNPARSED_ROOT = "./examples_unparsed_gen/"
+EXAMPLES_UNPARSED_ROOT = "./examples_prettyprinted_out/"
 
 EXAMPLES = [
     'degenerate/collatz.l4',
@@ -45,15 +45,33 @@ if __name__ == '__main__':
             # print(prog.max_section_id_len, prog.max_action_id_len)
 
             if 'printPretty' in sys.argv:
-                unparsed = str(prog)
-                print(unparsed)
-                writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, unparsed)
+                prettyprinted = str(prog)
+                print(prettyprinted)
+                writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, prettyprinted)
 
             if 'dot' in sys.argv:
-                contractToDotFile(prog, "examples_graphviz_gen" , True, True)
+                contractToDotFile(prog, "examples_graphviz_out" , True, True)
 
             print("\n~~~~~~~~~~~~~~\nRunning correctness checks...")
             for check in test_fns:
                 print()
                 if check(assembler):
                     print( check.__name__ + " ok" )
+
+# from typing import TypeVar, Iterable, Dict, Callable, List
+#
+# from model.GlobalVarDec import GlobalVarDec
+# from model.L4Contract import L4Contract
+# T = TypeVar('T')
+# def mkdict(iter : List[T], name:Callable[[T],str] = lambda x:x.name) -> Dict[str,T]:
+#     return {name(x): x for x in iter}
+# def gvardec(name: str, sort: str, initval: Optional[Term], modifier:List[str]) -> GlobalVarDec:
+#     return GlobalVarDec(castid(GlobalVarDecId), sort, initval, modifier)
+#
+# c = L4Contract('monster burger')
+# c.start_section_id = 'MonsterBurgerUncooked'
+# c.global_var_decs = mkdict([
+#     gvardec('challenge_endlimit_timestamp', 'Timestamp', None, ['writeonce']),
+# 	gvardec('amount_owing', '$', 0, []),
+# 	gvardec('amount_paid', '$', 0, [])
+# ])
