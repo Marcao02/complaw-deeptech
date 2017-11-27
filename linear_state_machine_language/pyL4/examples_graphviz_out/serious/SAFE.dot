@@ -28,7 +28,6 @@ digraph SAFE {
     
     InvestorInvests -> CommitToEquityFinancing;
 	InvestorInvests -> CommitToLiquidityEvent;
-	InvestorInvests -> CommitToLiquidityEvent;
 	InvestorInvests -> CommitToDissolution;
 	CommitToEquityFinancing -> DeliverDocsWithPRA;
 	CommitToEquityFinancing -> DeliverDocsWithoutPRA;

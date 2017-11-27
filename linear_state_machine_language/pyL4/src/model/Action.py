@@ -2,7 +2,7 @@ from typing import Optional, Dict, List
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.SExpr import SExpr
-from model.Section import Section
+from model.Section import Section, ParamsDec
 from model.Term import Term
 from model.constants_and_defined_types import ActionParamId, SortId, LocalVarId, SectionId, ActionId
 from model.util import mapjoin, indent
@@ -22,7 +22,7 @@ class Action:
 
         self.following_anon_section : Optional[Section] = None
 
-        self.params : Optional[Dict[ActionParamId,SortId]] = None # str param -> str sort
+        self.params : ParamsDec = dict() # str param -> str sort
         self.global_state_transform : Optional[GlobalStateTransform] = None
         self.preconditions: List[Term] = []
         self.postconditions: List[Term] = []

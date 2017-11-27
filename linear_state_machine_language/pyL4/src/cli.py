@@ -1,4 +1,6 @@
 import logging
+from typing import List
+
 from parse_sexpr import parse_file, prettySExprStr
 from sexpr_to_L4Contract import L4ContractConstructor
 from correctness_checks import test_fns
@@ -16,25 +18,25 @@ EXAMPLES = [
     'serious/SAFE.l4'
 ]
 
-if __name__ == '__main__':
-    import sys
+# so can run it as a library too, which respects exceptions
+def main(sys_argv:List[str]):
 
     logging.basicConfig(
         format="[%(levelname)s] %(funcName)s: %(message)s",
         level=logging.INFO )
 
-    if 'test' in sys.argv:
+    if 'test' in sys_argv:
         import doctest
         doctest.testmod()
 
-    if 'examples' in sys.argv:
+    if 'examples' in sys_argv:
         for filename in EXAMPLES:
             print(f"\n---------------------------------\nExample {filename}:")
             in_path = EXAMPLES_SEXPR_ROOT + filename
-            if 'printSExpr' in sys.argv:
+            if 'printSExpr' in sys_argv:
                 print("\nLooking at file " + filename + ":\n")
             parsed = parse_file(in_path)
-            if 'printSExpr' in sys.argv:
+            if 'printSExpr' in sys_argv:
                 print(prettySExprStr(parsed))
 
             assembler = L4ContractConstructor(filename)
@@ -44,12 +46,12 @@ if __name__ == '__main__':
             # print( prog.section_ids() )
             # print(prog.max_section_id_len, prog.max_action_id_len)
 
-            if 'printPretty' in sys.argv:
+            if 'printPretty' in sys_argv:
                 prettyprinted = str(prog)
                 print(prettyprinted)
                 writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, prettyprinted)
 
-            if 'dot' in sys.argv:
+            if 'dot' in sys_argv:
                 contractToDotFile(prog, "examples_graphviz_out" , True, True)
 
             print("\n~~~~~~~~~~~~~~\nRunning correctness checks...")
@@ -58,7 +60,12 @@ if __name__ == '__main__':
                 if check(assembler):
                     print( check.__name__ + " ok" )
 
-# from typing import TypeVar, Iterable, Dict, Callable, List
+if __name__ == '__main__':
+    import sys
+    main(sys.argv)
+
+
+                        # from typing import TypeVar, Iterable, Dict, Callable, List
 #
 # from model.GlobalVarDec import GlobalVarDec
 # from model.L4Contract import L4Contract

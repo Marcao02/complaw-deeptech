@@ -17,6 +17,7 @@
 	(DISCOUNT_RATE : ℝ = .8)
 	(START_INVESTOR_COMMON_STOCKS : ℕ = 0)
 	(START_INVESTOR_PREFERRED_STOCKS : ℕ = 0)
+	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ℕ = 0)
 	(START_INVESTOR_CASH : $ = 0 )
 )
 
@@ -28,6 +29,7 @@
 	(writeAtMostOnce investor_remaining_investment_L : $)
 	(writeAtMostOnce investor_Preferred_Stocks : ℕ = START_INVESTOR_PREFERRED_STOCKS  )
 	(writeAtMostOnce investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  )
+	(writeAtMostOnce investor_SAFE_Preferred_Stocks : ℕ = START_INVESTOR_SAFE_PREFERRED_STOCKS) ; wil
 	(writeAtMostOnce liq_price : $ )
 	(writeAtMostOnce liq_cashout : $ = 0 )
 	(writeAtMostOnce investor_cash : $ = START_INVESTOR_CASH )
@@ -68,8 +70,7 @@
 	(Section InvestorInvests
 		(Next
 			(Company weakly-must CommitToEquityFinancing nodeadline)
-			(Company weakly-must (CommitToLiquidityEvent false) nodeadline) ; IPO
-			(Company weakly-must (CommitToLiquidityEvent true)  nodeadline)  ; change of control
+			(Company weakly-must (CommitToLiquidityEvent _1 _2 _3 _4 _5) nodeadline) ; IPO
 			(Company weakly-must CommitToDissolution nodeadline)
 		)
 	)
@@ -91,12 +92,14 @@
 
 	(Action DeliverDocsWithPRA (AllowedSubjects Company)
 		(FollowingSection
-			(Next (Company must IssueSAFEPreferredStock discretionary))  )
+			(Next (Company must (IssueSAFEPreferredStock _1 _2) discretionary))
+		)
 	)
 
 	(Action DeliverDocsWithoutPRA (AllowedSubjects Company)
 		(FollowingSection
-			(Next (Company must SubmitProRataRightsAgreementForSigning discretionary))  )
+			(Next (Company must SubmitProRataRightsAgreementForSigning discretionary))
+		)
 	)
 
 	(Action SubmitProRataRightsAgreementForSigning  (AllowedSubjects Company)
@@ -109,7 +112,8 @@
 
 	(Action SignPRA (AllowedSubjects Investor)
 		(FollowingSection
-			(Next (Company must IssueSAFEPreferredStock discretionary))  )
+			(Next (Company must (IssueSAFEPreferredStock _1 _2) discretionary))
+		)
 	)
 
 	(Action (IssueSAFEPreferredStock(company_capitalization : ℕ) (initial_price_per_share_standard_preferred_stock : ℝ)) (AllowedSubjects Company)
@@ -212,7 +216,10 @@
 	; ----------------- Dissolution Event -------------------
 
 	(Action CommitToDissolution (AllowedSubjects Company)
-		(FollowingSection (Next (Company must TransferCash_D discretionary))  )
+		(FollowingSection (Next (Company must
+			(TransferCash_D company_cash_at_dissolution_event
+							investor_percent_of_dissolving_investor_investments)
+			discretionary))  )
 	)
 
 
@@ -222,8 +229,6 @@
 		(StateTransform
 			(if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) (
 				(dis_cashout = PURCHASE_AMOUNT)
-
-
 			)
 			else (
 				(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
@@ -237,7 +242,7 @@
 			; becase it's implied by the definitions.
 			(Next
 				(if (dis_cashout < PURCHASE_AMOUNT)
-					(Company must TransferAssets discretionary)  )
+					(Company must (TransferAssets _) discretionary)  )
 				(if (dis_cashout == PURCHASE_AMOUNT)
 					(Company must Dissolve discretionary)     )
 			)

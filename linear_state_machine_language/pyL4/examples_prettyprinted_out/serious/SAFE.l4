@@ -7,6 +7,7 @@ contract params:
     DISCOUNT_RATE : ℝ := 0.8
     START_INVESTOR_COMMON_STOCKS : ℕ := 0
     START_INVESTOR_PREFERRED_STOCKS : ℕ := 0
+    START_INVESTOR_SAFE_PREFERRED_STOCKS : ℕ := 0
     START_INVESTOR_CASH : $ := 0
 
 global vars:
@@ -15,6 +16,7 @@ global vars:
     writeAtMostOnce investor_remaining_investment_L : $
     writeAtMostOnce investor_Preferred_Stocks : ℕ := START_INVESTOR_PREFERRED_STOCKS
     writeAtMostOnce investor_Common_Stocks : ℕ := START_INVESTOR_COMMON_STOCKS
+    writeAtMostOnce investor_SAFE_Preferred_Stocks : ℕ := START_INVESTOR_SAFE_PREFERRED_STOCKS
     writeAtMostOnce liq_price : $
     writeAtMostOnce liq_cashout : $ := 0
     writeAtMostOnce investor_cash : $ := START_INVESTOR_CASH
@@ -27,8 +29,7 @@ global vars:
 
 section InvestorInvests:
     Company weakly-must CommitToEquityFinancing nodeadline
-    Company weakly-must CommitToLiquidityEvent(false) nodeadline
-    Company weakly-must CommitToLiquidityEvent(true) nodeadline
+    Company weakly-must CommitToLiquidityEvent(_1, _2, _3, _4, _5) nodeadline
     Company weakly-must CommitToDissolution nodeadline
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
@@ -38,7 +39,7 @@ action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
 
 action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
     following section:
-        Company must IssueSAFEPreferredStock discretionary
+        Company must IssueSAFEPreferredStock(_1, _2) discretionary
 
 action DeliverDocsWithoutPRA()  transitions to AfterDeliverDocsWithoutPRA
     following section:
@@ -50,7 +51,7 @@ action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRa
 
 action SignPRA()  transitions to AfterSignPRA
     following section:
-        Company must IssueSAFEPreferredStock discretionary
+        Company must IssueSAFEPreferredStock(_1, _2) discretionary
 
 action IssueSAFEPreferredStock(company_capitalization, initial_price_per_share_standard_preferred_stock)  transitions to AfterIssueSAFEPreferredStock:
     transform:
@@ -113,7 +114,7 @@ action DoLiquidityEvent()  transitions to Fulfilled
 
 action CommitToDissolution()  transitions to AfterCommitToDissolution
     following section:
-        Company must TransferCash_D discretionary
+        Company must TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dissolving_investor_investments) discretionary
 
 action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dissolving_investor_investments)  transitions to AfterTransferCash_D:
     transform:
@@ -125,7 +126,7 @@ action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dis
         company_cash := company_cash_at_dissolution_event - dis_cashout
     following section:
         if dis_cashout < PURCHASE_AMOUNT:
-            Company must TransferAssets discretionary
+            Company must TransferAssets(_) discretionary
         if dis_cashout == PURCHASE_AMOUNT:
             Company must Dissolve discretionary
 

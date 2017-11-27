@@ -66,6 +66,8 @@ FN_SYMB_INTERP = {
     '*': lambda x,y: x * y,
     'even': lambda x: x % 2 == 0,
     'odd': lambda x: x % 2 == 1,
+    'min' : min,
+    'max' : max,
     '==': lambda x,y: x == y,
     '≤': lambda x,y: x <= y,
     '≥': lambda x,y: x >= y,
@@ -411,7 +413,7 @@ class ExecEnv:
                 todo_once("HACK!")
                 if "_" + term.name in self._cur_action_param_subst_from_event:
                     return self._cur_action_param_subst_from_event[cast(ActionParamId, '_' + term.name)]
-            contract_bug("Trying to get subst value of an ActionDeclActionParam but didn't find it in the execution context.")
+            contract_bug(f"Trying to get subst value of an ActionDeclActionParam {term.name} but didn't find it in the execution context.")
         elif isinstance(term, ConnectionDeclActionParam):
             if self._cur_action_param_subst_from_event:
                 if term.name in self._cur_action_param_subst_from_event:
@@ -457,20 +459,20 @@ class ExecEnv:
         return 0
 
 
-def evalTrace(trace:Union[Trace,CompleteTrace], prog:L4Contract):
+def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
     env = ExecEnv(prog)
-    if isinstance(trace, CompleteTrace):
-        for contract_param in trace.contract_param_subst:
-            supplied_val = trace.contract_param_subst[contract_param]
+    if isinstance(it, CompleteTrace):
+        for contract_param in it.contract_param_subst:
+            supplied_val = it.contract_param_subst[contract_param]
             paramdec = prog.contract_params[castid(ContractParamId, contract_param)]
             if isinstance(paramdec.value_expr,Literal):
                 paramdec.value_expr.lit = supplied_val
             else:
                 paramdec.value_expr = L4ContractConstructor.literal(supplied_val)
 
-        return env.evalLSM(trace.events, finalSectionId=cast(SectionId,trace.final_section), verbose=True)
+        return env.evalLSM(it.events, finalSectionId=cast(SectionId,it.final_section), verbose=True)
     else:
-        return env.evalLSM(trace, verbose=True)
+        return env.evalLSM(it, verbose=True)
 
 
 timestamp = cast(TimeStamp,0)
@@ -490,6 +492,9 @@ def event(action_id:str, role_id:str = ENV_ROLE, timestamp:int = 0, params:Optio
     params = params or dict()
     return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=cast(TimeStamp,timestamp),
                  params=cast(ActionParamSubst, params) if params else None)
+
+K = 1000
+M = 1000000
 
 from cli import EXAMPLES_SEXPR_ROOT
 
@@ -552,20 +557,29 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         event('EnterFulfilled'),
         ), FULFILLED_SECTION_LABEL, {'START':12})
     ),
-    # ('serious/SAFE.l4',CompleteTrace((
-    #     ...
-    #     ), FULFILLED_SECTION_LABEL)
-    # )
+
+    ('serious/SAFE.l4', CompleteTrace((
+        event('CommitToEquityFinancing', 'Company', 0),
+        event('DeliverDocsWithPRA', 'Company', 0),
+        event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':11*M, 'initial_price_per_share_standard_preferred_stock':0.909}),
+        event('DoEquityFinancing', 'Company', 0)
+        ), FULFILLED_SECTION_LABEL, {
+            "PURCHASE_AMOUNT": 100*K,
+            "VALUATION_CAP": 5*M,
+            "DISCOUNT_RATE": 1
+        })
+    )
 )
 
 
-if __name__ == '__main__':
-    import sys
+# so can run it as a library too, which respects exceptions
+def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
         'toy_and_teaching/monster_burger_program_only.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
         'degenerate/collatz.l4',
+        'serious/SAFE.l4',
     ]
     for trace in traces:
         subpath = trace[0]
@@ -573,7 +587,7 @@ if __name__ == '__main__':
             print("\n" + subpath)
             path = EXAMPLES_SEXPR_ROOT + subpath
             parsed = parse_file(path)
-            if 'print' in sys.argv:
+            if 'print' in sys_argv:
                 print(prettySExprStr(parsed))
 
             assembler = L4ContractConstructor(path)
@@ -581,9 +595,12 @@ if __name__ == '__main__':
 
             evalTrace(trace[1], prog)
 
+if __name__ == '__main__':
+    import sys
+    main(sys.argv)
 
 
-# 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
+                # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
     #     nextTSEvent('Start'),
     #     nextTSEvent('ContractLive'),
     #     nextTSEvent('NewOrder',[50]),

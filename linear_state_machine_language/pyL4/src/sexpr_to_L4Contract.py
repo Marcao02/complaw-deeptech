@@ -19,7 +19,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.top : L4Contract = L4Contract(filename or '')
         self.referenced_nonderived_section_ids: Set[SectionId] = set()
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
-        self.after_model_build_requirements : List[Callable[[],bool]]
+        self.after_model_build_requirements : List[Tuple[Callable[[],bool],str]] = []
 
     def syntaxError(self, expr: SExprOrStr, msg:Optional[str] = None):
         if isinstance(expr,SExpr):
@@ -30,6 +30,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             raise SyntaxError((msg if msg else "") +
                               "\n" + str(self.top.filename))
+
+    def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
+        self.after_model_build_requirements.append((f,errmsg))
 
     def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None):
         if not test:
@@ -82,6 +85,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             else:
                 raise Exception("Unsupported: ", x[0])
+
+        for f in self.after_model_build_requirements:
+            if not f[0]():
+                raise Exception(f[1])
 
         return self.top
 
@@ -388,7 +395,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return DeadlineLit(x)
             if parent_connection and parent_connection.args and x in parent_connection.args:
                 return ConnectionDeclActionParam(cast(ConnectionActionParamId, x), parent_connection )
-            if parent_action and parent_action.params and x in parent_action.params:
+            if parent_action and x in parent_action.params:
                 return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
             if x in self.top.definitions:
                 return self.term(self.top.definitions[castid(DefinitionId,x)].body, parent_section, parent_action, parent_connection)
@@ -457,7 +464,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             deontic_keyword = castid(DeonticModality, expr[1])
             if isinstance(expr[2],str):
                 action_id = castid(ActionId,expr[2])
-                args = None
+                args = []
             else:
                 action_id = castid(ActionId, (expr[2][0]))
                 args = cast(List[ConnectionActionParamId], expr[2][1:])

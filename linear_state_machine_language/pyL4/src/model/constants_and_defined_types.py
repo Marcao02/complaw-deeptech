@@ -20,7 +20,7 @@ ParamsDec = Dict[ActionParamId, SortId]
 Nat = NewType('Nat',int)
 TimeStamp = NewType('TimeStamp',Nat)
 
-ActionParamValue = Union[Tuple[Any], str, int, TimeStamp]
+ActionParamValue = Union[Tuple[Any], str, int, float, TimeStamp]
 ActionParamSubst = Dict[ActionParamId, ActionParamValue]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
@@ -33,8 +33,10 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 
 DEADLINE_PREDICATES = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'by', 'strictly-within', 'on-ts' ,'at-ts', 'nonstrictly-before', 'between', 'after',
-                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within', 'after-exactly',
-                      'within', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'}
+                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within',
+                      'after-exactly', # duration
+                      'within', #duration
+                      'strictly-after', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'}
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex' }
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline','discretionary'}
