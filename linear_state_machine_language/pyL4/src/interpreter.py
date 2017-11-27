@@ -55,9 +55,11 @@ class EventConsumptionOk(EventConsumptionResult):
 
 Trace = Sequence[Event]
 class CompleteTrace(NamedTuple):
+    contract_param_subst: Dict[str, Any]
     events: Trace
     final_section: str  # will need to be a SectionId
-    contract_param_subst: Dict[str,Any]
+    final_values: Optional[Dict[str,Any]] = None
+
 
 FN_SYMB_INTERP = {
     '+': lambda *args: sum(args),
@@ -75,7 +77,8 @@ FN_SYMB_INTERP = {
     '>': lambda x,y: x > y,
     'and': lambda x,y: x and y,
     'or': lambda x,y: x or y,
-    'unitsAfter' : lambda x,y: x + y
+    'unitsAfter' : lambda x,y: x + y,
+    'round': round
 }
 
 DEADLINE_OP_INTERP = {
@@ -118,7 +121,7 @@ class ExecEnv:
     def cur_section(self) -> Section:
         return self._top.section(self._section_id)
 
-    def evalLSM(self, trace:Trace, finalSectionId:Optional[SectionId] = None, verbose=False):
+    def evalLSM(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[Dict[GlobalVarId,Any]] = None, verbose=False):
         prog = self._top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
@@ -184,6 +187,11 @@ class ExecEnv:
 
         if finalSectionId:
             assert self._section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self._section_id}"
+
+        if final_var_vals:
+            for gvarid,expected_val in final_var_vals.items():
+                actual_val = self._varvals[castid(LocalOrGlobalVarId,gvarid)]
+                assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
     def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
         entrance_enabled_strong_obligs : List[ConnectionToAction] = list()
@@ -354,6 +362,7 @@ class ExecEnv:
             # todo: use vardec for runtime type checking
             value = self.evalTerm(stmt.value_expr, self._sec_entrance_timestamp)
             self._varvals[stmt.varname] = value
+            print(f"Assigning {value} to {stmt.varname}")
 
         elif isinstance(stmt, (IncrementStatement,DecrementStatement,TimesEqualsStatement)):
             vardec = self._top.varDecObj(stmt.varname)
@@ -379,6 +388,9 @@ class ExecEnv:
             {str(self._cur_action_param_subst_from_event)}
             """
 
+        elif isinstance(stmt, IfElse):
+            test = chcast(bool, self.evalTerm(stmt.test, None))
+            self.evalCodeBlock(GlobalStateTransform(stmt.true_branch if test else stmt.false_branch))
         else:
             raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
@@ -470,7 +482,8 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
             else:
                 paramdec.value_expr = L4ContractConstructor.literal(supplied_val)
 
-        return env.evalLSM(it.events, finalSectionId=cast(SectionId,it.final_section), verbose=True)
+        return env.evalLSM(it.events, finalSectionId=cast(SectionId,it.final_section),
+                           final_var_vals = cast(Optional[Dict[GlobalVarId,Any]],it.final_values), verbose=True)
     else:
         return env.evalLSM(it, verbose=True)
 
@@ -499,7 +512,7 @@ M = 1000000
 from cli import EXAMPLES_SEXPR_ROOT
 
 traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
-    ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace((
+    ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace({},(
         # start section implicit
         nextTSEvent('RequestCookMB', 'Challenger'),
         nextTSEvent('ServeMB', 'Restaurant'),
@@ -510,65 +523,146 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         nextTSEvent('AnnounceMBFinished','Challenger'),
         nextTSEvent('CheckCompletionClaim', 'Restaurant'),
         sameTSEvent('VerifyCompletionClaim', 'Restaurant')
-        ), FULFILLED_SECTION_LABEL, {})
+        ), FULFILLED_SECTION_LABEL)
      ),
 
 
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
         # start section implicit
         event('PayInstallment', 'Buyer', 30, {'amount':500}),
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8000}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
-        ), FULFILLED_SECTION_LABEL, {})
+        ), FULFILLED_SECTION_LABEL)
     ),
 
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
         event('PayInstallment', 'Buyer', 30, {'amount':499}),
-        ), breachSectionId('Buyer'), {})
+        ), breachSectionId('Buyer'))
     ),
 
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
         event('PayInstallment', 'Buyer', 30, {'amount':500}),
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':7999}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
-        ), breachSectionId('Buyer'), {})
+        ), breachSectionId('Buyer'))
     ),
 
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace((
+    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
         event('PayInstallment', 'Buyer', 30, {'amount':500}),
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8500}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':500}),
-        ), FULFILLED_SECTION_LABEL, {})
+        ), FULFILLED_SECTION_LABEL)
     ),
 
-    ('degenerate/collatz.l4', CompleteTrace((
-        event('DivideBy2'),
-        event('DivideBy2'),
-        event('TripplePlus1'),
-        event('DivideBy2'),
-        event('TripplePlus1'),
-        event('DivideBy2'),
-        event('DivideBy2'),
-        event('DivideBy2'),
-        event('DivideBy2'),
-        event('EnterFulfilled'),
-        ), FULFILLED_SECTION_LABEL, {'START':12})
+    ('degenerate/collatz.l4', CompleteTrace(
+        {'START': 12},
+        (   event('DivideBy2'),
+            event('DivideBy2'),
+            event('TripplePlus1'),
+            event('DivideBy2'),
+            event('TripplePlus1'),
+            event('DivideBy2'),
+            event('DivideBy2'),
+            event('DivideBy2'),
+            event('DivideBy2'),
+            event('EnterFulfilled'),
+        ), FULFILLED_SECTION_LABEL)
     ),
 
-    ('serious/SAFE.l4', CompleteTrace((
-        event('CommitToEquityFinancing', 'Company', 0),
-        event('DeliverDocsWithPRA', 'Company', 0),
-        event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':11*M, 'initial_price_per_share_standard_preferred_stock':0.909}),
-        event('DoEquityFinancing', 'Company', 0)
-        ), FULFILLED_SECTION_LABEL, {
-            "PURCHASE_AMOUNT": 100*K,
+
+    ('serious/SAFE.l4', CompleteTrace(
+        # Example 1 in SAFE_Primer.rtf
+        {   "PURCHASE_AMOUNT": 100*K,
             "VALUATION_CAP": 5*M,
             "DISCOUNT_RATE": 1
+        },
+        (   event('CommitToEquityFinancing', 'Company', 0),
+            event('DeliverDocsWithPRA', 'Company', 0),
+            event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':11*M, 'premoney_valuation':10*M}),
+            event('DoEquityFinancing', 'Company', 0)
+        ),
+        FULFILLED_SECTION_LABEL,
+        {   "investor_SAFE_Preferred_Stocks": 220000 })
+     ),
+
+    ('serious/SAFE.l4', CompleteTrace(
+        # Example 2 in SAFE_Primer.rtf
+        {   "PURCHASE_AMOUNT": 100*K,
+            "VALUATION_CAP": 4*M,
+            "DISCOUNT_RATE": 1
+        },
+        (   event('CommitToEquityFinancing', 'Company', 0),
+            event('DeliverDocsWithPRA', 'Company', 0),
+            event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':12.5*M, 'premoney_valuation':3*M}),
+            event('DoEquityFinancing', 'Company', 0)
+        ),
+        FULFILLED_SECTION_LABEL,
+        {   "investor_SAFE_Preferred_Stocks": 416666 })
+     ),
+
+    ('serious/SAFE.l4', CompleteTrace(
+        # Example 3 in SAFE_Primer.rtf
+        {   "PURCHASE_AMOUNT": 100*K,
+            "VALUATION_CAP": 8*M,
+            "DISCOUNT_RATE": 1
+        },
+        (   event('CommitToEquityFinancing', 'Company', 0),
+            event('DeliverDocsWithPRA', 'Company', 0),
+            event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':11.5*M, 'premoney_valuation':8*M}),
+            event('DoEquityFinancing', 'Company', 0)
+        ),
+        FULFILLED_SECTION_LABEL,
+        {   "investor_SAFE_Preferred_Stocks": 143750 })
+    ),
+
+('serious/SAFE.l4', CompleteTrace(
+        # Example 4 in SAFE_Primer.rtf
+        {"PURCHASE_AMOUNT": 100 * K,
+         "VALUATION_CAP": 10 * M,
+         "DISCOUNT_RATE": 1
+         },
+        (event('CommitToLiquidityEvent', 'Company', 0, {
+            'change_of_control': False,
+            'company_cash_at_liquidity_event': 50 * M,
+            'liquidity_capitalization': 11.5 * M,
+            'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
+        }),
+
+         event('ChooseStockPayment', 'Investor', 0),
+         event('TransferCommonStock', 'Company', 0),
+         event('DoLiquidityEvent', 'Company', 0)
+         ),
+        FULFILLED_SECTION_LABEL,{
+            "investor_Common_Stocks": 115000
         })
-    )
+     ),
+
+    ('serious/SAFE.l4', CompleteTrace(
+        # Example 4 in SAFE_Primer.rtf, if dumb and choose cash payment
+        {"PURCHASE_AMOUNT": 100 * K,
+         "VALUATION_CAP": 10 * M,
+         "DISCOUNT_RATE": 1
+         },
+        (event('CommitToLiquidityEvent', 'Company', 0, {
+            'change_of_control': False,
+            'company_cash_at_liquidity_event': 50 * M,
+            'liquidity_capitalization': 11.5 * M,
+            'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
+        }),
+
+         event('ChooseCashPayment', 'Investor', 0),
+         event('TransferCash_L', 'Company', 0),
+         # event('TransferCommonStock', 'Company', 0),
+         event('DoLiquidityEvent', 'Company', 0)
+         ),
+        FULFILLED_SECTION_LABEL,
+        {   "investor_liq_hypothetical_shares": 115000,
+            "investor_cash": 100000})
+     )
+
 )
 
 
@@ -576,9 +670,9 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
-        'toy_and_teaching/monster_burger_program_only.l4',
-        'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
-        'degenerate/collatz.l4',
+        # 'toy_and_teaching/monster_burger_program_only.l4',
+        # 'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+        # 'degenerate/collatz.l4',
         'serious/SAFE.l4',
     ]
     for trace in traces:

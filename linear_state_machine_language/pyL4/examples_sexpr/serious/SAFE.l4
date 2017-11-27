@@ -16,49 +16,48 @@
 	(VALUATION_CAP : $ = 100)
 	(DISCOUNT_RATE : ℝ = .8)
 	(START_INVESTOR_COMMON_STOCKS : ℕ = 0)
-	(START_INVESTOR_PREFERRED_STOCKS : ℕ = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ℕ = 0)
-	(START_INVESTOR_CASH : $ = 0 )
+	(START_INVESTOR_CASH : $ = 0)
 )
 
 (GlobalVars
 	(has_cap : Bool = (VALUATION_CAP > 0))
 	(has_discount : Bool = (DISCOUNT_RATE < 1))
 
-	; this will only have a value in a liquidity event:
-	(writeAtMostOnce investor_remaining_investment_L : $)
-	(writeAtMostOnce investor_Preferred_Stocks : ℕ = START_INVESTOR_PREFERRED_STOCKS  )
 	(writeAtMostOnce investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  )
-	(writeAtMostOnce investor_SAFE_Preferred_Stocks : ℕ = START_INVESTOR_SAFE_PREFERRED_STOCKS) ; wil
-	(writeAtMostOnce liq_price : $ )
-	(writeAtMostOnce liq_cashout : $ = 0 )
+	(writeAtMostOnce investor_SAFE_Preferred_Stocks : ℕ = START_INVESTOR_SAFE_PREFERRED_STOCKS)
 	(writeAtMostOnce investor_cash : $ = START_INVESTOR_CASH )
+	; (writeAtMostOnce company_cash : $ = PURCHASE_AMOUNT)
 
 	; for Equity Financing
 	(writeAtMostOnce safe_price : $)
 	(writeAtMostOnce discount_price : $)
 	(writeAtMostOnce conversion_price : $)
-	; don't need this because only used by the action that introduces it
+	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $)
+	; don't need this because only used by the action that introduces it:
 	; (writeAtMostOnce company_capitalization : ℕ)
 
 	; for Liquidity
+	(writeAtMostOnce liq_price : $ )
+	(writeAtMostOnce liq_cashout : $ = 0 )
+	(writeAtMostOnce investor_remaining_investment_L : $)
 	(writeAtMostOnce company_cash_remaining : ℕ)
-	; (writeAtMostOnce liquidity_capitalization : ℕ)  ; don't need this. used by two actions, but they can't both occur in one trace.
+	(writeAtMostOnce investor_liq_hypothetical_shares : ℕ)
+	; (writeAtMostOnce liquidity_capitalization : ℕ)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
 	(writeAtMostOnce investor_percent_of_cashout_investor_investments : %)
-	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need for same reason as company_capitalization
+	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need to store. action param only
 	; (writeAtMostOnce reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ; action param only
 
 	; for dissolution
 	; (company_cash_at_dissolution_event : $) ; action param only
 	; (investor_percent_of_dissolving_investor_investments : %)  ; action param only
-	; this could be a local variable if had ActionAndFollowingSection declarations:
 	(writeAtMostOnce dis_cashout : $)
 )
 
 (Definitions  ; LANG node: These are substituted before construction of in-memory python L4 model
 	; (discount_rate = (100 - DISCOUNT_PERCENT))
 	; (liq_price = (VALUATION_CAP / liquidity_capitalization))
-	(purchase_amount_reduction = (_investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+	(purchase_amount_reduction = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 )
 
 (FormalContract "SAFE"
@@ -70,11 +69,10 @@
 	(Section InvestorInvests
 		(Next
 			(Company weakly-must CommitToEquityFinancing nodeadline)
-			(Company weakly-must (CommitToLiquidityEvent _1 _2 _3 _4 _5) nodeadline) ; IPO
+			(Company weakly-must (CommitToLiquidityEvent _1 _2 _3 _4) nodeadline) ; IPO
 			(Company weakly-must CommitToDissolution nodeadline)
 		)
 	)
-
 
 	; ----------------- Equity Financing Event -------------------
 	; NOTE: PRA abbreviates pro rata agreement
@@ -116,9 +114,13 @@
 		)
 	)
 
-	(Action (IssueSAFEPreferredStock(company_capitalization : ℕ) (initial_price_per_share_standard_preferred_stock : ℝ)) (AllowedSubjects Company)
+	(Action (IssueSAFEPreferredStock
+				(company_capitalization : ℕ)
+				(premoney_valuation : ℕ)
+				) (AllowedSubjects Company)
 		(StateTransform
 			(safe_price = (VALUATION_CAP / company_capitalization))
+			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
 			(discount_price = (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE))
 			(conversion_price = (min safe_price discount_price))
 			(investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT / conversion_price))
@@ -133,14 +135,14 @@
 	; ----------------- Liquidity Event -------------------
 
 	(Action (CommitToLiquidityEvent (change_of_control:Bool)
-								    (_investor_percent_of_cashout_investor_investments:%)
 								    (company_cash_at_liquidity_event:$)
 								    (liquidity_capitalization:$)
 								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $)
 			) (AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_percent_of_cashout_investor_investments = _investor_percent_of_cashout_investor_investments)
+			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
+			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > 0)) (
 			 	; "In connection with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			 	(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
@@ -195,7 +197,7 @@
 				(liq_cashout = (company_cash_remaining * investor_percent_of_cashout_investor_investments))
 			))
 			(investor_cash += liq_cashout)
-			(company_cash -= liq_cashout)
+			; (company_cash -= liq_cashout)
 		)
 
 		(FollowingSection
@@ -234,7 +236,7 @@
 				(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
 			))
 			(investor_cash = dis_cashout)
-			(company_cash = (company_cash_at_dissolution_event - dis_cashout))
+			; (company_cash = (company_cash_at_dissolution_event - dis_cashout))
 		)
 
 		(FollowingSection
