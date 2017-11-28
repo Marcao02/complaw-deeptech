@@ -49,8 +49,8 @@
 	(Action StartLeaseTerm (TransitionsTo MonthStarted)
 		(StateTransform
 			; (conjecture ((eventTimestamp) == (monthStartDay)))
-			(lease_term_start := (eventTimestamp))
-			(lease_term_end := ((eventTimestamp) + LEASE_DURATION))   ))
+			(lease_term_start := event_ts)
+			(lease_term_end := (event_ts + LEASE_DURATION))   ))
 
 	(Action EnterMonthStarted
 		(FollowingSection

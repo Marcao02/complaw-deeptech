@@ -1,0 +1,62 @@
+------------------------------------------
+file: from_academic_lit/hvitved_printer.l4
+
+contract params:
+    CONTRACT_START : Date := 0
+    DELIVERY_DEADLINE : Date := 10
+
+global vars:
+    nonoperative buyer_paid : ℕ := 0
+    nonoperative seller_refunded : ℕ := 0
+    writeonce delivery_date : Date
+
+claims:
+    ['MAX_TIME', '=', '44D']
+    ['MAX_SECTION_VISITS', ':=', '6']
+
+section Awaiting_Delivery:
+    Seller must Deliver event_ts ≤ DELIVERY_DEADLINE
+
+action Deliver()  transitions to AfterDeliver:
+    transform:
+        delivery_date := sectionEntranceTimestamp
+    following section:
+        Buyer must Pay1stInstallment immediately
+
+action Pay1stInstallment()  transitions to AfterPay1stInstallment:
+    transform:
+        prove buyer_paid == 0
+        buyer_paid := 100
+    following section:
+        Buyer should Pay2ndInstallment event_ts ≤ 30 + delivery_date
+        Buyer may ReturnOnTime event_ts ≤ 14 + delivery_date
+        EnterLate2ndInstallment event_ts > 30 + delivery_date
+
+action EnterLate2ndInstallment()  transitions to Late2ndInstallment
+    following section:
+        Buyer must PayLateFee event_ts ≤ 44 + delivery_date
+
+action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
+    transform:
+        prove buyer_paid == 100
+        buyer_paid := 200
+    following section:
+        Buyer may ReturnOnTime event_ts ≤ 14 + delivery_date
+        CompleteNormalSale event_ts > 14 + delivery_date
+
+action ReturnOnTime()  transitions to AfterReturnOnTime
+    following section:
+        Seller must DeliverRefund event_ts ≤ 7 + sectionEntranceTimestamp
+
+action PayLateFee()  transitions to Fulfilled:
+    transform:
+        prove buyer_paid == 100
+        buyer_paid := 220
+
+action CompleteNormalSale()  transitions to Fulfilled
+
+action DeliverRefund()  transitions to Fulfilled:
+    transform:
+        prove seller_refunded == 0
+        prove buyer_paid == 100 or buyer_paid == 200
+        seller_refunded := buyer_paid

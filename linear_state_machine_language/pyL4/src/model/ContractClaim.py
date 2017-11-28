@@ -1,12 +1,14 @@
-from model.SExpr import SExprOrStr
+from model.SExpr import SExpr
 
-
-class Proposition:
-    def __init__(self, lst:SExprOrStr) -> None:
-        self.lst = lst
-
-class ContractClaim(Proposition):
-    # TODO
-    pass
+class ContractClaim:
+    # later after handle CONTRACT_VALUE_PROPERTIES
+    # def __init__(self, term:Term) -> None:
+    #     self.term = term
+    # def __str__(self):
+    #     return str(self.term)
+    def __init__(self, expr:SExpr) -> None:
+        self.expr = expr
+    def __str__(self):
+        return str(self.expr)
 
 

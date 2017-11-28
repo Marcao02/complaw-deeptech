@@ -126,6 +126,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def claims(self, l:SExpr) -> List[ContractClaim]:
+        # rv = [ContractClaim(self.term(x)) for x in l]
         rv = [ContractClaim(x) for x in l]
         # logging.info(str(rv))
         return rv
@@ -322,7 +323,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if statement[0] == APPLY_MACRO_LABEL:
                 statement = self.handle_apply_macro(statement)
 
-            if statement[0] == 'conjecture':
+            if statement[0] == 'conjecture' or statement[0] == 'prove':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
                 rhs = self.term(statement[1], None, parent_action)
                 return InCodeConjectureStatement(rhs)
@@ -387,20 +388,30 @@ class L4ContractConstructor(L4ContractConstructorInterface):
              parent_section : Optional[Section] = None, parent_action : Optional[Action] = None,
              parent_connection : Optional[Connection] = None) -> Term:
         if isinstance(x,str):
-            if x in self.top.global_var_decs:
-                return GlobalVar(self.top.global_var_decs[cast(GlobalVarId,x)])
-            if parent_action and (x in parent_action.local_vars):
-                return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
-            if x in self.top.contract_params:
-                return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
+            if x in EXEC_ENV_VARIABLES:
+                return FnApp(x,[])
+
             if x in DEADLINE_KEYWORDS:
                 return DeadlineLit(x)
+
+            if x in self.top.global_var_decs:
+                return GlobalVar(self.top.global_var_decs[cast(GlobalVarId,x)])
+
+            if parent_action and (x in parent_action.local_vars):
+                return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
+
+            if x in self.top.contract_params:
+                return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
+
             if parent_connection and parent_connection.args and x in parent_connection.args:
                 return ConnectionDeclActionParam(cast(ConnectionActionParamId, x), parent_connection )
+
             if parent_action and x in parent_action.params:
                 return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
+
             if x in self.top.definitions:
                 return self.term(self.top.definitions[castid(DefinitionId,x)].body, parent_section, parent_action, parent_connection)
+
             return L4ContractConstructor.literal(x)
             # if isInt(x):
             #     return IntLit(int(x))
@@ -421,7 +432,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x[0] == APPLY_MACRO_LABEL:
                 x = self.handle_apply_macro(x)
 
-            pair = maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)
+            pair = try_parse_as_fn_app(x)
             if pair:
                 return FnApp(
                     pair[0],
@@ -432,15 +443,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 raise SyntaxError() # this is just to get mypy to not complain about missing return statement
 
 
-    def deadline_clause(self, expr:SExpr, src_section:Section) -> Term:
+    def deadline_clause(self, expr:SExprOrStr, src_section:Section) -> Term:
         if expr in DEADLINE_KEYWORDS:
             return self.term(expr, src_section)
         else:
-            assert len(expr) > 1
-            if expr[0] in DEADLINE_PREDICATES:
+            assert isinstance(expr,SExpr) and len(expr) > 1
+            pair = try_parse_as_fn_app(expr)
+            if pair and pair[0] in DEADLINE_PREDICATES:
                 return self.term(expr, src_section)
             else:
-                self.syntaxError(expr, "Unhandled deadline predicate in L4ContractConstructor.deadline_clause(): " + str(expr))
+                self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_section.section_id}")
         raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
 
     def connection(self, expr:SExpr, src_section:Section) -> Connection:
@@ -490,6 +502,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         src_section.connections_by_role[role_id].append(rv)
         return rv
+
+def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:
+    return maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)
+
 
 def maybe_as_prefix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if isinstance(se[0],str):

@@ -31,15 +31,22 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of evenat-states. We might later change this keyword to "validationOnly".
 
-DEADLINE_PREDICATES = { # THESE MUST ALL BE PREFIX CURRENTLY
+PREFIX_DEADLINE_PREDICATES = {
                       'by', 'strictly-within', 'on-ts' ,'at-ts', 'nonstrictly-before', 'between', 'after',
                       'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within',
                       'after-exactly', # duration
                       'within', #duration
-                      'strictly-after', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'}
+                      'strictly-after', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'
+                      }
+DEADLINE_PREDICATES = PREFIX_DEADLINE_PREDICATES.union({'≤','≥','<','>'})
+
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex' }
 DEADLINE_KEYWORDS = {'immediately', 'nodeadline','discretionary'}
+
+CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
+
+EXEC_ENV_VARIABLES = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'event_ts'}
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}
@@ -55,7 +62,7 @@ PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'even
                      'tuple', 'fst', 'snd',
                      'entranceTimeNoLaterThan-ts?', 'entranceTimeAfter-ts?'
 
-                     }.union(DEADLINE_OPERATORS, DEADLINE_PREDICATES)
+                     }.union(DEADLINE_OPERATORS, PREFIX_DEADLINE_PREDICATES)
 
 POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 

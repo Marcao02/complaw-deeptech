@@ -1,0 +1,111 @@
+
+(Claims
+	(MAX_TIME = 44D)
+	(MAX_SECTION_VISITS := 6)
+)
+
+(Roles Buyer Seller)
+
+(TimeUnit days)
+
+(ContractParams
+	(CONTRACT_START : Date := 0)
+	(DELIVERY_DEADLINE : Date := 10)
+	; (CONTRACT_START : Date := "2010-12-30")
+	; (DELIVERY_DEADlINE : Date := "2011-01-01")
+)
+
+
+(GlobalVars
+	(nonoperative buyer_paid : ℕ := 0)
+	(nonoperative seller_refunded : ℕ := 0)
+	(writeonce delivery_date : Date)
+)
+
+(ProseContract
+	(P1 'Seller agrees to transfer and deliver to Buyer, on or before 2011-01-01, the goods: 1 laser printer.')
+	(P2 'Buyer agrees to accept the goods and to pay a total of €200 for them according to the terms further set out below.')
+	(P3 'Paragraph 3. Buyer agrees to pay for the goods half upon receipt, with the remainder due within 30 days of delivery.')
+	(P4 'If Buyer fails to pay the second half within 30 days, an additional fine of 10% has to be paid within 14 days.')
+	(P5	'Upon receipt, Buyer has 14 days to return the goods to Seller in original, unopened packaging. Within 7 days thereafter, Seller has to repay the total amount to Buyer.')
+)
+
+(FormalContract
+	"Two part sale Hvitved Laser Printer"
+	(StartSection Awaiting_Delivery)
+
+	(Section Awaiting_Delivery
+		[ProseRefs P1]
+		(Next (Seller must Deliver (event_ts ≤ DELIVERY_DEADLINE) ))
+	)
+
+	(Action Deliver [ProseRefs P1]
+		(StateTransform
+			(delivery_date = (sectionEntranceTimestamp))
+		)
+		(FollowingSection
+			(Next (Buyer must Pay1stInstallment immediately))
+		)
+	)
+
+	(Action Pay1stInstallment [ProseRefs P1 P2 P3]
+		(StateTransform
+			(prove (buyer_paid == 0))
+			(buyer_paid := 100)
+		)
+		(FollowingSection
+			(Next
+				(Buyer should Pay2ndInstallment (event_ts ≤ (30 + delivery_date)))
+				(Buyer may ReturnOnTime (event_ts ≤ (14 + delivery_date)))
+				(EnterLate2ndInstallment (event_ts > (30 + delivery_date)))
+			)
+		)
+	)
+
+	(Action EnterLate2ndInstallment [ProseRefs P4]
+		(FollowingSection
+			(Next (Buyer must PayLateFee (event_ts ≤ (44 + delivery_date))))
+		)
+	)
+
+	(Action Pay2ndInstallment [ProseRefs P5]
+		(StateTransform
+			(prove (buyer_paid == 100))
+			(buyer_paid := 200)
+		)
+		(FollowingSection
+			(Next
+				(Buyer may ReturnOnTime (event_ts ≤ (14 + delivery_date)))
+				(CompleteNormalSale (event_ts > (14 + delivery_date)))
+			)
+		)
+	)
+
+	(Action ReturnOnTime [ProseRefs P5]
+		(FollowingSection
+			(Next (Seller must DeliverRefund (event_ts ≤ (7 + sectionEntranceTimestamp))))
+		)
+	)
+
+	(Action PayLateFee [ProseRefs P4]
+		(StateTransform
+			(prove (buyer_paid == 100))
+			(buyer_paid := 220)
+		)
+		(TransitionsTo Fulfilled)
+	)
+
+	(Action CompleteNormalSale [ProseRefs P2]
+		 (TransitionsTo Fulfilled)
+	)
+
+	(Action DeliverRefund [ProseRefs P5]
+		(StateTransform
+			(prove (seller_refunded == 0))
+			(prove ((buyer_paid == 100) or (buyer_paid == 200)))
+			(seller_refunded := buyer_paid)
+		)
+		(TransitionsTo Fulfilled)
+	)
+
+)

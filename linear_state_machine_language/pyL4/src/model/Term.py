@@ -1,6 +1,7 @@
 from typing import List, Union
 
-from model.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS
+from model.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
+    EXEC_ENV_VARIABLES
 
 
 class Term:
@@ -14,7 +15,9 @@ class FnApp(Term):
         self.args = args
 
     def __str__(self):
-        if self.head in PREFIX_FN_SYMBOLS:
+        if self.head in EXEC_ENV_VARIABLES:
+            return self.head
+        elif self.head in PREFIX_FN_SYMBOLS:
             if self.head == 'not':
                 return f"¬{self.args[0]}"
             else:

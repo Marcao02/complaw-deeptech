@@ -15,7 +15,8 @@ EXAMPLES = [
     'toy_and_teaching/monster_burger_program_only.l4',
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
     'from_academic_lit/hvitved_lease.l4',
-    'serious/SAFE.l4'
+    'serious/SAFE.l4',
+    'from_academic_lit/hvitved_printer.l4'
 ]
 
 # so can run it as a library too, which respects exceptions
