@@ -23,7 +23,7 @@ def actionAsDotNodeStr(act: Action) -> str:
     return f'{act.action_id}[label={act.action_id},shape=box]'
 
 
-def connectionAsDotArcStr(con: ActionRule, l4file:L4Contract) -> str:
+def actionRuleAsDotArcStr(con: ActionRule, l4file:L4Contract) -> str:
     srcid : str = con.src_id
     section = l4file.section(con.src_id)
     if section.is_anon():
@@ -54,7 +54,7 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
         else:
             pass
 
-    connections_from_sections_str = mapjoin( lambda c: connectionAsDotArcStr(c,l4file), l4file.action_rules, ";\n\t")
+    action_rulesfrom_sections_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.action_rules, ";\n\t")
 
 
 
@@ -69,7 +69,7 @@ digraph {cleaned_graphname} {{
     
     {'EnterFulfilled -> Fulfilled;' if 'EnterFulfilled' in l4file.actions_by_id else ''}
     
-    {connections_from_sections_str}
+    {action_rulesfrom_sections_str}
     
     {actions_to_sections_str}        
 }}"""

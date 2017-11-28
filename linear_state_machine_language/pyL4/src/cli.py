@@ -41,7 +41,7 @@ def main(sys_argv:List[str]):
                 print(prettySExprStr(parsed))
 
             assembler = L4ContractConstructor(filename)
-            prog = assembler.l4contract(parsed)
+            prog = assembler.mk_l4contract(parsed)
 
             # print( prog.action_ids() )
             # print( prog.section_ids() )

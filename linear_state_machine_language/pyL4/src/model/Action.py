@@ -30,7 +30,7 @@ class Action:
 
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")
-    #     return list(self.connections_by_role.keys())
+    #     return list(self.action_rules_by_role.keys())
 
     def __str__(self):
         rv = f"action {self.action_id}"

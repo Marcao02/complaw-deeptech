@@ -40,10 +40,6 @@ class L4Contract:
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output
 
-    #
-    # def connections(self) -> Iterator[ActionRule]:
-    #     return self.construct_main_part.action_rules()
-
     def action_is_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)
         for c in cursection.action_rules():

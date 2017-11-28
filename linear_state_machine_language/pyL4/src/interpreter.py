@@ -148,7 +148,7 @@ class ExecEnv:
                 continue
 
             if not self._top.action_is_sometimes_available_from_section(self._section_id, next_action_id):
-                feedback.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-connection exists).")
+                feedback.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-action_rule exists).")
                 continue
 
             self._cur_action_param_subst_from_event = eventi.params
@@ -180,7 +180,7 @@ class ExecEnv:
                 assert False, "Can't get here?"
 
             # else:
-            #     feedback.error(f"{next_action_id}-connection exists in {self._section_id} but is disabled:\n", result)
+            #     feedback.error(f"{next_action_id}-action_rule exists in {self._section_id} but is disabled:\n", result)
 
             # feedback.error("Stopping evaluation")
             # return
@@ -197,7 +197,7 @@ class ExecEnv:
         entrance_enabled_strong_obligs : List[PartyActionRule] = list()
         entrance_enabled_weak_obligs : List[PartyActionRule] = list()
         entrance_enabled_permissions : List[PartyActionRule] = list()
-        entrance_enabled_env_connections : List[EnvActionRule] = list()
+        entrance_enabled_env_action_rules : List[EnvActionRule] = list()
 
         c: ActionRule
 
@@ -211,7 +211,7 @@ class ExecEnv:
 
             if entrance_enabled:
                 if isinstance(c,EnvActionRule):
-                    entrance_enabled_env_connections.append(c)
+                    entrance_enabled_env_action_rules.append(c)
                 else:
                     assert isinstance(c, PartyActionRule)
                     if c.deontic_modality == 'may' or c.deontic_modality == 'should':
@@ -229,12 +229,12 @@ class ExecEnv:
             contract_bug("There are multiple active strong obligations. This is an error.")
             return ContractFlawedError()
         if len(entrance_enabled_strong_obligs) == 1:
-            if len(entrance_enabled_weak_obligs) > 0 or len(entrance_enabled_permissions) > 0 or len(entrance_enabled_env_connections) > 0:
+            if len(entrance_enabled_weak_obligs) > 0 or len(entrance_enabled_permissions) > 0 or len(entrance_enabled_env_action_rules) > 0:
                 contract_bug("There is exactly one active strong obligation, but there is also at least one "
                              "active permission, environment-action, or weak obligation. This is an error.")
                 return ContractFlawedError()
             else:
-                if not self.event_connection_compatible(event, entrance_enabled_strong_obligs[0]):
+                if not self.event_action_rule_compatible(event, entrance_enabled_strong_obligs[0]):
                     contract_bug(f"There is exactly one active strong obligation\n"
                                  f"\t{entrance_enabled_strong_obligs[0]}\n"
                                  f"but it is not compatible with the current event\n"
@@ -250,26 +250,26 @@ class ExecEnv:
                         return BreachResult(set([event.role_id]), f"Strong obligation of {event.role_id} expired.")
 
 
-        # CASE 2: 0 entrance-enabled strong obligations (SO connections)
+        # CASE 2: 0 entrance-enabled strong obligations (SO action-rules)
         present_enabled_weak_obligs = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_weak_obligs )
         present_enabled_permissions = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_permissions )
-        present_enabled_env_connections = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_env_connections )
+        present_enabled_env_action_rules = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_env_action_rules )
 
-        present_enabled_nonSO_connections : Iterator[ActionRule] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_connections)
+        present_enabled_nonSO_action_rules : Iterator[ActionRule] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_action_rules)
 
-        # CASE 2a: `event` compatible with exactly one present-enabled non-SO connection
-        compatible_present_enabled_nonSO_connections = list(filter(
-            lambda c: self.event_connection_compatible(event,c),
-            present_enabled_nonSO_connections ))
-        if len(compatible_present_enabled_nonSO_connections) == 1:
+        # CASE 2a: `event` compatible with exactly one present-enabled non-SO action_rule
+        compatible_present_enabled_nonSO_action_rules = list(filter(
+            lambda c: self.event_action_rule_compatible(event,c),
+            present_enabled_nonSO_action_rules ))
+        if len(compatible_present_enabled_nonSO_action_rules) == 1:
             return EventConsumptionOk()
 
-        # CASE 2b: `event` compatible with more than one present-enabled non-SO connections
+        # CASE 2b: `event` compatible with more than one present-enabled non-SO action-rules
         # ...This is actually ok as long as deadlinesPartitionFuture isn't used.
-        if len(compatible_present_enabled_nonSO_connections) > 1:
+        if len(compatible_present_enabled_nonSO_action_rules) > 1:
             return EventConsumptionOk()
 
-        # CASE 2c: `event` compatible with 0 present-enabled non-SO connections
+        # CASE 2c: `event` compatible with 0 present-enabled non-SO action-rules
         # This is a breach. We need to determine what subset of the roles is at fault
         # You're at fault if you had an entrance-enabled weak obligation (which now expired,
         # from previous cases).
@@ -278,13 +278,13 @@ class ExecEnv:
             self._top.roles )
         return BreachResult(breach_roles, f"{breach_roles} had weak obligations that they didn't fulfill in time.")
 
-    def event_connection_compatible(self, event:Event, connection:ActionRule):
-        if not connection.where_clause:
-            return event.role_id == connection.role_id and event.action_id == connection.action_id
+    def event_action_rule_compatible(self, event:Event, action_rule:ActionRule):
+        if not action_rule.where_clause:
+            return event.role_id == action_rule.role_id and event.action_id == action_rule.action_id
 
         # print("Action-param subst:", self._cur_action_param_subst_from_event)
-        rv = (event.role_id == connection.role_id and event.action_id == connection.action_id and
-              self.evalTerm(connection.where_clause, event.timestamp) )
+        rv = (event.role_id == action_rule.role_id and event.action_id == action_rule.action_id and
+              self.evalTerm(action_rule.where_clause, event.timestamp) )
 
         return rv
 
@@ -480,7 +480,7 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
             if isinstance(paramdec.value_expr,Literal):
                 paramdec.value_expr.lit = supplied_val
             else:
-                paramdec.value_expr = L4ContractConstructor.literal(supplied_val)
+                paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)
 
         return env.evalLSM(it.events, finalSectionId=cast(SectionId,it.final_section),
                            final_var_vals = cast(Optional[Dict[GlobalVarId,Any]],it.final_values), verbose=True)
@@ -706,7 +706,7 @@ def main(sys_argv:List[str]):
                 print(prettySExprStr(parsed))
 
             assembler = L4ContractConstructor(path)
-            prog : L4Contract = assembler.l4contract(parsed)
+            prog : L4Contract = assembler.mk_l4contract(parsed)
 
             evalTrace(trace[1], prog)
 

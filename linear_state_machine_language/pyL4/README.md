@@ -33,7 +33,7 @@ To typecheck, from `pyL4` do `mypy src`.
 
 About leaving out `(TransitionsTo ‹section_id›`...
 
-**Todo: update LaTeX to add "env action" as a connection type.**
+**Todo: update LaTeX to add "env action" as an action_rule type.**
 
 <!--In LSM, there is only one type of `ActionRule`, which has a role, action, and a few other things.-->
 <!--In L4, there are PartyActionRule, EnvActionRule. They are just conveniences:-->

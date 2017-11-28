@@ -17,7 +17,7 @@ class Section:
 
         self.preconditions: List[Term] = []
 
-        self.connections_by_role: Dict[RoleId, List[ActionRule]] = dict()
+        self.action_rules_by_role: Dict[RoleId, List[ActionRule]] = dict()
 
         self.parent_action_id : Optional[ActionId] = None
 
@@ -26,10 +26,10 @@ class Section:
 
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")
-    #     return list(self.connections_by_role.keys())
+    #     return list(self.action_rules_by_role.keys())
     #
-    def connections(self) -> Iterator[ActionRule]:
-        for role_subset in self.connections_by_role.values():
+    def action_rules(self) -> Iterator[ActionRule]:
+        for role_subset in self.action_rules_by_role.values():
             for t in role_subset:
                 yield t
 

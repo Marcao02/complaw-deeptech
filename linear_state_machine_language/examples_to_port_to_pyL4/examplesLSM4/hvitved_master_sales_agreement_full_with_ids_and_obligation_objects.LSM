@@ -24,8 +24,8 @@
 ; - t is the current time
 ; - σ is an assignment of values to the global variables
 ; - s is one of the fixed number of `State`s.
-; - Γ is a finite set of fully-instantiated `Action`s (no parameters), each
-;   of which is an obligation or a permission.
+; - Γ is a finite set of fully-instantiated `Action`s (all parameters, if any,
+;   have values), each of which is an obligation or a permission.
 
 ; ABOUT THIS EXAMPLE
 ; I think this is the ONLY example, out of all the Hvitved examples, SAFE, and
