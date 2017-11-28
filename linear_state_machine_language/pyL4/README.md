@@ -38,6 +38,6 @@ About leaving out `(TransitionsTo ‹section_id›`...
 <!--In LSM, there is only one type of `ActionRule`, which has a role, action, and a few other things.-->
 <!--In L4, there are PartyActionRule, EnvActionRule. They are just conveniences:-->
 
-<!--* ActionRuleToSection has no `deontic_modality` but has an extra `dest_id` (a `Section` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
-<!--* EnvActionRule has no `deontic_modality` and its `role_id` is always `ENV_ROLE`.-->
+<!--* ActionRuleToSection has no `deontic_keyword` but has an extra `dest_id` (a `Section` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
+<!--* EnvActionRule has no `deontic_keyword` and its `role_id` is always `ENV_ROLE`.-->
 

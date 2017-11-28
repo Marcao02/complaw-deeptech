@@ -26,10 +26,10 @@ class ActionRule:
 class PartyActionRule(ActionRule):
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
                         args: Optional[List[ActionParamId_BoundBy_ActionRule]], entrance_enabled_guard: Optional[Term],
-                        deontic_modality: DeonticModality) -> None:
+                        deontic_keyword: DeonticKeyword) -> None:
         super().__init__(src_id, role_id, action_id, args, entrance_enabled_guard)
 
-        self.deontic_modality = deontic_modality
+        self.deontic_keyword = deontic_keyword
 
     def toStr(self, i:int) -> str:
         rv : str = ""
@@ -45,7 +45,7 @@ class PartyActionRule(ActionRule):
         if self.role_id == ENV_ROLE:
             rv += indent(indent_level) + self.action_id
         else:
-            rv += indent(indent_level) + f"{self.role_id} {self.deontic_modality} {self.action_id}"
+            rv += indent(indent_level) + f"{self.role_id} {self.deontic_keyword} {self.action_id}"
 
         if self.args:
             rv += f"({mapjoin(str , self.args, ', ')})"

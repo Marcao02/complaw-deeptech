@@ -67,8 +67,8 @@ PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'even
 
 POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 
-DEONTIC_MODALITIES = {'must','may','should','weakly-must'}
-DeonticModality = NewType('DeonticModality',str)
+DEONTIC_KEYWORDS = {'must','may','should','weakly-must','may-later','must-later'}
+DeonticKeyword = NewType('DeonticKeyword',str)
 
 
 

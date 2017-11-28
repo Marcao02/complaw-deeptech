@@ -214,11 +214,11 @@ class ExecEnv:
                     entrance_enabled_env_action_rules.append(c)
                 else:
                     assert isinstance(c, PartyActionRule)
-                    if c.deontic_modality == 'may' or c.deontic_modality == 'should':
+                    if c.deontic_keyword == 'may' or c.deontic_keyword == 'should':
                         entrance_enabled_permissions.append(c)
-                    elif c.deontic_modality == 'must':
+                    elif c.deontic_keyword == 'must':
                         entrance_enabled_strong_obligs.append(c)
-                    elif c.deontic_modality == 'weakly-must':
+                    elif c.deontic_keyword == 'weakly-must':
                         entrance_enabled_weak_obligs.append(c)
                     else:
                         assert False

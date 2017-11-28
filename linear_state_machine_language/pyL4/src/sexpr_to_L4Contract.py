@@ -475,7 +475,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv = EnvActionRule(src_section.section_id, action_id, args, entrance_enabled_guard)
         else:
             role_id = castid(RoleId, expr[0])
-            deontic_keyword = castid(DeonticModality, expr[1])
+            deontic_keyword = castid(DeonticKeyword, expr[1])
             if isinstance(expr[2],str):
                 action_id = castid(ActionId,expr[2])
                 args = []
