@@ -3,7 +3,7 @@ from itertools import chain
 
 from model.Action import Action
 from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam, \
-    ConnectionDeclActionParam
+    ActionRuleDeclActionParam
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import *
@@ -18,12 +18,12 @@ from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType
 
 from model.L4Contract import L4Contract
 
-from model.Connection import ConnectionToAction, ConnectionToEnvAction, Connection
+from model.ActionRule import PartyActionRule, EnvActionRule, ActionRule
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
 from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
-    ConnectionActionParamId, ContractParamId, SectionId, ActionParamId, FULFILLED_SECTION_LABEL, ActionParamSubst, \
+    ActionParamId_BoundBy_ActionRule, ContractParamId, SectionId, ActionParamId_BoundBy_ActionDecl, FULFILLED_SECTION_LABEL, ActionParamSubst, \
     TimeStamp, ActionParamValue, ENV_ROLE
 from model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug
 
@@ -116,7 +116,7 @@ class ExecEnv:
         self._contract_param_vals: Dict[ContractParamId, Any] = dict()
         self._section_id: SectionId = prog.start_section_id
         self._sec_entrance_timestamp = cast(TimeStamp,0)
-        self._cur_action_param_subst_from_event : Optional[Dict[ActionParamId, ActionParamValue]]
+        self._cur_action_param_subst_from_event : Optional[Dict[ActionParamId_BoundBy_ActionDecl, ActionParamValue]]
 
     def cur_section(self) -> Section:
         return self._top.section(self._section_id)
@@ -194,14 +194,14 @@ class ExecEnv:
                 assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
     def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
-        entrance_enabled_strong_obligs : List[ConnectionToAction] = list()
-        entrance_enabled_weak_obligs : List[ConnectionToAction] = list()
-        entrance_enabled_permissions : List[ConnectionToAction] = list()
-        entrance_enabled_env_connections : List[ConnectionToEnvAction] = list()
+        entrance_enabled_strong_obligs : List[PartyActionRule] = list()
+        entrance_enabled_weak_obligs : List[PartyActionRule] = list()
+        entrance_enabled_permissions : List[PartyActionRule] = list()
+        entrance_enabled_env_connections : List[EnvActionRule] = list()
 
-        c: Connection
+        c: ActionRule
 
-        for c in self.cur_section().connections():
+        for c in self.cur_section().action_rules():
             entrance_enabled = True
             if c.entrance_enabled_guard:
                 # next_timestamp param to evalTerm is None because enabled-guards
@@ -210,10 +210,10 @@ class ExecEnv:
                     entrance_enabled = False
 
             if entrance_enabled:
-                if isinstance(c,ConnectionToEnvAction):
+                if isinstance(c,EnvActionRule):
                     entrance_enabled_env_connections.append(c)
                 else:
-                    assert isinstance(c, ConnectionToAction)
+                    assert isinstance(c, PartyActionRule)
                     if c.deontic_modality == 'may' or c.deontic_modality == 'should':
                         entrance_enabled_permissions.append(c)
                     elif c.deontic_modality == 'must':
@@ -255,7 +255,7 @@ class ExecEnv:
         present_enabled_permissions = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_permissions )
         present_enabled_env_connections = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_env_connections )
 
-        present_enabled_nonSO_connections : Iterator[Connection] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_connections)
+        present_enabled_nonSO_connections : Iterator[ActionRule] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_connections)
 
         # CASE 2a: `event` compatible with exactly one present-enabled non-SO connection
         compatible_present_enabled_nonSO_connections = list(filter(
@@ -278,7 +278,7 @@ class ExecEnv:
             self._top.roles )
         return BreachResult(breach_roles, f"{breach_roles} had weak obligations that they didn't fulfill in time.")
 
-    def event_connection_compatible(self, event:Event, connection:Connection):
+    def event_connection_compatible(self, event:Event, connection:ActionRule):
         if not connection.where_clause:
             return event.role_id == connection.role_id and event.action_id == connection.action_id
 
@@ -293,9 +293,9 @@ class ExecEnv:
 
     def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
         todo_once("this needs to depend on action parameters")
-        for c in self.cur_section().connections():
+        for c in self.cur_section().action_rules():
             todo_once("check enabled guard")
-            if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
+            if isinstance(c, PartyActionRule) or isinstance(c, EnvActionRule):
                 if c.action_id != actionid:
                     continue
             else:
@@ -421,19 +421,19 @@ class ExecEnv:
         elif isinstance(term,ActionDeclActionParam):
             if self._cur_action_param_subst_from_event:
                 if term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, term.name)]
                 todo_once("HACK!")
                 if "_" + term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId, '_' + term.name)]
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, '_' + term.name)]
             contract_bug(f"Trying to get subst value of an ActionDeclActionParam {term.name} but didn't find it in the execution context.")
-        elif isinstance(term, ConnectionDeclActionParam):
+        elif isinstance(term, ActionRuleDeclActionParam):
             if self._cur_action_param_subst_from_event:
                 if term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId, term.name)]
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, term.name)]
                 todo_once("HACK!")
                 if "_" + term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId, '_' + term.name)]
-            contract_bug("Trying to get subst value of a ConnectionDeclActionParam but didn't find it in the execution context.")
+                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, '_' + term.name)]
+            contract_bug("Trying to get subst value of a ActionRuleDeclActionParam but didn't find it in the execution context.")
         else:
             contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
             return term

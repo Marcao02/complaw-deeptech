@@ -1,27 +1,28 @@
 # from enum import Enum
 from typing import Dict, NewType, cast, Union, Tuple, Any
 
-SortId = NewType('SortId', str)
-SectionId = NewType('SectionId',str)
-DefinitionId = NewType('DefinitionId', str)
-ActionId = NewType('ActionId',str)
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)
 GlobalVarId = NewType('GlobalVarId',str)
+ActionId = NewType('ActionId',str)
+SortId = NewType('SortId', str)
+SectionId = NewType('SectionId',str)
+DefinitionId = NewType('DefinitionId', str)
+ContractParamId = NewType('ContractParamId',str)
+
 LocalVarId = NewType('LocalVarId',str)
 LocalOrGlobalVarId = NewType('LocalOrGlobalVarId',str)
-ActionParamId = NewType('ActionParamId',str)
-ContractParamId = NewType('ContractParamId',str)
-ConnectionActionParamId = NewType('ConnectionActionParamId',str)
+ActionParamId_BoundBy_ActionDecl = NewType('ActionParamId_BoundBy_ActionDecl',str)
+ActionParamId_BoundBy_ActionRule = NewType('ActionParamId_BoundBy_ActionRule',str)
 
 ProseContract = Dict[ProseClauseId,str]
-ParamsDec = Dict[ActionParamId, SortId]
+ParamsDec = Dict[ActionParamId_BoundBy_ActionDecl, SortId]
 
 Nat = NewType('Nat',int)
 TimeStamp = NewType('TimeStamp',Nat)
 
 ActionParamValue = Union[Tuple[Any], str, int, float, TimeStamp]
-ActionParamSubst = Dict[ActionParamId, ActionParamValue]
+ActionParamSubst = Dict[ActionParamId_BoundBy_ActionDecl, ActionParamValue]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
@@ -68,6 +69,9 @@ POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 
 DEONTIC_MODALITIES = {'must','may','should','weakly-must'}
 DeonticModality = NewType('DeonticModality',str)
+
+
+
 
 # Aside form "Misc" group, the following are not actually case sensitive
 

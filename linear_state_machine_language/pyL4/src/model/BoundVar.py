@@ -1,13 +1,13 @@
 from typing import cast
 
 from model.Action import Action
-from model.Connection import Connection
+from model.ActionRule import ActionRule
 from model.GlobalVarDec import GlobalVarDec
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.Term import Term
-from model.constants_and_defined_types import LocalVarId, GlobalVarId, ContractParamId, ActionParamId, \
-    ConnectionActionParamId
+from model.constants_and_defined_types import LocalVarId, GlobalVarId, ContractParamId, ActionParamId_BoundBy_ActionDecl, \
+    ActionParamId_BoundBy_ActionRule
 
 
 class BoundVar(Term):
@@ -24,25 +24,25 @@ class BoundVar(Term):
     def name(self) -> str:
         raise NotImplementedError
 
-class ConnectionDeclActionParam(BoundVar):
-    def __init__(self, _name:ConnectionActionParamId, conn: Connection) -> None:
+class ActionRuleDeclActionParam(BoundVar):
+    def __init__(self, _name:ActionParamId_BoundBy_ActionRule, conn: ActionRule) -> None:
         super().__init__()
-        self.connection = conn
+        self.action_rule = conn
         self._name = _name
 
     @property
-    def name(self) -> ConnectionActionParamId:
+    def name(self) -> ActionParamId_BoundBy_ActionRule:
         return self._name
 
 
 class ActionDeclActionParam(BoundVar):
-    def __init__(self, _name:ActionParamId, action: Action) -> None:
+    def __init__(self, _name:ActionParamId_BoundBy_ActionDecl, action: Action) -> None:
         super().__init__()
         self.action = action
         self._name = _name
 
     @property
-    def name(self) -> ActionParamId:
+    def name(self) -> ActionParamId_BoundBy_ActionDecl:
         return self._name
 
 

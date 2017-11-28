@@ -2,7 +2,7 @@
 from typing import Iterable, Any, Union
 
 from model.Action import Action
-from model.Connection import *
+from model.ActionRule import *
 from model.ContractClaim import ContractClaim
 from model.ContractParamDec import ContractParamDec
 from model.Definition import Definition
@@ -29,7 +29,7 @@ class L4Contract:
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
-        self.connections: List[Connection] = list()
+        self.action_rules: List[ActionRule] = list()
 
         self.ordered_declarations : List[Union[Action,Section]] = list()
 
@@ -41,13 +41,13 @@ class L4Contract:
         self.img_file_name: Optional[str] = None  # for graphviz output
 
     #
-    # def connections(self) -> Iterator[Connection]:
-    #     return self.construct_main_part.connections()
+    # def connections(self) -> Iterator[ActionRule]:
+    #     return self.construct_main_part.action_rules()
 
     def action_is_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)
-        for c in cursection.connections():
-            if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
+        for c in cursection.action_rules():
+            if isinstance(c, PartyActionRule) or isinstance(c, EnvActionRule):
                 if c.action_id == actionid:
                     return True
             else:
@@ -58,8 +58,8 @@ class L4Contract:
     def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> Set[ActionId]:
         cursection = self.section(sectionid)
         rv : Set[ActionId] = set()
-        for c in cursection.connections():
-            if isinstance(c, ConnectionToAction) or isinstance(c, ConnectionToEnvAction):
+        for c in cursection.action_rules():
+            if isinstance(c, PartyActionRule) or isinstance(c, EnvActionRule):
                 if c.action_id == actionid:
                     rv.add(c.action_id)
             else:
@@ -73,12 +73,12 @@ class L4Contract:
     #         return sectionid2 == self.start_section
     #
     #     cursection = self.section(sectionid1)
-    #     for c in cursection.connections():
-    #         if isinstance(c, ConnectionToAction):
+    #     for c in cursection.action_rules():
+    #         if isinstance(c, PartyActionRule):
     #             action = self.action(c.action_id)
     #             if action.dest_section_id == sectionid2:
     #                 return True
-    #         elif isinstance(c, ConnectionToSection):
+    #         elif isinstance(c, ActionRuleToSection):
     #             if c.dest_id == sectionid2:
     #                 return True
     #         else:
@@ -86,9 +86,9 @@ class L4Contract:
     #
     #     return False
 
-    def transitions(self) -> Iterator[Connection]:
+    def transitions(self) -> Iterator[ActionRule]:
         for sec in self.sections_iter():
-            for c in sec.connections():
+            for c in sec.action_rules():
                 yield c
 
     def sections_iter(self) -> Iterable[Section]:

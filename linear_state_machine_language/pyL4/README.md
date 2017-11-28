@@ -35,9 +35,9 @@ About leaving out `(TransitionsTo ‹section_id›`...
 
 **Todo: update LaTeX to add "env action" as a connection type.**
 
-<!--In LSM, there is only one type of `Connection`, which has a role, action, and a few other things.-->
-<!--In L4, there are ConnectionToAction, ConnectionToEnvAction. They are just conveniences:-->
+<!--In LSM, there is only one type of `ActionRule`, which has a role, action, and a few other things.-->
+<!--In L4, there are PartyActionRule, EnvActionRule. They are just conveniences:-->
 
-<!--* ConnectionToSection has no `deontic_modality` but has an extra `dest_id` (a `Section` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
-<!--* ConnectionToEnvAction has no `deontic_modality` and its `role_id` is always `ENV_ROLE`.-->
+<!--* ActionRuleToSection has no `deontic_modality` but has an extra `dest_id` (a `Section` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
+<!--* EnvActionRule has no `deontic_modality` and its `role_id` is always `ENV_ROLE`.-->
 

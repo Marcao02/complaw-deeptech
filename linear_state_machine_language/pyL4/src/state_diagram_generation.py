@@ -23,15 +23,15 @@ def actionAsDotNodeStr(act: Action) -> str:
     return f'{act.action_id}[label={act.action_id},shape=box]'
 
 
-def connectionAsDotArcStr(con: Connection, l4file:L4Contract) -> str:
+def connectionAsDotArcStr(con: ActionRule, l4file:L4Contract) -> str:
     srcid : str = con.src_id
     section = l4file.section(con.src_id)
     if section.is_anon():
         srcid = chcaststr(section.parent_action_id)
 
-    if isinstance(con, ConnectionToAction):
+    if isinstance(con, PartyActionRule):
         return f"{srcid} -> {con.action_id}"
-    elif isinstance(con, ConnectionToEnvAction):
+    elif isinstance(con, EnvActionRule):
         return f"{srcid} -> {con.action_id} [style=dashed]"
     else:
         raise NotImplementedError
@@ -54,7 +54,7 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
         else:
             pass
 
-    connections_from_sections_str = mapjoin( lambda c: connectionAsDotArcStr(c,l4file), l4file.connections, ";\n\t")
+    connections_from_sections_str = mapjoin( lambda c: connectionAsDotArcStr(c,l4file), l4file.action_rules, ";\n\t")
 
 
 

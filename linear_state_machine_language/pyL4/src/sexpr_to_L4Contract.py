@@ -3,7 +3,7 @@ from typing import Tuple, cast, Callable
 
 from correctness_checks import L4ContractConstructorInterface
 from model.GlobalStateTransform import *
-from model.BoundVar import LocalVar, GlobalVar, ContractParam, ConnectionDeclActionParam, ActionDeclActionParam
+from model.BoundVar import LocalVar, GlobalVar, ContractParam, ActionRuleDeclActionParam, ActionDeclActionParam
 from model.GlobalStateTransformStatement import *
 from model.L4Contract import *
 from model.Literal import *
@@ -222,13 +222,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesPartitionFuture'):
                     x = x[1]
                     todo_once("guardsDisjointExhaustive etc in section()")
-                connection_exprs = castse(x.tillEnd(1))
-                for connection_expr in connection_exprs:
-                    if connection_expr[0] == APPLY_MACRO_LABEL:
-                        connection_expr = self.handle_apply_macro(connection_expr)
+                action_rule_exprs = castse(x.tillEnd(1))
+                for action_rule_expr in action_rule_exprs:
+                    if action_rule_expr[0] == APPLY_MACRO_LABEL:
+                        action_rule_expr = self.handle_apply_macro(action_rule_expr)
 
-                    newconnection = self.connection(connection_expr, section)
-                    self.top.connections.append(newconnection)
+                    newconnection = self.action_rule(action_rule_expr, section)
+                    self.top.action_rules.append(newconnection)
 
             elif head(PROSE_REFS_LABEL):
                 section.prose_refs = cast(List,x[1:]).copy()
@@ -311,7 +311,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
             self.top.sorts.add(castid(SortId,pdec[2]))
 
-        rv = {castid(ActionParamId,pdec[0]) : castid(SortId,pdec[2]) for pdec in parts}
+        rv = {castid(ActionParamId_BoundBy_ActionDecl,pdec[0]) : castid(SortId,pdec[2]) for pdec in parts}
         # logging.info(str(rv))
         return rv
 
@@ -386,7 +386,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def term(self, x:Union[str, SExpr],
              parent_section : Optional[Section] = None, parent_action : Optional[Action] = None,
-             parent_connection : Optional[Connection] = None) -> Term:
+             parent_connection : Optional[ActionRule] = None) -> Term:
         if isinstance(x,str):
             if x in EXEC_ENV_VARIABLES:
                 return FnApp(x,[])
@@ -404,10 +404,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
 
             if parent_connection and parent_connection.args and x in parent_connection.args:
-                return ConnectionDeclActionParam(cast(ConnectionActionParamId, x), parent_connection )
+                return ActionRuleDeclActionParam(cast(ActionParamId_BoundBy_ActionRule, x), parent_connection )
 
             if parent_action and x in parent_action.params:
-                return ActionDeclActionParam(cast(ActionParamId, x), parent_action)
+                return ActionDeclActionParam(cast(ActionParamId_BoundBy_ActionDecl, x), parent_action)
 
             if x in self.top.definitions:
                 return self.term(self.top.definitions[castid(DefinitionId,x)].body, parent_section, parent_action, parent_connection)
@@ -455,7 +455,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_section.section_id}")
         raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
 
-    def connection(self, expr:SExpr, src_section:Section) -> Connection:
+    def connection(self, expr:SExpr, src_section:Section) -> ActionRule:
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self.term(expr[1], src_section)
@@ -463,8 +463,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         role_id : RoleId
         action_id : ActionId
-        args : Optional[List[ConnectionActionParamId]]
-        rv : Connection
+        args : Optional[List[ActionParamId_BoundBy_ActionRule]]
+        rv : ActionRule
         if len(expr) == 2:
             action_id = castid(ActionId, expr[0])
             role_id = ENV_ROLE
@@ -472,7 +472,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.referenced_nonderived_action_ids.add(action_id)
             args = None
             rem = expr.tillEnd(1)
-            rv = ConnectionToEnvAction(src_section.section_id, action_id, args, entrance_enabled_guard)
+            rv = EnvActionRule(src_section.section_id, action_id, args, entrance_enabled_guard)
         else:
             role_id = castid(RoleId, expr[0])
             deontic_keyword = castid(DeonticModality, expr[1])
@@ -481,12 +481,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args = []
             else:
                 action_id = castid(ActionId, (expr[2][0]))
-                args = cast(List[ConnectionActionParamId], expr[2][1:])
+                args = cast(List[ActionParamId_BoundBy_ActionRule], expr[2][1:])
 
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            rv = ConnectionToAction(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+            rv = PartyActionRule(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 
         if role_id not in src_section.connections_by_role:

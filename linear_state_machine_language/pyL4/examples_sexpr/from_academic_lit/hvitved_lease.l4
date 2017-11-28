@@ -21,11 +21,11 @@
 	(writeOnceMore lease_terminated : Bool := false)
 	(branchUnaffecting inconly total_rent_paid : ℕ := 0)   )
 
-(Macro RequestTerminationConnectionMacroTenant SectionId
+(Macro RequestTerminationActionRuleMacroTenant SectionId
 	(if (not lease_terminated)
 		(Tenant may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))) ))
 
-(Macro RequestTerminationConnectionMacroLandlord SectionId
+(Macro RequestTerminationActionRuleMacroLandlord SectionId
 	(if (not lease_terminated)
 		(Landlord may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - DAYS_IN_A_MONTH)))) ))
 
@@ -56,15 +56,15 @@
 		(FollowingSection
 			(Next
 				(Tenant weakly-must (PayRent) (by ((monthStartDay) + MAX_RENT_DELAY)))
-				(apply-macro RequestTerminationConnectionMacroTenant MonthStarted)
-				(apply-macro RequestTerminationConnectionMacroLandlord MonthStarted)  )))
+				(apply-macro RequestTerminationActionRuleMacroTenant MonthStarted)
+				(apply-macro RequestTerminationActionRuleMacroLandlord MonthStarted)  )))
 
 	(Action PayRent (StateTransform (total_rent_paid += 1000))
 		(FollowingSection
 			(Next
 				(EnterMonthEnded (on-ts (monthEndDay)))
-				(apply-macro RequestTerminationConnectionMacroTenant AfterPayRent)
-				(apply-macro RequestTerminationConnectionMacroLandlord AfterPayRent)  )))
+				(apply-macro RequestTerminationActionRuleMacroTenant AfterPayRent)
+				(apply-macro RequestTerminationActionRuleMacroLandlord AfterPayRent)  )))
 
 	(Action EnterMonthEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
@@ -75,8 +75,8 @@
 					(EnterLeaseTermEnded (on-ts lease_term_end))   )
 				(if (lease_term_end > ((sectionEntranceTimestamp) + 1))
 					(EnterMonthStarted (after-exact-duration 1))   )
-				(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
-				(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)   )))
+				(apply-macro RequestTerminationActionRuleMacroTenant MonthEnded)
+				(apply-macro RequestTerminationActionRuleMacroLandlord MonthEnded)   )))
 
 	(Action EnterLeaseTermEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)

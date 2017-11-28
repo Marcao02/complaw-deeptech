@@ -5,7 +5,7 @@ from model.SExpr import SExpr
 from model.Term import Term
 from model.constants_and_defined_types import *
 from model.util import indent, mapjoin
-from model.Connection import Connection, ConnectionToEnvAction
+from model.ActionRule import ActionRule, EnvActionRule
 
 
 class Section:
@@ -17,7 +17,7 @@ class Section:
 
         self.preconditions: List[Term] = []
 
-        self.connections_by_role: Dict[RoleId, List[Connection]] = dict()
+        self.connections_by_role: Dict[RoleId, List[ActionRule]] = dict()
 
         self.parent_action_id : Optional[ActionId] = None
 
@@ -28,7 +28,7 @@ class Section:
     #     print("BROKEN")
     #     return list(self.connections_by_role.keys())
     #
-    def connections(self) -> Iterator[Connection]:
+    def connections(self) -> Iterator[ActionRule]:
         for role_subset in self.connections_by_role.values():
             for t in role_subset:
                 yield t
@@ -51,7 +51,7 @@ class Section:
         # if self.visit_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
 
-        for t in self.connections():
+        for t in self.action_rules():
             rv += t.toStr(i+1) + "\n"
 
         return rv

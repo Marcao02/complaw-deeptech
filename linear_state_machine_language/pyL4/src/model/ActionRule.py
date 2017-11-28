@@ -4,9 +4,9 @@ from model.Term import Term
 from model.constants_and_defined_types import *
 from model.util import indent, mapjoin
 
-class Connection:
+class ActionRule:
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[ConnectionActionParamId]], entrance_enabled_guard: Optional[Term]) -> None:
+                        args: Optional[List[ActionParamId_BoundBy_ActionRule]], entrance_enabled_guard: Optional[Term]) -> None:
         self.src_id = src_id
         self.role_id = role_id
         self.action_id = action_id
@@ -23,9 +23,9 @@ class Connection:
         return self.toStr(0)
 
 
-class ConnectionToAction(Connection):
+class PartyActionRule(ActionRule):
     def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[ConnectionActionParamId]], entrance_enabled_guard: Optional[Term],
+                        args: Optional[List[ActionParamId_BoundBy_ActionRule]], entrance_enabled_guard: Optional[Term],
                         deontic_modality: DeonticModality) -> None:
         super().__init__(src_id, role_id, action_id, args, entrance_enabled_guard)
 
@@ -63,9 +63,9 @@ class ConnectionToAction(Connection):
 
 
 
-class ConnectionToEnvAction(Connection):
+class EnvActionRule(ActionRule):
     def __init__(self, src_id: SectionId, action_id: ActionId,
-                        args: Optional[List[ConnectionActionParamId]], entrance_enabled_guard: Optional[Term]) -> None:
+                        args: Optional[List[ActionParamId_BoundBy_ActionRule]], entrance_enabled_guard: Optional[Term]) -> None:
         super().__init__(src_id, ENV_ROLE, action_id, args, entrance_enabled_guard)
 
     def toStr(self, i:int) -> str:
