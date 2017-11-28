@@ -3,11 +3,7 @@
 digraph Lease_Hvitved {    
     Fulfilled[label=Fufilled];
     Start[label=Start];
-	AfterEnsureApartmentReady[label=AfterEnsureApartmentReady];
-	MonthStarted[label=MonthStarted];
-	AfterPayRent[label=AfterPayRent];
-	MonthEnded[label=MonthEnded];
-	LeaseTermEnded[label=LeaseTermEnded]
+	AfterEnsureApartmentReady[label=AfterEnsureApartmentReady]
     
      
     RequestTerminationFromMonthStarted[label=RequestTerminationFromMonthStarted,shape=box];
@@ -25,28 +21,24 @@ digraph Lease_Hvitved {
     
     Start -> EnsureApartmentReady;
 	AfterEnsureApartmentReady -> StartLeaseTerm [style=dashed];
-	MonthStarted -> PayRent;
-	MonthStarted -> RequestTerminationFromMonthStarted;
-	MonthStarted -> RequestTerminationFromMonthStarted;
-	AfterPayRent -> EnterMonthEnded [style=dashed];
-	AfterPayRent -> RequestTerminationFromAfterPayRent;
-	AfterPayRent -> RequestTerminationFromAfterPayRent;
-	MonthEnded -> EnterLeaseTermEnded [style=dashed];
-	MonthEnded -> EnterMonthStarted [style=dashed];
-	MonthEnded -> RequestTerminationFromMonthEnded;
-	MonthEnded -> RequestTerminationFromMonthEnded;
-	LeaseTermEnded -> MoveOut;
-	LeaseTermEnded -> StartLeaseTerm [style=dashed]
+	EnterMonthStarted -> PayRent;
+	EnterMonthStarted -> RequestTerminationFromMonthStarted;
+	EnterMonthStarted -> RequestTerminationFromMonthStarted;
+	PayRent -> EnterMonthEnded [style=dashed];
+	PayRent -> RequestTerminationFromAfterPayRent;
+	PayRent -> RequestTerminationFromAfterPayRent;
+	EnterMonthEnded -> EnterLeaseTermEnded [style=dashed];
+	EnterMonthEnded -> EnterMonthStarted [style=dashed];
+	EnterMonthEnded -> RequestTerminationFromMonthEnded;
+	EnterMonthEnded -> RequestTerminationFromMonthEnded;
+	EnterLeaseTermEnded -> MoveOut;
+	EnterLeaseTermEnded -> StartLeaseTerm [style=dashed]
     
     RequestTerminationFromMonthStarted -> MonthStarted [style=dashed];
 	RequestTerminationFromAfterPayRent -> AfterPayRent [style=dashed];
 	RequestTerminationFromMonthEnded -> MonthEnded [style=dashed];
 	EnsureApartmentReady -> AfterEnsureApartmentReady [style=dashed];
 	StartLeaseTerm -> MonthStarted [style=dashed];
-	EnterMonthStarted -> MonthStarted [style=dashed];
-	PayRent -> AfterPayRent [style=dashed];
-	EnterMonthEnded -> MonthEnded [style=dashed];
-	EnterLeaseTermEnded -> LeaseTermEnded [style=dashed];
 	MoveOut -> Fulfilled [style=dashed];
 	        
 }

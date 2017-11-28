@@ -13,15 +13,15 @@
 
 (ContractParams
 	(PURCHASE_AMOUNT : $ = 100000)
-	(VALUATION_CAP : $ = 100)
-	(DISCOUNT_RATE : ℝ = .8)
+	(VALUATION_CAP : $ = inf)
+	(DISCOUNT_RATE : ℝ = 1)
 	(START_INVESTOR_COMMON_STOCKS : ℕ = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ℕ = 0)
 	(START_INVESTOR_CASH : $ = 0)
 )
 
 (GlobalVars
-	(has_cap : Bool = (VALUATION_CAP > 0))
+	(has_cap : Bool = (VALUATION_CAP < inf))
 	(has_discount : Bool = (DISCOUNT_RATE < 1))
 
 	(writeAtMostOnce investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  )

@@ -205,6 +205,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         section = Section(section_id)
         x: SExpr
         for x in rest:
+            assert isinstance(x,SExpr), f"{x} should be an s-expression"
+
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)

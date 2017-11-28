@@ -508,6 +508,7 @@ def event(action_id:str, role_id:str = ENV_ROLE, timestamp:int = 0, params:Optio
 
 K = 1000
 M = 1000000
+from math import inf
 
 from cli import EXAMPLES_SEXPR_ROOT
 
@@ -585,7 +586,7 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
             event('DoEquityFinancing', 'Company', 0)
         ),
         FULFILLED_SECTION_LABEL,
-        {   "investor_SAFE_Preferred_Stocks": 220000 })
+        {   "investor_SAFE_Preferred_Stocks": 220000 })  # primer says 220,022 from rounding price
      ),
 
     ('serious/SAFE.l4', CompleteTrace(
@@ -615,10 +616,10 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
             event('DoEquityFinancing', 'Company', 0)
         ),
         FULFILLED_SECTION_LABEL,
-        {   "investor_SAFE_Preferred_Stocks": 143750 })
+        {   "investor_SAFE_Preferred_Stocks": 143750 }) # primer says 143,760 from rounding price
     ),
 
-('serious/SAFE.l4', CompleteTrace(
+    ('serious/SAFE.l4', CompleteTrace(
         # Example 4 in SAFE_Primer.rtf
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 10 * M,
@@ -660,7 +661,27 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ),
         FULFILLED_SECTION_LABEL,
         {   "investor_liq_hypothetical_shares": 115000,
+            "investor_Common_Stocks": 0,
+            "investor_SAFE_Preferred_Stocks": 0,
             "investor_cash": 100000})
+     ),
+
+    ('serious/SAFE.l4', CompleteTrace(
+        # Example 8 in SAFE_Primer.rtf
+        {"PURCHASE_AMOUNT": 20 * K,
+         "VALUATION_CAP": inf,
+         "DISCOUNT_RATE": .8
+         },
+         (event('CommitToEquityFinancing', 'Company', 0),
+          event('DeliverDocsWithPRA', 'Company', 0),
+          event('IssueSAFEPreferredStock', 'Company', 0,
+                {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
+          event('DoEquityFinancing', 'Company', 0)
+          ),
+         FULFILLED_SECTION_LABEL,
+         { "initial_price_per_share_standard_preferred_stock": 2/10.5,
+           "discount_price": 0.8 * (2/10.5),
+           "investor_SAFE_Preferred_Stocks": 131250}) # primer says 131,578 from rounding price
      )
 
 )
@@ -670,9 +691,9 @@ traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
-        # 'toy_and_teaching/monster_burger_program_only.l4',
-        # 'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
-        # 'degenerate/collatz.l4',
+        'toy_and_teaching/monster_burger_program_only.l4',
+        'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+        'degenerate/collatz.l4',
         'serious/SAFE.l4',
     ]
     for trace in traces:

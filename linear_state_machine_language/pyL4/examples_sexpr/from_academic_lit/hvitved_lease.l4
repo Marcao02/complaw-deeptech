@@ -52,38 +52,38 @@
 			(lease_term_start := (eventTimestamp))
 			(lease_term_end := ((eventTimestamp) + LEASE_DURATION))   ))
 
-	(Action EnterMonthStarted)
-	(Section MonthStarted
-		(Next
-			(Tenant weakly-must (PayRent) (by ((monthStartDay) + MAX_RENT_DELAY)))
-			(apply-macro RequestTerminationConnectionMacroTenant MonthStarted)
-			(apply-macro RequestTerminationConnectionMacroLandlord MonthStarted)  ))
+	(Action EnterMonthStarted
+		(FollowingSection
+			(Next
+				(Tenant weakly-must (PayRent) (by ((monthStartDay) + MAX_RENT_DELAY)))
+				(apply-macro RequestTerminationConnectionMacroTenant MonthStarted)
+				(apply-macro RequestTerminationConnectionMacroLandlord MonthStarted)  )))
 
-	(Action PayRent (StateTransform (total_rent_paid += 1000)))
-	(Section AfterPayRent
-		(Next
-			(EnterMonthEnded (on-ts (monthEndDay)))
-			(apply-macro RequestTerminationConnectionMacroTenant AfterPayRent)
-			(apply-macro RequestTerminationConnectionMacroLandlord AfterPayRent)  ))
+	(Action PayRent (StateTransform (total_rent_paid += 1000))
+		(FollowingSection
+			(Next
+				(EnterMonthEnded (on-ts (monthEndDay)))
+				(apply-macro RequestTerminationConnectionMacroTenant AfterPayRent)
+				(apply-macro RequestTerminationConnectionMacroLandlord AfterPayRent)  )))
 
 	(Action EnterMonthEnded (AllowedSubjects Env)
-		(1 ≤ traversals ≤ nonconstant) )
-	(Section MonthEnded
-		(Pre ((sectionEntranceTimestamp) ≤ lease_term_end))
-		(Next
-			(if (lease_term_end ≤ ((sectionEntranceTimestamp) + 1))
-				(EnterLeaseTermEnded (on-ts lease_term_end))   )
-			(if (lease_term_end > ((sectionEntranceTimestamp) + 1))
-				(EnterMonthStarted (after-exact-duration 1))   )
-			(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
-			(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)   ))
+		(1 ≤ traversals ≤ nonconstant)
+		(FollowingSection
+			(Pre ((sectionEntranceTimestamp) ≤ lease_term_end))
+			(Next
+				(if (lease_term_end ≤ ((sectionEntranceTimestamp) + 1))
+					(EnterLeaseTermEnded (on-ts lease_term_end))   )
+				(if (lease_term_end > ((sectionEntranceTimestamp) + 1))
+					(EnterMonthStarted (after-exact-duration 1))   )
+				(apply-macro RequestTerminationConnectionMacroTenant MonthEnded)
+				(apply-macro RequestTerminationConnectionMacroLandlord MonthEnded)   )))
 
 	(Action EnterLeaseTermEnded (AllowedSubjects Env)
-		(1 ≤ traversals ≤ nonconstant)  )
-	(Section LeaseTermEnded
-		(Next
-			(if lease_terminated (Tenant must (MoveOut) immediately))
-			(if (not lease_terminated) (StartLeaseTerm immediately))  ))
+		(1 ≤ traversals ≤ nonconstant)
+		(FollowingSection
+			(Next
+				(if lease_terminated (Tenant must (MoveOut) immediately))
+				(if (not lease_terminated) (StartLeaseTerm immediately))   )))
 
 	(Action MoveOut (TransitionsTo Fulfilled) )
 )
