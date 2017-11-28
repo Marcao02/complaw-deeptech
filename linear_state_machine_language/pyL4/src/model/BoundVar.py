@@ -1,7 +1,7 @@
 from typing import cast
 
 from model.Action import Action
-from model.ActionRule import ActionRule
+from model.ActionRule import NextActionRule, ActionRule
 from model.GlobalVarDec import GlobalVarDec
 from model.ContractParamDec import ContractParamDec
 from model.GlobalStateTransformStatement import LocalVarDec

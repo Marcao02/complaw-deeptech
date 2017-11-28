@@ -4,15 +4,17 @@ from model.Term import Term
 from model.constants_and_defined_types import *
 from model.util import indent, mapjoin
 
+
 class ActionRule:
-    def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[ActionParamId_BoundBy_ActionRule]], entrance_enabled_guard: Optional[Term]) -> None:
-        self.src_id = src_id
+    def __init__(self,
+                 role_id: RoleId,
+                 action_id: ActionId,
+                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 entrance_enabled_guard: Optional[Term]) -> None:
         self.role_id = role_id
         self.action_id = action_id
         self.args = args
         self.entrance_enabled_guard = entrance_enabled_guard
-
         self.deadline_clause: Term
         self.where_clause: Optional[Term] = None
 
@@ -22,11 +24,37 @@ class ActionRule:
     def __str__(self) -> str:
         return self.toStr(0)
 
+class FuturePartyActionRule(ActionRule):
+    def __init__(self,
+                 src_action_id: ActionId,
+                 role_id: RoleId,
+                 action_id: ActionId,
+                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 entrance_enabled_guard: Optional[Term],
+                 deontic_keyword: DeonticKeyword) -> None:
+        super().__init__(role_id, action_id, args, entrance_enabled_guard)
+        self.src_action_id = src_action_id
+        self.deontic_keyword = deontic_keyword
 
-class PartyActionRule(ActionRule):
-    def __init__(self, src_id: SectionId, role_id: RoleId, action_id: ActionId,
-                        args: Optional[List[ActionParamId_BoundBy_ActionRule]], entrance_enabled_guard: Optional[Term],
-                        deontic_keyword: DeonticKeyword) -> None:
+class NextActionRule(ActionRule):
+    def __init__(self,
+                 src_id: SectionId,
+                 role_id: RoleId,
+                 action_id: ActionId,
+                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 entrance_enabled_guard: Optional[Term]) -> None:
+        super().__init__(role_id, action_id, args, entrance_enabled_guard)
+        self.src_id = src_id
+
+
+class PartyNextActionRule(NextActionRule):
+    def __init__(self,
+                 src_id: SectionId,
+                 role_id: RoleId,
+                 action_id: ActionId,
+                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 entrance_enabled_guard: Optional[Term],
+                 deontic_keyword: DeonticKeyword) -> None:
         super().__init__(src_id, role_id, action_id, args, entrance_enabled_guard)
 
         self.deontic_keyword = deontic_keyword
@@ -63,9 +91,12 @@ class PartyActionRule(ActionRule):
 
 
 
-class EnvActionRule(ActionRule):
-    def __init__(self, src_id: SectionId, action_id: ActionId,
-                        args: Optional[List[ActionParamId_BoundBy_ActionRule]], entrance_enabled_guard: Optional[Term]) -> None:
+class EnvNextActionRule(NextActionRule):
+    def __init__(self,
+                 src_id: SectionId,
+                 action_id: ActionId,
+                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 entrance_enabled_guard: Optional[Term]) -> None:
         super().__init__(src_id, ENV_ROLE, action_id, args, entrance_enabled_guard)
 
     def toStr(self, i:int) -> str:

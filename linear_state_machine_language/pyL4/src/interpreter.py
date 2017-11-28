@@ -18,7 +18,7 @@ from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType
 
 from model.L4Contract import L4Contract
 
-from model.ActionRule import PartyActionRule, EnvActionRule, ActionRule
+from model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule
 from model.Section import Section
 from sexpr_to_L4Contract import L4ContractConstructor
 from parse_sexpr import prettySExprStr, parse_file
@@ -41,6 +41,8 @@ def breachSectionId(*role_ids:str):
 class EventConsumptionResult:
     pass
 
+# class FutureAdded(EventConsumptionOk)
+
 class BreachResult(EventConsumptionResult):
     def __init__(self, role_ids:Iterable[RoleId], msg:str) -> None:
         self.role_ids = role_ids
@@ -50,8 +52,8 @@ class ContractFlawedError(EventConsumptionResult):
     pass
 
 class EventConsumptionOk(EventConsumptionResult):
-    pass
-
+    def __init__(self, future_added=False):
+        self.future_added = future_added
 
 Trace = Sequence[Event]
 class CompleteTrace(NamedTuple):
@@ -118,6 +120,9 @@ class ExecEnv:
         self._sec_entrance_timestamp = cast(TimeStamp,0)
         self._cur_action_param_subst_from_event : Optional[Dict[ActionParamId_BoundBy_ActionDecl, ActionParamValue]]
 
+        self._future_permissions : List[PartyNextActionRule] = []
+        self._future_obligations : List[PartyNextActionRule] = []
+
     def cur_section(self) -> Section:
         return self._top.section(self._section_id)
 
@@ -158,7 +163,8 @@ class ExecEnv:
                 if verbose:
                     sec_pad = ' '*(max_section_id_len-len(self._section_id))
                     act_pad = ' '*(max_action_str_len-len(actionstr))
-                    print(f"{self._section_id}{sec_pad} --{actionstr}-->{act_pad} {action.dest_section_id}")
+                    future_str = f' [{actionstr} required later]' if result.future_added else ''
+                    print(f"{self._section_id}{sec_pad} --{actionstr}-->{act_pad} {action.dest_section_id} {future_str}")
                 self.apply_action(action, eventi.params, next_timestamp)
                 self._cur_action_param_subst_from_event = None
                 continue
@@ -194,12 +200,15 @@ class ExecEnv:
                 assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
     def attempt_consume_next_event(self, event:Event) -> EventConsumptionResult:
-        entrance_enabled_strong_obligs : List[PartyActionRule] = list()
-        entrance_enabled_weak_obligs : List[PartyActionRule] = list()
-        entrance_enabled_permissions : List[PartyActionRule] = list()
-        entrance_enabled_env_action_rules : List[EnvActionRule] = list()
+        entrance_enabled_strong_obligs : List[PartyNextActionRule] = list()
+        entrance_enabled_weak_obligs : List[PartyNextActionRule] = list()
+        entrance_enabled_permissions : List[PartyNextActionRule] = list()
+        entrance_enabled_env_action_rules : List[EnvNextActionRule] = list()
 
-        c: ActionRule
+        # entrance_enabled_future_strong_obligs : List[PartyNextActionRule] = list()
+        # entrance_enabled_future_permissions : List[PartyNextActionRule] = list()
+
+        c: NextActionRule
 
         for c in self.cur_section().action_rules():
             entrance_enabled = True
@@ -210,19 +219,39 @@ class ExecEnv:
                     entrance_enabled = False
 
             if entrance_enabled:
-                if isinstance(c,EnvActionRule):
+                if isinstance(c, EnvNextActionRule):
                     entrance_enabled_env_action_rules.append(c)
                 else:
-                    assert isinstance(c, PartyActionRule)
+                    assert isinstance(c, PartyNextActionRule)
                     if c.deontic_keyword == 'may' or c.deontic_keyword == 'should':
                         entrance_enabled_permissions.append(c)
                     elif c.deontic_keyword == 'must':
                         entrance_enabled_strong_obligs.append(c)
                     elif c.deontic_keyword == 'weakly-must':
                         entrance_enabled_weak_obligs.append(c)
+                    # elif c.deontic_keyword == 'may-later':
+                    #     entrance_enabled_future_permissions.append(c)
+                    # elif c.deontic_keyword == 'must-later':
+                    #     entrance_enabled_future_strong_obligs.append(c)
                     else:
                         assert False
 
+        # CASE 0a: Exactly one must-later:
+        # if len(entrance_enabled_future_strong_obligs) > 0:
+        #     assert (len(entrance_enabled_future_permissions) == len(entrance_enabled_weak_obligs) ==
+        #             len(entrance_enabled_strong_obligs) == len(entrance_enabled_permissions) ==
+        #             len(entrance_enabled_env_action_rules) == 0), "usage of must-later currently very restricted"
+        #     fo = entrance_enabled_future_strong_obligs[0]
+        #     self._future_obligations.append(fo)
+        #     return EventConsumptionOk(True)
+        #
+        # if len(entrance_enabled_future_permissions) > 0:
+        #     assert (len(entrance_enabled_future_strong_obligs) == len(entrance_enabled_weak_obligs) ==
+        #             len(entrance_enabled_strong_obligs) == len(entrance_enabled_permissions) ==
+        #             len(entrance_enabled_env_action_rules) == 0), "usage of may-later currently very restricted"
+        #     fp = entrance_enabled_future_permissions[0]
+        #     self._future_permissions.append(fp)
+        #     return EventConsumptionOk(True)
 
         # CASE 1: 1 or more entrance-enabled strong obligations
         if len(entrance_enabled_strong_obligs) > 1:
@@ -255,7 +284,7 @@ class ExecEnv:
         present_enabled_permissions = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_permissions )
         present_enabled_env_action_rules = filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_env_action_rules )
 
-        present_enabled_nonSO_action_rules : Iterator[ActionRule] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_action_rules)
+        present_enabled_nonSO_action_rules : Iterator[NextActionRule] = chain(present_enabled_permissions, present_enabled_weak_obligs, present_enabled_env_action_rules)
 
         # CASE 2a: `event` compatible with exactly one present-enabled non-SO action_rule
         compatible_present_enabled_nonSO_action_rules = list(filter(
@@ -278,7 +307,7 @@ class ExecEnv:
             self._top.roles )
         return BreachResult(breach_roles, f"{breach_roles} had weak obligations that they didn't fulfill in time.")
 
-    def event_action_rule_compatible(self, event:Event, action_rule:ActionRule):
+    def event_action_rule_compatible(self, event:Event, action_rule:NextActionRule):
         if not action_rule.where_clause:
             return event.role_id == action_rule.role_id and event.action_id == action_rule.action_id
 
@@ -295,7 +324,7 @@ class ExecEnv:
         todo_once("this needs to depend on action parameters")
         for c in self.cur_section().action_rules():
             todo_once("check enabled guard")
-            if isinstance(c, PartyActionRule) or isinstance(c, EnvActionRule):
+            if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
                 if c.action_id != actionid:
                     continue
             else:

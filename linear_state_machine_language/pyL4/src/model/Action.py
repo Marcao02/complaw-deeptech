@@ -1,4 +1,6 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any, Iterator, Iterable
+
+from model.ActionRule import FuturePartyActionRule
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.SExpr import SExpr
@@ -28,9 +30,13 @@ class Action:
         self.postconditions: List[Term] = []
         self.prose_refs : List[str] = []
 
-    # def vulnerableParties(self) -> List[RoleId]:
-    #     print("BROKEN")
-    #     return list(self.action_rules_by_role.keys())
+        self.futures : List[FuturePartyActionRule] = []
+
+    def add_action_rule(self, far:FuturePartyActionRule) -> None:
+        self.futures.append(far)
+
+    def action_rules(self) -> Iterator[FuturePartyActionRule]:
+        return self.futures.__iter__()
 
     def __str__(self):
         rv = f"action {self.action_id}"
@@ -61,3 +67,6 @@ class Action:
 
     def __repr__(self) -> str:
         return str(self)
+
+    # def vulnerableParties(self) -> List[RoleId]:
+    #     print("BROKEN")

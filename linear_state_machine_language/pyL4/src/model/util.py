@@ -1,4 +1,4 @@
-from typing import Any, List, Callable, Iterable, cast, Dict, Set, TypeVar, Type
+from typing import Any, List, Callable, Iterable, cast, Dict, Set, TypeVar, Type, Iterator, Union
 import logging
 
 def indent(i:int) -> str:
@@ -44,7 +44,7 @@ def list_split(by:str, lst:List[str]) -> List[List[str]]:
     return lists
 
 
-def mapjoin(f:Callable[[Any],str], iter:Iterable[Any], delim:str='') -> str:
+def mapjoin(f:Callable[[Any],str], iter:Union[Iterable[Any],Iterator[Any]], delim:str='') -> str:
     return delim.join(map(f,iter))
 
 def isFloat(x:str) -> bool:

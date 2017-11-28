@@ -1,4 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple
+from itertools import chain
 from typing import Iterable, Any, Union
 
 from model.Action import Action
@@ -29,7 +30,6 @@ class L4Contract:
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
-        self.action_rules: List[ActionRule] = list()
 
         self.ordered_declarations : List[Union[Action,Section]] = list()
 
@@ -40,10 +40,21 @@ class L4Contract:
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output
 
+    def nextaction_rules(self) -> Iterator[NextActionRule]:
+        for s in self.sections_iter():
+            for nar in s.action_rules():
+                yield nar
+    def futureaction_rules(self) -> Iterator[FuturePartyActionRule]:
+        for a in self.actions_iter():
+            for far in a.action_rules():
+                yield far
+    def action_rules(self) -> Iterator[ActionRule]: return chain(self.nextaction_rules(), self.futureaction_rules())
+
+
     def action_is_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)
         for c in cursection.action_rules():
-            if isinstance(c, PartyActionRule) or isinstance(c, EnvActionRule):
+            if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
                 if c.action_id == actionid:
                     return True
             else:
@@ -55,7 +66,7 @@ class L4Contract:
         cursection = self.section(sectionid)
         rv : Set[ActionId] = set()
         for c in cursection.action_rules():
-            if isinstance(c, PartyActionRule) or isinstance(c, EnvActionRule):
+            if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
                 if c.action_id == actionid:
                     rv.add(c.action_id)
             else:
@@ -63,42 +74,19 @@ class L4Contract:
 
         return rv
 
-
-    # def can_transition(self, sectionid1:SectionId, sectionid2:SectionId) -> bool:
-    #     if sectionid1 is None:
-    #         return sectionid2 == self.start_section
-    #
-    #     cursection = self.section(sectionid1)
-    #     for c in cursection.action_rules():
-    #         if isinstance(c, PartyActionRule):
-    #             action = self.action(c.action_id)
-    #             if action.dest_section_id == sectionid2:
-    #                 return True
-    #         elif isinstance(c, ActionRuleToSection):
-    #             if c.dest_id == sectionid2:
-    #                 return True
-    #         else:
-    #             raise NotImplementedError
-    #
-    #     return False
-
-    def transitions(self) -> Iterator[ActionRule]:
+    def transitions(self) -> Iterator[NextActionRule]:
         for sec in self.sections_iter():
             for c in sec.action_rules():
                 yield c
 
-    def sections_iter(self) -> Iterable[Section]:
-        return self.sections_by_id.values()
-    def section_ids(self) -> Iterable[SectionId]:
-        return self.sections_by_id.keys()
+    def sections_iter(self) -> Iterable[Section]: return self.sections_by_id.values()
+    def section_ids(self) -> Iterable[SectionId]: return self.sections_by_id.keys()
     def section(self, anid:SectionId) -> Section:
         assert anid in self.sections_by_id, f"section id '{anid}' not found"
         return self.sections_by_id[anid]
     
-    def actions_iter(self) -> Iterable[Action]:
-        return self.actions_by_id.values()
-    def action_ids(self) -> Iterable[ActionId]:
-        return self.actions_by_id.keys()
+    def actions_iter(self) -> Iterable[Action]: return self.actions_by_id.values()
+    def action_ids(self) -> Iterable[ActionId]: return self.actions_by_id.keys()
     def action(self, anid: ActionId) -> Action:
         if anid not in self.actions_by_id:
             raise SyntaxError(f"No Action found with id {anid}")
@@ -110,13 +98,9 @@ class L4Contract:
             return self.global_var_decs[cast(GlobalVarId,varname)]
         else:
             return None
-    # def varDecObj(self, varname:str, sec:Optional[Section] = None) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
-    #     if varname in self.global_var_decs:
-    #         return self.global_var_decs[varname]
-    #     elif isinstance(sec,Section) and varname in sec.local_vars:
-    #         return sec.local_vars[varname]
-    #     else:
-    #         return None
+        # elif isinstance(sec,Section) and varname in sec.local_vars:
+        #     return sec.local_vars[varname]
+
 
     def __str__(self) -> str:
         rv = ''
@@ -146,8 +130,25 @@ class L4Contract:
             line('')
             rv += str(x)
 
-
         return rv
+
+    # def can_transition(self, sectionid1:SectionId, sectionid2:SectionId) -> bool:
+    #     if sectionid1 is None:
+    #         return sectionid2 == self.start_section
+    #
+    #     cursection = self.section(sectionid1)
+    #     for c in cursection.action_rules():
+    #         if isinstance(c, PartyNextActionRule):
+    #             action = self.action(c.action_id)
+    #             if action.dest_section_id == sectionid2:
+    #                 return True
+    #         elif isinstance(c, ActionRuleToSection):
+    #             if c.dest_id == sectionid2:
+    #                 return True
+    #         else:
+    #             raise NotImplementedError
+    #
+    #     return False
 
 
 def derived_destination_id(action_id:ActionId) -> SectionId:

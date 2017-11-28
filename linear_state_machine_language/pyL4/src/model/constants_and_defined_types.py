@@ -103,7 +103,7 @@ OUT_CONNECTIONS_LABEL = "Next"
 
 # ------------Inside an action declaration------------
 TRANSITIONS_TO_LABEL = "TransitionsTo"
-CODE_BLOCK_LABEL = "StateTransform"
+CODE_BLOCK_LABEL = "StateTransform" # Or "EntranceTransform"
 ACTION_DESCRIPTION_LABEL = "Description"
 ACTION_PRECONDITION_LABEL = "Pre"
 ACTION_POSTCONDITION_LABEL = "Post"

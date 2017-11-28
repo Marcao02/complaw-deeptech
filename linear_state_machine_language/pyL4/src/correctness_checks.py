@@ -43,7 +43,7 @@ def referenced_nonderived_action_ids_equal_defined_nonderived_action_ids(it:L4Co
     return True
 
 def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
-    for c in it.top.action_rules:
+    for c in it.top.nextaction_rules():
         action = it.top.action(c.action_id)
         args_required = len(c.args) if c.args else 0
         args_given = len(action.params) if action.params else 0

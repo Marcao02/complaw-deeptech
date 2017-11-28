@@ -227,8 +227,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     if action_rule_expr[0] == APPLY_MACRO_LABEL:
                         action_rule_expr = self.handle_apply_macro(action_rule_expr)
 
-                    new_arule = self._mk_action_rule(action_rule_expr, section)
-                    self.top.action_rules.append(new_arule)
+                    self._mk_next_action_rule(action_rule_expr, section)
 
             elif head(PROSE_REFS_LABEL):
                 section.prose_refs = cast(List,x[1:]).copy()
@@ -278,6 +277,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif 'traversals' in x or 'visits' in x:
                 a.traversal_bounds = x # self.term(x, None, a)
 
+            elif head('Future'):
+                a.futures = self._mk_futures(x.tillEnd(1), a)
+
             elif head(ALLOWED_SUBJECTS_DEC_LABEL):
                 a.allowed_subjects = x.tillEnd(1)
 
@@ -304,6 +306,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 a.dest_section_id = derived_destination_id(a.action_id)
 
         return a
+
+    def _mk_futures(self, rules:SExpr, src_action:Action) -> List[FuturePartyActionRule]:
+        rv : List[FuturePartyActionRule] = []
+        for action_rule_expr in rules:
+            if action_rule_expr[0] == APPLY_MACRO_LABEL:
+                action_rule_expr = self.handle_apply_macro(action_rule_expr)
+
+            rv.append( self._mk_future_action_rule(action_rule_expr, src_action) )
+        return rv
 
     def _mk_action_params(self, parts:List[List[str]]) -> ParamsDec:
         pdec : List[str]
@@ -385,7 +396,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         raise SyntaxError(f'Unrecognized atom: {x}')
 
     def _mk_term(self, x:Union[str, SExpr],
-                 parent_section : Optional[Section] = None, parent_action : Optional[Action] = None,
+                 parent_section : Optional[Section] = None,
+                 parent_action : Optional[Action] = None,
                  parent_action_rule : Optional[ActionRule] = None) -> Term:
         if isinstance(x,str):
             if x in EXEC_ENV_VARIABLES:
@@ -443,19 +455,56 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 raise SyntaxError() # this is just to get mypy to not complain about missing return statement
 
 
-    def _mk_deadline_clause(self, expr:SExprOrStr, src_section:Section) -> Term:
+    def _mk_deadline_clause(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action]) -> Term:
         if expr in DEADLINE_KEYWORDS:
-            return self._mk_term(expr, src_section)
+            return self._mk_term(expr, src_section, src_action)
         else:
             assert isinstance(expr,SExpr) and len(expr) > 1
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in DEADLINE_PREDICATES:
-                return self._mk_term(expr, src_section)
+                return self._mk_term(expr, src_section, src_action)
             else:
-                self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_section.section_id}")
+                if src_section:
+                    self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_section.section_id}")
+                elif src_action:
+                    self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_action.action_id}")
+
         raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
 
-    def _mk_action_rule(self, expr:SExpr, src_section:Section) -> ActionRule:
+    def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> FuturePartyActionRule:
+        entrance_enabled_guard: Optional[Term] = None
+        if expr[0] == 'if':
+            entrance_enabled_guard = self._mk_term(expr[1], None, src_action)
+            expr = expr[2]
+
+        role_id = castid(RoleId, expr[0])
+        deontic_keyword = castid(DeonticKeyword, expr[1])
+        if isinstance(expr[2],str):
+            action_id = castid(ActionId,expr[2])
+            args : List[ActionParamId_BoundBy_ActionRule] = []
+        else:
+            action_id = castid(ActionId, (expr[2][0]))
+            args = cast(List[ActionParamId_BoundBy_ActionRule], expr[2][1:])
+
+        if not is_derived_trigger_id(action_id):
+            self.referenced_nonderived_action_ids.add(action_id)
+
+        rv = FuturePartyActionRule(src_action.action_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+        rem = expr.tillEnd(3)
+        assert len(rem) >= 1
+
+        rv.deadline_clause = self._mk_deadline_clause(rem[0], None, src_action)
+        assert rv.deadline_clause is not None, str(rem)
+
+        for x in rem[1:]:
+            if x[0] == "where":
+                rv.where_clause = self._mk_term(x[1], None, src_action, rv)
+
+        src_action.add_action_rule(rv)
+        return rv
+
+
+    def _mk_next_action_rule(self, expr:SExpr, src_section:Section) -> NextActionRule:
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self._mk_term(expr[1], src_section)
@@ -464,7 +513,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         role_id : RoleId
         action_id : ActionId
         args : Optional[List[ActionParamId_BoundBy_ActionRule]]
-        rv : ActionRule
+        rv : NextActionRule
         if len(expr) == 2:
             action_id = castid(ActionId, expr[0])
             role_id = ENV_ROLE
@@ -472,7 +521,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.referenced_nonderived_action_ids.add(action_id)
             args = None
             rem = expr.tillEnd(1)
-            rv = EnvActionRule(src_section.section_id, action_id, args, entrance_enabled_guard)
+            rv = EnvNextActionRule(src_section.section_id, action_id, args, entrance_enabled_guard)
         else:
             role_id = castid(RoleId, expr[0])
             deontic_keyword = castid(DeonticKeyword, expr[1])
@@ -486,21 +535,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            rv = PartyActionRule(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+            rv = PartyNextActionRule(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
-
-        if role_id not in src_section.action_rules_by_role:
-            src_section.action_rules_by_role[role_id] = list()
         assert len(rem) >= 1
 
-        rv.deadline_clause = self._mk_deadline_clause(rem[0], src_section)
+        rv.deadline_clause = self._mk_deadline_clause(rem[0], src_section, None)
         assert rv.deadline_clause is not None, str(rem)
 
         for x in rem[1:]:
             if x[0] == "where":
                 rv.where_clause = self._mk_term(x[1], src_section, None, rv)
 
-        src_section.action_rules_by_role[role_id].append(rv)
+        src_section.add_action_rule(rv)
         return rv
 
 def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:

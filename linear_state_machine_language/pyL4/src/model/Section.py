@@ -5,7 +5,7 @@ from model.SExpr import SExpr
 from model.Term import Term
 from model.constants_and_defined_types import *
 from model.util import indent, mapjoin
-from model.ActionRule import ActionRule, EnvActionRule
+from model.ActionRule import NextActionRule, EnvNextActionRule
 
 
 class Section:
@@ -17,19 +17,21 @@ class Section:
 
         self.preconditions: List[Term] = []
 
-        self.action_rules_by_role: Dict[RoleId, List[ActionRule]] = dict()
+        # currently can replace this with just a list...
+        self._action_rules_by_role: Dict[RoleId, List[NextActionRule]] = dict()
 
         self.parent_action_id : Optional[ActionId] = None
 
     def is_anon(self) -> bool:
         return self.parent_action_id is not None
 
-    # def vulnerableParties(self) -> List[RoleId]:
-    #     print("BROKEN")
-    #     return list(self.action_rules_by_role.keys())
-    #
-    def action_rules(self) -> Iterator[ActionRule]:
-        for role_subset in self.action_rules_by_role.values():
+    def add_action_rule(self, nar:NextActionRule) -> None:
+        if not nar.role_id in self._action_rules_by_role:
+            self._action_rules_by_role[nar.role_id] = []
+        self._action_rules_by_role[nar.role_id].append(nar)
+
+    def action_rules(self) -> Iterator[NextActionRule]:
+        for role_subset in self._action_rules_by_role.values():
             for t in role_subset:
                 yield t
 
@@ -58,3 +60,8 @@ class Section:
 
     def __repr__(self) -> str:
         return str(self)
+
+    # def vulnerableParties(self) -> List[RoleId]:
+    #     print("BROKEN")
+    #     return list(self.action_rules_by_role.keys())
+    #
