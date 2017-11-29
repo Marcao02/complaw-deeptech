@@ -10,12 +10,13 @@
 
 	(Section Ongoing
 		(Next
+			(I may EnterFulfilled immediately)
+
 			(if (n < 5)
 				(I may Throw immediately)
 			)
-			(if (n ≥ 5)
-				(EnterFulfilled immediately)
-			)
+
+
 		)
 	)
 
@@ -25,7 +26,7 @@
 		)
 		(TransitionsTo Ongoing)
 		(Future
-			(I must-later (Catch ?n) immediately (where (?n == n)))
+			(I must-later (Catch m) immediately (where (m == n)))
 		)
 	)
 

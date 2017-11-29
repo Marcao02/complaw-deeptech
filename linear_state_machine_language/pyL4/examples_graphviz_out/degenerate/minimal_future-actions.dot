@@ -11,8 +11,8 @@ digraph Collatz {
     
     EnterFulfilled -> Fulfilled;
     
-    Ongoing -> Throw;
-	Ongoing -> EnterFulfilled [style=dashed]
+    Ongoing -> EnterFulfilled;
+	Ongoing -> Throw
     
     Throw -> Ongoing [style=dashed];
 	Catch -> Ongoing [style=dashed];
