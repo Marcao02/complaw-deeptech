@@ -112,6 +112,8 @@ class L4Contract:
         line(len(titleline)*'-')
         line(titleline)
 
+        line('\nroles: ' + ', '.join(self.roles))
+
         if len(self.contract_params) > 0:
             line("\ncontract params:")
             for cp in self.contract_params.values():

@@ -23,6 +23,9 @@ class ActionRule:
 
     def __str__(self) -> str:
         return self.toStr(0)
+
+    def __repr__(self) -> str:
+        return self.toStr(0)
     
 def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextActionRule'], i:int) -> str:
     rv: str = ""

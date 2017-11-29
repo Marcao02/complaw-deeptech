@@ -10,13 +10,15 @@
 
 	(Section Ongoing
 		(Next
-			(I may EnterFulfilled immediately)
-
 			(if (n < 5)
 				(I may Throw immediately)
 			)
-
-
+			(if (n < 5)
+				(I may Stand immediately)
+			)
+			(if (n == 5)
+				(EnterFulfilled immediately)
+			)
 		)
 	)
 
@@ -30,9 +32,12 @@
 		)
 	)
 
-	(Action (Catch (m : ℕ))
+	(Action Stand
+		(StateTransform
+			(n += 1)
+		)
 		(TransitionsTo Ongoing)
 	)
-
+	(Action (Catch (m : ℕ)) (TransitionsTo Ongoing))
 	(Action EnterFulfilled)
 )
