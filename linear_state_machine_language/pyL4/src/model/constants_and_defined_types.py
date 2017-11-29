@@ -112,4 +112,5 @@ FOLLOWING_SECTION_DEC_LABEL = "FollowingSection"
 
 # ------------Misc------------
 FULFILLED_SECTION_LABEL = cast(SectionId, "Fulfilled")
+# CONTINGENT_FULFILLED_SECTION_LABEL = cast(SectionId, "ContingentFulfilled")
 ENV_ROLE = cast(RoleId,"Env")

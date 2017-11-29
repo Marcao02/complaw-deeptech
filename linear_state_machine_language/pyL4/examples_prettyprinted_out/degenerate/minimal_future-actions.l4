@@ -1,0 +1,20 @@
+------------------------------------------
+file: degenerate/minimal_future-actions.l4
+
+global vars:
+    n : ℕ := 0
+
+section Ongoing:
+    if n < 5:
+        I may Throw immediately
+    if n ≥ 5:
+        EnterFulfilled
+
+action Throw()  transitions to Ongoing:
+    transform:
+        n += 1
+    I must-later Catch(?n) immediately where ?n == n
+
+action Catch(m)  transitions to Ongoing
+
+action EnterFulfilled()  transitions to Fulfilled

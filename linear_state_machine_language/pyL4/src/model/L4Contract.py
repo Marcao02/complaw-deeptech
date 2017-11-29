@@ -44,7 +44,7 @@ class L4Contract:
         for s in self.sections_iter():
             for nar in s.action_rules():
                 yield nar
-    def futureaction_rules(self) -> Iterator[FuturePartyActionRule]:
+    def futureaction_rules(self) -> Iterator[PartyFutureActionRule]:
         for a in self.actions_iter():
             for far in a.action_rules():
                 yield far

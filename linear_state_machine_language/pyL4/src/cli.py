@@ -11,12 +11,13 @@ EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
 EXAMPLES_UNPARSED_ROOT = "./examples_prettyprinted_out/"
 
 EXAMPLES = [
-    'degenerate/collatz.l4',
-    'toy_and_teaching/monster_burger_program_only.l4',
-    'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
-    'from_academic_lit/hvitved_lease.l4',
-    'serious/SAFE.l4',
-    'from_academic_lit/hvitved_printer.l4'
+    'degenerate/minimal_future-actions.l4',
+    # 'degenerate/collatz.l4',
+    # 'toy_and_teaching/monster_burger_program_only.l4',
+    # 'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+    # 'from_academic_lit/hvitved_lease.l4',
+    # 'serious/SAFE.l4',
+    # 'from_academic_lit/hvitved_printer.l4'
 ]
 
 # so can run it as a library too, which respects exceptions

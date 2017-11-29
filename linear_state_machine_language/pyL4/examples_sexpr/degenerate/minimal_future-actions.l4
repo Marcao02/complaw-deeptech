@@ -1,0 +1,37 @@
+
+(Roles I)
+
+(GlobalVars
+	(n : ℕ = 0)
+)
+
+(FormalContract "Collatz"
+	(StartSection Ongoing)
+
+	(Section Ongoing
+		(Next
+			(if (n < 5)
+				(I may Throw immediately)
+			)
+			(if (n ≥ 5)
+				(EnterFulfilled immediately)
+			)
+		)
+	)
+
+	(Action Throw
+		(StateTransform
+			(n += 1)
+		)
+		(TransitionsTo Ongoing)
+		(Future
+			(I must-later (Catch ?n) immediately (where (?n == n)))
+		)
+	)
+
+	(Action (Catch (m : ℕ))
+		(TransitionsTo Ongoing)
+	)
+
+	(Action EnterFulfilled)
+)

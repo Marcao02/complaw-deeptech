@@ -307,8 +307,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         return a
 
-    def _mk_futures(self, rules:SExpr, src_action:Action) -> List[FuturePartyActionRule]:
-        rv : List[FuturePartyActionRule] = []
+    def _mk_futures(self, rules:SExpr, src_action:Action) -> List[PartyFutureActionRule]:
+        rv : List[PartyFutureActionRule] = []
         for action_rule_expr in rules:
             if action_rule_expr[0] == APPLY_MACRO_LABEL:
                 action_rule_expr = self.handle_apply_macro(action_rule_expr)
@@ -471,7 +471,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
 
-    def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> FuturePartyActionRule:
+    def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> PartyFutureActionRule:
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self._mk_term(expr[1], None, src_action)
@@ -489,7 +489,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if not is_derived_trigger_id(action_id):
             self.referenced_nonderived_action_ids.add(action_id)
 
-        rv = FuturePartyActionRule(src_action.action_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+        rv = PartyFutureActionRule(src_action.action_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
         rem = expr.tillEnd(3)
         assert len(rem) >= 1
 

@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List, Any, Iterator, Iterable
 
-from model.ActionRule import FuturePartyActionRule
+from model.ActionRule import PartyFutureActionRule
 from model.GlobalStateTransform import GlobalStateTransform
 from model.GlobalStateTransformStatement import LocalVarDec
 from model.SExpr import SExpr
@@ -30,16 +30,19 @@ class Action:
         self.postconditions: List[Term] = []
         self.prose_refs : List[str] = []
 
-        self.futures : List[FuturePartyActionRule] = []
+        self.futures : List[PartyFutureActionRule] = []
 
-    def add_action_rule(self, far:FuturePartyActionRule) -> None:
+    def add_action_rule(self, far:PartyFutureActionRule) -> None:
         self.futures.append(far)
 
-    def action_rules(self) -> Iterator[FuturePartyActionRule]:
+    def action_rules(self) -> Iterator[PartyFutureActionRule]:
         return self.futures.__iter__()
 
-    def __str__(self):
-        rv = f"action {self.action_id}"
+    def __str__(self) -> str:
+        return self.toStr(0)
+
+    def toStr(self,i:int) -> str:
+        rv = indent(i) + f"action {self.action_id}"
         if self.params:
             rv += f'({mapjoin(str, self.params, ", ")}) '
         else:
@@ -50,17 +53,20 @@ class Action:
         else:
             rv += "\n" # nothing more in this action decl
         for pre in self.preconditions:
-            rv += indent(1) + "pre: " + str(pre) + "\n"
+            rv += indent(i+1) + "pre: " + str(pre) + "\n"
         # if self.traversal_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
         if self.global_state_transform:
             rv += str(self.global_state_transform) + "\n"
 
+        for t in self.action_rules():
+            rv += t.toStr(i + 1) + "\n"
+
         for pre in self.postconditions:
-            rv += indent(1) + "post: " + str(pre) + "\n"
+            rv += indent(i+1) + "post: " + str(pre) + "\n"
 
         if self.following_anon_section:
-            anon_section_str = self.following_anon_section.toStr(1)
+            anon_section_str = self.following_anon_section.toStr(i+1)
             rv += anon_section_str
 
         return rv
