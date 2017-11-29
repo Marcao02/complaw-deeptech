@@ -1,11 +1,11 @@
 import logging
 from typing import List
 
-from parse_sexpr import parse_file, prettySExprStr
-from sexpr_to_L4Contract import L4ContractConstructor
-from correctness_checks import test_fns
-from model.util import writeReadOnlyFile
-from state_diagram_generation import contractToDotFile
+from src.parse_sexpr import parse_file, prettySExprStr
+from src.sexpr_to_L4Contract import L4ContractConstructor
+from src.correctness_checks import test_fns
+from src.model.util import writeReadOnlyFile
+from src.state_diagram_generation import contractToDotFile
 
 EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
 EXAMPLES_UNPARSED_ROOT = "./examples_prettyprinted_out/"
@@ -69,8 +69,8 @@ if __name__ == '__main__':
 
                         # from typing import TypeVar, Iterable, Dict, Callable, List
 #
-# from model.GlobalVarDec import GlobalVarDec
-# from model.L4Contract import L4Contract
+# from src.model.GlobalVarDec import GlobalVarDec
+# from src.model.L4Contract import L4Contract
 # T = TypeVar('T')
 # def mkdict(iter : List[T], name:Callable[[T],str] = lambda x:x.name) -> Dict[str,T]:
 #     return {name(x): x for x in iter}

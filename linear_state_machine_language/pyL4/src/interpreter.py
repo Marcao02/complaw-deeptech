@@ -3,43 +3,35 @@ from itertools import chain
 
 import copy
 
-from model.Action import Action
-from model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam, \
+from src.model.Action import Action
+from src.model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam, \
     ActionRuleDeclActionParam
-from model.ContractParamDec import ContractParamDec
-from model.GlobalStateTransform import GlobalStateTransform
-from model.GlobalStateTransformStatement import *
-from model.GlobalVarDec import GlobalVarDec
-from model.Literal import StringLit, Literal, DeadlineLit
-from model.PartialEvalTerm import PartialEvalTerm
-from model.Term import FnApp
+from src.model.ContractParamDec import ContractParamDec
+from src.model.EventsAndTraces import Event, Trace, CompleteTrace, breachSectionId
+from src.model.GlobalStateTransform import GlobalStateTransform
+from src.model.GlobalStateTransformStatement import *
+from src.model.GlobalVarDec import GlobalVarDec
+from src.model.Literal import StringLit, Literal, DeadlineLit
+from src.model.PartialEvalTerm import PartialEvalTerm
+from src.model.Term import FnApp
 
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",
     level=logging.INFO )
 from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType
 
-from model.L4Contract import L4Contract
+from src.model.L4Contract import L4Contract
 
-from model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule, PartyFutureActionRule, ActionRule
-from model.Section import Section
-from sexpr_to_L4Contract import L4ContractConstructor
-from parse_sexpr import prettySExprStr, parse_file
-from model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
+from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule, PartyFutureActionRule, ActionRule
+from src.model.Section import Section
+from src.sexpr_to_L4Contract import L4ContractConstructor
+from src.parse_sexpr import prettySExprStr, parse_file
+from src.model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
     ActionParamId_BoundBy_ActionRule, ContractParamId, SectionId, ActionParamId_BoundBy_ActionDecl, FULFILLED_SECTION_LABEL, ActionParamSubst, \
     TimeStamp, ActionParamValue, ENV_ROLE
-from model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, mapjoin
+from src.model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, mapjoin
 
 feedback = logging
-
-class Event(NamedTuple):
-    action_id: ActionId
-    role_id: RoleId
-    timestamp: TimeStamp
-    params: Optional[ActionParamSubst]
-
-def breachSectionId(*role_ids:str):
-    return "breach_" + "_".join(role_ids)
 
 class EventLegalityAssessment:
     pass
@@ -58,15 +50,6 @@ class EventOk(EventLegalityAssessment):
     def __init__(self, future_added : Optional[PartyFutureActionRule], future_removed : Optional[PartyFutureActionRule]) -> None:
         self.future_added = future_added
         self.future_removed = future_removed
-
-# class FutureActionRuleUsed(EventLegalityAssessment):
-
-Trace = Sequence[Event]
-class CompleteTrace(NamedTuple):
-    contract_param_subst: Dict[str, Any]
-    events: Trace
-    final_section: str  # will need to be a SectionId
-    final_values: Optional[Dict[str,Any]] = None
 
 
 FN_SYMB_INTERP = {
@@ -611,252 +594,16 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
         return env.evalLSM(it, verbose=True)
 
 
-timestamp = cast(TimeStamp,0)
-# reveal_type(timestamp)
-def nextTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
-    global timestamp
-    timestamp = cast(TimeStamp,1)
-    return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
-                 params= cast(ActionParamSubst, params) if params else None)
 
-def sameTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
-    params = params or dict()
-    return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
-                 params=cast(ActionParamSubst, params) if params else None)
+from src.cli import EXAMPLES_SEXPR_ROOT
 
-def event(action_id:str, role_id:str = ENV_ROLE, timestamp:int = 0, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
-    params = params or dict()
-    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=cast(TimeStamp,timestamp),
-                 params=cast(ActionParamSubst, params) if params else None)
-
-K = 1000
-M = 1000000
-from math import inf
-
-from cli import EXAMPLES_SEXPR_ROOT
-
-traces : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
-    ('degenerate/minimal_future-actions.l4', CompleteTrace(
-        {},
-        (   event('Throw','I'),
-            event('Throw','I'),
-            event('Throw','I'),
-            event('Catch', 'I', 0, {'m': 1}),
-            event('Catch', 'I', 0, {'m': 3}),
-            event('Catch', 'I', 0, {'m': 2}),
-            event('EnterFulfilled', 'Env', 0),
-        ), breachSectionId())
-    ),
-
-    ('degenerate/minimal_future-actions.l4', CompleteTrace(
-        {},
-        (   event('Throw','I'), # n = 1 after
-            event('Throw','I'), # n = 2 after
-            event('Stand','I'), # n = 3 after
-            event('Throw','I'), # n = 4 after
-            event('Catch', 'I', 0, {'m': 1}),
-            event('Catch', 'I', 0, {'m': 4}),
-
-            event('Catch', 'I', 0, {'m': 2}),
-            event('Stand','I'), # n = 5 after
-
-
-            event('EnterFulfilled', 'Env', 0),
-        ), 'Fulfilled')
-    ),
-
-    # ('degenerate/minimal_future-actions.l4', CompleteTrace(
-    #     {},
-    #     (   event('Throw','I'),
-    #         event('Throw','I'),
-    #         event('Stand','I'),
-    #         event('Throw','I'),
-    #         event('Catch', 'I', 0, {'m': 1}),
-    #         event('Catch', 'I', 0, {'m': 4}),
-    #         event('Catch', 'I', 0, {'m': 3}),
-    #         event('EnterFulfilled', 'Env', 0),
-    #     ), breachSectionId())
-    # ),
-
-    ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace({},(
-        # start section implicit
-        nextTSEvent('RequestCookMB', 'Challenger'),
-        nextTSEvent('ServeMB', 'Restaurant'),
-        nextTSEvent('AnnounceMBFinished', 'Challenger'),
-        nextTSEvent('CheckCompletionClaim', 'Restaurant'),
-        sameTSEvent('RejectCompletionClaim', 'Restaurant'),
-        sameTSEvent('EnterEatingMB', 'Env'),
-        nextTSEvent('AnnounceMBFinished','Challenger'),
-        nextTSEvent('CheckCompletionClaim', 'Restaurant'),
-        sameTSEvent('VerifyCompletionClaim', 'Restaurant')
-        ), FULFILLED_SECTION_LABEL)
-     ),
-
-
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
-        # start section implicit
-        event('PayInstallment', 'Buyer', 30, {'amount':500}),
-        event('PayInstallment', 'Buyer', 60, {'amount':500}),
-        event('PayInstallment', 'Buyer', 90, {'amount':8000}),
-        event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
-        ), FULFILLED_SECTION_LABEL)
-    ),
-
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
-        event('PayInstallment', 'Buyer', 30, {'amount':499}),
-        ), breachSectionId('Buyer'))
-    ),
-
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
-        event('PayInstallment', 'Buyer', 30, {'amount':500}),
-        event('PayInstallment', 'Buyer', 60, {'amount':500}),
-        event('PayInstallment', 'Buyer', 90, {'amount':7999}),
-        event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
-        ), breachSectionId('Buyer'))
-    ),
-
-    ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
-        event('PayInstallment', 'Buyer', 30, {'amount':500}),
-        event('PayInstallment', 'Buyer', 60, {'amount':500}),
-        event('PayInstallment', 'Buyer', 90, {'amount':8500}),
-        event('PayLastInstallment', 'Buyer', 120, {'amount':500}),
-        ), FULFILLED_SECTION_LABEL)
-    ),
-
-    ('degenerate/collatz.l4', CompleteTrace(
-        {'START': 12},
-        (   event('DivideBy2'),
-            event('DivideBy2'),
-            event('TripplePlus1'),
-            event('DivideBy2'),
-            event('TripplePlus1'),
-            event('DivideBy2'),
-            event('DivideBy2'),
-            event('DivideBy2'),
-            event('DivideBy2'),
-            event('EnterFulfilled'),
-        ), FULFILLED_SECTION_LABEL)
-    ),
-
-
-    ('serious/SAFE.l4', CompleteTrace(
-        # Example 1 in SAFE_Primer.rtf
-        {   "PURCHASE_AMOUNT": 100*K,
-            "VALUATION_CAP": 5*M,
-            "DISCOUNT_RATE": 1
-        },
-        (   event('CommitToEquityFinancing', 'Company', 0),
-            event('DeliverDocsWithPRA', 'Company', 0),
-            event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':11*M, 'premoney_valuation':10*M}),
-            event('DoEquityFinancing', 'Company', 0)
-        ),
-        FULFILLED_SECTION_LABEL,
-        {   "investor_SAFE_Preferred_Stocks": 220000 })  # primer says 220,022 from rounding price
-     ),
-
-    ('serious/SAFE.l4', CompleteTrace(
-        # Example 2 in SAFE_Primer.rtf
-        {   "PURCHASE_AMOUNT": 100*K,
-            "VALUATION_CAP": 4*M,
-            "DISCOUNT_RATE": 1
-        },
-        (   event('CommitToEquityFinancing', 'Company', 0),
-            event('DeliverDocsWithPRA', 'Company', 0),
-            event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':12.5*M, 'premoney_valuation':3*M}),
-            event('DoEquityFinancing', 'Company', 0)
-        ),
-        FULFILLED_SECTION_LABEL,
-        {   "investor_SAFE_Preferred_Stocks": 416666 })
-     ),
-
-    ('serious/SAFE.l4', CompleteTrace(
-        # Example 3 in SAFE_Primer.rtf
-        {   "PURCHASE_AMOUNT": 100*K,
-            "VALUATION_CAP": 8*M,
-            "DISCOUNT_RATE": 1
-        },
-        (   event('CommitToEquityFinancing', 'Company', 0),
-            event('DeliverDocsWithPRA', 'Company', 0),
-            event('IssueSAFEPreferredStock', 'Company', 0, {'company_capitalization':11.5*M, 'premoney_valuation':8*M}),
-            event('DoEquityFinancing', 'Company', 0)
-        ),
-        FULFILLED_SECTION_LABEL,
-        {   "investor_SAFE_Preferred_Stocks": 143750 }) # primer says 143,760 from rounding price
-    ),
-
-    ('serious/SAFE.l4', CompleteTrace(
-        # Example 4 in SAFE_Primer.rtf
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
-         "DISCOUNT_RATE": 1
-         },
-        (event('CommitToLiquidityEvent', 'Company', 0, {
-            'change_of_control': False,
-            'company_cash_at_liquidity_event': 50 * M,
-            'liquidity_capitalization': 11.5 * M,
-            'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
-        }),
-
-         event('ChooseStockPayment', 'Investor', 0),
-         event('TransferCommonStock', 'Company', 0),
-         event('DoLiquidityEvent', 'Company', 0)
-         ),
-        FULFILLED_SECTION_LABEL,{
-            "investor_Common_Stocks": 115000
-        })
-     ),
-
-    ('serious/SAFE.l4', CompleteTrace(
-        # Example 4 in SAFE_Primer.rtf, if dumb and choose cash payment
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
-         "DISCOUNT_RATE": 1
-         },
-        (event('CommitToLiquidityEvent', 'Company', 0, {
-            'change_of_control': False,
-            'company_cash_at_liquidity_event': 50 * M,
-            'liquidity_capitalization': 11.5 * M,
-            'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
-        }),
-
-         event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0),
-         # event('TransferCommonStock', 'Company', 0),
-         event('DoLiquidityEvent', 'Company', 0)
-         ),
-        FULFILLED_SECTION_LABEL,
-        {   "investor_liq_hypothetical_shares": 115000,
-            "investor_Common_Stocks": 0,
-            "investor_SAFE_Preferred_Stocks": 0,
-            "investor_cash": 100000})
-     ),
-
-    ('serious/SAFE.l4', CompleteTrace(
-        # Example 8 in SAFE_Primer.rtf
-        {"PURCHASE_AMOUNT": 20 * K,
-         "VALUATION_CAP": inf,
-         "DISCOUNT_RATE": .8
-         },
-         (event('CommitToEquityFinancing', 'Company', 0),
-          event('DeliverDocsWithPRA', 'Company', 0),
-          event('IssueSAFEPreferredStock', 'Company', 0,
-                {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
-          event('DoEquityFinancing', 'Company', 0)
-          ),
-         FULFILLED_SECTION_LABEL,
-         { "initial_price_per_share_standard_preferred_stock": 2/10.5,
-           "discount_price": 0.8 * (2/10.5),
-           "investor_SAFE_Preferred_Stocks": 131250}) # primer says 131,578 from rounding price
-     )
-
-)
-
-
+from test.test_interpreter import traces
 # so can run it as a library too, which respects exceptions
 def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
         'degenerate/minimal_future-actions.l4',
+        'degenerate/minimal_future-actions2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
         'degenerate/collatz.l4',

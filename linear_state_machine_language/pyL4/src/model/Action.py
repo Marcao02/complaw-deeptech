@@ -1,13 +1,14 @@
 from typing import Optional, Dict, List, Any, Iterator, Iterable
 
-from model.ActionRule import PartyFutureActionRule
-from model.GlobalStateTransform import GlobalStateTransform
-from model.GlobalStateTransformStatement import LocalVarDec
-from model.SExpr import SExpr
-from model.Section import Section, ParamsDec
-from model.Term import Term
-from model.constants_and_defined_types import ActionParamId_BoundBy_ActionDecl, SortId, LocalVarId, SectionId, ActionId
-from model.util import mapjoin, indent
+
+from src.model.ActionRule import PartyFutureActionRule
+from src.model.GlobalStateTransform import GlobalStateTransform
+from src.model.GlobalStateTransformStatement import LocalVarDec
+from src.model.SExpr import SExpr
+from src.model.Section import Section, ParamsDec
+from src.model.Term import Term
+from src.model.constants_and_defined_types import ActionParamId_BoundBy_ActionDecl, SortId, LocalVarId, SectionId, ActionId
+from src.model.util import mapjoin, indent
 
 
 

@@ -1,12 +1,12 @@
 from typing import cast
 
-from model.Action import Action
-from model.ActionRule import NextActionRule, ActionRule
-from model.GlobalVarDec import GlobalVarDec
-from model.ContractParamDec import ContractParamDec
-from model.GlobalStateTransformStatement import LocalVarDec
-from model.Term import Term
-from model.constants_and_defined_types import LocalVarId, GlobalVarId, ContractParamId, ActionParamId_BoundBy_ActionDecl, \
+from src.model.Action import Action
+from src.model.ActionRule import NextActionRule, ActionRule
+from src.model.GlobalVarDec import GlobalVarDec
+from src.model.ContractParamDec import ContractParamDec
+from src.model.GlobalStateTransformStatement import LocalVarDec
+from src.model.Term import Term
+from src.model.constants_and_defined_types import LocalVarId, GlobalVarId, ContractParamId, ActionParamId_BoundBy_ActionDecl, \
     ActionParamId_BoundBy_ActionRule
 
 

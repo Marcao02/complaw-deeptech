@@ -1,9 +1,9 @@
 import logging
 from typing import Set, Union, Any, Optional
 
-from model.SExpr import SExprOrStr
-from model.constants_and_defined_types import *
-from model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id
+from src.model.SExpr import SExprOrStr
+from src.model.constants_and_defined_types import *
+from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id
 
 
 # just for typing!!

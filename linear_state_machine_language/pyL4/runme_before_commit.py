@@ -21,4 +21,4 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     interpreter.main(sys.argv)
     # runit("python3.6 src/interpreter.py")
 
-runit("export MYPYPATH=./src; mypy src", "typechecker")
+runit("export MYPYPATH=.; mypy src", "typechecker")

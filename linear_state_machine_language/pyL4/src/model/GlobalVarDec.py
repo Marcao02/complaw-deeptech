@@ -1,7 +1,7 @@
 from typing import List, Union, Optional, NamedTuple
 
-from model.Term import Term
-from model.constants_and_defined_types import GlobalVarId
+from src.model.Term import Term
+from src.model.constants_and_defined_types import GlobalVarId
 
 
 class GlobalVarDec(NamedTuple):

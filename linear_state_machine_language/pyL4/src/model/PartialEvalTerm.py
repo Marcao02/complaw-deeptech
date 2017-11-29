@@ -1,8 +1,8 @@
 from typing import Dict, Any
 
-from model.Term import Term
-# from model.constants_and_defined_types import ActionParamSubst
-from model.constants_and_defined_types import LocalOrGlobalVarId, GlobalVarId
+from src.model.Term import Term
+# from src.model.constants_and_defined_types import ActionParamSubst
+from src.model.constants_and_defined_types import LocalOrGlobalVarId, GlobalVarId
 
 
 class PartialEvalTerm(Term):

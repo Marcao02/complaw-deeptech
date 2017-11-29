@@ -1,0 +1,21 @@
+[Roles I]
+
+[FormalContract "test contract 2 for must-later"
+	[StartSection Ongoing]
+
+	[Section Ongoing
+		[Next
+			[I may [Throw n] nodeadline]
+			[I may EnterFulfilled nodeadline]
+		]
+	]
+
+	[Action [Throw [n : ℕ]]		[TransitionsTo Ongoing]
+		[Future
+			[I must-later [Catch m] nodeadline [where [m == n]]]
+		]
+	]
+
+	[Action [Catch [m : ℕ]] [TransitionsTo Ongoing]]
+	[Action EnterFulfilled [TransitionsTo Fulfilled]]
+]

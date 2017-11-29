@@ -1,8 +1,8 @@
 from typing import NamedTuple
 
-from model.SExpr import SExpr
-from model.SExpr import sexpr_subst_string
-from model.util import chcast
+from src.model.SExpr import SExpr
+from src.model.SExpr import sexpr_subst_string
+from src.model.util import chcast
 
 
 class StringArgMacro(NamedTuple):

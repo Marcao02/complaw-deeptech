@@ -1,7 +1,7 @@
-from model.SExpr import *
+from src.model.SExpr import *
 from typing import Union, List, Any, TypeVar, Sequence, cast, Sized, Iterable
 
-from model.util import is_singleton_string_list, chcaststr
+from src.model.util import is_singleton_string_list, chcaststr
 
 
 class SExprBuilder:

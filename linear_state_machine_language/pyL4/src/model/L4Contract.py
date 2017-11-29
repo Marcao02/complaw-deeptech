@@ -2,15 +2,15 @@
 from itertools import chain
 from typing import Iterable, Any, Union
 
-from model.Action import Action
-from model.ActionRule import *
-from model.ContractClaim import ContractClaim
-from model.ContractParamDec import ContractParamDec
-from model.Definition import Definition
-from model.GlobalStateTransformStatement import LocalVarDec
-from model.GlobalVarDec import GlobalVarDec
-from model.Section import *
-from model.StringArgMacro import StringArgMacro
+from src.model.Action import Action
+from src.model.ActionRule import *
+from src.model.ContractClaim import ContractClaim
+from src.model.ContractParamDec import ContractParamDec
+from src.model.Definition import Definition
+from src.model.GlobalStateTransformStatement import LocalVarDec
+from src.model.GlobalVarDec import GlobalVarDec
+from src.model.Section import *
+from src.model.StringArgMacro import StringArgMacro
 
 
 class L4Contract:

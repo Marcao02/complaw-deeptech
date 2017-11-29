@@ -1,17 +1,17 @@
 import logging
 from typing import Tuple, cast, Callable
 
-from correctness_checks import L4ContractConstructorInterface
-from model.GlobalStateTransform import *
-from model.BoundVar import LocalVar, GlobalVar, ContractParam, ActionRuleDeclActionParam, ActionDeclActionParam
-from model.GlobalStateTransformStatement import *
-from model.L4Contract import *
-from model.Literal import *
-from model.SExpr import SExprOrStr
-from model.Term import FnApp
-from model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
-from model.StringArgMacro import StringArgMacro
-from parse_sexpr import castse, STRING_LITERAL_MARKER
+from src.correctness_checks import L4ContractConstructorInterface
+from src.model.GlobalStateTransform import *
+from src.model.BoundVar import LocalVar, GlobalVar, ContractParam, ActionRuleDeclActionParam, ActionDeclActionParam
+from src.model.GlobalStateTransformStatement import *
+from src.model.L4Contract import *
+from src.model.Literal import *
+from src.model.SExpr import SExprOrStr
+from src.model.Term import FnApp
+from src.model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
+from src.model.StringArgMacro import StringArgMacro
+from src.parse_sexpr import castse, STRING_LITERAL_MARKER
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):

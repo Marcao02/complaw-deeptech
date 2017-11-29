@@ -1,5 +1,5 @@
 from typing import Any
-from model.Term import Term
+from src.model.Term import Term
 
 
 class Literal(Term):

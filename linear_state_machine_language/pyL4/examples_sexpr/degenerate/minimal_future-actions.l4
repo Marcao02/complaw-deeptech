@@ -5,7 +5,7 @@
 	(n : ℕ = 0)
 )
 
-(FormalContract "Collatz"
+(FormalContract "test contract for must-later"
 	(StartSection Ongoing)
 
 	(Section Ongoing

@@ -1,5 +1,5 @@
-from model.L4Contract import *
-from model.util import chcast, chcaststr
+from src.model.L4Contract import *
+from src.model.util import chcast, chcaststr
 
 COLORS = ('Blue', 'Red')
 
