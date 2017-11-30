@@ -1,0 +1,17 @@
+-------------------------------------------
+file: degenerate/minimal_future-actions2.l4
+
+roles: I
+
+global vars:
+
+section Ongoing:
+    I may Throw(n) nodeadline
+    I may EnterFulfilled nodeadline
+
+action Throw(n)  transitions to Ongoing
+    I must-later Catch(?m) nodeadline where ?m == n
+
+action Catch(n)  transitions to Ongoing
+
+action EnterFulfilled()  transitions to Fulfilled
