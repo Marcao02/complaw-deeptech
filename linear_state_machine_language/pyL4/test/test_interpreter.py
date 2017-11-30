@@ -1,29 +1,38 @@
 from itertools import chain
 from typing import Sequence, Tuple, Union, Optional
 
-from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSectionId
+from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSectionId, EventType
 from src.model.constants_and_defined_types import *
 from math import inf
 
 from src.model.util import castid
 
 timestamp = cast(TimeStamp,0)
-# reveal_type(timestamp)
-def nextTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
-    global timestamp
-    timestamp = cast(TimeStamp,1)
-    return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
-                 params= cast(ActionParamSubst, params) if params else None)
 
-def sameTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
-    params = params or dict()
-    return Event(action_id=castid(ActionId,action_id), role_id=castid(RoleId,role_id), timestamp=timestamp,
-                 params=cast(ActionParamSubst, params) if params else None)
-
-def event(action_id:str, role_id:str = ENV_ROLE, timestamp:int = 0, params:Optional[Dict[str, ActionParamValue]] = None) -> Event:
+def event(action_id:str, role_id:str = ENV_ROLE,
+          timestamp:int = 0, params:Optional[Dict[str, Data]] = None,
+          eventType: Optional[EventType] = None ) -> Event:
+    if eventType is None:
+        eventType = EventType.env_next if role_id == ENV_ROLE else EventType.party_next
     params = params or dict()
     return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=cast(TimeStamp,timestamp),
-                 params=cast(ActionParamSubst, params) if params else None)
+                 params_by_abap_name=cast(ABAPNamedSubst, params) if params else None,
+                 params=list(params.values()) if params else None,
+                 type=eventType)
+
+def nextTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, Data]] = None,
+                eventType: Optional[EventType] = None) -> Event:
+    global timestamp
+    timestamp = cast(TimeStamp,timestamp + 1)
+    return event(action_id, role_id, timestamp, params, eventType)
+
+def sameTSEvent(action_id:str, role_id:str,
+                params:Optional[Dict[str, Data]] = None,
+                eventType: Optional[EventType] = None) -> Event:
+    global timestamp
+    return event(action_id, role_id, timestamp, params, eventType)
+
+
 
 K = 1000
 M = 1000000
@@ -36,9 +45,9 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         (event('Throw', 'I'),
          event('Throw', 'I'),
          event('Throw', 'I'),
-         event('Catch', 'I', 0, {'m': 1}),
-         event('Catch', 'I', 0, {'m': 3}),
-         event('Catch', 'I', 0, {'m': 2}),
+         event('Catch', 'I', 0, {'m': 1}, EventType.fulfill_floating_obligation),
+         event('Catch', 'I', 0, {'m': 3}, EventType.fulfill_floating_obligation),
+         event('Catch', 'I', 0, {'m': 2}, EventType.fulfill_floating_obligation),
          event('EnterFulfilled', 'Env', 0),
          ), breachSectionId())
      ),
@@ -49,10 +58,10 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          event('Throw', 'I'),  # n = 2 after
          event('Stand', 'I'),  # n = 3 after
          event('Throw', 'I'),  # n = 4 after
-         event('Catch', 'I', 0, {'m': 1}),
-         event('Catch', 'I', 0, {'m': 4}),
+         event('Catch', 'I', 0, {'m': 1}, EventType.fulfill_floating_obligation),
+         event('Catch', 'I', 0, {'m': 4}, EventType.fulfill_floating_obligation),
 
-         event('Catch', 'I', 0, {'m': 2}),
+         event('Catch', 'I', 0, {'m': 2}, EventType.fulfill_floating_obligation),
          event('Stand', 'I'),  # n = 5 after
 
 
@@ -60,19 +69,19 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ), 'Fulfilled')
      ),
 
-    # ('degenerate/minimal_future-actions2.l4', CompleteTrace(
-    #     {}, (
-    #     event('Throw', 'I', 0, {'n':4}),
-    #     event('Throw', 'I', 0, {'n':3}),
-    #     event('Throw', 'I', 0, {'n':2}),
-    #     event('Throw', 'I', 0, {'n':4}),
-    #     event('Catch', 'I', 0, {'m': 3}),
-    #     event('Catch', 'I', 0, {'m': 2}),
-    #     event('Catch', 'I', 0, {'m': 4}),
-    #     event('Catch', 'I', 0, {'m': 4}),
-    #     event('EnterFulfilled', 'Env', 0),
-    #      ), 'Fulfilled')
-    #  ),
+    ('degenerate/minimal_future-actions2.l4', CompleteTrace(
+        {}, (
+        event('Throw', 'I', 0, {'n':4}),
+        event('Throw', 'I', 0, {'n':3}),
+        event('Throw', 'I', 0, {'n':1}),
+        event('Throw', 'I', 0, {'n':2}),
+        event('Catch', 'I', 0, {'n': 1}),
+        event('Catch', 'I', 0, {'n': 2}),
+        event('Catch', 'I', 0, {'n': 3}),
+        event('Catch', 'I', 0, {'n': 4}),
+        event('EnterFulfilled', 'Env', 0),
+         ), 'Fulfilled')
+     ),
 
     # ('degenerate/minimal_future-actions.l4', CompleteTrace(
     #     {},

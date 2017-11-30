@@ -1,14 +1,24 @@
-from typing import NamedTuple, Optional, Any, Dict, Sequence
+from enum import Enum
+from typing import NamedTuple, Optional, Any, Dict, Sequence, List
 
-from src.model.ActionRule import PartyFutureActionRule
-from src.model.constants_and_defined_types import ActionId, RoleId, TimeStamp, ActionParamSubst
+from src.model.constants_and_defined_types import ActionId, RoleId, TimeStamp, ABAPSubst, Data, ABAPNamedSubst, \
+    ContractParamId, AParamsSubst
 
+class EventType(Enum):
+    use_floating_permission = 'use_floating_permission'
+    fulfill_floating_obligation = 'fulfill_floating_obligation'
+    party_next = 'party_next'
+    env_next = 'env_next'
 
 class Event(NamedTuple):
     action_id: ActionId
     role_id: RoleId
     timestamp: TimeStamp
-    params: Optional[ActionParamSubst]
+    params_by_abap_name: Optional[ABAPNamedSubst]
+    params: Optional[AParamsSubst]
+    type: EventType
+
+
 
 def breachSectionId(*role_ids:str):
     return "breach_" + "_".join(role_ids)

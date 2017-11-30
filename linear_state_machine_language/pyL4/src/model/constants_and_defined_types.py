@@ -1,5 +1,12 @@
 # from enum import Enum
-from typing import Dict, NewType, cast, Union, Tuple, Any
+
+from typing import Dict, NewType, cast, Union, List, Any
+
+Nat = NewType('Nat',int)
+TimeStamp = NewType('TimeStamp',Nat)
+
+# Data = Union[int, float, TimeStamp] # later maybe Tuple[Data] and str
+Data = Any # later maybe Tuple[Data] and str
 
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)
@@ -9,20 +16,23 @@ SortId = NewType('SortId', str)
 SectionId = NewType('SectionId',str)
 DefinitionId = NewType('DefinitionId', str)
 ContractParamId = NewType('ContractParamId',str)
-
-LocalVarId = NewType('LocalVarId',str)
-LocalOrGlobalVarId = NewType('LocalOrGlobalVarId',str)
-ActionParamId_BoundBy_ActionDecl = NewType('ActionParamId_BoundBy_ActionDecl',str)
-ActionParamId_BoundBy_ActionRule = NewType('ActionParamId_BoundBy_ActionRule',str)
+ActionBoundActionParamId = NewType('ActionBoundActionParamId',str)
+RuleBoundActionParamId = NewType('RuleBoundActionParamId',str)
+# LocalVarId = NewType('LocalVarId',str)
 
 ProseContract = Dict[ProseClauseId,str]
-ParamsDec = Dict[ActionParamId_BoundBy_ActionDecl, SortId]
+ParamsDec = Dict[ActionBoundActionParamId, SortId]
 
-Nat = NewType('Nat',int)
-TimeStamp = NewType('TimeStamp',Nat)
-
-ActionParamValue = Union[Tuple[Any], str, int, float, TimeStamp]
-ActionParamSubst = Dict[ActionParamId_BoundBy_ActionDecl, ActionParamValue]
+ContractParamSubst = Dict[ContractParamId,Data]
+GVarSubst = Dict[GlobalVarId,Data]
+ABAPNamedSubst = Dict[ActionBoundActionParamId, Data]
+RBAPNamedSubst = Dict[RuleBoundActionParamId, Data]
+# AParamsSubst =   NewType('AParamsSubst', list)
+# ABAPSubst = NewType('ABAPSubst', list)
+# RBAPSubst = NewType('RBAPSubst', list)
+AParamsSubst = List[Data]
+ABAPSubst = List[Data]
+RBAPSubst = List[Data]
 
 SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',

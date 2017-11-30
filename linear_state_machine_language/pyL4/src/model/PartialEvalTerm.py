@@ -1,14 +1,16 @@
-from typing import Dict, Any
-
+from src.model.EvalContext import EvalContext
 from src.model.Term import Term
-# from src.model.constants_and_defined_types import ActionParamSubst
-from src.model.constants_and_defined_types import LocalOrGlobalVarId, GlobalVarId
+from src.model.constants_and_defined_types import GVarSubst, ABAPSubst
 
 
 class PartialEvalTerm(Term):
-    def __init__(self, term:Term, subst:Dict[GlobalVarId,Any]) -> None:
+    def __init__(self,
+                 term:Term,
+                 ctx:EvalContext) -> None:
         self.term = term
-        self.subst = subst
+        self.ctx = ctx
+        # self.gvar_subst = gvar_subst
+        # self.abap_subst = abap_subst
 
     def __str__(self) -> str:
-        return str(self.term) + f" [{self.subst}]"
+        return str(self.term) + f" [{self.ctx}]"

@@ -3,7 +3,7 @@ from typing import Tuple, cast, Callable
 
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.GlobalStateTransform import *
-from src.model.BoundVar import LocalVar, GlobalVar, ContractParam, ActionRuleDeclActionParam, ActionDeclActionParam
+from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam
 from src.model.GlobalStateTransformStatement import *
 from src.model.L4Contract import *
 from src.model.Literal import *
@@ -21,6 +21,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
         self.after_model_build_requirements : List[Tuple[Callable[[],bool],str]] = []
 
+    def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
+        self.after_model_build_requirements.append((f,errmsg))
+
     def syntaxError(self, expr: SExprOrStr, msg:Optional[str] = None):
         if isinstance(expr,SExpr):
             raise SyntaxError((msg if msg else "") +
@@ -30,9 +33,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             raise SyntaxError((msg if msg else "") +
                               "\n" + str(self.top.filename))
-
-    def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
-        self.after_model_build_requirements.append((f,errmsg))
 
     def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None):
         if not test:
@@ -246,7 +246,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         dest_section_id = None
         x: SExpr
         if params_sexpr is not None: #isinstance(params_sexpr, SExpr):
-            a.params = self._mk_action_params(params_sexpr)
+            a.param_types = self._mk_action_params(params_sexpr)
+            a.params = [castid(ActionBoundActionParamId,y[0]) for y in params_sexpr]
+            a.param_name_to_ind = { a.params[i]: i for i in range(len(a.params)) }
         for x in rest:
             def head(constant:str) -> bool:
                 nonlocal x
@@ -322,7 +324,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
             self.top.sorts.add(castid(SortId,pdec[2]))
 
-        rv = {castid(ActionParamId_BoundBy_ActionDecl,pdec[0]) : castid(SortId,pdec[2]) for pdec in parts}
+        rv = {castid(ActionBoundActionParamId,pdec[0]) : castid(SortId,pdec[2]) for pdec in parts}
         # logging.info(str(rv))
         return rv
 
@@ -338,18 +340,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
                 rhs = self._mk_term(statement[1], None, parent_action)
                 return InCodeConjectureStatement(rhs)
-            elif statement[0] == 'local':
-                self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type := term)')
-                self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
-                                          'Local var dec should have form (local name : type := term)')
-                sort = chcaststr(statement[3])
-                rhs = self._mk_term(statement[5])
-                varname = castid(LocalVarId,statement[1])
-                lvd = LocalVarDec(varname, rhs, sort)
-                if varname in parent_action.local_vars:
-                    self.syntaxError(statement, "Redeclaration of local variable")
-                parent_action.local_vars[varname] = lvd
-                return lvd
+            # elif statement[0] == 'local':
+            #     self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type := term)')
+            #     self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
+            #                               'Local var dec should have form (local name : type := term)')
+            #     sort = chcaststr(statement[3])
+            #     rhs = self._mk_term(statement[5])
+            #     varname = castid(LocalVarId,statement[1])
+            #     lvd = LocalVarDec(varname, rhs, sort)
+            #     if varname in parent_action.local_vars:
+            #         self.syntaxError(statement, "Redeclaration of local variable")
+            #     parent_action.local_vars[varname] = lvd
+            #     return lvd
             elif statement[0] == 'if':
                 test = self._mk_term(statement[1], None, parent_action, None)
                 self.assertOrSyntaxError( isinstance(statement[2],SExpr) and isinstance(statement[4],SExpr), statement )
@@ -365,7 +367,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement))
                 rhs = self._mk_term(statement[2], None, parent_action)
-                varname2 = castid(LocalOrGlobalVarId, statement[0])
+                varname2 = castid(GlobalVarId, statement[0])
                 if statement[1] == ':=' or statement[1] == "=":
                     return VarAssignStatement(varname2, rhs)
                 elif statement[1] == '+=':
@@ -409,17 +411,21 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in self.top.global_var_decs:
                 return GlobalVar(self.top.global_var_decs[cast(GlobalVarId,x)])
 
-            if parent_action and (x in parent_action.local_vars):
-                return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
+            # if parent_action and (x in parent_action.local_vars):
+            #     return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
 
             if x in self.top.contract_params:
                 return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
 
             if parent_action_rule and parent_action_rule.args and x in parent_action_rule.args:
-                return ActionRuleDeclActionParam(cast(ActionParamId_BoundBy_ActionRule, x), parent_action_rule )
+                assert parent_action_rule.args_name_to_ind is not None
+                return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
+                                            parent_action_rule.args_name_to_ind[castid(RuleBoundActionParamId,x)])
 
-            if parent_action and x in parent_action.params:
-                return ActionDeclActionParam(cast(ActionParamId_BoundBy_ActionDecl, x), parent_action)
+            if parent_action and x in parent_action.param_types:
+                assert parent_action.param_name_to_ind is not None
+                return ActionBoundActionParam(cast(ActionBoundActionParamId, x), parent_action,
+                                              parent_action.param_name_to_ind[castid(ActionBoundActionParamId,x)])
 
             if x in self.top.definitions:
                 return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule)
@@ -481,10 +487,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         deontic_keyword = castid(DeonticKeyword, expr[1])
         if isinstance(expr[2],str):
             action_id = castid(ActionId,expr[2])
-            args : List[ActionParamId_BoundBy_ActionRule] = []
+            args : List[RuleBoundActionParamId] = []
         else:
             action_id = castid(ActionId, (expr[2][0]))
-            args = cast(List[ActionParamId_BoundBy_ActionRule], expr[2][1:])
+            args = cast(List[RuleBoundActionParamId], expr[2][1:])
 
         if not is_derived_trigger_id(action_id):
             self.referenced_nonderived_action_ids.add(action_id)
@@ -512,7 +518,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         role_id : RoleId
         action_id : ActionId
-        args : Optional[List[ActionParamId_BoundBy_ActionRule]]
+        args : Optional[List[RuleBoundActionParamId]]
         rv : NextActionRule
         if len(expr) == 2:
             action_id = castid(ActionId, expr[0])
@@ -530,7 +536,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args = []
             else:
                 action_id = castid(ActionId, (expr[2][0]))
-                args = cast(List[ActionParamId_BoundBy_ActionRule], expr[2][1:])
+                args = cast(List[RuleBoundActionParamId], expr[2][1:])
 
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)

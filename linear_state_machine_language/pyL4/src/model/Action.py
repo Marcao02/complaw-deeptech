@@ -3,35 +3,35 @@ from typing import Optional, Dict, List, Any, Iterator, Iterable
 
 from src.model.ActionRule import PartyFutureActionRule
 from src.model.GlobalStateTransform import GlobalStateTransform
-from src.model.GlobalStateTransformStatement import LocalVarDec
 from src.model.SExpr import SExpr
 from src.model.Section import Section, ParamsDec
 from src.model.Term import Term
-from src.model.constants_and_defined_types import ActionParamId_BoundBy_ActionDecl, SortId, LocalVarId, SectionId, ActionId
-from src.model.util import mapjoin, indent
-
-
+from src.model.constants_and_defined_types import ActionBoundActionParamId, SortId, SectionId, ActionId
+from src.model.util import mapjoin, indent, castid
 
 
 class Action:
     def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id
-        self.dest_section_id : SectionId
+        self.dest_section_id : SectionId = castid(SectionId,"to be set after constructor")
         self.traversal_bounds: Optional[SExpr] = None
         self.allowed_subjects: Optional[SExpr] = None
         self.action_description: Optional[str] = None
-        self.local_vars: Dict[LocalVarId,LocalVarDec] = dict()
+        # self.local_vars: Dict[LocalVarId,LocalVarDec] = dict()
         self.is_compound = False
 
         self.following_anon_section : Optional[Section] = None
 
-        self.params : ParamsDec = dict() # str param id -> str sort id
         self.global_state_transform : Optional[GlobalStateTransform] = None
         self.preconditions: List[Term] = []
         self.postconditions: List[Term] = []
         self.prose_refs : List[str] = []
 
         self.futures : List[PartyFutureActionRule] = []
+
+        self.param_types: ParamsDec = dict()  # str param id -> str sort id
+        self.params : List[ActionBoundActionParamId] = []
+        self.param_name_to_ind : Dict[ActionBoundActionParamId,int] = dict()
 
     def add_action_rule(self, far:PartyFutureActionRule) -> None:
         self.futures.append(far)
@@ -44,8 +44,8 @@ class Action:
 
     def toStr(self,i:int) -> str:
         rv = indent(i) + f"action {self.action_id}"
-        if self.params:
-            rv += f'({mapjoin(str, self.params, ", ")}) '
+        if self.param_types:
+            rv += f'({mapjoin(str, self.param_types, ", ")}) '
         else:
             rv += "() " # makes it look better with python syntax highlighting
         rv +=  f" transitions to {self.dest_section_id}"

@@ -3,11 +3,12 @@ from itertools import chain
 
 import copy
 
+from src.model.EvalContext import EvalContext
 from src.model.Action import Action
-from src.model.BoundVar import BoundVar, LocalVar, GlobalVar, ContractParam, ActionDeclActionParam, \
-    ActionRuleDeclActionParam
+from src.model.BoundVar import BoundVar, GlobalVar, ContractParam, ActionBoundActionParam, \
+    RuleBoundActionParam
 from src.model.ContractParamDec import ContractParamDec
-from src.model.EventsAndTraces import Event, Trace, CompleteTrace, breachSectionId
+from src.model.EventsAndTraces import Event, Trace, CompleteTrace, breachSectionId, EventType
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import *
 from src.model.GlobalVarDec import GlobalVarDec
@@ -22,16 +23,22 @@ from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType
 
 from src.model.L4Contract import L4Contract
 
-from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule, PartyFutureActionRule, ActionRule
+from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule, PartyFutureActionRule, \
+    ActionRule, PartlyInstantiatedPartyFutureActionRule
 from src.model.Section import Section
 from src.sexpr_to_L4Contract import L4ContractConstructor
 from src.parse_sexpr import prettySExprStr, parse_file
-from src.model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, RoleId, \
-    ActionParamId_BoundBy_ActionRule, ContractParamId, SectionId, ActionParamId_BoundBy_ActionDecl, FULFILLED_SECTION_LABEL, ActionParamSubst, \
-    TimeStamp, ActionParamValue, ENV_ROLE
+from src.model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, \
+    RoleId, \
+    RuleBoundActionParamId, ContractParamId, SectionId, ActionBoundActionParamId, FULFILLED_SECTION_LABEL, ABAPSubst, \
+    TimeStamp, Data, ENV_ROLE, GVarSubst, ContractParamSubst
 from src.model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, mapjoin
 
 feedback = logging
+
+
+class ApplyActionResult(NamedTuple):
+    floatingrules_added: Optional[List[PartlyInstantiatedPartyFutureActionRule]]
 
 class EventLegalityAssessment:
     pass
@@ -47,9 +54,10 @@ class ContractFlawedError(EventLegalityAssessment):
     pass
 
 class EventOk(EventLegalityAssessment):
-    def __init__(self, future_added : Optional[PartyFutureActionRule], future_removed : Optional[PartyFutureActionRule]) -> None:
-        self.future_added = future_added
-        self.future_removed = future_removed
+    pass
+    # def __init__(self, future_added : Optional[PartyFutureActionRule], future_removed : Optional[PartyFutureActionRule]) -> None:
+    #     self.future_added = future_added
+    #     self.future_removed = future_removed
 
 
 FN_SYMB_INTERP = {
@@ -91,141 +99,154 @@ DEADLINE_OP_INTERP = {
 }
 
 def event_to_action_str(event:Event):
-    if event.params:
-        params_str = ", ".join([f"{key}: {event.params[key]}" for key in event.params.keys()])
+    if event.params_by_abap_name:
+        params_str = ", ".join([f"{key}: {event.params_by_abap_name[key]}" for key in event.params_by_abap_name.keys()])
         return f"{event.action_id}({params_str})"
     else:
         return f"{event.action_id}"
 
-
+class EvalError(Exception):
+    pass
 
 class ExecEnv:
+    # All the instance variables of ExecEnv should probably be prefixed with _ to indicate not to use access them
+    # outside of the ExecEnv class.
+    # But I don't actually care if you access them outside the ExecEnv class. It's not that kind of class.
+    # So, I'm prefixing none of them.
+
     def __init__(self, prog:L4Contract) -> None:
-        self._top : L4Contract = prog
-        self._varvals : Dict[LocalOrGlobalVarId, Any] = dict()
-        self._var_write_cnt : Dict[LocalOrGlobalVarId, int] = dict()
-        self._contract_param_vals: Dict[ContractParamId, Any] = dict()
-        self._section_id: SectionId = prog.start_section_id
-        self._sec_entrance_timestamp = cast(TimeStamp,0)
-        self._cur_action_param_subst_from_event : Optional[Dict[ActionParamId_BoundBy_ActionDecl, ActionParamValue]]
+        self.top : L4Contract = prog
+        self.contract_param_vals: ContractParamSubst = dict()
 
-        self._future_permissions : List[PartyFutureActionRule] = []
-        self._future_obligations : List[PartyFutureActionRule] = []
+        self.gvarvals: GVarSubst = dict()
+        self.gvar_write_cnt : Dict[GlobalVarId, int] = dict()
 
-    def futures(self) -> Iterator[PartyFutureActionRule]:
-        return chain(self._future_obligations, self._future_permissions)
+        # following 3 change only in apply_action:
+        self.last_or_current_section_id: SectionId = prog.start_section_id
+        self.last_appliedaction_params : Optional[ABAPSubst] = None
+        self.last_section_entrance_timestamp = cast(TimeStamp, 0)
 
-    def delete_future(self, future:PartyFutureActionRule) -> bool:
-        assert future not in self._future_permissions or future not in self._future_obligations
-        if future in self._future_obligations:
-            self._future_obligations.remove(future)
+        # following changes only in evalLSM
+        self.cur_event : Optional[Event] = None
+
+        self.future_permissions : List[PartlyInstantiatedPartyFutureActionRule] = []
+        self.future_obligations : List[PartlyInstantiatedPartyFutureActionRule] = []
+
+    def evalError(self, msg: str, thing:Any = None):
+        raise EvalError(msg, thing)
+
+    def assertOrEvalError(self, test:bool, msg:str, thing:Any = None):
+        if not test:
+            self.evalError(msg,thing) if thing else self.evalError(msg)
+
+    def futures(self) -> Iterator[PartlyInstantiatedPartyFutureActionRule]:
+        return chain(self.future_obligations, self.future_permissions)
+
+    def delete_future(self, future:PartlyInstantiatedPartyFutureActionRule) -> bool:
+        assert future not in self.future_permissions or future not in self.future_obligations
+        if future in self.future_obligations:
+            self.future_obligations.remove(future)
             return True
-        elif future in self._future_permissions:
-            self._future_permissions.remove(future)
+        elif future in self.future_permissions:
+            self.future_permissions.remove(future)
             return True
 
         return False
 
-    def cur_section(self) -> Section:
-        return self._top.section(self._section_id)
+    @property
+    def last_or_current_section(self) -> Section:
+        return self.top.section(self.last_or_current_section_id)
 
-    def evalLSM(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[Dict[GlobalVarId,Any]] = None, verbose=False):
-        prog = self._top
+    def evalLSM(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False):
+        prog = self.top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
 
-        max_section_id_len = max(max(
-            len(self._top.action(event.action_id).dest_section_id) for event in trace
-        ), len(finalSectionId) if finalSectionId else 0)
-        max_action_str_len = max(
-            len(event_to_action_str(event)) for event in trace
-        )
+        # max_section_id_len = max(max(
+        #     len(self.top.action(event.action_id).dest_section_id) for event in trace
+        # ), len(finalSectionId) if finalSectionId else 0)
+        # max_action_str_len = max(
+        #     len(event_to_action_str(event)) for event in trace
+        # )
+        # sec_pad = ' ' * (max_section_id_len - len(self.last_or_current_section_id))
+        # # act_pad = ' '*(max_action_str_len-len(actionstr))
+        # act_pad = ''
 
         for i in range(len(trace)):
             eventi = trace[i]
-            self._cur_action_param_subst_from_event = eventi.params
-            next_action_id, next_timestamp = eventi.action_id, eventi.timestamp
+            self.cur_event = trace[i]
+            cur_action_id, cur_event_timestamp = self.cur_event.action_id, self.cur_event.timestamp
+            cur_action = self.top.action(cur_action_id)
 
-            if not(self._sec_entrance_timestamp is None or self._sec_entrance_timestamp <= next_timestamp):
-                feedback.error(
-                    f"Event timestamps must be non-decreasing, but current {self._sec_entrance_timestamp} > next {next_timestamp}")
-                continue
+            if self.last_section_entrance_timestamp is not None and self.last_section_entrance_timestamp > cur_event_timestamp:
+                self.evalError( f"Event timestamps must be non-decreasing, but last event timestamp "
+                                f"{self.last_section_entrance_timestamp} is greater than current event timestamp {cur_event_timestamp}")
 
-            action = self._top.action(next_action_id)
-            if not action:
-                feedback.error(f"Don't recongize action id {next_action_id}")
-                continue
+            if not cur_action: self.evalError(f"Don't recongize action id {cur_action_id}")
 
-            found : Optional[PartyFutureActionRule] = None
-            for far in self.futures():
-                # print("evaluating", str(far), "in event context", str(eventi))
-                if self.event_action_rule_compatible(eventi, far):
-                    # print("evaluated to True")
-                    # print("the global var vals:",self._varvals)
-                    assert found is None, "should be at most one..."
-                    found = far
-            if found:
-                # print("deletion successful?", self.delete_future(found))
-                self.delete_future(found)
-                self._cur_action_param_subst_from_event = None
-                self.apply_action(action, next_timestamp)
-                # print(f"after did future action {far.action_id}, section is {self._section_id}")
-                # continue
-            elif not self._top.action_is_sometimes_available_from_section(self._section_id, next_action_id):
-                feedback.error(f"Cannot *ever* do action {next_action_id} from section {self._section_id} (no {next_action_id}-action_rule exists).")
-                continue
 
-            if not found:
-                result = self.assess_event_legality(eventi)
-            actionstr = event_to_action_str(eventi)
-            if found or isinstance(result, EventOk):
-                srcid = self._section_id
-                self.apply_action(action, next_timestamp)
-                self._cur_action_param_subst_from_event = None
+            if eventi.type == EventType.fulfill_floating_obligation or eventi.type == EventType.use_floating_permission:
+                floatingrule_to_apply : Optional[PartlyInstantiatedPartyFutureActionRule] = None
+                for pifar in self.futures():
+                    # print("evaluating", str(pifar), "in event context", str(self.cur_event))
+                    if self.current_event_compatible_with_floatingrule(pifar):
+                        # print("evaluated to True")
+                        assert floatingrule_to_apply is None, "There should be at most one..."
+                        floatingrule_to_apply = pifar
+                assert floatingrule_to_apply is not None, 'Event type indicated a floating permission or obligation, but none found.'
+                self.delete_future(floatingrule_to_apply)
+                prev_section_id = self.last_or_current_section_id
+                applyactionresult = self.apply_action(cur_action)
+                assert prev_section_id == self.last_or_current_section_id, "An action is fulfilling a floating obligation " \
+                        "or using a floating permission is not allowed to change the current Section of the contract."
                 if verbose:
-                    sec_pad = ' '*(max_section_id_len-len(self._section_id))
-                    # act_pad = ' '*(max_action_str_len-len(actionstr))
-                    act_pad = ''
-                    future_str = f' and deleted [{found}]' if found else ''
-                    print(f"{srcid}{sec_pad} --{actionstr}-->{act_pad} {action.dest_section_id} {future_str}")
-                continue
+                    actionstr = event_to_action_str(eventi)
+                    frules_added_str = f' and added {applyactionresult.floatingrules_added}' if applyactionresult.floatingrules_added else ''
+                    frule_deleted_str = f' and deleted [{floatingrule_to_apply}]' if floatingrule_to_apply else ''
+                    print(f"{prev_section_id} --{actionstr}--> {self.last_or_current_section_id} {frule_deleted_str} {frules_added_str}")
 
-            elif isinstance(result, BreachResult):
-                print("Breach result:", result)
-                breach_section_id = breachSectionId(*result.role_ids)
-                if verbose:
-                    sec_pad = ' '*(max_section_id_len-len(self._section_id))
-                    act_pad = ' '*(max_action_str_len-len(actionstr))
-                    print(f"{self._section_id}{sec_pad} --{actionstr}-->{act_pad} {breach_section_id}")
-                self._section_id = breach_section_id
-
-                todo_once("timestamp in transition to breach")
-                self._cur_action_param_subst_from_event = None
-
-                assert i == len(trace) - 1, "Trace prefix results in a breach, but there are more events after."
-                break
             else:
-                assert False, "Can't get here?"
+                if not self.top.section_mentions_action_in_nextaction_rule(self.last_or_current_section_id, cur_action_id):
+                    self.evalError(  f"Action type indicated using a next-rule, but current section {self.last_or_current_section_id} "
+                                     f"has no such rule for action {cur_action_id}." )
 
-            # else:
-            #     feedback.error(f"{next_action_id}-action_rule exists in {self._section_id} but is disabled:\n", result)
+                nextrule_assessment = self.assess_event_legal_wrt_nextrules(eventi)
+                actionstr = event_to_action_str(eventi)
+                srcid = self.last_or_current_section_id
+                if isinstance(nextrule_assessment, EventOk):
+                    applyactionresult = self.apply_action(cur_action)
 
-            # feedback.error("Stopping evaluation")
-            # return
+                    if verbose:
+                        frules_added_str = f' and added {applyactionresult.floatingrules_added}' if applyactionresult.floatingrules_added else ''
+                        print(f"{srcid} --{actionstr}--> {self.last_or_current_section_id} {frules_added_str}")
+
+                elif isinstance(nextrule_assessment, BreachResult):
+                    # print("Breach result:", nextrule_assessment)
+                    breach_section_id = breachSectionId(*nextrule_assessment.role_ids)
+                    self.apply_action(cur_action, to_breach_section_id = breach_section_id)
+
+                    if verbose:
+                        print(f"{srcid} --{actionstr}--> {breach_section_id}")
+
+                    assert i == len(trace) - 1, "Trace prefix results in a breach, but there are more events after."
+                    break
+                else:
+                    assert False, "Can't get here?"
+
 
         if finalSectionId:
-            assert self._section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self._section_id}"
+            assert self.last_or_current_section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self.last_or_current_section_id}"
 
         if final_var_vals:
             for gvarid,expected_val in final_var_vals.items():
-                actual_val = self._varvals[castid(LocalOrGlobalVarId,gvarid)]
+                actual_val = self.gvarvals[castid(GlobalVarId,gvarid)]
                 assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
-        assert len(self._future_obligations) == 0, f"Trace ended with obligations remaining"
+        assert len(self.future_obligations) == 0, f"Trace ended with obligations remaining"
 
-    def assess_event_legality(self, event:Event) -> EventLegalityAssessment:
-        # for far in chain(self._future_obligations, self._future_permissions):
-        #     if self.event_action_rule_compatible(event, far):
+    def assess_event_legal_wrt_nextrules(self, event:Event) -> EventLegalityAssessment:
+        # for far in chain(self.future_obligations, self.future_permissions):
+        #     if self.current_event_compatible_with_enabled_NextActionRule(event, far):
         #         print("COMPAT!")
 
         entrance_enabled_strong_obligs : List[PartyNextActionRule] = list()
@@ -236,31 +257,30 @@ class ExecEnv:
         # entrance_enabled_future_strong_obligs : List[PartyNextActionRule] = list()
         # entrance_enabled_future_permissions : List[PartyNextActionRule] = list()
 
-        c: NextActionRule
+        nar: NextActionRule
+        ctx = EvalContext(self.gvarvals,
+                          self.last_appliedaction_params if self.last_or_current_section.is_anon() else None,
+                          use_current_event_params_for_rulebound_action_params = False)
 
-        for c in self.cur_section().action_rules():
+        for nar in self.last_or_current_section.action_rules():
             entrance_enabled = True
-            if c.entrance_enabled_guard:
+            if nar.entrance_enabled_guard:
                 # next_timestamp param to evalTerm is None because enabled-guards
                 # are evaluated only at section entrance time.
-                if not chcast(bool, self.evalTerm(c.entrance_enabled_guard, None)):
+                if not chcast(bool, self.evalTerm(nar.entrance_enabled_guard, ctx)):
                     entrance_enabled = False
 
             if entrance_enabled:
-                if isinstance(c, EnvNextActionRule):
-                    entrance_enabled_env_action_rules.append(c)
+                if isinstance(nar, EnvNextActionRule):
+                    entrance_enabled_env_action_rules.append(nar)
                 else:
-                    assert isinstance(c, PartyNextActionRule)
-                    if c.deontic_keyword == 'may' or c.deontic_keyword == 'should':
-                        entrance_enabled_permissions.append(c)
-                    elif c.deontic_keyword == 'must':
-                        entrance_enabled_strong_obligs.append(c)
-                    elif c.deontic_keyword == 'weakly-must':
-                        entrance_enabled_weak_obligs.append(c)
-                    # elif c.deontic_keyword == 'may-later':
-                    #     entrance_enabled_future_permissions.append(c)
-                    # elif c.deontic_keyword == 'must-later':
-                    #     entrance_enabled_future_strong_obligs.append(c)
+                    assert isinstance(nar, PartyNextActionRule)
+                    if nar.deontic_keyword == 'may' or nar.deontic_keyword == 'should':
+                        entrance_enabled_permissions.append(nar)
+                    elif nar.deontic_keyword == 'must':
+                        entrance_enabled_strong_obligs.append(nar)
+                    elif nar.deontic_keyword == 'weakly-must':
+                        entrance_enabled_weak_obligs.append(nar)
                     else:
                         assert False
 
@@ -270,7 +290,7 @@ class ExecEnv:
         #             len(entrance_enabled_strong_obligs) == len(entrance_enabled_permissions) ==
         #             len(entrance_enabled_env_action_rules) == 0), "usage of must-later currently very restricted"
         #     fo = entrance_enabled_future_strong_obligs[0]
-        #     self._future_obligations.append(fo)
+        #     self.future_obligations.append(fo)
         #     return EventOk(True)
         #
         # if len(entrance_enabled_future_permissions) > 0:
@@ -278,7 +298,7 @@ class ExecEnv:
         #             len(entrance_enabled_strong_obligs) == len(entrance_enabled_permissions) ==
         #             len(entrance_enabled_env_action_rules) == 0), "usage of may-later currently very restricted"
         #     fp = entrance_enabled_future_permissions[0]
-        #     self._future_permissions.append(fp)
+        #     self.future_permissions.append(fp)
         #     return EventOk(True)
 
         # CASE 1: 1 or more entrance-enabled strong obligations
@@ -291,7 +311,8 @@ class ExecEnv:
                              "active permission, environment-action, or weak obligation. This is an error.")
                 return ContractFlawedError()
             else:
-                if not self.event_action_rule_compatible(event, entrance_enabled_strong_obligs[0]):
+                assert isinstance(entrance_enabled_strong_obligs[0],PartyNextActionRule)
+                if not self.current_event_compatible_with_enabled_NextActionRule(entrance_enabled_strong_obligs[0]):
                     contract_bug(f"There is exactly one active strong obligation\n"
                                  f"\t{entrance_enabled_strong_obligs[0]}\n"
                                  f"but it is not compatible with the current event\n"
@@ -299,18 +320,16 @@ class ExecEnv:
                                  f"Environment looks like:\n"
                                  f"{self.environ_tostr()}")
                 else:
-                    deadline_ok = self.evalDeadlineClause(c.deadline_clause, event.timestamp)
+                    deadline_ok = self.evalDeadlineClause(entrance_enabled_strong_obligs[0].deadline_clause, ctx)
                     # print("deadline_ok", deadline_ok)
-                    if deadline_ok:
-                        return EventOk(None,None)
-                    else:
-                        return BreachResult(set([event.role_id]), f"Strong obligation of {event.role_id} expired.")
+                    if deadline_ok: return EventOk() #(None,None)
+                    else: return BreachResult({event.role_id}, f"Strong obligation of {event.role_id} expired or not yet active.")
 
 
         # CASE 2: 0 entrance-enabled strong obligations (SO action-rules)
-        present_enabled_weak_obligs : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_weak_obligs ))
-        present_enabled_permissions : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_permissions ))
-        present_enabled_env_action_rules : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, event.timestamp), entrance_enabled_env_action_rules ))
+        present_enabled_weak_obligs : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, ctx), entrance_enabled_weak_obligs ))
+        present_enabled_permissions : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, ctx), entrance_enabled_permissions ))
+        present_enabled_env_action_rules : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, ctx), entrance_enabled_env_action_rules ))
 
         # present_enabled_nonSO_action_rules : Iterator[NextActionRule] = chain(
         #     present_enabled_permissions.__iter__(),
@@ -320,17 +339,17 @@ class ExecEnv:
 
         # CASE 2a: `event` compatible with exactly one present-enabled non-SO action_rule
         compatible_present_enabled_nonSO_action_rules = list(filter(
-            lambda c: self.event_action_rule_compatible(event,c),
+            lambda nar: self.current_event_compatible_with_enabled_NextActionRule(nar),
             present_enabled_nonSO_action_rules ))
         if len(compatible_present_enabled_nonSO_action_rules) == 1:
-            return EventOk(None,None)
+            return EventOk() #(None,None)
 
         # print("compatible_present_enabled_nonSO_action_rules", compatible_present_enabled_nonSO_action_rules)
 
         # CASE 2b: `event` compatible with more than one present-enabled non-SO action-rules
         # ...This is actually ok as long as deadlinesPartitionFuture isn't used.
         if len(compatible_present_enabled_nonSO_action_rules) > 1:
-            return EventOk(None,None)
+            return EventOk() #(None,None)
 
         # CASE 2c: `event` compatible with 0 present-enabled non-SO action-rules
         # This is a breach. We need to determine what subset of the roles is at fault
@@ -338,35 +357,52 @@ class ExecEnv:
         # from previous cases).
         breach_roles = filter(
             lambda r: len( list(filter(lambda c: c.role_id == r, entrance_enabled_weak_obligs)) ) > 0,
-            self._top.roles )
+            self.top.roles )
 
         # print("event:", event)
-        # print("vars:", self._varvals)
+        # print("vars:", self.gvarvals)
         # print("entrance_enabled_permissions", mapjoin(str,entrance_enabled_permissions,', '))
         # print("present_enabled_permissions", list(present_enabled_permissions))
         # print("present_enabled_weak_obligs", list(present_enabled_weak_obligs))
         # print("present_enabled_env_action_rules", list(present_enabled_env_action_rules))
         # print()
-
         return BreachResult(list(breach_roles), f"{list(breach_roles)} had weak obligations that they didn't fulfill in time.")
 
-    def event_action_rule_compatible(self, event:Event, action_rule:ActionRule):
-        if not action_rule.where_clause:
-            return event.role_id == action_rule.role_id and event.action_id == action_rule.action_id
+    # Only if the current section is an anonymous section (i.e. given by a FollowingSection declaration) is it possible
+    # for the where_clause of action_rule to contain action-bound action parameters.
+    def current_event_compatible_with_enabled_NextActionRule(self, action_rule:NextActionRule) -> bool:
+        assert self.cur_event is not None
+        role_action_match = self.cur_event.role_id == action_rule.role_id and self.cur_event.action_id == action_rule.action_id
+        if not role_action_match: return False
+        if not action_rule.where_clause: return True
 
-        # print("Action-param subst:", self._cur_action_param_subst_from_event)
-        assert self._cur_action_param_subst_from_event == event.params
-        rv = (event.role_id == action_rule.role_id and event.action_id == action_rule.action_id and
-              self.evalTerm(action_rule.where_clause, event.timestamp) )
+        # ctx2 = EvalContext(self.gvarvals, self.cur_event.params, ctx.abapvals)
+        return chcast(bool,self.evalTerm(action_rule.where_clause, None))
 
-        return rv
+
+    def current_event_compatible_with_floatingrule(self, pif_action_rule: PartlyInstantiatedPartyFutureActionRule) -> bool:
+        assert self.cur_event is not None
+        role_action_match = self.cur_event.role_id == pif_action_rule.rule.role_id and self.cur_event.action_id == pif_action_rule.rule.action_id
+        if not role_action_match: return False
+        if not pif_action_rule.pe_where_clause: return True
+
+        # will sub in self.cur_event.params for *rule*-bound action params in pif_action_rule.pe_where_clause
+        # all other variables value in pif_action_rule.pe_where_clause are supplied by pif_action_rule.ctx
+        # note that whether the current event is compatible with a future is not allowed to depend on
+        # anything from the current execution context except self.cur_event.params. that is the reason for the None
+        # argument.
+
+        # TODO UNCERTAIN
+
+        ctx = EvalContext(self.gvarvals, None, use_current_event_params_for_rulebound_action_params=True)
+        return chcast(bool,self.evalTerm(pif_action_rule.pe_where_clause, ctx))
 
     def environ_tostr(self) -> str:
-        return f"{str(self._varvals)}\n{str(self._cur_action_param_subst_from_event)}\n{str(self._contract_param_vals)}"
+        return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
 
     # def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
     #     todo_once("this needs to depend on action parameters")
-    #     for c in self.cur_section().action_rules():
+    #     for c in self.last_or_current_section().action_rules():
     #         todo_once("check enabled guard")
     #         if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
     #             if c.action_id != actionid:
@@ -380,104 +416,117 @@ class ExecEnv:
     #             return True
     #     return False
 
-    def apply_action(self, action:Action, next_timestamp: TimeStamp):
-        # self._cur_action_param_subst_from_event should be set before calling apply_action
+    def apply_action(self, action:Action, to_breach_section_id:Optional[SectionId] = None) -> ApplyActionResult:
+        assert self.cur_event is not None
+
+        if to_breach_section_id is not None:
+            self.last_or_current_section_id = to_breach_section_id
+            self.last_section_entrance_timestamp = self.cur_event.timestamp
+            return ApplyActionResult(None)
+
+        self.last_appliedaction_params = self.cur_event.params
+        rv: ApplyActionResult
+
         if action.global_state_transform:
             self.evalCodeBlock(action.global_state_transform)
 
-        for ef in filter(
-            lambda far: not far.entrance_enabled_guard or chcast(bool,self.evalTerm(far.entrance_enabled_guard, None)),
-            action.futures
-        ):
-            if ef.where_clause:
-                todo_once("should keep local and global var vals separate")
-                new_where_clause = PartialEvalTerm(ef.where_clause, cast(Dict[GlobalVarId,Any],self._varvals.copy()))
-                ef = copy.copy(ef)
-                ef.where_clause = new_where_clause
+        future : PartlyInstantiatedPartyFutureActionRule
+        floatingrules_added : List[PartlyInstantiatedPartyFutureActionRule] = []
+        for far in action.futures:
+            is_disabled = far.entrance_enabled_guard and \
+                          not chcast(bool,self.evalTerm(far.entrance_enabled_guard,None)) # TODO: unsure about this None
+            if is_disabled:
+                continue
 
-            if ef.deontic_keyword == 'must-later':
-                self._future_obligations.append(ef)
+            if far.where_clause:
+                new_where_clause = PartialEvalTerm(
+                    far.where_clause,
+                    EvalContext(self.gvarvals.copy(), action.params.copy(), True)
+                )
+                future = PartlyInstantiatedPartyFutureActionRule(far, new_where_clause)
+                # far = copy.copy(far)
+                # far.where_clause = new_where_clause
             else:
-                assert  ef.deontic_keyword == 'may-later'
-                self._future_permissions.append(ef)
+                future = PartlyInstantiatedPartyFutureActionRule(far, None)
+
+            if far.deontic_keyword == 'must-later':
+                self.future_obligations.append(future)
+            else:
+                assert  far.deontic_keyword == 'may-later'
+                self.future_permissions.append(future)
+            floatingrules_added.append(future)
             # print("new future:", ef)
 
-        self._section_id = action.dest_section_id
-        self._sec_entrance_timestamp = next_timestamp
+        self.last_or_current_section_id = action.dest_section_id
+        self.last_section_entrance_timestamp = self.cur_event.timestamp
+
+        return ApplyActionResult(floatingrules_added if len(floatingrules_added) > 0 else None)
 
 
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
-        for (var,dec) in cast(Dict[LocalOrGlobalVarId, GlobalVarDec],decs).items():
+        for (var,dec) in cast(Dict[GlobalVarId, GlobalVarDec],decs).items():
             if dec.initval is None:
-                self._varvals[var] = None
+                self.gvarvals[var] = None
                 # print(f"Global var {var} has no initial value.")
-                dictSetOrInc(self._var_write_cnt, var, init=0)
+                dictSetOrInc(self.gvar_write_cnt, var, init=0)
             else:
-                self._varvals[var] = self.evalTerm(dec.initval, cast(TimeStamp,0))
-                # print(f"Global var {var} has initial value {self._varvals[var]}.")
-                dictSetOrInc(self._var_write_cnt, var, init=1)
-            # print('evalGlobalVarDecs: ', var, dec, self._var_write_cnt[var])
+                self.gvarvals[var] = self.evalTerm(dec.initval, None)
+                # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
+                dictSetOrInc(self.gvar_write_cnt, var, init=1)
+            # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
         for (name,dec) in decs.items():
             # print(dec)
             if not(dec.value_expr is None):
-                self._contract_param_vals[name] = self.evalTerm(dec.value_expr, cast(TimeStamp,0))
+                self.contract_param_vals[name] = self.evalTerm(dec.value_expr, None)
             else:
-                self._contract_param_vals[name] = None
+                self.contract_param_vals[name] = None
 
     def evalCodeBlock(self, transform:GlobalStateTransform):
         # print("\nevalCodeBlock\n")
-        # action = self._top.action(nextTSEvent.action_id)
+        # action = self.top.action(nextTSEvent.action_id)
         # if not action.global_state_transform:
         #     return
         for statement in transform.statements:
             self.evalStatement(statement)
 
     def evalStatement(self, stmt:GlobalStateTransformStatement):
+        # An Action's GlobalStateTransform block is *always* evaluated in the most recent global variable and
+        # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
+        # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
+        # Therefore, this function does not take an EvalContext argument.
 
-        if isinstance(stmt, LocalVarDec):
-            assert self._top.varDecObj(stmt.varname) is None
-            # print('evalStatement LocalVarDec: ' + str(stmt))
-            value = self.evalTerm(stmt.value_expr, self._sec_entrance_timestamp)
-            self._varvals[stmt.varname] = value
+        # gvardec : GlobalVarDec
 
-        elif isinstance(stmt, VarAssignStatement):
-            vardec = self._top.varDecObj(stmt.varname)
-            # print(self._var_write_cnt[stmt.varname])
-            if isinstance(vardec, GlobalVarDec):
-                if vardec.isWriteOnceMore() and self._var_write_cnt[stmt.varname] >= 2:
-                    raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
-            else:
-                raise NotImplementedError("Non-GlobalVar assign statement unhandled")
-            dictSetOrInc(self._var_write_cnt, stmt.varname, init=1)
-            # todo: use vardec for runtime type checking
-            value = self.evalTerm(stmt.value_expr, self._sec_entrance_timestamp)
-            self._varvals[stmt.varname] = value
-            print(f"Assigning {value} to {stmt.varname}")
+        if isinstance(stmt, (VarAssignStatement, IncrementStatement,DecrementStatement,TimesEqualsStatement)):
+            gvardec = self.top.gvarDecObj(stmt.varname)
+            assert gvardec is not None, f"Global variable declaration for {stmt.varname} not found."
+
+            if gvardec.isWriteOnceMore() and self.gvar_write_cnt[stmt.varname] >= 2:
+                raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
+            dictSetOrInc(self.gvar_write_cnt, stmt.varname, init=1)
+            todo_once("use vardec for runtime type checking")
+            rhs_value = self.evalTerm(stmt.value_expr, None)
+
+        if isinstance(stmt, VarAssignStatement):
+            self.gvarvals[stmt.varname] = rhs_value
+            print(f"Assigning {rhs_value} to {stmt.varname}")
 
         elif isinstance(stmt, (IncrementStatement,DecrementStatement,TimesEqualsStatement)):
-            vardec = self._top.varDecObj(stmt.varname)
-            # todo: use vardec for runtime type checking
-            value = self.evalTerm(stmt.value_expr, self._sec_entrance_timestamp)
-            if not stmt.varname in self._varvals:
-                contract_bug(f"Variable {stmt.varname} should be in the execution environment, but isn't.")
-            assert self._varvals[stmt.varname] is not None, "Tried to increment/decrement/scale uninitialized variable `" + stmt.varname + "`"
+            current_var_val : Data = self.gvarvals[stmt.varname]
+            assert current_var_val is not None
 
-            if isinstance(stmt, IncrementStatement):
-                self._varvals[stmt.varname] = self._varvals[stmt.varname] + int(value)
-            elif isinstance(stmt, DecrementStatement):
-                self._varvals[stmt.varname] = self._varvals[stmt.varname] - int(value)
-            elif isinstance(stmt, TimesEqualsStatement):
-                self._varvals[stmt.varname] = self._varvals[stmt.varname] * int(value)
-            else:
-                raise Exception('should be impossible')
+            if isinstance(stmt, IncrementStatement):     self.gvarvals[stmt.varname] = current_var_val + int(rhs_value)
+            elif isinstance(stmt, DecrementStatement):   self.gvarvals[stmt.varname] = current_var_val - int(rhs_value)
+            elif isinstance(stmt, TimesEqualsStatement): self.gvarvals[stmt.varname] = current_var_val * int(rhs_value)
+            else: raise Exception('fixme')
 
         elif isinstance(stmt, InCodeConjectureStatement):
             # print("conjecture " + str(stmt))
             assert self.evalTerm(stmt.value_expr, None), f"""Conjecture {stmt.value_expr} is false! Variable values and action params:
-            {str(self._varvals)}
-            {str(self._cur_action_param_subst_from_event)}
+            {str(self.gvarvals)}
+            {str(self.last_appliedaction_params)}
             """
 
         elif isinstance(stmt, IfElse):
@@ -486,92 +535,117 @@ class ExecEnv:
         else:
             raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
+
+        # if isinstance(stmt, LocalVarDec):
+        #     assert self.top.gvarDecObj(stmt.varname) is None
+        #     # print('evalStatement LocalVarDec: ' + str(stmt))
+        #     rhs_value = self.evalTerm(stmt.value_expr, self.last_section_entrance_timestamp)
+        #     self.gvarvals[stmt.varname] = rhs_value
+
     def evalTerm(self,
                  term:Term,
-                 next_event_timestamp:Optional[TimeStamp],
-                 partialeval_globals_subst:Optional[Dict[GlobalVarId,Any]] = None) -> Any:
+                 ctx:Optional[EvalContext]) -> Any:
         assert term is not None
+        # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec
+        # and global var decs
+
         # if partialeval_globals_subst:
         #     print("partialeval_globals_subst is not None. `term` is ", term)
         # next_event_timestamp will be None when evaluating an entrance-guard
         # print('evalTerm: ', term)
         if isinstance(term, FnApp):
-            return self.evalFnApp(term, next_event_timestamp, partialeval_globals_subst)
+            return self.evalFnApp(term, ctx)
+
         elif isinstance(term, DeadlineLit):
-            todo_once("DeadlineLit correctly handled?")
-            # print("DeadlineLit: ", term, next_event_timestamp == self._sec_entrance_timestamp)
-            return next_event_timestamp == self._sec_entrance_timestamp
+            todo_once("DeadlineLit not correctly handled yet")
+            # print("DeadlineLit: ", term, next_event_timestamp == self.last_section_entrance_timestamp)
+            # return self.cur_event.timestamp == self.last_section_entrance_timestamp
+            return True
+
         elif isinstance(term, Literal):
             return term.lit
-        elif isinstance(term, LocalVar):
-            assert hasNotNone(self._varvals, cast(LocalOrGlobalVarId,term.name)), term.name
-            return self._varvals[cast(LocalOrGlobalVarId,term.name)]
+
         elif isinstance(term, GlobalVar):
-            # print(self._contract_param_vals)
-            # print(self._varvals)
-            if partialeval_globals_subst and term.name in partialeval_globals_subst:
-                # print("using val from partial val subst")
-                return partialeval_globals_subst[term.name]
+            # print(self.contract_param_vals)
+            # print(self.gvarvals)
+            if ctx:
+                assert hasNotNone(ctx.gvarvals, term.name), "Global var " + term.name + " should have a value but doesn't."
+                return ctx.gvarvals[term.name]
             else:
-                assert hasNotNone(self._varvals, cast(LocalOrGlobalVarId, term.name)), "Global var " + term.name + " should have a value but doesn't."
-                return self._varvals[cast(LocalOrGlobalVarId, term.name)]
+                return self.gvarvals[term.name]
+
         elif isinstance(term, ContractParam):
             # print("ContractParam case of evalTerm: ", term)
-            # print(self._contract_param_vals[term.name], type(self._contract_param_vals[term.name]))
-            assert hasNotNone(self._contract_param_vals, term.name), term.name
-            return self._contract_param_vals[term.name]
-        elif isinstance(term,ActionDeclActionParam):
-            if self._cur_action_param_subst_from_event:
-                if term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, term.name)]
-                todo_once("HACK!")
-                if "_" + term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, '_' + term.name)]
-            contract_bug(f"Trying to get subst value of an ActionDeclActionParam {term.name} but didn't find it in the execution context.")
-        elif isinstance(term, ActionRuleDeclActionParam):
-            if self._cur_action_param_subst_from_event:
-                if term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, term.name)]
-                todo_once("HACK!")
-                if "_" + term.name in self._cur_action_param_subst_from_event:
-                    return self._cur_action_param_subst_from_event[cast(ActionParamId_BoundBy_ActionDecl, '_' + term.name)]
-                print(self._cur_action_param_subst_from_event)
-            contract_bug(f"Trying to get subst value of ActionRuleDeclActionParam {term.name} but didn't find it in the execution context.")
+            # print(self.contract_param_vals[term.name], type(self.contract_param_vals[term.name]))
+            assert hasNotNone(self.contract_param_vals, term.name), term.name
+            return self.contract_param_vals[term.name]
+
+        elif isinstance(term, ActionBoundActionParam):
+            # if term.name == 'amount':
+            #     print("Looking at 'amount', this is self.last_appliedaction_params:", self.last_appliedaction_params)
+            # print('ActionBoundActionParam:', term)
+            if ctx and ctx.abapvals:
+                # print(f"ActionBoundActionParam value for {term.name} taken from ctx")
+                # assert hasNotNone(ctx.,term.name), f"Trying to get subst value of an ActionBoundActionParam {term.name} but didn't find it in the execution context."
+                return ctx.abapvals[term.ind]
+            else:
+                assert self.last_appliedaction_params is not None
+                return self.last_appliedaction_params[term.ind]
+
+        elif isinstance(term, RuleBoundActionParam):
+
+            # assert hasNotNone(self.cur_event.params_by_abap_name, term.name), f"Trying to get subst value of an RuleBoundActionParam {term.name} but didn't find it among the action parameters."
+            assert self.cur_event and self.cur_event.params is not None
+            return self.cur_event.params[term.ind]
+
+            # return ctx.rbapvals[term.name]
+
         elif isinstance(term, PartialEvalTerm):
-            assert not partialeval_globals_subst, "haven't handled partial eval of partial eval yet"
-            return self.evalTerm(term.term, next_event_timestamp, term.subst)
+            # assert not partialeval_globals_subst, "haven't handled partial eval of partial eval yet"
+            # assert not partialeval_actionparam_subst, "haven't handled partial eval of partial eval yet"
+            print("Current ctx:", ctx)
+            print("PartialEvalTerm's ctx:", term.ctx)
+            assert not ctx or ctx.abapvals is None or len(ctx.abapvals) == 0, "TODO: ctx merge"
+
+            return self.evalTerm(term.term, term.ctx)
+
         else:
             contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
             return term
 
-    def evalDeadlineClause(self, deadline_clause:Term, next_timestamp:TimeStamp) -> bool:
+    def evalDeadlineClause(self, deadline_clause:Term, ctx:EvalContext) -> bool:
         assert deadline_clause is not None
         # return True
-        rv = chcast(bool, self.evalTerm(deadline_clause, next_timestamp))
+        rv = chcast(bool, self.evalTerm(deadline_clause, ctx))
         # print('evalDeadlineClause: ', rv)
         return rv
 
-    def evalFnApp(self, fnapp:FnApp, next_event_timestamp: Optional[TimeStamp], partialeval_globals_subst:Optional[Dict[GlobalVarId,Any]] = None) -> Any:
+    def evalFnApp(self,
+                  fnapp:FnApp,
+                  ctx:Optional[EvalContext]) -> Any:
         fn = fnapp.head
         # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
-        evaluated_args = tuple(self.evalTerm(x, next_event_timestamp, partialeval_globals_subst) for x in fnapp.args)
+        evaluated_args = tuple(self.evalTerm(x,ctx) for x in fnapp.args)
         if fn in FN_SYMB_INTERP:
             return cast(Any,FN_SYMB_INTERP[fn])(*evaluated_args)
         elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
-            assert next_event_timestamp is not None
+            assert self.cur_event is not None
             if fn in DEADLINE_OP_INTERP:
-                return cast(Any, DEADLINE_OP_INTERP[fn])(self._sec_entrance_timestamp, next_event_timestamp, evaluated_args)
+                return cast(Any, DEADLINE_OP_INTERP[fn])(
+                    self.last_section_entrance_timestamp,
+                    self.cur_event.timestamp,
+                    evaluated_args)
             else:
                 contract_bug(f"Unhandled deadline fn symbol: {fn}")
         elif fn == "unitsAfterEntrance":
             assert len(evaluated_args) == 1
-            return evaluated_args[0] + self._sec_entrance_timestamp
+            return evaluated_args[0] + self.last_section_entrance_timestamp
         elif fn == 'entranceTimeNoLaterThan-ts?':
             assert len(evaluated_args) == 1
-            return self._sec_entrance_timestamp <= evaluated_args[0]
+            return self.last_section_entrance_timestamp <= evaluated_args[0]
         elif fn == 'entranceTimeAfter-ts?':
             assert len(evaluated_args) == 1
-            return self._sec_entrance_timestamp > evaluated_args[0]
+            return self.last_section_entrance_timestamp > evaluated_args[0]
         else:
             contract_bug(f"Unhandled fn symbol: {fn}")
         return 0
@@ -589,7 +663,7 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
                 paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)
 
         return env.evalLSM(it.events, finalSectionId=cast(SectionId,it.final_section),
-                           final_var_vals = cast(Optional[Dict[GlobalVarId,Any]],it.final_values), verbose=True)
+                           final_var_vals = cast(Optional[GVarSubst],it.final_values), verbose=True)
     else:
         return env.evalLSM(it, verbose=True)
 
@@ -603,7 +677,7 @@ def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
         'degenerate/minimal_future-actions.l4',
-        'degenerate/minimal_future-actions2.l4',
+        # 'degenerate/minimal_future-actions2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
         'degenerate/collatz.l4',

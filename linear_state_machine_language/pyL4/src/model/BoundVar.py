@@ -4,10 +4,9 @@ from src.model.Action import Action
 from src.model.ActionRule import NextActionRule, ActionRule
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.ContractParamDec import ContractParamDec
-from src.model.GlobalStateTransformStatement import LocalVarDec
 from src.model.Term import Term
-from src.model.constants_and_defined_types import LocalVarId, GlobalVarId, ContractParamId, ActionParamId_BoundBy_ActionDecl, \
-    ActionParamId_BoundBy_ActionRule
+from src.model.constants_and_defined_types import GlobalVarId, ContractParamId, ActionBoundActionParamId, \
+    RuleBoundActionParamId
 
 
 class BoundVar(Term):
@@ -24,36 +23,38 @@ class BoundVar(Term):
     def name(self) -> str:
         raise NotImplementedError
 
-class ActionRuleDeclActionParam(BoundVar):
-    def __init__(self, _name:ActionParamId_BoundBy_ActionRule, conn: ActionRule) -> None:
+class RuleBoundActionParam(BoundVar):
+    def __init__(self, _name:RuleBoundActionParamId, conn: ActionRule, ind:int) -> None:
         super().__init__()
         self.action_rule = conn
         self._name = _name
+        self.ind = ind
 
     @property
-    def name(self) -> ActionParamId_BoundBy_ActionRule:
+    def name(self) -> RuleBoundActionParamId:
         return self._name
 
 
-class ActionDeclActionParam(BoundVar):
-    def __init__(self, _name:ActionParamId_BoundBy_ActionDecl, action: Action) -> None:
+class ActionBoundActionParam(BoundVar):
+    def __init__(self, _name:ActionBoundActionParamId, action: Action, ind:int) -> None:
         super().__init__()
         self.action = action
         self._name = _name
+        self.ind = ind
 
     @property
-    def name(self) -> ActionParamId_BoundBy_ActionDecl:
+    def name(self) -> ActionBoundActionParamId:
         return self._name
 
 
-class LocalVar(BoundVar):
-    def __init__(self, vardec: LocalVarDec) -> None:
-        super().__init__()
-        self.vardec : LocalVarDec = vardec
-
-    @property
-    def name(self) -> LocalVarId:
-        return cast(LocalVarId,self.vardec.varname)
+# class LocalVar(BoundVar):
+#     def __init__(self, vardec: LocalVarDec) -> None:
+#         super().__init__()
+#         self.vardec : LocalVarDec = vardec
+#
+#     @property
+#     def name(self) -> LocalVarId:
+#         return cast(LocalVarId,self.vardec.varname)
 
 
 class GlobalVar(BoundVar):

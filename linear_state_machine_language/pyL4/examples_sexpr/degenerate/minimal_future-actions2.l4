@@ -12,10 +12,10 @@
 
 	[Action [Throw [n : ℕ]]		[TransitionsTo Ongoing]
 		[Future
-			[I must-later [Catch m] nodeadline [where [m == n]]]
+			[I must-later [Catch ?m] nodeadline [where [?m == n]]]
 		]
 	]
 
-	[Action [Catch [m : ℕ]] [TransitionsTo Ongoing]]
+	[Action [Catch [n : ℕ]] [TransitionsTo Ongoing]]
 	[Action EnterFulfilled [TransitionsTo Fulfilled]]
 ]

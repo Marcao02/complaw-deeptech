@@ -7,7 +7,6 @@ from src.model.ActionRule import *
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
-from src.model.GlobalStateTransformStatement import LocalVarDec
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Section import *
 from src.model.StringArgMacro import StringArgMacro
@@ -51,7 +50,7 @@ class L4Contract:
     def action_rules(self) -> Iterator[ActionRule]: return chain(self.nextaction_rules(), self.futureaction_rules())
 
 
-    def action_is_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> bool:
+    def section_mentions_action_in_nextaction_rule(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)
         for c in cursection.action_rules():
             if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
@@ -62,17 +61,17 @@ class L4Contract:
 
         return False
 
-    def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> Set[ActionId]:
-        cursection = self.section(sectionid)
-        rv : Set[ActionId] = set()
-        for c in cursection.action_rules():
-            if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
-                if c.action_id == actionid:
-                    rv.add(c.action_id)
-            else:
-                raise NotImplementedError
-
-        return rv
+    # def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> Set[ActionId]:
+    #     cursection = self.section(sectionid)
+    #     rv : Set[ActionId] = set()
+    #     for c in cursection.action_rules():
+    #         if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
+    #             if c.action_id == actionid:
+    #                 rv.add(c.action_id)
+    #         else:
+    #             raise NotImplementedError
+    #
+    #     return rv
 
     def transitions(self) -> Iterator[NextActionRule]:
         for sec in self.sections_iter():
@@ -93,7 +92,7 @@ class L4Contract:
         return self.actions_by_id[anid]
         # return self.actions_by_id[anid] if anid in self.actions_by_id else None
 
-    def varDecObj(self, varname:str) -> Optional[Union[GlobalVarDec, LocalVarDec]]:
+    def gvarDecObj(self, varname:str) -> Optional[GlobalVarDec]:
         if varname in self.global_var_decs:
             return self.global_var_decs[cast(GlobalVarId,varname)]
         else:

@@ -1,5 +1,6 @@
-from typing import Optional, List
+from typing import Optional, List, NamedTuple
 
+from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Term import Term
 from src.model.constants_and_defined_types import *
 from src.model.util import indent, mapjoin
@@ -9,14 +10,16 @@ class ActionRule:
     def __init__(self,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
         self.role_id = role_id
         self.action_id = action_id
-        self.args = args
         self.entrance_enabled_guard = entrance_enabled_guard
         self.deadline_clause: Term 
         self.where_clause: Optional[Term] = None
+
+        self.args = args
+        self.args_name_to_ind = {self.args[i]:i for i in range(len(self.args))} if self.args else None
 
     def toStr(self, i:int) -> str:
         raise NotImplemented
@@ -62,7 +65,7 @@ class PartyFutureActionRule(ActionRule):
                  src_action_id: ActionId,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term],
                  deontic_keyword: DeonticKeyword) -> None:
         super().__init__(role_id, action_id, args, entrance_enabled_guard)
@@ -71,14 +74,35 @@ class PartyFutureActionRule(ActionRule):
 
     def toStr(self, i:int) -> str:
         return common_party_action_rule_toStr(self, i)
-        
+
+
+class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
+    # todo QUESTION: Should deadline clause be partially evaluated??
+    """
+    It's derived from, and points at, a PartyFutureActionRule. Call that its parent rule.
+    Its parent rule's `entrance_enabled_guard` evaluated to True when this thing was created.
+    It has values for all `GlobalVarId`s that occur in its parent's `where_clause` or `deadline_clause`.
+    It has values for all `ActionBoundActionParamId`s that occur in its parent's `where_clause`  or `deadline_clause`. Such variables can only
+    occur if its parent rule is defined in a `FollowingSection` declaration, since that is the only way that
+    an `ActionBoundActionParamId` can be in the scope of a `where_clause` or `deadline_clause`.
+    It has values for none of the `RuleBoundActionParamId`s that occur in its `where_clause` or `deadline_clause`.
+    """
+    rule : PartyFutureActionRule
+    pe_where_clause : Optional[PartialEvalTerm] # "pe" for PartialEval
+    # pe_deadline_clause : PartialEvalTerm
+
+    # not necessary because comes from .pe_where_clause.gvar_subst (== .pe_deadline_clause.gvar_subst):
+    #   gvar_vals : GVarSubst
+    # not necessary because comes from .pe_where_clause.abap_subst (== .pe_deadline_clause.abap_subst)
+    #   ab_aparam_vals : List[Any] # "ab_aparam" short for action-bound action-param.
+    #   aba_param_vals_dict : Dict[ActionBoundActionParamId,Any]  # shouldn't be necessary except maybe for debugging
 
 class NextActionRule(ActionRule):
     def __init__(self,
                  src_id: SectionId,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
         super().__init__(role_id, action_id, args, entrance_enabled_guard)
         self.src_id = src_id
@@ -89,7 +113,7 @@ class PartyNextActionRule(NextActionRule):
                  src_id: SectionId,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term],
                  deontic_keyword: DeonticKeyword) -> None:
         super().__init__(src_id, role_id, action_id, args, entrance_enabled_guard)
@@ -104,7 +128,7 @@ class EnvNextActionRule(NextActionRule):
     def __init__(self,
                  src_id: SectionId,
                  action_id: ActionId,
-                 args: Optional[List[ActionParamId_BoundBy_ActionRule]],
+                 args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
         super().__init__(src_id, ENV_ROLE, action_id, args, entrance_enabled_guard)
 
@@ -128,3 +152,6 @@ class EnvNextActionRule(NextActionRule):
             rv += " " + str(self.deadline_clause)
 
         return rv
+
+
+
