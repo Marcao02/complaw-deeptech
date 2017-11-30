@@ -1,6 +1,8 @@
 ---------------------
 file: serious/SAFE.l4
 
+roles: Investor, Company
+
 contract params:
     PURCHASE_AMOUNT : $ := 100000
     VALUATION_CAP : $ := inf

@@ -39,7 +39,7 @@ def actionRuleAsDotArcStr(con: NextActionRule, l4file:L4Contract) -> str:
 
 def contractToDotFileStr(l4file: L4Contract) -> str:
     # graphname = l4file.construct_main_part.name[1]
-    cleaned_graphname = "_".join(l4file.contract_name.split(' '))
+    cleaned_graphname = "_".join(l4file.contract_name.split(' ')).replace('-','_')
     section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x),
                                 filter(lambda s: not s.is_anon(), l4file.sections_iter()),
                                 ";\n\t")

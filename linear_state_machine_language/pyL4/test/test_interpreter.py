@@ -9,6 +9,8 @@ from src.model.util import castid
 
 timestamp = cast(TimeStamp,0)
 
+
+
 def event(action_id:str, role_id:str = ENV_ROLE,
           timestamp:int = 0, params:Optional[Dict[str, Data]] = None,
           eventType: Optional[EventType] = None ) -> Event:
@@ -19,6 +21,14 @@ def event(action_id:str, role_id:str = ENV_ROLE,
                  params_by_abap_name=cast(ABAPNamedSubst, params) if params else None,
                  params=list(params.values()) if params else None,
                  type=eventType)
+
+def foevent(action_id:str, role_id:str = ENV_ROLE,
+          timestamp:int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
+    return event(action_id,role_id,timestamp,params,EventType.fulfill_floating_obligation)
+
+def fpevent(action_id:str, role_id:str = ENV_ROLE,
+          timestamp:int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
+    return event(action_id,role_id,timestamp,params,EventType.use_floating_permission)
 
 def nextTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
@@ -45,9 +55,9 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         (event('Throw', 'I'),
          event('Throw', 'I'),
          event('Throw', 'I'),
-         event('Catch', 'I', 0, {'m': 1}, EventType.fulfill_floating_obligation),
-         event('Catch', 'I', 0, {'m': 3}, EventType.fulfill_floating_obligation),
-         event('Catch', 'I', 0, {'m': 2}, EventType.fulfill_floating_obligation),
+         foevent('Catch', 'I', 0, {'m': 1}),
+         foevent('Catch', 'I', 0, {'m': 3}),
+         foevent('Catch', 'I', 0, {'m': 2}),
          event('EnterFulfilled', 'Env', 0),
          ), breachSectionId('Env'))
      ),
@@ -58,10 +68,9 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          event('Throw', 'I'),  # n = 2 after
          event('Stand', 'I'),  # n = 3 after
          event('Throw', 'I'),  # n = 4 after
-         event('Catch', 'I', 0, {'m': 1}, EventType.fulfill_floating_obligation),
-         event('Catch', 'I', 0, {'m': 4}, EventType.fulfill_floating_obligation),
-
-         event('Catch', 'I', 0, {'m': 2}, EventType.fulfill_floating_obligation),
+         foevent('Catch', 'I', 0, {'m': 1}),
+         foevent('Catch', 'I', 0, {'m': 4}),
+         foevent('Catch', 'I', 0, {'m': 2}),
          event('Stand', 'I'),  # n = 5 after
 
 
@@ -75,10 +84,10 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         event('Throw', 'I', 0, {'n':3}),
         event('Throw', 'I', 0, {'n':1}),
         event('Throw', 'I', 0, {'n':2}),
-        event('Catch', 'I', 0, {'n': 1}, EventType.fulfill_floating_obligation),
-        event('Catch', 'I', 0, {'n': 2}, EventType.fulfill_floating_obligation),
-        event('Catch', 'I', 0, {'n': 3}, EventType.fulfill_floating_obligation),
-        event('Catch', 'I', 0, {'n': 4}, EventType.fulfill_floating_obligation),
+        foevent('Catch', 'I', 0, {'n': 1}),
+        foevent('Catch', 'I', 0, {'n': 3}),
+        foevent('Catch', 'I', 0, {'n': 4}),
+        foevent('Catch', 'I', 0, {'n': 2}),
         event('EnterFulfilled', 'I', 0),
          ), 'Fulfilled')
      ),
@@ -89,11 +98,11 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
     #         event('Throw','I'),
     #         event('Stand','I'),
     #         event('Throw','I'),
-    #         event('Catch', 'I', 0, {'m': 1}),
-    #         event('Catch', 'I', 0, {'m': 4}),
-    #         event('Catch', 'I', 0, {'m': 3}),
-    #         event('EnterFulfilled', 'Env', 0),
-    #     ), breachSectionId())
+    #         foevent('Catch', 'I', 0, {'m': 1}),
+    #         foevent('Catch', 'I', 0, {'m': 4}),
+    #         foevent('Catch', 'I', 0, {'m': 3}),
+    #         # event('EnterFulfilled', 'Env', 0),
+    #     ), breachSectionId('I'))
     # ),
 
 

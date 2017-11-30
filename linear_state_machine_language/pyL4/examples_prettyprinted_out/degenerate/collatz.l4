@@ -1,6 +1,8 @@
 ---------------------------
 file: degenerate/collatz.l4
 
+roles: 
+
 contract params:
     START : ℕ := 99
 

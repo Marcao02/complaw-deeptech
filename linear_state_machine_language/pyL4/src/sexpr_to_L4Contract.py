@@ -235,6 +235,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif 'visits' in x or 'traversals' in x:
                 section.visit_bounds = x # self.term(x, None, section)
 
+
+            elif head("possibly-from-earlier"):
+                todo_once("parse possibly-from-earlier")
+
             else:
                 self.syntaxError(x, f"Unsupported declaration type {x[0]} in section {section_id}")
                 todo_once(f"Handle {x[0]} in section dec")
@@ -464,8 +468,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_deadline_clause(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action]) -> Term:
         if expr in DEADLINE_KEYWORDS:
             return self._mk_term(expr, src_section, src_action)
+        elif isinstance(expr,str):
+            self.syntaxError(expr, f"Unrecognized token {expr} in deadline keyword position.")
         else:
-            assert isinstance(expr,SExpr) and len(expr) > 1
+            self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in DEADLINE_PREDICATES:
                 return self._mk_term(expr, src_section, src_action)

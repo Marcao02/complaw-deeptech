@@ -1,6 +1,6 @@
 // THIS IS A GENERATED FILE. DO NOT EDIT.
 
-digraph test_contract_for_must-later {    
+digraph test_contract_for_must_later {    
     Fulfilled[label=Fufilled];
     Ongoing[label=Ongoing]
     

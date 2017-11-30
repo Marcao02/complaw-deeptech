@@ -1,6 +1,8 @@
 -----------------------------------------------------
 file: toy_and_teaching/monster_burger_program_only.l4
 
+roles: Challenger, Restaurant
+
 contract params:
     MB_PRICE : Price := 50
     TIME_TO_EAT_BURGER : Duration := 60

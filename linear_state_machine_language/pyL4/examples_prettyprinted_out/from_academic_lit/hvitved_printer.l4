@@ -1,6 +1,8 @@
 ------------------------------------------
 file: from_academic_lit/hvitved_printer.l4
 
+roles: Buyer, Seller
+
 contract params:
     CONTRACT_START : Date := 0
     DELIVERY_DEADLINE : Date := 10
