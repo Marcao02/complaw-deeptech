@@ -49,7 +49,7 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          event('Catch', 'I', 0, {'m': 3}, EventType.fulfill_floating_obligation),
          event('Catch', 'I', 0, {'m': 2}, EventType.fulfill_floating_obligation),
          event('EnterFulfilled', 'Env', 0),
-         ), breachSectionId())
+         ), breachSectionId('Env'))
      ),
 
     ('degenerate/minimal_future-actions.l4', CompleteTrace(
@@ -75,11 +75,11 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         event('Throw', 'I', 0, {'n':3}),
         event('Throw', 'I', 0, {'n':1}),
         event('Throw', 'I', 0, {'n':2}),
-        event('Catch', 'I', 0, {'n': 1}),
-        event('Catch', 'I', 0, {'n': 2}),
-        event('Catch', 'I', 0, {'n': 3}),
-        event('Catch', 'I', 0, {'n': 4}),
-        event('EnterFulfilled', 'Env', 0),
+        event('Catch', 'I', 0, {'n': 1}, EventType.fulfill_floating_obligation),
+        event('Catch', 'I', 0, {'n': 2}, EventType.fulfill_floating_obligation),
+        event('Catch', 'I', 0, {'n': 3}, EventType.fulfill_floating_obligation),
+        event('Catch', 'I', 0, {'n': 4}, EventType.fulfill_floating_obligation),
+        event('EnterFulfilled', 'I', 0),
          ), 'Fulfilled')
      ),
 

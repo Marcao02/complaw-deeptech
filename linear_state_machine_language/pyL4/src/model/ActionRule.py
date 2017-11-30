@@ -97,6 +97,9 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
     #   ab_aparam_vals : List[Any] # "ab_aparam" short for action-bound action-param.
     #   aba_param_vals_dict : Dict[ActionBoundActionParamId,Any]  # shouldn't be necessary except maybe for debugging
 
+    def __repr__(self) -> str:
+        return "PartlyInstantiatedPartyFutureActionRule..."
+
 class NextActionRule(ActionRule):
     def __init__(self,
                  src_id: SectionId,

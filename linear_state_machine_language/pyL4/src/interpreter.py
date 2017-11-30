@@ -193,7 +193,7 @@ class ExecEnv:
                         # print("evaluated to True")
                         assert floatingrule_to_apply is None, "There should be at most one..."
                         floatingrule_to_apply = pifar
-                assert floatingrule_to_apply is not None, 'Event type indicated a floating permission or obligation, but none found.'
+                assert floatingrule_to_apply is not None, 'Event type indicated a floating permission or obligation, but no compatible such rule was found.'
                 self.delete_future(floatingrule_to_apply)
                 prev_section_id = self.last_or_current_section_id
                 applyactionresult = self.apply_action(cur_action)
@@ -221,7 +221,7 @@ class ExecEnv:
                         print(f"{srcid} --{actionstr}--> {self.last_or_current_section_id} {frules_added_str}")
 
                 elif isinstance(nextrule_assessment, BreachResult):
-                    # print("Breach result:", nextrule_assessment)
+                    print("Breach result:", nextrule_assessment)
                     breach_section_id = breachSectionId(*nextrule_assessment.role_ids)
                     self.apply_action(cur_action, to_breach_section_id = breach_section_id)
 
@@ -336,13 +336,23 @@ class ExecEnv:
         #     present_enabled_weak_obligs.__iter__(),
         #     present_enabled_env_action_rules.__iter__())
         present_enabled_nonSO_action_rules: List[NextActionRule] = present_enabled_permissions + present_enabled_weak_obligs + present_enabled_env_action_rules
+        # print("present_enabled_nonSO_action_rules", present_enabled_nonSO_action_rules)
 
         # CASE 2a: `event` compatible with exactly one present-enabled non-SO action_rule
+        # for x in present_enabled_nonSO_action_rules:
+        #     print("maybe...", self.current_event_compatible_with_enabled_NextActionRule(x) )
+
         compatible_present_enabled_nonSO_action_rules = list(filter(
-            lambda nar: self.current_event_compatible_with_enabled_NextActionRule(nar),
+            lambda x: self.current_event_compatible_with_enabled_NextActionRule(x),
             present_enabled_nonSO_action_rules ))
         if len(compatible_present_enabled_nonSO_action_rules) == 1:
             return EventOk() #(None,None)
+
+        if len(compatible_present_enabled_nonSO_action_rules) == 0 and len(present_enabled_weak_obligs) == 0:
+            return BreachResult([event.role_id],
+                                f"{event.role_id} tried to do an action {event.action_id} that no rule in the current state permits them to do.")
+            # assert len(present_enabled_permissions) > 0 or len(present_enabled_env_action_rules) > 0
+            # self.evalError("TODO: correctly assign breach in this case! And check that there's not a problem with role ids")
 
         # print("compatible_present_enabled_nonSO_action_rules", compatible_present_enabled_nonSO_action_rules)
 
@@ -375,6 +385,8 @@ class ExecEnv:
         role_action_match = self.cur_event.role_id == action_rule.role_id and self.cur_event.action_id == action_rule.action_id
         if not role_action_match: return False
         if not action_rule.where_clause: return True
+
+
 
         # ctx2 = EvalContext(self.gvarvals, self.cur_event.params, ctx.abapvals)
         return chcast(bool,self.evalTerm(action_rule.where_clause, None))
@@ -441,7 +453,7 @@ class ExecEnv:
             if far.where_clause:
                 new_where_clause = PartialEvalTerm(
                     far.where_clause,
-                    EvalContext(self.gvarvals.copy(), action.params.copy(), True)
+                    EvalContext(self.gvarvals.copy(), self.last_appliedaction_params.copy() if self.last_appliedaction_params else None, True)
                 )
                 future = PartlyInstantiatedPartyFutureActionRule(far, new_where_clause)
                 # far = copy.copy(far)
@@ -603,8 +615,8 @@ class ExecEnv:
         elif isinstance(term, PartialEvalTerm):
             # assert not partialeval_globals_subst, "haven't handled partial eval of partial eval yet"
             # assert not partialeval_actionparam_subst, "haven't handled partial eval of partial eval yet"
-            print("Current ctx:", ctx)
-            print("PartialEvalTerm's ctx:", term.ctx)
+            # print("Current ctx:", ctx)
+            # print("PartialEvalTerm's ctx:", term.ctx)
             assert not ctx or ctx.abapvals is None or len(ctx.abapvals) == 0, "TODO: ctx merge"
 
             return self.evalTerm(term.term, term.ctx)
@@ -677,7 +689,7 @@ def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
         'degenerate/minimal_future-actions.l4',
-        # 'degenerate/minimal_future-actions2.l4',
+        'degenerate/minimal_future-actions2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
         'degenerate/collatz.l4',
