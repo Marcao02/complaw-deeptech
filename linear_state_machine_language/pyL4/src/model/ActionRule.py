@@ -98,7 +98,8 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
     #   aba_param_vals_dict : Dict[ActionBoundActionParamId,Any]  # shouldn't be necessary except maybe for debugging
 
     def __repr__(self) -> str:
-        return "PartlyInstantiatedPartyFutureActionRule..."
+        return str(self.rule) + " with partly-instantiated where clause " + str(self.pe_where_clause)
+        # return "PartlyInstantiatedPartyFutureActionRule..."
 
 class NextActionRule(ActionRule):
     def __init__(self,

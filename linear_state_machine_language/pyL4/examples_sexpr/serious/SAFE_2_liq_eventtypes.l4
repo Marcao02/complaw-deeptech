@@ -1,0 +1,282 @@
+; Should these 4 terms just be natural numbers?
+; `Common Stock` ⊆ `Capital Stock`
+; `Preferred Stock` ⊆ `Capital Stock`
+
+; `Common Stock` + `Preferred Stock` ≤ `Capital Stock`
+
+; `Company Capitalization` : ℕ
+; `Conversion Price` := min(`Safe Price`, `Discount Price`)
+
+; `EquityFinancingPrice` : ℕ
+
+(Roles Investor Company)
+
+(ContractParams
+	(PURCHASE_AMOUNT : $ = 100000)
+	(VALUATION_CAP : $ = inf)
+	(DISCOUNT_RATE : ℝ = 1)
+	(START_INVESTOR_COMMON_STOCKS : ℕ = 0)
+	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ℕ = 0)
+	(START_INVESTOR_CASH : $ = 0)
+)
+
+(GlobalVars
+	(has_cap : Bool = (VALUATION_CAP < inf))
+	(has_discount : Bool = (DISCOUNT_RATE < 1))
+
+	(writeAtMostOnce investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  )
+	(writeAtMostOnce investor_SAFE_Preferred_Stocks : ℕ = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+	(writeAtMostOnce investor_cash : $ = START_INVESTOR_CASH )
+
+	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
+
+	; for Equity Financing
+	(writeAtMostOnce safe_price : $)
+	(writeAtMostOnce discount_price : $)
+	(writeAtMostOnce conversion_price : $)
+	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $)
+	; don't need this because only used by the action that introduces it:
+	; (writeAtMostOnce company_capitalization : ℕ)
+
+	; for Liquidity
+	(writeAtMostOnce liq_price : $ )
+	(writeAtMostOnce liq_cashout : $ = 0 )
+	(writeAtMostOnce company_cash : ℕ) ; TODO: maybe this should be an input.
+	(writeAtMostOnce investor_liq_hypothetical_shares : ℕ)
+	; (writeAtMostOnce liquidity_capitalization : ℕ)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
+	(writeAtMostOnce investor_percent_of_cashout_investor_investments : %)
+	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need to store. action param only
+	; (writeAtMostOnce reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ; action param only
+
+	; for dissolution
+	; (company_cash_at_dissolution_event : $) ; action param only
+	; (investor_percent_of_dissolving_investor_investments : %)  ; action param only
+	(writeAtMostOnce dis_cashout : $)
+)
+
+(Definitions  ; LANG node: These are substituted before construction of in-memory python L4 model
+	; (discount_rate = (100 - DISCOUNT_PERCENT))
+	; (liq_price = (VALUATION_CAP / liquidity_capitalization))
+	(purchase_amount_reduction = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+)
+
+(FormalContract "SAFE"
+	; apply to all actions and states:
+	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
+
+	(StartSection InvestorInvests)
+
+	(Section InvestorInvests
+		(Next
+			(Company weakly-must CommitToEquityFinancing nodeadline)
+			(Company weakly-must (CommitToLiquidityEvent _1 _2 _3 _4) nodeadline) ; IPO
+			(Company weakly-must CommitToDissolution nodeadline)
+		)
+	)
+
+	; ----------------- Equity Financing Event -------------------
+	; NOTE: PRA abbreviates pro rata agreement
+
+	(Action CommitToEquityFinancing (AllowedSubjects Company)
+		(FollowingSection
+			(Next
+				(Company weakly-must DeliverDocsWithPRA discretionary)
+				(Company weakly-must DeliverDocsWithoutPRA discretionary)
+			)
+		)
+	)
+
+	(Action DeliverDocsWithPRA (AllowedSubjects Company)
+		(FollowingSection
+			(Next (Company must (IssueSAFEPreferredStock _1 _2) discretionary))
+		)
+	)
+
+	(Action DeliverDocsWithoutPRA (AllowedSubjects Company)
+		(FollowingSection
+			(Next (Company must SubmitProRataRightsAgreementForSigning discretionary))
+		)
+	)
+
+	(Action SubmitProRataRightsAgreementForSigning  (AllowedSubjects Company)
+		(FollowingSection
+			; TODO: Obviously this shouldn't be a *must*, since they ought to be
+			; able to send it back with proposed amendments/corrections.
+			; That seems like something we should have a reusable module for.
+			(Next (Investor must SignPRA discretionary))  )
+	)
+
+	(Action SignPRA (AllowedSubjects Investor)
+		(FollowingSection
+			(Next (Company must (IssueSAFEPreferredStock _1 _2) discretionary))
+		)
+	)
+
+	(Action (IssueSAFEPreferredStock
+				(company_capitalization : ℕ)
+				(premoney_valuation : ℕ)
+				) (AllowedSubjects Company)
+		(StateTransform
+			(safe_price = (VALUATION_CAP / company_capitalization))
+			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
+			(discount_price = (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE))
+			(conversion_price = (min safe_price discount_price))
+			(investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT / conversion_price))
+		)
+		(FollowingSection
+			(Next (Company must DoEquityFinancing discretionary))  )
+	)
+
+	(Action DoEquityFinancing (AllowedSubjects Company) (TransitionsTo Fulfilled))
+
+
+	; ----------------- Liquidity Event -------------------
+
+	(Action (CommitToLiquidityEvent (company_cash_at_liquidity_event:$)
+								    (liquidity_capitalization:$)
+			) (AllowedSubjects Company)
+		(StateTransform
+			(liq_price = (VALUATION_CAP / liquidity_capitalization))
+			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
+			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
+
+			(cash_currently_unconverted = PURCHASE_AMOUNT)
+			(company_cash = company_cash_at_liquidity_event)
+		)
+
+		(FollowingSection
+			(Next
+				(Investor may ChooseCashPayment discretionary)
+				(Investor may ChooseStockPayment discretionary)
+				(Company should AutoChooseStockPayment discretionary)
+			)
+		)
+	)
+
+
+	(Action (CommitToLiquidityEventWithCoCTaxFreeReorg
+								    (company_cash_at_liquidity_event:$)
+								    (liquidity_capitalization:$)
+								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $)
+			) (AllowedSubjects Company)
+		(StateTransform
+			(liq_price = (VALUATION_CAP / liquidity_capitalization))
+			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
+			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
+
+		 	; "In action_rule with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
+
+			(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
+			(cash_currently_unconverted = (PURCHASE_AMOUNT - purchase_amount_reduction))
+			(company_cash = (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
+		)
+
+
+		(FollowingSection
+			(Next
+				(Investor may ChooseCashPayment discretionary)
+				(Investor may ChooseStockPayment discretionary)
+				(Company should AutoChooseStockPayment discretionary)
+			)
+		)
+	)
+
+
+	(Action AutoChooseStockPayment (AllowedSubjects Company)
+		(FollowingSection (Next (Company must TransferCommonStock discretionary)))
+	)
+
+	(Action ChooseStockPayment (AllowedSubjects Investor)
+		(FollowingSection (Next (Company must TransferCommonStock discretionary)))
+	)
+
+	(Action TransferCommonStock (AllowedSubjects Company)
+		(StateTransform
+			; TODO: should we round that division up, down, or to nearest?
+			(investor_Common_Stocks += (round ((cash_currently_unconverted - liq_cashout) / liq_price)))
+		)
+		(FollowingSection
+			(Next (Company must DoLiquidityEvent discretionary))
+		)
+	)
+
+	(Action ChooseCashPayment (AllowedSubjects Investor)
+		(FollowingSection
+			(Next (Company must TransferCash_L discretionary))
+		)
+	)
+
+	(Action TransferCash_L (AllowedSubjects Company)
+		(StateTransform
+			(if (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)) (
+				(liq_cashout = cash_currently_unconverted)
+			)
+			else (
+				(liq_cashout = (company_cash * investor_percent_of_cashout_investor_investments))
+			))
+			(investor_cash += liq_cashout)
+			; (company_cash -= liq_cashout)
+		)
+
+		(FollowingSection
+			(Next
+				(if (liq_cashout < cash_currently_unconverted)
+					(Company must TransferCommonStock discretionary) )
+
+				(if (liq_cashout == cash_currently_unconverted)
+					(Company must DoLiquidityEvent discretionary)
+				)
+			)
+		)
+	)
+
+	(Action DoLiquidityEvent (AllowedSubjects Company) (TransitionsTo Fulfilled))
+
+
+	; ----------------- Dissolution Event -------------------
+
+	(Action CommitToDissolution (AllowedSubjects Company)
+		(FollowingSection (Next (Company must
+			(TransferCash_D company_cash_at_dissolution_event
+							investor_percent_of_dissolving_investor_investments)
+			discretionary))  )
+	)
+
+
+	(Action (TransferCash_D (company_cash_at_dissolution_event: $)
+						    (investor_percent_of_dissolving_investor_investments : %))
+		(AllowedSubjects Company)
+		(StateTransform
+			(if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) (
+				(dis_cashout = PURCHASE_AMOUNT)
+			)
+			else (
+				(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
+			))
+			(investor_cash = dis_cashout)
+			; (company_cash = (company_cash_at_dissolution_event - dis_cashout))
+		)
+
+		(FollowingSection
+			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
+			; becase it's implied by the definitions.
+			(Next
+				(if (dis_cashout < PURCHASE_AMOUNT)
+					(Company must (TransferAssets _) discretionary)  )
+				(if (dis_cashout == PURCHASE_AMOUNT)
+					(Company must Dissolve discretionary)     )
+			)
+		)
+	)
+
+	(Action (TransferAssets (liquidity_capitalization:$))
+		(AllowedSubjects Company)
+		(StateTransform
+			(liq_price = (VALUATION_CAP / liquidity_capitalization))
+			(investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))   )
+		(FollowingSection  (Next (Company must Dissolve discretionary)))
+	)
+
+
+	(Action Dissolve (AllowedSubjects Company) (TransitionsTo Fulfilled))
+)

@@ -139,8 +139,27 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         ), FULFILLED_SECTION_LABEL)
      ),
 )
-
 traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
+
+
+    ('from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
+        {
+            'MAX_UNITS' : 1000,
+            'CONTRACT_LIFE' : 365,
+            'PRICE_PER_UNIT' : 100
+        },(
+        # start section implicit
+        event('SubmitNewOrder', 'Customer', 5, {'quantity':300}), # orderid 0
+        event('SubmitNewOrder', 'Customer', 6, {'quantity': 200}),  # orderid 1
+        foevent('Deliver', 'Vendor', 10, {'quantity':200,'orderid':1}),
+        foevent('Deliver', 'Vendor', 19, {'quantity':300,'orderid':0}),
+        fpevent('EmailInvoice', 'Vendor', 40, {'quantity':200,'orderid':1}),
+        event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
+        foevent('Deliver', 'Vendor', 42, {'quantity':500,'orderid':2}),
+        # event('EnterFulfilled', 'Env', 50)
+        ), breachSectionId('Customer'))
+        # It should end in a breach by Customer due to the unpaid invoice.
+    ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
         # start section implicit
@@ -173,6 +192,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
     ),
 
 )
+
 
 traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
     ('serious/SAFE.l4', CompleteTrace(

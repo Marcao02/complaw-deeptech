@@ -21,7 +21,7 @@ section Awaiting_Delivery:
 
 action Deliver()  transitions to AfterDeliver:
     transform:
-        delivery_date := sectionEntranceTimestamp
+        delivery_date := event_ts
     following section:
         Buyer must Pay1stInstallment immediately
 

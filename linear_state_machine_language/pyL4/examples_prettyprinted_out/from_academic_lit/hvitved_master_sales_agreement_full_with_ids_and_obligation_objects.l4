@@ -13,6 +13,7 @@ global vars:
     inconly units_ordered : ℕ := 0
     writeonce contract_ends : TimeStamp := contractStartTimestamp + CONTRACT_LIFE
     nonoperative inconly units_delivered : ℕ := 0
+    nonoperative inconly units_invoiced : ℕ := 0
     nonoperative inconly total_paid : $ := 0
     this_delivery_deadline : TimeStamp
     this_orderid : ℕ
@@ -27,14 +28,14 @@ action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
     transform:
         this_delivery_deadline := (max 14 + event_ts (ceil quantity / 10) + event_ts)
         units_ordered += quantity
-        this_order_id := next_order_id
+        this_orderid := next_order_id
         next_order_id += 1
-    Vendor must-later Deliver(quantity, this_order_id) (by this_delivery_deadline)
+    Vendor must-later Deliver(_1, _2) (by this_delivery_deadline) where _1 == quantity and _2 == this_orderid
 
 action Deliver(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_delivered += quantity
-    Vendor may-later EmailInvoice(quantity, orderid) (within 30)
+    Vendor may-later EmailInvoice(_1, _2) (within 30) where _1 == quantity and _2 == orderid
 
 action EmailInvoice(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:

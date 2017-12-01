@@ -82,6 +82,7 @@
     ; for verification conditions [which we haven't done in this example
     ; yet].
     [ nonoperative inconly units_delivered : ℕ = 0 ]
+    [ nonoperative inconly units_invoiced : ℕ = 0 ]
     [ nonoperative inconly total_paid : $ = 0 ]
 
 
@@ -162,7 +163,7 @@
         ;       - 14 days after the order submission
         ;       - ⎡quantity/10⎤ days after the order submission
         ;   - {units_ordered} is increased by {quantity}.
-        ;   - {this_order_id} is defined to be the current value of {next_order_id}.
+        ;   - {this_orderid} is defined to be the current value of {next_order_id}.
         ;   - {next_order_id} is increased by 1.
         ;   - then, {Vendor} must later, by {delivery_deadline}, deliver the order.
 
@@ -179,12 +180,14 @@
                 ]
             ]
             [units_ordered += quantity]
-            [this_order_id := next_order_id]
+            [this_orderid := next_order_id]
             [next_order_id += 1]
         ]
 
         [Future
-            [ Vendor must-later [Deliver quantity this_order_id] [by this_delivery_deadline] ]
+            [ Vendor must-later [Deliver _1 _2] [by this_delivery_deadline] [
+                where [[_1 == quantity] and [_2 == this_orderid]]
+            ]]
         ]
 
     ]
@@ -202,7 +205,7 @@
         ]
 
         [Future
-            [Vendor may-later [EmailInvoice quantity orderid] [within 30]]
+            [Vendor may-later [EmailInvoice _1 _2] [within 30] [where [[_1 == quantity] and [_2 == orderid]]]]
         ]
     ]
 

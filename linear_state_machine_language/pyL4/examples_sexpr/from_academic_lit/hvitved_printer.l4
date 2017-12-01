@@ -41,7 +41,7 @@
 
 	(Action Deliver [ProseRefs P1]
 		(StateTransform
-			(delivery_date = (sectionEntranceTimestamp))
+			(delivery_date = (event_ts))
 		)
 		(FollowingSection
 			(Next (Buyer must Pay1stInstallment immediately))

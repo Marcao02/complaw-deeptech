@@ -59,6 +59,7 @@ class EventOk(EventLegalityAssessment):
     #     self.future_added = future_added
     #     self.future_removed = future_removed
 
+import math
 
 FN_SYMB_INTERP = {
     '+': lambda *args: sum(args),
@@ -77,10 +78,13 @@ FN_SYMB_INTERP = {
     'and': lambda x,y: x and y,
     'or': lambda x,y: x or y,
     'unitsAfter' : lambda x,y: x + y,
-    'round': round
+    'round': round,
+    'ceil': math.ceil,
+    'contractStartTimestamp': lambda: 0
 }
 
 DEADLINE_OP_INTERP = {
+    'event_ts': lambda entrance_ts, event_ts, args_ts: event_ts,
     'by': lambda entrance_ts, event_ts, args_ts: (event_ts <= args_ts[0]),
 
     'nonstrictly-within': lambda entrance_ts, event_ts, args_dur: (event_ts <= entrance_ts + args_dur[0]),
@@ -191,7 +195,8 @@ class ExecEnv:
                     # print("evaluating", str(pifar), "in event context", str(self.cur_event))
                     if self.current_event_compatible_with_floatingrule(pifar):
                         # print("evaluated to True")
-                        assert floatingrule_to_apply is None, "There should be at most one..."
+                        assert floatingrule_to_apply is None, ("There are at least two floating rules that seem to apply:\n" +
+                                                               str(floatingrule_to_apply) + "\n" + str(pifar))
                         floatingrule_to_apply = pifar
                 assert floatingrule_to_apply is not None, 'Event type indicated a floating permission or obligation, but no compatible such rule was found.'
                 self.delete_future(floatingrule_to_apply)
@@ -233,16 +238,25 @@ class ExecEnv:
                 else:
                     assert False, "Can't get here?"
 
-
-        if finalSectionId:
-            assert self.last_or_current_section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self.last_or_current_section_id}"
-
         if final_var_vals:
             for gvarid,expected_val in final_var_vals.items():
                 actual_val = self.gvarvals[castid(GlobalVarId,gvarid)]
                 assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
-        assert len(self.future_obligations) == 0, f"Trace ended with obligations remaining"
+        if len(self.future_obligations) > 0:
+            print(f"Trace ended with obligations remaining")
+            roles = set()
+            for o in self.future_obligations:
+                roles.add(o.rule.role_id)
+            self.last_or_current_section_id == breachSectionId(*list(roles))
+            return
+
+        if finalSectionId:
+            assert self.last_or_current_section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self.last_or_current_section_id}"
+
+
+
+
 
     def assess_event_legal_wrt_nextrules(self, event:Event) -> EventLegalityAssessment:
         # for far in chain(self.future_obligations, self.future_permissions):
@@ -688,6 +702,7 @@ from test.test_interpreter import traces
 def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
+        'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
         'degenerate/minimal_future-actions.l4',
         'degenerate/minimal_future-actions2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
@@ -709,7 +724,6 @@ def main(sys_argv:List[str]):
 
             evalTrace(trace[1], prog)
 
-    todo_once("\nASSIGN BLAME IN FUTURE OBLIG BREACH CASE")
 
 if __name__ == '__main__':
     import sys
