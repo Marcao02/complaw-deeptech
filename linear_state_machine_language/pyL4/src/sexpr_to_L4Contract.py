@@ -1,5 +1,6 @@
 import logging
 from typing import Tuple, cast, Callable
+from mypy_extensions import NoReturn
 
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.GlobalStateTransform import *
@@ -24,7 +25,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
         self.after_model_build_requirements.append((f,errmsg))
 
-    def syntaxError(self, expr: SExprOrStr, msg:Optional[str] = None):
+
+    def syntaxError(self, expr: SExprOrStr, msg:Optional[str] = None) -> NoReturn:
         if isinstance(expr,SExpr):
             raise SyntaxError((msg if msg else "") +
                               "\n" + str(expr) +
@@ -34,9 +36,28 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             raise SyntaxError((msg if msg else "") +
                               "\n" + str(self.top.filename))
 
-    def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None):
+    def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None) -> Union[NoReturn,None]:
         if not test:
             self.syntaxError(expr, msg)
+        return None
+
+    @staticmethod
+    def syntaxErrorX(expr: Optional[SExprOrStr], msg:Optional[str] = None) -> NoReturn:
+        if isinstance(expr,SExpr):
+            raise SyntaxError((msg if msg else "") +
+                              "\n" + str(expr) +
+                              "\nline " + str(cast(SExpr, expr).line))
+        elif expr is not None:
+            raise SyntaxError((msg if msg else "") +
+                              "\n" + expr )
+        else:
+            raise SyntaxError((msg if msg else ""))
+
+    @staticmethod
+    def assertOrSyntaxErrorX(test:bool, expr:Optional[SExpr], msg:Optional[str] = None) -> Union[NoReturn,None]:
+        if not test:
+            L4ContractConstructor.syntaxErrorX(expr, msg)
+        return None
 
     def mk_l4contract(self, l:List[SExpr]) -> L4Contract:
         x : SExpr
@@ -261,10 +282,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(ACTION_PRECONDITION_LABEL):
-                a.preconditions.append(self._mk_term(x[1], None, a))
+                a.preconditions.append(self._mk_term(x[1], None, a, None, rest))
 
             elif head(ACTION_POSTCONDITION_LABEL):
-                a.postconditions.append(self._mk_term(x[1], None, a))
+                a.postconditions.append(self._mk_term(x[1], None, a, None, rest))
 
             elif head(ACTION_DESCRIPTION_LABEL):
                 a.action_description = chcaststr(x[1][1]) # extract from STRLIT expression
@@ -372,6 +393,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement))
                 rhs = self._mk_term(statement[2], None, parent_action)
                 varname2 = castid(GlobalVarId, statement[0])
+                self.assertOrSyntaxError(varname2 in self.top.global_var_decs, statement, f"{varname2} not recognized as a global state variable.")
                 if statement[1] == ':=' or statement[1] == "=":
                     return VarAssignStatement(varname2, rhs)
                 elif statement[1] == '+=':
@@ -388,7 +410,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             raise e
 
     @staticmethod
-    def mk_literal(x:str) -> Term:
+    def mk_literal(x:str, parent_SExpr:Optional[SExpr] = None) -> Term:
         if isInt(x):
             return IntLit(int(x))
         if isFloat(x):
@@ -399,12 +421,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return BoolLit(True)
         if x == 'never':
             return DeadlineLit(x)
-        raise SyntaxError(f'Unrecognized atom: {x}')
+        L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
+
+    """
+    parent_SExpr is used for debugging since s-expressions carry their original line number. not used for anything else. 
+    """
     def _mk_term(self, x:Union[str, SExpr],
                  parent_section : Optional[Section] = None,
                  parent_action : Optional[Action] = None,
-                 parent_action_rule : Optional[ActionRule] = None) -> Term:
+                 parent_action_rule : Optional[ActionRule] = None,
+                 parent_SExpr : Optional[SExpr] = None ) -> Term:
         if isinstance(x,str):
             if x in EXEC_ENV_VARIABLES:
                 return FnApp(x,[])
@@ -421,6 +448,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in self.top.contract_params:
                 return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
 
+            # print("parent_action_rule", parent_action_rule)
             if parent_action_rule and parent_action_rule.args and x in parent_action_rule.args:
                 assert parent_action_rule.args_name_to_ind is not None
                 return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
@@ -434,7 +462,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in self.top.definitions:
                 return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule)
 
-            return L4ContractConstructor.mk_literal(x)
+            return L4ContractConstructor.mk_literal(x, parent_SExpr)
             # if isInt(x):
             #     return IntLit(int(x))
             # if isFloat(x):
@@ -458,7 +486,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if pair:
                 return FnApp(
                     pair[0],
-                    [self._mk_term(arg, parent_section, parent_action, parent_action_rule) for arg in pair[1]]
+                    [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]]
                 )
             else:
                 self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
@@ -474,7 +502,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in DEADLINE_PREDICATES:
-                return self._mk_term(expr, src_section, src_action)
+                return self._mk_term(expr, src_section, src_action, None, expr)
             else:
                 if src_section:
                     self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_section.section_id}")

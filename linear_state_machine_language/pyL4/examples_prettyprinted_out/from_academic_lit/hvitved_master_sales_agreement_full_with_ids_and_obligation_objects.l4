@@ -40,7 +40,7 @@ action Deliver(quantity, orderid)  transitions to VendorAcceptingOrders:
 action EmailInvoice(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_invoiced += quantity
-    Customer must-later PayBill(quantity, orderid) (within 14)
+    Customer must-later PayBill(_1, _2) (within 14) where _1 == quantity and _2 == orderid
 
 action PayBill(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
