@@ -17,8 +17,8 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         cli.main("examples")
         # runit("python3.6 src/cli.py examples")
 
-    import interpreter
-    interpreter.main(sys.argv)
+    import test_interpreter
+    test_interpreter.main(sys.argv)
     # runit("python3.6 src/interpreter.py")
 
 runit("export MYPYPATH=.; mypy src", "typechecker")

@@ -34,7 +34,7 @@ class L4Contract:
 
         self.str_arg_macros : Dict[str, StringArgMacro] = dict()
 
-        self.time_unit : str = "none given"
+        self.timeunit : str = "none given"
 
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output

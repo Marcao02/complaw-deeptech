@@ -1,6 +1,8 @@
 
 (Roles Buyer Seller)
 
+(TimeUnit d)
+
 (ContractParams
 	(INTEREST_RATE : ℚ = .1)
 	(TOTAL_DUE_BEFORE_CLOSING : ℕ = 9500)
@@ -30,11 +32,11 @@
 			; and it's before the final month of the contract.
 			(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
 				(Buyer weakly-must (PayInstallment amount)
-					(after-exact-duration 30)
+					(after-exact-duration 30d)
 					(where ((MIN_PAYMENT ≤ amount ) and (amount ≤ balance_remaining))) ))
 
 			(Buyer weakly-must (PayLastInstallment amount)
-				(after-exact-duration 30)
+				(after-exact-duration 30d)
 				(where (amount == (balance_remaining + DUE_AT_CLOSING))))  ))
 
 	(Action (PayInstallment(amount:ℕ)) (TransitionsTo WaitingForFirstDayOfNextMonth)

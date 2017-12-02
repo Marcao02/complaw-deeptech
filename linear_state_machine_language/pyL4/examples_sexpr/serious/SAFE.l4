@@ -11,6 +11,8 @@
 
 (Roles Investor Company)
 
+(TimeUnit d)
+
 (ContractParams
 	(PURCHASE_AMOUNT : $ = 100000)
 	(VALUATION_CAP : $ = inf)

@@ -5,10 +5,10 @@ roles: Challenger, Restaurant
 
 contract params:
     MB_PRICE : Price := 50
-    TIME_TO_EAT_BURGER : Duration := 60
-    MAX_SERVE_DELAY : Duration := 20
-    MAX_CLAIM_VERIFICATION_DELAY : Duration := 10
-    MAX_REFUND_DELAY : Duration := 10
+    TIME_TO_EAT_BURGER : Duration := 1h
+    MAX_SERVE_DELAY : Duration := 20m
+    MAX_CLAIM_VERIFICATION_DELAY : Duration := 10m
+    MAX_REFUND_DELAY : Duration := 10m
 
 global vars:
     writeonce challenge_endlimit_timestamp : Timestamp
@@ -16,7 +16,7 @@ global vars:
     amount_paid : Price := 0
 
 section MonsterBurgerUncooked:
-    Challenger must RequestCookMB (nonstrictly-within 30)
+    Challenger must RequestCookMB (nonstrictly-within 30m)
 
 action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:

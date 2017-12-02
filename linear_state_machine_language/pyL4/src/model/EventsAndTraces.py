@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import NamedTuple, Optional, Any, Dict, Sequence, List
 
-from src.model.constants_and_defined_types import ActionId, RoleId, TimeStamp, ABAPSubst, Data, ABAPNamedSubst, \
+from src.model.constants_and_defined_types import ActionId, RoleId, ABAPSubst, Data, ABAPNamedSubst, \
     ContractParamId, AParamsSubst
 
 class EventType(Enum):
@@ -13,7 +13,7 @@ class EventType(Enum):
 class Event(NamedTuple):
     action_id: ActionId
     role_id: RoleId
-    timestamp: TimeStamp
+    timestamp: int
     params_by_abap_name: Optional[ABAPNamedSubst]
     params: Optional[AParamsSubst]
     type: EventType

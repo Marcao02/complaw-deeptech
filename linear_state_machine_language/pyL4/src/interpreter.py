@@ -1,8 +1,10 @@
 import logging
+from datetime import datetime, timedelta
 from itertools import chain
 
 import copy
 
+from src.model.time_and_duration import SimpleTimeDelta, TimeStamp
 from src.model.EvalContext import EvalContext
 from src.model.Action import Action
 from src.model.BoundVar import BoundVar, GlobalVar, ContractParam, ActionBoundActionParam, \
@@ -31,7 +33,7 @@ from src.parse_sexpr import prettySExprStr, parse_file
 from src.model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, \
     RoleId, \
     RuleBoundActionParamId, ContractParamId, SectionId, ActionBoundActionParamId, FULFILLED_SECTION_LABEL, ABAPSubst, \
-    TimeStamp, Data, ENV_ROLE, GVarSubst, ContractParamSubst
+    Data, ENV_ROLE, GVarSubst, ContractParamSubst, ABAPNamedSubst
 from src.model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, mapjoin
 
 feedback = logging
@@ -128,10 +130,12 @@ class ExecEnv:
         # following 3 change only in apply_action:
         self.last_or_current_section_id: SectionId = prog.start_section_id
         self.last_appliedaction_params : Optional[ABAPSubst] = None
-        self.last_section_entrance_timestamp = cast(TimeStamp, 0)
-
-        # following changes only in evalLSM
+        self.last_section_entrance_timestamp = self.toTimeDelta(0)
+        # following changes only in evalTrace
         self.cur_event : Optional[Event] = None
+
+        # self.start_datetime : datetime = datetime.utcnow()
+        # self.duration_converter = ExecEnv.select_duration_converter()
 
         self.future_permissions : List[PartlyInstantiatedPartyFutureActionRule] = []
         self.future_obligations : List[PartlyInstantiatedPartyFutureActionRule] = []
@@ -142,6 +146,19 @@ class ExecEnv:
     def assertOrEvalError(self, test:bool, msg:str, thing:Any = None):
         if not test:
             self.evalError(msg,thing) if thing else self.evalError(msg)
+
+    # def selectDurationConverter(self):
+    #     if self.top.timeunit == 'd':
+    #         function f(x:SimpleTimeDelta) -> timedelta:
+    #
+    #     elif self.top.timeunit == 'h':
+    #         self.timedelta = timedelta(hours=self.num)
+    #     elif self.top.timeunit == 'w':
+    #         self.timedelta = timedelta(weeks=self.num)
+    #     elif self.top.timeunit == 'm':
+    #         self.timedelta = timedelta(minutes=self.num)
+    #     else:
+    #         assert self.unit == 's'
 
     def futures(self) -> Iterator[PartlyInstantiatedPartyFutureActionRule]:
         return chain(self.future_obligations, self.future_permissions)
@@ -161,7 +178,13 @@ class ExecEnv:
     def last_or_current_section(self) -> Section:
         return self.top.section(self.last_or_current_section_id)
 
-    def evalLSM(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False):
+    def toSimpleTimeDelta(self,x:int) -> SimpleTimeDelta:
+        return SimpleTimeDelta(x,self.top.timeunit)
+
+    def toTimeDelta(self, x:int) -> timedelta:
+        return self.toSimpleTimeDelta(x).timedelta
+
+    def evalTrace(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False):
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
@@ -178,8 +201,8 @@ class ExecEnv:
 
         for i in range(len(trace)):
             eventi = trace[i]
-            self.cur_event = trace[i]
-            cur_action_id, cur_event_timestamp = self.cur_event.action_id, self.cur_event.timestamp
+            self.cur_event = eventi
+            cur_action_id, cur_event_timestamp = self.cur_event.action_id, self.toTimeDelta(self.cur_event.timestamp)
             cur_action = self.top.action(cur_action_id)
 
             if self.last_section_entrance_timestamp is not None and self.last_section_entrance_timestamp > cur_event_timestamp:
@@ -447,7 +470,7 @@ class ExecEnv:
 
         if to_breach_section_id is not None:
             self.last_or_current_section_id = to_breach_section_id
-            self.last_section_entrance_timestamp = self.cur_event.timestamp
+            self.last_section_entrance_timestamp = self.toTimeDelta(self.cur_event.timestamp)
             return ApplyActionResult(None)
 
         self.last_appliedaction_params = self.cur_event.params
@@ -484,7 +507,7 @@ class ExecEnv:
             # print("new future:", ef)
 
         self.last_or_current_section_id = action.dest_section_id
-        self.last_section_entrance_timestamp = self.cur_event.timestamp
+        self.last_section_entrance_timestamp = self.toTimeDelta(self.cur_event.timestamp)
 
         return ApplyActionResult(floatingrules_added if len(floatingrules_added) > 0 else None)
 
@@ -635,6 +658,10 @@ class ExecEnv:
 
             return self.evalTerm(term.term, term.ctx)
 
+        elif isinstance(term, SimpleTimeDelta):
+            return term.timedelta
+
+
         else:
             contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
             return term
@@ -659,7 +686,7 @@ class ExecEnv:
             if fn in DEADLINE_OP_INTERP:
                 return cast(Any, DEADLINE_OP_INTERP[fn])(
                     self.last_section_entrance_timestamp,
-                    self.cur_event.timestamp,
+                    self.toTimeDelta(self.cur_event.timestamp),
                     evaluated_args)
             else:
                 contract_bug(f"Unhandled deadline fn symbol: {fn}")
@@ -676,6 +703,26 @@ class ExecEnv:
             contract_bug(f"Unhandled fn symbol: {fn}")
         return 0
 
+    def mk_event(self, action_id: str, role_id: str = ENV_ROLE,
+              timestamp: int = 0, params: Optional[Dict[str, Data]] = None,
+              eventType: Optional[EventType] = None) -> Event:
+        if eventType is None:
+            eventType = EventType.env_next if role_id == ENV_ROLE else EventType.party_next
+        params = params or dict()
+        return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id),
+                     timestamp=timestamp,
+                     params_by_abap_name=cast(ABAPNamedSubst, params) if params else None,
+                     params=list(params.values()) if params else None,
+                     type=eventType)
+
+    def mk_foevent(self, action_id: str, role_id: str = ENV_ROLE,
+                timestamp: int = 0, params: Optional[Dict[str, Data]] = None) -> Event:
+        return self.mk_event(action_id, role_id, timestamp, params, EventType.fulfill_floating_obligation)
+
+    def mk_fpevent(self, action_id: str, role_id: str = ENV_ROLE,
+                timestamp: int = 0, params: Optional[Dict[str, Data]] = None) -> Event:
+        return self.mk_event(action_id, role_id, timestamp, params, EventType.use_floating_permission)
+
 
 def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
     env = ExecEnv(prog)
@@ -688,78 +735,8 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
             else:
                 paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)
 
-        return env.evalLSM(it.events, finalSectionId=cast(SectionId,it.final_section),
-                           final_var_vals = cast(Optional[GVarSubst],it.final_values), verbose=True)
+        return env.evalTrace(it.events, finalSectionId=cast(SectionId, it.final_section),
+                             final_var_vals = cast(Optional[GVarSubst],it.final_values), verbose=True)
     else:
-        return env.evalLSM(it, verbose=True)
+        return env.evalTrace(it, verbose=True)
 
-
-
-from src.cli import EXAMPLES_SEXPR_ROOT
-
-from test.test_interpreter import traces
-# so can run it as a library too, which respects exceptions
-def main(sys_argv:List[str]):
-
-    EXAMPLES_TO_RUN = [
-        'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
-        'degenerate/minimal_future-actions.l4',
-        'degenerate/minimal_future-actions2.l4',
-        'toy_and_teaching/monster_burger_program_only.l4',
-        'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
-        'degenerate/collatz.l4',
-        'serious/SAFE.l4',
-    ]
-    for trace in traces:
-        subpath = trace[0]
-        if subpath in EXAMPLES_TO_RUN:
-            print("\n" + subpath)
-            path = EXAMPLES_SEXPR_ROOT + subpath
-            parsed = parse_file(path)
-            if 'print' in sys_argv:
-                print(prettySExprStr(parsed))
-
-            assembler = L4ContractConstructor(path)
-            prog : L4Contract = assembler.mk_l4contract(parsed)
-
-            evalTrace(trace[1], prog)
-
-
-if __name__ == '__main__':
-    import sys
-    main(sys.argv)
-
-
-                # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
-    #     nextTSEvent('Start'),
-    #     nextTSEvent('ContractLive'),
-    #     nextTSEvent('NewOrder',[50]),
-    #     nextTSEvent('ContractLive'),
-    #     nextTSEvent('NewOrder',[40]),
-    # ],
-    # 'examples_sexpr/hvitved_lease.LSM': [
-    #     nextTSEvent('Move_In'),
-    #     nextTSEvent('Lease_Term_Started'),
-    #     nextTSEvent('EnsureApartmentReady'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('RentDue'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('Request_Termination_At_Rent_Or_Before'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Request_Termination_After_Rent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Lease_Term_Ended'),
-    #     nextTSEvent('Move_Out'),
-    #     nextTSEvent('Month_Started'),
-    # ],

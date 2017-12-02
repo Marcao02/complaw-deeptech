@@ -3,7 +3,7 @@
 from typing import Dict, NewType, cast, Union, List, Any
 
 Nat = NewType('Nat',int)
-TimeStamp = NewType('TimeStamp',Nat)
+# TimeStamp = NewType('TimeStamp',Nat)
 
 # Data = Union[int, float, TimeStamp] # later maybe Tuple[Data] and str
 Data = Any # later maybe Tuple[Data] and str
@@ -90,7 +90,8 @@ GLOBAL_VARS_AREA_LABEL = "GlobalVars"
 PROSE_CONTRACT_AREA_LABEL = "ProseContract"
 FORMAL_CONTRACT_AREA_LABEL = "FormalContract"
 ROLES_DEC_LABEL = "Roles"
-TIME_UNIT_DEC_LABEL = "TimeUnit"
+TIMEUNIT_DEC_LABEL = "TimeUnit"
+SUPPORTED_TIMEUNITS = ['w','d','h','m','s']
 STR_ARG_MACRO_DEC_LABEL = "Macro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"
 TOPLEVEL_CLAIMS_AREA_LABEL = "Claims"

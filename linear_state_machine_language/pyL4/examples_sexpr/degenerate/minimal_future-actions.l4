@@ -5,6 +5,8 @@
 	(n : ℕ = 0)
 )
 
+(TimeUnit d)
+
 (FormalContract "test contract for must later"
 	(StartSection Ongoing)
 

@@ -5,7 +5,7 @@ roles: Customer, Vendor
 
 contract params:
     MAX_UNITS : ℕ := 1000
-    CONTRACT_LIFE : TimeStamp := 365
+    CONTRACT_LIFE : TimeStamp := 365d
     PRICE_PER_UNIT : $ := 100
 
 global vars:

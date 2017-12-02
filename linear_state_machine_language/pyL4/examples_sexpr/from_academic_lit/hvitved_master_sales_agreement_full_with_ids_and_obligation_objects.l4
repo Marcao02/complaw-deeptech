@@ -59,11 +59,11 @@
 ; specified by the current State. The main reason for this new feature is that
 ; it will be better for NLG than using Set data structures
 
-[TimeUnit days]
+[TimeUnit d]
 
 [ContractParams
     [MAX_UNITS : ℕ := 1000]
-    [CONTRACT_LIFE : TimeStamp := 365]
+    [CONTRACT_LIFE : TimeStamp := 365d]
     [PRICE_PER_UNIT : $ := 100]
 ]
 

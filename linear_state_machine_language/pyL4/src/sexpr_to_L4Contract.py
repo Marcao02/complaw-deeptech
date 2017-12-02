@@ -2,6 +2,7 @@ import logging
 from typing import Tuple, cast, Callable
 from mypy_extensions import NoReturn
 
+from src.model.time_and_duration import SimpleTimeDelta
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.GlobalStateTransform import *
 from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam
@@ -93,8 +94,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(FORMAL_CONTRACT_AREA_LABEL):
                 self._mk_main_program_area(rem)
 
-            elif head( TIME_UNIT_DEC_LABEL ):
-                self.top.time_unit = chcaststr(x[1])
+            elif head(TIMEUNIT_DEC_LABEL):
+                self.top.timeunit = chcaststr(x[1]).lower()
+                self.assertOrSyntaxError( self.top.timeunit in SUPPORTED_TIMEUNITS, x, f"{TIMEUNIT_DEC_LABEL} must be one of {str(SUPPORTED_TIMEUNITS)}")
 
             elif head( DEFINITIONS_AREA ):
                 self.top.definitions = self._mk_definitions(rem)
@@ -404,7 +406,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     return TimesEqualsStatement(varname2, rhs)
                 else:
                     raise Exception
-                return None # not reachable
         except Exception as e:
             logging.error(f"Problem with {statement}")
             raise e
@@ -421,6 +422,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return BoolLit(True)
         if x == 'never':
             return DeadlineLit(x)
+        if x[-1] in SUPPORTED_TIMEUNITS and isInt(x[:-1]):
+            return SimpleTimeDelta(int(x[:-1]), x[-1])
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 

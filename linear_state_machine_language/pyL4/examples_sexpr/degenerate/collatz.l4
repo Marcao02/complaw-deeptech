@@ -3,6 +3,8 @@
 ; etc proof obligations are undecidable. For this one problem, a decision procedure
 ; would resolve the famous Collatz Conjecture.
 
+(TimeUnit d)
+
 (ContractParams
 	(START : ℕ = 99)
 )

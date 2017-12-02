@@ -1,6 +1,6 @@
 (Roles Landlord Tenant)
 
-(TimeUnit D)
+(TimeUnit d)
 
 (ContractParams
 	(DAYS_IN_A_MONTH : TimeUnit := 30) ; 30 days

@@ -1,15 +1,15 @@
 from itertools import chain
 from typing import Sequence, Tuple, Union, Optional
-
-from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSectionId, EventType
-from src.model.constants_and_defined_types import *
 from math import inf
 
+from interpreter import evalTrace
+from src.model.L4Contract import L4Contract
+from src.parse_sexpr import prettySExprStr, parse_file
+from src.sexpr_to_L4Contract import L4ContractConstructor
+from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSectionId, EventType
+from src.model.constants_and_defined_types import *
+
 from src.model.util import castid
-
-timestamp = cast(TimeStamp,0)
-
-
 
 def event(action_id:str, role_id:str = ENV_ROLE,
           timestamp:int = 0, params:Optional[Dict[str, Data]] = None,
@@ -17,7 +17,7 @@ def event(action_id:str, role_id:str = ENV_ROLE,
     if eventType is None:
         eventType = EventType.env_next if role_id == ENV_ROLE else EventType.party_next
     params = params or dict()
-    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=cast(TimeStamp,timestamp),
+    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=timestamp,
                  params_by_abap_name=cast(ABAPNamedSubst, params) if params else None,
                  params=list(params.values()) if params else None,
                  type=eventType)
@@ -30,17 +30,19 @@ def fpevent(action_id:str, role_id:str = ENV_ROLE,
           timestamp:int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
     return event(action_id,role_id,timestamp,params,EventType.use_floating_permission)
 
+inc_timestamp = 0
+
 def nextTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
-    global timestamp
-    timestamp = cast(TimeStamp,timestamp + 1)
-    return event(action_id, role_id, timestamp, params, eventType)
+    global inc_timestamp
+    inc_timestamp = inc_timestamp + 1
+    return event(action_id, role_id, inc_timestamp, params, eventType)
 
 def sameTSEvent(action_id:str, role_id:str,
                 params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
-    global timestamp
-    return event(action_id, role_id, timestamp, params, eventType)
+    global inc_timestamp
+    return event(action_id, role_id, inc_timestamp, params, eventType)
 
 
 
@@ -311,3 +313,71 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 )
 
 traces = chain(traces_degenerate, traces_from_academic_lit, traces_serious, traces_toy_and_teaching)
+
+from src.cli import EXAMPLES_SEXPR_ROOT
+
+# so can run it as a library too, which respects exceptions
+def main(sys_argv:List[str]):
+
+    EXAMPLES_TO_RUN = [
+        # 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
+        'degenerate/minimal_future-actions.l4',
+        'degenerate/minimal_future-actions2.l4',
+        'toy_and_teaching/monster_burger_program_only.l4',
+        'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+        'degenerate/collatz.l4',
+        'serious/SAFE.l4',
+    ]
+    for trace in traces:
+        subpath = trace[0]
+        if subpath in EXAMPLES_TO_RUN:
+            print("\n" + subpath)
+            path = EXAMPLES_SEXPR_ROOT + subpath
+            parsed = parse_file(path)
+            if 'print' in sys_argv:
+                print(prettySExprStr(parsed))
+
+            assembler = L4ContractConstructor(path)
+            prog : L4Contract = assembler.mk_l4contract(parsed)
+
+            evalTrace(trace[1], prog)
+
+
+if __name__ == '__main__':
+    import sys
+    main(sys.argv)
+
+
+                # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
+    #     nextTSEvent('Start'),
+    #     nextTSEvent('ContractLive'),
+    #     nextTSEvent('NewOrder',[50]),
+    #     nextTSEvent('ContractLive'),
+    #     nextTSEvent('NewOrder',[40]),
+    # ],
+    # 'examples_sexpr/hvitved_lease.LSM': [
+    #     nextTSEvent('Move_In'),
+    #     nextTSEvent('Lease_Term_Started'),
+    #     nextTSEvent('EnsureApartmentReady'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('RentDue'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('Request_Termination_At_Rent_Or_Before'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Month_Started'),
+    #     nextTSEvent('PayRent'),
+    #     nextTSEvent('Request_Termination_After_Rent'),
+    #     nextTSEvent('Month_Ended'),
+    #     nextTSEvent('Lease_Term_Ended'),
+    #     nextTSEvent('Move_Out'),
+    #     nextTSEvent('Month_Started'),
+    # ],

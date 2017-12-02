@@ -33,7 +33,7 @@
 	(MAX_REFUND_DELAY             : Duration = 10)
 )
 
-(TimeUnit Minutes)
+(TimeUnit m)
 
 (ProseContract
 	(P1 'A monster burger (MB) challenge is between a customer and the Restaurant.')

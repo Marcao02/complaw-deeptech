@@ -6,7 +6,7 @@
 
 (Roles Buyer Seller)
 
-(TimeUnit days)
+(TimeUnit d)
 
 (ContractParams
 	(CONTRACT_START : Date := 0)
@@ -23,7 +23,7 @@
 )
 
 (ProseContract
-	(P1 'Seller agrees to transfer and deliver to Buyer, on or before 2011-01-01, the goods: 1 laser printer.')
+	(P1 'Seller agrees to transfer and deliver to Buyer, on or before {DELIVERY_DEADLINE}, the goods: 1 laser printer.')
 	(P2 'Buyer agrees to accept the goods and to pay a total of €200 for them according to the terms further set out below.')
 	(P3 'Paragraph 3. Buyer agrees to pay for the goods half upon receipt, with the remainder due within 30 days of delivery.')
 	(P4 'If Buyer fails to pay the second half within 30 days, an additional fine of 10% has to be paid within 14 days.')
