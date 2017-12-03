@@ -125,7 +125,7 @@
 			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
 			(discount_price = (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE))
 			(conversion_price = (min safe_price discount_price))
-			(investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT / conversion_price))
+			(investor_SAFE_Preferred_Stocks += (round (PURCHASE_AMOUNT / conversion_price)))
 		)
 		(FollowingSection
 			(Next (Company must DoEquityFinancing discretionary))  )
@@ -143,7 +143,7 @@
 			) (AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
+			(investor_liq_hypothetical_shares = (round (PURCHASE_AMOUNT / liq_price)))
 			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > 0)) (
 			 	; "In action_rule with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
@@ -196,7 +196,7 @@
 				(liq_cashout = investor_remaining_investment_L)
 			)
 			else (
-				(liq_cashout = (company_cash_remaining * investor_percent_of_cashout_investor_investments))
+				(liq_cashout = (round (company_cash_remaining * investor_percent_of_cashout_investor_investments)))
 			))
 			(investor_cash += liq_cashout)
 			; (company_cash -= liq_cashout)
@@ -235,7 +235,7 @@
 				(dis_cashout = PURCHASE_AMOUNT)
 			)
 			else (
-				(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
+				(dis_cashout = (round (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) )
 			))
 			(investor_cash = dis_cashout)
 			; (company_cash = (company_cash_at_dissolution_event - dis_cashout))
@@ -257,7 +257,8 @@
 		(AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))   )
+			(investor_Common_Stocks += (round ((PURCHASE_AMOUNT - dis_cashout) / liq_price)))
+		)
 		(FollowingSection  (Next (Company must Dissolve discretionary)))
 	)
 

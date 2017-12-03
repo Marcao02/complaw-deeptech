@@ -26,7 +26,7 @@ section VendorAcceptingOrders:
 
 action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
     transform:
-        this_delivery_deadline := (max 14 + event_ts (ceil quantity / 10) + event_ts)
+        this_delivery_deadline := (max 14d + event_ts (days (ceil quantity / 10)) + event_ts)
         units_ordered += quantity
         this_orderid := next_order_id
         next_order_id += 1
@@ -35,12 +35,12 @@ action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
 action Deliver(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_delivered += quantity
-    Vendor may-later EmailInvoice(_1, _2) (within 30) where _1 == quantity and _2 == orderid
+    Vendor may-later EmailInvoice(_1, _2) (within 30d) where _1 == quantity and _2 == orderid
 
 action EmailInvoice(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_invoiced += quantity
-    Customer must-later PayBill(_1, _2) (within 14) where _1 == quantity and _2 == orderid
+    Customer must-later PayBill(_1, _2) (within 14d) where _1 == quantity and _2 == orderid
 
 action PayBill(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:

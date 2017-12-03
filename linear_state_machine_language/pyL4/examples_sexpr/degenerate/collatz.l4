@@ -35,7 +35,7 @@
 	(Action DivideBy2
 		(TransitionsTo Ongoing)
 		(StateTransform
-			(x = (x / 2))
+			(x = (round (x / 2)))
 		)
 	)
 

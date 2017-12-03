@@ -64,7 +64,8 @@ class EventOk(EventLegalityAssessment):
 import math
 
 FN_SYMB_INTERP = {
-    '+': lambda *args: sum(args),
+    # '+': lambda *args: sum(args),  # doesn't work with timedelta
+    '+': lambda x,y: x + y,  # doesn't work with timedelta
     '-': lambda x,y: x - y,
     '/': lambda x,y: x / y,
     '*': lambda x,y: x * y,
@@ -80,9 +81,9 @@ FN_SYMB_INTERP = {
     'and': lambda x,y: x and y,
     'or': lambda x,y: x or y,
     'unitsAfter' : lambda x,y: x + y,
+    'days': lambda x: timedelta(days=x),
     'round': round,
-    'ceil': math.ceil,
-    'contractStartTimestamp': lambda: 0
+    'ceil': math.ceil
 }
 
 DEADLINE_OP_INTERP = {
@@ -200,10 +201,13 @@ class ExecEnv:
         # act_pad = ''
 
         for i in range(len(trace)):
+            # print(self.environ_tostr())
             eventi = trace[i]
             self.cur_event = eventi
             cur_action_id, cur_event_timestamp = self.cur_event.action_id, self.toTimeDelta(self.cur_event.timestamp)
             cur_action = self.top.action(cur_action_id)
+
+            # print("last_section_entrance_timestamp", self.last_section_entrance_timestamp)
 
             if self.last_section_entrance_timestamp is not None and self.last_section_entrance_timestamp > cur_event_timestamp:
                 self.evalError( f"Event timestamps must be non-decreasing, but last event timestamp "
@@ -413,6 +417,7 @@ class ExecEnv:
         # print("present_enabled_weak_obligs", list(present_enabled_weak_obligs))
         # print("present_enabled_env_action_rules", list(present_enabled_env_action_rules))
         # print()
+
         return BreachResult(list(breach_roles), f"{list(breach_roles)} had weak obligations that they didn't fulfill in time.")
 
     # Only if the current section is an anonymous section (i.e. given by a FollowingSection declaration) is it possible
@@ -522,6 +527,7 @@ class ExecEnv:
                 self.gvarvals[var] = self.evalTerm(dec.initval, None)
                 # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
                 dictSetOrInc(self.gvar_write_cnt, var, init=1)
+            # print(var, type(self.gvarvals[var]))
             # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
@@ -531,6 +537,7 @@ class ExecEnv:
                 self.contract_param_vals[name] = self.evalTerm(dec.value_expr, None)
             else:
                 self.contract_param_vals[name] = None
+            # print(name, type(self.contract_param_vals[name]))
 
     def evalCodeBlock(self, transform:GlobalStateTransform):
         # print("\nevalCodeBlock\n")
@@ -560,16 +567,18 @@ class ExecEnv:
 
         if isinstance(stmt, VarAssignStatement):
             self.gvarvals[stmt.varname] = rhs_value
-            print(f"Assigning {rhs_value} to {stmt.varname}")
+            print(f"\t{stmt.varname} := {rhs_value}")
 
         elif isinstance(stmt, (IncrementStatement,DecrementStatement,TimesEqualsStatement)):
             current_var_val : Data = self.gvarvals[stmt.varname]
             assert current_var_val is not None
 
-            if isinstance(stmt, IncrementStatement):     self.gvarvals[stmt.varname] = current_var_val + int(rhs_value)
-            elif isinstance(stmt, DecrementStatement):   self.gvarvals[stmt.varname] = current_var_val - int(rhs_value)
-            elif isinstance(stmt, TimesEqualsStatement): self.gvarvals[stmt.varname] = current_var_val * int(rhs_value)
+            if isinstance(stmt, IncrementStatement):     self.gvarvals[stmt.varname] = current_var_val + rhs_value
+            elif isinstance(stmt, DecrementStatement):   self.gvarvals[stmt.varname] = current_var_val - rhs_value
+            elif isinstance(stmt, TimesEqualsStatement): self.gvarvals[stmt.varname] = current_var_val * rhs_value
             else: raise Exception('fixme')
+
+            print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
 
         elif isinstance(stmt, InCodeConjectureStatement):
             # print("conjecture " + str(stmt))
@@ -602,69 +611,71 @@ class ExecEnv:
         #     print("partialeval_globals_subst is not None. `term` is ", term)
         # next_event_timestamp will be None when evaluating an entrance-guard
         # print('evalTerm: ', term)
-        if isinstance(term, FnApp):
-            return self.evalFnApp(term, ctx)
+        try:
+            if isinstance(term, FnApp):
+                return self.evalFnApp(term, ctx)
 
-        elif isinstance(term, DeadlineLit):
-            todo_once("DeadlineLit not correctly handled yet")
-            # print("DeadlineLit: ", term, next_event_timestamp == self.last_section_entrance_timestamp)
-            # return self.cur_event.timestamp == self.last_section_entrance_timestamp
-            return True
+            elif isinstance(term, DeadlineLit):
+                todo_once("DeadlineLit not correctly handled yet")
+                # print("DeadlineLit: ", term, next_event_timestamp == self.last_section_entrance_timestamp)
+                # return self.cur_event.timestamp == self.last_section_entrance_timestamp
+                return True
 
-        elif isinstance(term, Literal):
-            return term.lit
+            elif isinstance(term, Literal):
+                return term.lit
 
-        elif isinstance(term, GlobalVar):
-            # print(self.contract_param_vals)
-            # print(self.gvarvals)
-            if ctx:
-                assert hasNotNone(ctx.gvarvals, term.name), "Global var " + term.name + " should have a value but doesn't."
-                return ctx.gvarvals[term.name]
+            elif isinstance(term, GlobalVar):
+                # print(self.contract_param_vals)
+                # print(self.gvarvals)
+                if ctx:
+                    assert hasNotNone(ctx.gvarvals, term.name), "Global var " + term.name + " should have a value but doesn't."
+                    return ctx.gvarvals[term.name]
+                else:
+                    return self.gvarvals[term.name]
+
+            elif isinstance(term, ContractParam):
+                # print("ContractParam case of evalTerm: ", term)
+                # print(self.contract_param_vals[term.name], type(self.contract_param_vals[term.name]))
+                assert hasNotNone(self.contract_param_vals, term.name), term.name
+                return self.contract_param_vals[term.name]
+
+            elif isinstance(term, ActionBoundActionParam):
+                # if term.name == 'amount':
+                #     print("Looking at 'amount', this is self.last_appliedaction_params:", self.last_appliedaction_params)
+                # print('ActionBoundActionParam:', term)
+                if ctx and ctx.abapvals:
+                    # print(f"ActionBoundActionParam value for {term.name} taken from ctx")
+                    # assert hasNotNone(ctx.,term.name), f"Trying to get subst value of an ActionBoundActionParam {term.name} but didn't find it in the execution context."
+                    return ctx.abapvals[term.ind]
+                else:
+                    assert self.last_appliedaction_params is not None
+                    return self.last_appliedaction_params[term.ind]
+
+            elif isinstance(term, RuleBoundActionParam):
+
+                # assert hasNotNone(self.cur_event.params_by_abap_name, term.name), f"Trying to get subst value of an RuleBoundActionParam {term.name} but didn't find it among the action parameters."
+                assert self.cur_event and self.cur_event.params is not None
+                return self.cur_event.params[term.ind]
+
+                # return ctx.rbapvals[term.name]
+
+            elif isinstance(term, PartialEvalTerm):
+                # assert not partialeval_globals_subst, "haven't handled partial eval of partial eval yet"
+                # assert not partialeval_actionparam_subst, "haven't handled partial eval of partial eval yet"
+                # print("Current ctx:", ctx)
+                # print("PartialEvalTerm's ctx:", term.ctx)
+                assert not ctx or ctx.abapvals is None or len(ctx.abapvals) == 0, "TODO: ctx merge"
+
+                return self.evalTerm(term.term, term.ctx)
+
+            elif isinstance(term, SimpleTimeDelta):
+                return term.timedelta
+
             else:
-                return self.gvarvals[term.name]
-
-        elif isinstance(term, ContractParam):
-            # print("ContractParam case of evalTerm: ", term)
-            # print(self.contract_param_vals[term.name], type(self.contract_param_vals[term.name]))
-            assert hasNotNone(self.contract_param_vals, term.name), term.name
-            return self.contract_param_vals[term.name]
-
-        elif isinstance(term, ActionBoundActionParam):
-            # if term.name == 'amount':
-            #     print("Looking at 'amount', this is self.last_appliedaction_params:", self.last_appliedaction_params)
-            # print('ActionBoundActionParam:', term)
-            if ctx and ctx.abapvals:
-                # print(f"ActionBoundActionParam value for {term.name} taken from ctx")
-                # assert hasNotNone(ctx.,term.name), f"Trying to get subst value of an ActionBoundActionParam {term.name} but didn't find it in the execution context."
-                return ctx.abapvals[term.ind]
-            else:
-                assert self.last_appliedaction_params is not None
-                return self.last_appliedaction_params[term.ind]
-
-        elif isinstance(term, RuleBoundActionParam):
-
-            # assert hasNotNone(self.cur_event.params_by_abap_name, term.name), f"Trying to get subst value of an RuleBoundActionParam {term.name} but didn't find it among the action parameters."
-            assert self.cur_event and self.cur_event.params is not None
-            return self.cur_event.params[term.ind]
-
-            # return ctx.rbapvals[term.name]
-
-        elif isinstance(term, PartialEvalTerm):
-            # assert not partialeval_globals_subst, "haven't handled partial eval of partial eval yet"
-            # assert not partialeval_actionparam_subst, "haven't handled partial eval of partial eval yet"
-            # print("Current ctx:", ctx)
-            # print("PartialEvalTerm's ctx:", term.ctx)
-            assert not ctx or ctx.abapvals is None or len(ctx.abapvals) == 0, "TODO: ctx merge"
-
-            return self.evalTerm(term.term, term.ctx)
-
-        elif isinstance(term, SimpleTimeDelta):
-            return term.timedelta
-
-
-        else:
-            contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
-            return term
+                contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
+                return term
+        except Exception:
+            contract_bug("Exception while evaluating " + str(term))
 
     def evalDeadlineClause(self, deadline_clause:Term, ctx:EvalContext) -> bool:
         assert deadline_clause is not None
@@ -690,6 +701,8 @@ class ExecEnv:
                     evaluated_args)
             else:
                 contract_bug(f"Unhandled deadline fn symbol: {fn}")
+        elif fn == "contractStartTimestamp":
+            return self.toTimeDelta(0)
         elif fn == "unitsAfterEntrance":
             assert len(evaluated_args) == 1
             return evaluated_args[0] + self.last_section_entrance_timestamp

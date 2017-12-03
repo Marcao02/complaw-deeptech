@@ -175,8 +175,8 @@
         [StateTransform
             ; 14 days later, or quantity/10 days later, whichever occurs last
             [this_delivery_deadline := [max
-                    [14 + event_ts]
-                    [[ceil [quantity / 10]] + event_ts]
+                    [14d + event_ts]
+                    [[days [ceil [quantity / 10]]] + event_ts]
                 ]
             ]
             [units_ordered += quantity]
@@ -205,7 +205,7 @@
         ]
 
         [Future
-            [Vendor may-later [EmailInvoice _1 _2] [within 30] [where [[_1 == quantity] and [_2 == orderid]]]]
+            [Vendor may-later [EmailInvoice _1 _2] [within 30d] [where [[_1 == quantity] and [_2 == orderid]]]]
         ]
     ]
 
@@ -220,7 +220,7 @@
             [ units_invoiced += quantity ]
         ]
         [Future
-            [Customer must-later [PayBill _1 _2] [within 14] [where [[_1 == quantity] and [_2 == orderid]]]]
+            [Customer must-later [PayBill _1 _2] [within 14d] [where [[_1 == quantity] and [_2 == orderid]]]]
         ]
 
     ]

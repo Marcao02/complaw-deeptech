@@ -61,7 +61,7 @@ EXEC_ENV_VARIABLES = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'eve
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}
-PREFIX_FN_SYMBOLS = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'eventTimestamp', 'monthStartDay', 'monthEndDay',
+PREFIX_FN_SYMBOLS = {'sectionEntranceTimestamp', 'eventTimestamp', 'monthStartDay', 'monthEndDay',
                      'days', 'earliest',
                      'dateplus',
                      'ifthenelse',

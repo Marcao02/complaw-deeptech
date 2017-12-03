@@ -147,7 +147,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
     ('from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
         {
             'MAX_UNITS' : 1000,
-            'CONTRACT_LIFE' : 365,
+            'CONTRACT_LIFE' : "365d",
             'PRICE_PER_UNIT' : 100
         },(
         # start section implicit
@@ -168,7 +168,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('PayInstallment', 'Buyer', 30, {'amount':500}),
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8000}),
-        event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
+        event('PayLastInstallment', 'Buyer', 120, {'amount':3074}),
         ), FULFILLED_SECTION_LABEL)
     ),
 
@@ -189,7 +189,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('PayInstallment', 'Buyer', 30, {'amount':500}),
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8500}),
-        event('PayLastInstallment', 'Buyer', 120, {'amount':500}),
+        event('PayLastInstallment', 'Buyer', 120, {'amount':2524}),
         ), FULFILLED_SECTION_LABEL)
     ),
 
@@ -226,7 +226,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          event('DoEquityFinancing', 'Company', 0)
          ),
         FULFILLED_SECTION_LABEL,
-        {"investor_SAFE_Preferred_Stocks": 416666})
+        {"investor_SAFE_Preferred_Stocks": 416667})
      ),
 
     ('serious/SAFE.l4', CompleteTrace(
@@ -320,7 +320,7 @@ from src.cli import EXAMPLES_SEXPR_ROOT
 def main(sys_argv:List[str]):
 
     EXAMPLES_TO_RUN = [
-        # 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
+        'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
         'degenerate/minimal_future-actions.l4',
         'degenerate/minimal_future-actions2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
