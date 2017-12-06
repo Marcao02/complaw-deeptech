@@ -3,10 +3,11 @@
 from typing import Dict, NewType, cast, Union, List, Any
 
 Nat = NewType('Nat',int)
-# TimeStamp = NewType('TimeStamp',Nat)
+# TimeInt = NewType('TimeInt',Nat)
 
-# Data = Union[int, float, TimeStamp] # later maybe Tuple[Data] and str
+# Data = Union[int, float, TimeInt] # later maybe Tuple[Data] and str
 Data = Any # later maybe Tuple[Data] and str
+TimeInt = int
 
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)

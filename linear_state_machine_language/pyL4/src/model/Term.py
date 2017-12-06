@@ -14,7 +14,7 @@ class FnApp(Term):
         self.head = head
         self.args = args
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.head in EXEC_ENV_VARIABLES:
             return self.head
         elif self.head in PREFIX_FN_SYMBOLS:
@@ -28,3 +28,6 @@ class FnApp(Term):
             assert self.head in INFIX_FN_SYMBOLS and len(self.args) == 2
             return f"{self.args[0]} {self.head} {self.args[1]}"
             # return f"({self.args[0]} {self.head} {self.args[1]})"
+
+    def __repr__(self) -> str:
+        return str(self)

@@ -21,6 +21,7 @@ EXAMPLES = [
     'serious/SAFE.l4',
     'from_academic_lit/hvitved_printer.l4'
 ]
+EXAMPLES_FULL_SIZE = 9
 
 # so can run it as a library too, which respects exceptions
 def main(sys_argv:List[str]):

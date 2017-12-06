@@ -312,14 +312,13 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 
 )
 
+# this is used in runme_before_commit.py b/c I often comment out some of the entries of EXAMPLES_TO_RUN
+EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_degenerate, traces_from_academic_lit, traces_serious, traces_toy_and_teaching]))
 traces = chain(traces_degenerate, traces_from_academic_lit, traces_serious, traces_toy_and_teaching)
 
 from src.cli import EXAMPLES_SEXPR_ROOT
 
-# so can run it as a library too, which respects exceptions
-def main(sys_argv:List[str]):
-
-    EXAMPLES_TO_RUN = [
+EXAMPLES_TO_RUN = [
         'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
         'degenerate/minimal_future-actions.l4',
         'degenerate/minimal_future-actions2.l4',
@@ -328,7 +327,12 @@ def main(sys_argv:List[str]):
         'degenerate/collatz.l4',
         'serious/SAFE.l4',
     ]
+
+# so can run it as a library too, which respects exceptions
+def main(sys_argv:List[str]):
+
     for trace in traces:
+        print("wtf?")
         subpath = trace[0]
         if subpath in EXAMPLES_TO_RUN:
             print("\n" + subpath)

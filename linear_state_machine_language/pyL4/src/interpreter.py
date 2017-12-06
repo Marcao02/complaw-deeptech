@@ -1,10 +1,10 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo, timezone
 from itertools import chain
-
+import math
 import copy
 
-from src.model.time_and_duration import SimpleTimeDelta, TimeStamp
+from src.model.constants_and_defined_types import TimeInt
 from src.model.EvalContext import EvalContext
 from src.model.Action import Action
 from src.model.BoundVar import BoundVar, GlobalVar, ContractParam, ActionBoundActionParam, \
@@ -14,14 +14,14 @@ from src.model.EventsAndTraces import Event, Trace, CompleteTrace, breachSection
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import *
 from src.model.GlobalVarDec import GlobalVarDec
-from src.model.Literal import StringLit, Literal, DeadlineLit
+from src.model.Literal import StringLit, Literal, DeadlineLit, SimpleTimeDeltaLit
 from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Term import FnApp
 
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",
     level=logging.INFO )
-from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType
+from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType, Callable
 
 from src.model.L4Contract import L4Contract
 
@@ -57,11 +57,7 @@ class ContractFlawedError(EventLegalityAssessment):
 
 class EventOk(EventLegalityAssessment):
     pass
-    # def __init__(self, future_added : Optional[PartyFutureActionRule], future_removed : Optional[PartyFutureActionRule]) -> None:
-    #     self.future_added = future_added
-    #     self.future_removed = future_removed
 
-import math
 
 FN_SYMB_INTERP = {
     # '+': lambda *args: sum(args),  # doesn't work with timedelta
@@ -131,35 +127,57 @@ class ExecEnv:
         # following 3 change only in apply_action:
         self.last_or_current_section_id: SectionId = prog.start_section_id
         self.last_appliedaction_params : Optional[ABAPSubst] = None
-        self.last_section_entrance_timestamp = self.toTimeDelta(0)
         # following changes only in evalTrace
         self.cur_event : Optional[Event] = None
 
-        # self.start_datetime : datetime = datetime.utcnow()
+        # self.start_datetime = datetime.now(timezone.utc)
+        self.start_datetime : datetime = datetime(2000,1,1,0,0,0,0,timezone.utc)
+        self.absolute_timeint2timedelta_converter = self.getTimeintConverter()
+        self.last_section_entrance_timestamp = self.toTimeDelta(0)
         # self.duration_converter = ExecEnv.select_duration_converter()
 
         self.future_permissions : List[PartlyInstantiatedPartyFutureActionRule] = []
         self.future_obligations : List[PartlyInstantiatedPartyFutureActionRule] = []
 
-    def evalError(self, msg: str, thing:Any = None):
-        raise EvalError(msg, thing)
 
-    def assertOrEvalError(self, test:bool, msg:str, thing:Any = None):
-        if not test:
-            self.evalError(msg,thing) if thing else self.evalError(msg)
+    def getTimeintConverter(self) -> Callable[[int],timedelta]:
+        if self.top.timeunit == 'd':
+            def f(x:int) -> timedelta:
+                return timedelta(days=x)
+            return f
+        elif self.top.timeunit == 'h':
+            def f(x:int) -> timedelta:
+                return timedelta(hours=x)
+            return f
+        elif self.top.timeunit == 'w':
+            def f(x:int) -> timedelta:
+                return timedelta(weeks=x)
+            return f
+        elif self.top.timeunit == 'm':
+            def f(x:int) -> timedelta:
+                return timedelta(minutes=x)
+            return f
+        else:
+            assert self.top.timeunit == 's'
+            def f(x:int) -> timedelta:
+                return timedelta(seconds=x)
+            return f
 
-    # def selectDurationConverter(self):
-    #     if self.top.timeunit == 'd':
-    #         function f(x:SimpleTimeDelta) -> timedelta:
-    #
-    #     elif self.top.timeunit == 'h':
-    #         self.timedelta = timedelta(hours=self.num)
-    #     elif self.top.timeunit == 'w':
-    #         self.timedelta = timedelta(weeks=self.num)
-    #     elif self.top.timeunit == 'm':
-    #         self.timedelta = timedelta(minutes=self.num)
-    #     else:
-    #         assert self.unit == 's'
+    def datetime2delta(self, dt:datetime) -> timedelta:
+        return dt - self.start_datetime
+
+    def delta2datetime(self, td:timedelta) -> datetime:
+        return self.start_datetime + td
+
+    def toTimeDelta(self, x:int) -> timedelta:
+        return self.absolute_timeint2timedelta_converter(x)
+
+    def cur_event_datetime(self) -> datetime:
+        assert self.cur_event is not None
+        return self.delta2datetime(self.toTimeDelta(self.cur_event.timestamp))
+
+    # def toSimpleTimeDelta(self,x:int) -> SimpleTimeDeltaLit:
+    #     return SimpleTimeDeltaLit(x, self.top.timeunit)
 
     def futures(self) -> Iterator[PartlyInstantiatedPartyFutureActionRule]:
         return chain(self.future_obligations, self.future_permissions)
@@ -179,12 +197,6 @@ class ExecEnv:
     def last_or_current_section(self) -> Section:
         return self.top.section(self.last_or_current_section_id)
 
-    def toSimpleTimeDelta(self,x:int) -> SimpleTimeDelta:
-        return SimpleTimeDelta(x,self.top.timeunit)
-
-    def toTimeDelta(self, x:int) -> timedelta:
-        return self.toSimpleTimeDelta(x).timedelta
-
     def evalTrace(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False):
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
@@ -201,7 +213,7 @@ class ExecEnv:
         # act_pad = ''
 
         for i in range(len(trace)):
-            # print(self.environ_tostr())
+            print("Environ", self.environ_tostr())
             eventi = trace[i]
             self.cur_event = eventi
             cur_action_id, cur_event_timestamp = self.cur_event.action_id, self.toTimeDelta(self.cur_event.timestamp)
@@ -454,7 +466,7 @@ class ExecEnv:
     def environ_tostr(self) -> str:
         return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
 
-    # def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeStamp) -> bool:
+    # def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeInt) -> bool:
     #     todo_once("this needs to depend on action parameters")
     #     for c in self.last_or_current_section().action_rules():
     #         todo_once("check enabled guard")
@@ -519,20 +531,21 @@ class ExecEnv:
 
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
         for (var,dec) in cast(Dict[GlobalVarId, GlobalVarDec],decs).items():
+            print("dec: ", dec, dec.initval)
             if dec.initval is None:
                 self.gvarvals[var] = None
-                # print(f"Global var {var} has no initial value.")
+                print(f"Global var {var} has no initial value.")
                 dictSetOrInc(self.gvar_write_cnt, var, init=0)
             else:
                 self.gvarvals[var] = self.evalTerm(dec.initval, None)
-                # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
+                print(f"Global var {var} has initial value {self.gvarvals[var]}.")
                 dictSetOrInc(self.gvar_write_cnt, var, init=1)
             # print(var, type(self.gvarvals[var]))
             # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
         for (name,dec) in decs.items():
-            # print(dec)
+            print("contract param dec", dec, type(dec.value_expr))
             if not(dec.value_expr is None):
                 self.contract_param_vals[name] = self.evalTerm(dec.value_expr, None)
             else:
@@ -573,12 +586,21 @@ class ExecEnv:
             current_var_val : Data = self.gvarvals[stmt.varname]
             assert current_var_val is not None
 
-            if isinstance(stmt, IncrementStatement):     self.gvarvals[stmt.varname] = current_var_val + rhs_value
-            elif isinstance(stmt, DecrementStatement):   self.gvarvals[stmt.varname] = current_var_val - rhs_value
-            elif isinstance(stmt, TimesEqualsStatement): self.gvarvals[stmt.varname] = current_var_val * rhs_value
+            if isinstance(stmt, IncrementStatement):
+                self.gvarvals[stmt.varname] = current_var_val + rhs_value
+                print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
+            elif isinstance(stmt, DecrementStatement):
+                self.gvarvals[stmt.varname] = current_var_val - rhs_value
+                print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
+            elif isinstance(stmt, TimesEqualsStatement):
+                self.gvarvals[stmt.varname] = current_var_val * rhs_value
+                print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
             else: raise Exception('fixme')
 
-            print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
+
+
+
+
 
         elif isinstance(stmt, InCodeConjectureStatement):
             # print("conjecture " + str(stmt))
@@ -615,19 +637,14 @@ class ExecEnv:
             if isinstance(term, FnApp):
                 return self.evalFnApp(term, ctx)
 
-            elif isinstance(term, DeadlineLit):
-                todo_once("DeadlineLit not correctly handled yet")
-                # print("DeadlineLit: ", term, next_event_timestamp == self.last_section_entrance_timestamp)
-                # return self.cur_event.timestamp == self.last_section_entrance_timestamp
-                return True
-
             elif isinstance(term, Literal):
-                return term.lit
+                return self.evalLit(term)
 
             elif isinstance(term, GlobalVar):
                 # print(self.contract_param_vals)
                 # print(self.gvarvals)
                 if ctx:
+                    print(ctx)
                     assert hasNotNone(ctx.gvarvals, term.name), "Global var " + term.name + " should have a value but doesn't."
                     return ctx.gvarvals[term.name]
                 else:
@@ -637,6 +654,9 @@ class ExecEnv:
                 # print("ContractParam case of evalTerm: ", term)
                 # print(self.contract_param_vals[term.name], type(self.contract_param_vals[term.name]))
                 assert hasNotNone(self.contract_param_vals, term.name), term.name
+                if term.name == "CONTRACT_LIFE":
+                    print("...", self.contract_param_vals[term.name])
+
                 return self.contract_param_vals[term.name]
 
             elif isinstance(term, ActionBoundActionParam):
@@ -668,14 +688,26 @@ class ExecEnv:
 
                 return self.evalTerm(term.term, term.ctx)
 
-            elif isinstance(term, SimpleTimeDelta):
+            elif isinstance(term, SimpleTimeDeltaLit):
                 return term.timedelta
 
             else:
                 contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
                 return term
-        except Exception:
+        except Exception as e:
+            raise e
             contract_bug("Exception while evaluating " + str(term))
+
+    def evalLit(self, litterm:Literal) -> Data:
+        if isinstance(litterm, DeadlineLit):
+            todo_once("DeadlineLit not correctly handled yet")
+            # print("DeadlineLit: ", term, next_event_timestamp == self.last_section_entrance_timestamp)
+            # return self.cur_event.timedelta == self.last_section_entrance_timestamp
+            return True
+        elif isinstance(litterm, SimpleTimeDeltaLit):
+            return litterm.timedelta
+        else:
+            return litterm.lit
 
     def evalDeadlineClause(self, deadline_clause:Term, ctx:EvalContext) -> bool:
         assert deadline_clause is not None
@@ -691,6 +723,9 @@ class ExecEnv:
         # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
         evaluated_args = tuple(self.evalTerm(x,ctx) for x in fnapp.args)
         if fn in FN_SYMB_INTERP:
+            if fn == '+':
+                print("args", fnapp.args)
+                print("eval'ed argss", evaluated_args )
             return cast(Any,FN_SYMB_INTERP[fn])(*evaluated_args)
         elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
             assert self.cur_event is not None
@@ -736,11 +771,20 @@ class ExecEnv:
                 timestamp: int = 0, params: Optional[Dict[str, Data]] = None) -> Event:
         return self.mk_event(action_id, role_id, timestamp, params, EventType.use_floating_permission)
 
+    def evalError(self, msg: str, thing:Any = None):
+        raise EvalError(msg, thing)
+
+    def assertOrEvalError(self, test:bool, msg:str, thing:Any = None):
+        if not test:
+            self.evalError(msg,thing) if thing else self.evalError(msg)
+
+
 
 def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
     env = ExecEnv(prog)
     if isinstance(it, CompleteTrace):
         for contract_param in it.contract_param_subst:
+            print("is this happening?")
             supplied_val = it.contract_param_subst[contract_param]
             paramdec = prog.contract_params[castid(ContractParamId, contract_param)]
             if isinstance(paramdec.value_expr,Literal):
@@ -748,8 +792,10 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
             else:
                 paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)
 
-        return env.evalTrace(it.events, finalSectionId=cast(SectionId, it.final_section),
-                             final_var_vals = cast(Optional[GVarSubst],it.final_values), verbose=True)
+        return env.evalTrace(trace = it.events,
+                             finalSectionId = cast(SectionId, it.final_section),
+                             final_var_vals = cast(Optional[GVarSubst], it.final_values),
+                             verbose=True)
     else:
         return env.evalTrace(it, verbose=True)
 

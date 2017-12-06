@@ -2,7 +2,6 @@ import logging
 from typing import Tuple, cast, Callable
 from mypy_extensions import NoReturn
 
-from src.model.time_and_duration import SimpleTimeDelta
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.GlobalStateTransform import *
 from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam
@@ -138,8 +137,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 initval : Optional[Term] = None
                 if i+3 < len(dec) and (dec[i+3] == ':=' or dec[i+3] == '='):
                     initval = self._mk_term(dec[i + 4])
+
                 # print("sort: ", str(sort))
-                # print("initval: ", str(initval))
+                print("initval: ", str(initval), type(initval))
                 rv[name] = GlobalVarDec(name, sort, initval, modifiers)
             except Exception as e:
                 logging.error("Problem processing " + str(dec))
@@ -423,7 +423,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if x == 'never':
             return DeadlineLit(x)
         if x[-1] in SUPPORTED_TIMEUNITS and isInt(x[:-1]):
-            return SimpleTimeDelta(int(x[:-1]), x[-1])
+            rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1])
+            print('STD', rv)
+            return rv
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 

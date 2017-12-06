@@ -61,7 +61,7 @@ action IssueSAFEPreferredStock(company_capitalization, premoney_valuation)  tran
         initial_price_per_share_standard_preferred_stock := premoney_valuation / company_capitalization
         discount_price := initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE
         conversion_price := (min safe_price discount_price)
-        investor_SAFE_Preferred_Stocks += PURCHASE_AMOUNT / conversion_price
+        investor_SAFE_Preferred_Stocks += (round PURCHASE_AMOUNT / conversion_price)
     following section:
         Company must DoEquityFinancing discretionary
 
@@ -105,7 +105,7 @@ action TransferCash_L()  transitions to AfterTransferCash_L:
         if investor_remaining_investment_L ≤ company_cash_remaining * investor_percent_of_cashout_investor_investments:
             liq_cashout := investor_remaining_investment_L
         else:
-            liq_cashout := company_cash_remaining * investor_percent_of_cashout_investor_investments
+            liq_cashout := (round company_cash_remaining * investor_percent_of_cashout_investor_investments)
         investor_cash += liq_cashout
     following section:
         if liq_cashout < investor_remaining_investment_L:
@@ -124,7 +124,7 @@ action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dis
         if PURCHASE_AMOUNT ≤ company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments:
             dis_cashout := PURCHASE_AMOUNT
         else:
-            dis_cashout := company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments
+            dis_cashout := (round company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
         investor_cash := dis_cashout
     following section:
         if dis_cashout < PURCHASE_AMOUNT:
@@ -135,7 +135,7 @@ action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dis
 action TransferAssets(liquidity_capitalization)  transitions to AfterTransferAssets:
     transform:
         liq_price := VALUATION_CAP / liquidity_capitalization
-        investor_Common_Stocks += PURCHASE_AMOUNT - dis_cashout / liq_price
+        investor_Common_Stocks += (round PURCHASE_AMOUNT - dis_cashout / liq_price)
     following section:
         Company must Dissolve discretionary
 

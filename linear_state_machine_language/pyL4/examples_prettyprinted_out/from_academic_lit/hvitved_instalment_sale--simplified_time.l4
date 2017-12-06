@@ -23,6 +23,7 @@ action PayInstallment(amount)  transitions to WaitingForFirstDayOfNextMonth:
         prove amount ≤ balance_remaining
         balance_remaining -= amount
         balance_remaining *= 1 + INTEREST_RATE
+        balance_remaining := (round balance_remaining)
         next_payment_month += 1
 
 action PayLastInstallment(amount)  transitions to Fulfilled:

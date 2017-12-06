@@ -143,7 +143,7 @@
 			) (AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_liq_hypothetical_shares = (round (PURCHASE_AMOUNT / liq_price)))
+			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
 			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > 0)) (
 			 	; "In action_rule with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
