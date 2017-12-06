@@ -223,7 +223,7 @@ In July 2017 alone, five new SCT2.5 systems were announced -- two on the same da
 | [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][ZeppelinOS]]       | [[https://blog.zeppelin.solutions/introducing-zeppelinos-the-operating-system-for-smart-contract-applications-82b042514aa8][27 July 2017]] |         | (SC)(T) |                         |            |                 |
 | [[http://wiki.p2pfoundation.net/Legal_Framework_For_Crypto-Ledger_Transactions][LFCT]]             | 2017         | (S)(CT) | (SC)(T) |                         |            |                 |
 | [[http://coala.global/][Coala]]            | 2015         | (S)(CT) | (SC)(T) |                         |            |                 |
-| LiveContracts.io | 2017         |         | (SC)(T) | LegalThings One         |            | ICO in Dec 2017 |
+| [[http://livecontracts.io/][LiveContracts.io]] | 2017         |         | (SC)(T) | LegalThings One         |            | ICO in Dec 2017 |
 
 * Strengths of 1st and 2nd generation systems
 
