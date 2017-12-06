@@ -4,7 +4,9 @@
 #+OPTIONS: toc:1
 #+OPTIONS: H:2 num:2
 
-pre-publication, not for redistribution ([2017-08-09 Wed])
+The first edition of this document was drafted beginning July 2017 and queued for publication in November 2017. This is a live document and will evolve toward the second edition.
+
+A version of this content is available in [[https://drive.google.com/open?id=10n25p2uwoDP91V-JbyFdWBSAbXfoZOlM-F9YmHeJk5s][a slide deck presented at Stanford on Nov 30 2017]].
 
 * Introduction
 
@@ -14,17 +16,28 @@ Four years later, computer scientists are responding: "Challenge accepted!"
 
 For context, this paper surveys the past and present of computational law. The history of software suggests a future for law: legacy formats and traditional jurisprudence are on a collision course with trustless blockchains and opensource legal engineering.
 
-What industry initiatives are afoot in the world of blockchain smart contracts? From what wells of academia do they draw inspiration? What insights from computer science could transfer to the world of legal reasoning and drafting? If tomorrow's consumers of legal services turn first to self-help apps and chatbots, before resorting to human "tech support", will the practices of tomorrow's lawyers look more like those of software engineers?
+This paper labels these two converging histories *smart legal contracts* (the old tradition, which was born on paper and is now going digital), and *legal smart contracts* (the new tradition, which was born digital and is now rediscovering dispute resolution).
+
+Along the way we address these questions:
+- What industry initiatives are afoot in the world of blockchain smart contracts?
+- From what wells of academia do they draw inspiration?
+- What insights from computer science could transfer to the world of legal reasoning and drafting?
+- If tomorrow's consumers of legal services turn first to self-help apps and chatbots, before resorting to human "tech support", will the practices of tomorrow's lawyers look more like those of software engineers?
 
 * Two Traditions
 
 This paper was written at the end of July 2017. It was an exciting month: in the span of three short weeks, five separate initiatives were announced, all with the same stated goal: to bridge the brave new world of blockchain "smart contracts" with the ancient traditions of law.
 
-What does that mean? It means surrounding the automated execution of on-chain Ethereum bytecode with the exception-handling mechanisms of real-world dispute resolution. It means translating written rituals of offer and agreement, employing stylized phrases dating back centuries, into the cold, clean semantics of formal logic.
+What does that mean? It means surrounding the automated execution of on-chain Ethereum bytecode with the exception-handling mechanisms of real-world dispute resolution. These are *legal smart contracts*: Ethereum code that stands up in court.
 
-This paper labels this family of initiatives "smart contract templates", or SCTs.
+It also means translating written rituals of offer and agreement, employing stylized phrases dating back centuries, into the cold, clean semantics of formal logic. These are *smart legal contracts*: legal contracts that have gone online in various ways, including automated template parameterization, digital signatures, and formal methods.
+
+This paper labels the convergence of these traditions "smart contract templates", or SCTs.
 
 SCTs represent a marriage between two noble families, each proud with history, but rooted in different cultures.
+
+"Templates" are central to this notion, because common to both traditions is the idea of a template, or model form, which represents a recurring pattern in the abstract. In the "smart legal contracts" tradition, a template can be filled in many ways: in a law firm by copying a Word document out of a shared folder and filling in the yellow blanks; in an enterprise context by answering a questionnaire in a web app; or (most recently, for consumers) by directly texting with a chatbot. In technical lingo, all of these are examples of particularizing a reusable library for a specific situation: object-oriented programmers would talk about instantiation of a class; API developers would talk about parameterizing a REST call by populating a JSON object; web developers would recognize it as filling a view with variables from a data model.
+
 
 * Contract Templates
 
