@@ -21,7 +21,7 @@ class Event(NamedTuple):
 
 
 def breachSectionId(*role_ids:str):
-    return "breach_" + "_".join(role_ids)
+    return "Breach_" + "_".join(role_ids)
 
 
 Trace = Sequence[Event]

@@ -41,18 +41,29 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
     # graphname = l4file.construct_main_part.name[1]
     cleaned_graphname = "_".join(l4file.contract_name.split(' ')).replace('-','_')
     section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x),
-                                filter(lambda s: not s.is_anon(), l4file.sections_iter()),
+                                filter(lambda s: not s.is_anon(),
+                                       l4file.sections_iter()),
                                 ";\n\t")
-    action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x), l4file.actions_by_id.values(), ";\n\t")
+    action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x),
+                               l4file.actions_by_id.values(),
+                               ";\n\t")
 
     # actions_to_sections_str = mapjoin(
     #     lambda action: f"{action.action_id} -> {action.dest_section_id} [style=dashed]", l4file.actions_iter(), ";\n\t")
-    actions_to_sections_str = ""
+    nonmultiloop_actions_to_sections_str = ""
     for action in l4file.actions_iter():
         if not action.following_anon_section:
-            actions_to_sections_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
+            if action.dest_section_id != LOOP_KEYWORD:
+                nonmultiloop_actions_to_sections_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
         else:
             pass
+
+    multiloop_actions_to_sections_str = ""
+    for section in l4file.sections_iter():
+        for action_rule in section.action_rules():
+            action = l4file.action(action_rule.action_id)
+            if action.dest_section_id == LOOP_KEYWORD:
+                multiloop_actions_to_sections_str += f"{action.action_id} -> {section.section_id} [style=dashed];\n\t"
 
     action_rulesfrom_sections_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.nextaction_rules(), ";\n\t")
 
@@ -71,7 +82,9 @@ digraph {cleaned_graphname} {{
     
     {action_rulesfrom_sections_str}
     
-    {actions_to_sections_str}        
+    {nonmultiloop_actions_to_sections_str}     
+    
+    {multiloop_actions_to_sections_str}   
 }}"""
 
 def contractToDotFile(l4file: L4Contract, rootpath = 'out', use_filename = True, verbose = False) -> None:

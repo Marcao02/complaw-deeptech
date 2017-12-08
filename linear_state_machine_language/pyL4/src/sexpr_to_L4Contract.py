@@ -300,7 +300,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head(TRANSITIONS_TO_LABEL):
                 dest_section_id = x[1]
-                if not is_derived_destination_id(dest_section_id):
+                if not is_derived_destination_id(dest_section_id) and dest_section_id != LOOP_KEYWORD:
                     self.referenced_nonderived_section_ids.add(dest_section_id)
 
             elif 'traversals' in x or 'visits' in x:
@@ -422,9 +422,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return BoolLit(True)
         if x == 'never':
             return DeadlineLit(x)
-        if x[-1] in SUPPORTED_TIMEUNITS and isInt(x[:-1]):
-            rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1])
-            print('STD', rv)
+        if x[-1].lower() in SUPPORTED_TIMEUNITS and isInt(x[:-1]):
+            rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower())
+            # print('STD', rv)
             return rv
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
@@ -499,15 +499,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
 
     def _mk_deadline_clause(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action]) -> Term:
-        if expr in DEADLINE_KEYWORDS:
-            return self._mk_term(expr, src_section, src_action)
-        elif isinstance(expr,str):
-            self.syntaxError(expr, f"Unrecognized token {expr} in deadline keyword position.")
+        # if expr in DEADLINE_KEYWORDS:
+        #     return self._mk_term(expr, src_section, src_action)
+        # elif isinstance(expr,str):
+        #     self.syntaxError(expr, f"Unrecognized token {expr} in deadline keyword position.")
+        if isinstance(expr,str):
+            return self._mk_term(expr, src_section, src_action, None, None)
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in DEADLINE_PREDICATES:
-                return self._mk_term(expr, src_section, src_action, None, expr)
+                return self._mk_term(expr, src_section, src_action, None, None)
             else:
                 if src_section:
                     self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_section.section_id}")

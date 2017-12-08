@@ -4,7 +4,7 @@ from itertools import chain
 import math
 import copy
 
-from src.model.constants_and_defined_types import TimeInt
+from src.model.constants_and_defined_types import TimeInt, LOOP_KEYWORD
 from src.model.EvalContext import EvalContext
 from src.model.Action import Action
 from src.model.BoundVar import BoundVar, GlobalVar, ContractParam, ActionBoundActionParam, \
@@ -75,6 +75,7 @@ FN_SYMB_INTERP = {
     '<': lambda x,y: x < y,
     '>': lambda x,y: x > y,
     'and': lambda x,y: x and y,
+    'and*': all,
     'or': lambda x,y: x or y,
     'unitsAfter' : lambda x,y: x + y,
     'days': lambda x: timedelta(days=x),
@@ -523,7 +524,8 @@ class ExecEnv:
             floatingrules_added.append(future)
             # print("new future:", ef)
 
-        self.last_or_current_section_id = action.dest_section_id
+        if action.dest_section_id != LOOP_KEYWORD:
+            self.last_or_current_section_id = action.dest_section_id
         self.last_section_entrance_timestamp = self.toTimeDelta(self.cur_event.timestamp)
 
         return ApplyActionResult(floatingrules_added if len(floatingrules_added) > 0 else None)

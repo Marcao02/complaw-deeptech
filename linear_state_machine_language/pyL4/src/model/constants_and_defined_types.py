@@ -67,7 +67,7 @@ PREFIX_FN_SYMBOLS = {'sectionEntranceTimestamp', 'eventTimestamp', 'monthStartDa
                      'dateplus',
                      'ifthenelse',
                      'max', 'min', 'ceil', 'even', 'odd', 'round',
-                     'not',
+                     'and*', 'not',
                      'enqueue', 'dequeue', 'discardTop', 'top',  # queues
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
                      'setAdd', 'setRemove', # sets
@@ -115,6 +115,7 @@ OUT_CONNECTIONS_LABEL = "Next"
 
 # ------------Inside an action declaration------------
 TRANSITIONS_TO_LABEL = "TransitionsTo"
+LOOP_KEYWORD = "SRC"
 CODE_BLOCK_LABEL = "StateTransform" # Or "EntranceTransform"
 ACTION_DESCRIPTION_LABEL = "Description"
 ACTION_PRECONDITION_LABEL = "Pre"

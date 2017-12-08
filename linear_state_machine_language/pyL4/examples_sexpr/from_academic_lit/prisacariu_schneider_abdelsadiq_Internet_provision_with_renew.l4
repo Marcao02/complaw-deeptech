@@ -1,0 +1,188 @@
+; New approach: everything is a may-next. If haven't paid or traffic high at 48 hours mark, do a breach action that transitions to breach_Client.
+
+; Raising traffic
+
+
+
+; These are some properties we would want to verify are true:
+; Client, when their usage is high, should always have the permission to lower it. This one led me to catch a bug in an earlier version of the contract.
+; Client, when they owe money, should always have the permission to pay.
+; Client, if they lower within 24H of infraction AND pay 1 fee unit within 24H of infraction, owes nothing more. This is regardless of whether they send a delay-payment email.
+; Client, if they neither pay within 24H nor send a delay-payment email within 24H, breaches the contract.
+; Client, if they send delay email and lower traffic within 24H of infraction, and don't pay within 24 hours, then they owe and must eventually (say, within 48H of infraction) pay 2 fee units for this infraction.
+; Client, if they send delay email and lower traffic between 24H and 48H after infraction, they owe and must eventually (say, within 48H of infraction) pay 3 fee units for this infraction.
+; Client may pay in up to 2 parts, one before 24H and the other between 24H and 48H.
+; Client, if they don't lower traffic within 48 hours of infraction, breaches the contract.
+
+; NOTE 1: If Client overpays, this contract does not have any facility for refunding them (but it could easily be added).
+; NOTE 2: This contract ignores the possibility of a message being sent but not received.
+; NOTE 3: It’s not quite ideal between instances of the client fulfilling their obligations and the next time when they can next raise their internet traffic. Specifically, they can only have high traffic in one interval within each 48 hour interval. Also, the client must finish paying for their last high-usage infraction before raising the usage again.
+
+(Roles ISP Client)
+
+(ContractParams
+	(HIGH_USAGE_FEE : ℕ := 10)
+	(HOURS_PARAM : ℕ := 24)
+)
+
+; The original (ambiguous) agreement.
+(ProseContract
+	(P1 'Whenever Internet traffic is high then the client must pay {HIGH_USAGE_FEE} or the client must notify the service provider by sending an e-mail specifying that he will pay later within {HOURS_PARAM} hours.')
+	(P2 'In case the client delays the payment, after notification he must lower Internet traffic within {HOURS_PARAM} hours to the low level, and pay twice the amount {HIGH_USAGE_FEE}.')
+	(P3 'If the client does not lower the Internet traffic within {HOURS_PARAM} hours, then the client will have to pay thrice the amount {HIGH_USAGE_FEE}.')
+	(P4 'The provider does not have permission to cancel the contract without previous written notification by normal post and by e-mail.')
+)
+
+(GlobalVars
+	(contract_canceled : Bool = false)
+	(cancel_notice_sent_by_post : Bool = false)
+	(cancel_notice_sent_by_email : Bool = false)
+
+
+	( unsettled_infraction : Bool = false )
+	( usage_level_normal : Bool = true )
+	( sent_delay_email : Bool = false ) ; sent delay-payment-notification email within 24H of infraction.
+	( paid : ℕ := 0 )
+	( paidBefore24 : Bool = false )
+
+	; next var meaningful only when usage_level_normal is true
+	( traffic_low_since : TimeStamp )
+	; next var meaningful only when unsettled_infraction is true
+	( infraction_time : TimeStamp )
+)
+
+(Definitions
+	(within24HOfInfraction := (event_ts ≤ (infraction_time + 24H)))
+	(within48HOfInfraction := (event_ts ≤ (infraction_time + 48H)))
+	(after24HSinceInfraction := (event_ts > (infraction_time + 24H)))
+	(after48HSinceInfraction := (event_ts > (infraction_time + 48H)))
+
+)
+
+
+(FormalContract
+	"PS Internet Provision"
+	(StartSection NoInfraction)
+
+
+	(Action SendCancelNoticeByPost (AllowedSubjects ISP) (TransitionsTo SRC)
+		(StateTransform
+			(cancel_notice_sent_by_post := true)
+			(if cancel_notice_sent_by_email (
+				(contract_canceled := true)
+			) else ())
+		)
+	)
+
+	(Action SendCancelNoticeByEmail (AllowedSubjects ISP) (TransitionsTo SRC)
+		(StateTransform
+			(cancel_notice_sent_by_email := true)
+			(if cancel_notice_sent_by_post (
+				(contract_canceled := true)
+			) else ())
+		)
+	)
+
+	(Action Reset (TransitionsTo NoInfraction) (AllowedSubjects Env)
+		(StateTransform
+			(unsettled_infraction := false)
+			(usage_level_normal := true)
+			(paidBefore24 := false)
+			(sent_delay_email := false)
+			(paid := 0)
+		)
+	)
+
+	(Action RaiseTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
+		(StateTransform
+			(usage_level_normal := false)
+			(if (not unsettled_infraction) (
+				(infraction_time := event_ts)
+				(unsettled_infraction := true)
+			) else () )
+		)
+	)
+
+	(Action LowerTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
+		(StateTransform
+			(usage_level_normal := true)
+			(traffic_low_since := event_ts)
+		)
+	)
+
+	(Action SendDelayEmail (AllowedSubjects Client) (TransitionsTo SRC)
+		(StateTransform (sent_delay_email := true) )
+	)
+
+	(Action (Pay (x : ℕ)) (AllowedSubjects Client) (TransitionsTo UnsettledInfraction)
+		(StateTransform
+			(paid += x)
+			(if within24HOfInfraction (
+				(paidBefore24 := true)
+			) else ())
+		)
+	)
+
+	(Action ClientBreaches (AllowedSubjects Env) (TransitionsTo Breach_Client))
+	(Action EnterFulfilled (AllowedSubjects Env) (TransitionsTo Fulfilled))
+
+	(Section NoInfraction
+		(Next
+			(if (not contract_canceled)
+				(Client may RaiseTraffic no_time_constraint)
+			)
+			(if contract_canceled
+				(EnterFulfilled immediately)
+			)
+			(ISP may SendCancelNoticeByPost no_time_constraint)
+			(ISP may SendCancelNoticeByEmail no_time_constraint)
+		)
+	)
+
+	(Section UnsettledInfraction
+		(Next
+			; no penalty for sending multiples.
+			(ISP may SendCancelNoticeByPost no_time_constraint)
+			(ISP may SendCancelNoticeByEmail no_time_constraint)
+
+			(if (not usage_level_normal)
+				(Client may LowerTraffic within48HOfInfraction)
+			)
+
+			; it might not do anything, but we don't penalyze them in that case.
+			(Client may SendDelayEmail within48HOfInfraction)
+
+			(Client may (Pay x) within48HOfInfraction (where ((x > 0) and (x ≤ 3))))
+
+			(if (and* (not sent_delay_email) usage_level_normal (paid ≥ 1))
+				(Reset within24HOfInfraction)
+			)
+
+			(if ((not sent_delay_email) and ((not usage_level_normal) or (not paidBefore24)))
+				(ClientBreaches after24HSinceInfraction)
+			)
+
+			(if (and* sent_delay_email usage_level_normal (paid ≥ 2))
+				(Reset within48HOfInfraction)
+			)
+
+			(if (and* sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ 2))
+				(Reset within48HOfInfraction)
+			)
+
+			(if (and* sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ 3))
+				(Reset within48HOfInfraction)
+			)
+
+			(ClientBreaches after48HSinceInfraction)
+
+			(if contract_canceled
+				(EnterFulfilled immediately)
+			)
+
+		)
+
+	)
+
+
+)

@@ -1,0 +1,52 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph PS_Internet_Provision {    
+    Fulfilled[label=Fufilled];
+    NoInfraction[label=NoInfraction];
+	UnsettledInfraction[label=UnsettledInfraction]
+    
+    EnterFulfilled[label=EnterFufilled,shape=box]; 
+    SendCancelNoticeByPost[label=SendCancelNoticeByPost,shape=box];
+	SendCancelNoticeByEmail[label=SendCancelNoticeByEmail,shape=box];
+	Reset[label=Reset,shape=box];
+	RaiseTraffic[label=RaiseTraffic,shape=box];
+	LowerTraffic[label=LowerTraffic,shape=box];
+	SendDelayEmail[label=SendDelayEmail,shape=box];
+	Pay[label=Pay,shape=box];
+	ClientBreaches[label=ClientBreaches,shape=box];
+	EnterFulfilled[label=EnterFulfilled,shape=box]    
+    
+    EnterFulfilled -> Fulfilled;
+    
+    NoInfraction -> RaiseTraffic;
+	NoInfraction -> EnterFulfilled [style=dashed];
+	NoInfraction -> SendCancelNoticeByPost;
+	NoInfraction -> SendCancelNoticeByEmail;
+	UnsettledInfraction -> SendCancelNoticeByPost;
+	UnsettledInfraction -> SendCancelNoticeByEmail;
+	UnsettledInfraction -> LowerTraffic;
+	UnsettledInfraction -> SendDelayEmail;
+	UnsettledInfraction -> Pay;
+	UnsettledInfraction -> Reset [style=dashed];
+	UnsettledInfraction -> ClientBreaches [style=dashed];
+	UnsettledInfraction -> Reset [style=dashed];
+	UnsettledInfraction -> Reset [style=dashed];
+	UnsettledInfraction -> Reset [style=dashed];
+	UnsettledInfraction -> ClientBreaches [style=dashed];
+	UnsettledInfraction -> EnterFulfilled [style=dashed]
+    
+    Reset -> NoInfraction [style=dashed];
+	RaiseTraffic -> UnsettledInfraction [style=dashed];
+	LowerTraffic -> UnsettledInfraction [style=dashed];
+	Pay -> UnsettledInfraction [style=dashed];
+	ClientBreaches -> Breach_Client [style=dashed];
+	EnterFulfilled -> Fulfilled [style=dashed];
+	     
+    
+    SendCancelNoticeByPost -> NoInfraction [style=dashed];
+	SendCancelNoticeByEmail -> NoInfraction [style=dashed];
+	SendCancelNoticeByPost -> UnsettledInfraction [style=dashed];
+	SendCancelNoticeByEmail -> UnsettledInfraction [style=dashed];
+	SendDelayEmail -> UnsettledInfraction [style=dashed];
+	   
+}

@@ -159,6 +159,6 @@ def derived_trigger_id(dest_id:SectionId) -> ActionId:
 def derived_trigger_id_to_section_id(action_id:ActionId) -> SectionId:
     return cast(SectionId, action_id[5:])
 def is_derived_destination_id(section_id:SectionId) -> bool:
-    return section_id.startswith("After")
+    return section_id.startswith("After") or section_id.startswith("Breach_")
 def is_derived_trigger_id(action_id:ActionId) -> bool:
     return action_id.startswith("Enter")

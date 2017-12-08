@@ -6,7 +6,7 @@ from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.SExpr import SExpr
 from src.model.Section import Section, ParamsDec
 from src.model.Term import Term
-from src.model.constants_and_defined_types import ActionBoundActionParamId, SortId, SectionId, ActionId
+from src.model.constants_and_defined_types import ActionBoundActionParamId, SortId, SectionId, ActionId, LOOP_KEYWORD
 from src.model.util import mapjoin, indent, castid
 
 
@@ -48,7 +48,10 @@ class Action:
             rv += f'({mapjoin(str, self.param_types, ", ")}) '
         else:
             rv += "() " # makes it look better with python syntax highlighting
-        rv +=  f" transitions to {self.dest_section_id}"
+        if self.dest_section_id != LOOP_KEYWORD:
+            rv +=  f" transitions to {self.dest_section_id}"
+        else:
+            rv += f" non-transitioning"
         if len(self.preconditions) > 0 or self.global_state_transform or len(self.postconditions) > 0:
             rv += ":\n"
         else:
