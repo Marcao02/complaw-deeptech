@@ -1,0 +1,81 @@
+; The student must submit their lab assignment at absolute deadline 11.
+; Then, the grader has 7 days from the deadline to accept or reject the lab.
+; If the grader rejects, then the student has till a second absolute deadline 26 to resubmit.
+; The grader must accept a resubmitted assignment within 7 days of resubmission.
+
+
+(FormalContract
+	"student and grader from gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints"
+
+	(StartSection AssignmentOut)
+
+	(Section AssignmentOut
+		(Student must Submit (at 11))
+	)
+
+	(Action Accept (AllowedRoles Grader) (TransitionsTo Fulfilled))
+
+	(Action Submit (AllowedRoles Student)
+		(FollowingSection
+			; (Grader must (oneOf Accept Reject) within 7)
+			(Grader weakly-must Accept (within 7))
+			(Grader weakly-must Reject (within 7))
+		)
+	)
+
+	(Action Reject (AllowedRoles Grader)
+		(FollowingSection
+			(Student must Resubmit (before 26))
+		)
+	)
+
+	(Action Resubmit (AllowedRoles Student)
+		(FollowingSection
+			(Grader must Accept (within 7))
+		)
+	)
+)
+
+; Accept translations: ‹accept›, ‹accept the assignment›, ‹accepting the assignment›
+
+; Here's our target generated English.
+; ‹accept› and ‹accept the assignment› and ‹accepting the assignment› are equivalent, and we're ok with saying so once explicitly, but ideally we would not have to tag them with their grammatical categories.
+; ‹resubmit› and ‹resubmitting their assignment› are equivalent.
+
+
+; Upon ‹the grader› ‹accepting the assignment›, ‹the contract› is fulfilled.
+
+; Upon ‹the assignment being released›:
+; * ‹The student› must ‹submit› on ‹Nov 11›
+
+; Upon ‹the student› ‹submitting their assignment›:
+; * ‹The grader› must ‹accept› or ‹reject› ‹within 7 days›.
+
+; Upon ‹the grader› ‹rejecting the assignment›:
+; * ‹The student› must ‹resubmit› before ‹Nov 26›.
+
+; Upon ‹the student› ‹resubmitting their assignment›:
+; * ‹The grader› must ‹accept the assignment› ‹within 7 days>.
+
+
+
+; Compare this to the SCL version from their paper. Which takes longer to understand? If you answer SCL, you are full of shit.
+
+; "Let action submit stand for the student submitting a lab assign- ment. We can make this obligatory with O⟨submit⟩.
+; To specify the submission deadline, we use the At constructor with a deadline of 11, giving At⟨11,O⟨submit⟩⟩.
+; The submission should be followed by the a grader correcting it within 7 days of the deadline.
+; Thus we combine Seq and Within to end up with Seq⟨At⟨11,O⟨submit⟩⟩,Within⟨7,O⟨accept⟩⟩⟩.
+; If the grader decides to reject the assignment, the student must resubmit before a second deadline and
+; the grader will need to accept this new submission. This can be modelled as a reparation which
+; applies when the first obligation to accept the lab is violated."
+
+; Seq(
+; 	At(11, O(submit)),
+; 	Rep(
+; 		Seq(
+; 			Before(26, O(resubmit)),
+; 			Within(7, O(accept))
+; 		),
+; 		Within(7, O(accept))
+; 	)
+; )
