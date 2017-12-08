@@ -51,8 +51,8 @@ M = 1000000
 
 
 
-traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
-    ('degenerate/minimal_future-actions.l4', CompleteTrace(
+traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
+    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
         {},
         (event('Throw', 'I'),
          event('Throw', 'I'),
@@ -64,7 +64,7 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ), breachSectionId('Env'))
      ),
 
-    ('degenerate/minimal_future-actions.l4', CompleteTrace(
+    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
         {},
         (event('Throw', 'I'),  # n = 1 after
          event('Throw', 'I'),  # n = 2 after
@@ -80,7 +80,7 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ), 'Fulfilled')
      ),
 
-    ('degenerate/minimal_future-actions2.l4', CompleteTrace(
+    ('toy_and_teaching/minimal_future-actions2.l4', CompleteTrace(
         {}, (
         event('Throw', 'I', 0, {'n':4}),
         event('Throw', 'I', 0, {'n':3}),
@@ -94,7 +94,7 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ), 'Fulfilled')
      ),
 
-    # ('degenerate/minimal_future-actions.l4', CompleteTrace(
+    # ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
     #     {},
     #     (   event('Throw','I'),
     #         event('Throw','I'),
@@ -108,7 +108,7 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
     # ),
 
 
-    ('degenerate/collatz.l4', CompleteTrace(
+    ('toy_and_teaching/collatz.l4', CompleteTrace(
         {'START': 12},
         (event('DivideBy2'),
          event('DivideBy2'),
@@ -122,10 +122,6 @@ traces_degenerate : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          event('EnterFulfilled'),
          ), FULFILLED_SECTION_LABEL)
      ),
-
-)
-
-traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 
     ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace({},(
         # start section implicit
@@ -313,18 +309,20 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 )
 
 # this is used in runme_before_commit.py b/c I often comment out some of the entries of EXAMPLES_TO_RUN
-EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_degenerate, traces_from_academic_lit, traces_serious, traces_toy_and_teaching]))
-traces = chain(traces_degenerate, traces_from_academic_lit, traces_serious, traces_toy_and_teaching)
+EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
+traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious)
 
 from src.cli import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
         'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
-        'degenerate/minimal_future-actions.l4',
-        'degenerate/minimal_future-actions2.l4',
-        'toy_and_teaching/monster_burger_program_only.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
-        'degenerate/collatz.l4',
+    
+        'toy_and_teaching/minimal_future-actions.l4',
+        'toy_and_teaching/minimal_future-actions2.l4',
+        'toy_and_teaching/collatz.l4',
+        'toy_and_teaching/monster_burger_program_only.l4',    
+    
         'serious/SAFE.l4',
     ]
 

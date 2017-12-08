@@ -15,5 +15,7 @@ digraph Instalment_Sale_Hvitved {
     
     PayInstallment -> WaitingForFirstDayOfNextMonth [style=dashed];
 	PayLastInstallment -> Fulfilled [style=dashed];
-	        
+	     
+    
+       
 }

@@ -29,5 +29,7 @@ digraph Two_part_sale_Hvitved_Laser_Printer {
     PayLateFee -> Fulfilled [style=dashed];
 	CompleteNormalSale -> Fulfilled [style=dashed];
 	DeliverRefund -> Fulfilled [style=dashed];
-	        
+	     
+    
+       
 }

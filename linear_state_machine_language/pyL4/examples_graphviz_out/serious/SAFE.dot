@@ -53,5 +53,7 @@ digraph SAFE {
     DoEquityFinancing -> Fulfilled [style=dashed];
 	DoLiquidityEvent -> Fulfilled [style=dashed];
 	Dissolve -> Fulfilled [style=dashed];
-	        
+	     
+    
+       
 }

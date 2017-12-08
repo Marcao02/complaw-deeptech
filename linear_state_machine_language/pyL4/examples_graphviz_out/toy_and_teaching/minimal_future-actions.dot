@@ -20,5 +20,7 @@ digraph test_contract_for_must_later {
 	Stand -> Ongoing [style=dashed];
 	Catch -> Ongoing [style=dashed];
 	EnterFulfilled -> Fulfilled [style=dashed];
-	        
+	     
+    
+       
 }

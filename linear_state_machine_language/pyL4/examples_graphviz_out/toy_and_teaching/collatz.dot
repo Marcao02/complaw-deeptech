@@ -18,5 +18,7 @@ digraph Collatz {
     DivideBy2 -> Ongoing [style=dashed];
 	TripplePlus1 -> Ongoing [style=dashed];
 	EnterFulfilled -> Fulfilled [style=dashed];
-	        
+	     
+    
+       
 }
