@@ -85,7 +85,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.claims = self._mk_claims(rem)
 
             elif head(ROLES_DEC_LABEL):
-                self.top.roles = self._mk_actors(rem)
+                self.top.roles.extend(self._mk_actors(rem))
 
             elif head(PROSE_CONTRACT_AREA_LABEL):
                 self.top.prose_contract = self._mk_prose_contract(cast(List[List[str]], rem))

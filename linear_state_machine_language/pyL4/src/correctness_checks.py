@@ -1,4 +1,5 @@
 import logging
+from itertools import chain
 from typing import Set, Union, Any, Optional
 
 from src.model.SExpr import SExprOrStr
@@ -52,8 +53,18 @@ def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
             return False
     return True
 
+def role_ids_recognized(it:L4ContractConstructorInterface) -> bool:
+    for rule in chain(it.top.nextaction_rules(), it.top.futureaction_rules()):
+        role_id = rule.role_id
+        if role_id not in it.top.roles:
+            it.syntaxError('', f"Don't recongize role id {role_id}")
+            return False
+
+    return False
+
 test_fns = [
     referenced_nonderived_section_ids_equal_defined_nonderived_section_ids,
     referenced_nonderived_action_ids_equal_defined_nonderived_action_ids,
-    actions_correct_number_args
+    actions_correct_number_args,
+    role_ids_recognized
 ]

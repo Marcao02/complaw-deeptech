@@ -147,7 +147,7 @@
 		                (EnterEatingMB immediately)
 		            )
 		            (if (entranceTimeAfter-ts? challenge_endlimit_timestamp)
-		                (Customer must (PayForMB) immediately)
+		                (Challenger must (PayForMB) immediately)
 		            )
 	            )
 	        )
