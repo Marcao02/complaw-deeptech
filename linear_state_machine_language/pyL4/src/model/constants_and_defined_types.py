@@ -54,7 +54,7 @@ DEADLINE_PREDICATES = PREFIX_DEADLINE_PREDICATES.union({'≤','≥','<','>'})
 
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex', 'event_ts' }
-DEADLINE_KEYWORDS = {'immediately', 'nodeadline','discretionary'}
+DEADLINE_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
 

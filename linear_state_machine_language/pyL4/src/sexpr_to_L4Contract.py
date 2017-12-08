@@ -514,7 +514,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif src_action:
                     self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_action.action_id}")
 
-        raise Exception("Must have deadline clause. You can use `immediately` or `nodeadline` or `discretionary`")
+        raise Exception("Must have deadline clause. You can use `immediately` or `no_time_constraint` or `discretionary`")
 
     def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> PartyFutureActionRule:
         entrance_enabled_guard: Optional[Term] = None

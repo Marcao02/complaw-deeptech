@@ -6,11 +6,11 @@ roles: I
 global vars:
 
 section Ongoing:
-    I may Throw(n) nodeadline
-    I may EnterFulfilled nodeadline
+    I may Throw(n) no_time_constraint
+    I may EnterFulfilled no_time_constraint
 
 action Throw(n)  transitions to Ongoing
-    I must-later Catch(?m) nodeadline where ?m == n
+    I must-later Catch(?m) no_time_constraint where ?m == n
 
 action Catch(n)  transitions to Ongoing
 

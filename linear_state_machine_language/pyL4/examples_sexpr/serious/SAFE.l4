@@ -70,9 +70,9 @@
 
 	(Section InvestorInvests
 		(Next
-			(Company weakly-must CommitToEquityFinancing nodeadline)
-			(Company weakly-must (CommitToLiquidityEvent _1 _2 _3 _4) nodeadline) ; IPO
-			(Company weakly-must CommitToDissolution nodeadline)
+			(Company weakly-must CommitToEquityFinancing no_time_constraint)
+			(Company weakly-must (CommitToLiquidityEvent _1 _2 _3 _4) no_time_constraint) ; IPO
+			(Company weakly-must CommitToDissolution no_time_constraint)
 		)
 	)
 

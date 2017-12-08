@@ -2,9 +2,9 @@
 
 ; These are some properties we would want to verify are true:
 ; Client, when their usage is high, should always have the permission to lower it. This one led me to catch a bug in an earlier version of the contract.
-; Client, when they owe money, should always have the permission to pay.
-; Client, if they lower within 24H of infraction AND pay 1 fee unit within 24H of infraction, owes nothing more. This is regardless of whether they send a delay-payment email.
+; Client, when they owe money, should always have the permission to pay the full amount owed.
 ; Client, if they neither pay within 24H nor send a delay-payment email within 24H, breaches the contract.
+; Client, if they lower within 24H of infraction AND pay 1 fee unit within 24H of infraction, owes nothing more. This is regardless of whether they send a delay-payment email.
 ; Client, if they send delay email and lower traffic within 24H of infraction, and don't pay within 24 hours, then they owe and must eventually (say, within 48H of infraction) pay 2 fee units for this infraction.
 ; Client, if they send delay email and lower traffic between 24H and 48H after infraction, they owe and must eventually (say, within 48H of infraction) pay 3 fee units for this infraction.
 ; Client may pay in up to 2 parts, one before 24H and the other between 24H and 48H.
@@ -35,14 +35,18 @@
 		(change≤once contract_canceled : Bool = false)
 		(change≤once cancel_notice_sent_by_post : Bool = false)
 		(change≤once cancel_notice_sent_by_email : Bool = false)
-		(change≤once when_lowered : [Enum never before24H after24H] = never); when
-		; they lower their usage level.
-		(change≤once sent_delay_email : Bool = false) ; sent delay-payment-notification email
-		; within 24H of infraction.
-		(change≤once paidBefore24 : Bool = false) ; paid 1X high usage fee within 24H of
-		; infraction
-		(change≤once paidAfter24 : [Enum nothing 2X 3X] = nothing) ; how much
-		; Client paid between 24 and 48 hours of infraction
+
+		; when they lower their usage level.
+		(change≤once when_lowered : [Enum never before24H after24H] = never)
+
+		; sent delay-payment-notification email within 24H of infraction.
+		(change≤once sent_delay_email : Bool = false)
+
+		; paid 1X high usage fee within 24H of infraction
+		(change≤once paidBefore24 : Bool = false)
+
+		; Client paid this much between 24 and 48 hours of infraction
+		(change≤once paidAfter24 : [Enum nothing x2 x3] = nothing) ; how much
 	)
 
 	(StartState UsageWithinAllowance)
@@ -175,7 +179,7 @@
 				; hours of their infraction (i.e. within 24 hours of entering the
 				; After24H state).
 				; The contract is fulfilled as soon as all obligations are met.
-				(if ()
+				(if (not F3_24_48)
 					(Client must later (within 24H) (Pay3XHighUsageFeeBetween24And48HofInfraction))
 				)
 				(if (not L48)
@@ -202,7 +206,7 @@
 		(AllowedSubjects Client)
 		(traversals ≤ 1)
 		(Entrance
-			(P2 := true)
+			(paidAfter24 := x2)
 		)
 	)
 
@@ -210,7 +214,7 @@
 		(AllowedSubjects Client)
 		(traversals ≤ 1)
 		(Entrance
-			(P3 := true)
+			(paidAfter24 := x3)
 		)
 	)
 
@@ -218,7 +222,7 @@
 		(AllowedSubjects Client)
 		(traversals ≤ 1)
 		(Entrance
-			(L48 := true)
+			(when_lowered := after24H)
 		)
 		(if (not contract_canceled)
 			(startInstance "PS Internet Provision" (Actors ISP Client))
