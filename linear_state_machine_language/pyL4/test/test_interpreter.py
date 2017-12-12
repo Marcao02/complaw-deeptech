@@ -32,13 +32,19 @@ def fpevent(action_id:str, role_id:str = ENV_ROLE,
 
 inc_timestamp = 0
 
-def nextTSEvent(action_id:str, role_id:str, params:Optional[Dict[str, Data]] = None,
+def firstTSEvent(action_id:str, role_id:str = ENV_ROLE, params:Optional[Dict[str, Data]] = None,
+                eventType: Optional[EventType] = None) -> Event:
+    global inc_timestamp
+    inc_timestamp = 0
+    return nextTSEvent(action_id, role_id, params, eventType)
+
+def nextTSEvent(action_id:str, role_id:str = ENV_ROLE, params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
     global inc_timestamp
     inc_timestamp = inc_timestamp + 1
     return event(action_id, role_id, inc_timestamp, params, eventType)
 
-def sameTSEvent(action_id:str, role_id:str,
+def sameTSEvent(action_id:str, role_id:str = ENV_ROLE,
                 params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
     global inc_timestamp
@@ -138,7 +144,50 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
      ),
 )
 traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
+    ('from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
+     CompleteTrace({},(
+            event('RaiseTraffic','Client',0),
+            event('LowerTraffic','Client',20),
+            event('Pay','Client',21, {'x':1}),
+            event('SendCancelNoticeByPost','ISP',50),
+            event('SendCancelNoticeByEmail','ISP',50),
+            event('EnterFulfilled','Env',51)
+        ),
+        'Fulfilled'
+    )),
+    ('from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
+     CompleteTrace({},(
+            event('RaiseTraffic','Client',0),
+            event('SendDelayEmail','Client',20),
+            event('LowerTraffic','Client',24),
+            event('Pay','Client',48, {'x':2}),
+            event('SendCancelNoticeByPost','ISP',50),
+            event('SendCancelNoticeByEmail','ISP',50),
+            event('EnterFulfilled','Env',51)
+        ),
+        'Fulfilled'
+    )),
 
+    ('from_academic_lit//hvitved_lease.l4',
+     CompleteTrace({}, (
+        firstTSEvent('EnsureApartmentReady', 'Landlord'), # 1
+        nextTSEvent('StartLeaseTerm'), # 2
+        nextTSEvent('PayRent', 'Tenant'), # 3
+        event('EnterMonthEnded', ENV_ROLE, 30), # Jan 31
+        event('EnterMonthStarted', ENV_ROLE, 31),
+        event('RequestTerminationFromMonthStarted', 'Tenant', 34),
+        event('PayRent', 'Tenant', 35), # 35
+        event('EnterMonthEnded', ENV_ROLE, 59),  # Feb 29
+        event('EnterMonthStarted', ENV_ROLE, 60), # Mar 1
+        event('PayRent', 'Tenant', 65),
+        event('EnterMonthEnded', ENV_ROLE, 90),  # Mar 31
+        event('EnterMonthStarted', ENV_ROLE, 91), # April 1
+        event('PayRent', 'Tenant', 93),
+        event('EnterMonthEnded', ENV_ROLE, 120),  # April 30
+        event('EnterLeaseTermEnded', ENV_ROLE, 120),
+        event('MoveOut', 'Tenant', 120),
+      ), "Fulfilled")
+    ),
 
     ('from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
         {
@@ -315,14 +364,16 @@ traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious
 from src.cli import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
+        'from_academic_lit//hvitved_lease.l4',
+        'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
         'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
-    
+
         'toy_and_teaching/minimal_future-actions.l4',
         'toy_and_teaching/minimal_future-actions2.l4',
         'toy_and_teaching/collatz.l4',
-        'toy_and_teaching/monster_burger_program_only.l4',    
-    
+        'toy_and_teaching/monster_burger_program_only.l4',
+
         'serious/SAFE.l4',
     ]
 
@@ -330,7 +381,6 @@ EXAMPLES_TO_RUN = [
 def main(sys_argv:List[str]):
 
     for trace in traces:
-        print("wtf?")
         subpath = trace[0]
         if subpath in EXAMPLES_TO_RUN:
             print("\n" + subpath)

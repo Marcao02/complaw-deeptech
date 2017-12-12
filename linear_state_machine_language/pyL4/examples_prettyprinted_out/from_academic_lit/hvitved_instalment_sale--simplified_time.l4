@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 file: from_academic_lit/hvitved_instalment_sale--simplified_time.l4
 
-roles: Buyer, Seller
+roles: Env, Buyer, Seller
 
 contract params:
     INTEREST_RATE : ℚ := 0.1

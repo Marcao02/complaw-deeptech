@@ -58,7 +58,7 @@ def isInt(x:str) -> bool:
     try:
         y = int(x)
         return True
-    except ValueError:
+    except Exception:
         return False
 
 S = TypeVar('S',bound=str)

@@ -1,0 +1,26 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph partner_assignment_demonstrating_relievable_obligations {    
+    Fulfilled[label=Fufilled];
+    WorkingOnAssignment[label=WorkingOnAssignment]
+    
+     
+    SolveProbA[label=SolveProbA,shape=box];
+	SolveProbB[label=SolveProbB,shape=box];
+	Submit[label=Submit,shape=box]    
+    
+    
+    
+    WorkingOnAssignment -> SolveProbA;
+	WorkingOnAssignment -> SolveProbB;
+	WorkingOnAssignment -> Submit;
+	WorkingOnAssignment -> SolveProbB;
+	WorkingOnAssignment -> SolveProbA
+    
+    SolveProbA -> WorkingOnAssignment [style=dashed];
+	SolveProbB -> WorkingOnAssignment [style=dashed];
+	Submit -> AfterSubmit [style=dashed];
+	     
+    
+       
+}

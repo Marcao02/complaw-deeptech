@@ -139,7 +139,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     initval = self._mk_term(dec[i + 4])
 
                 # print("sort: ", str(sort))
-                print("initval: ", str(initval), type(initval))
+                # print("initval: ", str(initval), type(initval))
                 rv[name] = GlobalVarDec(name, sort, initval, modifiers)
             except Exception as e:
                 logging.error("Problem processing " + str(dec))

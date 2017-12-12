@@ -22,7 +22,7 @@ class L4Contract:
 
         self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
-        self.roles : Iterable[RoleId] = [ENV_ROLE]
+        self.roles : List[RoleId] = [ENV_ROLE]
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
         self.sorts : Set[SortId] = set()
         self.definitions : Dict[DefinitionId, Definition] = dict()

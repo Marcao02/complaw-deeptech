@@ -1,7 +1,7 @@
 ------------------------------------------------
 file: toy_and_teaching/minimal_future-actions.l4
 
-roles: I
+roles: Env, I
 
 global vars:
     n : ℕ := 0

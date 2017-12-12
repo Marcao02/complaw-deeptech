@@ -25,6 +25,8 @@
 	(HOURS_PARAM : ℕ := 24)
 )
 
+(TimeUnit H)
+
 ; The original (ambiguous) agreement.
 (ProseContract
 	(P1 'Whenever Internet traffic is high then the client must pay {HIGH_USAGE_FEE} or the client must notify the service provider by sending an e-mail specifying that he will pay later within {HOURS_PARAM} hours.')
@@ -95,6 +97,7 @@
 
 	(Action RaiseTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
 		(StateTransform
+			(traffic_low_since := event_ts)
 			(usage_level_normal := false)
 			(if (not unsettled_infraction) (
 				(infraction_time := event_ts)
@@ -116,7 +119,7 @@
 
 	(Action (Pay (x : ℕ)) (AllowedSubjects Client) (TransitionsTo UnsettledInfraction)
 		(StateTransform
-			(paid += x)
+			(paid += (HIGH_USAGE_FEE * x))
 			(if within24HOfInfraction (
 				(paidBefore24 := true)
 			) else ())

@@ -1,7 +1,8 @@
 import logging
 from itertools import chain
-from typing import Set, Union, Any, Optional
+from typing import Set, Union, Any, Optional, Iterable
 
+from src.model.ActionRule import ActionRule
 from src.model.SExpr import SExprOrStr
 from src.model.constants_and_defined_types import *
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id
@@ -54,7 +55,7 @@ def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
     return True
 
 def role_ids_recognized(it:L4ContractConstructorInterface) -> bool:
-    for rule in chain(it.top.nextaction_rules(), it.top.futureaction_rules()):
+    for rule in chain(cast(Iterable[ActionRule], it.top.nextaction_rules()), cast(Iterable[ActionRule],it.top.futureaction_rules())):
         role_id = rule.role_id
         if role_id not in it.top.roles:
             it.syntaxError('', f"Don't recongize role id {role_id}")

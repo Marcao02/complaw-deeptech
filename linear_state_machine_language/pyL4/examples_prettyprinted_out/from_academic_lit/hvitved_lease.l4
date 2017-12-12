@@ -1,11 +1,10 @@
 ----------------------------------------
 file: from_academic_lit/hvitved_lease.l4
 
-roles: Landlord, Tenant
+roles: Env, Landlord, Tenant
 
 contract params:
-    DAYS_IN_A_MONTH : TimeUnit := 30
-    LEASE_DURATION : TimeUnit := 6 * 30
+    LEASE_DURATION : TimeUnit := 4 * 29
     RENT : Money := 1000
     MAX_RENT_DELAY : TimeUnit := 7
     MIN_TERMINATION_NOTICE : TimeUnit := 1 * 30
@@ -42,34 +41,35 @@ action StartLeaseTerm()  transitions to MonthStarted:
         lease_term_end := event_ts + LEASE_DURATION
 
 action EnterMonthStarted()  transitions to MonthStarted
-    following section:
-        Tenant weakly-must PayRent (by (monthStartDay ) + MAX_RENT_DELAY)
-        if ¬lease_terminated:
-            Tenant may RequestTerminationFromMonthStarted (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
-        if ¬lease_terminated:
-            Landlord may RequestTerminationFromMonthStarted (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
+
+section MonthStarted:
+    Tenant weakly-must PayRent (by (monthStartDay ) + MAX_RENT_DELAY)
+    if ¬lease_terminated:
+        Tenant may RequestTerminationFromMonthStarted (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - 30))
+    if ¬lease_terminated:
+        Landlord may RequestTerminationFromMonthStarted (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - 30))
 
 action PayRent()  transitions to AfterPayRent:
     transform:
         total_rent_paid += 1000
     following section:
-        EnterMonthEnded (on-ts (monthEndDay ))
+        EnterMonthEnded (at-ts (monthEndDay ))
         if ¬lease_terminated:
-            Tenant may RequestTerminationFromAfterPayRent (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
+            Tenant may RequestTerminationFromAfterPayRent (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - 30))
         if ¬lease_terminated:
-            Landlord may RequestTerminationFromAfterPayRent (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
+            Landlord may RequestTerminationFromAfterPayRent (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - 30))
 
 action EnterMonthEnded()  transitions to MonthEnded
     following section:
         pre: sectionEntranceTimestamp ≤ lease_term_end
-        if lease_term_end ≤ sectionEntranceTimestamp + 1:
-            EnterLeaseTermEnded (on-ts lease_term_end)
-        if lease_term_end > sectionEntranceTimestamp + 1:
-            EnterMonthStarted (after-exact-duration 1)
+        if lease_term_end ≤ sectionEntranceTimestamp + 1d:
+            EnterLeaseTermEnded
+        if lease_term_end > sectionEntranceTimestamp + 1d:
+            EnterMonthStarted (after-exact-duration 1d)
         if ¬lease_terminated:
-            Tenant may RequestTerminationFromMonthEnded (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
+            Tenant may RequestTerminationFromMonthEnded (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - 30))
         if ¬lease_terminated:
-            Landlord may RequestTerminationFromMonthEnded (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - DAYS_IN_A_MONTH))
+            Landlord may RequestTerminationFromMonthEnded (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - 30))
 
 action EnterLeaseTermEnded()  transitions to LeaseTermEnded
     following section:

@@ -48,12 +48,14 @@ PREFIX_DEADLINE_PREDICATES = {
                       'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within',
                       'after-exactly', # duration
                       'within', #duration
-                      'strictly-after', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration'
+                      'strictly-after', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration',
+                        'sectionEntranceTimestamp'
                       }
 DEADLINE_PREDICATES = PREFIX_DEADLINE_PREDICATES.union({'≤','≥','<','>'})
 
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
-                      'dateFromDayAndMonthIndices', 'nextMonthIndex', 'event_ts' }
+                      'dateFromDayAndMonthIndices', 'nextMonthIndex', 'event_ts',
+                        'monthStartDay', 'monthEndDay'}
 DEADLINE_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
@@ -62,7 +64,9 @@ EXEC_ENV_VARIABLES = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'eve
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}
-PREFIX_FN_SYMBOLS = {'sectionEntranceTimestamp', 'eventTimestamp', 'monthStartDay', 'monthEndDay',
+PREFIX_FN_SYMBOLS = {'eventTimestamp',
+                     # 'monthStartDay',
+                     # 'monthEndDay',
                      'days', 'earliest',
                      'dateplus',
                      'ifthenelse',

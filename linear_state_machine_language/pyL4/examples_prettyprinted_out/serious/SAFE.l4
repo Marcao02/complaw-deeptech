@@ -1,7 +1,7 @@
 ---------------------
 file: serious/SAFE.l4
 
-roles: Investor, Company
+roles: Env, Investor, Company
 
 contract params:
     PURCHASE_AMOUNT : $ := 100000

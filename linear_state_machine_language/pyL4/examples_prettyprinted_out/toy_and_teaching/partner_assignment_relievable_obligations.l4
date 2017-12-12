@@ -1,0 +1,29 @@
+-------------------------------------------------------------------
+file: toy_and_teaching/partner_assignment_relievable_obligations.l4
+
+roles: Env, Alice, Bob
+
+contract params:
+    DueDate : TimeStamp := 40
+
+global vars:
+    probAsolved : boolean := False
+    probBsolved : boolean := False
+
+section WorkingOnAssignment:
+    Alice weakly-must SolveProbA (by DueDate)
+    Alice may SolveProbB (by DueDate)
+    if probAsolved and probBsolved:
+        Alice may Submit (by DueDate)
+    Bob weakly-must SolveProbB (by DueDate)
+    Bob may SolveProbA (by DueDate)
+
+action SolveProbA()  transitions to WorkingOnAssignment:
+    transform:
+        probAsolved := True
+
+action SolveProbB()  transitions to WorkingOnAssignment:
+    transform:
+        probBsolved := True
+
+action Submit()  transitions to AfterSubmit

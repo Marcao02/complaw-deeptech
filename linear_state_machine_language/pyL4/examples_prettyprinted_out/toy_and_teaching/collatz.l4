@@ -1,7 +1,7 @@
 ---------------------------------
 file: toy_and_teaching/collatz.l4
 
-roles: 
+roles: Env
 
 contract params:
     START : ℕ := 99

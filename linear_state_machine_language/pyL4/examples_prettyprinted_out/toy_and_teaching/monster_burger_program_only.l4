@@ -1,7 +1,7 @@
 -----------------------------------------------------
 file: toy_and_teaching/monster_burger_program_only.l4
 
-roles: Challenger, Restaurant
+roles: Env, Challenger, Restaurant
 
 contract params:
     MB_PRICE : Price := 50
@@ -59,7 +59,7 @@ action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
         if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp):
             EnterEatingMB
         if (entranceTimeAfter-ts? challenge_endlimit_timestamp):
-            Customer must PayForMB immediately
+            Challenger must PayForMB immediately
 
 action PayForMB()  transitions to Fulfilled:
     transform:
