@@ -60,7 +60,7 @@ DEADLINE_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
 
-EXEC_ENV_VARIABLES = {'contractStartTimestamp', 'sectionEntranceTimestamp', 'event_ts'}
+EXEC_ENV_VARIABLES = {'contractStartDatetime', 'contractStartTimedelta', 'sectionEntranceTimestamp', 'event_ts'}
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}

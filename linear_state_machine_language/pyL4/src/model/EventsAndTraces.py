@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import NamedTuple, Optional, Any, Dict, Sequence, List
+from datetime import timedelta
 
 from src.model.constants_and_defined_types import ActionId, RoleId, ABAPSubst, Data, ABAPNamedSubst, \
     ContractParamId, AParamsSubst
@@ -17,8 +18,6 @@ class Event(NamedTuple):
     params_by_abap_name: Optional[ABAPNamedSubst]
     params: Optional[AParamsSubst]
     type: EventType
-
-
 
 def breachSectionId(*role_ids:str):
     return "Breach_" + "_".join(role_ids)

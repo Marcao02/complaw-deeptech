@@ -74,7 +74,7 @@
 [GlobalVars
     [ inconly next_order_id : Id = 0 ]
     [ inconly units_ordered : ℕ = 0 ]
-    [ writeonce contract_ends : TimeStamp = [contractStartTimestamp + CONTRACT_LIFE]]
+    [ writeonce contract_ends : TimeStamp = [contractStartTimedelta + CONTRACT_LIFE]]
 
 
     ; `nonoperative` instructs our static checker to verify that these
@@ -113,7 +113,7 @@
         ;   -then {Vendor} begins or continues accepting new orders.
     ;    [visits == 1]
         ;[StateTransform
-        ;    [contract_ends = [contractStartTimestamp + CONTRACT_LIFE]] ]
+        ;    [contract_ends = [contractStartDatetime + CONTRACT_LIFE]] ]
     ;    [FollowingSection
     ;        [Next [EnterVendorAcceptingOrders immediately]]
     ;    ]

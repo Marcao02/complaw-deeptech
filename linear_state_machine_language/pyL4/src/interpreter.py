@@ -60,7 +60,7 @@ class EventOk(EventLegalityAssessment):
 
 
 FN_SYMB_INTERP = {
-    # '+': lambda *args: sum(args),  # doesn't work with timedelta
+    # '+': lambda *args: sum(args),  # doesn't work with timestamp
     '+': lambda x,y: x + y,
     '-': lambda x,y: x - y,
     '/': lambda x,y: x / y,
@@ -85,9 +85,7 @@ FN_SYMB_INTERP = {
     'ceil': math.ceil
 }
 
-DEADLINE_OP_INTERP = {
-
-
+TIME_CONSTRAINT_OP_INTERP = {
     'event_ts': lambda entrance_ts, event_ts, args_ts: event_ts,
     'sectionEntranceTimestamp': lambda entrance_ts, event_ts, args_ts: entrance_ts,
     'by': lambda entrance_ts, event_ts, args_ts: (event_ts <= args_ts[0]),
@@ -130,7 +128,7 @@ class ExecEnv:
         self.gvarvals: GVarSubst = dict()
         self.gvar_write_cnt : Dict[GlobalVarId, int] = dict()
 
-        # following 3 change only in apply_action:
+        # following 2 change only in apply_action:
         self.last_or_current_section_id: SectionId = prog.start_section_id
         self.last_appliedaction_params : Optional[ABAPSubst] = None
         # following changes only in evalTrace
@@ -139,15 +137,14 @@ class ExecEnv:
         # self.start_datetime = datetime.now(timezone.utc)
         # self.start_datetime : datetime = datetime(2000,1,1,0,0,0,0,timezone.utc)
         self.start_datetime: datetime = datetime(2000, 1, 1, 0, 0, 0, 0)
-        self.absolute_timeint2timedelta_converter = self.getTimeintToDeltaConverter()
-        self.last_section_entrance_delta = self.timeint2delta(0)
-        # self.duration_converter = ExecEnv.select_duration_converter()
+        self.absolute_timeint2timedelta_converter = self.getIntToDeltaConverter()
+        self.last_section_entrance_delta : timedelta = timedelta(0) # = self.timeint2delta(0)
 
         self.future_permissions : List[PartlyInstantiatedPartyFutureActionRule] = []
         self.future_obligations : List[PartlyInstantiatedPartyFutureActionRule] = []
 
 
-    def getTimeintToDeltaConverter(self) -> Callable[[int], timedelta]:
+    def getIntToDeltaConverter(self) -> Callable[[int], timedelta]:
         if self.top.timeunit == 'd':
             def f(x:int) -> timedelta:
                 return timedelta(days=x)
@@ -170,40 +167,19 @@ class ExecEnv:
                 return timedelta(seconds=x)
             return f
 
-    def delta2timeint(self, td:timedelta) -> int:
-        if self.top.timeunit == 'h':
-            # print(td.seconds, td.microseconds, td.days)
-            return int(td.days*24 + td.seconds/(60**2))
-        if self.top.timeunit == 'd':
-            # print(td.seconds, td.microseconds, td.days)
-            return td.days
-        if self.top.timeunit == 'm':
-            # print(td.seconds, td.microseconds, td.days)
-            return int(td.days*24*60 + td.seconds/60)
-        raise NotImplementedError("This function is wrong. \nunits " + self.top.timeunit)
-
     def delta2datetime(self, td:timedelta) -> datetime:
         return self.start_datetime + td
-
-    def datetime2timeint(self, dt:datetime):
-        return self.delta2timeint(self.datetime2delta(dt))
 
     def datetime2delta(self, dt:datetime) -> timedelta:
         return dt - self.start_datetime
 
-    def timeint2delta(self, x:int) -> timedelta:
-        return self.absolute_timeint2timedelta_converter(x)
-
-    def timeint2datetime(self, x:int) -> datetime:
-        return self.delta2datetime(self.timeint2delta(x))
-
-
     def cur_event_datetime(self) -> datetime:
         assert self.cur_event is not None
-        return self.delta2datetime(self.timeint2delta(self.cur_event.timestamp))
+        return self.delta2datetime(self.cur_event_delta())
 
-    # def toSimpleTimeDelta(self,x:int) -> SimpleTimeDeltaLit:
-    #     return SimpleTimeDeltaLit(x, self.top.timeunit)
+    def cur_event_delta(self) -> timedelta:
+        return self.absolute_timeint2timedelta_converter(self.cur_event.timestamp)
+
 
     def futures(self) -> Iterator[PartlyInstantiatedPartyFutureActionRule]:
         return chain(self.future_obligations, self.future_permissions)
@@ -243,7 +219,7 @@ class ExecEnv:
             eventi = trace[i]
             self.cur_event = eventi
             cur_action_id = self.cur_event.action_id
-            cur_event_delta = self.timeint2delta(self.cur_event.timestamp)
+            cur_event_delta = self.cur_event_delta()
             cur_event_datetime = self.delta2datetime(cur_event_delta)
             cur_action = self.top.action(cur_action_id)
 
@@ -294,13 +270,14 @@ class ExecEnv:
 
                 elif isinstance(nextrule_assessment, BreachResult):
                     print("Breach result:", nextrule_assessment)
-                    # raise Exception
                     breach_section_id = breachSectionId(*nextrule_assessment.role_ids)
                     self.apply_action(cur_action, to_breach_section_id = breach_section_id)
 
                     if verbose:
                         print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {breach_section_id}")
 
+                    if i != len(trace) - 1:
+                        print("Trace prefix results in a breach, but there are more events after.")
                     assert i == len(trace) - 1, "Trace prefix results in a breach, but there are more events after."
                     break
                 else:
@@ -404,8 +381,10 @@ class ExecEnv:
                 else:
                     deadline_ok = self.evalDeadlineClause(entrance_enabled_strong_obligs[0].deadline_clause, ctx)
                     # print("deadline_ok", deadline_ok)
-                    if deadline_ok: return EventOk() #(None,None)
-                    else: return BreachResult({event.role_id}, f"Strong obligation of {event.role_id} expired or not yet active.")
+                    if deadline_ok:
+                        return EventOk() #(None,None)
+                    else:
+                        return BreachResult({event.role_id}, f"Strong obligation of {event.role_id} expired or not yet active. See rule {entrance_enabled_strong_obligs[0]}\n with time constraint {entrance_enabled_strong_obligs[0].deadline_clause}")
 
 
         # CASE 2: 0 entrance-enabled strong obligations (SO action-rules)
@@ -516,7 +495,7 @@ class ExecEnv:
 
         if to_breach_section_id is not None:
             self.last_or_current_section_id = to_breach_section_id
-            self.last_section_entrance_delta = self.timeint2delta(self.cur_event.timestamp)
+            self.last_section_entrance_delta = self.cur_event_delta()
             return ApplyActionResult(None)
 
         self.last_appliedaction_params = self.cur_event.params
@@ -554,7 +533,7 @@ class ExecEnv:
 
         if action.dest_section_id != LOOP_KEYWORD:
             self.last_or_current_section_id = action.dest_section_id
-        self.last_section_entrance_delta = self.timeint2delta(self.cur_event.timestamp)
+        self.last_section_entrance_delta = self.cur_event_delta()
 
         return ApplyActionResult(floatingrules_added if len(floatingrules_added) > 0 else None)
 
@@ -731,10 +710,10 @@ class ExecEnv:
         if isinstance(litterm, DeadlineLit):
             todo_once("DeadlineLit not correctly handled yet")
             # print("DeadlineLit: ", term, next_event_timestamp == self.last_section_entrance_delta)
-            # return self.cur_event.timedelta == self.last_section_entrance_delta
+            # return self.cur_event.timestamp == self.last_section_entrance_delta
             return True
         elif isinstance(litterm, SimpleTimeDeltaLit):
-            return self.delta2timeint(litterm.timedelta)
+            return litterm.timedelta
         else:
             return litterm.lit
 
@@ -752,7 +731,7 @@ class ExecEnv:
         # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
         evaluated_args = tuple(self.evalTerm(x,ctx) for x in fnapp.args)
         todo_once("THIS IS TEMPORARY UNTIL I REMOVE TimeStamp EVERYWHERE")
-        evaluated_args = tuple(self.delta2timeint(x) if isinstance(x,timedelta) else x for x in evaluated_args)
+        # evaluated_args = tuple(self.delta2timeint(x) if isinstance(x,timestamp) else x for x in evaluated_args)
 
         try:
             if fn in FN_SYMB_INTERP:
@@ -761,40 +740,44 @@ class ExecEnv:
                 assert self.cur_event is not None
                 if fn == "monthStartDay":
                     # get datetime from event_ts
-                    dt = self.timeint2datetime(self.cur_event.timestamp)
+                    dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     month_start_dt = datetime(year=dt.year, month=dt.month, day=1)
-                    return self.datetime2timeint(month_start_dt)
+                    return self.datetime2delta(month_start_dt)
                 if fn == "monthEndDay":
                     # get datetime from event_ts
-                    dt = self.timeint2datetime(self.cur_event.timestamp)
+                    dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     next_month = dt.month + 1 if dt.month < 12 else 1
                     year = dt.year if dt.month < 12 else dt.year + 1
                     day_after_month_end_dt = datetime(year=year, month=next_month, day=1)
                     last_day_of_month_dt = day_after_month_end_dt - timedelta(days=1)
-                    return self.datetime2timeint(last_day_of_month_dt)
+                    return self.datetime2delta(last_day_of_month_dt)
 
-                if fn in DEADLINE_OP_INTERP:
-                    return cast(Any, DEADLINE_OP_INTERP[fn])(
-                        self.delta2timeint(self.last_section_entrance_delta),
+                if fn in TIME_CONSTRAINT_OP_INTERP:
+                    return cast(Any, TIME_CONSTRAINT_OP_INTERP[fn])(
+                        self.last_section_entrance_delta,
                         # self.timeint2delta(self.cur_event.timestamp),
-                        self.cur_event.timestamp,
+                        self.cur_event_delta(),
                         evaluated_args)
                 else:
                     contract_bug(f"Unhandled deadline fn symbol: {fn}")
-            elif fn == "contractStartTimestamp":
-                # return self.timeint2delta(0)
-                return 0
+            elif fn == "contractStartDatetime":
+                return self.start_datetime
+            elif fn == "contractStartTimedelta":
+                return self.datetime2delta(self.start_datetime)
             elif fn == "unitsAfterEntrance":
                 assert len(evaluated_args) == 1
-                return evaluated_args[0] + self.delta2timeint(self.last_section_entrance_delta)
+                assert isinstance(evaluated_args[0], timedelta)
+                return evaluated_args[0] + self.last_section_entrance_delta
             elif fn == 'entranceTimeNoLaterThan-ts?':
                 assert len(evaluated_args) == 1
-                return self.delta2timeint(self.last_section_entrance_delta) <= evaluated_args[0]
+                assert isinstance(evaluated_args[0], timedelta)
+                return self.last_section_entrance_delta <= evaluated_args[0]
             elif fn == 'entranceTimeAfter-ts?':
                 assert len(evaluated_args) == 1
-                return self.delta2timeint(self.last_section_entrance_delta) > evaluated_args[0]
+                assert isinstance(evaluated_args[0], timedelta)
+                return self.last_section_entrance_delta > evaluated_args[0]
             else:
                 contract_bug(f"Unhandled fn symbol in evalFnApp: {fn}")
         except Exception as e:
@@ -808,7 +791,7 @@ class ExecEnv:
             eventType = EventType.env_next if role_id == ENV_ROLE else EventType.party_next
         params = params or dict()
         return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id),
-                     timestamp=timestamp,
+                     delta=self.absolute_timeint2timedelta_converter(timestamp),
                      params_by_abap_name=cast(ABAPNamedSubst, params) if params else None,
                      params=list(params.values()) if params else None,
                      type=eventType)

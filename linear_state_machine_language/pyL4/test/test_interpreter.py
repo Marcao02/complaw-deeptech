@@ -1,8 +1,9 @@
+from datetime import timedelta
 from itertools import chain
 from typing import Sequence, Tuple, Union, Optional
 from math import inf
 
-from interpreter import evalTrace
+from interpreter import evalTrace, ExecEnv
 from src.model.L4Contract import L4Contract
 from src.parse_sexpr import prettySExprStr, parse_file
 from src.sexpr_to_L4Contract import L4ContractConstructor
@@ -12,19 +13,21 @@ from src.model.constants_and_defined_types import *
 from src.model.util import castid
 
 def event(action_id:str, role_id:str = ENV_ROLE,
-          timestamp:int = 0, params:Optional[Dict[str, Data]] = None,
+          timestamp: int = 0,
+          params:Optional[Dict[str, Data]] = None,
           eventType: Optional[EventType] = None ) -> Event:
     if eventType is None:
         eventType = EventType.env_next if role_id == ENV_ROLE else EventType.party_next
     params = params or dict()
-    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id), timestamp=timestamp,
+    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id),
+                 timestamp= timestamp,
                  params_by_abap_name=cast(ABAPNamedSubst, params) if params else None,
                  params=list(params.values()) if params else None,
                  type=eventType)
 
 def foevent(action_id:str, role_id:str = ENV_ROLE,
-          timestamp:int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
-    return event(action_id,role_id,timestamp,params,EventType.fulfill_floating_obligation)
+          timestamp: int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
+    return event(action_id, role_id, timestamp , params, EventType.fulfill_floating_obligation)
 
 def fpevent(action_id:str, role_id:str = ENV_ROLE,
           timestamp:int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
@@ -32,19 +35,25 @@ def fpevent(action_id:str, role_id:str = ENV_ROLE,
 
 inc_timestamp = 0
 
-def firstTSEvent(action_id:str, role_id:str = ENV_ROLE, params:Optional[Dict[str, Data]] = None,
-                eventType: Optional[EventType] = None) -> Event:
+def firstTSEvent(action_id:str,
+                 role_id:str = ENV_ROLE,
+                 params:Optional[Dict[str, Data]] = None,
+                 eventType: Optional[EventType] = None) -> Event:
     global inc_timestamp
     inc_timestamp = 0
     return nextTSEvent(action_id, role_id, params, eventType)
 
-def nextTSEvent(action_id:str, role_id:str = ENV_ROLE, params:Optional[Dict[str, Data]] = None,
+def nextTSEvent(action_id:str,
+                role_id:str = ENV_ROLE,
+                params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
     global inc_timestamp
+    newevent = event(action_id, role_id, inc_timestamp, params, eventType)
     inc_timestamp = inc_timestamp + 1
-    return event(action_id, role_id, inc_timestamp, params, eventType)
+    return newevent
 
-def sameTSEvent(action_id:str, role_id:str = ENV_ROLE,
+def sameTSEvent(action_id:str,
+                role_id:str = ENV_ROLE,
                 params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
     global inc_timestamp
@@ -55,20 +64,18 @@ def sameTSEvent(action_id:str, role_id:str = ENV_ROLE,
 K = 1000
 M = 1000000
 
-
-
 traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
     ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
         {},
         (event('Throw', 'I'),
          event('Throw', 'I'),
          event('Throw', 'I'),
-         foevent('Catch', 'I', 0, {'m': 1}),
          foevent('Catch', 'I', 0, {'m': 3}),
          foevent('Catch', 'I', 0, {'m': 2}),
+         foevent('Catch', 'I', 0, {'m': 1}),
          event('EnterFulfilled', 'Env', 0),
          ), breachSectionId('Env'))
-     ),
+    ),
 
     ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
         {},
@@ -131,7 +138,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 
     ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace({},(
         # start section implicit
-        nextTSEvent('RequestCookMB', 'Challenger'),
+        firstTSEvent('RequestCookMB', 'Challenger'),
         nextTSEvent('ServeMB', 'Restaurant'),
         nextTSEvent('AnnounceMBFinished', 'Challenger'),
         nextTSEvent('CheckCompletionClaim', 'Restaurant'),

@@ -49,7 +49,7 @@ class StringLit(Literal):
 
 class SimpleTimeDeltaLit(Literal):
     """
-    REVERSED because this AST node is for literals like 1M or 4D --> Take an L4Contract instead of a string like 'd','h','w' etc to avoid the use of more than one unit in a contract (which is what `timedelta` is for)
+    REVERSED because this AST node is for literals like 1M or 4D --> Take an L4Contract instead of a string like 'd','h','w' etc to avoid the use of more than one unit in a contract (which is what `timestamp` is for)
 
     NOTE some of this functionality is duplicated in interpreter.py
     """
