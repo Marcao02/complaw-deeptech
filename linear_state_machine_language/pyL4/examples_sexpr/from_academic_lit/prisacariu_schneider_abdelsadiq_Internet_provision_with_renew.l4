@@ -54,10 +54,10 @@
 )
 
 (Definitions
-	(within24HOfInfraction := (event_ts ≤ (infraction_time + 24H)))
-	(within48HOfInfraction := (event_ts ≤ (infraction_time + 48H)))
-	(after24HSinceInfraction := (event_ts > (infraction_time + 24H)))
-	(after48HSinceInfraction := (event_ts > (infraction_time + 48H)))
+	(within24HOfInfraction := (event_td ≤ (infraction_time + 24H)))
+	(within48HOfInfraction := (event_td ≤ (infraction_time + 48H)))
+	(after24HSinceInfraction := (event_td > (infraction_time + 24H)))
+	(after48HSinceInfraction := (event_td > (infraction_time + 48H)))
 
 )
 
@@ -97,10 +97,10 @@
 
 	(Action RaiseTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
 		(StateTransform
-			(traffic_low_since := event_ts)
+			(traffic_low_since := event_td)
 			(usage_level_normal := false)
 			(if (not unsettled_infraction) (
-				(infraction_time := event_ts)
+				(infraction_time := event_td)
 				(unsettled_infraction := true)
 			) else () )
 		)
@@ -109,7 +109,7 @@
 	(Action LowerTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
 		(StateTransform
 			(usage_level_normal := true)
-			(traffic_low_since := event_ts)
+			(traffic_low_since := event_td)
 		)
 	)
 

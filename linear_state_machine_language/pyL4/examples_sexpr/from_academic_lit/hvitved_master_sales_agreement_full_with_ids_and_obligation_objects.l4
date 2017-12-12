@@ -139,11 +139,11 @@
         [Next
             [guardsDisjointExhaustive
                 [if [orderable_units_remaining > 0]
-                    [Customer may [SubmitNewOrder q] [event_ts ≤ contract_ends]
+                    [Customer may [SubmitNewOrder q] [event_td ≤ contract_ends]
                          [where [[0 < q] and [q ≤ orderable_units_remaining]]] ]
                 ]
                 [if [orderable_units_remaining == 0]
-                    [EnterFulfilled [event_ts ≥ contract_ends]]
+                    [EnterFulfilled [event_td ≥ contract_ends]]
                 ]
             ]
         ]
@@ -175,8 +175,8 @@
         [StateTransform
             ; 14 days later, or quantity/10 days later, whichever occurs last
             [this_delivery_deadline := [max
-                    [14d + event_ts]
-                    [[days [ceil [quantity / 10]]] + event_ts]
+                    [14d + event_td]
+                    [[days [ceil [quantity / 10]]] + event_td]
                 ]
             ]
             [units_ordered += quantity]

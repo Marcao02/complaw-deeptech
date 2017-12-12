@@ -49,9 +49,9 @@
 		(FollowingSection
 			(visits == 1) ; LANG note: Similar to (traversal == 1) but for Sections.
 			(Next
-	            (deadlinesPartitionFuture
+	            (timeConstraintsPartitionFuture
 		            (Restaurant should (ServeMB) (strictly-within MAX_SERVE_DELAY))
-		            (EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY))
+		            (EnterPromptServeGuaranteeViolated (nonstrictly-after-td MAX_SERVE_DELAY))
 	            )
 	        )
 		)
@@ -86,9 +86,9 @@
 		(0 ≤ visits ≤ nonconstant)
 
         (Next
-            (deadlinesPartitionFuture ; LANG note: `deadlinesPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
+            (timeConstraintsPartitionFuture ; LANG note: `timeConstraintsPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
 	            (Challenger may (AnnounceMBFinished) (strictly-before challenge_endlimit_timestamp))
-	            (Restaurant should (CheckCompletionClaim) (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+	            (Restaurant should (CheckCompletionClaim) (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
 	            (TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)))
             )
         )
@@ -101,7 +101,7 @@
 		(FollowingSection
 			(0 ≤ visits ≤ nonconstant)
 			(Next
-	            (deadlinesPartitionFuture
+	            (timeConstraintsPartitionFuture
 		            (Restaurant should (CheckCompletionClaim) (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY))
 		            (TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance)))
 	            )

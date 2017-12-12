@@ -37,8 +37,8 @@ section AfterEnsureApartmentReady:
 
 action StartLeaseTerm()  transitions to MonthStarted:
     transform:
-        lease_term_start := event_ts
-        lease_term_end := event_ts + LEASE_DURATION
+        lease_term_start := event_td
+        lease_term_end := event_td + LEASE_DURATION
 
 action EnterMonthStarted()  transitions to MonthStarted
 
@@ -61,10 +61,10 @@ action PayRent()  transitions to AfterPayRent:
 
 action EnterMonthEnded()  transitions to MonthEnded
     following section:
-        pre: sectionEntranceTimestamp ≤ lease_term_end
-        if lease_term_end ≤ sectionEntranceTimestamp + 1d:
+        pre: sectionEntranceTimedelta ≤ lease_term_end
+        if lease_term_end ≤ sectionEntranceTimedelta + 1d:
             EnterLeaseTermEnded
-        if lease_term_end > sectionEntranceTimestamp + 1d:
+        if lease_term_end > sectionEntranceTimedelta + 1d:
             EnterMonthStarted (after-exact-duration 1d)
         if ¬lease_terminated:
             Tenant may RequestTerminationFromMonthEnded (by (earliest (monthStartDay ) + MAX_RENT_DELAY lease_term_end - 30))

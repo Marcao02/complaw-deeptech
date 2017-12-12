@@ -86,23 +86,23 @@ FN_SYMB_INTERP = {
 }
 
 TIME_CONSTRAINT_OP_INTERP = {
-    'event_ts': lambda entrance_ts, event_ts, args_ts: event_ts,
-    'sectionEntranceTimestamp': lambda entrance_ts, event_ts, args_ts: entrance_ts,
-    'by': lambda entrance_ts, event_ts, args_ts: (event_ts <= args_ts[0]),
+    'event_td': lambda entrance_ts, event_td, args_ts: event_td,
+    'sectionEntranceTimedelta': lambda entrance_ts, event_td, args_ts: entrance_ts,
+    'by': lambda entrance_ts, event_td, args_ts: (event_td <= args_ts[0]),
 
-    'nonstrictly-within': lambda entrance_ts, event_ts, args_dur: (event_ts <= entrance_ts + args_dur[0]),
-    'strictly-within': lambda entrance_ts, event_ts, args_dur: (event_ts < entrance_ts + args_dur[0]),
+    'nonstrictly-within': lambda entrance_ts, event_td, args_dur: (event_td <= entrance_ts + args_dur[0]),
+    'strictly-within': lambda entrance_ts, event_td, args_dur: (event_td < entrance_ts + args_dur[0]),
 
-    'nonstrictly-before': lambda entrance_ts, event_ts, args_t: (event_ts <= args_t[0]),
-    'strictly-before': lambda entrance_ts, event_ts, args_t: (event_ts < args_t[0]),
+    'nonstrictly-before': lambda entrance_ts, event_td, args_t: (event_td <= args_t[0]),
+    'strictly-before': lambda entrance_ts, event_td, args_t: (event_td < args_t[0]),
     
-    'nonstrictly-after-ts-and-within': lambda entrance_ts, event_ts, args: args[0] <= event_ts <= entrance_ts + args[1],
+    'nonstrictly-after-td-and-within': lambda entrance_ts, event_td, args: args[0] <= event_td <= entrance_ts + args[1],
     
-    'at-ts': lambda entrance_ts, event_ts, args_ts: (event_ts == args_ts[0]),
-    'immediately-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts == args_ts[0] + 1),
-    'after-exact-duration': lambda entrance_ts, event_ts, args_dur: (event_ts == entrance_ts + args_dur[0]),
-    'strictly-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts > args_ts[0]), # ??
-    'nonstrictly-after-ts': lambda entrance_ts, event_ts, args_ts: (event_ts >= args_ts[0]),
+    'at-ts': lambda entrance_ts, event_td, args_ts: (event_td == args_ts[0]),
+    'immediately-after-ts': lambda entrance_ts, event_td, args_ts: (event_td == args_ts[0] + 1),
+    'after-exact-duration': lambda entrance_ts, event_td, args_dur: (event_td == entrance_ts + args_dur[0]),
+    'strictly-after-ts': lambda entrance_ts, event_td, args_ts: (event_td > args_ts[0]), # ??
+    'nonstrictly-after-td': lambda entrance_ts, event_td, args_ts: (event_td >= args_ts[0]),
 }
 
 def event_to_action_str(event:Event):
@@ -178,6 +178,7 @@ class ExecEnv:
         return self.delta2datetime(self.cur_event_delta())
 
     def cur_event_delta(self) -> timedelta:
+        assert self.cur_event is not None
         return self.absolute_timeint2timedelta_converter(self.cur_event.timestamp)
 
 
@@ -379,18 +380,18 @@ class ExecEnv:
                                  f"Environment looks like:\n"
                                  f"{self.environ_tostr()}")
                 else:
-                    deadline_ok = self.evalDeadlineClause(entrance_enabled_strong_obligs[0].deadline_clause, ctx)
-                    # print("deadline_ok", deadline_ok)
-                    if deadline_ok:
+                    time_constraint_ok = self.evalTimeConstraint(entrance_enabled_strong_obligs[0].time_constraint, ctx)
+                    # print("time_constraint_ok", time_constraint_ok)
+                    if time_constraint_ok:
                         return EventOk() #(None,None)
                     else:
-                        return BreachResult({event.role_id}, f"Strong obligation of {event.role_id} expired or not yet active. See rule {entrance_enabled_strong_obligs[0]}\n with time constraint {entrance_enabled_strong_obligs[0].deadline_clause}")
+                        return BreachResult({event.role_id}, f"Strong obligation of {event.role_id} expired or not yet active. See rule {entrance_enabled_strong_obligs[0]}\n with time constraint {entrance_enabled_strong_obligs[0].time_constraint}")
 
 
         # CASE 2: 0 entrance-enabled strong obligations (SO action-rules)
-        present_enabled_weak_obligs : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, ctx), entrance_enabled_weak_obligs ))
-        present_enabled_permissions : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, ctx), entrance_enabled_permissions ))
-        present_enabled_env_action_rules : List[NextActionRule] = list(filter( lambda c: self.evalDeadlineClause(c.deadline_clause, ctx), entrance_enabled_env_action_rules ))
+        present_enabled_weak_obligs : List[NextActionRule] = list(filter( lambda c: self.evalTimeConstraint(c.time_constraint, ctx), entrance_enabled_weak_obligs ))
+        present_enabled_permissions : List[NextActionRule] = list(filter( lambda c: self.evalTimeConstraint(c.time_constraint, ctx), entrance_enabled_permissions ))
+        present_enabled_env_action_rules : List[NextActionRule] = list(filter( lambda c: self.evalTimeConstraint(c.time_constraint, ctx), entrance_enabled_env_action_rules ))
 
         # present_enabled_nonSO_action_rules : Iterator[NextActionRule] = chain(
         #     present_enabled_permissions.__iter__(),
@@ -418,7 +419,7 @@ class ExecEnv:
         # print("compatible_present_enabled_nonSO_action_rules", compatible_present_enabled_nonSO_action_rules)
 
         # CASE 2b: `event` compatible with more than one present-enabled non-SO action-rules
-        # ...This is actually ok as long as deadlinesPartitionFuture isn't used.
+        # ...This is actually ok as long as timeConstraintsPartitionFuture isn't used.
         if len(compatible_present_enabled_nonSO_action_rules) > 1:
             return EventOk() #(None,None)
 
@@ -484,9 +485,9 @@ class ExecEnv:
     #         else:
     #             raise NotImplementedError
     #
-    #         deadline_ok = self.evalDeadlineClause(c.deadline_clause, next_timestamp)
-    #         # print("deadline_ok", deadline_ok)
-    #         if deadline_ok:
+    #         time_constraint_ok = self.evalTimeConstraint(c.time_constraint, next_timestamp)
+    #         # print("time_constraint_ok", time_constraint_ok)
+    #         if time_constraint_ok:
     #             return True
     #     return False
 
@@ -717,11 +718,11 @@ class ExecEnv:
         else:
             return litterm.lit
 
-    def evalDeadlineClause(self, deadline_clause:Term, ctx:EvalContext) -> bool:
-        assert deadline_clause is not None
+    def evalTimeConstraint(self, time_constraint:Term, ctx:EvalContext) -> bool:
+        assert time_constraint is not None
         # return True
-        rv = chcast(bool, self.evalTerm(deadline_clause, ctx))
-        # print('evalDeadlineClause: ', rv)
+        rv = chcast(bool, self.evalTerm(time_constraint, ctx))
+        # print('evalTimeConstraint: ', rv)
         return rv
 
     def evalFnApp(self,
@@ -730,8 +731,6 @@ class ExecEnv:
         fn = fnapp.head
         # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
         evaluated_args = tuple(self.evalTerm(x,ctx) for x in fnapp.args)
-        todo_once("THIS IS TEMPORARY UNTIL I REMOVE TimeStamp EVERYWHERE")
-        # evaluated_args = tuple(self.delta2timeint(x) if isinstance(x,timestamp) else x for x in evaluated_args)
 
         try:
             if fn in FN_SYMB_INTERP:
@@ -739,13 +738,13 @@ class ExecEnv:
             elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
                 assert self.cur_event is not None
                 if fn == "monthStartDay":
-                    # get datetime from event_ts
+                    # get datetime from event_td
                     dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     month_start_dt = datetime(year=dt.year, month=dt.month, day=1)
                     return self.datetime2delta(month_start_dt)
                 if fn == "monthEndDay":
-                    # get datetime from event_ts
+                    # get datetime from event_td
                     dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     next_month = dt.month + 1 if dt.month < 12 else 1
@@ -761,7 +760,7 @@ class ExecEnv:
                         self.cur_event_delta(),
                         evaluated_args)
                 else:
-                    contract_bug(f"Unhandled deadline fn symbol: {fn}")
+                    contract_bug(f"Unhandled time constraintfn symbol: {fn}")
             elif fn == "contractStartDatetime":
                 return self.start_datetime
             elif fn == "contractStartTimedelta":
@@ -783,26 +782,6 @@ class ExecEnv:
         except Exception as e:
             contract_bug(f"Error evaluating fn app {fnapp}:\n" + str(e))
             raise e
-
-    def mk_event(self, action_id: str, role_id: str = ENV_ROLE,
-              timestamp: int = 0, params: Optional[Dict[str, Data]] = None,
-              eventType: Optional[EventType] = None) -> Event:
-        if eventType is None:
-            eventType = EventType.env_next if role_id == ENV_ROLE else EventType.party_next
-        params = params or dict()
-        return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id),
-                     delta=self.absolute_timeint2timedelta_converter(timestamp),
-                     params_by_abap_name=cast(ABAPNamedSubst, params) if params else None,
-                     params=list(params.values()) if params else None,
-                     type=eventType)
-
-    def mk_foevent(self, action_id: str, role_id: str = ENV_ROLE,
-                timestamp: int = 0, params: Optional[Dict[str, Data]] = None) -> Event:
-        return self.mk_event(action_id, role_id, timestamp, params, EventType.fulfill_floating_obligation)
-
-    def mk_fpevent(self, action_id: str, role_id: str = ENV_ROLE,
-                timestamp: int = 0, params: Optional[Dict[str, Data]] = None) -> Event:
-        return self.mk_event(action_id, role_id, timestamp, params, EventType.use_floating_permission)
 
     def evalError(self, msg: str, thing:Any = None):
         raise EvalError(msg, thing)

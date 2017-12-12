@@ -15,7 +15,7 @@ class ActionRule:
         self.role_id = role_id
         self.action_id = action_id
         self.entrance_enabled_guard = entrance_enabled_guard
-        self.deadline_clause: Term 
+        self.time_constraint: Term
         self.where_clause: Optional[Term] = None
 
         self.args = args
@@ -37,7 +37,7 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv = indent(indent_level) + "if " + str(ar.entrance_enabled_guard) + ":\n"
         indent_level += 1
 
-    if ar.action_id == FULFILLED_SECTION_LABEL and str(ar.deadline_clause) == 'immediately':
+    if ar.action_id == FULFILLED_SECTION_LABEL and str(ar.time_constraint) == 'immediately':
         rv += indent(indent_level) + FULFILLED_SECTION_LABEL
         return rv
 
@@ -49,11 +49,11 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
     if ar.args:
         rv += f"({mapjoin(str , ar.args, ', ')})"
 
-    if ar.role_id == ENV_ROLE and str(ar.deadline_clause) == 'immediately':
+    if ar.role_id == ENV_ROLE and str(ar.time_constraint) == 'immediately':
         return rv
 
-    if ar.deadline_clause:
-        rv += " " + str(ar.deadline_clause)
+    if ar.time_constraint:
+        rv += " " + str(ar.time_constraint)
 
     if ar.where_clause:
         rv += " where " + str(ar.where_clause)
@@ -77,23 +77,23 @@ class PartyFutureActionRule(ActionRule):
 
 
 class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
-    # todo QUESTION: Should deadline clause be partially evaluated??
+    # todo QUESTION: Should time constraint be partially evaluated??
     """
     It's derived from, and points at, a PartyFutureActionRule. Call that its parent rule.
     Its parent rule's `entrance_enabled_guard` evaluated to True when this thing was created.
-    It has values for all `GlobalVarId`s that occur in its parent's `where_clause` or `deadline_clause`.
-    It has values for all `ActionBoundActionParamId`s that occur in its parent's `where_clause`  or `deadline_clause`. Such variables can only
+    It has values for all `GlobalVarId`s that occur in its parent's `where_clause` or `time_constraint`.
+    It has values for all `ActionBoundActionParamId`s that occur in its parent's `where_clause`  or `time_constraint`. Such variables can only
     occur if its parent rule is defined in a `FollowingSection` declaration, since that is the only way that
-    an `ActionBoundActionParamId` can be in the scope of a `where_clause` or `deadline_clause`.
-    It has values for none of the `RuleBoundActionParamId`s that occur in its `where_clause` or `deadline_clause`.
+    an `ActionBoundActionParamId` can be in the scope of a `where_clause` or `time_constraint`.
+    It has values for none of the `RuleBoundActionParamId`s that occur in its `where_clause` or `time_constraint`.
     """
     rule : PartyFutureActionRule
     pe_where_clause : Optional[PartialEvalTerm] # "pe" for PartialEval
-    # pe_deadline_clause : PartialEvalTerm
+    # pe_time_constraint : PartialEvalTerm
 
-    # not necessary because comes from .pe_where_clause.gvar_subst (== .pe_deadline_clause.gvar_subst):
+    # not necessary because comes from .pe_where_clause.gvar_subst (== .pe_time_constraint.gvar_subst):
     #   gvar_vals : GVarSubst
-    # not necessary because comes from .pe_where_clause.abap_subst (== .pe_deadline_clause.abap_subst)
+    # not necessary because comes from .pe_where_clause.abap_subst (== .pe_time_constraint.abap_subst)
     #   ab_aparam_vals : List[Any] # "ab_aparam" short for action-bound action-param.
     #   aba_param_vals_dict : Dict[ActionBoundActionParamId,Any]  # shouldn't be necessary except maybe for debugging
 
@@ -149,11 +149,11 @@ class EnvNextActionRule(NextActionRule):
         if self.args:
             rv += f"({mapjoin(str , self.args, ', ')})"
 
-        if str(self.deadline_clause) == 'immediately':
+        if str(self.time_constraint) == 'immediately':
             return rv
 
-        if self.deadline_clause:
-            rv += " " + str(self.deadline_clause)
+        if self.time_constraint:
+            rv += " " + str(self.time_constraint)
 
         return rv
 

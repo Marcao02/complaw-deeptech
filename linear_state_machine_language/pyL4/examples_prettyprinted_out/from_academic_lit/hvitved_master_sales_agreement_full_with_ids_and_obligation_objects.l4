@@ -20,13 +20,13 @@ global vars:
 
 section VendorAcceptingOrders:
     if MAX_UNITS - units_ordered > 0:
-        Customer may SubmitNewOrder(q) event_ts ≤ contract_ends where 0 < q and q ≤ MAX_UNITS - units_ordered
+        Customer may SubmitNewOrder(q) event_td ≤ contract_ends where 0 < q and q ≤ MAX_UNITS - units_ordered
     if MAX_UNITS - units_ordered == 0:
-        EnterFulfilled event_ts ≥ contract_ends
+        EnterFulfilled event_td ≥ contract_ends
 
 action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
     transform:
-        this_delivery_deadline := (max 14d + event_ts (days (ceil quantity / 10)) + event_ts)
+        this_delivery_deadline := (max 14d + event_td (days (ceil quantity / 10)) + event_td)
         units_ordered += quantity
         this_orderid := next_order_id
         next_order_id += 1

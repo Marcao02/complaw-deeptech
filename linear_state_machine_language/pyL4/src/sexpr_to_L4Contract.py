@@ -242,7 +242,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 section.section_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(OUT_CONNECTIONS_LABEL):
-                if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'deadlinesPartitionFuture'):
+                if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'timeConstraintsPartitionFuture'):
                     x = x[1]
                     todo_once("guardsDisjointExhaustive etc in section()")
                 action_rule_exprs = castse(x.tillEnd(1))
@@ -498,11 +498,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 raise SyntaxError() # this is just to get mypy to not complain about missing return statement
 
 
-    def _mk_deadline_clause(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action]) -> Term:
+    def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action]) -> Term:
         # if expr in DEADLINE_KEYWORDS:
         #     return self._mk_term(expr, src_section, src_action)
         # elif isinstance(expr,str):
-        #     self.syntaxError(expr, f"Unrecognized token {expr} in deadline keyword position.")
+        #     self.syntaxError(expr, f"Unrecognized token {expr} in time constraint keyword position.")
         if isinstance(expr,str):
             return self._mk_term(expr, src_section, src_action, None, None)
         else:
@@ -512,11 +512,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return self._mk_term(expr, src_section, src_action, None, None)
             else:
                 if src_section:
-                    self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_section.section_id}")
+                    self.syntaxError(expr, f"Unhandled time constraintpredicate {expr} in section {src_section.section_id}")
                 elif src_action:
-                    self.syntaxError(expr, f"Unhandled deadline predicate {expr} in section {src_action.action_id}")
+                    self.syntaxError(expr, f"Unhandled time constraintpredicate {expr} in section {src_action.action_id}")
 
-        raise Exception("Must have deadline clause. You can use `immediately` or `no_time_constraint` or `discretionary`")
+        raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
 
     def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> PartyFutureActionRule:
         entrance_enabled_guard: Optional[Term] = None
@@ -540,8 +540,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         rem = expr.tillEnd(3)
         assert len(rem) >= 1
 
-        rv.deadline_clause = self._mk_deadline_clause(rem[0], None, src_action)
-        assert rv.deadline_clause is not None, str(rem)
+        rv.time_constraint = self._mk_time_constraint(rem[0], None, src_action)
+        assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:
             if x[0] == "where":
@@ -586,8 +586,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rem = expr.tillEnd(3)
         assert len(rem) >= 1
 
-        rv.deadline_clause = self._mk_deadline_clause(rem[0], src_section, None)
-        assert rv.deadline_clause is not None, str(rem)
+        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, None)
+        assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:
             if x[0] == "where":

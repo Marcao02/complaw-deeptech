@@ -23,7 +23,7 @@ action RequestCookMB()  transitions to AfterRequestCookMB:
         amount_owing := MB_PRICE
     following section:
         Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
-        EnterPromptServeGuaranteeViolated (nonstrictly-after-ts MAX_SERVE_DELAY)
+        EnterPromptServeGuaranteeViolated (nonstrictly-after-td MAX_SERVE_DELAY)
 
 action ServeMB()  transitions to EatingMB:
     transform:
@@ -37,7 +37,7 @@ action EnterEatingMB()  transitions to EatingMB
 
 section EatingMB:
     Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
-    Restaurant should CheckCompletionClaim (nonstrictly-after-ts-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
+    Restaurant should CheckCompletionClaim (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
     TimeToCheckCompletionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished

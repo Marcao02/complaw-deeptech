@@ -28,9 +28,6 @@ ContractParamSubst = Dict[ContractParamId,Data]
 GVarSubst = Dict[GlobalVarId,Data]
 ABAPNamedSubst = Dict[ActionBoundActionParamId, Data]
 RBAPNamedSubst = Dict[RuleBoundActionParamId, Data]
-# AParamsSubst =   NewType('AParamsSubst', list)
-# ABAPSubst = NewType('ABAPSubst', list)
-# RBAPSubst = NewType('RBAPSubst', list)
 AParamsSubst = List[Data]
 ABAPSubst = List[Data]
 RBAPSubst = List[Data]
@@ -41,44 +38,41 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
                       'readonly', 'branchUnaffecting',
                       'reactive', 'nonoperative'}
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
-# the sequence of evenat-states. We might later change this keyword to "validationOnly".
+# the sequence of event-states. We might later change this keyword to "validationOnly".
 
 PREFIX_DEADLINE_PREDICATES = {
                       'by', 'strictly-within', 'on-ts' ,'at-ts', 'nonstrictly-before', 'between', 'after',
-                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-ts-and-within',
+                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-td-and-within',
                       'after-exactly', # duration
                       'within', #duration
-                      'strictly-after', 'nonstrictly-after-ts', 'nonstrictly-within', 'after-exact-duration',
-                        'sectionEntranceTimestamp'
+                      'strictly-after', 'nonstrictly-after-td', 'nonstrictly-within', 'after-exact-duration',
+                        'sectionEntranceTimedelta'
                       }
 DEADLINE_PREDICATES = PREFIX_DEADLINE_PREDICATES.union({'≤','≥','<','>'})
 
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
-                      'dateFromDayAndMonthIndices', 'nextMonthIndex', 'event_ts',
+                      'dateFromDayAndMonthIndices', 'nextMonthIndex', 'event_td',
                         'monthStartDay', 'monthEndDay'}
 DEADLINE_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
 
-EXEC_ENV_VARIABLES = {'contractStartDatetime', 'contractStartTimedelta', 'sectionEntranceTimestamp', 'event_ts'}
+EXEC_ENV_VARIABLES = {'contractStartDatetime', 'contractStartTimedelta',
+                      'sectionEntranceTimedelta', 'event_td'}
 
-INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
-                    'or','and', 'unitsAfter'}
-PREFIX_FN_SYMBOLS = {'eventTimestamp',
-                     # 'monthStartDay',
-                     # 'monthEndDay',
+PREFIX_FN_SYMBOLS = {'entranceTimeNoLaterThan-ts?',
+                     'entranceTimeAfter-ts?',
                      'days', 'earliest',
-                     'dateplus',
                      'ifthenelse',
                      'max', 'min', 'ceil', 'even', 'odd', 'round',
                      'and*', 'not',
                      'enqueue', 'dequeue', 'discardTop', 'top',  # queues
                      'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
                      'setAdd', 'setRemove', # sets
-                     'tuple', 'fst', 'snd',
-                     'entranceTimeNoLaterThan-ts?', 'entranceTimeAfter-ts?'
-
+                     'tuple', 'fst', 'snd'
                      }.union(DEADLINE_OPERATORS, PREFIX_DEADLINE_PREDICATES)
+INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
+                    'or','and', 'unitsAfter'}
 
 POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
 

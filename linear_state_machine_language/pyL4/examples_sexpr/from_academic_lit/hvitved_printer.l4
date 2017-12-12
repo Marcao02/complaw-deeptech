@@ -36,12 +36,12 @@
 
 	(Section Awaiting_Delivery
 		[ProseRefs P1]
-		(Next (Seller must Deliver (event_ts ≤ DELIVERY_DEADLINE) ))
+		(Next (Seller must Deliver (event_td ≤ DELIVERY_DEADLINE) ))
 	)
 
 	(Action Deliver [ProseRefs P1]
 		(StateTransform
-			(delivery_date = (event_ts))
+			(delivery_date = (event_td))
 		)
 		(FollowingSection
 			(Next (Buyer must Pay1stInstallment immediately))
@@ -55,16 +55,16 @@
 		)
 		(FollowingSection
 			(Next
-				(Buyer should Pay2ndInstallment (event_ts ≤ (30 + delivery_date)))
-				(Buyer may ReturnOnTime (event_ts ≤ (14 + delivery_date)))
-				(EnterLate2ndInstallment (event_ts > (30 + delivery_date)))
+				(Buyer should Pay2ndInstallment (event_td ≤ (30 + delivery_date)))
+				(Buyer may ReturnOnTime (event_td ≤ (14 + delivery_date)))
+				(EnterLate2ndInstallment (event_td > (30 + delivery_date)))
 			)
 		)
 	)
 
 	(Action EnterLate2ndInstallment [ProseRefs P4]
 		(FollowingSection
-			(Next (Buyer must PayLateFee (event_ts ≤ (44 + delivery_date))))
+			(Next (Buyer must PayLateFee (event_td ≤ (44 + delivery_date))))
 		)
 	)
 
@@ -75,15 +75,15 @@
 		)
 		(FollowingSection
 			(Next
-				(Buyer may ReturnOnTime (event_ts ≤ (14 + delivery_date)))
-				(CompleteNormalSale (event_ts > (14 + delivery_date)))
+				(Buyer may ReturnOnTime (event_td ≤ (14 + delivery_date)))
+				(CompleteNormalSale (event_td > (14 + delivery_date)))
 			)
 		)
 	)
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSection
-			(Next (Seller must DeliverRefund (event_ts ≤ (7 + sectionEntranceTimestamp))))
+			(Next (Seller must DeliverRefund (event_td ≤ (7 + sectionEntranceTimedelta))))
 		)
 	)
 
