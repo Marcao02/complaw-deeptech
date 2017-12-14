@@ -1,3 +1,6 @@
+%useTabs
+%!TEX useTabs
+
 \documentclass[12pt]{article}
 % Organization note: L4-LSM-semantics_packages is _mostly_ package imports, but also contains some document-level usages of those packages.
 \usepackage{L4-LSM-semantics_packages}
@@ -17,9 +20,16 @@
 
 \noindent 
 
+{\bf I recommend joining \#dsl on our Slack and introduce yourself before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.}
+
+\bigskip
+
 \noindent {\bf NTS and todo:}
 \begin{PPI}
-\item Introduce a language for defining nonsingleton event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$. {\bf No}. That can be part of L4, but in the mathematical model it would just be messy.
+\item Rewrite Section 2.1 case 2
+\item Introduce a particular definition of representable event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$, for $R$ a term in some FO language.
+
+ \underline{{\bf No}}. That can be part of L4, but in the mathematical model it would just be messy. The only good reason to make it anything more specific than ``a set of events that have the same action'' that I can see now is if some algorithm or metatheorem relies on it.
 %\item Should I remove relievable must-next \nameforedges? {\bf No.}
 %
 %This was the idea for removing: Let $\evar$ be such \nameforaedge. First, change it to a may-next \nameforedge, keeping its transition guard. Its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next \nameforedges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
@@ -27,12 +37,17 @@
 
 \tableofcontents
 
-\section{How to Read this Document} 
+\section{Who this is for and how to read it} 
 {\bf Please note} that we have not yet taken the time to make this document as widely accessible as it will be eventually, because the contents are still changing frequently.
 
-This document defines the programming language-independent mathematical model that we will use to define the semantics of our formal contracts language L4. This document also serves as the specification for the formal contract datatype that our natural language generation, formal verification, and visualization software will use.
+This document defines the programming language-independent mathematical model, (very) tentatively called ``linear state machines``, that we use to define the semantics of our formal contracts language L4. It is written especially for computer scientists and mathematicians, especially Formal Verification experts, who aren't interested in, or are turned off by, the finer details of L4. For example, consider the component of the LSM model called a ``global vars transform`` introduced in Section \ref{globalvars}. It is a mathematical function, which if its domain is infinite means it's an infinite object, which obviously won't work for a programming language. In L4, there is an imperative-looking language for specifying such functions.
+ 
 
-The the next three sections contain complete formal contract model definitions, with Section \ref{globalvars} extending the model defined in Section \ref{basics}, and Section \ref{eventparams} extending the model defined in Section \ref{globalvars}. Section \ref{eventparams} is currently the most complete writeup of the L4 semantics. 
+%This document also serves as the specification for the formal contract datatype that our natural language generation, formal verification, and visualization software will use.
+
+The next three sections contain complete formal contract model definitions, with Section \ref{globalvars} extending the model defined in Section \ref{basics}, and Section \ref{eventparams} extending the model defined in Section \ref{globalvars}. Section \ref{eventparams} is currently the most complete writeup of the L4 semantics. Our intention was to have each of those sections be independent of the others, but we've only succeeded partially in doing that.
+
+\medskip 
 
 Click most terms (in \color{TermColor}this color\color{black}) to jump to their first underlined usage.
 
@@ -41,8 +56,6 @@ Click most terms (in \color{TermColor}this color\color{black}) to jump to their 
 This section defines a complete-but-limited model of contracts, called \\ \introxx{FSContracts}{simple contracts}{FSContract}{simple contract}, and also gives definitions that will be used for the full definition of \introxx{Contracts}{contracts}{Contract}{contract} in Section \ref{globalvars}.
 
 Every \Contract specifies a \introxx{TimeUnit}{time unit}{TimeUnits}{time units}; it is the smallest unit of time that one writes constraints about or does arithmetic with. We expect it will most often be days or hours. A \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps} is a natural number that we think of as being in units \TimeUnit.
-
-
 
 An \introxx{Event}{event}{Events}{events} $E$ is composed of an \introxx{Action}{action}{Actions}{actions} 
 \newcommand{\eaction}[1]{\Action_{#1}}
@@ -53,11 +66,14 @@ $\erole{E}$,
 a \TimeStamp 
 \newcommand{\etimestamp}[1]{\TimeStamp_{#1}}
 $\etimestamp{E}$, 
-and optionally some parameters (but parameters will not be introduced until Section \ref{globalvars}) 
-\newcommand{\eactionparams}[1]{\textsf{actionParams}_{#1}}
-$\eactionparams{E}$. 
+and optionally some parameters 
+\newcommand{\eactionparams}[1]{\textsf{actionParams}_{#1}} 
+$\eactionparams{E}$ (but parameters will not be introduced until Section \ref{globalvars}). 
 The \Actions and \Roles are fixed finite sets. In this first version of the L4 mathematical model, there is exactly one participant of each \Role.
-{\bf All events are modelled as actions}, and a special \Role \introx{Env}{Env} is used to model actions that have no subject.
+
+All events in the real world are modelled as instances of \Actions. A special \Role \introx{Env}{Env} is used to model actions that have no subject. Each \Event is instantaneous (a real world event with duration is modelled by two such instantaneous \Events, for the start and end), and its \TimeStamp $t$ means that the modelled real-world event happened between $t$ and $t+1$ \TimeUnits since the start of the contract. There can be multiple \Events in a contract execution with \TimeStamp $t$, and the formal model cannot assign more-precise time units to them, but the formal model does have a total order of all the \Events with timestamp $t$. When we need to model two real-world events as truly-simultaneous, we use one \Event to model their cooccurrence (section with example to be added below). 
+
+There can be multiple \Events in a contract execution with timestamp $t$, and the formal model can't assign more-precise time units to them, but the formal model does have a total order of all the \Events with timestamp $t$. When we need to model two truly-simultaneous informal events, we use one \Event that models their cooccurrence.
 
 A \introxx{trace}{trace}{traces}{traces} is a sequence of \Events. The \TimeStamps of the \Events must be nondecreasing. Thus, within the smallest unit of time, any number of \Events can happen; however, they are always strictly ordered. The idea here is that we want \Events to be strictly ordered for simplicity and to minimize the size of the space of execution traces, but if we made the \TimeStamps strictly increasing, we would need to be working at a level of granularity for time that is at least one level smaller than the smallest unit of time that would appear in an informal version of the contract (at least when \TimeUnit = days, since contracts that use days as their minimum unit generally do not require that all \Events happen on different days).
 
@@ -356,7 +372,7 @@ The \bostgc ensures that one of those two cases will apply. In particular, it im
 
 
 \section{May-Later and Must-Later}  \label{slater}
-WIP
+VERY WIP
 
 This section does not actually change the definition of \Contract. Instead, it defines an often-useful \Contract structure that is likely to be supported with custom syntax in a \Contract-definition language.
 

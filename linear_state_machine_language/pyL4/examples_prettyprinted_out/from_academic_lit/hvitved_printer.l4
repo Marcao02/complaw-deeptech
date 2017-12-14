@@ -48,7 +48,7 @@ action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following section:
-        Seller must DeliverRefund event_td ≤ 7 + sectionEntranceTimedelta
+        Seller must DeliverRefund event_td ≤ 7 + sectionEntrance_td
 
 action PayLateFee()  transitions to Fulfilled:
     transform:

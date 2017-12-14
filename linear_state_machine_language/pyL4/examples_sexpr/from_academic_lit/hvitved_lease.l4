@@ -71,13 +71,12 @@
 	(Action EnterMonthEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
 		(FollowingSection
-			(Pre ((sectionEntranceTimedelta) ≤ lease_term_end))
+			(Pre (sectionEntrance_td ≤ lease_term_end))
 			(Next
-				(if (lease_term_end ≤ ((sectionEntranceTimedelta) + 1D))
+				(if (lease_term_end ≤ (sectionEntrance_td + 1D))
 					(EnterLeaseTermEnded immediately)   )
-					; (EnterLeaseTermEnded (at-ts lease_term_end))   )
-				(if (lease_term_end > ((sectionEntranceTimedelta) + 1D))
-					(EnterMonthStarted (after-exact-duration 1D))   )
+				(if (lease_term_end > (sectionEntrance_td + 1D))
+					(EnterMonthStarted (== (sectionEntrance_td + 1d) event_td ))   )
 				(apply-macro RequestTerminationActionRuleMacroTenant MonthEnded)
 				(apply-macro RequestTerminationActionRuleMacroLandlord MonthEnded)   )))
 

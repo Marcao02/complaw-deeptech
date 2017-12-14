@@ -1,3 +1,14 @@
+# Type system
+
+My current favoured plan: Whatever fancy things we put into L4's type system, they are all mere abbreviations for simply-typed function symbols, and those abbreviations are expanded in the _minimal_ S-expression syntax/AST (note: we can still offer a non-minimal S-expression syntax that has such niceties, but that we will consider one of a number of possible concrete syntaxes). 
+
+One reason for this is that most SMT languages and first-order theorem provers don't support types beyond that. 
+
+It is also not hard to achieve. For example, if we have a polymorphic `if · then · else ·` expression of type `Πα. α -> α -> bool` in the concrete syntax, then whether or not the `α` is always/sometimes inferred by type inference (versus given explicitly), in the minimal S-expression syntax, all instances of that symbol will be something like 
+`("if_then_else[Int]" t b1 b2)` or `("if_then_else[List[Int]]" t b1 b2)` etc, where from the perspective of the execution engine, NLG (*without extra special handling linking it back to the polymorphic version*, which we will still have the option of), and formal verification, `if_then_else[List[Int]]` is just a simply-typed function symbol of type `"List[Int]" -> "List[Int]" -> Int`, and `"List[Int]"` is just an atomic type.
+
+# post from Slack
+
 Updates and some things I’m thinking about today when I have to be afk, in case anyone on here has a few spare afk cycles too. @mengwong @jobchong @virgil @vi
 
 I'm quite confident that delaying the writing of a parser for nicer-looking L4 concrete syntax was a good idea, for at least these reasons:
@@ -9,7 +20,7 @@ I'm fairly confident that writing a separate definition of the formal-verificati
 	(4) Similar to (2) above, it mitigates the fracturing issue of differing opinions on what L4 "should" be. It's easier to get people to agree on math than on languages.
 	(5) There are human-centric features we want for L4 that go beyond concrete syntax, but that would be unnecessary complications for formal verification. An example: human representations of dates/time are important in contracts, but they are complex enough that I don't think they can be accurately modeled as mere syntactic sugar (i.e. a feature of the concrete syntax only), as the computational contracts academics always do.
 
-I imagine Vitalik (who I'm too shy to tag) and Yoichi and others came to similar conclusions while designing the EVM (the closest analogue of LSMs in this post) vs Solitidy Assembly vs (Solidity / Viper / Bamboo etc).
+I imagine Vitalik and Yoichi and others came to similar conclusions while designing the EVM (the closest analogue of LSMs in this post) vs Solitidy Assembly vs (Solidity / Viper / Bamboo etc).
 
 We currently don't have a well-delineated explicit model of Linear State Machines in the python code. One of the things I'll be thinking about on my run today is whether we should (this would be (v) in the list below). Would be grateful for any thoughts.
 

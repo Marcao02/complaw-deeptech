@@ -512,9 +512,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return self._mk_term(expr, src_section, src_action, None, None)
             else:
                 if src_section:
-                    self.syntaxError(expr, f"Unhandled time constraintpredicate {expr} in section {src_section.section_id}")
+                    print("pair: ", pair)
+                    self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in section {src_section.section_id}")
                 elif src_action:
-                    self.syntaxError(expr, f"Unhandled time constraintpredicate {expr} in section {src_action.action_id}")
+                    self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in action {src_action.action_id}")
 
         raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
 

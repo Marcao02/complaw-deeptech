@@ -27,7 +27,7 @@ action RequestCookMB()  transitions to AfterRequestCookMB:
 
 action ServeMB()  transitions to EatingMB:
     transform:
-        challenge_endlimit_timestamp := (TIME_TO_EAT_BURGER unitsAfterEntrance)
+        challenge_endlimit_timestamp := TIME_TO_EAT_BURGER unitsAfter sectionEntrance_td
 
 action EnterPromptServeGuaranteeViolated()  transitions to Fulfilled:
     transform:
@@ -37,13 +37,13 @@ action EnterEatingMB()  transitions to EatingMB
 
 section EatingMB:
     Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
-    Restaurant should CheckCompletionClaim (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY)
+    Restaurant should CheckCompletionClaim (and challenge_endlimit_timestamp ≤ event_td event_td ≤ MAX_CLAIM_VERIFICATION_DELAY + sectionEntrance_td)
     TimeToCheckCompletionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following section:
         Restaurant should CheckCompletionClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
-        TimeToCheckCompletionExpires (at-ts (MAX_CLAIM_VERIFICATION_DELAY unitsAfterEntrance))
+        TimeToCheckCompletionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter sectionEntrance_td)
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:
@@ -56,9 +56,9 @@ action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
 
 action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
     following section:
-        if (entranceTimeNoLaterThan-ts? challenge_endlimit_timestamp):
+        if sectionEntrance_td ≤ challenge_endlimit_timestamp:
             EnterEatingMB
-        if (entranceTimeAfter-ts? challenge_endlimit_timestamp):
+        if sectionEntrance_td > challenge_endlimit_timestamp:
             Challenger must PayForMB immediately
 
 action PayForMB()  transitions to Fulfilled:

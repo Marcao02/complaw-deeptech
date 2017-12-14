@@ -1,6 +1,6 @@
 # from enum import Enum
 
-from typing import Dict, NewType, cast, Union, List, Any
+from typing import Dict, NewType, cast, Union, List, Any, Set
 
 Nat = NewType('Nat',int)
 # TimeInt = NewType('TimeInt',Nat)
@@ -32,7 +32,6 @@ AParamsSubst = List[Data]
 ABAPSubst = List[Data]
 RBAPSubst = List[Data]
 
-SPECIAL_CONSTANTS = {'MAX_TIME', 'MAX_EVENT_STATE_CHANGES'}
 VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
                       'writeOnceMore', 'inconly', 'deconly',
                       'readonly', 'branchUnaffecting',
@@ -42,39 +41,39 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 
 PREFIX_DEADLINE_PREDICATES = {
                       'by', 'strictly-within', 'on-ts' ,'at-ts', 'nonstrictly-before', 'between', 'after',
-                      'strictly-before', 'nonstrictly-between-or-on','nonstrictly-after-td-and-within',
-                      'after-exactly', # duration
+                      'strictly-before', 'nonstrictly-after-td-and-within',
                       'within', #duration
-                      'strictly-after', 'nonstrictly-after-td', 'nonstrictly-within', 'after-exact-duration',
-                        'sectionEntranceTimedelta'
+                      'and',
+                      'nonstrictly-after-td', 'after-exact-duration',
                       }
-DEADLINE_PREDICATES = PREFIX_DEADLINE_PREDICATES.union({'≤','≥','<','>'})
+DEADLINE_PREDICATES = PREFIX_DEADLINE_PREDICATES.union({'≤','≥','<','>','=='})
 
 DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
-                      'dateFromDayAndMonthIndices', 'nextMonthIndex', 'event_td',
+                      'dateFromDayAndMonthIndices', 'nextMonthIndex',
                         'monthStartDay', 'monthEndDay'}
+
 DEADLINE_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
 
-EXEC_ENV_VARIABLES = {'contractStartDatetime', 'contractStartTimedelta',
-                      'sectionEntranceTimedelta', 'event_td'}
+EXEC_ENV_VARIABLES = {'contractStart_dt',
+                      'contractStart_td',
+                      'sectionEntrance_td',
+                      'event_td'}
 
-PREFIX_FN_SYMBOLS = {'entranceTimeNoLaterThan-ts?',
-                     'entranceTimeAfter-ts?',
-                     'days', 'earliest',
+PREFIX_FN_SYMBOLS = {'days', 'earliest',
                      'ifthenelse',
-                     'max', 'min', 'ceil', 'even', 'odd', 'round',
+                     'max', 'min',
+                     'ceil', 'round',
+                     'even', 'odd',
                      'and*', 'not',
-                     'enqueue', 'dequeue', 'discardTop', 'top',  # queues
-                     'append', 'removeOne', 'containedIn', 'get', 'nonempty',# lists
-                     'setAdd', 'setRemove', # sets
-                     'tuple', 'fst', 'snd'
+                     '=='
                      }.union(DEADLINE_OPERATORS, PREFIX_DEADLINE_PREDICATES)
+
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}
 
-POSTFIX_FN_SYMBOLS = {'unitsAfterEntrance'}
+POSTFIX_FN_SYMBOLS : Set[str] = set() # {'unitsAfterEntrance'}
 
 DEONTIC_KEYWORDS = {'must','may','should','weakly-must','may-later','must-later'}
 DeonticKeyword = NewType('DeonticKeyword',str)

@@ -41,7 +41,7 @@
 
 	(Action Deliver [ProseRefs P1]
 		(StateTransform
-			(delivery_date = (event_td))
+			(delivery_date = event_td)
 		)
 		(FollowingSection
 			(Next (Buyer must Pay1stInstallment immediately))
@@ -83,7 +83,7 @@
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSection
-			(Next (Seller must DeliverRefund (event_td ≤ (7 + sectionEntranceTimedelta))))
+			(Next (Seller must DeliverRefund (event_td ≤ (7 + sectionEntrance_td))))
 		)
 	)
 

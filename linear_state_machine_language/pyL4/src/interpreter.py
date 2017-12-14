@@ -86,11 +86,8 @@ FN_SYMB_INTERP = {
 }
 
 TIME_CONSTRAINT_OP_INTERP = {
-    'event_td': lambda entrance_ts, event_td, args_ts: event_td,
-    'sectionEntranceTimedelta': lambda entrance_ts, event_td, args_ts: entrance_ts,
     'by': lambda entrance_ts, event_td, args_ts: (event_td <= args_ts[0]),
 
-    'nonstrictly-within': lambda entrance_ts, event_td, args_dur: (event_td <= entrance_ts + args_dur[0]),
     'strictly-within': lambda entrance_ts, event_td, args_dur: (event_td < entrance_ts + args_dur[0]),
 
     'nonstrictly-before': lambda entrance_ts, event_td, args_t: (event_td <= args_t[0]),
@@ -101,7 +98,6 @@ TIME_CONSTRAINT_OP_INTERP = {
     'at-ts': lambda entrance_ts, event_td, args_ts: (event_td == args_ts[0]),
     'immediately-after-ts': lambda entrance_ts, event_td, args_ts: (event_td == args_ts[0] + 1),
     'after-exact-duration': lambda entrance_ts, event_td, args_dur: (event_td == entrance_ts + args_dur[0]),
-    'strictly-after-ts': lambda entrance_ts, event_td, args_ts: (event_td > args_ts[0]), # ??
     'nonstrictly-after-td': lambda entrance_ts, event_td, args_ts: (event_td >= args_ts[0]),
 }
 
@@ -761,22 +757,14 @@ class ExecEnv:
                         evaluated_args)
                 else:
                     contract_bug(f"Unhandled time constraintfn symbol: {fn}")
-            elif fn == "contractStartDatetime":
+            elif fn == "contractStart_dt":
                 return self.start_datetime
-            elif fn == "contractStartTimedelta":
+            elif fn == "contractStart_td":
                 return self.datetime2delta(self.start_datetime)
-            elif fn == "unitsAfterEntrance":
-                assert len(evaluated_args) == 1
-                assert isinstance(evaluated_args[0], timedelta)
-                return evaluated_args[0] + self.last_section_entrance_delta
-            elif fn == 'entranceTimeNoLaterThan-ts?':
-                assert len(evaluated_args) == 1
-                assert isinstance(evaluated_args[0], timedelta)
-                return self.last_section_entrance_delta <= evaluated_args[0]
-            elif fn == 'entranceTimeAfter-ts?':
-                assert len(evaluated_args) == 1
-                assert isinstance(evaluated_args[0], timedelta)
-                return self.last_section_entrance_delta > evaluated_args[0]
+            elif fn == "event_td":
+                return self.cur_event_delta()
+            elif fn == "sectionEntrance_td":
+                return self.last_section_entrance_delta
             else:
                 contract_bug(f"Unhandled fn symbol in evalFnApp: {fn}")
         except Exception as e:

@@ -13,7 +13,7 @@ global vars:
 section WorkingOnAssignment:
     Alice weakly-must SolveProbA (by DueDate)
     Alice may SolveProbB (by DueDate)
-    if probAsolved and probBsolved:
+    if (and probAsolved probBsolved):
         Alice may Submit (by DueDate)
     Bob weakly-must SolveProbB (by DueDate)
     Bob may SolveProbA (by DueDate)

@@ -14,8 +14,8 @@ global vars:
     next_payment_month : ℕ := 0
 
 section WaitingForFirstDayOfNextMonth:
-    if MIN_PAYMENT ≤ balance_remaining and next_payment_month < 23:
-        Buyer weakly-must PayInstallment(amount) (after-exact-duration 30d) where MIN_PAYMENT ≤ amount and amount ≤ balance_remaining
+    if (and MIN_PAYMENT ≤ balance_remaining next_payment_month < 23):
+        Buyer weakly-must PayInstallment(amount) (after-exact-duration 30d) where (and MIN_PAYMENT ≤ amount amount ≤ balance_remaining)
     Buyer weakly-must PayLastInstallment(amount) (after-exact-duration 30d) where amount == balance_remaining + DUE_AT_CLOSING
 
 action PayInstallment(amount)  transitions to WaitingForFirstDayOfNextMonth:
