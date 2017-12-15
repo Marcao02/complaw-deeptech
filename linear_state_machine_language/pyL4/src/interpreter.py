@@ -29,10 +29,8 @@ from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextAct
     ActionRule, PartlyInstantiatedPartyFutureActionRule
 from src.model.Section import Section
 from src.sexpr_to_L4Contract import L4ContractConstructor
-from src.parse_sexpr import prettySExprStr, parse_file
-from src.model.constants_and_defined_types import GlobalVarId, ActionId, DEADLINE_OPERATORS, DEADLINE_PREDICATES, \
-    RoleId, \
-    RuleBoundActionParamId, ContractParamId, SectionId, ActionBoundActionParamId, FULFILLED_SECTION_LABEL, ABAPSubst, \
+from src.model.constants_and_defined_types import GlobalVarId, ActionId, TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
+    RoleId, ContractParamId, SectionId, ActionBoundActionParamId, FULFILLED_SECTION_LABEL, ABAPSubst, \
     Data, ENV_ROLE, GVarSubst, ContractParamSubst, ABAPNamedSubst
 from src.model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, mapjoin
 
@@ -85,20 +83,8 @@ FN_SYMB_INTERP = {
     'ceil': math.ceil
 }
 
-TIME_CONSTRAINT_OP_INTERP = {
-    'by': lambda entrance_ts, event_td, args_ts: (event_td <= args_ts[0]),
-
-    'strictly-within': lambda entrance_ts, event_td, args_dur: (event_td < entrance_ts + args_dur[0]),
-
-    'nonstrictly-before': lambda entrance_ts, event_td, args_t: (event_td <= args_t[0]),
-    'strictly-before': lambda entrance_ts, event_td, args_t: (event_td < args_t[0]),
-    
-    'nonstrictly-after-td-and-within': lambda entrance_ts, event_td, args: args[0] <= event_td <= entrance_ts + args[1],
-    
-    'at-ts': lambda entrance_ts, event_td, args_ts: (event_td == args_ts[0]),
-    'immediately-after-ts': lambda entrance_ts, event_td, args_ts: (event_td == args_ts[0] + 1),
-    'after-exact-duration': lambda entrance_ts, event_td, args_dur: (event_td == entrance_ts + args_dur[0]),
-    'nonstrictly-after-td': lambda entrance_ts, event_td, args_ts: (event_td >= args_ts[0]),
+TIME_CONSTRAINT_OP_INTERP : Any = {
+    # 'by': lambda entrance_ts, event_td, args_ts: (event_td <= args_ts[0]),
 }
 
 def event_to_action_str(event:Event):
@@ -731,15 +717,15 @@ class ExecEnv:
         try:
             if fn in FN_SYMB_INTERP:
                 return cast(Any,FN_SYMB_INTERP[fn])(*evaluated_args)
-            elif fn in DEADLINE_OPERATORS or fn in DEADLINE_PREDICATES:
+            elif fn in TIME_CONSTRAINT_OPERATORS or fn in TIME_CONSTRAINT_PREDICATES:
                 assert self.cur_event is not None
-                if fn == "monthStartDay":
+                if fn == "monthStartDay_td":
                     # get datetime from event_td
                     dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     month_start_dt = datetime(year=dt.year, month=dt.month, day=1)
                     return self.datetime2delta(month_start_dt)
-                if fn == "monthEndDay":
+                if fn == "monthEndDay_td":
                     # get datetime from event_td
                     dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month

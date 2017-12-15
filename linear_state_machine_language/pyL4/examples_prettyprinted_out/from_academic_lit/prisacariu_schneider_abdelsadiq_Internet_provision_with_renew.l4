@@ -16,8 +16,8 @@ global vars:
     sent_delay_email : Bool := False
     paid : ℕ := 0
     paidBefore24 : Bool := False
-    traffic_low_since : TimeStamp
-    infraction_time : TimeStamp
+    traffic_low_since : TimeDelta
+    infraction_time : TimeDelta
 
 action SendCancelNoticeByPost()  non-transitioning:
     transform:
@@ -87,10 +87,10 @@ section UnsettledInfraction:
     if ¬usage_level_normal:
         Client may LowerTraffic event_td ≤ infraction_time + 48h
     Client may SendDelayEmail event_td ≤ infraction_time + 48h
-    Client may Pay(x) event_td ≤ infraction_time + 48h where (and x > 0 x ≤ 3)
+    Client may Pay(x) event_td ≤ infraction_time + 48h where x > 0 and x ≤ 3
     if (and* ¬sent_delay_email usage_level_normal paid ≥ 1):
         Reset event_td ≤ infraction_time + 24h
-    if (and ¬sent_delay_email ¬usage_level_normal or ¬paidBefore24):
+    if ¬sent_delay_email and ¬usage_level_normal or ¬paidBefore24:
         ClientBreaches event_td > infraction_time + 24h
     if (and* sent_delay_email usage_level_normal paid ≥ 2):
         Reset event_td ≤ infraction_time + 48h

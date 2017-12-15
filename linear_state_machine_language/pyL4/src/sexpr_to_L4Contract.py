@@ -441,7 +441,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in EXEC_ENV_VARIABLES:
                 return FnApp(x,[])
 
-            if x in DEADLINE_KEYWORDS:
+            if x in TIME_CONSTRAINT_KEYWORDS:
                 return DeadlineLit(x)
 
             if x in self.top.global_var_decs:
@@ -499,7 +499,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
 
     def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action]) -> Term:
-        # if expr in DEADLINE_KEYWORDS:
+        # if expr in TIME_CONSTRAINT_KEYWORDS:
         #     return self._mk_term(expr, src_section, src_action)
         # elif isinstance(expr,str):
         #     self.syntaxError(expr, f"Unrecognized token {expr} in time constraint keyword position.")
@@ -508,7 +508,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
-            if pair and pair[0] in DEADLINE_PREDICATES:
+            if pair and pair[0] in TIME_CONSTRAINT_PREDICATES:
                 return self._mk_term(expr, src_section, src_action, None, None)
             else:
                 if src_section:

@@ -159,9 +159,9 @@
 
 		(FollowingSection
 			(Next
-				(Investor may ChooseCashPayment discretionary)
-				(Investor may ChooseStockPayment discretionary)
-				(Company should AutoChooseStockPayment discretionary)
+				(Investor may ChooseCashPayment [event_td < (sectionEntrance_td + 1W)])
+				(Investor may ChooseStockPayment [event_td < (sectionEntrance_td + 1W)])
+				(Company weakly-must AutoChooseStockPayment [event_td == (sectionEntrance_td + 1W)])
 			)
 		)
 	)

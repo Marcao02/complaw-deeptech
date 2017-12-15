@@ -48,9 +48,9 @@
 	( paidBefore24 : Bool = false )
 
 	; next var meaningful only when usage_level_normal is true
-	( traffic_low_since : TimeStamp )
+	( traffic_low_since : TimeDelta )
 	; next var meaningful only when unsettled_infraction is true
-	( infraction_time : TimeStamp )
+	( infraction_time : TimeDelta )
 )
 
 (Definitions

@@ -260,8 +260,8 @@
 		)
 
 		(FollowingSection
-			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
-			; becase it's implied by the definitions.
+			; Don't need to specify that the following two `must`s should be verified disjoint exhaustive,
+			; becase it's implied by the definition of strong obligation.
 			(Next
 				(if (dis_cashout < PURCHASE_AMOUNT)
 					(Company must (TransferAssets _) discretionary)  )

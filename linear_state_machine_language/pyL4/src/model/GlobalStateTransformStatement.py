@@ -1,7 +1,7 @@
 
 from typing import List, Union, Optional, NamedTuple
 
-from src.model.constants_and_defined_types import GlobalVarId
+from src.model.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
 from src.model.Term import Term
 
 from src.model.util import castid, indent
@@ -33,6 +33,14 @@ class IfElse(GlobalStateTransformStatement):
 
 class VarAssignStatement(GlobalStateTransformStatement):
     def __init__(self, varname:GlobalVarId, value_expr:Term) -> None:
+        self.varname = varname
+        self.value_expr = value_expr
+
+    def __str__(self):
+        return f"{self.varname} := {str(self.value_expr)}"
+
+class StateTransformLocalVarDec(GlobalStateTransformStatement):
+    def __init__(self, varname:StateTransformLocalVarId, value_expr:Term) -> None:
         self.varname = varname
         self.value_expr = value_expr
 

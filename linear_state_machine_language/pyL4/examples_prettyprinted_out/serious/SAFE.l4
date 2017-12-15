@@ -72,7 +72,7 @@ action CommitToLiquidityEvent(change_of_control, company_cash_at_liquidity_event
         liq_price := VALUATION_CAP / liquidity_capitalization
         investor_liq_hypothetical_shares := PURCHASE_AMOUNT / liq_price
         investor_percent_of_cashout_investor_investments := investor_liq_hypothetical_shares / liquidity_capitalization + investor_liq_hypothetical_shares
-        if (and change_of_control reduction_needed_to_qualify_as_usa_tax_free_reorg > 0):
+        if change_of_control and reduction_needed_to_qualify_as_usa_tax_free_reorg > 0:
             investor_Common_Stocks += (round investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg / liq_price)            investor_remaining_investment_L := PURCHASE_AMOUNT - investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg
         else:
             investor_remaining_investment_L := PURCHASE_AMOUNT
@@ -110,7 +110,7 @@ action TransferCash_L()  transitions to AfterTransferCash_L:
     following section:
         if liq_cashout < investor_remaining_investment_L:
             Company must TransferCommonStock discretionary
-        if liq_cashout == investor_remaining_investment_L:
+        if (== liq_cashout investor_remaining_investment_L):
             Company must DoLiquidityEvent discretionary
 
 action DoLiquidityEvent()  transitions to Fulfilled
@@ -129,7 +129,7 @@ action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dis
     following section:
         if dis_cashout < PURCHASE_AMOUNT:
             Company must TransferAssets(_) discretionary
-        if dis_cashout == PURCHASE_AMOUNT:
+        if (== dis_cashout PURCHASE_AMOUNT):
             Company must Dissolve discretionary
 
 action TransferAssets(liquidity_capitalization)  transitions to AfterTransferAssets:

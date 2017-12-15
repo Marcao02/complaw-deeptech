@@ -4,19 +4,19 @@ file: toy_and_teaching/partner_assignment_relievable_obligations.l4
 roles: Env, Alice, Bob
 
 contract params:
-    DueDate : TimeStamp := 40
+    DUE_TD : TimeDelta := 40
 
 global vars:
     probAsolved : boolean := False
     probBsolved : boolean := False
 
 section WorkingOnAssignment:
-    Alice weakly-must SolveProbA (by DueDate)
-    Alice may SolveProbB (by DueDate)
-    if (and probAsolved probBsolved):
-        Alice may Submit (by DueDate)
-    Bob weakly-must SolveProbB (by DueDate)
-    Bob may SolveProbA (by DueDate)
+    Alice weakly-must SolveProbA event_td ≤ DUE_TD
+    Alice may SolveProbB event_td ≤ DUE_TD
+    if probAsolved and probBsolved:
+        Alice may Submit event_td ≤ DUE_TD
+    Bob weakly-must SolveProbB event_td ≤ DUE_TD
+    Bob may SolveProbA event_td ≤ DUE_TD
 
 action SolveProbA()  transitions to WorkingOnAssignment:
     transform:

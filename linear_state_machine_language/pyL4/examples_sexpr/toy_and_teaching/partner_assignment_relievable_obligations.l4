@@ -6,12 +6,12 @@
 ; ProbA and ProbB. It's Alice's responsibility to get ProbA done, and Bob's responsibility to
 ; get ProbB done, but either, if they wish, may do the work of their partner. We're assuming that
 ; problem solutions can't be checked automatically (say, they're Project Euler problems), so
-; comparing different solutions isn't necessary. The assignment is due on DueDate, and the
+; comparing different solutions isn't necessary. The assignment is due on DUE_TD, and the
 ; partners agree that either can submit the assignment early if it's finished, and that they
-; are jointly responsible for submitting it by DueDate.
+; are jointly responsible for submitting it by DUE_TD.
 
 (ContractParams
-	(DueDate : TimeStamp = 40)
+	(DUE_TD : TimeDelta = 40)
 
 )
 
@@ -26,15 +26,15 @@
 	"partner assignment demonstrating relievable obligations"
 	(Section WorkingOnAssignment
 		(Next
-			(Alice weakly-must SolveProbA (by DueDate))
-			(Bob   weakly-must SolveProbB (by DueDate))
+			(Alice weakly-must SolveProbA (event_td ≤ DUE_TD))
+			(Bob   weakly-must SolveProbB (event_td ≤ DUE_TD))
 
-			(Alice may SolveProbB (by DueDate))
-			(Bob   may SolveProbA (by DueDate))
+			(Alice may SolveProbB (event_td ≤ DUE_TD))
+			(Bob   may SolveProbA (event_td ≤ DUE_TD))
 
 			(if (probAsolved and probBsolved)
-				(Alice may Submit (by DueDate))
-				(Bob may Submit (by DueDate))
+				(Alice may Submit (event_td ≤ DUE_TD))
+				(Bob may Submit (event_td ≤ DUE_TD))
 			)
 		)
 	)

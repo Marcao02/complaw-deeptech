@@ -12,6 +12,7 @@ TimeInt = int
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)
 GlobalVarId = NewType('GlobalVarId',str)
+StateTransformLocalVarId = NewType('StateTransformLocalVarId',str)
 ActionId = NewType('ActionId',str)
 SortId = NewType('SortId', str)
 SectionId = NewType('SectionId',str)
@@ -39,20 +40,13 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of event-states. We might later change this keyword to "validationOnly".
 
-PREFIX_DEADLINE_PREDICATES = {
-                      'by', 'strictly-within', 'on-ts' ,'at-ts', 'nonstrictly-before', 'between', 'after',
-                      'strictly-before', 'nonstrictly-after-td-and-within',
-                      'within', #duration
-                      'and',
-                      'nonstrictly-after-td', 'after-exact-duration',
-                      }
-DEADLINE_PREDICATES = PREFIX_DEADLINE_PREDICATES.union({'≤','≥','<','>','=='})
+TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and'}
 
-DEADLINE_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
+TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex',
-                        'monthStartDay', 'monthEndDay'}
+                        'monthStartDay_td', 'monthEndDay_td'}
 
-DEADLINE_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
+TIME_CONSTRAINT_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
 
@@ -68,7 +62,7 @@ PREFIX_FN_SYMBOLS = {'days', 'earliest',
                      'even', 'odd',
                      'and*', 'not',
                      '=='
-                     }.union(DEADLINE_OPERATORS, PREFIX_DEADLINE_PREDICATES)
+                     }.union(TIME_CONSTRAINT_OPERATORS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
                     'or','and', 'unitsAfter'}

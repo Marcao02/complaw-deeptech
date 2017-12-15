@@ -22,11 +22,11 @@
 
 (Macro RequestTerminationActionRuleMacroTenant SectionId
 	(if (not lease_terminated)
-		(Tenant may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Tenant may (RequestTerminationFromSectionId) (event_td ≤ (earliest ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
 (Macro RequestTerminationActionRuleMacroLandlord SectionId
 	(if (not lease_terminated)
-		(Landlord may (RequestTerminationFromSectionId) (by (earliest ((monthStartDay) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Landlord may (RequestTerminationFromSectionId) (event_td ≤ (earliest ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
 (Macro RequestTerminationActionMacro SectionId
 	(Action RequestTerminationFromSectionId (AllowedSubjects Landlord Tenant) (TransitionsTo SectionId)
@@ -47,7 +47,7 @@
 
 	(Action StartLeaseTerm (TransitionsTo MonthStarted)
 		(StateTransform
-			; (conjecture ((eventTimestamp) == (monthStartDay)))
+			; (conjecture ((eventTimestamp) == (monthStartDay_td)))
 			(lease_term_start := event_td)
 			(lease_term_end := (event_td + LEASE_DURATION))   ))
 
@@ -55,7 +55,7 @@
 
 	(Section MonthStarted
 		(Next
-			(Tenant weakly-must (PayRent) (by ((monthStartDay) + MAX_RENT_DELAY)))
+			(Tenant weakly-must (PayRent) (event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
 			(apply-macro RequestTerminationActionRuleMacroTenant MonthStarted)
 			(apply-macro RequestTerminationActionRuleMacroLandlord MonthStarted)
 		)
@@ -64,7 +64,7 @@
 	(Action PayRent (StateTransform (total_rent_paid += 1000))
 		(FollowingSection
 			(Next
-				(EnterMonthEnded (at-ts (monthEndDay)))
+				(EnterMonthEnded (event_td == (monthEndDay_td)))
 				(apply-macro RequestTerminationActionRuleMacroTenant AfterPayRent)
 				(apply-macro RequestTerminationActionRuleMacroLandlord AfterPayRent)  )))
 

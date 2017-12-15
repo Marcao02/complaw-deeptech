@@ -16,14 +16,14 @@ global vars:
     amount_paid : Price := 0
 
 section MonsterBurgerUncooked:
-    Challenger must RequestCookMB (nonstrictly-within 30m)
+    Challenger must RequestCookMB event_td ≤ sectionEntrance_td + 30m
 
 action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
         amount_owing := MB_PRICE
     following section:
-        Restaurant should ServeMB (strictly-within MAX_SERVE_DELAY)
-        EnterPromptServeGuaranteeViolated (nonstrictly-after-td MAX_SERVE_DELAY)
+        Restaurant should ServeMB event_td < MAX_SERVE_DELAY + sectionEntrance_td
+        EnterPromptServeGuaranteeViolated event_td ≥ MAX_SERVE_DELAY + sectionEntrance_td
 
 action ServeMB()  transitions to EatingMB:
     transform:
@@ -36,14 +36,14 @@ action EnterPromptServeGuaranteeViolated()  transitions to Fulfilled:
 action EnterEatingMB()  transitions to EatingMB
 
 section EatingMB:
-    Challenger may AnnounceMBFinished (strictly-before challenge_endlimit_timestamp)
-    Restaurant should CheckCompletionClaim (and challenge_endlimit_timestamp ≤ event_td event_td ≤ MAX_CLAIM_VERIFICATION_DELAY + sectionEntrance_td)
-    TimeToCheckCompletionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
+    Challenger may AnnounceMBFinished event_td < challenge_endlimit_timestamp
+    Restaurant should CheckCompletionClaim challenge_endlimit_timestamp ≤ event_td and event_td ≤ MAX_CLAIM_VERIFICATION_DELAY + sectionEntrance_td
+    TimeToCheckCompletionExpires (== event_td MAX_CLAIM_VERIFICATION_DELAY unitsAfter challenge_endlimit_timestamp)
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following section:
-        Restaurant should CheckCompletionClaim (nonstrictly-within MAX_CLAIM_VERIFICATION_DELAY)
-        TimeToCheckCompletionExpires (at-ts MAX_CLAIM_VERIFICATION_DELAY unitsAfter sectionEntrance_td)
+        Restaurant should CheckCompletionClaim event_td ≤ sectionEntrance_td + MAX_CLAIM_VERIFICATION_DELAY
+        TimeToCheckCompletionExpires (== event_td MAX_CLAIM_VERIFICATION_DELAY unitsAfter sectionEntrance_td)
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:

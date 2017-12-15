@@ -1,12 +1,13 @@
 from typing import cast
 
+from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec
 from src.model.Action import Action
 from src.model.ActionRule import NextActionRule, ActionRule
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Term import Term
 from src.model.constants_and_defined_types import GlobalVarId, ContractParamId, ActionBoundActionParamId, \
-    RuleBoundActionParamId
+    RuleBoundActionParamId, StateTransformLocalVarId
 
 
 class BoundVar(Term):
@@ -47,14 +48,14 @@ class ActionBoundActionParam(BoundVar):
         return self._name
 
 
-# class LocalVar(BoundVar):
-#     def __init__(self, vardec: LocalVarDec) -> None:
-#         super().__init__()
-#         self.vardec : LocalVarDec = vardec
-#
-#     @property
-#     def name(self) -> LocalVarId:
-#         return cast(LocalVarId,self.vardec.varname)
+class StateTransformLocalVar(BoundVar):
+    def __init__(self, vardec: StateTransformLocalVarDec) -> None:
+        super().__init__()
+        self.vardec : StateTransformLocalVarDec= vardec
+
+    @property
+    def name(self) -> StateTransformLocalVarId:
+        return cast(StateTransformLocalVarId, self.vardec.varname)
 
 
 class GlobalVar(BoundVar):
