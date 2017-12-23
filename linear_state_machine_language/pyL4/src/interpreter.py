@@ -560,7 +560,7 @@ class ExecEnv:
 
         # gvardec : GlobalVarDec
 
-        if isinstance(stmt, (VarAssignStatement, IncrementStatement,DecrementStatement,TimesEqualsStatement)):
+        if isinstance(stmt, (GlobalVarAssignStatement, IncrementStatement, DecrementStatement, TimesEqualsStatement)):
             gvardec = self.top.gvarDecObj(stmt.varname)
             assert gvardec is not None, f"Global variable declaration for {stmt.varname} not found."
 
@@ -570,7 +570,7 @@ class ExecEnv:
             todo_once("use vardec for runtime type checking")
             rhs_value = self.evalTerm(stmt.value_expr, None)
 
-        if isinstance(stmt, VarAssignStatement):
+        if isinstance(stmt, GlobalVarAssignStatement):
             self.gvarvals[stmt.varname] = rhs_value
             print(f"\t{stmt.varname} := {rhs_value}")
 

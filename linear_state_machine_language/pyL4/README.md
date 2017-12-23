@@ -22,7 +22,7 @@ Install mypy with
 To typecheck, from `pyL4` do `mypy src`.
 
 ## Running
-`python3.6 src/cli.py examples printPretty printSExpr dot`
+`python3.6 src/compiler_cli.py examples printPretty printSExpr dot`
 
 ## Before committing 
 `python3.6 src/before_commit.py` simply runs the previous two commands

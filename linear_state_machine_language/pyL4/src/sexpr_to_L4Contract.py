@@ -4,7 +4,8 @@ from mypy_extensions import NoReturn
 
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.GlobalStateTransform import *
-from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam
+from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
+    StateTransformLocalVar
 from src.model.GlobalStateTransformStatement import *
 from src.model.L4Contract import *
 from src.model.Literal import *
@@ -367,18 +368,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
                 rhs = self._mk_term(statement[1], None, parent_action)
                 return InCodeConjectureStatement(rhs)
-            # elif statement[0] == 'local':
-            #     self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type := term)')
-            #     self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
-            #                               'Local var dec should have form (local name : type := term)')
-            #     sort = chcaststr(statement[3])
-            #     rhs = self._mk_term(statement[5])
-            #     varname = castid(LocalVarId,statement[1])
-            #     lvd = LocalVarDec(varname, rhs, sort)
-            #     if varname in parent_action.local_vars:
-            #         self.syntaxError(statement, "Redeclaration of local variable")
-            #     parent_action.local_vars[varname] = lvd
-            #     return lvd
+            elif statement[0] == 'local':
+                self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type = term) or := instead of =')
+                self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
+                                          'Local var dec should have form (local name : type = term)  or := instead of =')
+                sort = chcaststr(statement[3])
+                rhs = self._mk_term(statement[5], parent_action=parent_action)
+                varname = castid(StateTransformLocalVarId,statement[1])
+                lvd = StateTransformLocalVarDec(varname, rhs, sort)
+                if varname in parent_action.local_vars:
+                    self.syntaxError(statement, "Redeclaration of local variable")
+                parent_action.local_vars[varname] = lvd
+                return lvd
             elif statement[0] == 'if':
                 test = self._mk_term(statement[1], None, parent_action, None)
                 self.assertOrSyntaxError( isinstance(statement[2],SExpr) and isinstance(statement[4],SExpr), statement )
@@ -397,7 +398,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 varname2 = castid(GlobalVarId, statement[0])
                 self.assertOrSyntaxError(varname2 in self.top.global_var_decs, statement, f"{varname2} not recognized as a global state variable.")
                 if statement[1] == ':=' or statement[1] == "=":
-                    return VarAssignStatement(varname2, rhs)
+                    return GlobalVarAssignStatement(varname2, rhs)
                 elif statement[1] == '+=':
                     return IncrementStatement(varname2, rhs)
                 elif statement[1] == '-=':
@@ -466,6 +467,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             if x in self.top.definitions:
                 return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule)
+
+            if parent_action and x in parent_action.local_vars:
+                return StateTransformLocalVar(parent_action.local_vars[x])
 
             return L4ContractConstructor.mk_literal(x, parent_SExpr)
             # if isInt(x):

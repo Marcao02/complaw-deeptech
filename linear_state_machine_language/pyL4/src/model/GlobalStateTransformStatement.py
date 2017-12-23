@@ -24,14 +24,14 @@ class IfElse(GlobalStateTransformStatement):
     def toStr(self,i:int):
         rv = indent(i) + f"if {self.test}:\n"
         for x in self.true_branch:
-            rv += indent(i+1) + str(x)
-        rv += "\n" + indent(i) + "else:\n"
+            rv += indent(i + 1) + str(x) + "\n"
+        rv += indent(i) + "else:\n"
         for x in self.false_branch:
-            rv += indent(i + 1) + str(x)
+            rv += indent(i + 1) + str(x) + "\n"
         return rv
 
 
-class VarAssignStatement(GlobalStateTransformStatement):
+class GlobalVarAssignStatement(GlobalStateTransformStatement):
     def __init__(self, varname:GlobalVarId, value_expr:Term) -> None:
         self.varname = varname
         self.value_expr = value_expr
@@ -40,14 +40,15 @@ class VarAssignStatement(GlobalStateTransformStatement):
         return f"{self.varname} := {str(self.value_expr)}"
 
 class StateTransformLocalVarDec(GlobalStateTransformStatement):
-    def __init__(self, varname:StateTransformLocalVarId, value_expr:Term) -> None:
+    def __init__(self, varname:StateTransformLocalVarId, value_expr:Term, sort:str) -> None:
         self.varname = varname
         self.value_expr = value_expr
+        self.sort = sort
 
     def __str__(self):
-        return f"{self.varname} := {str(self.value_expr)}"
+        return f"{self.varname} : {self.sort} := {str(self.value_expr)}"
 
-# class LocalVarDec(VarAssignStatement):
+# class LocalVarDec(GlobalVarAssignStatement):
 #     def __init__(self, varname:LocalVarId, value_expr:Term, sort:str) -> None:
 #         super().__init__(castid(GlobalVarId,varname), value_expr)
 #         self.sort = sort

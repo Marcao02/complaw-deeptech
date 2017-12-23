@@ -73,14 +73,17 @@ action CommitToLiquidityEvent(change_of_control, company_cash_at_liquidity_event
         investor_liq_hypothetical_shares := PURCHASE_AMOUNT / liq_price
         investor_percent_of_cashout_investor_investments := investor_liq_hypothetical_shares / liquidity_capitalization + investor_liq_hypothetical_shares
         if change_of_control and reduction_needed_to_qualify_as_usa_tax_free_reorg > 0:
-            investor_Common_Stocks += (round investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg / liq_price)            investor_remaining_investment_L := PURCHASE_AMOUNT - investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg
+            purchase_amount_reduction : Real := investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg
+            investor_Common_Stocks += (round purchase_amount_reduction / liq_price)
+            investor_remaining_investment_L := PURCHASE_AMOUNT - purchase_amount_reduction
         else:
             investor_remaining_investment_L := PURCHASE_AMOUNT
+
         company_cash_remaining := company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg
     following section:
-        Investor may ChooseCashPayment discretionary
-        Investor may ChooseStockPayment discretionary
-        Company should AutoChooseStockPayment discretionary
+        Investor may ChooseCashPayment event_td < sectionEntrance_td + 1w
+        Investor may ChooseStockPayment event_td < sectionEntrance_td + 1w
+        Company weakly-must AutoChooseStockPayment (== event_td sectionEntrance_td + 1w)
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following section:
@@ -106,6 +109,7 @@ action TransferCash_L()  transitions to AfterTransferCash_L:
             liq_cashout := investor_remaining_investment_L
         else:
             liq_cashout := (round company_cash_remaining * investor_percent_of_cashout_investor_investments)
+
         investor_cash += liq_cashout
     following section:
         if liq_cashout < investor_remaining_investment_L:
@@ -125,6 +129,7 @@ action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dis
             dis_cashout := PURCHASE_AMOUNT
         else:
             dis_cashout := (round company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
+
         investor_cash := dis_cashout
     following section:
         if dis_cashout < PURCHASE_AMOUNT:

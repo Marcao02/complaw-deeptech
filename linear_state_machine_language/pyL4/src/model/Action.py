@@ -6,7 +6,8 @@ from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.SExpr import SExpr
 from src.model.Section import Section, ParamsDec
 from src.model.Term import Term
-from src.model.constants_and_defined_types import ActionBoundActionParamId, SortId, SectionId, ActionId, LOOP_KEYWORD
+from src.model.constants_and_defined_types import ActionBoundActionParamId, SortId, SectionId, ActionId, LOOP_KEYWORD, \
+    StateTransformLocalVarId
 from src.model.util import mapjoin, indent, castid
 
 
@@ -17,7 +18,7 @@ class Action:
         self.traversal_bounds: Optional[SExpr] = None
         self.allowed_subjects: Optional[SExpr] = None
         self.action_description: Optional[str] = None
-        # self.local_vars: Dict[LocalVarId,LocalVarDec] = dict()
+        self.local_vars: Dict[StateTransformLocalVarId,StateTransformLocalVarDec] = dict()
         self.is_compound = False
 
         self.following_anon_section : Optional[Section] = None
