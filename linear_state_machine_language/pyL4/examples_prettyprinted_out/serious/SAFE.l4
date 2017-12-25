@@ -17,27 +17,27 @@ global vars:
     writeAtMostOnce investor_Common_Stocks : ℕ := START_INVESTOR_COMMON_STOCKS
     writeAtMostOnce investor_SAFE_Preferred_Stocks : ℕ := START_INVESTOR_SAFE_PREFERRED_STOCKS
     writeAtMostOnce investor_cash : $ := START_INVESTOR_CASH
-    writeAtMostOnce safe_price : $
-    writeAtMostOnce discount_price : $
-    writeAtMostOnce conversion_price : $
-    writeAtMostOnce initial_price_per_share_standard_preferred_stock : $
-    writeAtMostOnce liq_price : $
+    writeAtMostOnce safe_price : $/share
+    writeAtMostOnce discount_price : $/share
+    writeAtMostOnce conversion_price : $/share
+    writeAtMostOnce initial_price_per_share_standard_preferred_stock : $/share
+    writeAtMostOnce liq_price : $/share
     writeAtMostOnce liq_cashout : $ := 0
     writeAtMostOnce investor_remaining_investment_L : $
-    writeAtMostOnce company_cash_remaining : ℕ
+    writeAtMostOnce company_cash_remaining : $
     writeAtMostOnce investor_liq_hypothetical_shares : ℕ
     writeAtMostOnce investor_percent_of_cashout_investor_investments : %
     writeAtMostOnce dis_cashout : $
 
 section InvestorInvests:
-    Company weakly-must CommitToEquityFinancing no_time_constraint
-    Company weakly-must CommitToLiquidityEvent(_1, _2, _3, _4) no_time_constraint
-    Company weakly-must CommitToDissolution no_time_constraint
+    Company obligation-options-include CommitToEquityFinancing no_time_constraint
+    Company obligation-options-include CommitToLiquidityEvent(_1, _2, _3, _4) no_time_constraint
+    Company obligation-options-include CommitToDissolution no_time_constraint
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following section:
-        Company weakly-must DeliverDocsWithPRA discretionary
-        Company weakly-must DeliverDocsWithoutPRA discretionary
+        Company obligation-options-include DeliverDocsWithPRA discretionary
+        Company obligation-options-include DeliverDocsWithoutPRA discretionary
 
 action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
     following section:
@@ -73,7 +73,7 @@ action CommitToLiquidityEvent(change_of_control, company_cash_at_liquidity_event
         investor_liq_hypothetical_shares := PURCHASE_AMOUNT / liq_price
         investor_percent_of_cashout_investor_investments := investor_liq_hypothetical_shares / liquidity_capitalization + investor_liq_hypothetical_shares
         if change_of_control and reduction_needed_to_qualify_as_usa_tax_free_reorg > 0:
-            purchase_amount_reduction : Real := investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg
+            purchase_amount_reduction : $ := investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg
             investor_Common_Stocks += (round purchase_amount_reduction / liq_price)
             investor_remaining_investment_L := PURCHASE_AMOUNT - purchase_amount_reduction
         else:
@@ -83,7 +83,7 @@ action CommitToLiquidityEvent(change_of_control, company_cash_at_liquidity_event
     following section:
         Investor may ChooseCashPayment event_td < sectionEntrance_td + 1w
         Investor may ChooseStockPayment event_td < sectionEntrance_td + 1w
-        Company weakly-must AutoChooseStockPayment (== event_td sectionEntrance_td + 1w)
+        Company obligation-options-include AutoChooseStockPayment (== event_td sectionEntrance_td + 1w)
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following section:

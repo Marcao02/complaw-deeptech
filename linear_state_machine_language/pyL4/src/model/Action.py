@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List, Any, Iterator, Iterable
 
-
+from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec
 from src.model.ActionRule import PartyFutureActionRule
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.SExpr import SExpr

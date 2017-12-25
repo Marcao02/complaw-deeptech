@@ -43,7 +43,7 @@ action StartLeaseTerm()  transitions to MonthStarted:
 action EnterMonthStarted()  transitions to MonthStarted
 
 section MonthStarted:
-    Tenant weakly-must PayRent event_td ≤ (monthStartDay_td ) + MAX_RENT_DELAY
+    Tenant obligation-options-include PayRent event_td ≤ (monthStartDay_td ) + MAX_RENT_DELAY
     if ¬lease_terminated:
         Tenant may RequestTerminationFromMonthStarted event_td ≤ (earliest (monthStartDay_td ) + MAX_RENT_DELAY lease_term_end - MIN_TERMINATION_NOTICE)
     if ¬lease_terminated:

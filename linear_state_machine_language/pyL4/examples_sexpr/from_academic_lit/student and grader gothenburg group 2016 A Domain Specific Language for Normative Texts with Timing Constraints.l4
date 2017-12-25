@@ -19,8 +19,8 @@
 	(Action Submit (AllowedRoles Student)
 		(FollowingSection
 			; (Grader must (oneOf Accept Reject) within 7)
-			(Grader weakly-must Accept (within 7))
-			(Grader weakly-must Reject (within 7))
+			(Grader obligation-options-include Accept (within 7))
+			(Grader obligation-options-include Reject (within 7))
 		)
 	)
 

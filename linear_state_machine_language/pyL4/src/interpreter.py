@@ -321,7 +321,7 @@ class ExecEnv:
                         entrance_enabled_permissions.append(nar)
                     elif nar.deontic_keyword == 'must':
                         entrance_enabled_strong_obligs.append(nar)
-                    elif nar.deontic_keyword == 'weakly-must':
+                    elif nar.deontic_keyword == 'obligation-options-include':
                         entrance_enabled_weak_obligs.append(nar)
                     else:
                         assert False

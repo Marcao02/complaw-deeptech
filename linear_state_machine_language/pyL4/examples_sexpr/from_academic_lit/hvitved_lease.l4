@@ -55,7 +55,7 @@
 
 	(Section MonthStarted
 		(Next
-			(Tenant weakly-must (PayRent) (event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
+			(Tenant obligation-options-include (PayRent) (event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
 			(apply-macro RequestTerminationActionRuleMacroTenant MonthStarted)
 			(apply-macro RequestTerminationActionRuleMacroLandlord MonthStarted)
 		)

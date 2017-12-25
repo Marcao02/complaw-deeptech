@@ -31,11 +31,11 @@
 			; Can make a non-final payment, provided it's at least MIN_PAYMENT
 			; and it's before the final month of the contract.
 			(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
-				(Buyer weakly-must (PayInstallment amount)
+				(Buyer obligation-options-include (PayInstallment amount)
 					(== (sectionEntrance_td + 30d) event_td)
 					(where ((MIN_PAYMENT ≤ amount ) and (amount ≤ balance_remaining))) ))
 
-			(Buyer weakly-must (PayLastInstallment amount)
+			(Buyer obligation-options-include (PayLastInstallment amount)
 				(== (sectionEntrance_td + 30d) event_td)
 				(where (amount == (balance_remaining + DUE_AT_CLOSING))))  ))
 

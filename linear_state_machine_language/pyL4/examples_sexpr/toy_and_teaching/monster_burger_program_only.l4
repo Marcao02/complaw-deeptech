@@ -126,8 +126,8 @@
 		(FollowingSection
 			(0 ≤ visits ≤ nonconstant)
 			(Next
-			    (Restaurant weakly-must (VerifyCompletionClaim) immediately)
-			    (Restaurant weakly-must (RejectCompletionClaim) immediately)
+			    (Restaurant obligation-options-include (VerifyCompletionClaim) immediately)
+			    (Restaurant obligation-options-include (RejectCompletionClaim) immediately)
 			)
 		)
 	)

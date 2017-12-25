@@ -11,11 +11,11 @@ global vars:
     probBsolved : boolean := False
 
 section WorkingOnAssignment:
-    Alice weakly-must SolveProbA event_td ≤ DUE_TD
+    Alice obligation-options-include SolveProbA event_td ≤ DUE_TD
     Alice may SolveProbB event_td ≤ DUE_TD
     if probAsolved and probBsolved:
         Alice may Submit event_td ≤ DUE_TD
-    Bob weakly-must SolveProbB event_td ≤ DUE_TD
+    Bob obligation-options-include SolveProbB event_td ≤ DUE_TD
     Bob may SolveProbA event_td ≤ DUE_TD
 
 action SolveProbA()  transitions to WorkingOnAssignment:

@@ -469,7 +469,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule)
 
             if parent_action and x in parent_action.local_vars:
-                return StateTransformLocalVar(parent_action.local_vars[x])
+                return StateTransformLocalVar(parent_action.local_vars[castid(StateTransformLocalVarId,x)])
 
             return L4ContractConstructor.mk_literal(x, parent_SExpr)
             # if isInt(x):

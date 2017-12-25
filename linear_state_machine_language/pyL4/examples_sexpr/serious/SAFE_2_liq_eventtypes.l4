@@ -70,9 +70,9 @@
 
 	(Section InvestorInvests
 		(Next
-			(Company weakly-must CommitToEquityFinancing no_time_constraint)
-			(Company weakly-must (CommitToLiquidityEvent _1 _2 _3 _4) no_time_constraint) ; IPO
-			(Company weakly-must CommitToDissolution no_time_constraint)
+			(Company obligation-options-include CommitToEquityFinancing no_time_constraint)
+			(Company obligation-options-include (CommitToLiquidityEvent _1 _2 _3 _4) no_time_constraint) ; IPO
+			(Company obligation-options-include CommitToDissolution no_time_constraint)
 		)
 	)
 
@@ -82,8 +82,8 @@
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(FollowingSection
 			(Next
-				(Company weakly-must DeliverDocsWithPRA discretionary)
-				(Company weakly-must DeliverDocsWithoutPRA discretionary)
+				(Company obligation-options-include DeliverDocsWithPRA discretionary)
+				(Company obligation-options-include DeliverDocsWithoutPRA discretionary)
 			)
 		)
 	)
