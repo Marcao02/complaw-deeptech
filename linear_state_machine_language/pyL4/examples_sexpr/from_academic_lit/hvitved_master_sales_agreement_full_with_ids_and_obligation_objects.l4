@@ -68,7 +68,7 @@
 ]
 
 [Definitions
-    ; [orderable_units_remaining := [MAX_UNITS - units_ordered]]
+    [orderable_units_remaining := [MAX_UNITS - units_ordered]]
 ]
 
 [GlobalVars

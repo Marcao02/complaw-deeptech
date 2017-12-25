@@ -32,18 +32,18 @@
 	; (writeAtMostOnce company_cash : $ = PURCHASE_AMOUNT)
 
 	; for Equity Financing
-	(writeAtMostOnce safe_price : $)
-	(writeAtMostOnce discount_price : $)
-	(writeAtMostOnce conversion_price : $)
-	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $)
+	(writeAtMostOnce safe_price : $/share)
+	(writeAtMostOnce discount_price : $/share)
+	(writeAtMostOnce conversion_price : $/share)
+	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $/share)
 	; don't need this because only used by the action that introduces it:
 	; (writeAtMostOnce company_capitalization : ℕ)
 
 	; for Liquidity
-	(writeAtMostOnce liq_price : $ )
+	(writeAtMostOnce liq_price : $/share )
 	(writeAtMostOnce liq_cashout : $ = 0 )
 	(writeAtMostOnce investor_remaining_investment_L : $)
-	(writeAtMostOnce company_cash_remaining : ℕ)
+	(writeAtMostOnce company_cash_remaining : $)
 	(writeAtMostOnce investor_liq_hypothetical_shares : ℕ)
 	; (writeAtMostOnce liquidity_capitalization : ℕ)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
 	(writeAtMostOnce investor_percent_of_cashout_investor_investments : %)
@@ -117,8 +117,8 @@
 	)
 
 	(Action (IssueSAFEPreferredStock
-				(company_capitalization : ℕ)
-				(premoney_valuation : ℕ) ) (AllowedSubjects Company)
+				(company_capitalization : shares)
+				(premoney_valuation : $) ) (AllowedSubjects Company)
 		(StateTransform
 			(safe_price = (VALUATION_CAP / company_capitalization))
 			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
@@ -135,9 +135,9 @@
 
 	; ----------------- Liquidity Event -------------------
 
-	(Action (CommitToLiquidityEvent (change_of_control:Bool)
-								    (company_cash_at_liquidity_event:$)
-								    (liquidity_capitalization:$)
+	(Action (CommitToLiquidityEvent (change_of_control : Bool)
+								    (company_cash_at_liquidity_event : $)
+								    (liquidity_capitalization : shares)
 								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ) (AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
@@ -145,7 +145,7 @@
 			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > 0)) (
 			 	; "In action_rule with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
-			 	(local purchase_amount_reduction : Real = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			 	(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
 				(investor_remaining_investment_L = (PURCHASE_AMOUNT - purchase_amount_reduction))
 			)
