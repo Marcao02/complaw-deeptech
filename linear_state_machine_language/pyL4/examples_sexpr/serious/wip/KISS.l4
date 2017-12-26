@@ -1,0 +1,91 @@
+
+; QUESTION: Can the debt be repaid before maturity? If not, then the interest rate + maturity length is just an obtuse way of saying what will be owed if investor chooses payout.
+
+; QUESTION: In Acquisition event if investor chooses 2x payment ("(b) get paid a multiple on the original investment."), does that mean the interest rate has no effect?
+
+(ContractParams
+	(DEBT_VERSION : Bool = false)
+	(TIME_TILL_MATURITY : TimeDelta = (days (365 + (364 / 2))))
+	(VALUATION_CAP : $ = inf)
+	(DISCOUNT_RATE : [0,1] = 1)
+	(START_INVESTOR_COMMON_STOCKS : ℕ = 0)
+	(START_INVESTOR_PREFERRED_STOCKS : ℕ = 0)
+	(START_INVESTOR_CASH : $ = 0)
+)
+
+(Roles Investor Company)
+(TimeUnit d)
+
+
+(FormalContract "KISS"
+	(StartSection InvestorInvests)
+
+	(Section InvestorInvests
+		(Next
+			(Company obligation-options-include CommitToAcquisition no_time_constraint)
+			(Company obligation-options-include (CommitToFinancing _1 _2 _3) no_time_constraint) ; IPO
+			(Company obligation-options-include ReachMaturity (event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY)))
+		)
+	)
+
+
+	(Action (CommitToFinancing (qualifying_round_new_money : $) (qualifying_round_price : $/share) (company_capitalization : shares))
+		; Automatic conversion to preferred stock when you raise a qualifying priced round.
+		; Conversion price = lesser of cap or discount.
+		(AllowedSubjects Company)
+		(Pre (qualifying_round_new_money ≥ 1000000))
+		(StateTransform
+			(local cap_price : $ = (VALUATION_CAP / company_capitalization))
+			(local discount_price : $ = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
+			(local conversion_price : $ = (min discount_price cap_price))
+
+		)
+
+	)
+
+
+	(Action CommitToAcquisition
+		; Option to either (a) convert to common stock at the cap or (b) get paid a multiple on the original investment.
+		(AllowedSubjects Company)
+
+		(FollowingSection
+			(Next
+				(Investor obligation-options-include ChooseMultipleRepayment discretionary)
+				(Investor obligation-options-include ChooseConvertToCommonStock discretionary)
+			)
+		)
+	)
+
+	(Action ChooseMultipleRepayment)
+	(Action ChooseConvertToCommonStock)
+
+	(Action ReachMaturity
+		; Option to convert to Series Seed Preferred Stock at the cap. If debt version, option for repayment.
+		(AllowedSubjects Env)
+
+		(FollowingSection
+			(Next
+				(if DEBT_VERSION
+					(Investor obligation-options-include ChooseConversionToSeriesSeedPreferredStock discretionary)
+				)
+				(Investor obligation-options-include ChooseMaturityRepayment discretionary)
+
+			)
+		)
+	)
+
+	(Action ChooseMaturityRepayment)
+	(Action ChooseConversionToSeriesSeedPreferredStock)
+
+)
+
+
+
+
+; PurchasePrice : $
+; ConversionShares ... of CompanyPreferredStock
+; ConversionSharesSect21 ... of a ShadowSeries
+
+; Definition (a) of ConversionShares tells us there are 3 kinds of conversions:
+
+; CapPrice (my term) := ValuationCap / ...
