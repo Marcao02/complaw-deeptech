@@ -22,9 +22,9 @@ EXAMPLES = [
     'from_academic_lit/hvitved_printer.l4',
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
     'serious/SAFE.l4',
-    # 'serious/KISS.l4',
+    'serious/wip/KISS.l4',
 ]
-EXAMPLES_FULL_SIZE = 11
+EXAMPLES_FULL_SIZE = 12
 
 # so can run it as a library too, which respects exceptions
 def main(sys_argv:List[str]):

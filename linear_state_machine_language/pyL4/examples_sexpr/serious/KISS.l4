@@ -1,0 +1,143 @@
+
+; QUESTION: Can the debt be repaid before maturity? If not, then the interest rate + maturity length is just an obtuse way of saying what will be owed if investor chooses payout.
+
+; QUESTION: In Acquisition event if investor chooses 2x payment ("(b) get paid a multiple on the original investment."), does that mean the interest rate has no effect? NO -->
+
+(Roles Investor Company)
+(TimeUnit d)
+
+(ContractParams
+	(PURCHASE_AMOUNT : $ = 100000)
+
+	(TIME_TILL_MATURITY : TimeDelta = (days (365 + (364 / 2))))
+	(VALUATION_CAP : $ = inf)
+	(DISCOUNT_RATE : real01 = 1)
+	(INTEREST_RATE : real01 = .04)
+	(DEBT_VERSION : Bool = true) ; bug "SyntaxError: Don't recognize name INTEREST_RATE"
+	(START_INVESTOR_COMMON_STOCK : shares = 0)
+	(START_INVESTOR_PREFERRED_STOCK : shares = 0)
+	(START_INVESTOR_CASH : $ = 0)
+)
+
+(GlobalVars
+	(investor_cash : $ = START_INVESTOR_CASH)
+	(investor_Common_Stock : shares = START_INVESTOR_COMMON_STOCK)
+	(investor_SeriesSeedPreferredStock : shares = START_INVESTOR_PREFERRED_STOCK)
+)
+
+; (Macro _amount_with_interest_till_maturity_ amount
+; 	((amount + (INTEREST_RATE * amount)) + ((INTEREST_RATE * (amount + (INTEREST_RATE * amount))) / 2))
+; )
+
+; (Macro _interest_till_maturity_ amount
+; 	((INTEREST_RATE * amount) + ((INTEREST_RATE * (amount + (INTEREST_RATE * amount))) / 2))
+; )
+
+(FormalContract "KISS"
+	(StartSection InvestorInvests)
+
+	(Section InvestorInvests
+		(Next
+			(Company obligation-options-include (CommitToAcquisition _1) no_time_constraint)
+			(Company obligation-options-include (CommitToFinancing _1 _2 _3) no_time_constraint) ; IPO
+			(Company obligation-options-include ReachMaturity (event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY)))
+		)
+	)
+
+
+	(Action (CommitToFinancing
+				(qualifying_round_new_money : $)
+				(qualifying_round_price : $/share)
+				(company_capitalization : shares))
+		; Automatic conversion to preferred stock when you raise a qualifying priced round.
+		; Conversion price = lesser of cap or discount.
+		(AllowedSubjects Company)
+		(Pre (qualifying_round_new_money ≥ 1000000))
+		(StateTransform
+			(local cap_price : $/share = (VALUATION_CAP / company_capitalization))
+			(local discount_price : $/share = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
+			(local conversion_price : $/share = (min discount_price cap_price))
+
+		)
+
+	)
+
+
+	(Action (CommitToAcquisition (company_capitalization : shares))
+		; Option to either (a) convert to common stock at the cap or (b) get paid a multiple on the original investment.
+		(AllowedSubjects Company)
+
+		(FollowingSection
+			(Next
+				(Investor obligation-options-include ChooseMultipleRepayment discretionary)
+				(Investor obligation-options-include (ChooseConvertToCommonStock company_capitalization) discretionary)
+			)
+		)
+	)
+
+	(Action ChooseMultipleRepayment
+		(AllowedSubjects Investor)
+		(StateTransform
+			; from Corporate Transaction Payment defn
+			(local first_year_interest : $ := (INTEREST_RATE * PURCHASE_AMOUNT))
+			(local eighteen_month_interest : $ := (first_year_interest + ((PURCHASE_AMOUNT + first_year_interest) * INTEREST_RATE)))
+			(investor_cash += (eighteen_month_interest + (2 * PURCHASE_AMOUNT)))
+		)
+		(TransitionsTo Fulfilled)
+	)
+
+	(Action (ChooseConvertToCommonStock (company_capitalization : shares))
+		(AllowedSubjects Investor)
+		(StateTransform
+			(local cap_price : $ = (VALUATION_CAP / company_capitalization))
+			(investor_Common_Stock += (round (PURCHASE_AMOUNT / cap_price)))
+		)
+		(TransitionsTo Fulfilled)
+	)
+
+	(Action ReachMaturity
+		; Option to convert to Series Seed Preferred Stock at the cap. If debt version, option for repayment.
+		(AllowedSubjects Env)
+
+		(FollowingSection
+			(Next
+				(if DEBT_VERSION
+					(Investor obligation-options-include (ChooseConversionToSeriesSeedPreferredStock _1) discretionary)
+				)
+				(Investor obligation-options-include ChooseMaturityRepayment discretionary)
+
+			)
+		)
+	)
+
+	(Action ChooseMaturityRepayment
+		(AllowedSubjects Investor)
+		(StateTransform
+			(local first_year_interest : $ := (INTEREST_RATE * PURCHASE_AMOUNT))
+			(local eighteen_month_interest : $ := (first_year_interest + ((PURCHASE_AMOUNT + first_year_interest) * INTEREST_RATE)))
+			(investor_cash += (PURCHASE_AMOUNT + eighteen_month_interest))
+		)
+		(TransitionsTo Fulfilled)
+	)
+
+	(Action (ChooseConversionToSeriesSeedPreferredStock (company_capitalization : shares))
+		(AllowedSubjects Investor)
+		(StateTransform
+			(local cap_price : $ = (VALUATION_CAP / company_capitalization))
+			(investor_SeriesSeedPreferredStock += (round (PURCHASE_AMOUNT / cap_price)))
+		)
+		(TransitionsTo Fulfilled)
+	)
+
+)
+
+
+
+
+; PurchasePrice : $
+; ConversionShares ... of CompanyPreferredStock
+; ConversionSharesSect21 ... of a ShadowSeries
+
+; Definition (a) of ConversionShares tells us there are 3 kinds of conversions:
+
+; CapPrice (my term) := ValuationCap / ...
