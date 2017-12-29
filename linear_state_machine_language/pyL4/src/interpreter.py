@@ -526,18 +526,18 @@ class ExecEnv:
             # print("dec: ", dec, dec.initval)
             if dec.initval is None:
                 self.gvarvals[var] = None
-                print(f"Global var {var} has no initial value.")
+                # print(f"Global var {var} has no initial value.")
                 dictSetOrInc(self.gvar_write_cnt, var, init=0)
             else:
                 self.gvarvals[var] = self.evalTerm(dec.initval, None)
-                print(f"Global var {var} has initial value {self.gvarvals[var]}.")
+                # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
                 dictSetOrInc(self.gvar_write_cnt, var, init=1)
             # print(var, type(self.gvarvals[var]))
             # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
         for (name,dec) in decs.items():
-            print("contract param dec", dec, type(dec.value_expr))
+            # print("contract param dec", dec, type(dec.value_expr))
             if not(dec.value_expr is None):
                 self.contract_param_vals[name] = self.evalTerm(dec.value_expr, None)
             else:

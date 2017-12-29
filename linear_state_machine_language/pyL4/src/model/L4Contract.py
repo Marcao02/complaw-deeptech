@@ -9,7 +9,7 @@ from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Section import *
-from src.model.StringArgMacro import StringArgMacro
+from src.model.L4Macro import L4Macro
 
 
 class L4Contract:
@@ -32,7 +32,7 @@ class L4Contract:
 
         self.ordered_declarations : List[Union[Action,Section]] = list()
 
-        self.str_arg_macros : Dict[str, StringArgMacro] = dict()
+        self.str_arg_macros : Dict[str, L4Macro] = dict()
 
         self.timeunit : str = "none given"
 

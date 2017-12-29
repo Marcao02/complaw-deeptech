@@ -2,6 +2,8 @@
 
 from typing import Union, List, Any, cast, Sized, Iterable
 
+from src.model.util import caststr
+
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"
 LINE_COMMENT_START_CHAR = ';'
@@ -38,7 +40,7 @@ class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
     def fromStartToExclusive(self,i:int) -> 'SExpr':
         return SExpr(self.symb, self.lst[:i], self.line, self.col)
 
-    def withDropped(self,i:int) -> 'SExpr':
+    def withElementDropped(self,i:int) -> 'SExpr':
         return SExpr(self.symb, self.lst[:i] + self.lst[i+1:], self.line, self.col)
 
     def __getitem__(self, item):
@@ -65,41 +67,37 @@ def castse(x: Any) -> SExpr:
 
 SExprOrStr = Union[SExpr,str]
 
-def sexpr_subst_string(sexpr_or_str: SExprOrStr, str_to_replace: str, replacement_str: str) -> SExprOrStr:
-    if isinstance(sexpr_or_str, str):
-        return sexpr_or_str.replace(str_to_replace, replacement_str)
-    else:
-        return SExpr(
-            symb = sexpr_or_str.symb.replace(str_to_replace, replacement_str),
-            lst = list(map(lambda child: sexpr_subst_string(child, str_to_replace, replacement_str), sexpr_or_str.lst)),
-            line = sexpr_or_str.line,
-            col = sexpr_or_str.col
-        )
+# old single-parameter version
+# def sexpr_subst_string(sexpr_or_str: SExprOrStr, str_to_replace: str, replacement_str: str) -> SExprOrStr:
+#     if isinstance(sexpr_or_str, str):
+#         return sexpr_or_str.replace(str_to_replace, replacement_str)
+#     else:
+#         return SExpr(
+#             symb = sexpr_or_str.symb.replace(str_to_replace, replacement_str),
+#             lst = list(map(lambda child: sexpr_subst_string(child, str_to_replace, replacement_str), sexpr_or_str.lst)),
+#             line = sexpr_or_str.line,
+#             col = sexpr_or_str.col
+#         )
 
-def mult_replace(s:str, olds:List[str], news:List[str]) -> str:
+def mult_replace(s:str, olds:List[str], news:List[SExprOrStr]) -> SExprOrStr:
     assert len(olds) == len(news)
     rv = s
     for i in range(len(olds)):
-        # if not isinstance(news[i],str):
-        #     print("hm?")
-        #     print(olds[i], news[i])
-        #     print(s)
         if isinstance(news[i],str):
-            rv = rv.replace(olds[i], news[i])
-        elif s == olds[i]:
+            rv = rv.replace(olds[i], caststr(news[i]))
+        elif s == olds[i]: # if a string is exactly the parameter name, only in that case can we substitute in an SExpr
             return news[i]
-
 
     return rv
 
-def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: List[str], replacement_strs: List[str]) -> SExprOrStr:
-    assert len(strs_to_replace) == len(replacement_strs)
+def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: List[str], replacements: List[SExprOrStr]) -> SExprOrStr:
+    assert len(strs_to_replace) == len(replacements)
     if isinstance(sexpr_or_str, str):
-        return mult_replace(sexpr_or_str, strs_to_replace, replacement_strs)
+        return mult_replace(sexpr_or_str, strs_to_replace, replacements)
     else:
         return SExpr(
-            symb = mult_replace(sexpr_or_str.symb, strs_to_replace, replacement_strs),
-            lst = list(map(lambda child: sexpr_subst_mult_string(child, strs_to_replace, replacement_strs), sexpr_or_str.lst)),
+            symb = sexpr_or_str.symb,
+            lst = list(map(lambda child: sexpr_subst_mult_string(child, strs_to_replace, replacements), sexpr_or_str.lst)),
             line = sexpr_or_str.line,
             col = sexpr_or_str.col
         )

@@ -11,11 +11,11 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     assert compiler_cli.EXAMPLES_FULL_SIZE == len(compiler_cli.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
 
     if "print" in sys.argv:
-        print(f"\n============================================\nRunning `cli` with args `examples printPretty printSExpr dot`")
+        print(f"\n============================================\nRunning `compiler_cli.py` with args `examples printPretty printSExpr dot`")
         compiler_cli.main("examples printPretty printSExpr dot")
         # runit("python3.6 src/compiler_cli.py examples printPretty printSExpr dot")
     else:
-        print(f"\n============================================\nRunning `cli` with args `examples`")
+        print(f"\n============================================\nRunning `compiler_cli.py` with args `examples`")
         compiler_cli.main("examples")
         # runit("python3.6 src/compiler_cli.py examples")
 

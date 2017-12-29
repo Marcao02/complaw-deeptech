@@ -12,7 +12,7 @@ from src.model.Literal import *
 from src.model.SExpr import SExprOrStr
 from src.model.Term import FnApp
 from src.model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
-from src.model.StringArgMacro import StringArgMacro
+from src.model.L4Macro import L4Macro
 from src.parse_sexpr import castse, STRING_LITERAL_MARKER
 
 
@@ -77,7 +77,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 else:
                     macroparams = cast(List[str],castse(x[2]).lst)
                 macrobody = chcast(SExpr, x[3])
-                self.top.str_arg_macros[ macroname ] = StringArgMacro(macroparams, macrobody)
+                self.top.str_arg_macros[ macroname ] = L4Macro(macroparams, macrobody)
 
             elif   head(GLOBAL_VARS_AREA_LABEL):
                 self.top.global_var_decs = self._mk_global_vars(rem)
@@ -176,7 +176,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def handle_apply_macro(self, x:SExpr) -> SExpr:
         macroname = chcaststr(x[1])
-        macro = self.top.str_arg_macros[macroname]
+        macro : L4Macro = self.top.str_arg_macros[macroname]
         if isinstance(x[2],str):
             return macro.subst([x[2]])
         else:
@@ -622,7 +622,7 @@ def maybe_as_infix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if len(se) == 3 and isinstance(se[1],str):
         symb : str = se[1]
         if symb in INFIX_FN_SYMBOLS:
-            return symb, se.withDropped(1)
+            return symb, se.withElementDropped(1)
     return None
 
 def maybe_as_postfix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
