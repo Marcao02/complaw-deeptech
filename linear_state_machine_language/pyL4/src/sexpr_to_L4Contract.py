@@ -71,9 +71,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             if   head( STR_ARG_MACRO_DEC_LABEL):
                 macroname = chcaststr(x[1])
-                macroparam = chcaststr(x[2])
+                macroparams : List[str]
+                if isinstance(x[2],str):
+                    macroparams = [x[2]]
+                else:
+                    macroparams = cast(List[str],castse(x[2]).lst)
                 macrobody = chcast(SExpr, x[3])
-                self.top.str_arg_macros[ macroname ] = StringArgMacro(macroparam, macrobody)
+                self.top.str_arg_macros[ macroname ] = StringArgMacro(macroparams, macrobody)
 
             elif   head(GLOBAL_VARS_AREA_LABEL):
                 self.top.global_var_decs = self._mk_global_vars(rem)
@@ -173,8 +177,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def handle_apply_macro(self, x:SExpr) -> SExpr:
         macroname = chcaststr(x[1])
         macro = self.top.str_arg_macros[macroname]
-        arg = chcaststr(x[2])
-        return macro.subst(arg)
+        if isinstance(x[2],str):
+            return macro.subst([x[2]])
+        else:
+            return macro.subst(x[2])
 
 
     def _mk_main_program_area(self, l:SExpr) -> None:
@@ -365,7 +371,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 statement = self.handle_apply_macro(statement)
 
             if statement[0] == 'conjecture' or statement[0] == 'prove':
-                self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformconjecture expression should have length 2")
+                self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformConjecture expression should have length 2")
                 rhs = self._mk_term(statement[1], None, parent_action)
                 return InCodeConjectureStatement(rhs)
             elif statement[0] == 'local':

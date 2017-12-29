@@ -64,7 +64,7 @@ PREFIX_FN_SYMBOLS = {'days', 'earliest',
                      '=='
                      }.union(TIME_CONSTRAINT_OPERATORS)
 
-INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>',
+INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
                     'or','and', 'unitsAfter'}
 
 POSTFIX_FN_SYMBOLS : Set[str] = set() # {'unitsAfterEntrance'}

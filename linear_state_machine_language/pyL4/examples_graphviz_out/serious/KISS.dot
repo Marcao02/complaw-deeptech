@@ -1,0 +1,43 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph KISS {    
+    Fulfilled[label=Fufilled];
+    InvestorInvests[label=InvestorInvests];
+	After_NotifyInvestorOfNextEquityFinancingTerms[label=After_NotifyInvestorOfNextEquityFinancingTerms]
+    
+     
+    CommitToFinancing[label=CommitToFinancing,shape=box];
+	NotifyInvestorOfNextEquityFinancingTerms[label=NotifyInvestorOfNextEquityFinancingTerms,shape=box];
+	choose_cash_interest_repayment[label=choose_cash_interest_repayment,shape=box];
+	CloseEquityFinancingSale[label=CloseEquityFinancingSale,shape=box];
+	CommitToAcquisition[label=CommitToAcquisition,shape=box];
+	ChooseMultipleRepayment[label=ChooseMultipleRepayment,shape=box];
+	ChooseConvertToCommonStock[label=ChooseConvertToCommonStock,shape=box];
+	ReachMaturity[label=ReachMaturity,shape=box];
+	ChooseMaturityRepayment[label=ChooseMaturityRepayment,shape=box];
+	ChooseConversionToSeriesSeedPreferredStock[label=ChooseConversionToSeriesSeedPreferredStock,shape=box]    
+    
+    
+    
+    InvestorInvests -> CommitToAcquisition;
+	InvestorInvests -> CommitToFinancing;
+	InvestorInvests -> ReachMaturity [style=dashed];
+	CommitToFinancing -> NotifyInvestorOfNextEquityFinancingTerms;
+	After_NotifyInvestorOfNextEquityFinancingTerms -> choose_cash_interest_repayment;
+	After_NotifyInvestorOfNextEquityFinancingTerms -> CloseEquityFinancingSale;
+	CommitToAcquisition -> ChooseMultipleRepayment;
+	CommitToAcquisition -> ChooseConvertToCommonStock;
+	ReachMaturity -> ChooseConversionToSeriesSeedPreferredStock;
+	ReachMaturity -> ChooseMaturityRepayment
+    
+    NotifyInvestorOfNextEquityFinancingTerms -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed];
+	CloseEquityFinancingSale -> Fulfilled [style=dashed];
+	ChooseMultipleRepayment -> Fulfilled [style=dashed];
+	ChooseConvertToCommonStock -> Fulfilled [style=dashed];
+	ChooseMaturityRepayment -> Fulfilled [style=dashed];
+	ChooseConversionToSeriesSeedPreferredStock -> Fulfilled [style=dashed];
+	     
+    
+    choose_cash_interest_repayment -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed];
+	   
+}

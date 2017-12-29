@@ -21,6 +21,9 @@ class SExprBuilder:
         assert temp is not None and grouper_map[temp.symb] == closesymb, ("Found " + closesymb + " while expecting " + grouper_map[temp.symb] + "\n" +
                                                                           "Left symbol line {} col {}\n".format(temp.line,temp.col) +
                                                                           "Right symbol line {} col {}".format(line,col) )
+        assert len(self.stack) > 0, ("Found " + closesymb + " while expecting " + grouper_map[temp.symb] + " but self.stack is empty." + "\n" +
+                                     "Left symbol line {} col {}\n".format(temp.line,temp.col) +
+                                     "Right symbol line {} col {}".format(line,col) )
         self.curScope.append(temp)
 
     @property

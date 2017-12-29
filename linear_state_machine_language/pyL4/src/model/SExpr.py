@@ -75,3 +75,31 @@ def sexpr_subst_string(sexpr_or_str: SExprOrStr, str_to_replace: str, replacemen
             line = sexpr_or_str.line,
             col = sexpr_or_str.col
         )
+
+def mult_replace(s:str, olds:List[str], news:List[str]) -> str:
+    assert len(olds) == len(news)
+    rv = s
+    for i in range(len(olds)):
+        # if not isinstance(news[i],str):
+        #     print("hm?")
+        #     print(olds[i], news[i])
+        #     print(s)
+        if isinstance(news[i],str):
+            rv = rv.replace(olds[i], news[i])
+        elif s == olds[i]:
+            return news[i]
+
+
+    return rv
+
+def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: List[str], replacement_strs: List[str]) -> SExprOrStr:
+    assert len(strs_to_replace) == len(replacement_strs)
+    if isinstance(sexpr_or_str, str):
+        return mult_replace(sexpr_or_str, strs_to_replace, replacement_strs)
+    else:
+        return SExpr(
+            symb = mult_replace(sexpr_or_str.symb, strs_to_replace, replacement_strs),
+            lst = list(map(lambda child: sexpr_subst_mult_string(child, strs_to_replace, replacement_strs), sexpr_or_str.lst)),
+            line = sexpr_or_str.line,
+            col = sexpr_or_str.col
+        )

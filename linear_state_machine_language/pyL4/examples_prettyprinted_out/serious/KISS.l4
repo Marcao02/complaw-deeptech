@@ -1,5 +1,5 @@
--------------------------
-file: serious/wip/KISS.l4
+---------------------
+file: serious/KISS.l4
 
 roles: Env, Investor, Company
 
@@ -12,24 +12,52 @@ contract params:
     DEBT_VERSION : Bool := True
     START_INVESTOR_COMMON_STOCK : shares := 0
     START_INVESTOR_PREFERRED_STOCK : shares := 0
+    START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : shares := 0
     START_INVESTOR_CASH : $ := 0
+    START_COMPANY_CASH : $ := 0
 
 global vars:
     investor_cash : $ := START_INVESTOR_CASH
     investor_Common_Stock : shares := START_INVESTOR_COMMON_STOCK
-    investor_SeriesSeedPreferredStock : shares := START_INVESTOR_PREFERRED_STOCK
+    investor_PreferredStock : shares := START_INVESTOR_PREFERRED_STOCK
+    investor_SeriesSeedPreferredStock : shares := START_INVESTOR_SERIES_SEED_PREFERRED_STOCK
+    company_cash : $ := START_COMPANY_CASH
+    writeAtMostOnce pay_interest_in_cash : Bool := False
 
 section InvestorInvests:
-    Company obligation-options-include CommitToAcquisition(_1) no_time_constraint
-    Company obligation-options-include CommitToFinancing(_1, _2, _3) no_time_constraint
-    Company obligation-options-include ReachMaturity event_td ≥ sectionEntrance_td + TIME_TILL_MATURITY
+    Company obligation-options-include CommitToAcquisition(_1) event_td < sectionEntrance_td + TIME_TILL_MATURITY
+    Company obligation-options-include CommitToFinancing(_1) event_td < sectionEntrance_td + TIME_TILL_MATURITY
+    ReachMaturity event_td ≥ sectionEntrance_td + TIME_TILL_MATURITY
 
-action CommitToFinancing(qualifying_round_new_money, qualifying_round_price, company_capitalization)  transitions to AfterCommitToFinancing:
+action CommitToFinancing(qualifying_round_new_money)  transitions to AfterCommitToFinancing:
     pre: qualifying_round_new_money ≥ 1000000
+    following section:
+        Company must NotifyInvestorOfNextEquityFinancingTerms no_time_constraint
+
+action NotifyInvestorOfNextEquityFinancingTerms()  transitions to After_NotifyInvestorOfNextEquityFinancingTerms
+
+section After_NotifyInvestorOfNextEquityFinancingTerms:
+    Investor may choose_cash_interest_repayment no_time_constraint
+    Company obligation-options-include CloseEquityFinancingSale(_1, _2) event_td > sectionEntrance_td + 5d
+
+action choose_cash_interest_repayment()  non-transitioning:
+    transform:
+        pay_interest_in_cash := True
+
+action CloseEquityFinancingSale(qualifying_round_price, company_capitalization)  transitions to Fulfilled:
     transform:
         cap_price : $/share := VALUATION_CAP / company_capitalization
         discount_price : $/share := qualifying_round_price * DISCOUNT_RATE
         conversion_price : $/share := (min discount_price cap_price)
+        if pay_interest_in_cash:
+            change : $ := (ifthenelse event_td ≤ 365 PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 * INTEREST_RATE * event_td / 365 - PURCHASE_AMOUNT PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 * INTEREST_RATE * event_td - 365 / 365 - PURCHASE_AMOUNT)
+            company_cash -= change
+            investor_cash += change
+            investor_PreferredStock += (round PURCHASE_AMOUNT / conversion_price)
+        else:
+            accrued_interest : $ := (ifthenelse event_td ≤ 365 PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 * INTEREST_RATE * event_td / 365 - PURCHASE_AMOUNT PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 * INTEREST_RATE * event_td - 365 / 365 - PURCHASE_AMOUNT)
+            investor_PreferredStock += (round PURCHASE_AMOUNT + accrued_interest / conversion_price)
+
 
 action CommitToAcquisition(company_capitalization)  transitions to AfterCommitToAcquisition
     following section:
@@ -38,9 +66,9 @@ action CommitToAcquisition(company_capitalization)  transitions to AfterCommitTo
 
 action ChooseMultipleRepayment()  transitions to Fulfilled:
     transform:
-        first_year_interest : $ := INTEREST_RATE * PURCHASE_AMOUNT
-        eighteen_month_interest : $ := first_year_interest + PURCHASE_AMOUNT + first_year_interest * INTEREST_RATE
-        investor_cash += eighteen_month_interest + 2 * PURCHASE_AMOUNT
+        change : $ := (ifthenelse event_td ≤ 365 PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 * INTEREST_RATE * event_td / 365 - PURCHASE_AMOUNT PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 * INTEREST_RATE * event_td - 365 / 365 - PURCHASE_AMOUNT) + 2 * PURCHASE_AMOUNT
+        company_cash -= change
+        investor_cash += change
 
 action ChooseConvertToCommonStock(company_capitalization)  transitions to Fulfilled:
     transform:
@@ -55,9 +83,9 @@ action ReachMaturity()  transitions to AfterReachMaturity
 
 action ChooseMaturityRepayment()  transitions to Fulfilled:
     transform:
-        first_year_interest : $ := INTEREST_RATE * PURCHASE_AMOUNT
-        eighteen_month_interest : $ := first_year_interest + PURCHASE_AMOUNT + first_year_interest * INTEREST_RATE
-        investor_cash += PURCHASE_AMOUNT + eighteen_month_interest
+        change : $ := (ifthenelse event_td ≤ 365 PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 0 * INTEREST_RATE * event_td / 365 - PURCHASE_AMOUNT PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 + PURCHASE_AMOUNT * 1 + INTEREST_RATE ^ 1 * INTEREST_RATE * event_td - 365 / 365 - PURCHASE_AMOUNT) + PURCHASE_AMOUNT
+        company_cash -= change
+        investor_cash += change
 
 action ChooseConversionToSeriesSeedPreferredStock(company_capitalization)  transitions to Fulfilled:
     transform:

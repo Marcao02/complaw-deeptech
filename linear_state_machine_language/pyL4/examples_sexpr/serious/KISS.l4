@@ -3,6 +3,8 @@
 
 ; QUESTION: In Acquisition event if investor chooses 2x payment ("(b) get paid a multiple on the original investment."), does that mean the interest rate has no effect? NO -->
 
+; TODO: "No Fractional Shares"
+
 (Roles Investor Company)
 (TimeUnit d)
 
@@ -14,52 +16,110 @@
 	(DISCOUNT_RATE : real01 = 1)
 	(INTEREST_RATE : real01 = .04)
 	(DEBT_VERSION : Bool = true) ; bug "SyntaxError: Don't recognize name INTEREST_RATE"
+
 	(START_INVESTOR_COMMON_STOCK : shares = 0)
 	(START_INVESTOR_PREFERRED_STOCK : shares = 0)
+	(START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : shares = 0)
 	(START_INVESTOR_CASH : $ = 0)
+
+	(START_COMPANY_CASH : $ = 0)
 )
 
 (GlobalVars
 	(investor_cash : $ = START_INVESTOR_CASH)
 	(investor_Common_Stock : shares = START_INVESTOR_COMMON_STOCK)
-	(investor_SeriesSeedPreferredStock : shares = START_INVESTOR_PREFERRED_STOCK)
+	(investor_PreferredStock : shares = START_INVESTOR_PREFERRED_STOCK)
+	(investor_SeriesSeedPreferredStock : shares = START_INVESTOR_SERIES_SEED_PREFERRED_STOCK)
+
+	(company_cash : $ = START_COMPANY_CASH)
+
+	(writeAtMostOnce pay_interest_in_cash : Bool = false)
 )
 
-; (Macro _amount_with_interest_till_maturity_ amount
-; 	((amount + (INTEREST_RATE * amount)) + ((INTEREST_RATE * (amount + (INTEREST_RATE * amount))) / 2))
-; )
 
-; (Macro _interest_till_maturity_ amount
-; 	((INTEREST_RATE * amount) + ((INTEREST_RATE * (amount + (INTEREST_RATE * amount))) / 2))
-; )
+(Macro principle_and_compound_interest (#principle #ir #full_periods #final_period_fraction)
+	((#principle * ((1 + #ir) ^ #full_periods)) + (((#principle * ((1 + #ir) ^ #full_periods)) * #ir) * #final_period_fraction))
+)
+
+(Macro compound_interest (#principle #ir #full_periods #final_period_fraction)
+	((apply-macro principle_and_compound_interest (#principle #ir #full_periods #final_period_fraction)) - #principle)
+)
+
+(Macro interest_from_td #td
+	(ifthenelse (#td ≤ 365)
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365)))
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((#td - 365) / 365)))
+	)
+)
 
 (FormalContract "KISS"
 	(StartSection InvestorInvests)
 
 	(Section InvestorInvests
 		(Next
-			(Company obligation-options-include (CommitToAcquisition _1) no_time_constraint)
-			(Company obligation-options-include (CommitToFinancing _1 _2 _3) no_time_constraint) ; IPO
-			(Company obligation-options-include ReachMaturity (event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY)))
+			(Company obligation-options-include (CommitToAcquisition _1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY)))
+			(Company obligation-options-include (CommitToFinancing _1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY))) ; IPO
+			(ReachMaturity (event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY)))
 		)
 	)
 
 
 	(Action (CommitToFinancing
 				(qualifying_round_new_money : $)
-				(qualifying_round_price : $/share)
-				(company_capitalization : shares))
+				)
 		; Automatic conversion to preferred stock when you raise a qualifying priced round.
 		; Conversion price = lesser of cap or discount.
 		(AllowedSubjects Company)
 		(Pre (qualifying_round_new_money ≥ 1000000))
+
+		(FollowingSection
+			(Next
+				(Company must NotifyInvestorOfNextEquityFinancingTerms no_time_constraint)
+			)
+		)
+	)
+
+	(Action NotifyInvestorOfNextEquityFinancingTerms
+		(AllowedSubjects Company)
+		(TransitionsTo After_NotifyInvestorOfNextEquityFinancingTerms)
+	)
+
+	(Section After_NotifyInvestorOfNextEquityFinancingTerms
+		(Next
+			(Investor may choose_cash_interest_repayment no_time_constraint)
+			(Company obligation-options-include (CloseEquityFinancingSale _1 _2) (event_td > (sectionEntrance_td + 5D)))
+		)
+	)
+
+	(Action choose_cash_interest_repayment (TransitionsTo SRC)
+		(AllowedSubjects Investor)
+		(StateTransform
+			(pay_interest_in_cash = true)
+		)
+
+	)
+
+	(Action (CloseEquityFinancingSale
+				(qualifying_round_price : $/share)
+				(company_capitalization : shares)
+		)
+		(AllowedSubjects Company)
+		(TransitionsTo Fulfilled)
 		(StateTransform
 			(local cap_price : $/share = (VALUATION_CAP / company_capitalization))
 			(local discount_price : $/share = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
 			(local conversion_price : $/share = (min discount_price cap_price))
+			(if pay_interest_in_cash (
+				(local change : $ = (apply-macro interest_from_td event_td))
+				(company_cash  -= change)
+				(investor_cash += change)
+				(investor_PreferredStock += (round (PURCHASE_AMOUNT / conversion_price)))
+			) else (
+				(local accrued_interest : $ = (apply-macro interest_from_td event_td))
+				(investor_PreferredStock += (round ((PURCHASE_AMOUNT + accrued_interest) / conversion_price)))
+			))
 
 		)
-
 	)
 
 
@@ -79,9 +139,10 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			; from Corporate Transaction Payment defn
-			(local first_year_interest : $ := (INTEREST_RATE * PURCHASE_AMOUNT))
-			(local eighteen_month_interest : $ := (first_year_interest + ((PURCHASE_AMOUNT + first_year_interest) * INTEREST_RATE)))
-			(investor_cash += (eighteen_month_interest + (2 * PURCHASE_AMOUNT)))
+			(local change : $ = ((apply-macro interest_from_td event_td) + (2 * PURCHASE_AMOUNT)))
+			(company_cash -= change)
+			(investor_cash += change)
+
 		)
 		(TransitionsTo Fulfilled)
 	)
@@ -113,9 +174,9 @@
 	(Action ChooseMaturityRepayment
 		(AllowedSubjects Investor)
 		(StateTransform
-			(local first_year_interest : $ := (INTEREST_RATE * PURCHASE_AMOUNT))
-			(local eighteen_month_interest : $ := (first_year_interest + ((PURCHASE_AMOUNT + first_year_interest) * INTEREST_RATE)))
-			(investor_cash += (PURCHASE_AMOUNT + eighteen_month_interest))
+			(local change : $ = ((apply-macro interest_from_td event_td) + PURCHASE_AMOUNT))
+			(company_cash -= change)
+			(investor_cash += change)
 		)
 		(TransitionsTo Fulfilled)
 	)
@@ -134,7 +195,7 @@
 
 
 
-; PurchasePrice : $
+; PurchasePrice : #
 ; ConversionShares ... of CompanyPreferredStock
 ; ConversionSharesSect21 ... of a ShadowSeries
 

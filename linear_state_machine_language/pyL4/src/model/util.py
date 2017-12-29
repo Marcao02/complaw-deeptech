@@ -17,6 +17,7 @@ def chcaststr(x:Any) -> str:
     assert isinstance(x,str), f"{str(x)} is a {type(x)} but this chcast requires a str."
     return cast(str,x)
 
+
 def castid(tp:Type[T],x:Any) -> T:
     assert isinstance(x,str), f"{str(x)} is a {type(x)} but this chcast requires a {tp}."
     return cast(T,x)
