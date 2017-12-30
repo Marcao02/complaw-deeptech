@@ -65,6 +65,16 @@ K = 1000
 M = 1000000
 
 traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
+    ('toy_and_teaching/test_local_vars.l4', CompleteTrace(
+        {},
+        (
+            event('DoIt', 'Env', 0),
+            event('FinishIt', 'Env', 0, {'z':81})
+        ),
+        FULFILLED_SECTION_LABEL,
+        {"n": 81})
+     ),
+
     ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
         {},
         (event('Throw', 'I'),
@@ -371,11 +381,14 @@ traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious
 from src.compiler_cli import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
+
+
         'from_academic_lit//hvitved_lease.l4',
         'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
         'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
 
+        'toy_and_teaching/test_local_vars.l4',
         'toy_and_teaching/minimal_future-actions.l4',
         'toy_and_teaching/minimal_future-actions2.l4',
         'toy_and_teaching/collatz.l4',

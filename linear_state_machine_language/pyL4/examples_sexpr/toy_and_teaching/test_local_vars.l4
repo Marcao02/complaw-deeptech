@@ -1,0 +1,37 @@
+
+(Roles I)
+
+(GlobalVars
+	(n : ℕ = 3)
+)
+
+(TimeUnit d)
+
+(FormalContract "test contract for must later"
+	(StartSection Ongoing)
+
+	(Section Ongoing
+		(Next
+			(DoIt immediately)
+		)
+	)
+
+	(Action DoIt
+		(StateTransform
+			(local x : ℕ = (n * n))
+			(local y : ℕ = (x * x))
+		)
+		(FollowingSection
+			(Next
+				((FinishIt y) immediately)
+			)
+		)
+	)
+
+	(Action (FinishIt (z : ℕ))
+		(StateTransform
+			(n = z)
+		)
+		(TransitionsTo Fulfilled)
+	)
+)

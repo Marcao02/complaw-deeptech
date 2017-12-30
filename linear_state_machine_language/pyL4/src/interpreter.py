@@ -2,13 +2,12 @@ import logging
 from datetime import datetime, timedelta, tzinfo, timezone
 from itertools import chain
 import math
-import ipdb # code, IPython, pdb are other options
 
-from src.model.constants_and_defined_types import TimeInt, LOOP_KEYWORD
+from src.model.constants_and_defined_types import TimeInt, LOOP_KEYWORD, LocalVarSubst
 from src.model.EvalContext import EvalContext
 from src.model.Action import Action
 from src.model.BoundVar import BoundVar, GlobalVar, ContractParam, ActionBoundActionParam, \
-    RuleBoundActionParam
+    RuleBoundActionParam, StateTransformLocalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.EventsAndTraces import Event, Trace, CompleteTrace, breachSectionId, EventType
 from src.model.GlobalStateTransform import GlobalStateTransform
@@ -107,6 +106,7 @@ class ExecEnv:
         self.top : L4Contract = prog
         self.contract_param_vals: ContractParamSubst = dict()
 
+        self.localvar_vals: LocalVarSubst = dict()
         self.gvarvals: GVarSubst = dict()
         self.gvar_write_cnt : Dict[GlobalVarId, int] = dict()
 
@@ -268,6 +268,7 @@ class ExecEnv:
 
 
             if debug:
+                import ipdb  # code, IPython, pdb are other options
                 ipdb.set_trace()
                 # code.InteractiveConsole(locals=locals()).interact()
                 # IPython.embed()
@@ -608,11 +609,8 @@ class ExecEnv:
             self.evalCodeBlock(GlobalStateTransform(stmt.true_branch if test else stmt.false_branch))
 
         elif isinstance(stmt, StateTransformLocalVarDec):
-            raise NotImplementedError("TODO: re-enable exec support for local vars!")
-            #     assert self.top.gvarDecObj(stmt.varname) is None
-            #     # print('evalStatement LocalVarDec: ' + str(stmt))
-            #     rhs_value = self.evalTerm(stmt.value_expr, self.last_section_entrance_delta)
-            #     self.gvarvals[stmt.varname] = rhs_value
+            rhs_value = self.evalTerm(stmt.value_expr, None)
+            self.localvar_vals[stmt.varname] = rhs_value
 
         else:
             raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
@@ -685,6 +683,9 @@ class ExecEnv:
 
             elif isinstance(term, SimpleTimeDeltaLit):
                 return term.timedelta
+
+            elif isinstance(term, StateTransformLocalVar):
+                return self.localvar_vals[term.name]
 
             else:
                 contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")

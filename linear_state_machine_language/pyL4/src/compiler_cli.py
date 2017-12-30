@@ -11,6 +11,7 @@ EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
 EXAMPLES_UNPARSED_ROOT = "./examples_prettyprinted_out/"
 
 EXAMPLES = [
+    'toy_and_teaching/test_local_vars.l4',
     'toy_and_teaching/minimal_future-actions.l4',
     'toy_and_teaching/minimal_future-actions2.l4',
     'toy_and_teaching/collatz.l4',
@@ -24,7 +25,7 @@ EXAMPLES = [
     'serious/SAFE.l4',
     'serious/KISS.l4',
 ]
-EXAMPLES_FULL_SIZE = 12
+EXAMPLES_FULL_SIZE = 13
 
 # so can run it as a library too, which respects exceptions
 def main(sys_argv:List[str]):

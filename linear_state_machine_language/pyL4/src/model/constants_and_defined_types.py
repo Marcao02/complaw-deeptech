@@ -11,6 +11,7 @@ TimeInt = int
 
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)
+
 GlobalVarId = NewType('GlobalVarId',str)
 StateTransformLocalVarId = NewType('StateTransformLocalVarId',str)
 ActionId = NewType('ActionId',str)
@@ -20,13 +21,13 @@ DefinitionId = NewType('DefinitionId', str)
 ContractParamId = NewType('ContractParamId',str)
 ActionBoundActionParamId = NewType('ActionBoundActionParamId',str)
 RuleBoundActionParamId = NewType('RuleBoundActionParamId',str)
-# LocalVarId = NewType('LocalVarId',str)
 
 ProseContract = Dict[ProseClauseId,str]
 ParamsDec = Dict[ActionBoundActionParamId, SortId]
 
 ContractParamSubst = Dict[ContractParamId,Data]
 GVarSubst = Dict[GlobalVarId,Data]
+LocalVarSubst = Dict[StateTransformLocalVarId,Data]
 ABAPNamedSubst = Dict[ActionBoundActionParamId, Data]
 RBAPNamedSubst = Dict[RuleBoundActionParamId, Data]
 AParamsSubst = List[Data]
