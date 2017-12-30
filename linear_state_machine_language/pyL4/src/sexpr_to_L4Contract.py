@@ -573,11 +573,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         args : Optional[List[RuleBoundActionParamId]]
         rv : NextActionRule
         if len(expr) == 2:
-            action_id = castid(ActionId, expr[0])
+            if isinstance(expr[0],str):
+                action_id = castid(ActionId,expr[0])
+                args = []
+            else:
+                action_id = castid(ActionId, (expr[0][0]))
+                args = cast(List[RuleBoundActionParamId], expr[0][1:])
             role_id = ENV_ROLE
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
-            args = None
             rem = expr.tillEnd(1)
             rv = EnvNextActionRule(src_section.section_id, action_id, args, entrance_enabled_guard)
         else:
