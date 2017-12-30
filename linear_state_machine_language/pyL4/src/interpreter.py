@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, tzinfo, timezone
 from itertools import chain
 import math
-import copy
+import ipdb # code, IPython, pdb are other options
 
 from src.model.constants_and_defined_types import TimeInt, LOOP_KEYWORD
 from src.model.EvalContext import EvalContext
@@ -182,7 +182,7 @@ class ExecEnv:
     def last_or_current_section(self) -> Section:
         return self.top.section(self.last_or_current_section_id)
 
-    def evalTrace(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False):
+    def evalTrace(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False, debug=False):
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
@@ -266,6 +266,12 @@ class ExecEnv:
                 else:
                     assert False, "Can't get here?"
 
+
+            if debug:
+                ipdb.set_trace()
+                # code.InteractiveConsole(locals=locals()).interact()
+                # IPython.embed()
+
         if final_var_vals:
             for gvarid,expected_val in final_var_vals.items():
                 actual_val = self.gvarvals[castid(GlobalVarId,gvarid)]
@@ -276,7 +282,7 @@ class ExecEnv:
             roles = set()
             for o in self.future_obligations:
                 roles.add(o.rule.role_id)
-            self.last_or_current_section_id == breachSectionId(*list(roles))
+            self.last_or_current_section_id = breachSectionId(*list(roles))
             return
 
         if finalSectionId:
@@ -590,10 +596,6 @@ class ExecEnv:
             else: raise Exception('fixme')
 
 
-
-
-
-
         elif isinstance(stmt, InCodeConjectureStatement):
             # print("conjecture " + str(stmt))
             assert self.evalTerm(stmt.value_expr, None), f"""Conjecture {stmt.value_expr} is false! Variable values and action params:
@@ -604,15 +606,17 @@ class ExecEnv:
         elif isinstance(stmt, IfElse):
             test = chcast(bool, self.evalTerm(stmt.test, None))
             self.evalCodeBlock(GlobalStateTransform(stmt.true_branch if test else stmt.false_branch))
+
+        elif isinstance(stmt, StateTransformLocalVarDec):
+            raise NotImplementedError("TODO: re-enable exec support for local vars!")
+            #     assert self.top.gvarDecObj(stmt.varname) is None
+            #     # print('evalStatement LocalVarDec: ' + str(stmt))
+            #     rhs_value = self.evalTerm(stmt.value_expr, self.last_section_entrance_delta)
+            #     self.gvarvals[stmt.varname] = rhs_value
+
         else:
             raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
 
-
-        # if isinstance(stmt, LocalVarDec):
-        #     assert self.top.gvarDecObj(stmt.varname) is None
-        #     # print('evalStatement LocalVarDec: ' + str(stmt))
-        #     rhs_value = self.evalTerm(stmt.value_expr, self.last_section_entrance_delta)
-        #     self.gvarvals[stmt.varname] = rhs_value
 
     def evalTerm(self,
                  term:Term,
@@ -766,7 +770,7 @@ class ExecEnv:
 
 
 
-def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
+def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, debug=False):
     env = ExecEnv(prog)
     if isinstance(it, CompleteTrace):
         for contract_param in it.contract_param_subst:
@@ -782,7 +786,7 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract):
         return env.evalTrace(trace = it.events,
                              finalSectionId = cast(SectionId, it.final_section),
                              final_var_vals = cast(Optional[GVarSubst], it.final_values),
-                             verbose=True)
+                             verbose=True, debug=debug)
     else:
-        return env.evalTrace(it, verbose=True)
+        return env.evalTrace(trace = it, verbose=True, debug=debug)
 

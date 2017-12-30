@@ -399,7 +399,7 @@ def main(sys_argv:List[str]):
             assembler = L4ContractConstructor(path)
             prog : L4Contract = assembler.mk_l4contract(parsed)
 
-            evalTrace(trace[1], prog)
+            evalTrace(trace[1], prog, 'debug' in sys_argv)
 
 
 if __name__ == '__main__':
