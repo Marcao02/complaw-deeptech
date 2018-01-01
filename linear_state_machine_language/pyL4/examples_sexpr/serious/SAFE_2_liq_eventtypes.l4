@@ -33,17 +33,17 @@
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
 	; for Equity Financing
-	(writeAtMostOnce safe_price : $)
-	(writeAtMostOnce discount_price : $)
-	(writeAtMostOnce conversion_price : $)
-	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $)
+	(writeAtMostOnce safe_price : $/share)
+	(writeAtMostOnce discount_price : $/share)
+	(writeAtMostOnce conversion_price : $/share)
+	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $/share)
 	; don't need this because only used by the action that introduces it:
 	; (writeAtMostOnce company_capitalization : ℕ)
 
 	; for Liquidity
-	(writeAtMostOnce liq_price : $ )
+	(writeAtMostOnce liq_price : $/share )
 	(writeAtMostOnce liq_cashout : $ = 0 )
-	(writeAtMostOnce company_cash : ℕ) ; TODO: maybe this should be an input.
+	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
 	(writeAtMostOnce investor_liq_hypothetical_shares : ℕ)
 	; (writeAtMostOnce liquidity_capitalization : ℕ)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
 	(writeAtMostOnce investor_percent_of_cashout_investor_investments : %)
@@ -56,12 +56,6 @@
 	(writeAtMostOnce dis_cashout : $)
 )
 
-(Definitions  ; LANG node: These are substituted before construction of in-memory python L4 model
-	; (discount_rate = (100 - DISCOUNT_PERCENT))
-	; (liq_price = (VALUATION_CAP / liquidity_capitalization))
-	(purchase_amount_reduction = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
-)
-
 (FormalContract "SAFE"
 	; apply to all actions and states:
 	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
@@ -71,7 +65,8 @@
 	(Section InvestorInvests
 		(Next
 			(Company obligation-options-include CommitToEquityFinancing no_time_constraint)
-			(Company obligation-options-include (CommitToLiquidityEvent _1 _2 _3 _4) no_time_constraint) ; IPO
+			(Company obligation-options-include (CommitToLiquidityEvent _1 _2) no_time_constraint) ; IPO
+			(Company obligation-options-include (CommitToLiquidityEventWithCoCTaxFreeReorg _1 _2 _3) no_time_constraint) ; IPO
 			(Company obligation-options-include CommitToDissolution no_time_constraint)
 		)
 	)
@@ -115,15 +110,14 @@
 	)
 
 	(Action (IssueSAFEPreferredStock
-				(company_capitalization : ℕ)
-				(premoney_valuation : ℕ)
-				) (AllowedSubjects Company)
+				(company_capitalization : shares)
+				(premoney_valuation : $) ) (AllowedSubjects Company)
 		(StateTransform
 			(safe_price = (VALUATION_CAP / company_capitalization))
 			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
 			(discount_price = (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE))
 			(conversion_price = (min safe_price discount_price))
-			(investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT / conversion_price))
+			(investor_SAFE_Preferred_Stocks += (round (PURCHASE_AMOUNT / conversion_price)))
 		)
 		(FollowingSection
 			(Next (Company must DoEquityFinancing discretionary))  )
@@ -141,7 +135,6 @@
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
 			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
-
 			(cash_currently_unconverted = PURCHASE_AMOUNT)
 			(company_cash = company_cash_at_liquidity_event)
 		)
@@ -155,7 +148,6 @@
 		)
 	)
 
-
 	(Action (CommitToLiquidityEventWithCoCTaxFreeReorg
 								    (company_cash_at_liquidity_event:$)
 								    (liquidity_capitalization:$)
@@ -166,23 +158,21 @@
 			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
 			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
 
-		 	; "In action_rule with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
-
+		 	; "In ???? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
+		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
 			(cash_currently_unconverted = (PURCHASE_AMOUNT - purchase_amount_reduction))
 			(company_cash = (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
 		)
 
-
 		(FollowingSection
 			(Next
-				(Investor may ChooseCashPayment discretionary)
-				(Investor may ChooseStockPayment discretionary)
-				(Company should AutoChooseStockPayment discretionary)
+				(Investor may ChooseCashPayment [event_td < (sectionEntrance_td + 1W)])
+				(Investor may ChooseStockPayment [event_td < (sectionEntrance_td + 1W)])
+				(Company obligation-options-include AutoChooseStockPayment [event_td == (sectionEntrance_td + 1W)])
 			)
 		)
 	)
-
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
 		(FollowingSection (Next (Company must TransferCommonStock discretionary)))
@@ -214,7 +204,7 @@
 				(liq_cashout = cash_currently_unconverted)
 			)
 			else (
-				(liq_cashout = (company_cash * investor_percent_of_cashout_investor_investments))
+				(liq_cashout = (round (company_cash * investor_percent_of_cashout_investor_investments)))
 			))
 			(investor_cash += liq_cashout)
 			; (company_cash -= liq_cashout)
@@ -253,15 +243,15 @@
 				(dis_cashout = PURCHASE_AMOUNT)
 			)
 			else (
-				(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
+				(dis_cashout = (round (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) )
 			))
 			(investor_cash = dis_cashout)
 			; (company_cash = (company_cash_at_dissolution_event - dis_cashout))
 		)
 
 		(FollowingSection
-			; Don't need to specify that the following two `must`s should be verified disjoint exhaustive,
-			; becase it's implied by the definition of strong obligation.
+			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
+			; becase it's implied by the definitions.
 			(Next
 				(if (dis_cashout < PURCHASE_AMOUNT)
 					(Company must (TransferAssets _) discretionary)  )
@@ -275,7 +265,8 @@
 		(AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))   )
+			(investor_Common_Stocks += (round ((PURCHASE_AMOUNT - dis_cashout) / liq_price)))
+		)
 		(FollowingSection  (Next (Company must Dissolve discretionary)))
 	)
 

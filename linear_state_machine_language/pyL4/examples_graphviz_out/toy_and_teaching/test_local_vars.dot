@@ -1,0 +1,20 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph test_contract_for_must_later {    
+    Fulfilled[label=Fufilled];
+    Ongoing[label=Ongoing]
+    
+     
+    DoIt[label=DoIt,shape=box];
+	FinishIt[label=FinishIt,shape=box]    
+    
+    
+    
+    Ongoing -> DoIt [style=dashed];
+	DoIt -> FinishIt [style=dashed]
+    
+    FinishIt -> Fulfilled [style=dashed];
+	     
+    
+       
+}

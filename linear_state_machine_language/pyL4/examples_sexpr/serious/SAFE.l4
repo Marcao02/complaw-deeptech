@@ -29,7 +29,8 @@
 	(writeAtMostOnce investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  )
 	(writeAtMostOnce investor_SAFE_Preferred_Stocks : ℕ = START_INVESTOR_SAFE_PREFERRED_STOCKS)
 	(writeAtMostOnce investor_cash : $ = START_INVESTOR_CASH )
-	; (writeAtMostOnce company_cash : $ = PURCHASE_AMOUNT)
+
+	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
 	; for Equity Financing
 	(writeAtMostOnce safe_price : $/share)
@@ -42,8 +43,7 @@
 	; for Liquidity
 	(writeAtMostOnce liq_price : $/share )
 	(writeAtMostOnce liq_cashout : $ = 0 )
-	(writeAtMostOnce investor_remaining_investment_L : $)
-	(writeAtMostOnce company_cash_remaining : $)
+	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
 	(writeAtMostOnce investor_liq_hypothetical_shares : ℕ)
 	; (writeAtMostOnce liquidity_capitalization : ℕ)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
 	(writeAtMostOnce investor_percent_of_cashout_investor_investments : %)
@@ -54,12 +54,6 @@
 	; (company_cash_at_dissolution_event : $) ; action param only
 	; (investor_percent_of_dissolving_investor_investments : %)  ; action param only
 	(writeAtMostOnce dis_cashout : $)
-)
-
-(Definitions  ; LANG node: These are substituted before construction of in-memory python L4 model
-	; (discount_rate = (100 - DISCOUNT_PERCENT))
-	; (liq_price = (VALUATION_CAP / liquidity_capitalization))
-	; (purchase_amount_reduction = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 )
 
 (FormalContract "SAFE"
@@ -78,8 +72,6 @@
 
 	; ----------------- Equity Financing Event -------------------
 	; NOTE: PRA abbreviates pro rata agreement
-	; `_E` is just a redundant notational reminder that the action/section
-	; is associated with the equity event case.
 
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(FollowingSection
@@ -144,17 +136,17 @@
 			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
 			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > 0)) (
-			 	; "In action_rule with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
+			 	; "In ??? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			 	(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
-				(investor_remaining_investment_L = (PURCHASE_AMOUNT - purchase_amount_reduction))
+				(cash_currently_unconverted = (PURCHASE_AMOUNT - purchase_amount_reduction))
+				(company_cash = (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			)
 			else (
-				(investor_remaining_investment_L = PURCHASE_AMOUNT)
+				(cash_currently_unconverted = PURCHASE_AMOUNT)
 			))
-			(company_cash_remaining = (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
+			(company_cash = (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
 		)
-
 
 		(FollowingSection
 			(Next
@@ -176,7 +168,7 @@
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
 			; TODO: should we round that division up, down, or to nearest?
-			(investor_Common_Stocks += (round ((investor_remaining_investment_L - liq_cashout) / liq_price)))
+			(investor_Common_Stocks += (round ((cash_currently_unconverted - liq_cashout) / liq_price)))
 		)
 		(FollowingSection
 			(Next (Company must DoLiquidityEvent discretionary))
@@ -191,11 +183,11 @@
 
 	(Action TransferCash_L (AllowedSubjects Company)
 		(StateTransform
-			(if (investor_remaining_investment_L ≤ (company_cash_remaining * investor_percent_of_cashout_investor_investments)) (
-				(liq_cashout = investor_remaining_investment_L)
+			(if (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)) (
+				(liq_cashout = cash_currently_unconverted)
 			)
 			else (
-				(liq_cashout = (round (company_cash_remaining * investor_percent_of_cashout_investor_investments)))
+				(liq_cashout = (round (company_cash * investor_percent_of_cashout_investor_investments)))
 			))
 			(investor_cash += liq_cashout)
 			; (company_cash -= liq_cashout)
@@ -203,10 +195,10 @@
 
 		(FollowingSection
 			(Next
-				(if (liq_cashout < investor_remaining_investment_L)
+				(if (liq_cashout < cash_currently_unconverted)
 					(Company must TransferCommonStock discretionary) )
 
-				(if (liq_cashout == investor_remaining_investment_L)
+				(if (liq_cashout == cash_currently_unconverted)
 					(Company must DoLiquidityEvent discretionary)
 				)
 			)

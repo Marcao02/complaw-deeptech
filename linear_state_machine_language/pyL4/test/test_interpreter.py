@@ -258,7 +258,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
 )
 
 
-traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
+traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
     ('serious/SAFE.l4', CompleteTrace(
         # Example 1 in SAFE_Primer.rtf
         {"PURCHASE_AMOUNT": 100 * K,
@@ -273,7 +273,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ),
         FULFILLED_SECTION_LABEL,
         {"investor_SAFE_Preferred_Stocks": 220000})  # primer says 220,022 from rounding price
-     ),
+    ),
 
     ('serious/SAFE.l4', CompleteTrace(
         # Example 2 in SAFE_Primer.rtf
@@ -289,7 +289,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ),
         FULFILLED_SECTION_LABEL,
         {"investor_SAFE_Preferred_Stocks": 416667})
-     ),
+    ),
 
     ('serious/SAFE.l4', CompleteTrace(
         # Example 3 in SAFE_Primer.rtf
@@ -305,31 +305,27 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ),
         FULFILLED_SECTION_LABEL,
         {"investor_SAFE_Preferred_Stocks": 143750})  # primer says 143,760 from rounding price
-     ),
+    ),
 
     ('serious/SAFE.l4', CompleteTrace(
-        # Example 4 in SAFE_Primer.rtf
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
-         "DISCOUNT_RATE": 1
+        # Example 8 in SAFE_Primer.rtf
+        {"PURCHASE_AMOUNT": 20 * K,
+         "VALUATION_CAP": inf,
+         "DISCOUNT_RATE": .8
          },
-        (event('CommitToLiquidityEvent', 'Company', 0, {
-            'change_of_control': False,
-            'company_cash_at_liquidity_event': 50 * M,
-            'liquidity_capitalization': 11.5 * M,
-            'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
-        }),
-
-         event('ChooseStockPayment', 'Investor', 0),
-         event('TransferCommonStock', 'Company', 0),
-         event('DoLiquidityEvent', 'Company', 0)
+        (event('CommitToEquityFinancing', 'Company', 0),
+         event('DeliverDocsWithPRA', 'Company', 0),
+         event('IssueSAFEPreferredStock', 'Company', 0,
+               {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
+         event('DoEquityFinancing', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL, {
-            "investor_Common_Stocks": 115000
-        })
-     ),
+        FULFILLED_SECTION_LABEL,
+        {"initial_price_per_share_standard_preferred_stock": 2 / 10.5,
+         "discount_price": 0.8 * (2 / 10.5),
+         "investor_SAFE_Preferred_Stocks": 131250})  # primer says 131,578 from rounding price
+    ),
 
-    ('serious/SAFE.l4', CompleteTrace(
+    ("serious/SAFE.l4", CompleteTrace(
         # Example 4 in SAFE_Primer.rtf, if dumb and choose cash payment
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 10 * M,
@@ -352,27 +348,75 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          "investor_Common_Stocks": 0,
          "investor_SAFE_Preferred_Stocks": 0,
          "investor_cash": 100000})
-     ),
+    ),
 
-    ('serious/SAFE.l4', CompleteTrace(
-        # Example 8 in SAFE_Primer.rtf
-        {"PURCHASE_AMOUNT": 20 * K,
-         "VALUATION_CAP": inf,
-         "DISCOUNT_RATE": .8
+    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
+        # Example 4 in SAFE_Primer.rtf, if dumb and choose cash payment
+        {"PURCHASE_AMOUNT": 100 * K,
+         "VALUATION_CAP": 10 * M,
+         "DISCOUNT_RATE": 1
          },
-        (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverDocsWithPRA', 'Company', 0),
-         event('IssueSAFEPreferredStock', 'Company', 0,
-               {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
-         event('DoEquityFinancing', 'Company', 0)
+        (event('CommitToLiquidityEvent', 'Company', 0, {
+            'company_cash_at_liquidity_event': 50 * M,
+            'liquidity_capitalization': 11.5 * M
+        }),
+
+         event('ChooseCashPayment', 'Investor', 0),
+         event('TransferCash_L', 'Company', 0),
+         # event('TransferCommonStock', 'Company', 0),
+         event('DoLiquidityEvent', 'Company', 0)
          ),
         FULFILLED_SECTION_LABEL,
-        {"initial_price_per_share_standard_preferred_stock": 2 / 10.5,
-         "discount_price": 0.8 * (2 / 10.5),
-         "investor_SAFE_Preferred_Stocks": 131250})  # primer says 131,578 from rounding price
-     )
+        {"investor_liq_hypothetical_shares": 115000,
+         "investor_Common_Stocks": 0,
+         "investor_SAFE_Preferred_Stocks": 0,
+         "investor_cash": 100000})
+     ),
 
-)
+       ("serious/SAFE.l4", CompleteTrace(
+        # Example 4 in SAFE_Primer.rtf
+        {"PURCHASE_AMOUNT": 100 * K,
+         "VALUATION_CAP": 10 * M,
+         "DISCOUNT_RATE": 1
+         },
+        (event('CommitToLiquidityEvent', 'Company', 0, {
+            'change_of_control': False,
+            'company_cash_at_liquidity_event': 50 * M,
+            'liquidity_capitalization': 11.5 * M,
+            'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
+        }),
+
+         event('ChooseStockPayment', 'Investor', 0),
+         event('TransferCommonStock', 'Company', 0),
+         event('DoLiquidityEvent', 'Company', 0)
+         ),
+        FULFILLED_SECTION_LABEL, {
+            "investor_Common_Stocks": 115000
+        })
+    ),
+
+    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
+        # Example 4 in SAFE_Primer.rtf
+        {"PURCHASE_AMOUNT": 100 * K,
+         "VALUATION_CAP": 10 * M,
+         "DISCOUNT_RATE": 1
+         },
+        (event('CommitToLiquidityEvent', 'Company', 0, {
+            'company_cash_at_liquidity_event': 50 * M,
+            'liquidity_capitalization': 11.5 * M,
+        }),
+
+         event('ChooseStockPayment', 'Investor', 0),
+         event('TransferCommonStock', 'Company', 0),
+         event('DoLiquidityEvent', 'Company', 0)
+         ),
+        FULFILLED_SECTION_LABEL, {
+            "investor_Common_Stocks": 115000
+        })
+    ),
+
+]
+
 
 # this is used in runme_before_commit.py b/c I often comment out some of the entries of EXAMPLES_TO_RUN
 EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
@@ -381,8 +425,6 @@ traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious
 from src.compiler_cli import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
-
-
         'from_academic_lit//hvitved_lease.l4',
         'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
         'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
@@ -395,6 +437,7 @@ EXAMPLES_TO_RUN = [
         'toy_and_teaching/monster_burger_program_only.l4',
 
         'serious/SAFE.l4',
+        'serious/SAFE_2_liq_eventtypes.l4'
     ]
 
 # so can run it as a library too, which respects exceptions

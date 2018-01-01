@@ -1,0 +1,64 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph SAFE {    
+    Fulfilled[label=Fufilled];
+    InvestorInvests[label=InvestorInvests]
+    
+     
+    CommitToEquityFinancing[label=CommitToEquityFinancing,shape=box];
+	DeliverDocsWithPRA[label=DeliverDocsWithPRA,shape=box];
+	DeliverDocsWithoutPRA[label=DeliverDocsWithoutPRA,shape=box];
+	SubmitProRataRightsAgreementForSigning[label=SubmitProRataRightsAgreementForSigning,shape=box];
+	SignPRA[label=SignPRA,shape=box];
+	IssueSAFEPreferredStock[label=IssueSAFEPreferredStock,shape=box];
+	DoEquityFinancing[label=DoEquityFinancing,shape=box];
+	CommitToLiquidityEvent[label=CommitToLiquidityEvent,shape=box];
+	CommitToLiquidityEventWithCoCTaxFreeReorg[label=CommitToLiquidityEventWithCoCTaxFreeReorg,shape=box];
+	AutoChooseStockPayment[label=AutoChooseStockPayment,shape=box];
+	ChooseStockPayment[label=ChooseStockPayment,shape=box];
+	TransferCommonStock[label=TransferCommonStock,shape=box];
+	ChooseCashPayment[label=ChooseCashPayment,shape=box];
+	TransferCash_L[label=TransferCash_L,shape=box];
+	DoLiquidityEvent[label=DoLiquidityEvent,shape=box];
+	CommitToDissolution[label=CommitToDissolution,shape=box];
+	TransferCash_D[label=TransferCash_D,shape=box];
+	TransferAssets[label=TransferAssets,shape=box];
+	Dissolve[label=Dissolve,shape=box]    
+    
+    
+    
+    InvestorInvests -> CommitToEquityFinancing;
+	InvestorInvests -> CommitToLiquidityEvent;
+	InvestorInvests -> CommitToLiquidityEventWithCoCTaxFreeReorg;
+	InvestorInvests -> CommitToDissolution;
+	CommitToEquityFinancing -> DeliverDocsWithPRA;
+	CommitToEquityFinancing -> DeliverDocsWithoutPRA;
+	DeliverDocsWithPRA -> IssueSAFEPreferredStock;
+	DeliverDocsWithoutPRA -> SubmitProRataRightsAgreementForSigning;
+	SubmitProRataRightsAgreementForSigning -> SignPRA;
+	SignPRA -> IssueSAFEPreferredStock;
+	IssueSAFEPreferredStock -> DoEquityFinancing;
+	CommitToLiquidityEvent -> ChooseCashPayment;
+	CommitToLiquidityEvent -> ChooseStockPayment;
+	CommitToLiquidityEvent -> AutoChooseStockPayment;
+	CommitToLiquidityEventWithCoCTaxFreeReorg -> ChooseCashPayment;
+	CommitToLiquidityEventWithCoCTaxFreeReorg -> ChooseStockPayment;
+	CommitToLiquidityEventWithCoCTaxFreeReorg -> AutoChooseStockPayment;
+	AutoChooseStockPayment -> TransferCommonStock;
+	ChooseStockPayment -> TransferCommonStock;
+	TransferCommonStock -> DoLiquidityEvent;
+	ChooseCashPayment -> TransferCash_L;
+	TransferCash_L -> TransferCommonStock;
+	TransferCash_L -> DoLiquidityEvent;
+	CommitToDissolution -> TransferCash_D;
+	TransferCash_D -> TransferAssets;
+	TransferCash_D -> Dissolve;
+	TransferAssets -> Dissolve
+    
+    DoEquityFinancing -> Fulfilled [style=dashed];
+	DoLiquidityEvent -> Fulfilled [style=dashed];
+	Dissolve -> Fulfilled [style=dashed];
+	     
+    
+       
+}
