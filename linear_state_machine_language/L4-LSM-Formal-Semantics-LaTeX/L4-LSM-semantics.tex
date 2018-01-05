@@ -24,23 +24,24 @@
 
 \bigskip
 
-\noindent {\bf NTS and todo:}
-\begin{PPI}
-\item Rewrite Section 2.1 case 2
-\item Introduce a particular definition of representable event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$, for $R$ a term in some FO language.
+%\noindent {\bf NTS and todo:}
+%\begin{PPI}
+%\item Rewrite Section 2.1 case 2
+%\item Introduce a particular definition of representable event schema? e.g. $\textsf{some } \vec{x}:\tau \textsf{ such that } R(\vec{x})$, for $R$ a term in some FO language.
+%
+% \underline{{\bf No}}. That can be part of L4, but in the mathematical model it would just be messy. The only good reason to make it anything more specific than ``a set of events that have the same action'' that I can see now is if some algorithm or metatheorem relies on it.
 
- \underline{{\bf No}}. That can be part of L4, but in the mathematical model it would just be messy. The only good reason to make it anything more specific than ``a set of events that have the same action'' that I can see now is if some algorithm or metatheorem relies on it.
 %\item Should I remove relievable must-next \nameforedges? {\bf No.}
 %
 %This was the idea for removing: Let $\evar$ be such \nameforaedge. First, change it to a may-next \nameforedge, keeping its transition guard. Its transition guard should make its enable-times disjoint from the enable-times of other relievable must-next \nameforedges at the same state with the same role. Hmm... deriving blame (which breach state to go to) is more complicated.
-\end{PPI}
+%\end{PPI}
 
 \tableofcontents
 
 \section{Who this is for and how to read it} 
 {\bf Please note} that we have not yet taken the time to make this document as widely accessible as it will be eventually, because the contents are still changing frequently.
 
-This document defines the programming language-independent mathematical model, (very) tentatively called ``linear state machines``, that we use to define the semantics of our formal contracts language L4. It is written especially for computer scientists and mathematicians, especially Formal Verification experts, who aren't interested in, or are turned off by, the finer details of L4. For example, consider the component of the LSM model called a ``global vars transform`` introduced in Section \ref{globalvars}. It is a mathematical function, which if its domain is infinite means it's an infinite object, which obviously won't work for a programming language. In L4, there is an imperative-looking language for specifying such functions.
+This document defines the programming language-independent mathematical model, (very) tentatively called ``linear state machines,'' that we use to define the semantics of our formal contracts language L4. It is written especially for computer scientists and mathematicians, especially Formal Verification experts, who aren't interested in, or are turned off by, the finer details of L4. For example, consider the component of the LSM model called a ``global vars transform'' introduced in Section \ref{globalvars}. It is a mathematical function, which if its domain is infinite means it's an infinite object, which obviously won't work for a programming language. In L4, there is an imperative-looking language for specifying such functions.
  
 
 %This document also serves as the specification for the formal contract datatype that our natural language generation, formal verification, and visualization software will use.
@@ -106,7 +107,7 @@ Every \actionrule is one of the following four types. They will be explained in 
 \end{LPPI}
 Note that the events defined by \rmustnarules and \mustnarules are also considered permitted \Events. That completes the definition of the finite directed graph ``\Map'' view of a \Contract.
 
-We say that \nameforaedge $\evar$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters. \actionrule.
+We say that \nameforaedge $\evar$ and an \Event $E = \tup{a,r,t}$ are \introx{compatible}{compatible} iff they have the same \Action $a$ and the same \Role $r$. This definition will be modified in Section \ref{globalvars} when we add \Event parameters. 
 \medskip
 
 
@@ -177,12 +178,22 @@ Let $i \geq 0$, and assume execution is defined up to entering $G_i$. To reduce 
 %    \item[(c)] If $E$ is \compatible with $\evar$ and $E$ happens after $\evar$'s deadline, then $\role{\evar}$ solely breaches the contract.
 \end{PPI}
 
-{\bf Case 2}: {\bf This is correct, but obtuse -- over-concise.} There is no \enabled \mustnarule in $G$. From the set of \enabled \maynarules of $s$ {\bf and} the set of \enabled \rmustnarules in $G$ {\bf and} the set of \enabled \envarules, compute the deadline for each, and discard the \actionrules whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.}  let $T_p$ be the resulting set of \actionrules (the $p$ is for permission). Separately, from the set of \enabled \rmustnarules in $G$, compute the deadline for each, and discard the {\actionrules} {\it that do not expire until after the unique minimal expiry \TimeStamp $t^*$ within the set}; let $T_o$ be the resulting set (the $o$ is for obligation), and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
-\begin{PPI}
-	\item An \Event compatible with some \actionrule in $T_p$.
-	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} In this case means that all of the \Roles whose \enabled \rmustnarule expire earliest (at $t^*$) are jointly responsible for the breach.
-\end{PPI}
-The \bostgc ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
+{\bf Case 2}: {\bf This is rewritten case requires a modification to the \bostgc.}
+
+The are no \enabled absolute (strong) obligations. This means that any \enabled permitted action, \enabled weakly-obligated action, or \enabled \Env action can occur in the next \Event. If any of those actions occur next, while the associated \DeadlineFn is true, then nobody breaches the contract, and there is nothing more to say. So assume otherwise.
+
+If there is at least one permitted action that has deadline $\infty$, then there also cannot be a breach, but the contract may now be stuck forever. So assume that doesn't happen either. Then at least one party breaches the contract. 
+%What is more nuanced to define is how blame is assigned when someone {\it does} breach the contract. 
+
+Suppose that a participant $p$ has at least one \enabled weak obligation. For each \enabled rule $r$, there is a time $t_r$ at which all of $p$'s permitted actions are expired forever. If the breach happens at $t_r$ or before, then $p$ must be one of the breaching parties. 
+
+%
+%{\bf This is correct, but obtuse -- over-concise.} There is no \enabled \mustnarule in $G$. From the set of \enabled \maynarules of $s$ {\bf and} the set of \enabled \rmustnarules in $G$ {\bf and} the set of \enabled \envarules, compute the deadline for each, and discard the \actionrules whose deadline has passed by the time $E$ happens;\footnote{i.e. discard $\evar$ if $\deadline{\evar}{t} > t'$.}  let $T_p$ be the resulting set of \actionrules (the $p$ is for permission). Separately, from the set of \enabled \rmustnarules in $G$, compute the deadline for each, and discard the {\actionrules} {\it that do not expire until after the unique minimal expiry \TimeStamp $t^*$ within the set}; let $T_o$ be the resulting set (the $o$ is for obligation), and let $R$ be $\{ \role{\evar} \, \vert \, \evar \in T_{o} \}$. Then $E$ is either:
+%\begin{PPI}
+%	\item An \Event compatible with some \actionrule in $T_p$.
+%	\item $\breach{R}{t^*}$.\footnote{Obviously not possible if $R$ is empty} In this case means that all of the \Roles whose \enabled \rmustnarule expire earliest (at $t^*$) are jointly responsible for the breach.
+%\end{PPI}
+%The \bostgc ensures that one of those two cases will apply. In particular, it implies that at least one of $T_p$ or $R$ is nonempty.
 
 %Then $A$ must be \compatible with one of the \actionrules in that filtered set.
 
