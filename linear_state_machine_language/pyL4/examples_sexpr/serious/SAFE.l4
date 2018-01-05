@@ -234,7 +234,7 @@
 
 		(FollowingSection
 			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
-			; becase it's implied by the definitions.
+			; because that's a requirement of the semantics, and thus will be checked automatically.
 			(Next
 				(if (dis_cashout < PURCHASE_AMOUNT)
 					(Company must (TransferAssets _) discretionary)  )

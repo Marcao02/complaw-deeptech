@@ -1,0 +1,173 @@
+(TimeUnit d)
+(Actors Customer Vendor)
+
+
+(TypeDefs
+	; either ids (approach taken here) or ordering are necessary to correctly handle the case when there are two orders on the same day for the same quantity.
+	(Id := ℕ)
+	(Order := [Tuple ℕ TimeDelta Id])
+)
+
+(ContractParams
+	(MAX_UNITS : ℕ := 1000)
+	(CONTRACT_LIFE : TimeDelta := 1Y)
+	(PRICE_PER_UNIT : $ := 100)
+)
+
+
+(GlobalVars
+	( writeonce contract_ends : Date := ((contract_start_date) + 1Y))
+
+	( inconly next_order_id : Id := 0 )
+	( 2Bdelivered : Set[Order] := emptySet )
+	( 2Binvoiced : Set[Order] := emptySet )
+	( 2Bpaid : Set[Order] := emptySet )
+
+	( reactive orderable_units : ℕ := (MAX_UNITS - units_ordered))
+
+	( nonoperative inconly units_ordered : ℕ := 0 )
+	( nonoperative inconly units_delivered : ℕ := 0 )
+	( nonoperative inconly total_paid : $ := 0 )
+)
+
+(ProseContract
+	(P1 'The master agreement between Vendor and Customer is for {MAX_UNITS} printers, with a unit price of e100. The agreement is valid for one year, starting 2011-01-01.')
+	(P2 'The customer may at any time order an amount of printers (with the total not exceeding the threshold of {MAX_UNITS}), after which the Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by 10 days.')
+	(P3 'After delivering the goods, Vendor may order the Customer within 1 month, after which the goods must be paid for by Customer within 14 days.')
+)
+; (FOLContract THIS IS VERY EARLY WIP
+; 	; deliver_deadline(d,q)
+; 	; ∀x:AmountOfPrinters. Vendor needs to deliver that amount of _new_ printers. They should be distinct from any previously-delivered ;inters.
+; 	; What counts as a valid printer order delivery depends on the history or at least time.
+; 	(P2 'The customer may at any time order an amount of printers (with the total not exceeding the threshold of 1000), after which the ;ndor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days.')
+; )
+
+; ignored currently:
+(VerificationDefinition (
+	∀ (k : ℕ) (
+		(UpperBoundOnDaysBtwDeliverAndInvoice k)
+		iff
+		(
+			∀ (d₁ : Date) (
+				∀ (o : Order) (
+					(Deliver o d₁)
+					⇒
+					(
+						∃ (d₂ : Date) (
+							(d₂ ≤ d₁ + k)
+							∧
+							(Invoice o d₂)
+						)
+					)
+				)
+			)
+		)
+	)
+))
+
+; ignored currently:
+(Conjecture (
+	∀ (k : ℕ) (
+		(UpperBoundOnDaysBtwDeliverAndInvoice k)
+		⇒
+		(
+			∀ (d : Date) (
+				∀ (n : ℕ) (
+					(n = (units_delivered d))
+					⇒
+					(
+						(total_paid (d + (k + 14D)))
+						≥
+						(n * PRICE_PER_UNIT)
+					)
+				)
+			)
+		)
+	)
+))
+
+(Macro (order2BDelivered))
+
+(FormalContract
+	"Master Sales Agreement"
+	(StartSection ContractLive)
+
+	(Section ContractLive
+		(Next
+			(if (orderable_units > 0)
+				(Customer may (NewOrder q) (event_td ≤ contract_ends) (where ((q ≤ orderable_units) and (q > 0))))
+			)
+			(if (nonempty 2Bdelivered)
+				; the `where (containedIn order 2Bdelivered)` expression constrains permitted values of the event parameter `order`.
+				; the static analyzer will check whether the constraint is solvable, and will issue a warning if not (since in this
+				; case that means there's an unfulfillable obligation).
+				(Vender must (Deliver order) (event_td ≤ (get order 1)) (where (containedIn order 2Bdelivered)))
+			)
+			(if (nonempty 2Binvoiced)
+				(Vendor may (SendInvoice order) (event_td ≤ (get order 1)) (where (containedIn order 2Binvoiced)))
+			)
+			(if (nonempty 2Bpaid)
+				(Customer must (PayBill order) (event_td ≤ (get order 1)) (where (containedIn order 2Bpaid)))
+			)
+			(if (
+					((orderable_units == 0) or (sectionEntrance_td > contract_ends)) and
+					(empty 2Bpaid) and
+					(empty 2Bdelivered)
+					; TODO and there isn't time remaining to invoice an uninvoiced order
+				)
+				(Fulfilled immediately)
+			)
+		)
+
+	)
+
+	(Action NewOrder(quantity : ℕ)
+		(Entrance
+			(local delivery_deadline : Date := (dateplus (event_start_date) (days (max 14 (ceil (quantity / 10))))) )
+			(units_ordered += quantity)
+			(2Bdelivered := (setAdd 2Bdelivered (tuple quantity delivery_deadline next_order_id)))
+			(next_order_id += 1)
+		)
+
+		(TransitionsTo ContractLive)
+	)
+
+	(Action Deliver(order : Order)
+		(Entrance
+			( conjecture (containedIn order 2Bdelivered) )
+			( local quantity : ℕ := (get order 0) )
+			( units_delivered += quantity )
+			( 2Bdelivered := (setRemove 2Bdelivered order) )
+			( 2Binvoiced := (setAdd 2Binvoiced (tuple quantity ((event_start_date) + 30D) (get order 2))) )
+		)
+
+		(TransitionsTo ContractLive)
+	)
+
+	(Action SendInvoice(order : Invoice)
+		(Entrance
+			( conjecture (containedIn order 2Binvoiced) )
+			( local quantity : ℕ := (get order 0) )
+			( units_invoiced += quantity )
+			( 2Binvoiced := (setRemove 2Binvoiced order) )
+			( 2Bpaid := (setAdd 2Bpaid (tuple quantity ((event_start_date) + 14D) (get order 2))) )
+		)
+
+		(TransitionsTo ContractLive)
+	)
+
+	(Action PayBill(order : Bill)
+		(Entrance
+			( conjecture (containedIn order 2Bpaid) )
+			( local quantity : ℕ := (get order 0) )
+			( total_paid += (quantity * PRICE_PER_UNIT) )
+			( 2Bpaid := (setRemove 2Bpaid order) )
+		)
+
+		(TransitionsTo ContractLive)
+	)
+
+)
+
+(DotFileName 'hvitved_master_sales_agreement_full_with_ids.dot')
+(ImgFileName 'hvitved_master_sales_agreement_full_with_ids.png')
