@@ -86,9 +86,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 # assert all(isinstance(expr[0],str) for expr in rem)
                 self.top.contract_params = {castid(ContractParamId,expr[0]) : self._mk_contract_param(expr) for expr in rem}
 
-            elif head(TOPLEVEL_CLAIMS_AREA_LABEL):
-                self.top.claims = self._mk_claims(rem)
-
             elif head(ROLES_DEC_LABEL):
                 self.top.roles.extend(self._mk_actors(rem))
 
@@ -104,6 +101,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head( DEFINITIONS_AREA ):
                 self.top.definitions = self._mk_definitions(rem)
+
+            elif head(TOPLEVEL_CLAIMS_AREA_LABEL):
+                self.top.claims = self._mk_claims(rem)
+
+            elif head("VerificationDefinition"):
+                continue
 
             elif head( DOT_FILE_NAME_LABEL ):
                 self.top.dot_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
@@ -461,6 +464,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
 
             # print("parent_action_rule", parent_action_rule)
+            if x == 'order' and parent_action_rule:
+                print("args", parent_action_rule.args)
             if parent_action_rule and parent_action_rule.args and x in parent_action_rule.args:
                 assert parent_action_rule.args_name_to_ind is not None
                 return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
