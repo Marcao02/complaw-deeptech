@@ -464,8 +464,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
 
             # print("parent_action_rule", parent_action_rule)
-            if x == 'order' and parent_action_rule:
-                print("args", parent_action_rule.args)
+            # if x == 'order' and parent_action_rule:
+            #     print("args", parent_action_rule.args)
             if parent_action_rule and parent_action_rule.args and x in parent_action_rule.args:
                 assert parent_action_rule.args_name_to_ind is not None
                 return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
@@ -513,18 +513,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 raise SyntaxError() # this is just to get mypy to not complain about missing return statement
 
 
-    def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action]) -> Term:
+    def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action], parent_action_rule:Optional[ActionRule]) -> Term:
         # if expr in TIME_CONSTRAINT_KEYWORDS:
         #     return self._mk_term(expr, src_section, src_action)
         # elif isinstance(expr,str):
         #     self.syntaxError(expr, f"Unrecognized token {expr} in time constraint keyword position.")
         if isinstance(expr,str):
-            return self._mk_term(expr, src_section, src_action, None, None)
+            return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in TIME_CONSTRAINT_PREDICATES:
-                return self._mk_term(expr, src_section, src_action, None, None)
+                return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
             else:
                 if src_section:
                     print("pair: ", pair)
@@ -556,7 +556,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         rem = expr.tillEnd(3)
         assert len(rem) >= 1
 
-        rv.time_constraint = self._mk_time_constraint(rem[0], None, src_action)
+        rv.time_constraint = self._mk_time_constraint(rem[0], None, src_action, rv)
         assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:
@@ -584,7 +584,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 action_id = castid(ActionId, (expr[0][0]))
                 args = cast(List[RuleBoundActionParamId], expr[0][1:])
-            role_id = ENV_ROLE
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
             rem = expr.tillEnd(1)
@@ -606,7 +605,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rem = expr.tillEnd(3)
         assert len(rem) >= 1
 
-        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, None)
+        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, None, rv)
         assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:

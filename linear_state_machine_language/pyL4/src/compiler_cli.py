@@ -25,8 +25,10 @@ EXAMPLES = [
     'serious/SAFE.l4',
     'serious/SAFE_2_liq_eventtypes.l4',
     'serious/KISS.l4',
+    'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
+
 ]
-EXAMPLES_FULL_SIZE = 14
+EXAMPLES_FULL_SIZE = 15
 
 # so can run it as a library too, which respects exceptions
 def main(sys_argv:List[str]):

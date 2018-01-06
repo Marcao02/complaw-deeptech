@@ -74,7 +74,7 @@
 [GlobalVars
     [ inconly next_order_id : Id = 0 ]
     [ inconly units_ordered : ℕ = 0 ]
-    [ writeonce contract_ends : TimeDelta = [contractStart_td + CONTRACT_LIFE]]
+    [ writeonce order_period_ends : TimeDelta = [contractStart_td + CONTRACT_LIFE]]
 
 
     ; `nonoperative` instructs our static checker to verify that these
@@ -109,11 +109,11 @@
     ;[Section AfterStart]
     ;[Action Start
         ; When the contract starts:
-        ;   -{contract_ends} is defined as {CONTRACT_LIFE} years after {contract_start_date}
+        ;   -{order_period_ends} is defined as {CONTRACT_LIFE} years after {contract_start_date}
         ;   -then {Vendor} begins or continues accepting new orders.
     ;    [visits == 1]
         ;[StateTransform
-        ;    [contract_ends = [contractStart_dt + CONTRACT_LIFE]] ]
+        ;    [order_period_ends = [contractStart_dt + CONTRACT_LIFE]] ]
     ;    [FollowingSection
     ;        [Next [EnterVendorAcceptingOrders immediately]]
     ;    ]
@@ -122,9 +122,9 @@
 
     [Section VendorAcceptingOrders
         ; When {Vendor} is accepting new orders:
-        ;   -If {orderable_units_remaining} > 0 and the time has not passed {contract_ends}:
+        ;   -If {orderable_units_remaining} > 0 and the time has not passed {order_period_ends}:
         ;       -then {Customer} may next submit a new order for q units, where 0 < q ≤ orderable_units_remaining.
-        ;   -If {orderable_units_remaining} == 0 or the time has passed {contract_ends}:
+        ;   -If {orderable_units_remaining} == 0 or the time has passed {order_period_ends}:
         ;       -then the contract is fulfilled if, and as soon as, all earlier obligations are fulfilled.
         ;   -{Customer} might have an obligation from earlier to pay the bill for some order.
         ;   -{Vendor} might have an obligation from earlier to deliver some order.
@@ -139,11 +139,11 @@
         [Next
             [guardsDisjointExhaustive
                 [if [orderable_units_remaining > 0]
-                    [Customer may [SubmitNewOrder q] [event_td ≤ contract_ends]
+                    [Customer may [SubmitNewOrder q] [event_td ≤ order_period_ends]
                          [where [[0 < q] and [q ≤ orderable_units_remaining]]] ]
                 ]
                 [if [orderable_units_remaining == 0]
-                    [EnterFulfilled [event_td ≥ contract_ends]]
+                    [EnterFulfilled [event_td ≥ order_period_ends]]
                 ]
             ]
         ]

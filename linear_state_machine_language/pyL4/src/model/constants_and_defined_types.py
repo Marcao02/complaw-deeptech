@@ -41,7 +41,7 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of event-states. We might later change this keyword to "validationOnly".
 
-TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and'}
+TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','dtGT'}
 
 TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex',
@@ -56,13 +56,20 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'sectionEntrance_td',
                       'event_td'}
 
-PREFIX_FN_SYMBOLS = {'days', 'earliest',
+PREFIX_FN_SYMBOLS = { '==',
+
+                     'days', 'earliest',
+
                      'ifthenelse',
+                     'and*', 'not',
                      'max', 'min',
+
                      'ceil', 'round',
                      'even', 'odd',
-                     'and*', 'not',
-                     '=='
+
+                     'emptyMap', # should be a constant but oh well
+                     'mapSet','mapDelete','mapHas','dtGT',
+                      'nonempty', 'empty'
                      }.union(TIME_CONSTRAINT_OPERATORS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',

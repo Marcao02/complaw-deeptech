@@ -1,0 +1,31 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Master_Sales_Agreement {    
+    Fulfilled[label=Fufilled];
+    ContractLive[label=ContractLive]
+    
+    EnterFulfilled[label=EnterFufilled,shape=box]; 
+    EnterFulfilled[label=EnterFulfilled,shape=box];
+	NewOrder[label=NewOrder,shape=box];
+	Deliver[label=Deliver,shape=box];
+	SendInvoice[label=SendInvoice,shape=box];
+	PayBill[label=PayBill,shape=box]    
+    
+    EnterFulfilled -> Fulfilled;
+    
+    ContractLive -> NewOrder;
+	ContractLive -> PayBill;
+	ContractLive -> Deliver;
+	ContractLive -> SendInvoice;
+	ContractLive -> EnterFulfilled [style=dashed];
+	ContractLive -> EnterFulfilled [style=dashed]
+    
+    EnterFulfilled -> Fulfilled [style=dashed];
+	NewOrder -> ContractLive [style=dashed];
+	Deliver -> ContractLive [style=dashed];
+	SendInvoice -> ContractLive [style=dashed];
+	PayBill -> ContractLive [style=dashed];
+	     
+    
+       
+}

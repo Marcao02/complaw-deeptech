@@ -1,0 +1,47 @@
+-----------------------------------------------------------------------------------------
+file: from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4
+
+roles: Env, Customer, Vendor
+
+contract params:
+    MAX_UNITS : ℕ := 1000
+    CONTRACT_LIFE : TimeDelta := 52w
+    PRICE_PER_UNIT : $ := 100
+
+global vars:
+    writeonce order_period_ends : TimeDelta := CONTRACT_LIFE
+    furthest_invoice_deadline : TimeDelta := 0d
+    inconly next_order_id : Id := 0
+    2Bdelivered : Map_Order_TimeDelta := (emptyMap )
+    2Binvoiced : Map_Order_TimeDelta := (emptyMap )
+    2Bpaid : Map_Order_TimeDelta := (emptyMap )
+    nonoperative inconly units_ordered : ℕ := 0
+    nonoperative inconly units_delivered : ℕ := 0
+    nonoperative inconly total_paid : $ := 0
+
+claims:
+    ['∀', ['k', ':', 'ℕ'], [['UpperBoundOnDaysBtwDeliverAndInvoice', 'k'], '⇒', ['∀', ['d', ':', 'Date'], ['∀', ['n', ':', 'ℕ'], [['n', '=', ['units_delivered', 'd']], '⇒', [['total_paid', ['d', '+', ['k', '+', '14D']]], '≥', ['n', '*', 'PRICE_PER_UNIT']]]]]]]
+
+section ContractLive:
+    if MAX_UNITS - units_ordered > 0:
+        Customer may NewOrder(q) event_td ≤ order_period_ends where q ≤ MAX_UNITS - units_ordered and q > 0
+    if (nonempty 2Bpaid):
+        Customer must PayBill(order) (dtGT 2Bpaid order event_td) where (mapHas 2Bpaid order)
+    if (nonempty 2Bdelivered):
+        Vendor must Deliver(order) (dtGT 2Bdelivered order event_td) where (mapHas 2Bdelivered order)
+    if (nonempty 2Binvoiced):
+        Vendor may SendInvoice(order) (dtGT 2Binvoiced order event_td) where (mapHas 2Binvoiced order)
+    if (and* (== MAX_UNITS - units_ordered 0) (empty 2Bpaid) (empty 2Bdelivered)):
+        EnterFulfilled event_td > furthest_invoice_deadline
+    if (and* MAX_UNITS - units_ordered > 0 (empty 2Bpaid) (empty 2Bdelivered)):
+        EnterFulfilled event_td > furthest_invoice_deadline and event_td > order_period_ends
+
+action EnterFulfilled()  transitions to Fulfilled
+
+action NewOrder(quantity)  transitions to ContractLive
+
+action Deliver(order)  transitions to ContractLive
+
+action SendInvoice(order)  transitions to ContractLive
+
+action PayBill(order)  transitions to ContractLive
