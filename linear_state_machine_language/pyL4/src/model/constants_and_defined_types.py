@@ -56,9 +56,7 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'sectionEntrance_td',
                       'event_td'}
 
-PREFIX_FN_SYMBOLS = { '==',
-
-                     'days', 'earliest',
+PREFIX_FN_SYMBOLS = { 'days', 'earliest',
 
                      'ifthenelse',
                      'and*', 'not',

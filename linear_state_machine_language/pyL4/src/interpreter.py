@@ -228,7 +228,7 @@ class ExecEnv:
                 self.delete_future(floatingrule_to_apply)
                 prev_section_id = self.last_or_current_section_id
                 applyactionresult = self.apply_action(cur_action)
-                assert prev_section_id == self.last_or_current_section_id, "An action is fulfilling a floating obligation " \
+                assert prev_section_id == self.last_or_current_section_id, "An action fulfilling a floating obligation " \
                         "or using a floating permission is not allowed to change the current Section of the contract."
                 if verbose:
                     actionstr = event_to_action_str(eventi)

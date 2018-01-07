@@ -11,13 +11,13 @@ section Ongoing:
         I may Throw immediately
     if n < 5:
         I may Stand immediately
-    if (== n 5):
+    if n == 5:
         EnterFulfilled
 
 action Throw()  transitions to Ongoing:
     transform:
         n += 1
-    I must-later Catch(m) immediately where (== m n)
+    I must-later Catch(m) immediately where m == n
 
 action Stand()  transitions to Ongoing:
     transform:

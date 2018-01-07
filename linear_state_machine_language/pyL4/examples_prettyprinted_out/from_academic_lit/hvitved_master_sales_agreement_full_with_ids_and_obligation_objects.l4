@@ -11,7 +11,7 @@ contract params:
 global vars:
     inconly next_order_id : Id := 0
     inconly units_ordered : ℕ := 0
-    writeonce contract_ends : TimeDelta := contractStart_td + CONTRACT_LIFE
+    writeonce order_period_ends : TimeDelta := (contractStart_td + CONTRACT_LIFE)
     nonoperative inconly units_delivered : ℕ := 0
     nonoperative inconly units_invoiced : ℕ := 0
     nonoperative inconly total_paid : $ := 0
@@ -19,28 +19,28 @@ global vars:
     this_orderid : ℕ
 
 section VendorAcceptingOrders:
-    if MAX_UNITS - units_ordered > 0:
-        Customer may SubmitNewOrder(q) event_td ≤ contract_ends where 0 < q and q ≤ MAX_UNITS - units_ordered
-    if (== MAX_UNITS - units_ordered 0):
-        EnterFulfilled event_td ≥ contract_ends
+    if (MAX_UNITS - units_ordered > 0):
+        Customer may SubmitNewOrder(q) (event_td ≤ order_period_ends) where (0 < q and (q ≤ MAX_UNITS - units_ordered))
+    if (MAX_UNITS - units_ordered == 0):
+        EnterFulfilled (event_td ≥ order_period_ends)
 
 action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
     transform:
-        this_delivery_deadline := (max 14d + event_td (days (ceil quantity / 10)) + event_td)
+        this_delivery_deadline := (max (14d + event_td) ((days (ceil quantity / 10)) + event_td))
         units_ordered += quantity
         this_orderid := next_order_id
         next_order_id += 1
-    Vendor must-later Deliver(_1, _2) event_td ≤ this_delivery_deadline where (== _1 quantity) and (== _2 this_orderid)
+    Vendor must-later Deliver(_1, _2) (event_td ≤ this_delivery_deadline) where (_1 == quantity and _2 == this_orderid)
 
 action Deliver(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_delivered += quantity
-    Vendor may-later EmailInvoice(_1, _2) event_td ≤ sectionEntrance_td + 30d where (== _1 quantity) and (== _2 orderid)
+    Vendor may-later EmailInvoice(_1, _2) (event_td ≤ (sectionEntrance_td + 30d)) where (_1 == quantity and _2 == orderid)
 
 action EmailInvoice(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_invoiced += quantity
-    Customer must-later PayBill(_1, _2) event_td ≤ sectionEntrance_td + 14d where (== _1 quantity) and (== _2 orderid)
+    Customer must-later PayBill(_1, _2) (event_td ≤ (sectionEntrance_td + 14d)) where (_1 == quantity and _2 == orderid)
 
 action PayBill(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:

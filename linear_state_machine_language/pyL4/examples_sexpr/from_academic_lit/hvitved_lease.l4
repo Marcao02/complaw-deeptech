@@ -76,7 +76,7 @@
 				(if (lease_term_end ≤ (sectionEntrance_td + 1D))
 					(EnterLeaseTermEnded immediately)   )
 				(if (lease_term_end > (sectionEntrance_td + 1D))
-					(EnterMonthStarted (== (sectionEntrance_td + 1d) event_td ))   )
+					(EnterMonthStarted ((sectionEntrance_td + 1d) == event_td ))   )
 				(apply-macro RequestTerminationActionRuleMacroTenant MonthEnded)
 				(apply-macro RequestTerminationActionRuleMacroLandlord MonthEnded)   )))
 
