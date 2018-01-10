@@ -13,12 +13,13 @@
 	( furthest_invoice_deadline : TimeDelta := 0D )
 
 	( inconly next_order_id : Id := 0 )
-	( 2Bdelivered : Map_Order_TimeDelta := (emptyMap) )
-	( 2Binvoiced : Map_Order_TimeDelta := (emptyMap) )
-	( 2Bpaid : Map_Order_TimeDelta := (emptyMap) )
+	( 2Bdelivered : TDMap_Order := (emptyTDMap) )
+	( 2Binvoiced : TDMap_Order := (emptyTDMap) )
+	( 2Bpaid : TDMap_Order := (emptyTDMap) )
 
 	( nonoperative inconly units_ordered : ℕ := 0 )
 	( nonoperative inconly units_delivered : ℕ := 0 )
+	( nonoperative inconly units_invoiced : ℕ := 0 )
 	( nonoperative inconly total_paid : $ := 0 )
 )
 
@@ -26,7 +27,7 @@
 	(orderable_units := (MAX_UNITS - units_ordered))
 
 	; either ids (approach taken here) or ordering are necessary to correctly handle the case when there are two orders on the same day for the same quantity.
-	; (Order := [Tuple ℕ Id])
+	(Order := [Tuple ℕ Id])
 	; (Id := ℕ)
 )
 
@@ -93,19 +94,20 @@
 	(Section ContractLive
 		(Next
 			(if (orderable_units > 0)
-				(Customer may (NewOrder q) (event_td ≤ order_period_ends) (where ((q ≤ orderable_units) and (q > 0))))
+				(Customer may (SubmitNewOrder q) (event_td ≤ order_period_ends) (where ((q ≤ orderable_units) and (q > 0))))
 			)
 			(if (nonempty 2Bdelivered)
 				; lang note: the `where (mapHas  2Bdelivered order)` expression constrains permitted values of the event parameter `order`.
 				; the static analyzer will check whether the constraint is solvable, and will issue a warning if not (since in this
 				; case that means there's an unfulfillable obligation).
-				(Vendor must (Deliver order) (dtGT 2Bdelivered order event_td) (where (mapHas 2Bdelivered order)))
+				(Vendor obligation-options-include (Deliver _order) (tdGT 2Bdelivered _order event_td) (where (mapHas 2Bdelivered _order)))
 			)
 			(if (nonempty 2Binvoiced)
-				(Vendor may (SendInvoice order) (dtGT 2Binvoiced order event_td) (where (mapHas 2Binvoiced order)))
+				(Vendor may (EmailInvoice _order) (tdGT 2Binvoiced _order event_td) (where (mapHas 2Binvoiced _order)))
 			)
 			(if (nonempty 2Bpaid)
-				(Customer must (PayBill order) (dtGT 2Bpaid order event_td) (where (mapHas 2Bpaid order)))
+				; (tdGT 2Bpaid _order event_td) produces error when the action is EnterFulfilled, cuz _order isn't defined.
+				(Customer obligation-options-include (PayBill _order) (tdGT 2Bpaid _order event_td) (where (mapHas 2Bpaid _order)))
 			)
 			(if ; conditions for early end of contract
 				( and* (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
@@ -114,7 +116,7 @@
 			)
 			(if ; conditions for end of contract with units remaining
 				( and* (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )
-				; then fulfilled provided all invoice deadlines are expired, and the order period is over
+				; then fulfilled provided all invoice deadlines are expired, and the _order period is over
 				(EnterFulfilled ((event_td > furthest_invoice_deadline) and (event_td > order_period_ends)))
 			)
 		)
@@ -123,45 +125,48 @@
 
 	(Action EnterFulfilled (TransitionsTo Fulfilled))
 
-	(Action [NewOrder (quantity : ℕ)]
-		(Entrance
-			(local delivery_deadline : Date := (dateplus event_td (days (max 14 (ceil (quantity / 10))))) )
+	(Action [SubmitNewOrder (quantity : ℕ)]
+		(StateTransform
+			(local delivery_deadline : Date := (event_td + (days (max 14 (ceil (quantity / 10))))) )
 			(units_ordered += quantity)
-			(2Bdelivered := (mapSet 2Bdelivered (tuple quantity delivery_deadline next_order_id)))
+			(2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline))
 			(next_order_id += 1)
 		)
 
 		(TransitionsTo ContractLive)
+		(AllowedSubjects Customer)
 	)
 
 	(Action [Deliver (order : Order)]
-		(Entrance
+		(StateTransform
 			( conjecture (mapHas 2Bdelivered order) )
 			( local quantity : ℕ := (tupleGet order 0) )
 			( units_delivered += quantity )
 			( 2Bdelivered := (mapDelete 2Bdelivered order) )
-			( local invoice_deadline : TimeDelta := ((event_td) + 30D) )
-			( furthest_invoice_deadline := (max_td furthest_invoice_deadline invoice_deadline) )
-			( 2Binvoiced := (mapSet 2Binvoiced (tuple quantity (tupleGet order 2)) invoice_deadline ) )
+			( local invoice_deadline : TimeDelta := (event_td + 30D) )
+			( furthest_invoice_deadline := (max furthest_invoice_deadline invoice_deadline) )
+			( 2Binvoiced := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline ) )
 		)
 
 		(TransitionsTo ContractLive)
+		(AllowedSubjects Vendor)
 	)
 
-	(Action [SendInvoice (order : Order)]
-		(Entrance
+	(Action [EmailInvoice (order : Order)]
+		(StateTransform
 			( conjecture (mapHas 2Binvoiced order) )
 			( local quantity : ℕ := (tupleGet order 0) )
 			( units_invoiced += quantity )
 			( 2Binvoiced := (mapDelete 2Binvoiced order) )
-			( 2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 2)) ((event_td) + 14D) ) )
+			( 2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14D) ) )
 		)
 
 		(TransitionsTo ContractLive)
+		(AllowedSubjects Vendor)
 	)
 
 	(Action [PayBill (order : Order)]
-		(Entrance
+		(StateTransform
 			( conjecture (mapHas 2Bpaid order) )
 			( local quantity : ℕ := (tupleGet order 0) )
 			( total_paid += (quantity * PRICE_PER_UNIT) )
@@ -169,6 +174,7 @@
 		)
 
 		(TransitionsTo ContractLive)
+		(AllowedSubjects Customer)
 	)
 
 )

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, tzinfo, timezone
 from itertools import chain
 import math
 
+from timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGT
 from src.model.constants_and_defined_types import TimeInt, LOOP_KEYWORD, LocalVarSubst
 from src.model.EvalContext import EvalContext
 from src.model.Action import Action
@@ -77,7 +78,18 @@ FN_SYMB_INTERP = {
     'not': lambda x: not x,
     'days': lambda x: timedelta(days=x),
     'round': round,
-    'ceil': math.ceil
+    'ceil': math.ceil,
+
+    'tuple' : lambda x,y: (x,y),
+    'tupleGet' : lambda t,i: t[i],
+
+    'mapSet' : tdmapSet,
+    'mapDelete' : tdmapDelete,
+    'mapHas' : tdmapHas,
+    'tdGT' : tdmapTimeDeltaGT,
+    'emptyTDMap' : lambda: tuple(),
+    'nonempty' : lambda x: len(x) > 0,
+    'empty' : lambda x: len(x) == 0
 }
 
 TIME_CONSTRAINT_OP_INTERP : Any = {
@@ -292,153 +304,124 @@ class ExecEnv:
 
 
     def assess_event_legal_wrt_nextrules(self, event:Event) -> EventLegalityAssessment:
-        # for far in chain(self.future_obligations, self.future_permissions):
-        #     if self.current_event_compatible_with_enabled_NextActionRule(event, far):
-        #         print("COMPAT!")
 
-        entrance_enabled_strong_obligs : List[PartyNextActionRule] = list()
-        entrance_enabled_weak_obligs : List[PartyNextActionRule] = list()
-        entrance_enabled_permissions : List[PartyNextActionRule] = list()
-        entrance_enabled_env_action_rules : List[EnvNextActionRule] = list()
+        enabled_strong_obligs : List[PartyNextActionRule] = list()
 
-        # entrance_enabled_future_strong_obligs : List[PartyNextActionRule] = list()
-        # entrance_enabled_future_permissions : List[PartyNextActionRule] = list()
+        enabled_permissions : List[PartyNextActionRule] = list()
+        enabled_env_action_rules : List[EnvNextActionRule] = list()
+
+        enabled_weak_obligs_by_role : Dict[RoleId, List[PartyNextActionRule]] = dict()
+        enabled_weak_obligs = list()
 
         nar: NextActionRule
         ctx = EvalContext(self.gvarvals,
                           self.last_appliedaction_params if self.last_or_current_section.is_anon() else None,
                           use_current_event_params_for_rulebound_action_params = False)
 
+        compat_checker = lambda x: self.current_event_compatible_with_enabled_NextActionRule(x,ctx)
+
         for nar in self.last_or_current_section.action_rules():
-            entrance_enabled = True
-            if nar.entrance_enabled_guard:
-                # next_timestamp param to evalTerm is None because enabled-guards
-                # are evaluated only at section entrance time.
-                if not chcast(bool, self.evalTerm(nar.entrance_enabled_guard, ctx)):
-                    entrance_enabled = False
+            entrance_enabled = not nar.entrance_enabled_guard or chcast(bool, self.evalTerm(nar.entrance_enabled_guard, ctx))
 
             if entrance_enabled:
                 if isinstance(nar, EnvNextActionRule):
-                    entrance_enabled_env_action_rules.append(nar)
+                    enabled_env_action_rules.append(nar)
                 else:
                     assert isinstance(nar, PartyNextActionRule)
                     if nar.deontic_keyword == 'may' or nar.deontic_keyword == 'should':
-                        entrance_enabled_permissions.append(nar)
+                        enabled_permissions.append(nar)
                     elif nar.deontic_keyword == 'must':
-                        entrance_enabled_strong_obligs.append(nar)
+                        enabled_strong_obligs.append(nar)
                     elif nar.deontic_keyword == 'obligation-options-include':
-                        entrance_enabled_weak_obligs.append(nar)
+                        enabled_weak_obligs.append(nar)
+                        if nar.role_id not in enabled_weak_obligs_by_role:
+                            enabled_weak_obligs_by_role[nar.role_id] = [nar]
+                        else:
+                            enabled_weak_obligs_by_role[nar.role_id].append(nar)
                     else:
                         assert False
 
-        # CASE 0a: Exactly one must-later:
-        # if len(entrance_enabled_future_strong_obligs) > 0:
-        #     assert (len(entrance_enabled_future_permissions) == len(entrance_enabled_weak_obligs) ==
-        #             len(entrance_enabled_strong_obligs) == len(entrance_enabled_permissions) ==
-        #             len(entrance_enabled_env_action_rules) == 0), "usage of must-later currently very restricted"
-        #     fo = entrance_enabled_future_strong_obligs[0]
-        #     self.future_obligations.append(fo)
-        #     return EventOk(True)
-        #
-        # if len(entrance_enabled_future_permissions) > 0:
-        #     assert (len(entrance_enabled_future_strong_obligs) == len(entrance_enabled_weak_obligs) ==
-        #             len(entrance_enabled_strong_obligs) == len(entrance_enabled_permissions) ==
-        #             len(entrance_enabled_env_action_rules) == 0), "usage of may-later currently very restricted"
-        #     fp = entrance_enabled_future_permissions[0]
-        #     self.future_permissions.append(fp)
-        #     return EventOk(True)
 
+        # =====================================================
         # CASE 1: 1 or more entrance-enabled strong obligations
-        if len(entrance_enabled_strong_obligs) > 1:
-            contract_bug("There are multiple active strong obligations. This is an error.")
+        # =====================================================
+
+        if len(enabled_strong_obligs) > 1:
+            contract_bug("There are multiple enabled strong obligations. This is an error.")
             return ContractFlawedError()
-        if len(entrance_enabled_strong_obligs) == 1:
-            if len(entrance_enabled_weak_obligs) > 0 or len(entrance_enabled_permissions) > 0 or len(entrance_enabled_env_action_rules) > 0:
-                contract_bug("There is exactly one active strong obligation, but there is also at least one "
-                             "active permission, environment-action, or weak obligation. This is an error.")
+        if len(enabled_strong_obligs) == 1:
+            if len(enabled_weak_obligs) > 0 or len(enabled_permissions) > 0 or len(enabled_env_action_rules) > 0:
+                contract_bug("There is exactly one enabled strong obligation, but there is also at least one "
+                             "enabled permission, environment-action, or weak obligation. This is an error.")
                 return ContractFlawedError()
             else:
-                assert isinstance(entrance_enabled_strong_obligs[0],PartyNextActionRule)
-                if not self.current_event_compatible_with_enabled_NextActionRule(entrance_enabled_strong_obligs[0]):
-                    contract_bug(f"There is exactly one active strong obligation\n"
-                                 f"\t{entrance_enabled_strong_obligs[0]}\n"
-                                 f"but it is not compatible with the current event\n"
-                                 f"\t{event}\n"
-                                 f"Environment looks like:\n"
-                                 f"{self.environ_tostr()}")
+                assert isinstance(enabled_strong_obligs[0],PartyNextActionRule)
+                if compat_checker(enabled_strong_obligs[0]):
+                    return EventOk()
                 else:
-                    time_constraint_ok = self.evalTimeConstraint(entrance_enabled_strong_obligs[0].time_constraint, ctx)
-                    # print("time_constraint_ok", time_constraint_ok)
-                    if time_constraint_ok:
-                        return EventOk() #(None,None)
-                    else:
-                        return BreachResult({event.role_id}, f"Strong obligation of {event.role_id} expired or not yet active. See rule {entrance_enabled_strong_obligs[0]}\n with time constraint {entrance_enabled_strong_obligs[0].time_constraint}")
+                    return BreachResult({enabled_strong_obligs[0].role_id},
+                                 f"The unique enabled strong obligation (of {enabled_strong_obligs[0].role_id}) is incompatible "
+                                 "with the current event (expired or not yet active, wrong action, wrong role, etc):"
+                                 f"\t{event}\n"
+                                 f"See rule {enabled_strong_obligs[0]}\n with time constraint {enabled_strong_obligs[0].time_constraint}."
+                                 f"Environment looks like:\n" +
+                                 self.environ_tostr())
 
-
+        # ===============================================================
         # CASE 2: 0 entrance-enabled strong obligations (SO action-rules)
-        present_enabled_weak_obligs : List[NextActionRule] = list(filter( lambda c: self.evalTimeConstraint(c.time_constraint, ctx), entrance_enabled_weak_obligs ))
-        present_enabled_permissions : List[NextActionRule] = list(filter( lambda c: self.evalTimeConstraint(c.time_constraint, ctx), entrance_enabled_permissions ))
-        present_enabled_env_action_rules : List[NextActionRule] = list(filter( lambda c: self.evalTimeConstraint(c.time_constraint, ctx), entrance_enabled_env_action_rules ))
+        # ===============================================================
 
-        # present_enabled_nonSO_action_rules : Iterator[NextActionRule] = chain(
-        #     present_enabled_permissions.__iter__(),
-        #     present_enabled_weak_obligs.__iter__(),
-        #     present_enabled_env_action_rules.__iter__())
-        present_enabled_nonSO_action_rules: List[NextActionRule] = present_enabled_permissions + present_enabled_weak_obligs + present_enabled_env_action_rules
-        # print("present_enabled_nonSO_action_rules", present_enabled_nonSO_action_rules)
+        # --------------------------------------------------------------------------------
+        # CASE 2a: the current event is compatible with some permission or env action rule
+        # --------------------------------------------------------------------------------
+        todo_once("Verbose print option here for showing compatible enabled env actions and permissions")
+        # We ignore permissions for roles that are not the current role id, for actions that aren't the current
+        # action id, whose time constraint is false, or whose where clause is false
+        compat_enabled_permissions = list(filter(compat_checker, enabled_permissions))
+        if len(compat_enabled_permissions) > 0:
+            return EventOk()
+        # Similarly for Env actions:
+        compat_enabled_env_action_rules = list(filter(compat_checker, enabled_env_action_rules))
+        if len(compat_enabled_env_action_rules) > 0:
+            return EventOk()
 
-        # CASE 2a: `event` compatible with exactly one present-enabled non-SO action_rule
-        # for x in present_enabled_nonSO_action_rules:
-        #     print("maybe...", self.current_event_compatible_with_enabled_NextActionRule(x) )
+        # -----------------------------------------------------------------------------------
+        # CASE 2b: the current event is NOT compatible with any permission or env action rule
+        # -----------------------------------------------------------------------------------
 
-        compatible_present_enabled_nonSO_action_rules = list(filter(
-            lambda x: self.current_event_compatible_with_enabled_NextActionRule(x),
-            present_enabled_nonSO_action_rules ))
-        if len(compatible_present_enabled_nonSO_action_rules) == 1:
-            return EventOk() #(None,None)
+        # Case 2b1: there are actually no enabled weak obligations. This is a contract error
+        # "breach-or-somewhere-to-go" condition
+        if len(enabled_weak_obligs) == 0:
+            contract_bug(f"No rules apply to the current event\n{event}\nThis is a bug in the contract.")
 
-        if len(compatible_present_enabled_nonSO_action_rules) == 0 and len(present_enabled_weak_obligs) == 0:
-            return BreachResult([event.role_id],
-                                f"{event.role_id} tried to do an action {event.action_id} that no rule in the current section {self.last_or_current_section_id} permits them to do.")
-            # assert len(present_enabled_permissions) > 0 or len(present_enabled_env_action_rules) > 0
-            # self.evalError("TODO: correctly assign breach in this case! And check that there's not a problem with role ids")
+        # Case 2b2: weak obligations are relevant even if they are not compatible with `event`,
+        # since in that case they can result in a breach. Let's see who has weak obligations that match
+        # the current event, by filtering out those that don't.
+        # if there are any left, for and role, then all is well.
+        for roleid_with_wo in enabled_weak_obligs_by_role:
+            enabled_weak_obligs_by_role[roleid_with_wo] = list(filter( compat_checker, enabled_weak_obligs_by_role[roleid_with_wo] ))
+            if len(enabled_weak_obligs_by_role[roleid_with_wo]) > 0:
+                return EventOk()
 
-        # print("compatible_present_enabled_nonSO_action_rules", compatible_present_enabled_nonSO_action_rules)
+        # Case 2b3: all the roles (and there's at least one) who had an enabled weak oblig are jointly responsible for the breach
+        breach_roles = list(enabled_weak_obligs_by_role.keys())
+        return BreachResult(list(breach_roles),
+                            f"Role(s) {list(breach_roles)} had weak obligations that went unfulfilled.")
 
-        # CASE 2b: `event` compatible with more than one present-enabled non-SO action-rules
-        # ...This is actually ok as long as timeConstraintsPartitionFuture isn't used.
-        if len(compatible_present_enabled_nonSO_action_rules) > 1:
-            return EventOk() #(None,None)
-
-        # CASE 2c: `event` compatible with 0 present-enabled non-SO action-rules
-        # This is a breach. We need to determine what subset of the roles is at fault
-        # You're at fault if you had an entrance-enabled weak obligation (which now expired,
-        # from previous cases).
-        breach_roles = filter(
-            lambda r: len( list(filter(lambda c: c.role_id == r, entrance_enabled_weak_obligs)) ) > 0,
-            self.top.roles )
-
-        # print("event:", event)
-        # print("vars:", self.gvarvals)
-        # print("entrance_enabled_permissions", mapjoin(str,entrance_enabled_permissions,', '))
-        # print("present_enabled_permissions", list(present_enabled_permissions))
-        # print("present_enabled_weak_obligs", list(present_enabled_weak_obligs))
-        # print("present_enabled_env_action_rules", list(present_enabled_env_action_rules))
-        # print()
-
-        return BreachResult(list(breach_roles), f"{list(breach_roles)} had weak obligations that they didn't fulfill in time.")
 
     # Only if the current section is an anonymous section (i.e. given by a FollowingSection declaration) is it possible
     # for the where_clause of action_rule to contain action-bound action parameters.
-    def current_event_compatible_with_enabled_NextActionRule(self, action_rule:NextActionRule) -> bool:
+    def current_event_compatible_with_enabled_NextActionRule(self, action_rule:NextActionRule, ctx:EvalContext)  -> bool:
         assert self.cur_event is not None
         role_action_match = self.cur_event.role_id == action_rule.role_id and self.cur_event.action_id == action_rule.action_id
-        if not role_action_match: return False
+        if not role_action_match:
+            return False
+
+        if not self.evalTimeConstraint(action_rule.time_constraint, ctx):
+            return False
+
         if not action_rule.where_clause: return True
 
-
-
-        # ctx2 = EvalContext(self.gvarvals, self.cur_event.params, ctx.abapvals)
         return chcast(bool,self.evalTerm(action_rule.where_clause, None))
 
 
@@ -663,9 +646,8 @@ class ExecEnv:
                     return self.last_appliedaction_params[term.ind]
 
             elif isinstance(term, RuleBoundActionParam):
-
                 # assert hasNotNone(self.cur_event.params_by_abap_name, term.name), f"Trying to get subst value of an RuleBoundActionParam {term.name} but didn't find it among the action parameters."
-                assert self.cur_event and self.cur_event.params is not None
+                assert self.cur_event and self.cur_event.params is not None, f"Expected current event {self.cur_event} to have an action parameter named {term}"
                 return self.cur_event.params[term.ind]
 
                 # return ctx.rbapvals[term.name]
@@ -688,9 +670,9 @@ class ExecEnv:
             else:
                 contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
                 return term
+
         except Exception as e:
-            raise e
-            contract_bug("Exception while evaluating " + str(term))
+            contract_bug("Exception while evaluating " + str(term) + ". The exception: \n" + str(e) )
 
     def evalLit(self, litterm:Literal) -> Data:
         if isinstance(litterm, DeadlineLit):

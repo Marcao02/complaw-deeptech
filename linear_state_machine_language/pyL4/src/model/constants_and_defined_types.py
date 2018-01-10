@@ -41,7 +41,7 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of event-states. We might later change this keyword to "validationOnly".
 
-TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','dtGT'}
+TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','tdGT'}
 
 TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex',
@@ -65,9 +65,10 @@ PREFIX_FN_SYMBOLS = { 'days',
                      'ceil', 'round',
                      'even', 'odd',
 
-                     'emptyMap', # should be a constant but oh well
-                     'mapSet','mapDelete','mapHas','dtGT',
-                      'nonempty', 'empty'
+                     'tuple', 'tupleGet',
+                     'emptyTDMap', # should be a constant but more important things to do
+                     'mapSet','mapDelete','mapHas','tdGT',
+                     'nonempty', 'empty'
                      }.union(TIME_CONSTRAINT_OPERATORS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',

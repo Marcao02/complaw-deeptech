@@ -1,10 +1,10 @@
 # Type system
 
-My current favoured plan: Whatever fancy things we put into L4's type system, they are all mere abbreviations for simply-typed function symbols, and those abbreviations are expanded in the _minimal_ S-expression syntax/AST (note: we can still offer a non-minimal S-expression syntax that has such niceties, but that we will consider one of a number of possible concrete syntaxes). 
+My current favoured plan: Whatever fancy things we put into L4's type system, they are all mere abbreviations for simply-typed function symbols, and those abbreviations are expanded in the _minimal_ S-expression syntax/AST (note: we can still offer a non-minimal S-expression syntax that has such niceties, but that we will consider one of a number of possible concrete syntaxes).
 
-One reason for this is that most SMT languages and first-order theorem provers don't support types beyond that. 
+One reason for this is that most SMT languages and first-order theorem provers don't support types beyond that.
 
-It is also not hard to achieve. For example, if we have a polymorphic `if · then · else ·` expression of type `Πα. α -> α -> bool` in the concrete syntax, then whether or not the `α` is always/sometimes inferred by type inference (versus given explicitly), in the minimal S-expression syntax, all instances of that symbol will be something like 
+It is also not hard to achieve. For example, if we have a polymorphic `if · then · else ·` expression of type `Πα. α -> α -> bool` in the concrete syntax, then whether or not the `α` is always/sometimes inferred by type inference (versus given explicitly), in the minimal S-expression syntax, all instances of that symbol will be something like
 `("if_then_else[Int]" t b1 b2)` or `("if_then_else[List[Int]]" t b1 b2)` etc, where from the perspective of the execution engine, NLG (*without extra special handling linking it back to the polymorphic version*, which we will still have the option of), and formal verification, `if_then_else[List[Int]]` is just a simply-typed function symbol of type `"List[Int]" -> "List[Int]" -> Int`, and `"List[Int]"` is just an atomic type.
 
 # post from Slack

@@ -11,6 +11,9 @@ class EventType(Enum):
     party_next = 'party_next'
     env_next = 'env_next'
 
+    def __repr__(self) -> str:
+        return self.name
+
 class Event(NamedTuple):
     action_id: ActionId
     role_id: RoleId

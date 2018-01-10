@@ -75,17 +75,17 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         {"n": 81})
      ),
 
-    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
-        {},
-        (event('Throw', 'I'),
-         event('Throw', 'I'),
-         event('Throw', 'I'),
-         foevent('Catch', 'I', 0, {'m': 3}),
-         foevent('Catch', 'I', 0, {'m': 2}),
-         foevent('Catch', 'I', 0, {'m': 1}),
-         event('EnterFulfilled', 'Env', 0),
-         ), breachSectionId('Env'))
-    ),
+    # ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
+    #     {},
+    #     (event('Throw', 'I'),
+    #      event('Throw', 'I'),
+    #      event('Throw', 'I'),
+    #      foevent('Catch', 'I', 0, {'m': 3}),
+    #      foevent('Catch', 'I', 0, {'m': 2}),
+    #      foevent('Catch', 'I', 0, {'m': 1}),
+    #      event('EnterFulfilled', 'Env', 0),
+    #      ), breachSectionId('Env'))
+    # ),
 
     ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
         {},
@@ -205,8 +205,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('MoveOut', 'Tenant', 120),
       ), "Fulfilled")
     ),
-
-    ('from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
+    ( 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
         {
             'MAX_UNITS' : 1000,
             'CONTRACT_LIFE' : "365d",
@@ -221,6 +220,25 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
         foevent('Deliver', 'Vendor', 42, {'quantity':500,'orderid':2}),
         # event('EnterFulfilled', 'Env', 50)
+        ), breachSectionId('Customer'))
+        # It should end in a breach by Customer due to the unpaid invoice.
+    ),
+
+    ( 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4', CompleteTrace(
+        {
+            'MAX_UNITS' : 1000,
+            'CONTRACT_LIFE' : "365d",
+            'PRICE_PER_UNIT' : 100
+        },(
+        # start section implicit
+        event('SubmitNewOrder', 'Customer', 5, {'quantity':300}), # orderid 0
+        event('SubmitNewOrder', 'Customer', 6, {'quantity': 200}),  # orderid 1
+        event('Deliver', 'Vendor', 10, {'order':(200,1)}),
+        event('Deliver', 'Vendor', 19, {'order':(300,0)}),
+        event('EmailInvoice', 'Vendor', 30, {'order':(200,1)}),
+        event('SubmitNewOrder', 'Customer', 31, {'quantity': 500}),  # orderid 2
+        event('Deliver', 'Vendor', 32, {'order':(500,2)}),
+        event('EnterFulfilled', 'Env', 50)
         ), breachSectionId('Customer'))
         # It should end in a breach by Customer due to the unpaid invoice.
     ),
@@ -425,9 +443,12 @@ traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious
 from src.compiler_cli import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
-        'from_academic_lit//hvitved_lease.l4',
+        'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
+
         'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
         'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
+        'from_academic_lit//hvitved_lease.l4',
+
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
 
         'toy_and_teaching/test_local_vars.l4',

@@ -333,7 +333,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.sections_by_id[a.following_anon_section.section_id] = a.following_anon_section
 
             else:
-                todo_once(f"Handle {x[0]} in action dec")
+                todo_once(f"\n\nHandle {x[0]} in action dec.\n\n")
 
         if dest_section_id:
             a.dest_section_id = dest_section_id
@@ -509,8 +509,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]]
                 )
             else:
-                self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
-                raise SyntaxError() # this is just to get mypy to not complain about missing return statement
+                if x in EXEC_ENV_VARIABLES:
+                    self.syntaxError(x, f"You're using environment variable {x} like a 0-arg function symbol. Remove the brackets please.")
+                else:
+                    self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
+
+                assert False # this is just to get mypy to not complain about missing return statement
+
 
 
     def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action], parent_action_rule:Optional[ActionRule]) -> Term:

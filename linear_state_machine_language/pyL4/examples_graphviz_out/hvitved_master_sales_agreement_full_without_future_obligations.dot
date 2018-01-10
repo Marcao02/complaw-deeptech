@@ -6,24 +6,24 @@ digraph Master_Sales_Agreement {
     
     EnterFulfilled[label=EnterFufilled,shape=box]; 
     EnterFulfilled[label=EnterFulfilled,shape=box];
-	NewOrder[label=NewOrder,shape=box];
+	SubmitNewOrder[label=SubmitNewOrder,shape=box];
 	Deliver[label=Deliver,shape=box];
-	SendInvoice[label=SendInvoice,shape=box];
+	EmailInvoice[label=EmailInvoice,shape=box];
 	PayBill[label=PayBill,shape=box]    
     
     EnterFulfilled -> Fulfilled;
     
-    ContractLive -> NewOrder;
+    ContractLive -> SubmitNewOrder;
 	ContractLive -> PayBill;
 	ContractLive -> Deliver;
-	ContractLive -> SendInvoice;
+	ContractLive -> EmailInvoice;
 	ContractLive -> EnterFulfilled [style=dashed];
 	ContractLive -> EnterFulfilled [style=dashed]
     
     EnterFulfilled -> Fulfilled [style=dashed];
-	NewOrder -> ContractLive [style=dashed];
+	SubmitNewOrder -> ContractLive [style=dashed];
 	Deliver -> ContractLive [style=dashed];
-	SendInvoice -> ContractLive [style=dashed];
+	EmailInvoice -> ContractLive [style=dashed];
 	PayBill -> ContractLive [style=dashed];
 	     
     
