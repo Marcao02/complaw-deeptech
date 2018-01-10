@@ -56,7 +56,7 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'sectionEntrance_td',
                       'event_td'}
 
-PREFIX_FN_SYMBOLS = { 'days', 'earliest',
+PREFIX_FN_SYMBOLS = { 'days',
 
                      'ifthenelse',
                      'and*', 'not',
@@ -71,9 +71,9 @@ PREFIX_FN_SYMBOLS = { 'days', 'earliest',
                      }.union(TIME_CONSTRAINT_OPERATORS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
-                    'or','and', 'unitsAfter'}
+                    'or','and'}
 
-POSTFIX_FN_SYMBOLS : Set[str] = set() # {'unitsAfterEntrance'}
+POSTFIX_FN_SYMBOLS : Set[str] = set()
 
 DEONTIC_KEYWORDS = {'must','may','should','obligation-options-include','may-later','must-later'}
 DeonticKeyword = NewType('DeonticKeyword',str)
@@ -90,7 +90,7 @@ FORMAL_CONTRACT_AREA_LABEL = "FormalContract"
 ROLES_DEC_LABEL = "Roles"
 TIMEUNIT_DEC_LABEL = "TimeUnit"
 SUPPORTED_TIMEUNITS = ['w','d','h','m','s']
-STR_ARG_MACRO_DEC_LABEL = "Macro"
+MACRO_DEC_LABEL = "Macro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"
 TOPLEVEL_CLAIMS_AREA_LABEL = "Claims"
 DEFINITIONS_AREA = "Definitions"

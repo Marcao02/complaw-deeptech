@@ -69,7 +69,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 nonlocal x
                 return streqci(x[0], constant)
 
-            if   head( STR_ARG_MACRO_DEC_LABEL):
+            if   head(MACRO_DEC_LABEL):
                 macroname = chcaststr(x[1])
                 macroparams : List[str]
                 if isinstance(x[2],str):

@@ -75,8 +75,6 @@ FN_SYMB_INTERP = {
     'and*': lambda *x: all([y for y in x]),
     'or': lambda x,y: x or y,
     'not': lambda x: not x,
-    'unitsAfter' : lambda x,y: x + y,
-    'earliest': lambda x,y: min(x, y),
     'days': lambda x: timedelta(days=x),
     'round': round,
     'ceil': math.ceil

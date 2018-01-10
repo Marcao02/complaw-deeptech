@@ -22,11 +22,11 @@
 
 (Macro RequestTerminationActionRuleMacroTenant SectionId
 	(if (not lease_terminated)
-		(Tenant may (RequestTerminationFromSectionId) (event_td ≤ (earliest ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Tenant may (RequestTerminationFromSectionId) (event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
 (Macro RequestTerminationActionRuleMacroLandlord SectionId
 	(if (not lease_terminated)
-		(Landlord may (RequestTerminationFromSectionId) (event_td ≤ (earliest ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Landlord may (RequestTerminationFromSectionId) (event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
 (Macro RequestTerminationActionMacro SectionId
 	(Action RequestTerminationFromSectionId (AllowedSubjects Landlord Tenant) (TransitionsTo SectionId)
