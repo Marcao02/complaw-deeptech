@@ -25,8 +25,8 @@ global vars:
     writeAtMostOnce pay_interest_in_cash : Bool := False
 
 section InvestorInvests:
-    Company obligation-options-include CommitToAcquisition(_1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY))
-    Company obligation-options-include CommitToFinancing(_1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY))
+    Company obligation-options-include CommitToAcquisition(?1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY))
+    Company obligation-options-include CommitToFinancing(?1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY))
     ReachMaturity (event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY))
 
 action CommitToFinancing(qualifying_round_new_money)  transitions to AfterCommitToFinancing:
@@ -38,7 +38,7 @@ action NotifyInvestorOfNextEquityFinancingTerms()  transitions to After_NotifyIn
 
 section After_NotifyInvestorOfNextEquityFinancingTerms:
     Investor may choose_cash_interest_repayment no_time_constraint
-    Company obligation-options-include CloseEquityFinancingSale(_1, _2) (event_td > (sectionEntrance_td + 5d))
+    Company obligation-options-include CloseEquityFinancingSale(?1, ?2) (event_td > (sectionEntrance_td + 5d))
 
 action choose_cash_interest_repayment()  non-transitioning:
     transform:
@@ -78,7 +78,7 @@ action ChooseConvertToCommonStock(company_capitalization)  transitions to Fulfil
 action ReachMaturity()  transitions to AfterReachMaturity
     following section:
         if DEBT_VERSION:
-            Investor obligation-options-include ChooseConversionToSeriesSeedPreferredStock(_1) discretionary
+            Investor obligation-options-include ChooseConversionToSeriesSeedPreferredStock(?1) discretionary
         Investor obligation-options-include ChooseMaturityRepayment discretionary
 
 action ChooseMaturityRepayment()  transitions to Fulfilled:

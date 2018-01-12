@@ -88,7 +88,7 @@ section UnsettledInfraction:
     if ¬usage_level_normal:
         Client may LowerTraffic (event_td ≤ infraction_time + 48h)
     Client may SendDelayEmail (event_td ≤ infraction_time + 48h)
-    Client may Pay(x) (event_td ≤ infraction_time + 48h) where (x > 0 and x ≤ 3)
+    Client may Pay(?x) (event_td ≤ infraction_time + 48h) where (?x > 0 and ?x ≤ 3)
     if (and* ¬sent_delay_email usage_level_normal paid ≥ 1):
         Reset (event_td ≤ infraction_time + 24h)
     if (¬sent_delay_email and (¬usage_level_normal or ¬paidBefore24)):

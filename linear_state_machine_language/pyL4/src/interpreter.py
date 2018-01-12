@@ -403,6 +403,7 @@ class ExecEnv:
         for roleid_with_wo in enabled_weak_obligs_by_role:
             for rule in enabled_weak_obligs_by_role[roleid_with_wo]:
                 if compat_checker(rule):
+                    print("weak oblig rule checks out: ", rule)
                     return EventOk()
             # enabled_weak_obligs_by_role[roleid_with_wo] = list(filter( compat_checker, enabled_weak_obligs_by_role[roleid_with_wo] ))
             # if len(enabled_weak_obligs_by_role[roleid_with_wo]) > 0:
@@ -425,16 +426,23 @@ class ExecEnv:
         if not self.evalTimeConstraint(action_rule.time_constraint, ctx):
             return False
 
-        if not action_rule.where_clause: return True
-
-        return chcast(bool,self.evalTerm(action_rule.where_clause, None))
+        if action_rule.where_clause:
+            return chcast(bool,self.evalTerm(action_rule.where_clause, None))
+        elif action_rule.fixed_args:
+            if self.cur_event.params:
+                argvals = [self.evalTerm(arg,None) for arg in action_rule.fixed_args]
+                return all(argvals[i] == self.cur_event.params[i] for i in range(len(self.cur_event.params)))
+            else:
+                return len(action_rule.fixed_args) == 0
+        else:
+            return True
 
 
     def current_event_compatible_with_floatingrule(self, pif_action_rule: PartlyInstantiatedPartyFutureActionRule) -> bool:
         assert self.cur_event is not None
         role_action_match = self.cur_event.role_id == pif_action_rule.rule.role_id and self.cur_event.action_id == pif_action_rule.rule.action_id
         if not role_action_match: return False
-        if not pif_action_rule.pe_where_clause: return True
+
 
         # will sub in self.cur_event.params for *rule*-bound action params in pif_action_rule.pe_where_clause
         # all other variables value in pif_action_rule.pe_where_clause are supplied by pif_action_rule.ctx
@@ -444,8 +452,17 @@ class ExecEnv:
 
         # TODO UNCERTAIN
 
-        ctx = EvalContext(self.gvarvals, None, use_current_event_params_for_rulebound_action_params=True)
-        return chcast(bool,self.evalTerm(pif_action_rule.pe_where_clause, ctx))
+        if pif_action_rule.pe_where_clause:
+            ctx = EvalContext(self.gvarvals, None, use_current_event_params_for_rulebound_action_params=True)
+            return chcast(bool,self.evalTerm(pif_action_rule.pe_where_clause, ctx))
+        elif pif_action_rule.fixed_param_vals:
+            if self.cur_event.params:
+                return all(pif_action_rule.fixed_param_vals[i] == self.cur_event.params[i] for i in range(len(self.cur_event.params)))
+            else:
+                return len(pif_action_rule.fixed_param_vals) == 0
+        else:
+            return True
+
 
     def environ_tostr(self) -> str:
         return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
@@ -493,11 +510,13 @@ class ExecEnv:
                     far.where_clause,
                     EvalContext(self.gvarvals.copy(), self.last_appliedaction_params.copy() if self.last_appliedaction_params else None, True)
                 )
-                future = PartlyInstantiatedPartyFutureActionRule(far, new_where_clause)
+                future = PartlyInstantiatedPartyFutureActionRule(far, new_where_clause, None)
                 # far = copy.copy(far)
                 # far.where_clause = new_where_clause
+            elif far.fixed_args:
+                future = PartlyInstantiatedPartyFutureActionRule(far, None, [self.evalTerm(arg,None) for arg in far.fixed_args])
             else:
-                future = PartlyInstantiatedPartyFutureActionRule(far, None)
+                future = PartlyInstantiatedPartyFutureActionRule(far, None, None)
 
             if far.deontic_keyword == 'must-later':
                 self.future_obligations.append(future)

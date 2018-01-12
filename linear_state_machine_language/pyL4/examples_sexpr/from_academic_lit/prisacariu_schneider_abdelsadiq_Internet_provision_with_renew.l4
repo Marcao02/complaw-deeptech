@@ -155,7 +155,7 @@
 			; it might not do anything, but we don't penalyze them in that case.
 			(Client may SendDelayEmail within48HOfInfraction)
 
-			(Client may (Pay x) within48HOfInfraction (where ((x > 0) and (x ≤ 3))))
+			(Client may (Pay ?x) within48HOfInfraction (where ((?x > 0) and (?x ≤ 3))))
 
 			(if (and* (not sent_delay_email) usage_level_normal (paid ≥ 1))
 				(Reset within24HOfInfraction)

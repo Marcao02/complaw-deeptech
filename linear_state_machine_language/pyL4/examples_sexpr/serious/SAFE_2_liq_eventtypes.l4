@@ -65,8 +65,8 @@
 	(Section InvestorInvests
 		(Next
 			(Company obligation-options-include CommitToEquityFinancing no_time_constraint)
-			(Company obligation-options-include (CommitToLiquidityEvent _1 _2) no_time_constraint) ; IPO
-			(Company obligation-options-include (CommitToLiquidityEventWithCoCTaxFreeReorg _1 _2 _3) no_time_constraint) ; IPO
+			(Company obligation-options-include (CommitToLiquidityEvent ?1 ?2) no_time_constraint) ; IPO
+			(Company obligation-options-include (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3) no_time_constraint) ; IPO
 			(Company obligation-options-include CommitToDissolution no_time_constraint)
 		)
 	)
@@ -85,7 +85,7 @@
 
 	(Action DeliverDocsWithPRA (AllowedSubjects Company)
 		(FollowingSection
-			(Next (Company must (IssueSAFEPreferredStock _1 _2) discretionary))
+			(Next (Company must (IssueSAFEPreferredStock ?1 ?2) discretionary))
 		)
 	)
 
@@ -105,7 +105,7 @@
 
 	(Action SignPRA (AllowedSubjects Investor)
 		(FollowingSection
-			(Next (Company must (IssueSAFEPreferredStock _1 _2) discretionary))
+			(Next (Company must (IssueSAFEPreferredStock ?1 ?2) discretionary))
 		)
 	)
 
@@ -229,8 +229,8 @@
 
 	(Action CommitToDissolution (AllowedSubjects Company)
 		(FollowingSection (Next (Company must
-			(TransferCash_D company_cash_at_dissolution_event
-							investor_percent_of_dissolving_investor_investments)
+			(TransferCash_D ?company_cash_at_dissolution_event
+							?investor_percent_of_dissolving_investor_investments)
 			discretionary))  )
 	)
 
@@ -254,7 +254,7 @@
 			; becase it's implied by the definitions.
 			(Next
 				(if (dis_cashout < PURCHASE_AMOUNT)
-					(Company must (TransferAssets _) discretionary)  )
+					(Company must (TransferAssets ?) discretionary)  )
 				(if (dis_cashout == PURCHASE_AMOUNT)
 					(Company must Dissolve discretionary)     )
 			)

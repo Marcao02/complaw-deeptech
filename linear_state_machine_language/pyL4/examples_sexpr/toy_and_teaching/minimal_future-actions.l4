@@ -30,7 +30,7 @@
 		)
 		(TransitionsTo Ongoing)
 		(Future
-			(I must-later (Catch m) immediately (where (m == n)))
+			(I must-later (Catch n) no_time_constraint)
 		)
 	)
 

@@ -227,7 +227,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(SECTION_LABEL):
                 section_id = cast(SectionId, chcaststr(x[1]))
                 section_data = x.tillEnd(2)
-                section = self._mk_section(section_id, section_data)
+                section = self._mk_section(section_id, section_data, None)
                 self.top.sections_by_id[section_id] = section
                 self.top.ordered_declarations.append(section)
 
@@ -235,7 +235,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.syntaxError(l, f"Unrecognized head {x[0]}")
 
 
-    def _mk_section(self, section_id:SectionId, rest:SExpr) -> Section:
+    def _mk_section(self, section_id:SectionId, rest:SExpr, parent_action:Optional[Action]) -> Section:
         section = Section(section_id)
         x: SExpr
         for x in rest:
@@ -246,7 +246,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(SECTION_PRECONDITION_LABEL):
-                section.preconditions.append(self._mk_term(x[1], section))
+                section.preconditions.append(self._mk_term(x[1], section, parent_action))
 
             elif head(SECTION_DESCRIPTION_LABEL):
                 section.section_description = chcaststr(x[1][1]) # extract from STRLIT expression
@@ -260,7 +260,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     if action_rule_expr[0] == APPLY_MACRO_LABEL:
                         action_rule_expr = self.handle_apply_macro(action_rule_expr)
 
-                    self._mk_next_action_rule(action_rule_expr, section)
+                    self._mk_next_action_rule(action_rule_expr, section, parent_action)
 
             elif head(PROSE_REFS_LABEL):
                 section.prose_refs = cast(List,x[1:]).copy()
@@ -328,7 +328,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     anon_sect_id = derived_trigger_id_to_section_id(action_id)
                 else:
                     anon_sect_id = derived_destination_id(action_id)
-                a.following_anon_section  = self._mk_section(anon_sect_id, x.tillEnd(1))
+                a.following_anon_section  = self._mk_section(anon_sect_id, x.tillEnd(1), a)
                 a.following_anon_section.parent_action_id = action_id
                 self.top.sections_by_id[a.following_anon_section.section_id] = a.following_anon_section
 
@@ -516,8 +516,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 assert False # this is just to get mypy to not complain about missing return statement
 
-
-
     def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action], parent_action_rule:Optional[ActionRule]) -> Term:
         # if expr in TIME_CONSTRAINT_KEYWORDS:
         #     return self._mk_term(expr, src_section, src_action)
@@ -547,17 +545,28 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         role_id = castid(RoleId, expr[0])
         deontic_keyword = castid(DeonticKeyword, expr[1])
+        args: Optional[List[RuleBoundActionParamId]] = None
         if isinstance(expr[2],str):
             action_id = castid(ActionId,expr[2])
-            args : List[RuleBoundActionParamId] = []
+            args = []
         else:
             action_id = castid(ActionId, (expr[2][0]))
-            args = cast(List[RuleBoundActionParamId], expr[2][1:])
+
+            args_part = expr[2][1:]
+            if len(args_part) == 0:
+                args = []
+            elif args_part[0][0] == "?":
+                assert all([args_part[i][0] == "?" for i in range(len(args_part))]), \
+                    "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
+                args = cast(List[RuleBoundActionParamId], args_part)
 
         if not is_derived_trigger_id(action_id):
             self.referenced_nonderived_action_ids.add(action_id)
 
         rv = PartyFutureActionRule(src_action.action_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+        if args is None:
+            rv.fixed_args = [self._mk_term(arg, None, src_action, rv, args_part) for arg in args_part]
+
         rem = expr.tillEnd(3)
         assert len(rem) >= 1
 
@@ -572,7 +581,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
 
-    def _mk_next_action_rule(self, expr:SExpr, src_section:Section) -> NextActionRule:
+    def _mk_next_action_rule(self, expr:SExpr, src_section:Section, parent_action:Optional[Action]) -> NextActionRule:
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self._mk_term(expr[1], src_section)
@@ -580,7 +589,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         role_id : RoleId
         action_id : ActionId
-        args : Optional[List[RuleBoundActionParamId]]
+        args : Optional[List[RuleBoundActionParamId]] = None
         rv : NextActionRule
         if len(expr) == 2:
             if isinstance(expr[0],str):
@@ -588,11 +597,20 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args = []
             else:
                 action_id = castid(ActionId, (expr[0][0]))
-                args = cast(List[RuleBoundActionParamId], expr[0][1:])
+                args_part = expr[0][1:]
+                if len(args_part) == 0:
+                    args = []
+                elif args_part[0][0] == "?":
+                    assert all([args_part[i][0] == "?" for i in range(len(args_part))]), \
+                        "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
+                    args = cast(List[RuleBoundActionParamId], args_part)
+
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
-            rem = expr.tillEnd(1)
+
             rv = EnvNextActionRule(src_section.section_id, action_id, args, entrance_enabled_guard)
+            rem = expr.tillEnd(1)
+
         else:
             role_id = castid(RoleId, expr[0])
             deontic_keyword = castid(DeonticKeyword, expr[1])
@@ -601,21 +619,33 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args = []
             else:
                 action_id = castid(ActionId, (expr[2][0]))
-                args = cast(List[RuleBoundActionParamId], expr[2][1:])
+                args_part = expr[2][1:]
+                if len(args_part) == 0:
+                    args = []
+                elif args_part[0][0] == "?":
+                    assert all([args_part[i][0] == "?" for i in range(len(args_part))]), \
+                        "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
+                    args = cast(List[RuleBoundActionParamId], args_part)
 
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
             rv = PartyNextActionRule(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
+
+
+        if args is None:
+            rv.fixed_args = [self._mk_term(arg, src_section, parent_action, rv, args_part) for arg in args_part]
         assert len(rem) >= 1
 
-        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, None, rv)
+        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, parent_action, rv)
         assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:
             if x[0] == "where":
-                rv.where_clause = self._mk_term(x[1], src_section, None, rv)
+                rv.where_clause = self._mk_term(x[1], src_section, parent_action, rv)
+
+        assert not rv.fixed_args or not rv.where_clause
 
         src_section.add_action_rule(rv)
         return rv

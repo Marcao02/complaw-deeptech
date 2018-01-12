@@ -31,8 +31,8 @@ global vars:
 
 section InvestorInvests:
     Company obligation-options-include CommitToEquityFinancing no_time_constraint
-    Company obligation-options-include CommitToLiquidityEvent(_1, _2) no_time_constraint
-    Company obligation-options-include CommitToLiquidityEventWithCoCTaxFreeReorg(_1, _2, _3) no_time_constraint
+    Company obligation-options-include CommitToLiquidityEvent(?1, ?2) no_time_constraint
+    Company obligation-options-include CommitToLiquidityEventWithCoCTaxFreeReorg(?1, ?2, ?3) no_time_constraint
     Company obligation-options-include CommitToDissolution no_time_constraint
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
@@ -42,7 +42,7 @@ action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
 
 action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
     following section:
-        Company must IssueSAFEPreferredStock(_1, _2) discretionary
+        Company must IssueSAFEPreferredStock(?1, ?2) discretionary
 
 action DeliverDocsWithoutPRA()  transitions to AfterDeliverDocsWithoutPRA
     following section:
@@ -54,7 +54,7 @@ action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRa
 
 action SignPRA()  transitions to AfterSignPRA
     following section:
-        Company must IssueSAFEPreferredStock(_1, _2) discretionary
+        Company must IssueSAFEPreferredStock(?1, ?2) discretionary
 
 action IssueSAFEPreferredStock(company_capitalization, premoney_valuation)  transitions to AfterIssueSAFEPreferredStock:
     transform:
@@ -130,7 +130,7 @@ action DoLiquidityEvent()  transitions to Fulfilled
 
 action CommitToDissolution()  transitions to AfterCommitToDissolution
     following section:
-        Company must TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dissolving_investor_investments) discretionary
+        Company must TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) discretionary
 
 action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dissolving_investor_investments)  transitions to AfterTransferCash_D:
     transform:
@@ -142,7 +142,7 @@ action TransferCash_D(company_cash_at_dissolution_event, investor_percent_of_dis
         investor_cash := dis_cashout
     following section:
         if dis_cashout < PURCHASE_AMOUNT:
-            Company must TransferAssets(_) discretionary
+            Company must TransferAssets(?) discretionary
         if dis_cashout == PURCHASE_AMOUNT:
             Company must Dissolve discretionary
 

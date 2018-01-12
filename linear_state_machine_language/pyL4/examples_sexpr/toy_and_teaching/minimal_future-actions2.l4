@@ -7,14 +7,14 @@
 
 	[Section Ongoing
 		[Next
-			[I may [Throw n] no_time_constraint]
+			[I may [Throw ?n] no_time_constraint]
 			[I may EnterFulfilled no_time_constraint]
 		]
 	]
 
 	[Action [Throw [n : ℕ]]		[TransitionsTo Ongoing]
 		[Future
-			[I must-later [Catch ?m] no_time_constraint [where [?m == n]]]
+			[I must-later [Catch n] no_time_constraint]
 		]
 	]
 

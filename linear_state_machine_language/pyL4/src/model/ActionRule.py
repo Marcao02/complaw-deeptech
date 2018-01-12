@@ -20,6 +20,7 @@ class ActionRule:
 
         self.args = args
         self.args_name_to_ind = {self.args[i]:i for i in range(len(self.args))} if self.args else None
+        self.fixed_args: Optional[List[Term]] = None
 
     def toStr(self, i:int) -> str:
         raise NotImplemented
@@ -47,7 +48,10 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv += indent(indent_level) + f"{ar.role_id} {ar.deontic_keyword} {ar.action_id}"
 
     if ar.args:
+        assert not ar.fixed_args
         rv += f"({mapjoin(str , ar.args, ', ')})"
+    elif ar.fixed_args:
+        rv += f"({mapjoin(str , ar.fixed_args, ', ')})"
 
     if ar.role_id == ENV_ROLE and str(ar.time_constraint) == 'immediately':
         return rv
@@ -89,6 +93,7 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
     """
     rule : PartyFutureActionRule
     pe_where_clause : Optional[PartialEvalTerm] # "pe" for PartialEval
+    fixed_param_vals : Optional[List[Data]]
     # pe_time_constraint : PartialEvalTerm
 
     # not necessary because comes from .pe_where_clause.gvar_subst (== .pe_time_constraint.gvar_subst):
@@ -98,7 +103,10 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
     #   aba_param_vals_dict : Dict[ActionBoundActionParamId,Any]  # shouldn't be necessary except maybe for debugging
 
     def __repr__(self) -> str:
-        return str(self.rule) + " with partly-instantiated where clause " + str(self.pe_where_clause)
+        if self.pe_where_clause:
+            return str(self.rule) + " with partly-instantiated where clause " + str(self.pe_where_clause)
+        else:
+            return str(self.rule)
         # return "PartlyInstantiatedPartyFutureActionRule..."
 
 class NextActionRule(ActionRule):
@@ -110,7 +118,6 @@ class NextActionRule(ActionRule):
                  entrance_enabled_guard: Optional[Term]) -> None:
         super().__init__(role_id, action_id, args, entrance_enabled_guard)
         self.src_id = src_id
-
 
 class PartyNextActionRule(NextActionRule):
     def __init__(self,
@@ -147,7 +154,10 @@ class EnvNextActionRule(NextActionRule):
         rv += indent(indent_level) + self.action_id
 
         if self.args:
+            assert not self.fixed_args
             rv += f"({mapjoin(str , self.args, ', ')})"
+        elif self.fixed_args:
+            rv += f"({mapjoin(str , self.fixed_args, ', ')})"
 
         if str(self.time_constraint) == 'immediately':
             return rv

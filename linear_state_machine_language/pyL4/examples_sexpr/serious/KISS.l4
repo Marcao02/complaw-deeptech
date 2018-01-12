@@ -57,8 +57,8 @@
 
 	(Section InvestorInvests
 		(Next
-			(Company obligation-options-include (CommitToAcquisition _1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY)))
-			(Company obligation-options-include (CommitToFinancing _1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY))) ; IPO
+			(Company obligation-options-include (CommitToAcquisition ?1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY)))
+			(Company obligation-options-include (CommitToFinancing ?1) (event_td < (sectionEntrance_td + TIME_TILL_MATURITY))) ; IPO
 			(ReachMaturity (event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY)))
 		)
 	)
@@ -87,7 +87,7 @@
 	(Section After_NotifyInvestorOfNextEquityFinancingTerms
 		(Next
 			(Investor may choose_cash_interest_repayment no_time_constraint)
-			(Company obligation-options-include (CloseEquityFinancingSale _1 _2) (event_td > (sectionEntrance_td + 5D)))
+			(Company obligation-options-include (CloseEquityFinancingSale ?1 ?2) (event_td > (sectionEntrance_td + 5D)))
 		)
 	)
 
@@ -163,7 +163,7 @@
 		(FollowingSection
 			(Next
 				(if DEBT_VERSION
-					(Investor obligation-options-include (ChooseConversionToSeriesSeedPreferredStock _1) discretionary)
+					(Investor obligation-options-include (ChooseConversionToSeriesSeedPreferredStock ?1) discretionary)
 				)
 				(Investor obligation-options-include ChooseMaturityRepayment discretionary)
 
