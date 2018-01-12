@@ -347,13 +347,14 @@ class ExecEnv:
         # =====================================================
 
         if len(enabled_strong_obligs) > 1:
-            contract_bug("There are multiple enabled strong obligations. This is an error.")
-            return ContractFlawedError()
+            contract_bug("There are multiple enabled strong obligations. This is a contract bug that eventually will be ruled out statically.")
+            # return ContractFlawedError()
         if len(enabled_strong_obligs) == 1:
             if len(enabled_weak_obligs) > 0 or len(enabled_permissions) > 0 or len(enabled_env_action_rules) > 0:
                 contract_bug("There is exactly one enabled strong obligation, but there is also at least one "
-                             "enabled permission, environment-action, or weak obligation. This is an error.")
-                return ContractFlawedError()
+                             "enabled permission, environment-action, or weak obligation."
+                             "This is a contract bug that eventually will be ruled out statically.")
+                # return ContractFlawedError()
             else:
                 assert isinstance(enabled_strong_obligs[0],PartyNextActionRule)
                 if compat_checker(enabled_strong_obligs[0]):
@@ -392,16 +393,20 @@ class ExecEnv:
         # Case 2b1: there are actually no enabled weak obligations. This is a contract error
         # "breach-or-somewhere-to-go" condition
         if len(enabled_weak_obligs) == 0:
-            contract_bug(f"No rules apply to the current event\n{event}\nThis is a bug in the contract.")
+            contract_bug(f"No rules apply to the current event\n{event}.\n"
+                         "This is a contract bug that eventually will be ruled out statically.")
 
         # Case 2b2: weak obligations are relevant even if they are not compatible with `event`,
         # since in that case they can result in a breach. Let's see who has weak obligations that match
-        # the current event, by filtering out those that don't.
+        # the current event, by "filtering out" those that don't.
         # if there are any left, for and role, then all is well.
         for roleid_with_wo in enabled_weak_obligs_by_role:
-            enabled_weak_obligs_by_role[roleid_with_wo] = list(filter( compat_checker, enabled_weak_obligs_by_role[roleid_with_wo] ))
-            if len(enabled_weak_obligs_by_role[roleid_with_wo]) > 0:
-                return EventOk()
+            for rule in enabled_weak_obligs_by_role[roleid_with_wo]:
+                if compat_checker(rule):
+                    return EventOk()
+            # enabled_weak_obligs_by_role[roleid_with_wo] = list(filter( compat_checker, enabled_weak_obligs_by_role[roleid_with_wo] ))
+            # if len(enabled_weak_obligs_by_role[roleid_with_wo]) > 0:
+            #     return EventOk()
 
         # Case 2b3: all the roles (and there's at least one) who had an enabled weak oblig are jointly responsible for the breach
         breach_roles = list(enabled_weak_obligs_by_role.keys())
