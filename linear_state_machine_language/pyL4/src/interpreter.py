@@ -234,17 +234,23 @@ class ExecEnv:
                         assert floatingrule_to_apply is None, ("There are at least two floating rules that seem to apply:\n" +
                                                                str(floatingrule_to_apply) + "\n" + str(pifar))
                         floatingrule_to_apply = pifar
-                assert floatingrule_to_apply is not None, 'Event type indicated a floating permission or obligation, but no compatible such rule was found.'
-                self.delete_future(floatingrule_to_apply)
-                prev_section_id = self.last_or_current_section_id
-                applyactionresult = self.apply_action(cur_action)
-                assert prev_section_id == self.last_or_current_section_id, "An action fulfilling a floating obligation " \
-                        "or using a floating permission is not allowed to change the current Section of the contract."
-                if verbose:
-                    actionstr = event_to_action_str(eventi)
-                    frules_added_str = f' and added {applyactionresult.floatingrules_added}' if applyactionresult.floatingrules_added else ''
-                    frule_deleted_str = f' and deleted [{floatingrule_to_apply}]' if floatingrule_to_apply else ''
-                    print(f"[{cur_event_datetime}] {prev_section_id} --{actionstr}--> {self.last_or_current_section_id} {frule_deleted_str} {frules_added_str}")
+                if not floatingrule_to_apply:
+                    if verbose:
+                        actionstr = event_to_action_str(eventi)
+                        print(f"[{cur_event_datetime}] {self.last_or_current_section_id} --{actionstr}--> {breachSectionId(eventi.role_id)}")
+
+                else:
+                    assert floatingrule_to_apply is not None, 'Event type indicated a floating permission or obligation, but no compatible such rule was found.'
+                    self.delete_future(floatingrule_to_apply)
+                    prev_section_id = self.last_or_current_section_id
+                    applyactionresult = self.apply_action(cur_action)
+                    assert prev_section_id == self.last_or_current_section_id, "An action fulfilling a floating obligation " \
+                            "or using a floating permission is not allowed to change the current Section of the contract."
+                    if verbose:
+                        actionstr = event_to_action_str(eventi)
+                        frules_added_str = f' and added {applyactionresult.floatingrules_added}' if applyactionresult.floatingrules_added else ''
+                        frule_deleted_str = f' and deleted [{floatingrule_to_apply}]' if floatingrule_to_apply else ''
+                        print(f"[{cur_event_datetime}] {prev_section_id} --{actionstr}--> {self.last_or_current_section_id} {frule_deleted_str} {frules_added_str}")
 
             else:
                 if not self.top.section_mentions_action_in_nextaction_rule(self.last_or_current_section_id, cur_action_id):
@@ -390,11 +396,14 @@ class ExecEnv:
         # CASE 2b: the current event is NOT compatible with any permission or env action rule
         # -----------------------------------------------------------------------------------
 
-        # Case 2b1: there are actually no enabled weak obligations. This is a contract error
-        # "breach-or-somewhere-to-go" condition
+        # Case 2b1: there are actually no enabled weak obligations. Thus the current event is not allowed,
+        # so we blame the subject of the current event.
         if len(enabled_weak_obligs) == 0:
-            contract_bug(f"No rules apply to the current event\n{event}.\n"
-                         "This is a contract bug that eventually will be ruled out statically.")
+            return BreachResult([event.role_id],
+                                f"Role {event.role_id} attempted an unpermitted action.")
+            # contract_bug(f"No rules apply to the current event\n{event}.\n"
+            #              "This is a contract bug that eventually will be ruled out statically.")
+
 
         # Case 2b2: weak obligations are relevant even if they are not compatible with `event`,
         # since in that case they can result in a breach. Let's see who has weak obligations that match

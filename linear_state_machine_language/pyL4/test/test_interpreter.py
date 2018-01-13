@@ -75,17 +75,17 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         {"n": 81})
      ),
 
-    # ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
-    #     {},
-    #     (event('Throw', 'I'),
-    #      event('Throw', 'I'),
-    #      event('Throw', 'I'),
-    #      foevent('Catch', 'I', 0, {'m': 3}),
-    #      foevent('Catch', 'I', 0, {'m': 2}),
-    #      foevent('Catch', 'I', 0, {'m': 1}),
-    #      event('EnterFulfilled', 'Env', 0),
-    #      ), breachSectionId('Env'))
-    # ),
+    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
+        {},
+        (event('Throw', 'I'),
+         event('Throw', 'I'),
+         event('Throw', 'I'),
+         foevent('Catch', 'I', 0, {'m': 3}),
+         foevent('Catch', 'I', 0, {'m': 2}),
+         foevent('Catch', 'I', 0, {'m': 1}),
+         event('EnterFulfilled', 'Env', 0), # not finished. see next test.
+         ), breachSectionId('Env'))
+    ),
 
     ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
         {},
@@ -100,7 +100,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 
 
          event('EnterFulfilled', 'Env', 0),
-         ), 'Fulfilled')
+         ), FULFILLED_SECTION_LABEL)
      ),
 
     ('toy_and_teaching/minimal_future-actions2.l4', CompleteTrace(
@@ -114,21 +114,21 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         foevent('Catch', 'I', 0, {'n': 4}),
         foevent('Catch', 'I', 0, {'n': 2}),
         event('EnterFulfilled', 'I', 0),
-         ), 'Fulfilled')
+         ), FULFILLED_SECTION_LABEL)
      ),
 
-    # ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
-    #     {},
-    #     (   event('Throw','I'),
-    #         event('Throw','I'),
-    #         event('Stand','I'),
-    #         event('Throw','I'),
-    #         foevent('Catch', 'I', 0, {'m': 1}),
-    #         foevent('Catch', 'I', 0, {'m': 4}),
-    #         foevent('Catch', 'I', 0, {'m': 3}),
-    #         # event('EnterFulfilled', 'Env', 0),
-    #     ), breachSectionId('I'))
-    # ),
+    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
+        {},
+        (   event('Throw','I'),
+            event('Throw','I'),
+            event('Stand','I'),
+            event('Throw','I'),
+            foevent('Catch', 'I', 0, {'m': 1}),
+            foevent('Catch', 'I', 0, {'m': 4}),
+            foevent('Catch', 'I', 0, {'m': 3}),
+            # event('EnterFulfilled', 'Env', 0),
+        ), breachSectionId('I'))
+    ),
 
 
     ('toy_and_teaching/collatz.l4', CompleteTrace(
@@ -170,7 +170,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             event('SendCancelNoticeByEmail','ISP',50),
             event('EnterFulfilled','Env',51)
         ),
-        'Fulfilled'
+        FULFILLED_SECTION_LABEL
     )),
     ('from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
      CompleteTrace({},(
@@ -182,7 +182,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             event('SendCancelNoticeByEmail','ISP',50),
             event('EnterFulfilled','Env',51)
         ),
-        'Fulfilled'
+        FULFILLED_SECTION_LABEL
     )),
 
     ('from_academic_lit//hvitved_lease.l4',
@@ -203,7 +203,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('EnterMonthEnded', ENV_ROLE, 120),  # April 30
         event('EnterLeaseTermEnded', ENV_ROLE, 120),
         event('MoveOut', 'Tenant', 120),
-      ), "Fulfilled")
+      ), FULFILLED_SECTION_LABEL)
     ),
     ( 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
         {

@@ -31,7 +31,7 @@ class ActionRule:
     def __repr__(self) -> str:
         return self.toStr(0)
     
-def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextActionRule'], i:int) -> str:
+def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextActionRule'], i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
     rv: str = ""
     indent_level = i
     if ar.entrance_enabled_guard:
@@ -47,7 +47,10 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
     else:
         rv += indent(indent_level) + f"{ar.role_id} {ar.deontic_keyword} {ar.action_id}"
 
-    if ar.args:
+    if fixed_param_vals:
+        assert not ar.args
+        rv += f"({mapjoin(str , fixed_param_vals, ', ')})"
+    elif ar.args:
         assert not ar.fixed_args
         rv += f"({mapjoin(str , ar.args, ', ')})"
     elif ar.fixed_args:
@@ -76,8 +79,8 @@ class PartyFutureActionRule(ActionRule):
         self.src_action_id = src_action_id
         self.deontic_keyword = deontic_keyword
 
-    def toStr(self, i:int) -> str:
-        return common_party_action_rule_toStr(self, i)
+    def toStr(self, i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
+        return common_party_action_rule_toStr(self, i, fixed_param_vals)
 
 
 class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
@@ -104,9 +107,9 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
 
     def __repr__(self) -> str:
         if self.pe_where_clause:
-            return str(self.rule) + " with partly-instantiated where clause " + str(self.pe_where_clause)
+            return self.rule.toStr(0) + " with partly-instantiated where clause " + str(self.pe_where_clause)
         else:
-            return str(self.rule)
+            return self.rule.toStr(0, self.fixed_param_vals)
         # return "PartlyInstantiatedPartyFutureActionRule..."
 
 class NextActionRule(ActionRule):
