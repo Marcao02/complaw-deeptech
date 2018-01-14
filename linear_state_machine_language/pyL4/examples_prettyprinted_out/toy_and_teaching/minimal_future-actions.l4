@@ -5,19 +5,22 @@ roles: Env, I
 
 global vars:
     n : ℕ := 0
+    I_must_Catch_by : TDMap
 
 section Ongoing:
     if n < 5:
         I may Throw immediately
     if n < 5:
         I may Stand immediately
+    I may Catch(?0) (tdGEQ I_must_Catch_by (tuple ?0) event_td) where (mapHas I_must_Catch_by (tuple ?0))
+    I obligation-options-include Catch(?0) (tdLT I_must_Catch_by (tuple ?0) event_td) where (mapHas I_must_Catch_by (tuple ?0))
     if n == 5:
         EnterFulfilled
 
 action Throw()  transitions to Ongoing:
     transform:
         n += 1
-    I must-later Catch(n) no_time_constraint
+        I_must_Catch_by := (mapSet I_must_Catch_by (tuple n) 999y)
 
 action Stand()  transitions to Ongoing:
     transform:

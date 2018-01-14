@@ -3,8 +3,8 @@ from datetime import datetime, timedelta, tzinfo, timezone
 from itertools import chain
 import math
 
-from timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGT
-from src.model.constants_and_defined_types import TimeInt, LOOP_KEYWORD, LocalVarSubst
+from timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT
+from src.model.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.model.EvalContext import EvalContext
 from src.model.Action import Action
 from src.model.BoundVar import BoundVar, GlobalVar, ContractParam, ActionBoundActionParam, \
@@ -86,7 +86,8 @@ FN_SYMB_INTERP = {
     'mapSet' : tdmapSet,
     'mapDelete' : tdmapDelete,
     'mapHas' : tdmapHas,
-    'tdGT' : tdmapTimeDeltaGT,
+    'tdGEQ' : tdmapTimeDeltaGEQ,
+    'tdLT' : tdmapTimeDeltaLT,
     'emptyTDMap' : lambda: tuple(),
     'nonempty' : lambda x: len(x) > 0,
     'empty' : lambda x: len(x) == 0
@@ -619,8 +620,11 @@ class ExecEnv:
             """
 
         elif isinstance(stmt, IfElse):
-            test = chcast(bool, self.evalTerm(stmt.test, None))
-            self.evalCodeBlock(GlobalStateTransform(stmt.true_branch if test else stmt.false_branch))
+            test_result = chcast(bool, self.evalTerm(stmt.test, None))
+            if test_result:
+                self.evalCodeBlock(GlobalStateTransform( stmt.true_branch ))
+            elif stmt.false_branch:
+                self.evalCodeBlock(GlobalStateTransform(stmt.false_branch))
 
         elif isinstance(stmt, StateTransformLocalVarDec):
             rhs_value = self.evalTerm(stmt.value_expr, None)

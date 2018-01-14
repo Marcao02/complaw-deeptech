@@ -1,6 +1,7 @@
 import logging
 from typing import List
 
+from floating_rules_transpile import floating_rules_transpile_away
 from src.parse_sexpr import parse_file, prettySExprStr
 from src.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
@@ -53,6 +54,7 @@ def main(sys_argv:List[str]):
 
             assembler = L4ContractConstructor(filename)
             prog = assembler.mk_l4contract(parsed)
+            floating_rules_transpile_away(prog)
 
             # print( prog.action_ids() )
             # print( prog.section_ids() )

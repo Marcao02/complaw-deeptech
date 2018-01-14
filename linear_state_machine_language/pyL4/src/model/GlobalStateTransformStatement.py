@@ -16,7 +16,7 @@ class GlobalStateTransformStatement:
 class IfElse(GlobalStateTransformStatement):
     def __init__(self, test:Term,
                  true_branch:List[GlobalStateTransformStatement],
-                 false_branch: List[GlobalStateTransformStatement]) -> None:
+                 false_branch: Optional[List[GlobalStateTransformStatement]] = None) -> None:
         self.test = test
         self.true_branch = true_branch
         self.false_branch = false_branch
@@ -25,9 +25,10 @@ class IfElse(GlobalStateTransformStatement):
         rv = indent(i) + f"if {self.test}:\n"
         for x in self.true_branch:
             rv += indent(i + 1) + str(x) + "\n"
-        rv += indent(i) + "else:\n"
-        for x in self.false_branch:
-            rv += indent(i + 1) + str(x) + "\n"
+        if self.false_branch:
+            rv += indent(i) + "else:\n"
+            for x in self.false_branch:
+                rv += indent(i + 1) + str(x) + "\n"
         return rv
 
 

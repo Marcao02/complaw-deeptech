@@ -1,13 +1,10 @@
 # from enum import Enum
-
 from typing import Dict, NewType, cast, Union, List, Any, Set
 
 Nat = NewType('Nat',int)
-# TimeInt = NewType('TimeInt',Nat)
 
 # Data = Union[int, float, TimeInt] # later maybe Tuple[Data] and str
 Data = Any # later maybe Tuple[Data] and str
-TimeInt = int
 
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)
@@ -41,13 +38,14 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of event-states. We might later change this keyword to "validationOnly".
 
-TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','tdGT'}
+TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','tdGEQ', 'tdLT'}
 
 TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex',
                         'monthStartDay_td', 'monthEndDay_td'}
 
 TIME_CONSTRAINT_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
+# PRACTICALLY_FOREVER = timedelta(weeks=99999)
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
 
@@ -67,7 +65,7 @@ PREFIX_FN_SYMBOLS = { 'days',
 
                      'tuple', 'tupleGet',
                      'emptyTDMap', # should be a constant but more important things to do
-                     'mapSet','mapDelete','mapHas','tdGT',
+                     'mapSet','mapDelete','mapHas','tdGEQ','tdLT',
                      'nonempty', 'empty'
                      }.union(TIME_CONSTRAINT_OPERATORS)
 
@@ -78,9 +76,6 @@ POSTFIX_FN_SYMBOLS : Set[str] = set()
 
 DEONTIC_KEYWORDS = {'must','may','should','obligation-options-include','may-later','must-later'}
 DeonticKeyword = NewType('DeonticKeyword',str)
-
-
-
 
 # Aside form "Misc" group, the following are not actually case sensitive
 

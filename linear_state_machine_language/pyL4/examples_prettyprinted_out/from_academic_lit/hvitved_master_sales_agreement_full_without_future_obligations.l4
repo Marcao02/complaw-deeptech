@@ -27,11 +27,11 @@ section ContractLive:
     if (MAX_UNITS - units_ordered > 0):
         Customer may SubmitNewOrder(?q) (event_td ≤ order_period_ends) where ((?q ≤ MAX_UNITS - units_ordered) and ?q > 0)
     if (nonempty 2Bpaid):
-        Customer obligation-options-include PayBill(?order) (tdGT 2Bpaid ?order event_td) where (mapHas 2Bpaid ?order)
+        Customer obligation-options-include PayBill(?order) (tdLT 2Bpaid ?order event_td) where (mapHas 2Bpaid ?order)
     if (nonempty 2Bdelivered):
-        Vendor obligation-options-include Deliver(?order) (tdGT 2Bdelivered ?order event_td) where (mapHas 2Bdelivered ?order)
+        Vendor obligation-options-include Deliver(?order) (tdLT 2Bdelivered ?order event_td) where (mapHas 2Bdelivered ?order)
     if (nonempty 2Binvoiced):
-        Vendor may EmailInvoice(?order) (tdGT 2Binvoiced ?order event_td) where (mapHas 2Binvoiced ?order)
+        Vendor may EmailInvoice(?order) (tdGEQ 2Binvoiced ?order event_td) where (mapHas 2Binvoiced ?order)
     if (and* (MAX_UNITS - units_ordered == 0) (empty 2Bpaid) (empty 2Bdelivered)):
         EnterFulfilled (event_td > furthest_invoice_deadline)
     if (and* (MAX_UNITS - units_ordered > 0) (empty 2Bpaid) (empty 2Bdelivered)):

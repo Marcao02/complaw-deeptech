@@ -270,7 +270,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
 
             elif head("possibly-from-earlier"):
-                todo_once("parse possibly-from-earlier")
+                assert x[1] in self.top.roles
+                assert x[2] in ["must-later", "may-later"]
+                section.possible_floating_rule_types.add((x[1], x[3], x[2]))
 
             else:
                 self.syntaxError(x, f"Unsupported declaration type {x[0]} in section {section_id}")
@@ -527,7 +529,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in TIME_CONSTRAINT_PREDICATES:
-                return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
+                # return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
+                return FnApp(
+                    pair[0],
+                    [self._mk_term(arg, src_section, src_action, parent_action_rule, expr) for arg in pair[1]]
+                )
             else:
                 if src_section:
                     print("pair: ", pair)

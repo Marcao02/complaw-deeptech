@@ -6,6 +6,7 @@ from src.model.constants_and_defined_types import *
 from src.model.util import indent, mapjoin
 
 
+# ABSTRACT
 class ActionRule:
     def __init__(self,
                  role_id: RoleId,
@@ -112,6 +113,7 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
             return self.rule.toStr(0, self.fixed_param_vals)
         # return "PartlyInstantiatedPartyFutureActionRule..."
 
+# ABSTRACT
 class NextActionRule(ActionRule):
     def __init__(self,
                  src_id: SectionId,

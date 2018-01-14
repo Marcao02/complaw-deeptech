@@ -29,9 +29,13 @@ def tdmapDelete(tdmap:TDMap[K], key: K) -> TDMap[K]:
 def tdmapSet(tdmap:TDMap, key:K, val:timedelta) -> TDMap[K]:
     return tdmapAdd(tdmapDelete(tdmap,key), key, val)
 
-def tdmapTimeDeltaGT(tdmap:TDMap, key:K, upper_bound:timedelta) -> bool:
-    return (not tdmapHas(tdmap,key)) or (tdmapGet(tdmap,key) > upper_bound)
+# map has the key, and map's stored value is ≥ lower_bound
+def tdmapTimeDeltaGEQ(tdmap:TDMap, key:K, lower_bound:timedelta) -> bool:
+    return tdmapHas(tdmap, key) and tdmapGet(tdmap, key) >= lower_bound
 
+# map has the key, and map's stored value is < upper_bound
+def tdmapTimeDeltaLT(tdmap:TDMap, key:K, upper_bound:timedelta) -> bool:
+    return tdmapHas(tdmap,key) and tdmapGet(tdmap,key) < upper_bound
 
 #
 # """

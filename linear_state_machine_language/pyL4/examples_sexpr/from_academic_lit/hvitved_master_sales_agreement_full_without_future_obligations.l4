@@ -97,17 +97,20 @@
 				(Customer may (SubmitNewOrder ?q) (event_td ≤ order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
 			)
 			(if (nonempty 2Bdelivered)
+				; actually delete this note cuz don't need (where (mapHas 2Bdelivered ?order))
 				; lang note: the `where (mapHas  2Bdelivered order)` expression constrains permitted values of the event parameter `order`.
 				; the static analyzer will check whether the constraint is solvable, and will issue a warning if not (since in this
 				; case that means there's an unfulfillable obligation).
-				(Vendor obligation-options-include (Deliver ?order) (tdGT 2Bdelivered ?order event_td) (where (mapHas 2Bdelivered ?order)))
+				; (Vendor obligation-options-include (Deliver ?order) (tdGT 2Bdelivered ?order event_td) (where (mapHas 2Bdelivered ?order)))
+				(Vendor obligation-options-include (Deliver ?order) (tdLT 2Bdelivered ?order event_td) (where (mapHas 2Bdelivered ?order)))
+				(Vendor may (Deliver ?order) (tdGEQ 2Bdelivered ?order event_td) (where (mapHas 2Bdelivered ?order)))
 			)
 			(if (nonempty 2Binvoiced)
-				(Vendor may (EmailInvoice ?order) (tdGT 2Binvoiced ?order event_td) (where (mapHas 2Binvoiced ?order)))
+				(Vendor may (EmailInvoice ?order) (tdGEQ 2Binvoiced ?order event_td) (where (mapHas 2Binvoiced ?order)))
 			)
 			(if (nonempty 2Bpaid)
-				; (tdGT 2Bpaid _order event_td) produces error when the action is EnterFulfilled, cuz _order isn't defined.
-				(Customer obligation-options-include (PayBill ?order) (tdGT 2Bpaid ?order event_td) (where (mapHas 2Bpaid ?order)))
+				(Customer obligation-options-include (PayBill ?order) (tdLT 2Bpaid ?order event_td) (where (mapHas 2Bpaid ?order)))
+				(Customer may (PayBill ?order) (tdGEQ 2Bpaid ?order event_td) (where (mapHas 2Bpaid ?order)))
 			)
 			(if ; conditions for early end of contract
 				( and* (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))

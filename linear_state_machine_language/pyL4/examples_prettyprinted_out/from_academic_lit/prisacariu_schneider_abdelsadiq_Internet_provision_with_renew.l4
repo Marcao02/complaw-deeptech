@@ -24,7 +24,6 @@ action SendCancelNoticeByPost()  non-transitioning:
         cancel_notice_sent_by_post := True
         if cancel_notice_sent_by_email:
             contract_canceled := True
-        else:
 
 
 action SendCancelNoticeByEmail()  non-transitioning:
@@ -32,7 +31,6 @@ action SendCancelNoticeByEmail()  non-transitioning:
         cancel_notice_sent_by_email := True
         if cancel_notice_sent_by_post:
             contract_canceled := True
-        else:
 
 
 action Reset()  transitions to NoInfraction:
@@ -50,7 +48,6 @@ action RaiseTraffic()  transitions to UnsettledInfraction:
         if ¬unsettled_infraction:
             infraction_time := event_td
             unsettled_infraction := True
-        else:
 
 
 action LowerTraffic()  transitions to UnsettledInfraction:
@@ -67,7 +64,6 @@ action Pay(x)  transitions to UnsettledInfraction:
         paid += HIGH_USAGE_FEE * x
         if (event_td ≤ infraction_time + 24h):
             paidBefore24 := True
-        else:
 
 
 action ClientBreaches()  transitions to Breach_Client

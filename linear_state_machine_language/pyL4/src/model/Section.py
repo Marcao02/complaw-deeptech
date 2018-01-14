@@ -1,5 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple, Callable
-from typing import Iterator, List,  Set, Optional, NamedTuple
+from typing import Iterator, List, Set, Optional, NamedTuple, Tuple
 
 from src.model.SExpr import SExpr
 from src.model.Term import Term
@@ -21,6 +21,8 @@ class Section:
         self._action_rules_by_role: Dict[RoleId, List[NextActionRule]] = dict()
 
         self.parent_action_id : Optional[ActionId] = None
+
+        self.possible_floating_rule_types : Set[Tuple[RoleId,ActionId,DeonticKeyword]] = set()
 
     def is_anon(self) -> bool:
         return self.parent_action_id is not None

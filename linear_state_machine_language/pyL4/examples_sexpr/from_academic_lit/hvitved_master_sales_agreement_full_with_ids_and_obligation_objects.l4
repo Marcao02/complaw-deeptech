@@ -152,9 +152,9 @@
         ; The idea is that `possibly-from-earlier` indicates to the static checker that
         ; these are exactly the types of floating permissions/obligations
         ; that might be active in this state. Checker will verify that's true.
-        [possibly-from-earlier Customer must PayBill]
-        [possibly-from-earlier Vendor must Deliver]
-        [possibly-from-earlier Vender may SendInvoice]
+        [possibly-from-earlier Customer must-later PayBill]
+        [possibly-from-earlier Vendor must-later Deliver]
+        [possibly-from-earlier Vendor may-later EmailInvoice]
     ]
 
     [Action [SubmitNewOrder [quantity : ℕ]]

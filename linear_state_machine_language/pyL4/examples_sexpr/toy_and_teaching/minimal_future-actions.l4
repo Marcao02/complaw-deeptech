@@ -22,6 +22,8 @@
 				(EnterFulfilled immediately)
 			)
 		)
+
+		(possibly-from-earlier I must-later Catch)
 	)
 
 	(Action Throw
