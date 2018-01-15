@@ -1,9 +1,10 @@
 import logging
-from datetime import datetime, timedelta, tzinfo, timezone
+from datetime import datetime, timedelta
 from itertools import chain
+from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType, Callable
 import math
 
-from timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT
+from src.interpreter_support import *
 from src.model.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.model.EvalContext import EvalContext
 from src.model.Action import Action
@@ -17,14 +18,7 @@ from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Literal import StringLit, Literal, DeadlineLit, SimpleTimeDeltaLit
 from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Term import FnApp
-
-logging.basicConfig(
-    format="[%(levelname)s] %(funcName)s: %(message)s",
-    level=logging.INFO )
-from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType, Callable
-
 from src.model.L4Contract import L4Contract
-
 from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule, PartyFutureActionRule, \
     ActionRule, PartlyInstantiatedPartyFutureActionRule
 from src.model.Section import Section
@@ -34,86 +28,9 @@ from src.model.constants_and_defined_types import GlobalVarId, ActionId, TIME_CO
     Data, ENV_ROLE, GVarSubst, ContractParamSubst, ABAPNamedSubst
 from src.model.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, mapjoin
 
-feedback = logging
-
-
-class ApplyActionResult(NamedTuple):
-    floatingrules_added: Optional[List[PartlyInstantiatedPartyFutureActionRule]]
-
-class EventLegalityAssessment:
-    pass
-
-class BreachResult(EventLegalityAssessment):
-    def __init__(self, role_ids:Iterable[RoleId], msg:str) -> None:
-        self.role_ids = role_ids
-        self.msg = msg
-    def __str__(self) -> str:
-        return f"{list(self.role_ids)}, {self.msg}"
-
-class ContractFlawedError(EventLegalityAssessment):
-    pass
-
-class EventOk(EventLegalityAssessment):
-    pass
-
-
-ENV_VAR_INTERP = {
-    'event_role': lambda execenv: execenv.cur_event.role_id,
-    'contractStart_dt': lambda execenv: execenv.start_datetime(),
-    'contractStart_td': lambda execenv: execenv.datetime2delta(execenv.start_datetime),
-    'event_td':  lambda execenv: execenv.cur_event_delta(),
-    'sectionEntrance_td': lambda execenv: execenv.last_section_entrance_delta
-}
-
-FN_SYMB_INTERP = {
-    # '+': lambda *args: sum(args),  # doesn't work with timestamp
-    '+': lambda x,y: x + y,
-    '-': lambda x,y: x - y,
-    '/': lambda x,y: x / y,
-    '*': lambda x,y: x * y,
-    'even': lambda x: x % 2 == 0,
-    'odd': lambda x: x % 2 == 1,
-    'min' : min,
-    'max' : max,
-    '==': lambda x,y: x == y,
-    '≤': lambda x,y: x <= y,
-    '≥': lambda x,y: x >= y,
-    '<': lambda x,y: x < y,
-    '>': lambda x,y: x > y,
-    'and': lambda x,y: x and y,
-    'and*': lambda *x: all([y for y in x]),
-    'or': lambda x,y: x or y,
-    'not': lambda x: not x,
-    'days': lambda x: timedelta(days=x),
-    'round': round,
-    'ceil': math.ceil,
-
-    'tuple' : lambda x,y: (x,y),
-    'tupleGet' : lambda t,i: t[i],
-
-    'mapSet' : tdmapSet,
-    'mapDelete' : tdmapDelete,
-    'mapHas' : tdmapHas,
-    'tdGEQ' : tdmapTimeDeltaGEQ,
-    'tdLT' : tdmapTimeDeltaLT,
-    'emptyTDMap' : lambda: tuple(),
-    'nonempty' : lambda x: len(x) > 0,
-    'empty' : lambda x: len(x) == 0
-}
-
-TIME_CONSTRAINT_OP_INTERP : Any = {
-    # 'by': lambda entrance_ts, event_td, args_ts: (event_td <= args_ts[0]),
-}
-
-def event_to_action_str(event:Event):
-    if event.params_by_abap_name:
-        params_str = ", ".join([f"{key}: {event.params_by_abap_name[key]}" for key in event.params_by_abap_name.keys()])
-        return f"{event.action_id}({params_str})"
-    else:
-        return f"{event.action_id}"
-
-class EvalError(Exception):
-    pass
+logging.basicConfig(
+    format="[%(levelname)s] %(funcName)s: %(message)s",
+    level=logging.INFO )
 
 class ExecEnv:
     # All the instance variables of ExecEnv should probably be prefixed with _ to indicate not to use access them
@@ -206,16 +123,6 @@ class ExecEnv:
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
 
-        # max_section_id_len = max(max(
-        #     len(self.top.action(event.action_id).dest_section_id) for event in trace
-        # ), len(finalSectionId) if finalSectionId else 0)
-        # max_action_str_len = max(
-        #     len(event_to_action_str(event)) for event in trace
-        # )
-        # sec_pad = ' ' * (max_section_id_len - len(self.last_or_current_section_id))
-        # # act_pad = ' '*(max_action_str_len-len(actionstr))
-        # act_pad = ''
-
         for i in range(len(trace)):
             # print("Environ", self.environ_tostr())
             eventi = trace[i]
@@ -239,7 +146,6 @@ class ExecEnv:
                 for pifar in self.futures():
                     # print("evaluating", str(pifar), "in event context", str(self.cur_event))
                     if self.current_event_compatible_with_floatingrule(pifar):
-                        # print("evaluated to True")
                         assert floatingrule_to_apply is None, ("There are at least two floating rules that seem to apply:\n" +
                                                                str(floatingrule_to_apply) + "\n" + str(pifar))
                         floatingrule_to_apply = pifar
@@ -296,6 +202,7 @@ class ExecEnv:
             if debug:
                 import ipdb  # code, IPython, pdb are other options
                 ipdb.set_trace()
+                # other things tried:
                 # code.InteractiveConsole(locals=locals()).interact()
                 # IPython.embed()
 
@@ -309,15 +216,12 @@ class ExecEnv:
             for o in self.future_obligations:
                 roles.add(o.rule.role_id)
             self.last_or_current_section_id = breachSectionId(*list(roles))
-            print("Trace ended with obligations remaining (which is ok; finalSectionId if provided will need to be the proper breach section)")
+            print("Trace ended with obligations remaining (Which is ok; finalSectionId, if provided, will need to be the proper breach section)")
             # assert False,
             # return
 
         if finalSectionId:
             assert self.last_or_current_section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self.last_or_current_section_id}"
-
-
-
 
 
     def assess_event_legal_wrt_nextrules(self, event:Event) -> EventLegalityAssessment:
@@ -469,7 +373,6 @@ class ExecEnv:
         role_action_match = self.cur_event.role_id == pif_action_rule.rule.role_id and self.cur_event.action_id == pif_action_rule.rule.action_id
         if not role_action_match: return False
 
-
         # will sub in self.cur_event.params for *rule*-bound action params in pif_action_rule.pe_where_clause
         # all other variables value in pif_action_rule.pe_where_clause are supplied by pif_action_rule.ctx
         # note that whether the current event is compatible with a future is not allowed to depend on
@@ -492,22 +395,6 @@ class ExecEnv:
 
     def environ_tostr(self) -> str:
         return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
-
-    # def action_available_from_cur_section(self, actionid:ActionId, next_timestamp:TimeInt) -> bool:
-    #     todo_once("this needs to depend on action parameters")
-    #     for c in self.last_or_current_section().action_rules():
-    #         todo_once("check enabled guard")
-    #         if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
-    #             if c.action_id != actionid:
-    #                 continue
-    #         else:
-    #             raise NotImplementedError
-    #
-    #         time_constraint_ok = self.evalTimeConstraint(c.time_constraint, next_timestamp)
-    #         # print("time_constraint_ok", time_constraint_ok)
-    #         if time_constraint_ok:
-    #             return True
-    #     return False
 
     def apply_action(self, action:Action, to_breach_section_id:Optional[SectionId] = None) -> ApplyActionResult:
         assert self.cur_event is not None
@@ -537,8 +424,6 @@ class ExecEnv:
                     EvalContext(self.gvarvals.copy(), self.last_appliedaction_params.copy() if self.last_appliedaction_params else None, True)
                 )
                 future = PartlyInstantiatedPartyFutureActionRule(far, new_where_clause, None)
-                # far = copy.copy(far)
-                # far.where_clause = new_where_clause
             elif far.fixed_args:
                 future = PartlyInstantiatedPartyFutureActionRule(far, None, [self.evalTerm(arg,None) for arg in far.fixed_args])
             else:
@@ -570,7 +455,6 @@ class ExecEnv:
                 self.gvarvals[var] = self.evalTerm(dec.initval, None)
                 # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
                 dictSetOrInc(self.gvar_write_cnt, var, init=1)
-            # print(var, type(self.gvarvals[var]))
             # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
@@ -582,11 +466,8 @@ class ExecEnv:
                 self.contract_param_vals[name] = None
             # print(name, type(self.contract_param_vals[name]))
 
+
     def evalCodeBlock(self, transform:GlobalStateTransform):
-        # print("\nevalCodeBlock\n")
-        # action = self.top.action(nextTSEvent.action_id)
-        # if not action.global_state_transform:
-        #     return
         for statement in transform.statements:
             self.evalStatement(statement)
 
@@ -595,8 +476,6 @@ class ExecEnv:
         # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
         # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
         # Therefore, this function does not take an EvalContext argument.
-
-        # gvardec : GlobalVarDec
 
         if isinstance(stmt, (GlobalVarAssignStatement, IncrementStatement, DecrementStatement, TimesEqualsStatement)):
             gvardec = self.top.gvarDecObj(stmt.varname)
@@ -654,8 +533,7 @@ class ExecEnv:
                  term:Term,
                  ctx:Optional[EvalContext]) -> Any:
         assert term is not None
-        # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec
-        # and global var decs
+        # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec and global var decs
 
         # if partialeval_globals_subst:
         #     print("partialeval_globals_subst is not None. `term` is ", term)
@@ -740,7 +618,6 @@ class ExecEnv:
 
     def evalTimeConstraint(self, time_constraint:Term, ctx:EvalContext) -> bool:
         assert time_constraint is not None
-        # return True
         rv = chcast(bool, self.evalTerm(time_constraint, ctx))
         # print('evalTimeConstraint: ', rv)
         return rv
@@ -749,7 +626,6 @@ class ExecEnv:
                   fnapp:FnApp,
                   ctx:Optional[EvalContext]) -> Any:
         fn = fnapp.head
-        # print("the fnapp: ", str(fnapp), " with args ", fnapp.args)
         evaluated_args = tuple(self.evalTerm(x,ctx) for x in fnapp.args)
 
         try:
@@ -770,13 +646,6 @@ class ExecEnv:
                     day_after_month_end_dt = datetime(year=year, month=next_month, day=1)
                     last_day_of_month_dt = day_after_month_end_dt - timedelta(days=1)
                     return self.datetime2delta(last_day_of_month_dt)
-
-                if fn in TIME_CONSTRAINT_OP_INTERP:
-                    return cast(Any, TIME_CONSTRAINT_OP_INTERP[fn])(
-                        self.last_section_entrance_delta,
-                        # self.timeint2delta(self.cur_event.timestamp),
-                        self.cur_event_delta(),
-                        evaluated_args)
                 else:
                     contract_bug(f"Unhandled time constraintfn symbol: {fn}")
             elif fn in ENV_VAR_INTERP:
