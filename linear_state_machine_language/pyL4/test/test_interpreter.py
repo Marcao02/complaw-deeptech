@@ -3,7 +3,7 @@ from itertools import chain
 from typing import Sequence, Tuple, Union, Optional
 from math import inf
 
-from interpreter import evalTrace, ExecEnv
+from interpreter_runner import evalTrace
 from src.model.L4Contract import L4Contract
 from src.parse_sexpr import prettySExprStr, parse_file
 from src.sexpr_to_L4Contract import L4ContractConstructor

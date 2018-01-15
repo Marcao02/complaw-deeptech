@@ -1,5 +1,7 @@
 import os, sys
 
+from src.model.util import print_all_todos
+
 
 def runit(s, optional_s=""):
     line2 = f"Running {optional_s} `{s}`"
@@ -25,4 +27,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     test_interpreter.main(sys.argv)
     # runit("python3.6 src/interpreter.py")
 
+    print_all_todos()
+
 runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
+

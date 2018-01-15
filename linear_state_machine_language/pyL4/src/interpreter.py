@@ -662,26 +662,3 @@ class ExecEnv:
     def assertOrEvalError(self, test:bool, msg:str, thing:Any = None):
         if not test:
             self.evalError(msg,thing) if thing else self.evalError(msg)
-
-
-
-def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, debug=False):
-    env = ExecEnv(prog)
-    if isinstance(it, CompleteTrace):
-        for contract_param in it.contract_param_subst:
-            # replacing hardcoded contrat param vals with passed in ones
-            supplied_val = it.contract_param_subst[contract_param]
-            paramdec = prog.contract_params[castid(ContractParamId, contract_param)]
-            # if isinstance(paramdec.value_expr,Literal):
-            if isinstance(paramdec.value_expr,Literal) and supplied_val is not None:
-                paramdec.value_expr.lit = supplied_val
-            else:
-                paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)
-
-        return env.evalTrace(trace = it.events,
-                             finalSectionId = cast(SectionId, it.final_section),
-                             final_var_vals = cast(Optional[GVarSubst], it.final_values),
-                             verbose=True, debug=debug)
-    else:
-        return env.evalTrace(trace = it, verbose=True, debug=debug)
-

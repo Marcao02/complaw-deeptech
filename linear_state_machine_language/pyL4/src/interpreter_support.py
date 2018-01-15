@@ -59,7 +59,8 @@ FN_SYMB_INTERP = {
     'round': round,
     'ceil': math.ceil,
 
-    'tuple' : lambda x,y: (x,y),
+    # 'tuple' : lambda x,y: (x,y),
+    'tuple' : lambda *x: tuple([*x]),
     'tupleGet' : lambda t,i: t[i],
 
     'mapSet' : tdmapSet,

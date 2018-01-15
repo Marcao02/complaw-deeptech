@@ -2,6 +2,7 @@ import logging
 from typing import Tuple, cast, Callable
 from mypy_extensions import NoReturn
 
+from floating_rules_transpile import floating_rules_transpile_away
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.GlobalStateTransform import *
 from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
@@ -120,6 +121,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not f[0]():
                 raise Exception(f[1])
 
+        # floating_rules_transpile_away(self.top)
         return self.top
 
     def _mk_contract_param(self, expr) -> ContractParamDec:
@@ -336,7 +338,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.sections_by_id[a.following_anon_section.section_id] = a.following_anon_section
 
             else:
-                todo_once(f"\n\nHandle {x[0]} in action dec.\n\n")
+                todo_once(f"Handle {x[0]} in action dec.")
 
         if dest_section_id:
             a.dest_section_id = dest_section_id

@@ -49,8 +49,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
         parent_action.futures.remove(far)
         timedelta_term : Union[str, Term]
 
-        todo_once("Need to remove used-up rule instances also, in state transform...")
-
+        todo_once("\n\nNeed to remove used-up rule instances also, in state transform...")
 
         if isinstance(far.time_constraint, FnApp):
             assert (far.time_constraint.head == "≤" or far.time_constraint.head == "<=")
