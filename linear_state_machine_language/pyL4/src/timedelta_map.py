@@ -24,9 +24,11 @@ def tdmapGet(tdmap:TDMap[K], key: K) -> timedelta:
     assert False
 
 def tdmapDelete(tdmap:TDMap[K], key: K) -> TDMap[K]:
+    assert tdmap is not None
     return tuple(filter(lambda p: p[0] != key, tdmap))
 
 def tdmapSet(tdmap:TDMap, key:K, val:timedelta) -> TDMap[K]:
+    assert tdmap is not None
     return tdmapAdd(tdmapDelete(tdmap,key), key, val)
 
 # map has the key, and map's stored value is ≥ lower_bound

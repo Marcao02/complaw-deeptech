@@ -1,17 +1,18 @@
 from typing import List, Union, cast
 
+from src.model.Literal import SimpleTimeDeltaLit, RoleIdLit
 from src.model.ActionRule import PartyNextActionRule
-from src.model.BoundVar import GlobalVar, RuleBoundActionParam
+from src.model.BoundVar import GlobalVar, RuleBoundActionParam, ActionBoundActionParam
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import IfElse, GlobalVarAssignStatement, GlobalStateTransformStatement
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Term import FnApp, Term
 from src.model.constants_and_defined_types import DeonticKeyword, RoleId, ActionId, GlobalVarId, RuleBoundActionParamId, \
-    ENV_ROLE
+    ENV_ROLE, ActionBoundActionParamId
 from src.model.util import todo_once, castid
 from src.model.L4Contract import L4Contract, NextActionRule
 
-PRACTICALLY_FOREVER = "999y"
+PRACTICALLY_FOREVER = SimpleTimeDeltaLit(999*52,"w")
 
 def tdmapname(roleid:RoleId, actionid:ActionId, keyword:DeonticKeyword) -> GlobalVarId:
     if keyword == "must-later":
@@ -22,10 +23,12 @@ def tdmapname(roleid:RoleId, actionid:ActionId, keyword:DeonticKeyword) -> Globa
 
 def add_tdmap_dec(prog: L4Contract, mapvar_name: GlobalVarId) -> None:
     print("Adding global var dec " + mapvar_name)
-    prog.global_var_decs[mapvar_name] = GlobalVarDec(mapvar_name, "TDMap", None, [])
+    prog.global_var_decs[mapvar_name] = GlobalVarDec(mapvar_name, "TDMap", FnApp('emptyTDMap',[]), [])
 
 
 def floating_rules_transpile_away(prog:L4Contract) -> None:
+    statement: GlobalStateTransformStatement
+    params: List[Term]
 
     # --------------------------------------------------------------
     # Deleting instances of rules when a corresponding action occurs
@@ -35,8 +38,27 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
             if fut_rule_type.aid != action.action_id:
                 continue
 
+            map_name = tdmapname(fut_rule_type.rid, fut_rule_type.aid, fut_rule_type.kw)
+            if map_name not in prog.global_var_decs:
+                add_tdmap_dec(prog, map_name)
+            map_dec = prog.global_var_decs[map_name]
+            map_var = GlobalVar(map_dec)
+
             # now the statetransform will need to check that both the role and
             # the action params match. this requires a role environment variable.
+            params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.params[i]), action, i) for i in
+                      range(len(action.params))]
+            statement = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
+                               [GlobalVarAssignStatement(
+                                   map_name,
+                                   FnApp("mapDelete", [map_var,
+                                                       FnApp('tuple', params) ])
+                               )]
+                               )
+
+            if not action.global_state_transform:
+                action.global_state_transform = GlobalStateTransform([])
+            action.global_state_transform.statements.append(statement)
 
     # ---------------------------------
     # Removing from action declarations
@@ -49,8 +71,6 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
         parent_action.futures.remove(far)
         timedelta_term : Union[str, Term]
 
-        todo_once("\n\nNeed to remove used-up rule instances also, in state transform...")
-
         if isinstance(far.time_constraint, FnApp):
             assert (far.time_constraint.head == "≤" or far.time_constraint.head == "<=")
             assert isinstance(far.time_constraint.args[0], FnApp) and far.time_constraint.args[0].head == "event_td"
@@ -58,14 +78,13 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
             timedelta_term = far.time_constraint.args[1]
         else:
             todo_once("TEMP HACK FOR TYPECHECKING.")
-            timedelta_term = cast(Term,PRACTICALLY_FOREVER)
+            timedelta_term = PRACTICALLY_FOREVER
 
         map_name = tdmapname(far.role_id, far.action_id, far.deontic_keyword)
         if map_name not in prog.global_var_decs:
             add_tdmap_dec(prog, map_name)
         map_dec = prog.global_var_decs[map_name]
         map_var = GlobalVar( map_dec )
-        statement : GlobalStateTransformStatement
         if far.entrance_enabled_guard:
             statement = IfElse(far.entrance_enabled_guard,
                           [GlobalVarAssignStatement(
@@ -107,12 +126,13 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
             assert rid != ENV_ROLE
 
-            params : List[Term]
+            map_nonempty_term = FnApp('nonempty', [map_var])
+            # params : List[Term]
             rule : PartyNextActionRule
             if kw == 'may-later':
-                rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, castid(DeonticKeyword,'may'))
+                rule = PartyNextActionRule(sec.section_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'may'))
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in range(len(action.params))]
-                rule.time_constraint = FnApp("tdGEQ",
+                rule.time_constraint =  FnApp("tdGEQ",
                                              [map_var,
                                               FnApp('tuple', params),
                                               FnApp('event_td',[])
@@ -134,7 +154,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                 # rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 # sec.add_action_rule(rule)
 
-                rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, castid(DeonticKeyword,'obligation-options-include'))
+                rule = PartyNextActionRule(sec.section_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'obligation-options-include'))
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
                           range(len(action.params))]
                 rule.time_constraint = FnApp("tdGEQ",

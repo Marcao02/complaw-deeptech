@@ -182,6 +182,7 @@
             [units_ordered += quantity]
             [this_orderid := next_order_id]
             [next_order_id += 1]
+            ; [local mytest_for_error : TimeDelta = sectionEntrance_td]
         ]
 
         [Future
@@ -200,10 +201,11 @@
         [AllowedSubjects Vendor]
         [StateTransform
             [ units_delivered += quantity ]
+            [ local deadline : TimeDelta = (event_td + 30d) ]
         ]
 
         [Future
-            [Vendor may-later [EmailInvoice quantity orderid] [event_td ≤ (sectionEntrance_td + 30d)] ]
+            [Vendor may-later [EmailInvoice quantity orderid] [event_td ≤ deadline] ]
         ]
     ]
 
@@ -216,9 +218,10 @@
         [AllowedSubjects Vendor]
         [StateTransform
             [ units_invoiced += quantity ]
+            [ local deadline : TimeDelta = (event_td + 14d) ]
         ]
         [Future
-            [Customer must-later [PayBill quantity orderid] [event_td ≤ (sectionEntrance_td + 14d)] ]
+            [Customer must-later [PayBill quantity orderid] [event_td ≤ deadline] ]
         ]
 
     ]

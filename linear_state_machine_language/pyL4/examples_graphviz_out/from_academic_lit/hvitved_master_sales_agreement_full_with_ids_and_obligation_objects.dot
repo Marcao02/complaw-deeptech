@@ -15,9 +15,7 @@ digraph Master_Sales_Agreement {
     
     VendorAcceptingOrders -> SubmitNewOrder;
 	VendorAcceptingOrders -> PayBill;
-	VendorAcceptingOrders -> PayBill;
 	VendorAcceptingOrders -> EnterFulfilled [style=dashed];
-	VendorAcceptingOrders -> Deliver;
 	VendorAcceptingOrders -> Deliver;
 	VendorAcceptingOrders -> EmailInvoice
     

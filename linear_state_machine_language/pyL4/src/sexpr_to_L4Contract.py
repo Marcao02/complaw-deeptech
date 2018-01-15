@@ -121,7 +121,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not f[0]():
                 raise Exception(f[1])
 
-        # floating_rules_transpile_away(self.top)
+        floating_rules_transpile_away(self.top)
         return self.top
 
     def _mk_contract_param(self, expr) -> ContractParamDec:

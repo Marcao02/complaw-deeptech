@@ -52,5 +52,5 @@
 		)
 	)
 
-	(Action Submit (Transitions to Fulfilled) (AllowedRoles Alice Bob))
+	(Action Submit (TransitionsTo Fulfilled) (AllowedRoles Alice Bob))
 )

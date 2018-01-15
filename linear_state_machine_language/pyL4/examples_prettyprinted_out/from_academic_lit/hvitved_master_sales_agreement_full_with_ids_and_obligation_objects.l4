@@ -17,20 +17,21 @@ global vars:
     nonoperative inconly total_paid : $ := 0
     this_delivery_deadline : TimeDelta
     this_orderid : ℕ
-    Vendor_must_Deliver_by : TDMap
-    Vendor_may_EmailInvoice_by : TDMap
-    Customer_must_PayBill_by : TDMap
+    Vendor_must_Deliver_by : TDMap := (emptyTDMap )
+    Vendor_may_EmailInvoice_by : TDMap := (emptyTDMap )
+    Customer_must_PayBill_by : TDMap := (emptyTDMap )
 
 section VendorAcceptingOrders:
     if (MAX_UNITS - units_ordered > 0):
         Customer may SubmitNewOrder(?q) (event_td ≤ order_period_ends) where (0 < ?q and (?q ≤ MAX_UNITS - units_ordered))
-    Customer may PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
-    Customer obligation-options-include PayBill(?0, ?1) (tdLT Customer_must_PayBill_by (tuple ?0 ?1) event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
+    if (nonempty Customer_must_PayBill_by):
+        Customer obligation-options-include PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
     if (MAX_UNITS - units_ordered == 0):
         EnterFulfilled (event_td ≥ order_period_ends)
-    Vendor may Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
-    Vendor obligation-options-include Deliver(?0, ?1) (tdLT Vendor_must_Deliver_by (tuple ?0 ?1) event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
-    Vendor may EmailInvoice(?0, ?1) (tdGEQ Vendor_may_EmailInvoice_by (tuple ?0 ?1) event_td) where (mapHas Vendor_may_EmailInvoice_by (tuple ?0 ?1))
+    if (nonempty Vendor_must_Deliver_by):
+        Vendor obligation-options-include Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
+    if (nonempty Vendor_may_EmailInvoice_by):
+        Vendor may EmailInvoice(?0, ?1) (tdGEQ Vendor_may_EmailInvoice_by (tuple ?0 ?1) event_td) where (mapHas Vendor_may_EmailInvoice_by (tuple ?0 ?1))
 
 action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
     transform:
@@ -38,20 +39,32 @@ action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
         units_ordered += quantity
         this_orderid := next_order_id
         next_order_id += 1
+        mytest : TimeDelta := sectionEntrance_td
         Vendor_must_Deliver_by := (mapSet Vendor_must_Deliver_by (tuple quantity this_orderid) this_delivery_deadline)
 
 action Deliver(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_delivered += quantity
-        Vendor_may_EmailInvoice_by := (mapSet Vendor_may_EmailInvoice_by (tuple quantity orderid) (sectionEntrance_td + 30d))
+        deadline : TimeDelta := (event_td + 30d)
+        if (event_role == Vendor):
+            Vendor_must_Deliver_by := (mapDelete Vendor_must_Deliver_by (tuple quantity orderid))
+
+        Vendor_may_EmailInvoice_by := (mapSet Vendor_may_EmailInvoice_by (tuple quantity orderid) deadline)
 
 action EmailInvoice(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         units_invoiced += quantity
-        Customer_must_PayBill_by := (mapSet Customer_must_PayBill_by (tuple quantity orderid) (sectionEntrance_td + 14d))
+        deadline : TimeDelta := (event_td + 14d)
+        if (event_role == Vendor):
+            Vendor_may_EmailInvoice_by := (mapDelete Vendor_may_EmailInvoice_by (tuple quantity orderid))
+
+        Customer_must_PayBill_by := (mapSet Customer_must_PayBill_by (tuple quantity orderid) deadline)
 
 action PayBill(quantity, orderid)  transitions to VendorAcceptingOrders:
     transform:
         total_paid += quantity * PRICE_PER_UNIT
+        if (event_role == Customer):
+            Customer_must_PayBill_by := (mapDelete Customer_must_PayBill_by (tuple quantity orderid))
+
 
 action EnterFulfilled()  transitions to Fulfilled

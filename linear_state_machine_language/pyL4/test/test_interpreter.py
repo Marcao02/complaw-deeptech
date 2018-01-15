@@ -97,8 +97,6 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          foevent('Catch', 'I', 0, {'m': 4}),
          foevent('Catch', 'I', 0, {'m': 2}),
          event('Stand', 'I'),  # n = 5 after
-
-
          event('EnterFulfilled', 'Env', 0),
          ), FULFILLED_SECTION_LABEL)
      ),
@@ -235,9 +233,9 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('SubmitNewOrder', 'Customer', 6, {'quantity': 200}),  # orderid 1
         event('Deliver', 'Vendor', 10, {'order':(200,1)}),
         event('Deliver', 'Vendor', 19, {'order':(300,0)}),
-        event('EmailInvoice', 'Vendor', 30, {'order':(200,1)}),
-        event('SubmitNewOrder', 'Customer', 31, {'quantity': 500}),  # orderid 2
-        event('Deliver', 'Vendor', 32, {'order':(500,2)}),
+        event('EmailInvoice', 'Vendor', 40, {'order':(200,1)}),
+        event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
+        event('Deliver', 'Vendor', 42, {'order':(500,2)}),
         event('EnterFulfilled', 'Env', 50)
         ), breachSectionId('Customer'))
         # It should end in a breach by Customer due to the unpaid invoice.

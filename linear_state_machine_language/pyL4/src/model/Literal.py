@@ -40,6 +40,14 @@ class DeadlineLit(Literal):
     def __str__(self):
         return str(self.lit)
 
+class RoleIdLit(Literal):
+    def __init__(self, lit:str) -> None:
+        super().__init__()
+        self.lit = lit
+    def __str__(self):
+        return str(self.lit)
+
+
 class StringLit(Literal):
     def __init__(self, lit:str) -> None:
         super().__init__()

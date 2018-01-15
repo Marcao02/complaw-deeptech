@@ -2,7 +2,7 @@
 
 digraph Master_Sales_Agreement {    
     Fulfilled[label=Fufilled];
-    ContractLive[label=ContractLive]
+    VendorAcceptingOrders[label=VendorAcceptingOrders]
     
     EnterFulfilled[label=EnterFufilled,shape=box]; 
     EnterFulfilled[label=EnterFulfilled,shape=box];
@@ -13,18 +13,18 @@ digraph Master_Sales_Agreement {
     
     EnterFulfilled -> Fulfilled;
     
-    ContractLive -> SubmitNewOrder;
-	ContractLive -> PayBill;
-	ContractLive -> Deliver;
-	ContractLive -> EmailInvoice;
-	ContractLive -> EnterFulfilled [style=dashed];
-	ContractLive -> EnterFulfilled [style=dashed]
+    VendorAcceptingOrders -> SubmitNewOrder;
+	VendorAcceptingOrders -> PayBill;
+	VendorAcceptingOrders -> Deliver;
+	VendorAcceptingOrders -> EmailInvoice;
+	VendorAcceptingOrders -> EnterFulfilled [style=dashed];
+	VendorAcceptingOrders -> EnterFulfilled [style=dashed]
     
     EnterFulfilled -> Fulfilled [style=dashed];
-	SubmitNewOrder -> ContractLive [style=dashed];
-	Deliver -> ContractLive [style=dashed];
-	EmailInvoice -> ContractLive [style=dashed];
-	PayBill -> ContractLive [style=dashed];
+	SubmitNewOrder -> VendorAcceptingOrders [style=dashed];
+	Deliver -> VendorAcceptingOrders [style=dashed];
+	EmailInvoice -> VendorAcceptingOrders [style=dashed];
+	PayBill -> VendorAcceptingOrders [style=dashed];
 	     
     
        

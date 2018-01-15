@@ -64,7 +64,7 @@
 		(AllowedSubjects Restaurant)
 
 		(StateTransform
-			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER + sectionEntrance_td))
+			(challenge_endlimit_timestamp = (TIME_TO_EAT_BURGER + event_td))
 		)
 	)
 
