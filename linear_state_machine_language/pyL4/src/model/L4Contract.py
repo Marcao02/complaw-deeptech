@@ -30,6 +30,8 @@ class L4Contract:
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
 
+        self.possible_floating_rule_types: Set[FutureActionRuleType] = set()
+
         self.ordered_declarations : List[Union[Action,Section]] = list()
 
         self.str_arg_macros : Dict[str, L4Macro] = dict()

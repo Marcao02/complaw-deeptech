@@ -54,7 +54,7 @@ def main(sys_argv:List[str]):
 
             assembler = L4ContractConstructor(filename)
             prog = assembler.mk_l4contract(parsed)
-            floating_rules_transpile_away(prog)
+            # floating_rules_transpile_away(prog)
 
             # print( prog.action_ids() )
             # print( prog.section_ids() )

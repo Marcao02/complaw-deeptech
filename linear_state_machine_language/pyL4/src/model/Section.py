@@ -5,7 +5,7 @@ from src.model.SExpr import SExpr
 from src.model.Term import Term
 from src.model.constants_and_defined_types import *
 from src.model.util import indent, mapjoin
-from src.model.ActionRule import NextActionRule, EnvNextActionRule
+from src.model.ActionRule import NextActionRule, EnvNextActionRule, FutureActionRuleType
 
 
 class Section:
@@ -22,7 +22,7 @@ class Section:
 
         self.parent_action_id : Optional[ActionId] = None
 
-        self.possible_floating_rule_types : Set[Tuple[RoleId,ActionId,DeonticKeyword]] = set()
+        self.possible_floating_rule_types : Set[FutureActionRuleType] = set()
 
     def is_anon(self) -> bool:
         return self.parent_action_id is not None

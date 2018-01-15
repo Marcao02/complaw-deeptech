@@ -52,7 +52,8 @@ CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
 EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'contractStart_td',
                       'sectionEntrance_td',
-                      'event_td'}
+                      'event_td',
+                      'event_role'}
 
 PREFIX_FN_SYMBOLS = { 'days',
 

@@ -57,6 +57,14 @@ class EventOk(EventLegalityAssessment):
     pass
 
 
+ENV_VAR_INTERP = {
+    'event_role': lambda execenv: execenv.cur_event.role_id,
+    'contractStart_dt': lambda execenv: execenv.start_datetime(),
+    'contractStart_td': lambda execenv: execenv.datetime2delta(execenv.start_datetime),
+    'event_td':  lambda execenv: execenv.cur_event_delta(),
+    'sectionEntrance_td': lambda execenv: execenv.last_section_entrance_delta
+}
+
 FN_SYMB_INTERP = {
     # '+': lambda *args: sum(args),  # doesn't work with timestamp
     '+': lambda x,y: x + y,
@@ -262,6 +270,7 @@ class ExecEnv:
                 actionstr = event_to_action_str(eventi)
                 srcid = self.last_or_current_section_id
                 if isinstance(nextrule_assessment, EventOk):
+
                     applyactionresult = self.apply_action(cur_action)
 
                     if verbose:
@@ -276,8 +285,8 @@ class ExecEnv:
                     if verbose:
                         print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {breach_section_id}")
 
-                    if i != len(trace) - 1:
-                        print("Trace prefix results in a breach, but there are more events after.")
+                    # if i != len(trace) - 1:
+                    #     print("Trace prefix results in a breach, but there are more events after.")
                     assert i == len(trace) - 1, "Trace prefix results in a breach, but there are more events after."
                     break
                 else:
@@ -296,12 +305,13 @@ class ExecEnv:
                 assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
         if len(self.future_obligations) > 0:
-            print(f"Trace ended with obligations remaining")
             roles = set()
             for o in self.future_obligations:
                 roles.add(o.rule.role_id)
             self.last_or_current_section_id = breachSectionId(*list(roles))
-            return
+            print("Trace ended with obligations remaining (which is ok; finalSectionId if provided will need to be the proper breach section)")
+            # assert False,
+            # return
 
         if finalSectionId:
             assert self.last_or_current_section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self.last_or_current_section_id}"
@@ -412,6 +422,7 @@ class ExecEnv:
         # if there are any left, for and role, then all is well.
         for roleid_with_wo in enabled_weak_obligs_by_role:
             for rule in enabled_weak_obligs_by_role[roleid_with_wo]:
+                print(f"An enabled weak oblig rule for {roleid_with_wo}: " + str(rule))
                 if compat_checker(rule):
                     print("weak oblig rule checks out: ", rule)
                     return EventOk()
@@ -422,7 +433,7 @@ class ExecEnv:
         # Case 2b3: all the roles (and there's at least one) who had an enabled weak oblig are jointly responsible for the breach
         breach_roles = list(enabled_weak_obligs_by_role.keys())
         return BreachResult(list(breach_roles),
-                            f"Role(s) {list(breach_roles)} had weak obligations that went unfulfilled.")
+                            f"Role(s) {list(breach_roles)} had weak obligations that went unfulfilled:\n" + str(enabled_weak_obligs_by_role))
 
 
     # Only if the current section is an anonymous section (i.e. given by a FollowingSection declaration) is it possible
@@ -432,6 +443,11 @@ class ExecEnv:
         role_action_match = self.cur_event.role_id == action_rule.role_id and self.cur_event.action_id == action_rule.action_id
         if not role_action_match:
             return False
+
+        # if action_rule.action_id == "Deliver":
+        #     print("Looking at Deliver rule")
+        #     print(f"event_td is {self.cur_event_delta()}")
+        #     print("time constraint of rule: ", str(action_rule.time_constraint))
 
         if not self.evalTimeConstraint(action_rule.time_constraint, ctx):
             return False
@@ -742,13 +758,11 @@ class ExecEnv:
             elif fn in TIME_CONSTRAINT_OPERATORS or fn in TIME_CONSTRAINT_PREDICATES:
                 assert self.cur_event is not None
                 if fn == "monthStartDay_td":
-                    # get datetime from event_td
                     dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     month_start_dt = datetime(year=dt.year, month=dt.month, day=1)
                     return self.datetime2delta(month_start_dt)
                 if fn == "monthEndDay_td":
-                    # get datetime from event_td
                     dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     next_month = dt.month + 1 if dt.month < 12 else 1
@@ -765,14 +779,8 @@ class ExecEnv:
                         evaluated_args)
                 else:
                     contract_bug(f"Unhandled time constraintfn symbol: {fn}")
-            elif fn == "contractStart_dt":
-                return self.start_datetime
-            elif fn == "contractStart_td":
-                return self.datetime2delta(self.start_datetime)
-            elif fn == "event_td":
-                return self.cur_event_delta()
-            elif fn == "sectionEntrance_td":
-                return self.last_section_entrance_delta
+            elif fn in ENV_VAR_INTERP:
+                return ENV_VAR_INTERP[fn](self)
             else:
                 contract_bug(f"Unhandled fn symbol in evalFnApp: {fn}")
         except Exception as e:

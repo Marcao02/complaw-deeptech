@@ -27,6 +27,17 @@ def add_tdmap_dec(prog: L4Contract, mapvar_name: GlobalVarId) -> None:
 
 def floating_rules_transpile_away(prog:L4Contract) -> None:
 
+    # --------------------------------------------------------------
+    # Deleting instances of rules when a corresponding action occurs
+    # --------------------------------------------------------------
+    for action in prog.actions_iter():
+        for fut_rule_type in prog.possible_floating_rule_types:
+            if fut_rule_type.aid != action.action_id:
+                continue
+
+            # now the statetransform will need to check that both the role and
+            # the action params match. this requires a role environment variable.
+
     # ---------------------------------
     # Removing from action declarations
     # ---------------------------------
@@ -39,6 +50,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
         timedelta_term : Union[str, Term]
 
         todo_once("Need to remove used-up rule instances also, in state transform...")
+
 
         if isinstance(far.time_constraint, FnApp):
             assert (far.time_constraint.head == "≤" or far.time_constraint.head == "<=")
@@ -96,10 +108,10 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
             assert rid != ENV_ROLE
 
-
+            params : List[Term]
             rule : PartyNextActionRule
             if kw == 'may-later':
-                rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, 'may')
+                rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, castid(DeonticKeyword,'may'))
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in range(len(action.params))]
                 rule.time_constraint = FnApp("tdGEQ",
                                              [map_var,
@@ -111,22 +123,22 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                 sec.add_action_rule(rule)
             else:
                 assert kw == 'must-later'
-                rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, 'may')
+                # rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, 'may')
+                # params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
+                #           range(len(action.params))]
+                # rule.time_constraint = FnApp("tdGEQ",
+                #                              [map_var,
+                #                               FnApp('tuple', params),
+                #                               FnApp('event_td', [])
+                #                               ])
+                # rule.where_clause = FnApp('mapHas', [map_var, FnApp('tuple', params)])
+                # rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
+                # sec.add_action_rule(rule)
+
+                rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, castid(DeonticKeyword,'obligation-options-include'))
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
                           range(len(action.params))]
                 rule.time_constraint = FnApp("tdGEQ",
-                                             [map_var,
-                                              FnApp('tuple', params),
-                                              FnApp('event_td', [])
-                                              ])
-                rule.where_clause = FnApp('mapHas', [map_var, FnApp('tuple', params)])
-                rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
-                sec.add_action_rule(rule)
-
-                rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, 'obligation-options-include')
-                params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
-                          range(len(action.params))]
-                rule.time_constraint = FnApp("tdLT",
                                              [map_var,
                                               FnApp('tuple', params),
                                               FnApp('event_td', [])

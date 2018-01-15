@@ -268,11 +268,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif 'visits' in x or 'traversals' in x:
                 section.visit_bounds = x # self.term(x, None, section)
 
-
             elif head("possibly-from-earlier"):
                 assert x[1] in self.top.roles
                 assert x[2] in ["must-later", "may-later"]
-                section.possible_floating_rule_types.add((x[1], x[3], x[2]))
+                floating_rule_type = FutureActionRuleType(x[1], x[3], x[2])
+                section.possible_floating_rule_types.add(floating_rule_type)
+                self.top.possible_floating_rule_types.add(floating_rule_type)
 
             else:
                 self.syntaxError(x, f"Unsupported declaration type {x[0]} in section {section_id}")

@@ -219,7 +219,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         fpevent('EmailInvoice', 'Vendor', 40, {'quantity':200,'orderid':1}),
         event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
         foevent('Deliver', 'Vendor', 42, {'quantity':500,'orderid':2}),
-        # event('EnterFulfilled', 'Env', 50)
+        event('EnterFulfilled', 'Env', 50)
         ), breachSectionId('Customer'))
         # It should end in a breach by Customer due to the unpaid invoice.
     ),

@@ -6,6 +6,11 @@ from src.model.constants_and_defined_types import *
 from src.model.util import indent, mapjoin
 
 
+class FutureActionRuleType(NamedTuple):
+    rid: RoleId
+    aid: ActionId
+    kw: DeonticKeyword
+
 # ABSTRACT
 class ActionRule:
     def __init__(self,
