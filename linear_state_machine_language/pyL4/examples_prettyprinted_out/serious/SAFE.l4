@@ -82,9 +82,9 @@ action CommitToLiquidityEvent(change_of_control, company_cash_at_liquidity_event
 
         company_cash := company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg
     following section:
-        Investor may ChooseCashPayment (event_td < (sectionEntrance_td + 1w))
-        Investor may ChooseStockPayment (event_td < (sectionEntrance_td + 1w))
-        Company obligation-options-include AutoChooseStockPayment (event_td == (sectionEntrance_td + 1w))
+        Investor may ChooseCashPayment (next_event_td < (sectionEntrance_td + 1w))
+        Investor may ChooseStockPayment (next_event_td < (sectionEntrance_td + 1w))
+        Company obligation-options-include AutoChooseStockPayment (next_event_td == (sectionEntrance_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following section:

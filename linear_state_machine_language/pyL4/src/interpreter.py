@@ -662,3 +662,4 @@ class ExecEnv:
     def assertOrEvalError(self, test:bool, msg:str, thing:Any = None):
         if not test:
             self.evalError(msg,thing) if thing else self.evalError(msg)
+

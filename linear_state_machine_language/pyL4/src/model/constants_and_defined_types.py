@@ -53,6 +53,8 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'contractStart_td',
                       'sectionEntrance_td',
                       'event_td',
+                      'next_event_td',
+                      'future_event_td',
                       'event_role'}
 
 PREFIX_FN_SYMBOLS = { 'days',

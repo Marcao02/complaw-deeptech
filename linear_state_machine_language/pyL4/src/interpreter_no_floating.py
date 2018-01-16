@@ -27,6 +27,7 @@ logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",
     level=logging.INFO )
 
+
 class ExecEnv:
     # All the instance variables of ExecEnv should probably be prefixed with _ to indicate not to use access them
     # outside of the ExecEnv class.
@@ -46,7 +47,10 @@ class ExecEnv:
         self.last_appliedaction_params : Optional[ABAPSubst] = None
         # following changes only in evalTrace
         self.cur_event : Optional[Event] = None
-        self.eval_in_section : bool = False
+
+        self.evaluation_is_in_action = False
+        self.evaluation_is_in_section = False
+        self.evaluation_is_in_next_action_rule = False
 
         # self.start_datetime = datetime.now(timezone.utc)
         # self.start_datetime : datetime = datetime(2000,1,1,0,0,0,0,timezone.utc)
@@ -121,14 +125,16 @@ class ExecEnv:
                 self.evalError(  f"Action type indicated using a next-rule, but current section {self.last_or_current_section_id} "
                                  f"has no such rule for action {cur_action_id}." )
 
-            self.eval_in_section = True
+            self.evaluation_is_in_section = True
             nextrule_assessment = self.assess_event_legal_wrt_nextrules(eventi)
-            self.eval_in_section = False
+            self.evaluation_is_in_section = False
 
             actionstr = event_to_action_str(eventi)
             srcid = self.last_or_current_section_id
             if isinstance(nextrule_assessment, EventOk):
+                self.evaluation_is_in_action = True
                 applyactionresult = self.apply_action(cur_action)
+                self.evaluation_is_in_action = False
                 if verbose:
                     print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {self.last_or_current_section_id}\n")
 
@@ -279,32 +285,25 @@ class ExecEnv:
     # for the where_clause of action_rule to contain action-bound action parameters.
     def current_event_compatible_with_enabled_NextActionRule(self, action_rule:NextActionRule)  -> bool:
         assert self.cur_event is not None
+        rv : bool
+        self.evaluation_is_in_next_action_rule = True
         role_action_match = self.cur_event.role_id == action_rule.role_id and self.cur_event.action_id == action_rule.action_id
         if not role_action_match:
-            return False
-
-        if action_rule.action_id == "EmailInvoice":
-            print("Looking at EmailInvoice rule")
-            print(f"event_td is {self.cur_event_delta()}")
-            print("time constraint of rule: ", str(action_rule.time_constraint))
-        # if action_rule.action_id == "Deliver":
-        #     print("Looking at Deliver rule")
-        #     print(f"event_td is {self.cur_event_delta()}")
-        #     print("time constraint of rule: ", str(action_rule.time_constraint))
-
-        if not self.evalTimeConstraint(action_rule.time_constraint):
-            return False
-
-        if action_rule.where_clause:
-            return chcast(bool,self.evalTerm(action_rule.where_clause))
+            rv = False
+        elif not self.evalTimeConstraint(action_rule.time_constraint):
+            rv = False
+        elif action_rule.where_clause:
+            rv = chcast(bool,self.evalTerm(action_rule.where_clause))
         elif action_rule.fixed_args:
             if self.cur_event.params:
                 argvals = [self.evalTerm(arg) for arg in action_rule.fixed_args]
-                return all(argvals[i] == self.cur_event.params[i] for i in range(len(self.cur_event.params)))
+                rv = all(argvals[i] == self.cur_event.params[i] for i in range(len(self.cur_event.params)))
             else:
-                return len(action_rule.fixed_args) == 0
+                rv = len(action_rule.fixed_args) == 0
         else:
-            return True
+            rv = True
+        self.evaluation_is_in_next_action_rule = False
+        return rv
 
     def environ_tostr(self) -> str:
         return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
@@ -509,15 +508,15 @@ class ExecEnv:
                 else:
                     contract_bug(f"Unhandled time constraintfn symbol: {fn}")
             elif fn in ENV_VAR_INTERP:
-                if self.eval_in_section:
-                    todo_once("Do the sectionEntrance_td check statically")
-                    pass
-                    # no the following env var uses are ok, because they refer to the next event
-                    # if not self.last_or_current_section.is_anon():
-                    #     assert fn != 'event_td', "Can't use event_td when not in the scope of an action."
-                    #     assert fn != 'event_role', "Can't use event_role when not in the scope of an action."
-                else:
-                    assert fn != 'sectionEntrance_td', "Can't use sectionEntrance_td when not in the scope of a section."
+                todo_once("Statically check ENV_VAR_INTERP scope.")
+                assert fn != "future_event_td", "All occurrences of future_event_td should be eliminated before using interpreter_no_floating.py."
+
+                if fn == "next_event_td":
+                    assert self.evaluation_is_in_next_action_rule, "Can't use event_td when not in the scope of an action rule."
+                elif fn == "event_td":
+                    assert self.evaluation_is_in_action, "Can't use event_td when not in the scope of an action."
+                elif fn == "sectionEntrance_td":
+                    assert self.evaluation_is_in_section, "Can't use sectionEntrance_td when not in the scope of a section."
 
                 return ENV_VAR_INTERP[fn](self)
             else:

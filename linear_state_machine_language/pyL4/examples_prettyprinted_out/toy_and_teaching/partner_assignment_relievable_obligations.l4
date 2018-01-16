@@ -11,12 +11,12 @@ global vars:
     probBsolved : boolean := False
 
 section WorkingOnAssignment:
-    Alice obligation-options-include SolveProbA (event_td ≤ DUE_TD)
-    Alice may SolveProbB (event_td ≤ DUE_TD)
+    Alice obligation-options-include SolveProbA (next_event_td ≤ DUE_TD)
+    Alice may SolveProbB (next_event_td ≤ DUE_TD)
     if probAsolved and probBsolved:
-        Alice may Submit (event_td ≤ DUE_TD)
-    Bob obligation-options-include SolveProbB (event_td ≤ DUE_TD)
-    Bob may SolveProbA (event_td ≤ DUE_TD)
+        Alice may Submit (next_event_td ≤ DUE_TD)
+    Bob obligation-options-include SolveProbB (next_event_td ≤ DUE_TD)
+    Bob may SolveProbA (next_event_td ≤ DUE_TD)
 
 action SolveProbA()  transitions to WorkingOnAssignment:
     transform:
@@ -26,4 +26,4 @@ action SolveProbB()  transitions to WorkingOnAssignment:
     transform:
         probBsolved := True
 
-action Submit()  transitions to AfterSubmit
+action Submit()  transitions to Fulfilled

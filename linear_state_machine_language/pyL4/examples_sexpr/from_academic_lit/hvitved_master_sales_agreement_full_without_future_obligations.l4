@@ -94,7 +94,7 @@
 	(Section VendorAcceptingOrders
 		(Next
 			(if (orderable_units > 0)
-				(Customer may (SubmitNewOrder ?q) (event_td ≤ order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
+				(Customer may (SubmitNewOrder ?q) (next_event_td ≤ order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
 			)
 			(if (nonempty 2Bdelivered)
 				; lang note: the `where (mapHas  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
@@ -102,25 +102,25 @@
 				; case that means there's an unfulfillable obligation).
 
 
-				(Vendor obligation-options-include (Deliver ?order) (tdGEQ 2Bdelivered ?order event_td) (where (mapHas 2Bdelivered ?order)))
+				(Vendor obligation-options-include (Deliver ?order) (tdGEQ 2Bdelivered ?order next_event_td) (where (mapHas 2Bdelivered ?order)))
 				; (Vendor may (Deliver ?order) (tdGEQ 2Bdelivered ?order event_td) (where (mapHas 2Bdelivered ?order)))
 			)
 			(if (nonempty 2Binvoiced)
-				(Vendor may (EmailInvoice ?order) (tdGEQ 2Binvoiced ?order event_td) (where (mapHas 2Binvoiced ?order)))
+				(Vendor may (EmailInvoice ?order) (tdGEQ 2Binvoiced ?order next_event_td) (where (mapHas 2Binvoiced ?order)))
 			)
 			(if (nonempty 2Bpaid)
-				(Customer obligation-options-include (PayBill ?order) (tdGEQ 2Bpaid ?order event_td) (where (mapHas 2Bpaid ?order)))
+				(Customer obligation-options-include (PayBill ?order) (tdGEQ 2Bpaid ?order next_event_td) (where (mapHas 2Bpaid ?order)))
 				; (Customer may (PayBill ?order) (tdGEQ 2Bpaid ?order event_td) (where (mapHas 2Bpaid ?order)))
 			)
 			(if ; conditions for early end of contract
 				( and* (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
 				; then fulfilled provided all invoice deadlines are expired
-				(EnterFulfilled (event_td > furthest_invoice_deadline))
+				(EnterFulfilled (next_event_td > furthest_invoice_deadline))
 			)
 			(if ; conditions for end of contract with units remaining
 				( and* (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )
 				; then fulfilled provided all invoice deadlines are expired, and the _order period is over
-				(EnterFulfilled ((event_td > furthest_invoice_deadline) and (event_td > order_period_ends)))
+				(EnterFulfilled ((next_event_td > furthest_invoice_deadline) and (next_event_td > order_period_ends)))
 			)
 		)
 

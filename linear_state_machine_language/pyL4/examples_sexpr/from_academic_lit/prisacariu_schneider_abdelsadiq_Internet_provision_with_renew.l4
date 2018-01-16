@@ -55,9 +55,9 @@
 
 (Definitions
 	(within24HOfInfraction := (event_td ≤ (infraction_time + 24H)))
-	(within48HOfInfraction := (event_td ≤ (infraction_time + 48H)))
-	(after24HSinceInfraction := (event_td > (infraction_time + 24H)))
-	(after48HSinceInfraction := (event_td > (infraction_time + 48H)))
+	(within48HOfInfraction := (next_event_td ≤ (infraction_time + 48H)))
+	(after24HSinceInfraction := (next_event_td > (infraction_time + 24H)))
+	(after48HSinceInfraction := (next_event_td > (infraction_time + 48H)))
 
 )
 
@@ -120,7 +120,7 @@
 	(Action (Pay (x : ℕ)) (AllowedSubjects Client) (TransitionsTo UnsettledInfraction)
 		(StateTransform
 			(paid += (HIGH_USAGE_FEE * x))
-			(if within24HOfInfraction (
+			(if (event_td ≤ (infraction_time + 24H)) (
 				(paidBefore24 := true)
 			) else ())
 		)

@@ -167,9 +167,9 @@
 
 		(FollowingSection
 			(Next
-				(Investor may ChooseCashPayment [event_td < (sectionEntrance_td + 1W)])
-				(Investor may ChooseStockPayment [event_td < (sectionEntrance_td + 1W)])
-				(Company obligation-options-include AutoChooseStockPayment [event_td == (sectionEntrance_td + 1W)])
+				(Investor may ChooseCashPayment [next_event_td < (sectionEntrance_td + 1W)])
+				(Investor may ChooseStockPayment [next_event_td < (sectionEntrance_td + 1W)])
+				(Company obligation-options-include AutoChooseStockPayment [next_event_td == (sectionEntrance_td + 1W)])
 			)
 		)
 	)

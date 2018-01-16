@@ -19,7 +19,7 @@ digraph partner_assignment_demonstrating_relievable_obligations {
     
     SolveProbA -> WorkingOnAssignment [style=dashed];
 	SolveProbB -> WorkingOnAssignment [style=dashed];
-	Submit -> AfterSubmit [style=dashed];
+	Submit -> Fulfilled [style=dashed];
 	     
     
        

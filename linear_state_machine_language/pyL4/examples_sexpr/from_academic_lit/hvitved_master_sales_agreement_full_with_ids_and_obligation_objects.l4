@@ -139,11 +139,11 @@
         [Next
             [guardsDisjointExhaustive
                 [if [orderable_units_remaining > 0]
-                    [Customer may [SubmitNewOrder ?q] [event_td ≤ order_period_ends]
+                    [Customer may [SubmitNewOrder ?q] [next_event_td ≤ order_period_ends]
                          [where [[0 < ?q] and [?q ≤ orderable_units_remaining]]] ]
                 ]
                 [if [orderable_units_remaining == 0]
-                    [EnterFulfilled [event_td ≥ order_period_ends]]
+                    [EnterFulfilled [next_event_td ≥ order_period_ends]]
                 ]
             ]
         ]
@@ -186,7 +186,7 @@
         ]
 
         [Future
-            [ Vendor must-later [Deliver quantity this_orderid] [event_td ≤ this_delivery_deadline]]
+            [ Vendor must-later [Deliver quantity this_orderid] [future_event_td ≤ this_delivery_deadline]]
         ]
 
     ]
@@ -205,7 +205,7 @@
         ]
 
         [Future
-            [Vendor may-later [EmailInvoice quantity orderid] [event_td ≤ deadline] ]
+            [Vendor may-later [EmailInvoice quantity orderid] [future_event_td ≤ deadline] ]
         ]
     ]
 
@@ -221,7 +221,7 @@
             [ local deadline : TimeDelta = (event_td + 14d) ]
         ]
         [Future
-            [Customer must-later [PayBill quantity orderid] [event_td ≤ deadline] ]
+            [Customer must-later [PayBill quantity orderid] [future_event_td ≤ deadline] ]
         ]
 
     ]

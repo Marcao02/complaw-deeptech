@@ -73,7 +73,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
         if isinstance(far.time_constraint, FnApp):
             assert (far.time_constraint.head == "≤" or far.time_constraint.head == "<=")
-            assert isinstance(far.time_constraint.args[0], FnApp) and far.time_constraint.args[0].head == "event_td"
+            assert isinstance(far.time_constraint.args[0], FnApp) and far.time_constraint.args[0].head == "future_event_td"
 
             timedelta_term = far.time_constraint.args[1]
         else:

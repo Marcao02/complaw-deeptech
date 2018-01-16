@@ -121,7 +121,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not f[0]():
                 raise Exception(f[1])
 
-        floating_rules_transpile_away(self.top)
+        # floating_rules_transpile_away(self.top)
         return self.top
 
     def _mk_contract_param(self, expr) -> ContractParamDec:
@@ -533,10 +533,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in TIME_CONSTRAINT_PREDICATES:
                 # return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
-                return FnApp(
+                rv = FnApp(
                     pair[0],
                     [self._mk_term(arg, src_section, src_action, parent_action_rule, expr) for arg in pair[1]]
                 )
+                print("$ " + str(rv))
+                return rv
             else:
                 if src_section:
                     print("pair: ", pair)

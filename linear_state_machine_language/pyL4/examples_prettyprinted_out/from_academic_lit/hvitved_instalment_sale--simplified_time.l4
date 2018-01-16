@@ -15,8 +15,8 @@ global vars:
 
 section WaitingForFirstDayOfNextMonth:
     if (MIN_PAYMENT ≤ balance_remaining and next_payment_month < 23):
-        Buyer obligation-options-include PayInstallment(?amount) ((sectionEntrance_td + 30d) == event_td) where (MIN_PAYMENT ≤ ?amount and ?amount ≤ balance_remaining)
-    Buyer obligation-options-include PayLastInstallment(balance_remaining + DUE_AT_CLOSING) ((sectionEntrance_td + 30d) == event_td)
+        Buyer obligation-options-include PayInstallment(?amount) (next_event_td == (sectionEntrance_td + 30d)) where (MIN_PAYMENT ≤ ?amount and ?amount ≤ balance_remaining)
+    Buyer obligation-options-include PayLastInstallment(balance_remaining + DUE_AT_CLOSING) (next_event_td == (sectionEntrance_td + 30d))
 
 action PayInstallment(amount)  transitions to WaitingForFirstDayOfNextMonth:
     transform:

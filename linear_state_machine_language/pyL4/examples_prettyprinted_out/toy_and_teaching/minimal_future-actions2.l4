@@ -4,22 +4,14 @@ file: toy_and_teaching/minimal_future-actions2.l4
 roles: Env, I
 
 global vars:
-    I_must_Catch_by : TDMap := (emptyTDMap )
 
 section Ongoing:
     I may Throw(?n) no_time_constraint
     I may EnterFulfilled no_time_constraint
-    if (nonempty I_must_Catch_by):
-        I obligation-options-include Catch(?0) (tdGEQ I_must_Catch_by (tuple ?0) event_td) where (mapHas I_must_Catch_by (tuple ?0))
 
-action Throw(n)  transitions to Ongoing:
-    transform:
-        I_must_Catch_by := (mapSet I_must_Catch_by (tuple n) 51948w)
+action Throw(n)  transitions to Ongoing
+    I must-later Catch(n) no_time_constraint
 
-action Catch(n)  transitions to Ongoing:
-    transform:
-        if (event_role == I):
-            I_must_Catch_by := (mapDelete I_must_Catch_by (tuple n))
-
+action Catch(n)  transitions to Ongoing
 
 action EnterFulfilled()  transitions to Fulfilled
