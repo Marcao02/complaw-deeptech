@@ -515,6 +515,8 @@ class ExecEnv:
                     assert self.evaluation_is_in_next_action_rule, "Can't use event_td when not in the scope of an action rule."
                 elif fn == "event_td":
                     assert self.evaluation_is_in_action, "Can't use event_td when not in the scope of an action."
+                    assert not self.evaluation_is_in_next_action_rule, ("event_td directly within the time constraint or `where` clause of a next-action rule is not currently supported." +
+                                                                      "Evaluate it in the global state transform and save it to a local variable.")
                 elif fn == "sectionEntrance_td":
                     assert self.evaluation_is_in_section, "Can't use sectionEntrance_td when not in the scope of a section."
 
