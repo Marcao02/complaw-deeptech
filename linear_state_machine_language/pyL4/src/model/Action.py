@@ -1,16 +1,16 @@
 from typing import Optional, Dict, List, Iterator
 
+from compiler.SExpr import SExpr
+from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
+    StateTransformLocalVarId
 from src.model.ActionRule import PartyFutureActionRule
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec
-from src.model.SExpr import SExpr
 from src.model.Section import Section, ParamsDec
 from src.model.Term import Term
-from src.model.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
-    StateTransformLocalVarId
-from src.util import mapjoin, indent, castid
+from src.util import mapjoin, indent, castid, todo_once
 
-
+todo_once("No references to SExpr.py in src/model")
 class Action:
     def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id

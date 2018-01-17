@@ -1,8 +1,8 @@
 from typing import Optional, NamedTuple
 
+from src.constants_and_defined_types import *
 from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Term import Term
-from src.model.constants_and_defined_types import *
 from src.util import indent, mapjoin
 
 

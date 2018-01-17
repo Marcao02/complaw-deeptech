@@ -4,7 +4,7 @@
 # there is only one `ExecEnv`, but there are multiple `EvalContext`s
 from typing import NamedTuple, Optional
 
-from src.model.constants_and_defined_types import GVarSubst, RBAPSubst, ABAPSubst
+from src.constants_and_defined_types import GVarSubst, ABAPSubst
 
 
 class EvalContext(NamedTuple):

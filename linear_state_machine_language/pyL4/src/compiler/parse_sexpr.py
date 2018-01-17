@@ -1,6 +1,4 @@
-from typing import Union, List
-
-from src.model.SExpr import *
+from compiler.SExpr import *
 from src.util import is_singleton_string_list, chcaststr
 
 

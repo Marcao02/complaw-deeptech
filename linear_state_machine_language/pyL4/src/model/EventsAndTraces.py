@@ -1,9 +1,9 @@
 from enum import Enum
-from typing import NamedTuple, Optional, Any, Dict, Sequence, List
-from datetime import timedelta
+from typing import NamedTuple, Optional, Any, Dict, Sequence
 
-from src.model.constants_and_defined_types import ActionId, RoleId, ABAPSubst, Data, ABAPNamedSubst, \
-    ContractParamId, AParamsSubst
+from src.constants_and_defined_types import ActionId, RoleId, ABAPNamedSubst, \
+    AParamsSubst
+
 
 class EventType(Enum):
     use_floating_permission = 'use_floating_permission'

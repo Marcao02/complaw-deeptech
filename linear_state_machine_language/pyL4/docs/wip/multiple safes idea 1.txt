@@ -1,0 +1,8 @@
+KISS.l4 is coming along. I'm also beginning to work on the L4 formalization of multiple SAFEs. I think we will go through multiple iterations of that before we find a good one. Here is a first partial idea:
+
+There is a master fundraising contract with one `Company` party and an unbounded number of `Investor` parties (so this would require adding an L4 feature that allows parties to be added during contract execution, but I don't see anyway around that). The `Company` has an action `newSAFE` that takes a fully-instantiated but "unsigned" (= not yet executing) SAFE contract as an argument. That action adds the SAFE contract to the state of the master contract. There is another action `signSAFE` which can be performed by either the `Company` or an `Investor`. Once both parties perform that action, the SAFE is live.
+
+I still need to add the MFN feature to the SAFE formalization, but I think it will be more clear how to do that while working on the master fundraising contract.
+
+I know that KISS allows for non-major investors (< 50k, by default) to have different information rights. Don't recall if SAFE has something like that.
+

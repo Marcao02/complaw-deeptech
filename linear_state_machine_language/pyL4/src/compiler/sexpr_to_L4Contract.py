@@ -3,6 +3,7 @@ from typing import Callable, Tuple
 
 from mypy_extensions import NoReturn
 
+from compiler.SExpr import SExprOrStr
 from compiler.parse_sexpr import castse, STRING_LITERAL_MARKER
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
@@ -12,7 +13,6 @@ from src.model.GlobalStateTransformStatement import *
 from src.model.L4Contract import *
 from src.model.L4Macro import L4Macro
 from src.model.Literal import *
-from src.model.SExpr import SExprOrStr
 from src.model.Term import FnApp
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 

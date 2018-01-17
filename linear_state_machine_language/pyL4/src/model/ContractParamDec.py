@@ -1,7 +1,5 @@
-from typing import NamedTuple
-
+from src.constants_and_defined_types import ContractParamId, SortId
 from src.model.Term import Term
-from src.model.constants_and_defined_types import ContractParamId, SortId
 
 
 class ContractParamDec:

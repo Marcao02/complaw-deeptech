@@ -1,12 +1,12 @@
 from typing import Union, Optional, cast
 
+from src.constants_and_defined_types import SectionId, GVarSubst, ContractParamId
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 from src.interpreter.interpreter import ExecEnv as ExecEnvNF
 from src.interpreter.interpreter_deprecated import ExecEnv as ExecEnvOld
 from src.model.EventsAndTraces import Trace, CompleteTrace
 from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal
-from src.model.constants_and_defined_types import SectionId, GVarSubst, ContractParamId
 from src.util import castid
 
 

@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Any
 
-from src.model.constants_and_defined_types import SUPPORTED_TIMEUNITS
+from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
 from src.model.Term import Term
 
 

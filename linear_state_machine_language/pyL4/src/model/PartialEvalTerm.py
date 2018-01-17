@@ -1,6 +1,5 @@
 from src.model.EvalContext import EvalContext
 from src.model.Term import Term
-from src.model.constants_and_defined_types import GVarSubst, ABAPSubst
 
 
 class PartialEvalTerm(Term):
