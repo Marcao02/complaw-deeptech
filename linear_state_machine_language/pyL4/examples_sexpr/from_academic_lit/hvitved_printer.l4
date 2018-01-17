@@ -19,7 +19,7 @@
 (GlobalVars
 	(nonoperative buyer_paid : ℕ := 0)
 	(nonoperative seller_refunded : ℕ := 0)
-	(writeonce delivery_date : Date)
+	(writeonce delivery_date : DateTime)
 )
 
 (ProseContract

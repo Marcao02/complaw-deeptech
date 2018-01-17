@@ -12,7 +12,7 @@
 	( writeonce order_period_ends : TimeDelta := CONTRACT_LIFE )
 	( furthest_invoice_deadline : TimeDelta := 0D )
 
-	( inconly next_order_id : Id := 0 )
+	( inconly next_order_id : ℕ := 0 )
 	( 2Bdelivered : TDMap_Order := (emptyTDMap) )
 	( 2Binvoiced : TDMap_Order := (emptyTDMap) )
 	( 2Bpaid : TDMap_Order := (emptyTDMap) )
@@ -20,15 +20,16 @@
 	( nonoperative inconly units_ordered : ℕ := 0 )
 	( nonoperative inconly units_delivered : ℕ := 0 )
 	( nonoperative inconly units_invoiced : ℕ := 0 )
-	( nonoperative inconly total_paid : $ := 0 )
+	( nonoperative inconly total_paid : ℕ := 0 )
 )
 
 (Definitions
 	(orderable_units := (MAX_UNITS - units_ordered))
 
 	; either ids (approach taken here) or ordering are necessary to correctly handle the case when there are two orders on the same day for the same quantity.
+	(Id := ℕ)
 	(Order := [Tuple ℕ Id])
-	; (Id := ℕ)
+
 )
 
 (ProseContract

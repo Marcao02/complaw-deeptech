@@ -1,6 +1,6 @@
 # v 2.0.0
 
-from typing import Union, List, Any, cast, Sized, Iterable
+from typing import Union, List, Any, cast, Sized, Iterable, Sequence
 
 from src.model.util import caststr
 
@@ -79,7 +79,8 @@ SExprOrStr = Union[SExpr,str]
 #             col = sexpr_or_str.col
 #         )
 
-def mult_replace(s:str, olds:List[str], news:List[SExprOrStr]) -> SExprOrStr:
+# THIS ONLY MAKES SENSE FOR MACROS
+def mult_replace(s:str, olds:Sequence[str], news:Sequence[SExprOrStr]) -> SExprOrStr:
     assert len(olds) == len(news)
     rv = s
     for i in range(len(olds)):
@@ -90,7 +91,8 @@ def mult_replace(s:str, olds:List[str], news:List[SExprOrStr]) -> SExprOrStr:
 
     return rv
 
-def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: List[str], replacements: List[SExprOrStr]) -> SExprOrStr:
+# THIS ONLY MAKES SENSE FOR MACROS
+def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: Sequence[str], replacements: Sequence[SExprOrStr]) -> SExprOrStr:
     assert len(strs_to_replace) == len(replacements)
     if isinstance(sexpr_or_str, str):
         return mult_replace(sexpr_or_str, strs_to_replace, replacements)

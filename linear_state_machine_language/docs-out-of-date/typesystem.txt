@@ -1,0 +1,60 @@
+MOVED TO GITHUB ISSUES
+
+Our initial type system will appear more adhoc than we're used to from general purpose programming languages.
+
+The basic types are
+	Bool, Nat, Int, Real, PosReal, TimeDelta, DateTime
+
+Nat ⊆ Int ⊆ Real
+Nat ⊆ PostReal ⊆ Real
+
+The relationships between the number types are sort of compiled away -- they aren't visible to SMT solvers, for example.
+See https://github.com/legalese/legalese-compiler/issues/4
+
+There are arbitrarily-many copies of each of those types, to be used for units, e.g.
+	type numshares := Nat_1
+
+Can create enum types. Nothing surprising here. Will fill in details later.
+
+There are some type-operators:
+	Type T/S for T,S basic types is used for things like prices and rates.
+	(Tuple T1 ... Tk)
+	(Map S T)
+
+== : T --> T --> Bool, for all T
+ifthenelse : Bool --> T --> T --> T, for all T
+
+Types for ≤ (<=), ≥ (>=), <, >:
+	Real_i --> Real_i --> Bool
+
+Types for +, *, min, max:
+	Nat_i --> Nat_i --> Nat_i
+	Int_i --> Int_i --> Int_i
+	PosReal_i --> PosReal_i --> PosReal_i
+	Real_i --> Real_i --> Real_i
+	TimeDelta --> TimeDelta --> TimeDelta
+
+Types for *:
+	Nat_i --> Nat_i --> Nat_i
+	Int_i --> Int_i --> Int_i
+	Real_i --> Real_i --> Real_i
+	PosReal_i --> PosReal_i --> PosReal_i
+	TimeDelta --> Nat --> TimeDelta
+
+Types for round, ceil, floor
+	Real_i --> Int_i
+	PosReal_i --> Nat_i
+
+Types for -:
+	Int_i --> Int_i --> Int_i
+	Real_i --> Real_i --> Real_i
+	TimeDelta --> TimeDelta --> TimeDelta
+
+Types for /:
+	Int_i --> Int_i --> Real_i
+	Real_i --> Real_i --> Real_i
+
+Type T/S is such that
+	* : T/S -> S -> T
+	/ : T -> T/S -> S
+

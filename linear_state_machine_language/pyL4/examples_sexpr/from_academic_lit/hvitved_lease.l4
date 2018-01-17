@@ -3,10 +3,10 @@
 (TimeUnit d)
 
 (ContractParams
-	(LEASE_DURATION : TimeUnit := (days (4 * 29))) ;  approx 4 months
-	(RENT : Money = 1000)
-	(MAX_RENT_DELAY : TimeUnit := 7D) ; 7 days
-	(MIN_TERMINATION_NOTICE : TimeUnit := 30D) ; approx 1 month
+	(LEASE_DURATION : TimeDelta := (days (4 * 29))) ;  approx 4 months
+	(RENT : ℕ = 1000)
+	(MAX_RENT_DELAY : TimeDelta := 7D) ; 7 days
+	(MIN_TERMINATION_NOTICE : TimeDelta := 30D) ; approx 1 month
 )
 
 (ProseContract
