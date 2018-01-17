@@ -1,9 +1,9 @@
-from typing import Optional, List, NamedTuple
+from typing import Optional, NamedTuple
 
 from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Term import Term
 from src.model.constants_and_defined_types import *
-from src.model.util import indent, mapjoin
+from src.util import indent, mapjoin
 
 
 class FutureActionRuleType(NamedTuple):

@@ -1,6 +1,7 @@
-import os, sys
+import os
+import sys
 
-from src.model.util import print_all_todos
+from src.util import print_all_todos
 
 
 def runit(s, optional_s=""):
@@ -9,8 +10,10 @@ def runit(s, optional_s=""):
     os.system(s)
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
-    import compiler_cli
-    assert compiler_cli.EXAMPLES_FULL_SIZE == len(compiler_cli.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
+    from compiler import compiler_cli
+
+    assert compiler_cli.EXAMPLES_FULL_SIZE == len(
+        compiler_cli.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
 
     if "print" in sys.argv:
         print(f"\n============================================\nRunning `compiler_cli.py` with args `examples printPretty printSExpr dot`")

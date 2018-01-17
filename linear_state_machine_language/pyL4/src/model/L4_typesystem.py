@@ -1,13 +1,13 @@
 from enum import Enum
 from typing import Any, List, Tuple, NamedTuple, Dict, Sequence, Optional, Union, NewType, Set, cast
 
-from src.model.Literal import Literal, BoolLit, IntLit
-from src.model.Section import Section
-from src.model.Term import Term
 from src.model.Action import Action
 from src.model.ActionRule import NextActionRule
 from src.model.L4Contract import L4Contract
-from src.model.util import todo_once
+from src.model.Literal import Literal, BoolLit, IntLit
+from src.model.Section import Section
+from src.model.Term import Term
+from src.util import todo_once
 
 todo_once("Copies of numeric types.")
 NUM_NUMERIC_COPIES = 3

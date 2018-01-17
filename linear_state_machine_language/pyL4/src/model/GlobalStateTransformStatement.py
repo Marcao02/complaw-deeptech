@@ -1,10 +1,9 @@
 
-from typing import List, Union, Optional, NamedTuple
+from typing import List, Optional
 
-from src.model.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
 from src.model.Term import Term
-
-from src.model.util import castid, indent
+from src.model.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
+from src.util import indent
 
 
 class GlobalStateTransformStatement:

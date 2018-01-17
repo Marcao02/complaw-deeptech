@@ -1,12 +1,13 @@
-from datetime import timedelta
-from typing import Tuple, Any, cast, Dict, Iterable, Iterator, Sequence, NewType, Callable
 import math
+from datetime import timedelta
+from typing import Iterable, NamedTuple
 
-from src.timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT
+from src.interpreter.timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT
+from src.model.ActionRule import PartlyInstantiatedPartyFutureActionRule
 from src.model.EventsAndTraces import Event
 from src.model.GlobalStateTransformStatement import *
-from src.model.ActionRule import PartlyInstantiatedPartyFutureActionRule
 from src.model.constants_and_defined_types import RoleId
+
 
 class ApplyActionResult(NamedTuple):
     floatingrules_added: Optional[List[PartlyInstantiatedPartyFutureActionRule]]

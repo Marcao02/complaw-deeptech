@@ -1,16 +1,16 @@
 from typing import List, Union, cast
 
-from src.model.Literal import SimpleTimeDeltaLit, RoleIdLit
 from src.model.ActionRule import PartyNextActionRule
 from src.model.BoundVar import GlobalVar, RuleBoundActionParam, ActionBoundActionParam
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import IfElse, GlobalVarAssignStatement, GlobalStateTransformStatement
 from src.model.GlobalVarDec import GlobalVarDec
+from src.model.L4Contract import L4Contract
+from src.model.Literal import SimpleTimeDeltaLit, RoleIdLit
 from src.model.Term import FnApp, Term
 from src.model.constants_and_defined_types import DeonticKeyword, RoleId, ActionId, GlobalVarId, RuleBoundActionParamId, \
     ENV_ROLE, ActionBoundActionParamId
-from src.model.util import todo_once, castid
-from src.model.L4Contract import L4Contract, NextActionRule
+from src.util import todo_once, castid
 
 PRACTICALLY_FOREVER = SimpleTimeDeltaLit(999*52,"w")
 

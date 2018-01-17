@@ -1,11 +1,11 @@
 # from typing import Union, List, Dict, Any, Tuple, Callable
-from typing import Iterator, List, Set, Optional, NamedTuple, Tuple
+from typing import Iterator, Optional
 
+from src.model.ActionRule import NextActionRule, FutureActionRuleType
 from src.model.SExpr import SExpr
 from src.model.Term import Term
 from src.model.constants_and_defined_types import *
-from src.model.util import indent, mapjoin
-from src.model.ActionRule import NextActionRule, EnvNextActionRule, FutureActionRuleType
+from src.util import indent
 
 
 class Section:

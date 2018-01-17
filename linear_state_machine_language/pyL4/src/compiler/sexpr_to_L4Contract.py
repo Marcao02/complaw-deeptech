@@ -1,20 +1,20 @@
 import logging
-from typing import Tuple, cast, Callable
+from typing import Callable, Tuple
+
 from mypy_extensions import NoReturn
 
-from floating_rules_transpile import floating_rules_transpile_away
+from compiler.parse_sexpr import castse, STRING_LITERAL_MARKER
 from src.correctness_checks import L4ContractConstructorInterface
-from src.model.GlobalStateTransform import *
 from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
     StateTransformLocalVar
+from src.model.GlobalStateTransform import *
 from src.model.GlobalStateTransformStatement import *
 from src.model.L4Contract import *
+from src.model.L4Macro import L4Macro
 from src.model.Literal import *
 from src.model.SExpr import SExprOrStr
 from src.model.Term import FnApp
-from src.model.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
-from src.model.L4Macro import L4Macro
-from src.parse_sexpr import castse, STRING_LITERAL_MARKER
+from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):

@@ -1,16 +1,16 @@
-from datetime import timedelta
 from itertools import chain
-from typing import Sequence, Tuple, Union, Optional
 from math import inf
+from typing import Sequence, Tuple, Optional
 
-from interpreter_runner import evalTrace
-from src.model.L4Contract import L4Contract
-from src.parse_sexpr import prettySExprStr, parse_file
-from src.sexpr_to_L4Contract import L4ContractConstructor
+from src.compiler.parse_sexpr import prettySExprStr, parse_file
+from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
+
+from src.interpreter.interpreter_runner import evalTrace
 from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSectionId, EventType
+from src.model.L4Contract import L4Contract
 from src.model.constants_and_defined_types import *
+from src.util import castid
 
-from src.model.util import castid
 
 def event(action_id:str, role_id:str = ENV_ROLE,
           timestamp: int = 0,
@@ -438,7 +438,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
 EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
 traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious)
 
-from src.compiler_cli import EXAMPLES_SEXPR_ROOT
+from compiler.compiler_cli import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
         'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
