@@ -4,8 +4,8 @@ from src.model.Literal import Literal
 from src.model.util import castid
 from src.sexpr_to_L4Contract import L4ContractConstructor
 from src.model.constants_and_defined_types import SectionId, GVarSubst, ContractParamId
-from src.interpreter import ExecEnv as ExecEnvOld
-from src.interpreter_no_floating import ExecEnv as ExecEnvNF
+from src.interpreter import ExecEnv as ExecEnvNF
+from src.interpreter_deprecated import ExecEnv as ExecEnvOld
 from src.model.EventsAndTraces import Trace, CompleteTrace
 from src.model.L4Contract import L4Contract
 
