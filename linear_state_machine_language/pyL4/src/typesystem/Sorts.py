@@ -1,4 +1,4 @@
-from typing import NamedTuple, Tuple, Any, Union, cast, NewType
+from typing import NamedTuple, Tuple, Any, Union, cast, NewType, Optional
 
 SortOp = str # NewType('SortOp',str)
 AtomicSort = str # NewType('AtomicSort',str)
@@ -6,9 +6,15 @@ Sort = Union[AtomicSort, 'NonatomicSort']
 class NonatomicSort(NamedTuple):
     sortop: AtomicSort
     args_: Tuple[Any,...]
+    @staticmethod
+    def c(sortop:AtomicSort, args:Tuple[Any,...]) -> 'NonatomicSort':
+        return NonatomicSort(sortop, args)
     @property
     def args(self) -> Tuple[Sort]:
         return cast(Tuple[Sort], self.args_)
+    @staticmethod
+    def mk(sortop:AtomicSort, args:Tuple[Sort]) -> 'NonatomicSort':
+        return NonatomicSort(sortop, args)
 
 DateTime = 'Datetime'
 TimeDelta = 'Timedelta'
@@ -31,7 +37,7 @@ FiniteNumericSorts = ("{0,1}","{0}","{1}")
 
 AllAtomicSorts = (DateTime,TimeDelta,Bool) + BoundedNumericSorts + UnboundedNumericSorts
 
-subtypes_data = (
+subtypes_data : Tuple[Tuple[str,...],...] = (
     ("{0}","[0,1)"),
     ("{1}","(0,1]"),
     ("{0,1}","[0,1]"),

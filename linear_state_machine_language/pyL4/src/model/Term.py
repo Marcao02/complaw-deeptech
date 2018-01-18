@@ -1,7 +1,9 @@
-from typing import List, Union
+from typing import List, Union, NamedTuple, Optional
 
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
     EXEC_ENV_VARIABLES
+from typesystem.FnTypes import OverloadedFnType
+from typesystem.standard_types import overloaded_fn_types
 
 
 class Term:
@@ -9,10 +11,20 @@ class Term:
 
 TermOrStr = Union[Term,str]
 
+class FnSymb(NamedTuple):
+    name: str
+    type: Optional[OverloadedFnType]
+
+
 class FnApp(Term):
     def __init__(self, head:str, args:List[Term]) -> None:
-        self.head = head
+        ofntype = overloaded_fn_types[head] if head in overloaded_fn_types else None
+        self.fnsymb = FnSymb(head, ofntype)
         self.args = args
+
+    @property
+    def head(self) -> str:
+        return self.fnsymb.name
 
     def __str__(self) -> str:
         if self.head in EXEC_ENV_VARIABLES:

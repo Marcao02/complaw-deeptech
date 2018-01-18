@@ -1,4 +1,4 @@
-from typing import Tuple, List, Dict, Set
+from typing import Tuple, List, Dict, Set, Iterable, Optional
 
 from typesystem.Sorts import Sort
 
@@ -20,11 +20,14 @@ class SubtypesGraph:
     def hasEdge(self, srt:Sort, trg:Sort) -> bool:
         return trg in self.edges_from[srt]
 
-    def simplifyIntersection(self, sorts:Set[Sort]):
+    def simplifyIntersection(self, sorts:Iterable[Sort]) -> Optional[Sort]:
+        sorts_set = set(sorts)
         for u in sorts:
             for v in sorts:
                 if u != v and self.hasEdge(u,v):
-                    sorts.remove(v)
+                    sorts_set.remove(v)
+        assert len(sorts_set) <= 1, "This sort set generated from code did not reduce to a single sort:\n" + str(sorts_set)
+        return sorts_set.pop() if len(sorts_set) == 1 else None
 
     def transitivelyClose(self) -> None:
         for x in self.edges_from:

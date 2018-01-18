@@ -4,6 +4,9 @@ from itertools import chain
 
 from src.typesystem.Sorts import *
 from src.util_for_sequences import nested_list_replace, nested_list_replace_mult
+from typesystem.FnTypes import OverloadedFnType
+from typesystem.reducers import eliminate_type_vars, print_types_map, build_graph, eliminate_unbounded_arity
+
 
 def abr_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
     return ('aafn', dom, ran)
@@ -67,5 +70,19 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('+=','*='),             parametric(sfntype(T, T, T), UnboundedNumericSorts))
 )
 
-unbounded_artity_fnsymbols = {'≤','≥','<','>','==','or*','and*',
+unbounded_arity_fnsymbols = {'≤', '≥', '<', '>', '==', 'or*', 'and*',
                               'min','max','+','*'}
+
+overloaded_fn_types : Dict[str,OverloadedFnType] = dict()
+
+fntypes_map = eliminate_type_vars(overloaded_types_data)
+print_types_map(fntypes_map)
+
+standard_types_graph = build_graph()
+print("\n" + str(standard_types_graph))
+
+eliminate_unbounded_arity({'and*':{3}, '*':{2,3}, 'max':{2,3}, 'min':{2},
+                           '≤':{2,3}, '<':{2,3}, '>':{2,3},
+                           '≥':{2,3}, '==':{2}, '+':{2,3}}, fntypes_map)
+print_types_map(fntypes_map)
+
