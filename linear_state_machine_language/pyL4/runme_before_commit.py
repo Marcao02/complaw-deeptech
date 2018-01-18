@@ -10,7 +10,7 @@ def runit(s, optional_s=""):
     os.system(s)
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
-    from compiler import compiler_cli
+    from src.compiler import compiler_cli
 
     assert compiler_cli.EXAMPLES_FULL_SIZE == len(
         compiler_cli.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"

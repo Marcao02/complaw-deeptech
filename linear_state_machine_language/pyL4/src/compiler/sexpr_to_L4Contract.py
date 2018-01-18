@@ -3,8 +3,8 @@ from typing import Callable, Tuple
 
 from mypy_extensions import NoReturn
 
-from compiler.SExpr import SExprOrStr
-from compiler.parse_sexpr import castse, STRING_LITERAL_MARKER
+from src.compiler.SExpr import SExprOrStr
+from src.compiler.parse_sexpr import castse, STRING_LITERAL_MARKER
 from src.correctness_checks import L4ContractConstructorInterface
 from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
     StateTransformLocalVar

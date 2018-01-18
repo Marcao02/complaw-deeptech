@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List, Iterator
 
-from compiler.SExpr import SExpr
+from src.compiler.SExpr import SExpr
 from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
     StateTransformLocalVarId
 from src.model.ActionRule import PartyFutureActionRule

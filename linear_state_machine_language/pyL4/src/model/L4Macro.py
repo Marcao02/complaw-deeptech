@@ -1,6 +1,6 @@
 from typing import NamedTuple, List
 
-from compiler.SExpr import SExpr, sexpr_subst_mult_string, SExprOrStr
+from src.compiler.SExpr import SExpr, sexpr_subst_mult_string, SExprOrStr
 from src.util import chcast
 
 

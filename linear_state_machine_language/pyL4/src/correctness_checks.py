@@ -2,7 +2,7 @@ import logging
 from itertools import chain
 from typing import Optional, Iterable
 
-from compiler.SExpr import SExprOrStr
+from src.compiler.SExpr import SExprOrStr
 from src.constants_and_defined_types import *
 from src.model.ActionRule import ActionRule
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id

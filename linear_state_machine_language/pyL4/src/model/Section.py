@@ -1,7 +1,7 @@
 # from typing import Union, List, Dict, Any, Tuple, Callable
 from typing import Iterator, Optional
 
-from compiler.SExpr import SExpr
+from src.compiler.SExpr import SExpr
 from src.constants_and_defined_types import *
 from src.model.ActionRule import NextActionRule, FutureActionRuleType
 from src.model.Term import Term

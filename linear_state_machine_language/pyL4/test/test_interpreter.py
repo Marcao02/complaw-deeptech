@@ -437,7 +437,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
 EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
 traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious)
 
-from compiler.compiler_cli import EXAMPLES_SEXPR_ROOT
+from src.compiler.compiler_cli import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
         'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',

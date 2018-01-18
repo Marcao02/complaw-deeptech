@@ -1,4 +1,4 @@
-from compiler.SExpr import SExpr
+from src.compiler.SExpr import SExpr
 
 class ContractClaim:
     # later after handle CONTRACT_VALUE_PROPERTIES
