@@ -11,8 +11,8 @@ section Ongoing:
 
 action DoIt()  transitions to AfterDoIt:
     transform:
-        x : ℕ := n * n
-        y : ℕ := x * x
+        x : ℕ := (n * n)
+        y : ℕ := (x * x)
     following section:
         FinishIt(y)
 

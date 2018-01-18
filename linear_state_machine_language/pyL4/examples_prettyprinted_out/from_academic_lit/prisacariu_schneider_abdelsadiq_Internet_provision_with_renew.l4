@@ -61,8 +61,8 @@ action SendDelayEmail()  non-transitioning:
 
 action Pay(x)  transitions to UnsettledInfraction:
     transform:
-        paid += HIGH_USAGE_FEE * x
-        if (event_td ≤ infraction_time + 24h):
+        paid := (paid + (HIGH_USAGE_FEE * x))
+        if (event_td ≤ (infraction_time + 24h)):
             paidBefore24 := True
 
 
@@ -82,19 +82,19 @@ section UnsettledInfraction:
     ISP may SendCancelNoticeByPost no_time_constraint
     ISP may SendCancelNoticeByEmail no_time_constraint
     if ¬usage_level_normal:
-        Client may LowerTraffic (next_event_td ≤ infraction_time + 48h)
-    Client may SendDelayEmail (next_event_td ≤ infraction_time + 48h)
-    Client may Pay(?x) (next_event_td ≤ infraction_time + 48h) where (?x > 0 and ?x ≤ 3)
-    if (and* ¬sent_delay_email usage_level_normal paid ≥ 1):
-        Reset (event_td ≤ infraction_time + 24h)
+        Client may LowerTraffic (next_event_td ≤ (infraction_time + 48h))
+    Client may SendDelayEmail (next_event_td ≤ (infraction_time + 48h))
+    Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where ((?x > 0) and (?x ≤ 3))
+    if (and* ¬sent_delay_email usage_level_normal (paid ≥ 1)):
+        Reset (event_td ≤ (infraction_time + 24h))
     if (¬sent_delay_email and (¬usage_level_normal or ¬paidBefore24)):
-        ClientBreaches (next_event_td > infraction_time + 24h)
-    if (and* sent_delay_email usage_level_normal paid ≥ 2):
-        Reset (next_event_td ≤ infraction_time + 48h)
-    if (and* sent_delay_email (traffic_low_since ≤ infraction_time + 24h) usage_level_normal paid ≥ 2):
-        Reset (next_event_td ≤ infraction_time + 48h)
-    if (and* sent_delay_email (traffic_low_since > infraction_time + 24h) usage_level_normal paid ≥ 3):
-        Reset (next_event_td ≤ infraction_time + 48h)
-    ClientBreaches (next_event_td > infraction_time + 48h)
+        ClientBreaches (next_event_td > (infraction_time + 24h))
+    if (and* sent_delay_email usage_level_normal (paid ≥ 2)):
+        Reset (next_event_td ≤ (infraction_time + 48h))
+    if (and* sent_delay_email (traffic_low_since ≤ (infraction_time + 24h)) usage_level_normal (paid ≥ 2)):
+        Reset (next_event_td ≤ (infraction_time + 48h))
+    if (and* sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ 3)):
+        Reset (next_event_td ≤ (infraction_time + 48h))
+    ClientBreaches (next_event_td > (infraction_time + 48h))
     if contract_canceled:
         EnterFulfilled

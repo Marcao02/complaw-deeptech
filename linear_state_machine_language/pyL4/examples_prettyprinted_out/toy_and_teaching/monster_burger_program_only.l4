@@ -38,7 +38,7 @@ action EnterEatingMB()  transitions to EatingMB
 section EatingMB:
     Challenger may AnnounceMBFinished (next_event_td < challenge_endlimit_timestamp)
     Restaurant should CheckCompletionClaim ((challenge_endlimit_timestamp ≤ next_event_td) and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + sectionEntrance_td)))
-    TimeToCheckCompletionExpires (next_event_td == MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)
+    TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following section:

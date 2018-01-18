@@ -5,7 +5,7 @@ from src.constants_and_defined_types import ActionBoundActionParamId, SectionId,
     StateTransformLocalVarId
 from src.model.ActionRule import PartyFutureActionRule
 from src.model.GlobalStateTransform import GlobalStateTransform
-from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec
+from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec, GlobalStateTransformStatement
 from src.model.Section import Section, ParamsDec
 from src.model.Term import Term
 from src.util import mapjoin, indent, castid, todo_once
@@ -33,6 +33,11 @@ class Action:
         self.param_types: ParamsDec = dict()  # str param id -> str sort id
         self.params : List[ActionBoundActionParamId] = []
         self.param_name_to_ind : Dict[ActionBoundActionParamId,int] = dict()
+
+    def state_transform_statements(self) -> Iterator[GlobalStateTransformStatement]:
+        if self.global_state_transform:
+            for s in self.global_state_transform.statements:
+                yield s
 
     def add_action_rule(self, far:PartyFutureActionRule) -> None:
         self.futures.append(far)

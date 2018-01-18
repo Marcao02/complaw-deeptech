@@ -41,8 +41,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
             map_name = tdmapname(fut_rule_type.rid, fut_rule_type.aid, fut_rule_type.kw)
             if map_name not in prog.global_var_decs:
                 add_tdmap_dec(prog, map_name)
-            map_dec = prog.global_var_decs[map_name]
-            map_var = GlobalVar(map_dec)
+            map_var = prog.new_global_var_ref(map_name)
 
             # now the statetransform will need to check that both the role and
             # the action params match. this requires a role environment variable.
@@ -83,8 +82,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
         map_name = tdmapname(far.role_id, far.action_id, far.deontic_keyword)
         if map_name not in prog.global_var_decs:
             add_tdmap_dec(prog, map_name)
-        map_dec = prog.global_var_decs[map_name]
-        map_var = GlobalVar( map_dec )
+        map_var = prog.new_global_var_ref(map_name)
         if far.entrance_enabled_guard:
             statement = IfElse(far.entrance_enabled_guard,
                           [GlobalVarAssignStatement(
@@ -121,8 +119,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
             map_name = tdmapname(rid, aid, kw)
             assert map_name in prog.global_var_decs, f"global state var {map_name} should've been added already. This is it: " + str(prog.global_var_decs)
-            map_dec = prog.global_var_decs[map_name]
-            map_var = GlobalVar(map_dec)
+            map_var = prog.new_global_var_ref(map_name)
 
             assert rid != ENV_ROLE
 

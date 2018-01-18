@@ -2,6 +2,7 @@
 from itertools import chain
 from typing import Iterable, Any, Union
 
+from src.model.BoundVar import GlobalVar
 from src.model.Action import Action
 from src.model.ActionRule import *
 from src.model.ContractClaim import ContractClaim
@@ -51,6 +52,8 @@ class L4Contract:
                 yield far
     def action_rules(self) -> Iterator[ActionRule]: return chain(self.nextaction_rules(), self.futureaction_rules())
 
+    def new_global_var_ref(self,varname) -> GlobalVar:
+        return GlobalVar(self.global_var_decs[varname])
 
     def section_mentions_action_in_nextaction_rule(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)

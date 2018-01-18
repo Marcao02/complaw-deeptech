@@ -11,46 +11,46 @@ contract params:
 global vars:
     writeonce order_period_ends : TimeDelta := CONTRACT_LIFE
     furthest_invoice_deadline : TimeDelta := 0d
-    inconly next_order_id : Id := 0
+    inconly next_order_id : ℕ := 0
     2Bdelivered : TDMap_Order := (emptyTDMap )
     2Binvoiced : TDMap_Order := (emptyTDMap )
     2Bpaid : TDMap_Order := (emptyTDMap )
     nonoperative inconly units_ordered : ℕ := 0
     nonoperative inconly units_delivered : ℕ := 0
     nonoperative inconly units_invoiced : ℕ := 0
-    nonoperative inconly total_paid : $ := 0
+    nonoperative inconly total_paid : ℕ := 0
 
 claims:
     ['∀', ['k', ':', 'ℕ'], [['UpperBoundOnDaysBtwDeliverAndInvoice', 'k'], '⇒', ['∀', ['d', ':', 'Date'], ['∀', ['n', ':', 'ℕ'], [['n', '=', ['units_delivered', 'd']], '⇒', [['total_paid', ['d', '+', ['k', '+', '14D']]], '≥', ['n', '*', 'PRICE_PER_UNIT']]]]]]]
 
 section VendorAcceptingOrders:
-    if (MAX_UNITS - units_ordered > 0):
-        Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where ((?q ≤ MAX_UNITS - units_ordered) and ?q > 0)
+    if ((MAX_UNITS - units_ordered) > 0):
+        Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where ((?q ≤ (MAX_UNITS - units_ordered)) and (?q > 0))
     if (nonempty 2Bpaid):
         Customer obligation-options-include PayBill(?order) (tdGEQ 2Bpaid ?order next_event_td) where (mapHas 2Bpaid ?order)
     if (nonempty 2Bdelivered):
         Vendor obligation-options-include Deliver(?order) (tdGEQ 2Bdelivered ?order next_event_td) where (mapHas 2Bdelivered ?order)
     if (nonempty 2Binvoiced):
         Vendor may EmailInvoice(?order) (tdGEQ 2Binvoiced ?order next_event_td) where (mapHas 2Binvoiced ?order)
-    if (and* (MAX_UNITS - units_ordered == 0) (empty 2Bpaid) (empty 2Bdelivered)):
+    if (and* ((MAX_UNITS - units_ordered) == 0) (empty 2Bpaid) (empty 2Bdelivered)):
         EnterFulfilled (next_event_td > furthest_invoice_deadline)
-    if (and* (MAX_UNITS - units_ordered > 0) (empty 2Bpaid) (empty 2Bdelivered)):
+    if (and* ((MAX_UNITS - units_ordered) > 0) (empty 2Bpaid) (empty 2Bdelivered)):
         EnterFulfilled ((next_event_td > furthest_invoice_deadline) and (next_event_td > order_period_ends))
 
 action EnterFulfilled()  transitions to Fulfilled
 
 action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
     transform:
-        delivery_deadline : Date := (event_td + (days (max 14 (ceil quantity / 10))))
-        units_ordered += quantity
+        delivery_deadline : Date := (event_td + (days (max 14 (ceil (quantity / 10)))))
+        units_ordered := (units_ordered + quantity)
         2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline)
-        next_order_id += 1
+        next_order_id := (next_order_id + 1)
 
 action Deliver(order)  transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bdelivered order)
         quantity : ℕ := (tupleGet order 0)
-        units_delivered += quantity
+        units_delivered := (units_delivered + quantity)
         2Bdelivered := (mapDelete 2Bdelivered order)
         invoice_deadline : TimeDelta := (event_td + 30d)
         furthest_invoice_deadline := (max furthest_invoice_deadline invoice_deadline)
@@ -60,7 +60,7 @@ action EmailInvoice(order)  transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Binvoiced order)
         quantity : ℕ := (tupleGet order 0)
-        units_invoiced += quantity
+        units_invoiced := (units_invoiced + quantity)
         2Binvoiced := (mapDelete 2Binvoiced order)
         2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14d))
 
@@ -68,5 +68,5 @@ action PayBill(order)  transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bpaid order)
         quantity : ℕ := (tupleGet order 0)
-        total_paid += quantity * PRICE_PER_UNIT
+        total_paid := (total_paid + (quantity * PRICE_PER_UNIT))
         2Bpaid := (mapDelete 2Bpaid order)

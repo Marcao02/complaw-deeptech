@@ -5,9 +5,11 @@ from src.constants_and_defined_types import GlobalVarId, StateTransformLocalVarI
 from src.model.Term import Term
 from src.util import indent
 
-
+""" Just the common parent """
 class GlobalStateTransformStatement:
-    """ Just the common parent """
+    def __init__(self):
+        self.orig : Optional[GlobalStateTransformStatement]
+
     def toStr(self, i:int):
         return indent(i) + str(self)
 

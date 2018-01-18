@@ -10,7 +10,7 @@ contract params:
 global vars:
     nonoperative buyer_paid : ℕ := 0
     nonoperative seller_refunded : ℕ := 0
-    writeonce delivery_date : Date
+    writeonce delivery_date : DateTime
 
 claims:
     ['MAX_TIME', '=', '44D']
@@ -27,24 +27,24 @@ action Deliver()  transitions to AfterDeliver:
 
 action Pay1stInstallment()  transitions to AfterPay1stInstallment:
     transform:
-        prove buyer_paid == 0
+        prove (buyer_paid == 0)
         buyer_paid := 100
     following section:
-        Buyer should Pay2ndInstallment (next_event_td ≤ 30 + delivery_date)
-        Buyer may ReturnOnTime (next_event_td ≤ 14 + delivery_date)
-        EnterLate2ndInstallment (next_event_td > 30 + delivery_date)
+        Buyer should Pay2ndInstallment (next_event_td ≤ (30 + delivery_date))
+        Buyer may ReturnOnTime (next_event_td ≤ (14 + delivery_date))
+        EnterLate2ndInstallment (next_event_td > (30 + delivery_date))
 
 action EnterLate2ndInstallment()  transitions to Late2ndInstallment
     following section:
-        Buyer must PayLateFee (next_event_td ≤ 44 + delivery_date)
+        Buyer must PayLateFee (next_event_td ≤ (44 + delivery_date))
 
 action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
     transform:
-        prove buyer_paid == 100
+        prove (buyer_paid == 100)
         buyer_paid := 200
     following section:
-        Buyer may ReturnOnTime (next_event_td ≤ 14 + delivery_date)
-        CompleteNormalSale (next_event_td > 14 + delivery_date)
+        Buyer may ReturnOnTime (next_event_td ≤ (14 + delivery_date))
+        CompleteNormalSale (next_event_td > (14 + delivery_date))
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following section:
@@ -52,13 +52,13 @@ action ReturnOnTime()  transitions to AfterReturnOnTime
 
 action PayLateFee()  transitions to Fulfilled:
     transform:
-        prove buyer_paid == 100
+        prove (buyer_paid == 100)
         buyer_paid := 220
 
 action CompleteNormalSale()  transitions to Fulfilled
 
 action DeliverRefund()  transitions to Fulfilled:
     transform:
-        prove seller_refunded == 0
-        prove (buyer_paid == 100 or buyer_paid == 200)
+        prove (seller_refunded == 0)
+        prove ((buyer_paid == 100) or (buyer_paid == 200))
         seller_refunded := buyer_paid

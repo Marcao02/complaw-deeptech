@@ -41,10 +41,10 @@ class FnApp(Term):
             return f"({' '.join([str(x) for x in self.args])} {self.head})"
         else:
             assert self.head in INFIX_FN_SYMBOLS and len(self.args) == 2
-            if isinstance(self.args[0],FnApp) or isinstance(self.args[1],FnApp):
-                return f"({self.args[0]} {self.head} {self.args[1]})"
-            else:
-                return f"{self.args[0]} {self.head} {self.args[1]}"
+            # if isinstance(self.args[0],FnApp) or isinstance(self.args[1],FnApp):
+            return f"({self.args[0]} {self.head} {self.args[1]})"
+            # else:
+            #     return f"{self.args[0]} {self.head} {self.args[1]}"
             # return f"({self.args[0]} {self.head} {self.args[1]})"
 
     def __repr__(self) -> str:

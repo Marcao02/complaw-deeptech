@@ -374,6 +374,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return GlobalStateTransform([self._mk_statement(x, a) for x in statements])
 
     def _mk_statement(self, statement:SExpr, parent_action:Action) -> GlobalStateTransformStatement:
+        varname : str
         try:
             if statement[0] == APPLY_MACRO_LABEL:
                 statement = self.handle_apply_macro(statement)
@@ -407,20 +408,29 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return IfElse(test, true_branch, false_branch)
 
             else:
-                self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a :=, +=, or -= specifically. See\n" + str(statement))
+                self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement))
                 rhs = self._mk_term(statement[2], None, parent_action)
-                varname2 = castid(GlobalVarId, statement[0])
-                self.assertOrSyntaxError(varname2 in self.top.global_var_decs, statement, f"{varname2} not recognized as a global state variable.")
+                varname = castid(GlobalVarId, statement[0])
+                self.assertOrSyntaxError(varname in self.top.global_var_decs, statement, f"{varname} not recognized as a global state variable.")
+                orig : GlobalStateTransformStatement
+                reduced : GlobalStateTransformStatement
                 if statement[1] == ':=' or statement[1] == "=":
-                    return GlobalVarAssignStatement(varname2, rhs)
-                elif statement[1] == '+=':
-                    return IncrementStatement(varname2, rhs)
-                elif statement[1] == '-=':
-                    return DecrementStatement(varname2, rhs)
-                elif statement[1] == '*=':
-                    return TimesEqualsStatement(varname2, rhs)
+                    return GlobalVarAssignStatement(varname, rhs)
                 else:
-                    raise Exception
+                    var = self.top.new_global_var_ref(varname)
+                    if statement[1] == '+=':
+                        orig = IncrementStatement(varname, rhs)
+                        reduced = GlobalVarAssignStatement(varname, FnApp('+', [var, rhs]))
+                    elif statement[1] == '-=':
+                        orig = DecrementStatement(varname, rhs)
+                        reduced = GlobalVarAssignStatement(varname, FnApp('-', [var, rhs]))
+                    elif statement[1] == '*=':
+                        orig = TimesEqualsStatement(varname, rhs)
+                        reduced = GlobalVarAssignStatement(varname, FnApp('*', [var, rhs]))
+                    else:
+                        raise Exception
+                    reduced.orig = orig
+                    return reduced
         except Exception as e:
             logging.error(f"Problem with {statement}")
             raise e
