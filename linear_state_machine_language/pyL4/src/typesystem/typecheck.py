@@ -1,5 +1,8 @@
 from typing import Union, Iterator, cast
 
+from src.model.Action import Action
+from src.model.ActionRule import NextActionRule
+from src.model.Section import Section
 from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam
 from src.model.FnSymb import FnSymb
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, StateTransformLocalVarDec, \
@@ -40,10 +43,10 @@ def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple, term: 
 
 def ft_range(fntype:Union[SimpleFnType,ArbArityFnType], argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
     rv = sft_range(fntype, argsorts, term) if isinstance(fntype, SimpleFnType) else aaft_range(fntype, argsorts, term)
-    if not rv:
-        print(f"arg sorts {argsorts} of {term.head} are NOT a subset of domain of nonoverloaded fn type {fntype}")
-    else:
-        print(f"arg sorts {argsorts} of {term.head} ARE a subset of domain of nonoverloaded fn type {fntype}")
+    # if not rv:
+    #     print(f"arg sorts {argsorts} of {term.head} are NOT a subset of domain of nonoverloaded fn type {fntype}")
+    # else:
+    #     print(f"arg sorts {argsorts} of {term.head} ARE a subset of domain of nonoverloaded fn type {fntype}")
     return rv
 
 def sft_range(fntype:SimpleFnType, argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
@@ -54,7 +57,7 @@ def sft_range(fntype:SimpleFnType, argsorts:SortTuple, term: FnApp) -> Optional[
         fnsort = fntype.parts[i]
         if not sub(argsort,fnsort):
             return None
-    print(f"Range of fntype {fntype} is {fntype.ran}")
+    # print(f"Range of fntype {fntype} is {fntype.ran}")
     return fntype.ran
 
 def aaft_range(fntype:ArbArityFnType, argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
@@ -87,7 +90,6 @@ def typeinfer_term(t:Term) -> Sort:
             raise L4TypeError(t, f"Function symbol {fnsymb} has no type")
     elif isinstance(t,Literal):
         if isinstance(t,IntLit):
-            #
             # if t.lit == 0:
             #     return "{0}"
             # elif t.lit == 1:
@@ -135,16 +137,30 @@ def typecheck_term(t:Term, s:Sort) -> bool:
         raise L4TypeInferCheckError(t,inferred,s)
     return True
 
-
 def typecheck_statement(s:GlobalStateTransformStatement):
     if isinstance(s, StateTransformLocalVarDec):
         typecheck_term(s.value_expr,s.sort)
     elif isinstance(s, GlobalVarAssignStatement):
         typecheck_term(s.value_expr,s.vardec.sort)
 
+def typecheck_next_action_rule(nar:NextActionRule):
+    if nar.entrance_enabled_guard:
+        typecheck_term(nar.entrance_enabled_guard, 'Bool')
+
+
+def typecheck_section(section:Section):
+    for rule in section.action_rules():
+        if isinstance(rule,NextActionRule):
+            typecheck_next_action_rule(rule)
+
+def typecheck_action(action:Action):
+    msg2 = f"Typechecking Action {action.action_id}"
+    print("-" * len(msg2) + "\n" + msg2)
+    for statement in action.state_transform_statements():
+        typecheck_statement(statement)
+
 def typecheck_prog(prog:L4Contract):
     for action in prog.actions_iter():
-        msg2 = f"Typechecking Action {action.action_id}"
-        print( "-"*len(msg2) + "\n" + msg2)
-        for statement in action.state_transform_statements():
-            typecheck_statement(statement)
+        typecheck_action(action)
+    for section in prog.sections_iter():
+        typecheck_section(section)

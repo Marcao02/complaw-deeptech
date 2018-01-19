@@ -15,7 +15,7 @@ from src.model.L4Macro import L4Macro
 from src.model.Literal import *
 from src.model.Term import FnApp
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
-from src.typesystem.Sorts import normalize_sort
+from src.typesystem.Sorts import normalize_sort, AllSorts
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):
@@ -455,8 +455,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower())
             # print('STD', rv)
             return rv
-        if prog and x in prog.sorts:
-            return SortLit(x)
+        if prog:
+            if x in AllSorts:
+                return SortLit(x)
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 
@@ -515,9 +516,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             # if x == 'never':
             #     return DeadlineLit(x)
 
-        elif isinstance(x,list) and len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
-            raise Exception("can this still happen??")
-            return StringLit(chcaststr(x[1]))
+        elif len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
+            # print("HERE?")
+            if x[1] in AllSorts:
+                return SortLit(x[1])
+            else:
+                return StringLit(chcaststr(x[1]))
 
         else: # SExpr
             if x[0] == APPLY_MACRO_LABEL:

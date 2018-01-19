@@ -9,7 +9,6 @@ from src.typesystem.reducers import flatten_fntype_data, print_types_map, build_
 
 
 standard_types_graph = build_graph()
-print("\n" + str(standard_types_graph))
 
 def sub(s1:Sort,s2:Sort) -> bool:
     if s1 == s2:
@@ -53,8 +52,13 @@ def list_parametric_mult(tps:Sequence[Sequence[Any]], substitutions:Sequence[Dic
 
 
 overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
-    (('event_td'), sfntype(TimeDelta)),
-    (('days'), sfntype(Nat,TimeDelta)),
+    (('event_td',), sfntype(TimeDelta)),
+    (('sectionEntrance_td',), sfntype(TimeDelta)),
+    (('days',), sfntype(Nat,TimeDelta)),
+
+    # TODO strengthen types
+    (('tuple',), sfntype('Any','Any','Any')),
+    (('mapSet',), sfntype(('TDMap', 'Any'), 'Any','TimeDelta', ('TDMap', 'Any'))),
 
     (('≤', '≥', '<', '>'), (
         abr_arity_fntype(Real, Bool),
@@ -181,3 +185,5 @@ for num1 in UnboundedNumericSorts:
                 if not sub(den1,den2):
                     continue
                 standard_types_graph.addEdge(NonatomicSort('Rate',(num1,den1)), NonatomicSort('Rate',(num2,den2)))
+
+print("\n" + str(standard_types_graph))

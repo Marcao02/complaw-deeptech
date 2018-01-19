@@ -64,7 +64,7 @@
 [ContractParams
     [MAX_UNITS : ℕ := 1000]
     [CONTRACT_LIFE : TimeDelta := 365d]
-    [PRICE_PER_UNIT : $ := 100]
+    [PRICE_PER_UNIT : Nat := 100]
 ]
 
 [Definitions

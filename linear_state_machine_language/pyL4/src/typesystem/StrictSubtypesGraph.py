@@ -26,9 +26,15 @@ class StrictSubtypesGraph:
     def hasEdge(self, src:Sort, trg:Sort) -> bool:
         if src not in self.edges_from:
             raise Exception(f"Sort {src} not in the subtype graph.")
+        if trg == 'Any':
+            return True
         return trg in self.edges_from[src]
 
     def simplifyIntersection(self, sorts:Set[Sort]) -> Optional[Sort]:
+        assert len(sorts) > 0
+        if len(sorts) == 1:
+            return sorts.pop()
+
         reduced_set = copy(sorts)
         print("simplifying", reduced_set)
         for u in sorts:
@@ -70,6 +76,6 @@ class StrictSubtypesGraph:
         rv = ""
         for src in self.edges_from:
             # rv += str(src) + " ⊆ "+ ", ".join(self.edges_from[src]) + "\n"
-            rv += f"{src} ⊆ {mapjoin(str, self.edges_from[src], ',')}\n"
+            rv += f"{src} ⊆ {mapjoin(str, self.edges_from[src], ', ')}\n"
         return rv
 
