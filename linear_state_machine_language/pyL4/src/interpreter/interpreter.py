@@ -362,8 +362,8 @@ class ExecEnv:
         # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
         # Therefore, this function does not take an EvalContext argument.
 
-        if isinstance(stmt, (GlobalVarAssignStatement, IncrementStatement, DecrementStatement, TimesEqualsStatement)):
-            gvardec = self.top.gvarDecObj(stmt.varname)
+        if isinstance(stmt, AbstractGlobalVarAssignStatement):
+            gvardec = stmt.vardec
             assert gvardec is not None, f"Global variable declaration for {stmt.varname} not found."
 
             if gvardec.isWriteOnceMore() and self.gvar_write_cnt[stmt.varname] >= 2:
@@ -376,7 +376,7 @@ class ExecEnv:
             self.gvarvals[stmt.varname] = rhs_value
             print(f"\t{stmt.varname} := {rhs_value}")
 
-        elif isinstance(stmt, (IncrementStatement,DecrementStatement,TimesEqualsStatement)):
+        elif isinstance(stmt, AbstractGlobalVarAssignStatement):
             current_var_val : Data = self.gvarvals[stmt.varname]
             assert current_var_val is not None
 

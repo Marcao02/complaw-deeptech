@@ -1,6 +1,7 @@
 
-from typing import List, Optional
+from typing import List, Optional, cast
 
+from src.model.GlobalVarDec import GlobalVarDec
 from src.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
 from src.model.Term import Term
 from src.util import indent
@@ -18,6 +19,7 @@ class IfElse(GlobalStateTransformStatement):
     def __init__(self, test:Term,
                  true_branch:List[GlobalStateTransformStatement],
                  false_branch: Optional[List[GlobalStateTransformStatement]] = None) -> None:
+        super().__init__()
         self.test = test
         self.true_branch = true_branch
         self.false_branch = false_branch
@@ -33,16 +35,9 @@ class IfElse(GlobalStateTransformStatement):
         return rv
 
 
-class GlobalVarAssignStatement(GlobalStateTransformStatement):
-    def __init__(self, varname:GlobalVarId, value_expr:Term) -> None:
-        self.varname = varname
-        self.value_expr = value_expr
-
-    def __str__(self):
-        return f"{self.varname} := {str(self.value_expr)}"
-
 class StateTransformLocalVarDec(GlobalStateTransformStatement):
     def __init__(self, varname:StateTransformLocalVarId, value_expr:Term, sort:str) -> None:
+        super().__init__()
         self.varname = varname
         self.value_expr = value_expr
         self.sort = sort
@@ -60,29 +55,33 @@ class StateTransformLocalVarDec(GlobalStateTransformStatement):
 
 class InCodeConjectureStatement(GlobalStateTransformStatement):
     def __init__(self, prop:Term) -> None:
+        super().__init__()
         self.value_expr = prop
 
     def __str__(self) -> str:
         return "prove " + str(self.value_expr)
 
-class IncrementStatement(GlobalStateTransformStatement):
-    def __init__(self, varname:GlobalVarId, value_expr:Term) -> None:
-        self.varname = varname
+
+class AbstractGlobalVarAssignStatement(GlobalStateTransformStatement):
+    def __init__(self, vardec:GlobalVarDec, value_expr:Term) -> None:
+        super().__init__()
+        self.vardec = vardec
         self.value_expr = value_expr
 
+    @property
+    def varname(self) -> GlobalVarId:
+        # this cast shouldn't be necessary. weird.
+        return cast(GlobalVarId,self.vardec.name)
+
+class GlobalVarAssignStatement(AbstractGlobalVarAssignStatement):
+    def __str__(self):
+        return f"{self.varname} := {str(self.value_expr)}"
+class IncrementStatement(AbstractGlobalVarAssignStatement):
     def __str__(self):
         return f"{self.varname} += {str(self.value_expr)}"
-class DecrementStatement(GlobalStateTransformStatement):
-    def __init__(self, varname:GlobalVarId, value_expr:Term) -> None:
-        self.varname = varname
-        self.value_expr = value_expr
-
+class DecrementStatement(AbstractGlobalVarAssignStatement):
     def __str__(self):
         return f"{self.varname} -= {str(self.value_expr)}"
-class TimesEqualsStatement(GlobalStateTransformStatement):
-    def __init__(self, varname:GlobalVarId, value_expr:Term) -> None:
-        self.varname = varname
-        self.value_expr = value_expr
-
+class TimesEqualsStatement(AbstractGlobalVarAssignStatement):
     def __str__(self):
         return f"{self.varname} *= {str(self.value_expr)}"

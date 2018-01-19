@@ -15,6 +15,7 @@ from src.model.L4Macro import L4Macro
 from src.model.Literal import *
 from src.model.Term import FnApp
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
+from typesystem.Sorts import normalize_sort
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):
@@ -125,8 +126,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return self.top
 
     def _mk_contract_param(self, expr) -> ContractParamDec:
-        self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : type := term)" )
-        return ContractParamDec(expr[0], expr[2], self._mk_term(expr[4]))
+        self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : sort := term)" )
+        sort = normalize_sort(expr[2])
+        return ContractParamDec(expr[0], sort, self._mk_term(expr[4]))
 
     def _mk_global_vars(self, l:SExpr) -> Dict[GlobalVarId, GlobalVarDec]:
         rv : Dict[GlobalVarId, GlobalVarDec] = dict()
@@ -141,7 +143,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     else:
                         break
                 name = cast(GlobalVarId, chcaststr(dec[i]))
-                sort = cast(SortId, chcaststr(dec[i + 2]))
+                sort = normalize_sort( cast(SortId, chcaststr(dec[i + 2])) )
                 self.top.sorts.add(sort)
 
                 initval : Optional[Term] = None
@@ -364,9 +366,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         pdec : List[str]
         for pdec in parts:
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
-            self.top.sorts.add(castid(SortId,pdec[2]))
+            sort = normalize_sort(castid(SortId,pdec[2]))
+            self.top.sorts.add(sort)
 
-        rv = {castid(ActionBoundActionParamId,pdec[0]) : castid(SortId,pdec[2]) for pdec in parts}
+        rv = {castid(ActionBoundActionParamId,pdec[0]) : normalize_sort(castid(SortId,pdec[2])) for pdec in parts}
         # logging.info(str(rv))
         return rv
 
@@ -387,7 +390,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type = term) or := instead of =')
                 self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
                                           'Local var dec should have form (local name : type = term)  or := instead of =')
-                sort = chcaststr(statement[3])
+                sort = normalize_sort(chcaststr(statement[3]))
                 rhs = self._mk_term(statement[5], parent_action=parent_action)
                 varname = castid(StateTransformLocalVarId,statement[1])
                 lvd = StateTransformLocalVarDec(varname, rhs, sort)
@@ -412,21 +415,22 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 rhs = self._mk_term(statement[2], None, parent_action)
                 varname = castid(GlobalVarId, statement[0])
                 self.assertOrSyntaxError(varname in self.top.global_var_decs, statement, f"{varname} not recognized as a global state variable.")
+                vardec = self.top.global_var_decs[varname]
                 orig : GlobalStateTransformStatement
                 reduced : GlobalStateTransformStatement
                 if statement[1] == ':=' or statement[1] == "=":
-                    return GlobalVarAssignStatement(varname, rhs)
+                    return GlobalVarAssignStatement(vardec, rhs)
                 else:
                     var = self.top.new_global_var_ref(varname)
                     if statement[1] == '+=':
-                        orig = IncrementStatement(varname, rhs)
-                        reduced = GlobalVarAssignStatement(varname, FnApp('+', [var, rhs]))
+                        orig = IncrementStatement(vardec, rhs)
+                        reduced = GlobalVarAssignStatement(vardec, FnApp('+', [var, rhs]))
                     elif statement[1] == '-=':
-                        orig = DecrementStatement(varname, rhs)
-                        reduced = GlobalVarAssignStatement(varname, FnApp('-', [var, rhs]))
+                        orig = DecrementStatement(vardec, rhs)
+                        reduced = GlobalVarAssignStatement(vardec, FnApp('-', [var, rhs]))
                     elif statement[1] == '*=':
-                        orig = TimesEqualsStatement(varname, rhs)
-                        reduced = GlobalVarAssignStatement(varname, FnApp('*', [var, rhs]))
+                        orig = TimesEqualsStatement(vardec, rhs)
+                        reduced = GlobalVarAssignStatement(vardec, FnApp('*', [var, rhs]))
                     else:
                         raise Exception
                     reduced.orig = orig
@@ -436,7 +440,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             raise e
 
     @staticmethod
-    def mk_literal(x:str, parent_SExpr:Optional[SExpr] = None) -> Term:
+    def mk_literal(x:str, parent_SExpr:Optional[SExpr] = None, prog:Optional[L4Contract] = None) -> Term:
         if isInt(x):
             return IntLit(int(x))
         if isFloat(x):
@@ -451,6 +455,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower())
             # print('STD', rv)
             return rv
+        if prog and x in prog.sorts:
+            return SortLit(x)
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 
@@ -497,7 +503,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if parent_action and x in parent_action.local_vars:
                 return StateTransformLocalVar(parent_action.local_vars[castid(StateTransformLocalVarId,x)])
 
-            return L4ContractConstructor.mk_literal(x, parent_SExpr)
+            return L4ContractConstructor.mk_literal(x, parent_SExpr, self.top)
             # if isInt(x):
             #     return IntLit(int(x))
             # if isFloat(x):
@@ -547,7 +553,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     pair[0],
                     [self._mk_term(arg, src_section, src_action, parent_action_rule, expr) for arg in pair[1]]
                 )
-                print("$ " + str(rv))
+                # print("$ " + str(rv))
                 return rv
             else:
                 if src_section:

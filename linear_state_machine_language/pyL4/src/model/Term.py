@@ -2,8 +2,8 @@ from typing import List, Union, NamedTuple, Optional
 
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
     EXEC_ENV_VARIABLES
-from typesystem.FnTypes import OverloadedFnType
-from typesystem.standard_types import overloaded_fn_types
+from src.typesystem.FnTypes import OverloadedFnType
+from src.typesystem.standard_types import fntypes_map
 
 
 class Term:
@@ -18,7 +18,7 @@ class FnSymb(NamedTuple):
 
 class FnApp(Term):
     def __init__(self, head:str, args:List[Term]) -> None:
-        ofntype = overloaded_fn_types[head] if head in overloaded_fn_types else None
+        ofntype = fntypes_map[head] if head in fntypes_map else None
         self.fnsymb = FnSymb(head, ofntype)
         self.args = args
 

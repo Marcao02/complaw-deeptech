@@ -41,6 +41,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
             map_name = tdmapname(fut_rule_type.rid, fut_rule_type.aid, fut_rule_type.kw)
             if map_name not in prog.global_var_decs:
                 add_tdmap_dec(prog, map_name)
+            map_dec = prog.global_var_decs[map_name]
             map_var = prog.new_global_var_ref(map_name)
 
             # now the statetransform will need to check that both the role and
@@ -49,7 +50,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                       range(len(action.params))]
             statement = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
                                [GlobalVarAssignStatement(
-                                   map_name,
+                                   map_dec,
                                    FnApp("mapDelete", [map_var,
                                                        FnApp('tuple', params) ])
                                )]
@@ -82,11 +83,12 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
         map_name = tdmapname(far.role_id, far.action_id, far.deontic_keyword)
         if map_name not in prog.global_var_decs:
             add_tdmap_dec(prog, map_name)
+        map_dec = prog.global_var_decs[map_name]
         map_var = prog.new_global_var_ref(map_name)
         if far.entrance_enabled_guard:
             statement = IfElse(far.entrance_enabled_guard,
                           [GlobalVarAssignStatement(
-                              map_name,
+                              map_dec,
                               FnApp("mapSet",[map_var,
                                               FnApp('tuple', far.fixed_args),
                                               timedelta_term])
@@ -94,7 +96,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                         )
         else:
             statement = GlobalVarAssignStatement(
-                               map_name,
+                               map_dec,
                                FnApp("mapSet", [map_var,
                                                 FnApp('tuple', far.fixed_args),
                                                 timedelta_term])

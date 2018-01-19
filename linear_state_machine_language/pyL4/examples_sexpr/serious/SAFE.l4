@@ -16,7 +16,7 @@
 (ContractParams
 	(PURCHASE_AMOUNT : $ = 100000)
 	(VALUATION_CAP : $ = inf)
-	(DISCOUNT_RATE : ℝ = 1)
+	(DISCOUNT_RATE : PosReal = 1)
 	(START_INVESTOR_COMMON_STOCKS : ℕ = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ℕ = 0)
 	(START_INVESTOR_CASH : $ = 0)
@@ -168,7 +168,7 @@
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
 			; TODO: should we round that division up, down, or to nearest?
-			(investor_Common_Stocks += (round ((cash_currently_unconverted - liq_cashout) / liq_price)))
+			(investor_Common_Stocks += (round ((cast PosReal (cash_currently_unconverted - liq_cashout)) / liq_price)))
 		)
 		(FollowingSection
 			(Next (Company must DoLiquidityEvent discretionary))
@@ -248,7 +248,7 @@
 		(AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_Common_Stocks += (round ((PURCHASE_AMOUNT - dis_cashout) / liq_price)))
+			(investor_Common_Stocks += (round ((cast PosReal (PURCHASE_AMOUNT - dis_cashout)) / liq_price)))
 		)
 		(FollowingSection  (Next (Company must Dissolve discretionary)))
 	)

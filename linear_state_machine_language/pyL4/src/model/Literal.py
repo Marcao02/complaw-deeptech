@@ -3,6 +3,7 @@ from typing import Any
 
 from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
 from src.model.Term import Term
+from typesystem.Sorts import Sort
 
 
 class Literal(Term):
@@ -28,6 +29,13 @@ class IntLit(Literal):
 
 class BoolLit(Literal):
     def __init__(self, lit:bool) -> None:
+        super().__init__()
+        self.lit = lit
+    def __str__(self):
+        return str(self.lit)
+
+class SortLit(Literal):
+    def __init__(self, lit:Sort) -> None:
         super().__init__()
         self.lit = lit
     def __str__(self):

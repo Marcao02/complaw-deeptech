@@ -57,7 +57,8 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'future_event_td',
                       'event_role'}
 
-PREFIX_FN_SYMBOLS = { 'days',
+PREFIX_FN_SYMBOLS = { 'cast',
+                      'days',
 
                      'ifthenelse',
                      'and*', 'not',

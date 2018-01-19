@@ -40,6 +40,7 @@ ENV_VAR_INTERP = {
 }
 
 FN_SYMB_INTERP = {
+    'cast': lambda x,y: y,
     # '+': lambda *args: sum(args),  # doesn't work with timestamp
     '+': lambda x,y: x + y,
     '-': lambda x,y: x - y,

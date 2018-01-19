@@ -1,11 +1,15 @@
-from typing import Tuple, List, Dict, Set, Iterable, Optional
+from typing import Tuple, List, Dict, Set, Iterable, Optional, Iterator, Sequence
 
-from typesystem.Sorts import Sort
+from copy import copy
+
+from src.typesystem.Sorts import Sort
 
 
-class SubtypesGraph:
-    def __init__(self, given_edges: List[Tuple[Sort,Sort]]) -> None:
+class StrictSubtypesGraph:
+    def __init__(self, sorts:Sequence[Sort], given_edges: List[Tuple[Sort,Sort]]) -> None:
         self.edges_from : Dict[Sort,Set[Sort]] = dict()
+        for sort in sorts:
+            self.edges_from[sort] = set()
         for (src,trg) in given_edges:
             self.addEdge(src,trg)
 
@@ -20,14 +24,19 @@ class SubtypesGraph:
     def hasEdge(self, srt:Sort, trg:Sort) -> bool:
         return trg in self.edges_from[srt]
 
-    def simplifyIntersection(self, sorts:Iterable[Sort]) -> Optional[Sort]:
-        sorts_set = set(sorts)
+    def simplifyIntersection(self, sorts:Set[Sort]) -> Optional[Sort]:
+        reduced_set = copy(sorts)
+        print("simplifying", reduced_set)
         for u in sorts:
             for v in sorts:
-                if u != v and self.hasEdge(u,v):
-                    sorts_set.remove(v)
-        assert len(sorts_set) <= 1, "This sort set generated from code did not reduce to a single sort:\n" + str(sorts_set)
-        return sorts_set.pop() if len(sorts_set) == 1 else None
+                if v in reduced_set and u != v:
+                    if self.hasEdge(u,v) and v in reduced_set:
+                        print("removing", str(v))
+                        reduced_set.remove(v)
+                    else:
+                        print(f"{u},{v} is not an edge")
+        assert len(reduced_set) <= 1, "This sort set generated from code did not reduce to a single sort:\n" + str(reduced_set)
+        return reduced_set.pop() if len(reduced_set) == 1 else None
 
     def transitivelyClose(self) -> None:
         for x in self.edges_from:

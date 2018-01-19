@@ -1,22 +1,22 @@
 from typing import Any, List, Tuple, NamedTuple, Dict, Sequence, Optional, Union, NewType, Set, cast
 
 from src.typesystem.Sorts import *
-from src.typesystem.SubtypesGraph import SubtypesGraph
+from src.typesystem.StrictSubtypesGraph import StrictSubtypesGraph
 
 
-def build_graph() -> SubtypesGraph:
-    subtype_pairs = []
+def build_graph() -> StrictSubtypesGraph:
+    subtype_pairs : List[Tuple[Sort,Sort]] = []
     # line: Tuple[str,...]
     for line in subtypes_data:
         for i in range(len(line) - 1):
             subtype_pairs.append((line[i],line[i+1]))
-    graph = SubtypesGraph(subtype_pairs)
+    graph = StrictSubtypesGraph(AllSorts, subtype_pairs)
     # print(graph)
     graph.transitivelyClose()
     return graph
 
 
-def eliminate_type_vars(overloaded_types_data:Sequence[ Tuple[Sequence[str], Any] ]) -> Dict[str, List[Sequence[Any]]]:
+def flatten_fntype_data(overloaded_types_data:Sequence[ Tuple[Sequence[str], Any]]) -> Dict[str, List[Sequence[Any]]]:
     fntypes_map_ : Dict[str, List[Sequence[Any]]] = dict()
     for pair in overloaded_types_data:
         fst = pair[0]
@@ -28,6 +28,8 @@ def eliminate_type_vars(overloaded_types_data:Sequence[ Tuple[Sequence[str], Any
                 fntypes_map_[symb] = list(fntypes)
             else:
                 fntypes_map_[symb] = fntypes_map_[symb] + fntypes
+
+
 
     return fntypes_map_
 
