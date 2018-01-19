@@ -16,6 +16,6 @@ action DoIt()  transitions to AfterDoIt:
     following section:
         FinishIt(y)
 
-action FinishIt(z)  transitions to Fulfilled:
+action FinishIt(z: ℕ) transitions to Fulfilled:
     transform:
         n := z

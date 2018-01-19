@@ -9,9 +9,9 @@ section Ongoing:
     I may Throw(?n) no_time_constraint
     I may EnterFulfilled no_time_constraint
 
-action Throw(n)  transitions to Ongoing
+action Throw(n: ℕ) transitions to Ongoing
     I must-later Catch(n) no_time_constraint
 
-action Catch(n)  transitions to Ongoing
+action Catch(n: ℕ) transitions to Ongoing
 
 action EnterFulfilled()  transitions to Fulfilled

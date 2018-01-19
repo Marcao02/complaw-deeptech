@@ -29,7 +29,7 @@ section InvestorInvests:
     Company obligation-options-include CommitToFinancing(?1) (next_event_td < (sectionEntrance_td + TIME_TILL_MATURITY))
     ReachMaturity (next_event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY))
 
-action CommitToFinancing(qualifying_round_new_money)  transitions to AfterCommitToFinancing:
+action CommitToFinancing(qualifying_round_new_money: $) transitions to AfterCommitToFinancing:
     pre: (qualifying_round_new_money ≥ 1000000)
     following section:
         Company must NotifyInvestorOfNextEquityFinancingTerms no_time_constraint
@@ -44,7 +44,7 @@ action choose_cash_interest_repayment()  non-transitioning:
     transform:
         pay_interest_in_cash := True
 
-action CloseEquityFinancingSale(qualifying_round_price, company_capitalization)  transitions to Fulfilled:
+action CloseEquityFinancingSale(qualifying_round_price: $/share, company_capitalization: shares) transitions to Fulfilled:
     transform:
         cap_price : $/share := (VALUATION_CAP / company_capitalization)
         discount_price : $/share := (qualifying_round_price * DISCOUNT_RATE)
@@ -59,7 +59,7 @@ action CloseEquityFinancingSale(qualifying_round_price, company_capitalization) 
             investor_PreferredStock := (investor_PreferredStock + (round ((PURCHASE_AMOUNT + accrued_interest) / conversion_price)))
 
 
-action CommitToAcquisition(company_capitalization)  transitions to AfterCommitToAcquisition
+action CommitToAcquisition(company_capitalization: shares) transitions to AfterCommitToAcquisition
     following section:
         Investor obligation-options-include ChooseMultipleRepayment discretionary
         Investor obligation-options-include ChooseConvertToCommonStock(company_capitalization) discretionary
@@ -70,7 +70,7 @@ action ChooseMultipleRepayment()  transitions to Fulfilled:
         company_cash := (company_cash - change)
         investor_cash := (investor_cash + change)
 
-action ChooseConvertToCommonStock(company_capitalization)  transitions to Fulfilled:
+action ChooseConvertToCommonStock(company_capitalization: shares) transitions to Fulfilled:
     transform:
         cap_price : $ := (VALUATION_CAP / company_capitalization)
         investor_Common_Stock := (investor_Common_Stock + (round (PURCHASE_AMOUNT / cap_price)))
@@ -87,7 +87,7 @@ action ChooseMaturityRepayment()  transitions to Fulfilled:
         company_cash := (company_cash - change)
         investor_cash := (investor_cash + change)
 
-action ChooseConversionToSeriesSeedPreferredStock(company_capitalization)  transitions to Fulfilled:
+action ChooseConversionToSeriesSeedPreferredStock(company_capitalization: shares) transitions to Fulfilled:
     transform:
         cap_price : $ := (VALUATION_CAP / company_capitalization)
         investor_SeriesSeedPreferredStock := (investor_SeriesSeedPreferredStock + (round (PURCHASE_AMOUNT / cap_price)))

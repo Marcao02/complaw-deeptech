@@ -23,6 +23,6 @@ action Stand()  transitions to Ongoing:
     transform:
         n := (n + 1)
 
-action Catch(m)  transitions to Ongoing
+action Catch(m: ℕ) transitions to Ongoing
 
 action EnterFulfilled()  transitions to Fulfilled

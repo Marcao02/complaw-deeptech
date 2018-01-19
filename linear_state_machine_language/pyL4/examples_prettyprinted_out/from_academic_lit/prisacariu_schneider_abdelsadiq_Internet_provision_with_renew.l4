@@ -59,7 +59,7 @@ action SendDelayEmail()  non-transitioning:
     transform:
         sent_delay_email := True
 
-action Pay(x)  transitions to UnsettledInfraction:
+action Pay(x: ℕ) transitions to UnsettledInfraction:
     transform:
         paid := (paid + (HIGH_USAGE_FEE * x))
         if (event_td ≤ (infraction_time + 24h)):

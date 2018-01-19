@@ -39,14 +39,14 @@ section VendorAcceptingOrders:
 
 action EnterFulfilled()  transitions to Fulfilled
 
-action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
+action SubmitNewOrder(quantity: ℕ) transitions to VendorAcceptingOrders:
     transform:
         delivery_deadline : Date := (event_td + (days (max 14 (ceil (quantity / 10)))))
         units_ordered := (units_ordered + quantity)
         2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline)
         next_order_id := (next_order_id + 1)
 
-action Deliver(order)  transitions to VendorAcceptingOrders:
+action Deliver(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bdelivered order)
         quantity : ℕ := (tupleGet order 0)
@@ -56,7 +56,7 @@ action Deliver(order)  transitions to VendorAcceptingOrders:
         furthest_invoice_deadline := (max furthest_invoice_deadline invoice_deadline)
         2Binvoiced := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline)
 
-action EmailInvoice(order)  transitions to VendorAcceptingOrders:
+action EmailInvoice(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Binvoiced order)
         quantity : ℕ := (tupleGet order 0)
@@ -64,7 +64,7 @@ action EmailInvoice(order)  transitions to VendorAcceptingOrders:
         2Binvoiced := (mapDelete 2Binvoiced order)
         2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14d))
 
-action PayBill(order)  transitions to VendorAcceptingOrders:
+action PayBill(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bpaid order)
         quantity : ℕ := (tupleGet order 0)

@@ -51,7 +51,7 @@ class Action:
     def toStr(self,i:int) -> str:
         rv = indent(i) + f"action {self.action_id}"
         if self.param_types:
-            rv += f'({mapjoin(str, self.param_types, ", ")}) '
+            rv += '(' + ", ".join(param + ": " + self.param_types[param] for param in self.param_types) + ')'
         else:
             rv += "() " # makes it look better with python syntax highlighting
         if self.dest_section_id != LOOP_KEYWORD:

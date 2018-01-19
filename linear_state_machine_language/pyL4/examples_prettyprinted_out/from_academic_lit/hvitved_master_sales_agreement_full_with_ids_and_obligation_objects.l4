@@ -24,7 +24,7 @@ section VendorAcceptingOrders:
     if ((MAX_UNITS - units_ordered) == 0):
         EnterFulfilled (next_event_td ≥ order_period_ends)
 
-action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
+action SubmitNewOrder(quantity: ℕ) transitions to VendorAcceptingOrders:
     transform:
         this_delivery_deadline := (max (14d + event_td) ((days (ceil (quantity / 10))) + event_td))
         units_ordered := (units_ordered + quantity)
@@ -32,19 +32,19 @@ action SubmitNewOrder(quantity)  transitions to VendorAcceptingOrders:
         next_order_id := (next_order_id + 1)
     Vendor must-later Deliver(quantity, this_orderid) (future_event_td ≤ this_delivery_deadline)
 
-action Deliver(quantity, orderid)  transitions to VendorAcceptingOrders:
+action Deliver(quantity: ℕ, orderid: ℕ) transitions to VendorAcceptingOrders:
     transform:
         units_delivered := (units_delivered + quantity)
         deadline : TimeDelta := (event_td + 30d)
     Vendor may-later EmailInvoice(quantity, orderid) (future_event_td ≤ deadline)
 
-action EmailInvoice(quantity, orderid)  transitions to VendorAcceptingOrders:
+action EmailInvoice(quantity: ℕ, orderid: ℕ) transitions to VendorAcceptingOrders:
     transform:
         units_invoiced := (units_invoiced + quantity)
         deadline : TimeDelta := (event_td + 14d)
     Customer must-later PayBill(quantity, orderid) (future_event_td ≤ deadline)
 
-action PayBill(quantity, orderid)  transitions to VendorAcceptingOrders:
+action PayBill(quantity: ℕ, orderid: ℕ) transitions to VendorAcceptingOrders:
     transform:
         total_paid := (total_paid + (quantity * PRICE_PER_UNIT))
 

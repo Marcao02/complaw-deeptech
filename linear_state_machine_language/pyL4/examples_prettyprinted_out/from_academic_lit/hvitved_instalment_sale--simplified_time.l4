@@ -18,7 +18,7 @@ section WaitingForFirstDayOfNextMonth:
         Buyer obligation-options-include PayInstallment(?amount) (next_event_td == (sectionEntrance_td + 30d)) where ((MIN_PAYMENT ≤ ?amount) and (?amount ≤ balance_remaining))
     Buyer obligation-options-include PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (sectionEntrance_td + 30d))
 
-action PayInstallment(amount)  transitions to WaitingForFirstDayOfNextMonth:
+action PayInstallment(amount: ℕ) transitions to WaitingForFirstDayOfNextMonth:
     transform:
         prove (amount ≤ balance_remaining)
         balance_remaining := (balance_remaining - amount)
@@ -26,7 +26,7 @@ action PayInstallment(amount)  transitions to WaitingForFirstDayOfNextMonth:
         balance_remaining := (round balance_remaining)
         next_payment_month := (next_payment_month + 1)
 
-action PayLastInstallment(amount)  transitions to Fulfilled:
+action PayLastInstallment(amount: ℕ) transitions to Fulfilled:
     transform:
         prove (amount == (balance_remaining + DUE_AT_CLOSING))
         balance_remaining := 0
