@@ -16,7 +16,7 @@ class SimpleFnType(NamedTuple):
 
     def __str__(self) -> str:
         todo_once("contrib: why cast necessary?")
-        return cast(str,mapjoin(str,self.parts,' -> '))
+        return mapjoin(str,self.parts,' -> ')
     def __repr__(self) -> str:
         return str(self)
 
@@ -37,4 +37,4 @@ class OverloadedFnType(NamedTuple):
     illtyped_memo: Set[Tuple[Sort, ...]]
 
     def __str__(self) -> str:
-        return cast(str,mapjoin(str, self.parts, "\n"))
+        return mapjoin(str, self.parts, "\n")

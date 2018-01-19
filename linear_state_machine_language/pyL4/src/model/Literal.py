@@ -3,12 +3,13 @@ from typing import Any
 
 from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
 from src.model.Term import Term
-from typesystem.Sorts import Sort
+from src.typesystem.Sorts import Sort
 
 
 class Literal(Term):
     def __init__(self) -> None:
         self.lit : Any
+
     def __repr__(self):
         return str(self)
 
@@ -37,7 +38,8 @@ class BoolLit(Literal):
 class SortLit(Literal):
     def __init__(self, lit:Sort) -> None:
         super().__init__()
-        self.lit = lit
+        self.lit : Sort = lit
+
     def __str__(self):
         return str(self.lit)
 

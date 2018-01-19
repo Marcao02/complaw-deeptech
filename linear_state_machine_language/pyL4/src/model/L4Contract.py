@@ -2,7 +2,7 @@
 from itertools import chain
 from typing import Iterable, Any, Union
 
-from model.Term import FnSymb
+from src.model.FnSymb import FnSymb
 from src.model.BoundVar import GlobalVar
 from src.model.Action import Action
 from src.model.ActionRule import *
@@ -12,7 +12,7 @@ from src.model.Definition import Definition
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Section import *
 from src.model.L4Macro import L4Macro
-from typesystem.FnTypes import OverloadedFnType
+from src.typesystem.FnTypes import OverloadedFnType
 
 
 class L4Contract:

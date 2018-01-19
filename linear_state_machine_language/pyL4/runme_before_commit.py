@@ -32,6 +32,6 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
 
     print_all_todos()
 
-runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
-# runit("export MYPYPATH=.; mypy src", "typechecker")
+# runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
+runit("export MYPYPATH=.; mypy src", "typechecker")
 

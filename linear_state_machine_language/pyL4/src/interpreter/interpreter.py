@@ -155,8 +155,9 @@ class ExecEnv:
 
 
             if debug:
-                import ipdb  # code, IPython, pdb are other options
-                ipdb.set_trace()
+                # code, IPython, pdb are other options
+                import ipdb   # type: ignore
+                ipdb.set_trace()  # type: ignore
                 # other things tried:
                 # code.InteractiveConsole(locals=locals()).interact()
                 # IPython.embed()
@@ -330,7 +331,7 @@ class ExecEnv:
 
 
     def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
-        for (var,dec) in cast(Dict[GlobalVarId, GlobalVarDec],decs).items():
+        for (var,dec) in decs.items():
             # print("dec: ", dec, dec.initval)
             if dec.initval is None:
                 self.gvarvals[var] = None

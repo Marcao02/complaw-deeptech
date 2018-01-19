@@ -5,7 +5,8 @@ from src.model.GlobalStateTransformStatement import GlobalStateTransformStatemen
     GlobalVarAssignStatement
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
-from src.model.Term import Term, FnApp, FnSymb
+from src.model.Term import Term, FnApp
+from src.model.FnSymb import FnSymb
 from src.typesystem.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType, Optional
 from src.typesystem.Sorts import Sort
 from src.typesystem.StrictSubtypesGraph import StrictSubtypesGraph
@@ -73,7 +74,7 @@ def typeinfer_term(t:Term) -> Sort:
     if isinstance(t,FnApp):
         fnsymb: FnSymb = t.fnsymb
         if fnsymb.name == 'cast':
-            return cast(SortLit,t.args[0]).lit
+            return cast(Sort, cast(SortLit,t.args[0]).lit)
 
         argsorts = tuple(typeinfer_term(arg) for arg in t.args)
 

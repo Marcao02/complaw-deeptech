@@ -15,7 +15,7 @@ from src.model.L4Macro import L4Macro
 from src.model.Literal import *
 from src.model.Term import FnApp
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
-from typesystem.Sorts import normalize_sort
+from src.typesystem.Sorts import normalize_sort
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):
@@ -33,7 +33,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if isinstance(expr,SExpr):
             raise SyntaxError((msg if msg else "") +
                               "\n" + str(expr) +
-                              "\nline " + str(cast(SExpr, expr).line) +
+                              "\nline " + str(expr.line) +
                               "\n" + str(self.top.filename))
         else:
             raise SyntaxError((msg if msg else "") +
@@ -49,7 +49,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if isinstance(expr,SExpr):
             raise SyntaxError((msg if msg else "") +
                               "\n" + str(expr) +
-                              "\nline " + str(cast(SExpr, expr).line))
+                              "\nline " + str(expr.line))
         elif expr is not None:
             raise SyntaxError((msg if msg else "") +
                               "\n" + expr )

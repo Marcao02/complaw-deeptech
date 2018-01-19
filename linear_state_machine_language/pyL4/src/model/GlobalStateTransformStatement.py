@@ -38,7 +38,7 @@ class IfElse(GlobalStateTransformStatement):
 class StateTransformLocalVarDec(GlobalStateTransformStatement):
     def __init__(self, varname:StateTransformLocalVarId, value_expr:Term, sort:str) -> None:
         super().__init__()
-        self.varname = varname
+        self.varname : StateTransformLocalVarId = varname
         self.value_expr = value_expr
         self.sort = sort
 
@@ -71,7 +71,8 @@ class AbstractGlobalVarAssignStatement(GlobalStateTransformStatement):
     @property
     def varname(self) -> GlobalVarId:
         # this cast shouldn't be necessary. weird.
-        return cast(GlobalVarId,self.vardec.name)
+        # return cast(GlobalVarId,self.vardec.name)
+        return self.vardec.name
 
 class GlobalVarAssignStatement(AbstractGlobalVarAssignStatement):
     def __str__(self):

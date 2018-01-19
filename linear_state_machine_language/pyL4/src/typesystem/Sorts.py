@@ -1,6 +1,6 @@
 from typing import NamedTuple, Tuple, Any, Union, cast, NewType, Optional, Dict
 
-from util import todo_once, mapjoin
+from src.util import todo_once, mapjoin
 
 SortOp = str # NewType('SortOp',str)
 AtomicSort = str # NewType('AtomicSort',str)

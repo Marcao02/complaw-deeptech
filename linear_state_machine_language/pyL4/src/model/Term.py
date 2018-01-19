@@ -1,8 +1,8 @@
-from typing import List, Union, NamedTuple, Optional
+from typing import List, Union, cast
 
+from src.model.FnSymb import FnSymb
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
     EXEC_ENV_VARIABLES
-from src.typesystem.FnTypes import OverloadedFnType
 from src.typesystem.standard_types import fntypes_map
 
 
@@ -11,16 +11,12 @@ class Term:
 
 TermOrStr = Union[Term,str]
 
-class FnSymb(NamedTuple):
-    name: str
-    type: Optional[OverloadedFnType]
-
-
 class FnApp(Term):
-    def __init__(self, head:Union[str,FnSymb], args:List[Term]) -> None:
-        if isinstance(head,FnSymb):
-            fnsymb_name = head.name
+    def __init__(self, head:Union[str, FnSymb], args:List[Term]) -> None:
+        self.fnsymb : FnSymb
+        if isinstance(head, FnSymb):
             self.fnsymb = head
+            fnsymb_name = self.fnsymb.name
         else:
             fnsymb_name = head
         ofntype = fntypes_map[fnsymb_name] if fnsymb_name in fntypes_map else None
