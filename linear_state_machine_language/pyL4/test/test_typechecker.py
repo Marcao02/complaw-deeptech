@@ -9,15 +9,23 @@ EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/test_local_vars.l4',
     'toy_and_teaching/partner_assignment_relievable_obligations.l4',
     'toy_and_teaching/collatz.l4',
+    'toy_and_teaching/monster_burger_program_only.l4',
+
+    'from_academic_lit/hvitved_lease.l4',
+    'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+    'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
+
     'serious/SAFE.l4',
 ]
 
 for filename in EXAMPLES_TO_TYPECHECK:
-    print(f"\n---------------------------------\nExample {filename}:")
+    msg = f"Example {filename}:"
+    print(f"\n{'-'*len(msg)}\n{msg}")
     in_path = EXAMPLES_SEXPR_ROOT + filename
     parsed = parse_file(in_path)
     prog = L4ContractConstructor(filename).mk_l4contract(parsed)
     typecheck(prog)
+    print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
 
 
 def test_eliminate_unbounded_arity():

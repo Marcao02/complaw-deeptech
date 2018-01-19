@@ -25,15 +25,19 @@ def sub(s1:Sort,s2:Sort) -> bool:
         return True
     return graph.hasEdge(s1,s2)
 
-def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple) -> Optional[Sort]:
+def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple, term: Optional[FnApp] = None) -> Optional[Sort]:
     todo_once("contrib: cast shouldn't be necessary")
     rangeset = set(cast(Iterator[Sort], filter(lambda x: x is not None, (ft_range(ft, argsorts) for ft in oft.parts))))
     if len(rangeset) == 0:
-        raise TypeError(f"Domain of OFT:\n{oft}\nis not a superset of arg sorts:\n{argsorts}")
+        msg = f"Domain of overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{argsorts}"
+        if not term:
+            raise TypeError(msg)
+        else:
+            raise TypeError(msg + f"{msg} + \nTerm is {term}")
     try:
         intersection = graph.simplifyIntersection(rangeset)
     except Exception as e:
-        print("Problem with oft:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
+        print("Problem with overloaded function type:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
         raise(e)
     if intersection:
         oft.range_memo[argsorts] = intersection
@@ -43,7 +47,9 @@ def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple) -> Opt
         return None
 
 def ft_range(fntype:Union[SimpleFnType,ArbArityFnType], argsorts:SortTuple) -> Optional[Sort]:
-    return sft_range(fntype, argsorts) if isinstance(fntype, SimpleFnType) else aaft_range(fntype, argsorts)
+    rv = sft_range(fntype, argsorts) if isinstance(fntype, SimpleFnType) else aaft_range(fntype, argsorts)
+    # print(f"arg sorts {argsorts} are not a subset of domain of simple fn type {fntype}")
+    return rv
 
 def sft_range(fntype:SimpleFnType, argsorts:SortTuple) -> Optional[Sort]:
     if len(fntype.parts) - 1 != len(argsorts):
@@ -73,7 +79,7 @@ def typeinfer_term(t:Term) -> Sort:
 
         if fnsymb.type:
             try:
-                rv = overloaded_fnapp_range_memo(fnsymb.type, argsorts)
+                rv = overloaded_fnapp_range_memo(fnsymb.type, argsorts, t)
             except Exception as e:
                 print("Problem with inferring sort of term\n:" + str(t))
                 raise e
@@ -120,6 +126,10 @@ def typeinfer_term(t:Term) -> Sort:
 def typecheck(x:Any):
     if isinstance(x,L4Contract):
         typecheck_prog(x)
+    elif isinstance(x,Term):
+        typeinfer_term(x)
+    elif isinstance(x,GlobalStateTransformStatement):
+        typecheck_statement(x)
 
 def typecheck_term(t:Term, s:Sort) -> bool:
     inferred = typeinfer_term(t)
@@ -135,5 +145,7 @@ def typecheck_statement(s:GlobalStateTransformStatement):
 
 def typecheck_prog(prog:L4Contract):
     for action in prog.actions_iter():
+        msg2 = f"Typechecking Action {action.action_id}"
+        print( "-"*len(msg2) + "\n" + msg2)
         for statement in action.state_transform_statements():
             typecheck_statement(statement)

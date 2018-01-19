@@ -3,6 +3,7 @@ from typing import Tuple, List, Dict, Set, Iterable, Optional, Iterator, Sequenc
 from copy import copy
 
 from src.typesystem.Sorts import Sort
+from src.util import mapjoin
 
 
 class StrictSubtypesGraph:
@@ -26,15 +27,15 @@ class StrictSubtypesGraph:
 
     def simplifyIntersection(self, sorts:Set[Sort]) -> Optional[Sort]:
         reduced_set = copy(sorts)
-        print("simplifying", reduced_set)
+        # print("simplifying", reduced_set)
         for u in sorts:
             for v in sorts:
                 if v in reduced_set and u != v:
                     if self.hasEdge(u,v) and v in reduced_set:
-                        print("removing", str(v))
+                        # print("removing", str(v))
                         reduced_set.remove(v)
-                    else:
-                        print(f"{u},{v} is not an edge")
+                    # else:
+                    #     print(f"{u},{v} is not an edge")
         assert len(reduced_set) <= 1, "This sort set generated from code did not reduce to a single sort:\n" + str(reduced_set)
         return reduced_set.pop() if len(reduced_set) == 1 else None
 
@@ -65,6 +66,7 @@ class StrictSubtypesGraph:
     def __str__(self):
         rv = ""
         for src in self.edges_from:
-            rv += str(src) + " ⊆ "+ ", ".join(self.edges_from[src]) + "\n"
+            # rv += str(src) + " ⊆ "+ ", ".join(self.edges_from[src]) + "\n"
+            rv += f"{src} ⊆ {mapjoin(str, self.edges_from[src], ',')}\n"
         return rv
 

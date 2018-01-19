@@ -16,7 +16,7 @@ def abr_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
 
 # simple function type
 def sfntype(*tp:Any) -> Any:
-    assert len(tp) >= 2
+    assert len(tp) >= 1
     return ('fn',) + tp
 
 T = 'TVar'
@@ -45,6 +45,8 @@ def list_parametric_mult(tps:Sequence[Sequence[Any]], substitutions:Sequence[Dic
 
 
 overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
+    (('event_td'), sfntype(TimeDelta)),
+
     (('≤', '≥', '<', '>'), (
         abr_arity_fntype(Real, Bool),
         abr_arity_fntype(TimeDelta, Bool),
@@ -59,8 +61,9 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
                                             ))
 
      ),
-    (('+'), ( sfntype(PosInt,Nat,PosInt), sfntype(Nat,PosInt,PosInt)) ),
+    (('+',), ( sfntype(PosInt,Nat,PosInt), sfntype(Nat,PosInt,PosInt)) ),
     # TODO: {0},{1}, and {0,1}.
+
     (('*',),                  sfntype(TimeDelta, Nat, TimeDelta)),
     # temp hack
     (('*',), list_parametric_mult( [sfntype(('Rate', N, D), D, R), sfntype(D, ('Rate', N, D), R)], (
@@ -71,29 +74,33 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
                 {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
                 {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
     ))),
-    (('*',), list_parametric_mult( [sfntype(('Rate', N, D), T, R), sfntype(T, ('Rate', N, D), R)], (
-                {'NVar':PosReal,'DVar':PosInt, 'TVar':PosReal, 'RVar':PosReal},  # temp hack
+    (('*',), list_parametric_mult( [sfntype(('Rate', N, D), T, ('Rate',N,D)), sfntype(T, ('Rate', N, D), ('Rate',N,D))], (
+                {'NVar':PosReal,'DVar':PosInt, 'TVar':PosReal},  # temp hack
     ))),
     (('*',), parametric(abr_arity_fntype(T, T), BoundedNumericSorts )),
+
     (('-',),                  parametric(sfntype(T, T, T), (Int, Real, TimeDelta))),
+
     (('/',),                  parametric_mult(sfntype(N, D, R), (
-                                {'NVar':Real, 'DVar':PosReal, 'RVar':Real},
-                                {'NVar':PosReal, 'DVar':PosReal, 'RVar':PosReal}
+                                {'NVar':Real, 'DVar':PosReal, 'RVar':('Rate',Real,PosReal)},
+                                {'NVar':PosReal, 'DVar':PosReal, 'RVar':('Rate',PosReal,PosReal)},
+                                {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':('Rate',Real,NonnegReal)},
+                                {'NVar':Real, 'DVar':PosInt, 'RVar':('Rate',Real,PosInt)},
+                                {'NVar':PosReal, 'DVar':PosInt, 'RVar':('Rate',PosReal,PosInt)},
+                                {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':('Rate',Real,Nat)}
                                 )
                               )
      ),
-    (('/',),                  parametric(sfntype(Real, PosReal, Real), (Real, PosReal, NonnegReal))),
-    (('/',), list_parametric_mult( [sfntype(('Rate', N, D), N, R),sfntype(N, ('Rate', N, D), R)], (
-                # {'NVar':Real,'DVar':PosReal, 'RVar':Real},
-                # {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
-                # {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
-                # {'NVar':Real,'DVar':PosInt, 'RVar':Real},
-                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosInt},
-                # {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
+    (('/',), list_parametric_mult( [sfntype(N, ('Rate', N, D), R),], (
+                {'NVar':Real,'DVar':PosReal, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
+                {'NVar':Real,'DVar':PosInt, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
             ))
     ),
 
-    # todo Rate for /
     (('not',),                sfntype(Bool, Bool)),
     (('and','or'),            sfntype(Bool, Bool, Bool)),
     (('and*','or*'),          abr_arity_fntype(Bool, Bool)),

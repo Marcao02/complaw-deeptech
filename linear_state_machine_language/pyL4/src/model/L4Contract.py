@@ -2,6 +2,7 @@
 from itertools import chain
 from typing import Iterable, Any, Union
 
+from model.Term import FnSymb
 from src.model.BoundVar import GlobalVar
 from src.model.Action import Action
 from src.model.ActionRule import *
@@ -11,6 +12,7 @@ from src.model.Definition import Definition
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Section import *
 from src.model.L4Macro import L4Macro
+from typesystem.FnTypes import OverloadedFnType
 
 
 class L4Contract:
@@ -27,6 +29,7 @@ class L4Contract:
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
         self.sorts : Set[SortId] = set()
         self.definitions : Dict[DefinitionId, Definition] = dict()
+        self.fnsymbs : Dict[str, FnSymb] = dict()
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
@@ -35,12 +38,17 @@ class L4Contract:
 
         self.ordered_declarations : List[Union[Action,Section]] = list()
 
-        self.str_arg_macros : Dict[str, L4Macro] = dict()
+        self.macros : Dict[str, L4Macro] = dict()
 
         self.timeunit : str = "none given"
 
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output
+
+    def overloaded_fntypes(self) -> Iterator[OverloadedFnType]:
+        for symb in self.fnsymbs.values():
+            if symb.type:
+                yield symb.type
 
     def nextaction_rules(self) -> Iterator[NextActionRule]:
         for s in self.sections_iter():

@@ -1,9 +1,9 @@
 ; See monster_burger.l4 for version of this with more comments and an NLG mockup.
 
 (GlobalVars
-	(writeonce challenge_endlimit_timestamp : Timestamp )
-	(amount_owing                      		: Price = 0)
-	(amount_paid                       		: Price = 0)
+	(writeonce challenge_endlimit_timestamp : DateTime )
+	(amount_owing                      		: $ = 0)
+	(amount_paid                       		: $ = 0)
 )
 
 (Roles Challenger Restaurant)
@@ -11,11 +11,11 @@
 (TimeUnit m)
 
 (ContractParams
-	(MB_PRICE                     : Price    = 50)
-	(TIME_TO_EAT_BURGER           : Duration = 1h)
-	(MAX_SERVE_DELAY              : Duration = 20m)
-	(MAX_CLAIM_VERIFICATION_DELAY : Duration = 10m)
-	(MAX_REFUND_DELAY             : Duration = 10m)
+	(MB_PRICE                     : $    = 50)
+	(TIME_TO_EAT_BURGER           : TimeDelta = 1h)
+	(MAX_SERVE_DELAY              : TimeDelta = 20m)
+	(MAX_CLAIM_VERIFICATION_DELAY : TimeDelta = 10m)
+	(MAX_REFUND_DELAY             : TimeDelta = 10m)
 )
 
 (ProseContract

@@ -17,9 +17,16 @@ class FnSymb(NamedTuple):
 
 
 class FnApp(Term):
-    def __init__(self, head:str, args:List[Term]) -> None:
-        ofntype = fntypes_map[head] if head in fntypes_map else None
-        self.fnsymb = FnSymb(head, ofntype)
+    def __init__(self, head:Union[str,FnSymb], args:List[Term]) -> None:
+        if isinstance(head,FnSymb):
+            fnsymb_name = head.name
+            self.fnsymb = head
+        else:
+            fnsymb_name = head
+        ofntype = fntypes_map[fnsymb_name] if fnsymb_name in fntypes_map else None
+
+        if isinstance(head,str):
+            self.fnsymb = FnSymb(head, ofntype)
         self.args = args
 
     @property

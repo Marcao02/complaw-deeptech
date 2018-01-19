@@ -79,7 +79,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 else:
                     macroparams = cast(List[str],castse(x[2]).lst)
                 macrobody = chcast(SExpr, x[3])
-                self.top.str_arg_macros[ macroname ] = L4Macro(macroparams, macrobody)
+                self.top.macros[ macroname] = L4Macro(macroparams, macrobody)
 
             elif   head(GLOBAL_VARS_AREA_LABEL):
                 self.top.global_var_decs = self._mk_global_vars(rem)
@@ -183,7 +183,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def handle_apply_macro(self, x:SExpr) -> SExpr:
         macroname = chcaststr(x[1])
-        macro : L4Macro = self.top.str_arg_macros[macroname]
+        macro : L4Macro = self.top.macros[macroname]
         if isinstance(x[2],str):
             return macro.subst([x[2]])
         else:
@@ -525,10 +525,20 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             pair = try_parse_as_fn_app(x)
             if pair:
-                return FnApp(
-                    pair[0],
-                    [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]]
-                )
+                fnsymb_name = pair[0]
+                if fnsymb_name in self.top.fnsymbs:
+                    fnsymb = self.top.fnsymbs[fnsymb_name]
+                    return FnApp(
+                        fnsymb,
+                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]]
+                    )
+                else:
+                    rv = FnApp(
+                        fnsymb_name,
+                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]]
+                    )
+                    self.top.fnsymbs[fnsymb_name] = rv.fnsymb
+                    return rv
             else:
                 if x in EXEC_ENV_VARIABLES:
                     self.syntaxError(x, f"You're using environment variable {x} like a 0-arg function symbol. Remove the brackets please.")

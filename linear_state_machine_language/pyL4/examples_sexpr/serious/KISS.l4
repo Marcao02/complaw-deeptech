@@ -17,9 +17,9 @@
 	(INTEREST_RATE : real01 = .04)
 	(DEBT_VERSION : Bool = true) ; bug "SyntaxError: Don't recognize name INTEREST_RATE"
 
-	(START_INVESTOR_COMMON_STOCK : shares = 0)
-	(START_INVESTOR_PREFERRED_STOCK : shares = 0)
-	(START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : shares = 0)
+	(START_INVESTOR_COMMON_STOCK : Shares = 0)
+	(START_INVESTOR_PREFERRED_STOCK : Shares = 0)
+	(START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : Shares = 0)
 	(START_INVESTOR_CASH : $ = 0)
 
 	(START_COMPANY_CASH : $ = 0)
@@ -27,9 +27,9 @@
 
 (GlobalVars
 	(investor_cash : $ = START_INVESTOR_CASH)
-	(investor_Common_Stock : shares = START_INVESTOR_COMMON_STOCK)
-	(investor_PreferredStock : shares = START_INVESTOR_PREFERRED_STOCK)
-	(investor_SeriesSeedPreferredStock : shares = START_INVESTOR_SERIES_SEED_PREFERRED_STOCK)
+	(investor_Common_Stock : Shares = START_INVESTOR_COMMON_STOCK)
+	(investor_PreferredStock : Shares = START_INVESTOR_PREFERRED_STOCK)
+	(investor_SeriesSeedPreferredStock : Shares = START_INVESTOR_SERIES_SEED_PREFERRED_STOCK)
 
 	(company_cash : $ = START_COMPANY_CASH)
 
@@ -100,15 +100,15 @@
 	)
 
 	(Action (CloseEquityFinancingSale
-				(qualifying_round_price : $/share)
-				(company_capitalization : shares)
+				(qualifying_round_price : $/Shares)
+				(company_capitalization : Shares)
 		)
 		(AllowedSubjects Company)
 		(TransitionsTo Fulfilled)
 		(StateTransform
-			(local cap_price : $/share = (VALUATION_CAP / company_capitalization))
-			(local discount_price : $/share = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
-			(local conversion_price : $/share = (min discount_price cap_price))
+			(local cap_price : $/Shares = (VALUATION_CAP / company_capitalization))
+			(local discount_price : $/Shares = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
+			(local conversion_price : $/Shares = (min discount_price cap_price))
 			(if pay_interest_in_cash (
 				(local change : $ = (apply-macro interest_from_td event_td))
 				(company_cash  -= change)
@@ -123,7 +123,7 @@
 	)
 
 
-	(Action (CommitToAcquisition (company_capitalization : shares))
+	(Action (CommitToAcquisition (company_capitalization : Shares))
 		; Option to either (a) convert to common stock at the cap or (b) get paid a multiple on the original investment.
 		(AllowedSubjects Company)
 
@@ -147,7 +147,7 @@
 		(TransitionsTo Fulfilled)
 	)
 
-	(Action (ChooseConvertToCommonStock (company_capitalization : shares))
+	(Action (ChooseConvertToCommonStock (company_capitalization : Shares))
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : $ = (VALUATION_CAP / company_capitalization))
@@ -181,7 +181,7 @@
 		(TransitionsTo Fulfilled)
 	)
 
-	(Action (ChooseConversionToSeriesSeedPreferredStock (company_capitalization : shares))
+	(Action (ChooseConversionToSeriesSeedPreferredStock (company_capitalization : Shares))
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : $ = (VALUATION_CAP / company_capitalization))

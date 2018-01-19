@@ -23,8 +23,8 @@ class NonatomicSort(NamedTuple):
     def __repr__(self) -> str:
         return str(self)
 
-DateTime = 'Datetime'
-TimeDelta = 'Timedelta'
+DateTime = 'DateTime'
+TimeDelta = 'TimeDelta'
 Int = 'Int'
 PosInt = 'PosInt'
 Nat = 'Nat'
@@ -33,12 +33,18 @@ PosReal = 'PosReal'
 NonnegReal = 'NonnegReal'
 Bool = 'Bool'
 
+todo_once("this is temporary too")
 TEMP_SORT_IDENTIFICATION : Dict[Sort,Sort] = {
     'ℚ' : Real,
     'ℕ' : Nat,
-    '$' : PosReal,
-    '$/share' : NonatomicSort('Rate',(PosReal,PosInt)),
-    'shares' : PosInt,
+    '$' : NonnegReal,
+    'Pos$' : PosReal,
+
+    'Shares' : Nat,
+    'PosShares' : PosInt,
+
+    '$/Shares': NonatomicSort('Rate', (PosReal, PosInt)),
+
     '%' : "[0,1]"
 }
 def normalize_sort(s:Sort):
@@ -47,7 +53,7 @@ def normalize_sort(s:Sort):
     else:
         return s
 
-SortOps = ('TDMap','Rate')
+SortOps = ('TDMap','Rate','Tuple')
 
 UnboundedNumericSorts = (Int,Nat,PosInt,Real,NonnegReal,PosReal)
 
@@ -71,9 +77,20 @@ subtypes_data : Tuple[Tuple[Sort,...],...] = (
     (PosReal,NonnegReal,Real),
     (PosInt,PosReal),
     (Nat,NonnegReal),
-    (Int,Real)
+    (Int,Real),
+    (NonatomicSort('Rate', (PosInt, PosInt)), NonatomicSort('Rate', (PosInt, PosReal)), NonatomicSort('Rate',(PosReal,PosReal)), NonatomicSort('Rate',(Real,PosReal))),
+    (NonatomicSort('Rate', (Int, PosInt)), NonatomicSort('Rate', (Int, PosReal)), NonatomicSort('Rate',(Real,PosReal))),
+    (NonatomicSort('Rate',(PosReal,PosReal)), PosReal),
+    (NonatomicSort('Rate',(Real,PosReal)), Real),
+    (NonatomicSort('Rate',(PosReal,PosInt)), PosReal),
+    (NonatomicSort('Rate',(Real,PosInt)), Real)
 )
 
 todo_once("temp computation of 'all sorts' (not really)")
+NonatomicSortData : Tuple[Any,...] = (
+    ('Rate',PosReal,PosInt), ('Rate',Real,PosInt), ('Rate',PosReal,PosInt),
+    ('TDMap',('Tuple',PosInt, Nat)))
+
 AllSortData : Tuple[Any,...] = AllAtomicSorts + (('Rate',PosReal,PosInt),)
+
 AllSorts : Tuple[Sort,...] = AllAtomicSorts + (NonatomicSort.c('Rate',(PosReal,PosInt)),)

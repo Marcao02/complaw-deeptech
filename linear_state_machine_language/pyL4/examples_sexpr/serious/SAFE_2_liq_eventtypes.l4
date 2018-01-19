@@ -33,15 +33,15 @@
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
 	; for Equity Financing
-	(writeAtMostOnce safe_price : $/share)
-	(writeAtMostOnce discount_price : $/share)
-	(writeAtMostOnce conversion_price : $/share)
-	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $/share)
+	(writeAtMostOnce safe_price : $/Shares)
+	(writeAtMostOnce discount_price : $/Shares)
+	(writeAtMostOnce conversion_price : $/Shares)
+	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $/Shares)
 	; don't need this because only used by the action that introduces it:
 	; (writeAtMostOnce company_capitalization : ℕ)
 
 	; for Liquidity
-	(writeAtMostOnce liq_price : $/share )
+	(writeAtMostOnce liq_price : $/Shares )
 	(writeAtMostOnce liq_cashout : $ = 0 )
 	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
 	(writeAtMostOnce investor_liq_hypothetical_shares : ℕ)
@@ -110,7 +110,7 @@
 	)
 
 	(Action (IssueSAFEPreferredStock
-				(company_capitalization : shares)
+				(company_capitalization : Shares)
 				(premoney_valuation : $) ) (AllowedSubjects Company)
 		(StateTransform
 			(safe_price = (VALUATION_CAP / company_capitalization))
@@ -158,7 +158,7 @@
 			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT / liq_price))
 			(investor_percent_of_cashout_investor_investments = ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) ))
 
-		 	; "In ???? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
+		 	; "In ???? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
 			(cash_currently_unconverted = (PURCHASE_AMOUNT - purchase_amount_reduction))
