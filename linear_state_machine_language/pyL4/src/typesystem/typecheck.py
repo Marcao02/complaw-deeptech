@@ -1,45 +1,36 @@
-from typing import Union, Any, Iterator, cast
+from typing import Union, Iterator, cast
 
 from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam
+from src.model.FnSymb import FnSymb
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, StateTransformLocalVarDec, \
     GlobalVarAssignStatement
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
 from src.model.Term import Term, FnApp
-from src.model.FnSymb import FnSymb
 from src.typesystem.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType, Optional
 from src.typesystem.Sorts import Sort
 from src.typesystem.StrictSubtypesGraph import StrictSubtypesGraph
-from src.typesystem.standard_types import standard_types_graph
+from src.typesystem.standard_types import standard_types_graph, sub
 from src.util import todo_once
+from src.typesystem.L4TypeErrors import *
 
 graph : StrictSubtypesGraph = standard_types_graph
 
-class L4TypeError(Exception):
-    pass
 
-def sub(s1:Sort,s2:Sort) -> bool:
-    if s1 == s2:
-        return True
-    if s1 == 'Any':
-        print(f"warning: return true on check Any ⊆ {s2}")
-        return True
-    return graph.hasEdge(s1,s2)
-
-def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple, term: Optional[FnApp] = None) -> Optional[Sort]:
+def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
     todo_once("contrib: cast shouldn't be necessary")
-    rangeset = set(cast(Iterator[Sort], filter(lambda x: x is not None, (ft_range(ft, argsorts) for ft in oft.parts))))
+    rangeset = set(cast(Iterator[Sort], filter(lambda x: x is not None, (ft_range(ft, argsorts,term) for ft in oft.parts))))
     if len(rangeset) == 0:
         msg = f"Domain of overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{argsorts}"
         if not term:
-            raise TypeError(msg)
+            raise L4TypeError(msg)
         else:
-            raise TypeError(msg + f"{msg} + \nTerm is {term}")
+            raise L4TypeError(msg + f"{msg} + \nTerm is {term}")
     try:
         intersection = graph.simplifyIntersection(rangeset)
     except Exception as e:
         print("Problem with overloaded function type:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
-        raise(e)
+        raise e
     if intersection:
         oft.range_memo[argsorts] = intersection
         return intersection
@@ -47,12 +38,15 @@ def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple, term: 
         oft.illtyped_memo.add(argsorts)
         return None
 
-def ft_range(fntype:Union[SimpleFnType,ArbArityFnType], argsorts:SortTuple) -> Optional[Sort]:
-    rv = sft_range(fntype, argsorts) if isinstance(fntype, SimpleFnType) else aaft_range(fntype, argsorts)
-    # print(f"arg sorts {argsorts} are not a subset of domain of simple fn type {fntype}")
+def ft_range(fntype:Union[SimpleFnType,ArbArityFnType], argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
+    rv = sft_range(fntype, argsorts, term) if isinstance(fntype, SimpleFnType) else aaft_range(fntype, argsorts, term)
+    if not rv:
+        print(f"arg sorts {argsorts} of {term.head} are NOT a subset of domain of nonoverloaded fn type {fntype}")
+    else:
+        print(f"arg sorts {argsorts} of {term.head} ARE a subset of domain of nonoverloaded fn type {fntype}")
     return rv
 
-def sft_range(fntype:SimpleFnType, argsorts:SortTuple) -> Optional[Sort]:
+def sft_range(fntype:SimpleFnType, argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
     if len(fntype.parts) - 1 != len(argsorts):
         return None
     for i in range(len(argsorts)):
@@ -60,9 +54,10 @@ def sft_range(fntype:SimpleFnType, argsorts:SortTuple) -> Optional[Sort]:
         fnsort = fntype.parts[i]
         if not sub(argsort,fnsort):
             return None
+    print(f"Range of fntype {fntype} is {fntype.ran}")
     return fntype.ran
 
-def aaft_range(fntype:ArbArityFnType, argsorts:SortTuple) -> Optional[Sort]:
+def aaft_range(fntype:ArbArityFnType, argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
     for i in range(len(argsorts)):
         argsort = argsorts[i]
         if not sub(argsort,fntype.dom):
@@ -82,13 +77,14 @@ def typeinfer_term(t:Term) -> Sort:
             try:
                 rv = overloaded_fnapp_range_memo(fnsymb.type, argsorts, t)
             except Exception as e:
-                print("Problem with inferring sort of term\n:" + str(t))
+                print("Problem with inferring sort of term:\n" + str(t))
+                print("The original exception: ", e)
                 raise e
             if rv is None:
-                raise TypeError(f"Term {t}\nArg sorts {argsorts}\nFn type:\n{fnsymb.type}")
+                raise L4TypeError(f"Term {t}\nArg sorts {argsorts}\nFn type:\n{fnsymb.type}")
             return rv
         else:
-            raise TypeError(t, f"Function symbol {fnsymb} has no type")
+            raise L4TypeError(t, f"Function symbol {fnsymb} has no type")
     elif isinstance(t,Literal):
         if isinstance(t,IntLit):
             #
@@ -135,7 +131,9 @@ def typecheck(x:Any):
 def typecheck_term(t:Term, s:Sort) -> bool:
     inferred = typeinfer_term(t)
     assert inferred is not None
-    return graph.hasEdge(inferred,s)
+    if not sub(inferred,s):
+        raise L4TypeInferCheckError(t,inferred,s)
+    return True
 
 
 def typecheck_statement(s:GlobalStateTransformStatement):

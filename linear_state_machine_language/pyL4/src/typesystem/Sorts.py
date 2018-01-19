@@ -64,6 +64,10 @@ FiniteNumericSorts = ("{0,1}","{0}","{1}")
 
 AllAtomicSorts : Tuple[Any,...] = (DateTime,TimeDelta,Bool) + BoundedNumericSorts + UnboundedNumericSorts + FiniteNumericSorts
 
+# for
+    # (NonatomicSort('Rate',Num,Denom), NonatomicSort('Rate',Num,Denom) for Num
+# )
+
 subtypes_data : Tuple[Tuple[Sort,...],...] = (
     ("{0}","[0,1)"),
     ("{1}","(0,1]"),
@@ -78,8 +82,14 @@ subtypes_data : Tuple[Tuple[Sort,...],...] = (
     (PosInt,PosReal),
     (Nat,NonnegReal),
     (Int,Real),
-    (NonatomicSort('Rate', (PosInt, PosInt)), NonatomicSort('Rate', (PosInt, PosReal)), NonatomicSort('Rate',(PosReal,PosReal)), NonatomicSort('Rate',(Real,PosReal))),
-    (NonatomicSort('Rate', (Int, PosInt)), NonatomicSort('Rate', (Int, PosReal)), NonatomicSort('Rate',(Real,PosReal))),
+    # TEMP. Willl generate these later.
+    (NonatomicSort('Rate',(PosInt, PosInt)), NonatomicSort('Rate', (PosInt, PosReal)), NonatomicSort('Rate',(PosReal,PosReal)), NonatomicSort('Rate',(NonnegReal,PosReal)), NonatomicSort('Rate',(Real,PosReal))),
+    (NonatomicSort('Rate',(Int, PosInt)),    NonatomicSort('Rate', (Int, PosReal)),    NonatomicSort('Rate',(Real,PosReal))),
+    (NonatomicSort('Rate',(Real, PosInt)),    NonatomicSort('Rate', (Real, PosReal))),
+    (NonatomicSort('Rate',(NonnegReal, PosInt)),    NonatomicSort('Rate', (NonnegReal, PosReal))),
+    (NonatomicSort('Rate',(NonnegReal, PosInt)),    NonatomicSort('Rate', (Real, PosInt))),
+    (NonatomicSort('Rate',(NonnegReal, PosReal)), NonnegReal),
+    (NonatomicSort('Rate',(NonnegReal, PosInt)), NonnegReal),
     (NonatomicSort('Rate',(PosReal,PosReal)), PosReal),
     (NonatomicSort('Rate',(Real,PosReal)), Real),
     (NonatomicSort('Rate',(PosReal,PosInt)), PosReal),

@@ -1,7 +1,7 @@
 ; See monster_burger.l4 for version of this with more comments and an NLG mockup.
 
 (GlobalVars
-	(writeonce challenge_endlimit_timestamp : DateTime )
+	(writeonce challenge_endlimit_timestamp : TimeDelta )
 	(amount_owing                      		: $ = 0)
 	(amount_paid                       		: $ = 0)
 )

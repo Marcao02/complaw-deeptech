@@ -12,7 +12,7 @@ class SimpleFnType(NamedTuple):
         return self.parts[:-1]
     @property
     def ran(self) -> Sort:
-        return self.parts[0]
+        return self.parts[-1]
 
     def __str__(self) -> str:
         todo_once("contrib: why cast necessary?")

@@ -16,8 +16,8 @@
 )
 
 (GlobalVars
-	(probAsolved : boolean = false)
-	(probBsolved : boolean = false)
+	(probAsolved : Bool = false)
+	(probBsolved : Bool = false)
 )
 
 (Roles Alice Bob)

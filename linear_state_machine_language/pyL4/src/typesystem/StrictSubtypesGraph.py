@@ -4,6 +4,7 @@ from copy import copy
 
 from src.typesystem.Sorts import Sort
 from src.util import mapjoin
+# from src.typesystem.L4TypeErrors import *
 
 
 class StrictSubtypesGraph:
@@ -22,12 +23,14 @@ class StrictSubtypesGraph:
         if trg not in self.edges_from:
             self.edges_from[trg] = set()
 
-    def hasEdge(self, srt:Sort, trg:Sort) -> bool:
-        return trg in self.edges_from[srt]
+    def hasEdge(self, src:Sort, trg:Sort) -> bool:
+        if src not in self.edges_from:
+            raise Exception(f"Sort {src} not in the subtype graph.")
+        return trg in self.edges_from[src]
 
     def simplifyIntersection(self, sorts:Set[Sort]) -> Optional[Sort]:
         reduced_set = copy(sorts)
-        # print("simplifying", reduced_set)
+        print("simplifying", reduced_set)
         for u in sorts:
             for v in sorts:
                 if v in reduced_set and u != v:

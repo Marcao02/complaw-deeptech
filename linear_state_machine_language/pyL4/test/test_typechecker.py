@@ -14,6 +14,7 @@ EXAMPLES_TO_TYPECHECK = [
     'from_academic_lit/hvitved_lease.l4',
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
     'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
+    # 'from_academic_lit/hvitved_printer.l4',
 
     'serious/SAFE.l4',
 ]

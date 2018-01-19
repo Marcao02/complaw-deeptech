@@ -11,6 +11,14 @@ from src.typesystem.reducers import flatten_fntype_data, print_types_map, build_
 standard_types_graph = build_graph()
 print("\n" + str(standard_types_graph))
 
+def sub(s1:Sort,s2:Sort) -> bool:
+    if s1 == s2:
+        return True
+    if s1 == 'Any':
+        print(f"warning: return true on check Any ⊆ {s2}")
+        return True
+    return standard_types_graph.hasEdge(s1,s2)
+
 def abr_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
     return ('aafn', dom, ran)
 
@@ -46,6 +54,7 @@ def list_parametric_mult(tps:Sequence[Sequence[Any]], substitutions:Sequence[Dic
 
 overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('event_td'), sfntype(TimeDelta)),
+    (('days'), sfntype(Nat,TimeDelta)),
 
     (('≤', '≥', '<', '>'), (
         abr_arity_fntype(Real, Bool),
@@ -59,8 +68,12 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('min','max','+','*') ,  parametric_mult(abr_arity_fntype(('Rate',N,D), ('Rate',N,D)), (
                                               {'NVar':PosReal,'DVar':PosInt},
                                             ))
-
      ),
+
+    # temp hack:
+    (('max',), ( sfntype(PosReal,Real,PosReal),
+                 sfntype(PosInt, Int, PosInt),)),
+
     (('+',), ( sfntype(PosInt,Nat,PosInt), sfntype(Nat,PosInt,PosInt)) ),
     # TODO: {0},{1}, and {0,1}.
 
@@ -84,10 +97,10 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('/',),                  parametric_mult(sfntype(N, D, R), (
                                 {'NVar':Real, 'DVar':PosReal, 'RVar':('Rate',Real,PosReal)},
                                 {'NVar':PosReal, 'DVar':PosReal, 'RVar':('Rate',PosReal,PosReal)},
-                                {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':('Rate',Real,NonnegReal)},
+                                {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':('Rate',NonnegReal,PosReal)},
                                 {'NVar':Real, 'DVar':PosInt, 'RVar':('Rate',Real,PosInt)},
                                 {'NVar':PosReal, 'DVar':PosInt, 'RVar':('Rate',PosReal,PosInt)},
-                                {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':('Rate',Real,Nat)}
+                                {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':('Rate',NonnegReal,PosInt)}
                                 )
                               )
      ),
@@ -107,10 +120,13 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     # (('and*','or*'),          sfntype(Bool, Bool)),
     (('floor','round','ceil'), (
         sfntype(Real, Int),
+        sfntype(PosReal, Nat),
         sfntype(NonnegReal, Nat) )),
     (('ceil',), (
         sfntype(Real, Int),
-        sfntype(PosReal, PosInt) )),
+        sfntype(PosReal, PosInt),
+        sfntype(NonnegReal, Nat)
+    )),
     (('even','odd'),          parametric(sfntype(T, Bool), (Int, Nat, PosInt))),
 )
 
@@ -154,3 +170,14 @@ def makeNiceFnTypeMap() -> Dict[str,OverloadedFnType]:
     return fntype_map
 
 fntypes_map = makeNiceFnTypeMap()
+
+
+for num1 in UnboundedNumericSorts:
+    for num2 in UnboundedNumericSorts:
+        if not sub(num1,num2):
+            continue
+        for den1 in [PosReal,PosInt]:
+            for den2 in [PosReal,PosInt]:
+                if not sub(den1,den2):
+                    continue
+                standard_types_graph.addEdge(NonatomicSort('Rate',(num1,den1)), NonatomicSort('Rate',(num2,den2)))

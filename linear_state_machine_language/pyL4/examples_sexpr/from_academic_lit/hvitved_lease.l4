@@ -15,8 +15,8 @@
 	(P3 'Tenant agrees to pay the amount of {RENT} per month, each payment due within {MAX_DAYS_RENT_DELAY} days of the start of each month.')   )
 
 (GlobalVars
-	(lease_term_start : ℕ )		; formerly never : Date
-	(lease_term_end : ℕ )		; formerly never : Date
+	(lease_term_start : TimeDelta )		; formerly never : Date
+	(lease_term_end : TimeDelta )		; formerly never : Date
 	(writeOnceMore lease_terminated : Bool := false)
 	(branchUnaffecting inconly total_rent_paid : ℕ := 0)   )
 
