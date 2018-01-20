@@ -4,6 +4,7 @@ from typing import Any
 from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
 from src.model.Term import Term
 from src.typesystem.Sorts import Sort
+from util import todo_once
 
 
 class Literal(Term):
@@ -64,6 +65,8 @@ class StringLit(Literal):
         self.lit = lit
     def __str__(self):
         return "'" + self.lit + "'"
+
+todo_once("Need to require that timedeltas are nonnegative")
 
 class SimpleTimeDeltaLit(Literal):
     """

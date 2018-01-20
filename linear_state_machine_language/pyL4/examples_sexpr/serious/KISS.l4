@@ -9,12 +9,12 @@
 (TimeUnit d)
 
 (ContractParams
-	(PURCHASE_AMOUNT : $ = 100000)
+	(PURCHASE_AMOUNT : Pos$ = 100000)
 
 	(TIME_TILL_MATURITY : TimeDelta = (days (365 + (364 / 2))))
-	(VALUATION_CAP : $ = inf)
-	(DISCOUNT_RATE : real01 = 1)
-	(INTEREST_RATE : real01 = .04)
+	(VALUATION_CAP : Pos$ = inf)
+	(DISCOUNT_RATE : "(0,1]" = 1)
+	(INTEREST_RATE : "[0,1]" = .04)
 	(DEBT_VERSION : Bool = true) ; bug "SyntaxError: Don't recognize name INTEREST_RATE"
 
 	(START_INVESTOR_COMMON_STOCK : Shares = 0)
@@ -42,13 +42,13 @@
 )
 
 (Macro compound_interest (#principle #ir #full_periods #final_period_fraction)
-	((apply-macro principle_and_compound_interest (#principle #ir #full_periods #final_period_fraction)) - #principle)
+	(cast Pos$ ((apply-macro principle_and_compound_interest (#principle #ir #full_periods #final_period_fraction)) - #principle))
 )
 
 (Macro interest_from_td #td
-	(ifthenelse (#td ≤ 365)
-		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365)))
-		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((#td - 365) / 365)))
+	(ifthenelse (#td ≤ 365d)
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((cast PosTimeDelta (#td - 365d)) / 365d)))
 	)
 )
 
@@ -63,6 +63,7 @@
 		)
 	)
 
+	; ((ifthenelse (event_td ≤ 365d) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT))
 
 	(Action (CommitToFinancing
 				(qualifying_round_new_money : $)
@@ -101,7 +102,7 @@
 
 	(Action (CloseEquityFinancingSale
 				(qualifying_round_price : $/Shares)
-				(company_capitalization : Shares)
+				(company_capitalization : PosShares)
 		)
 		(AllowedSubjects Company)
 		(TransitionsTo Fulfilled)
@@ -123,7 +124,7 @@
 	)
 
 
-	(Action (CommitToAcquisition (company_capitalization : Shares))
+	(Action (CommitToAcquisition (company_capitalization : PosShares))
 		; Option to either (a) convert to common stock at the cap or (b) get paid a multiple on the original investment.
 		(AllowedSubjects Company)
 
@@ -140,17 +141,18 @@
 		(StateTransform
 			; from Corporate Transaction Payment defn
 			(local change : $ = ((apply-macro interest_from_td event_td) + (2 * PURCHASE_AMOUNT)))
-			(company_cash -= change)
+			; (company_cash -= change)
+			(company_cash = (cast $ (company_cash - change)))
 			(investor_cash += change)
 
 		)
 		(TransitionsTo Fulfilled)
 	)
 
-	(Action (ChooseConvertToCommonStock (company_capitalization : Shares))
+	(Action (ChooseConvertToCommonStock (company_capitalization : PosShares))
 		(AllowedSubjects Investor)
 		(StateTransform
-			(local cap_price : $ = (VALUATION_CAP / company_capitalization))
+			(local cap_price : Pos$ = (VALUATION_CAP / company_capitalization))
 			(investor_Common_Stock += (round (PURCHASE_AMOUNT / cap_price)))
 		)
 		(TransitionsTo Fulfilled)
@@ -175,16 +177,17 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local change : $ = ((apply-macro interest_from_td event_td) + PURCHASE_AMOUNT))
-			(company_cash -= change)
+			; (company_cash -= change)
+			(company_cash = (cast $ (company_cash - change)))
 			(investor_cash += change)
 		)
 		(TransitionsTo Fulfilled)
 	)
 
-	(Action (ChooseConversionToSeriesSeedPreferredStock (company_capitalization : Shares))
+	(Action (ChooseConversionToSeriesSeedPreferredStock (company_capitalization : PosShares))
 		(AllowedSubjects Investor)
 		(StateTransform
-			(local cap_price : $ = (VALUATION_CAP / company_capitalization))
+			(local cap_price : Pos$ = (VALUATION_CAP / company_capitalization))
 			(investor_SeriesSeedPreferredStock += (round (PURCHASE_AMOUNT / cap_price)))
 		)
 		(TransitionsTo Fulfilled)

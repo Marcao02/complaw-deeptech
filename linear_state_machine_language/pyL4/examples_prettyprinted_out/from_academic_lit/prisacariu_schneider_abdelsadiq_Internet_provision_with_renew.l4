@@ -4,8 +4,8 @@ file: from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_
 roles: Env, ISP, Client
 
 contract params:
-    HIGH_USAGE_FEE : ℕ := 10
-    HOURS_PARAM : ℕ := 24
+    HIGH_USAGE_FEE : Nat := 10
+    HOURS_PARAM : Nat := 24
 
 global vars:
     contract_canceled : Bool := False
@@ -14,7 +14,7 @@ global vars:
     unsettled_infraction : Bool := False
     usage_level_normal : Bool := True
     sent_delay_email : Bool := False
-    paid : ℕ := 0
+    paid : Nat := 0
     paidBefore24 : Bool := False
     traffic_low_since : TimeDelta
     infraction_time : TimeDelta
@@ -59,7 +59,7 @@ action SendDelayEmail()  non-transitioning:
     transform:
         sent_delay_email := True
 
-action Pay(x: ℕ) transitions to UnsettledInfraction:
+action Pay(x: Nat) transitions to UnsettledInfraction:
     transform:
         paid := (paid + (HIGH_USAGE_FEE * x))
         if (event_td ≤ (infraction_time + 24h)):

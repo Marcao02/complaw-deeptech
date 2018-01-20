@@ -4,7 +4,7 @@ file: toy_and_teaching/minimal_future-actions.l4
 roles: Env, I
 
 global vars:
-    n : ℕ := 0
+    n : Nat := 0
 
 section Ongoing:
     if (n < 5):
@@ -23,6 +23,6 @@ action Stand()  transitions to Ongoing:
     transform:
         n := (n + 1)
 
-action Catch(m: ℕ) transitions to Ongoing
+action Catch(m: Nat) transitions to Ongoing
 
 action EnterFulfilled()  transitions to Fulfilled

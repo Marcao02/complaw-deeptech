@@ -127,6 +127,7 @@ class NextActionRule(ActionRule):
                  args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
         super().__init__(role_id, action_id, args, entrance_enabled_guard)
+        self.time_constraint : Term
         self.src_id = src_id
 
 class PartyNextActionRule(NextActionRule):

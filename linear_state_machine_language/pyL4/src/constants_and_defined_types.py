@@ -1,8 +1,12 @@
 # from enum import Enum
-from typing import Dict, NewType, cast, Union, List, Any, Set
+from typing import Dict, NewType, cast, Union, List, Any, Set, TYPE_CHECKING
 
 Nat = NewType('Nat',int)
 
+if TYPE_CHECKING:
+    from src.typesystem.Sorts import Sort
+
+    # from Sort import Sort
 # Data = Union[int, float, TimeInt] # later maybe Tuple[Data] and str
 Data = Any # later maybe Tuple[Data] and str
 
@@ -20,7 +24,7 @@ ActionBoundActionParamId = NewType('ActionBoundActionParamId',str)
 RuleBoundActionParamId = NewType('RuleBoundActionParamId',str)
 
 ProseContract = Dict[ProseClauseId,str]
-ParamsDec = Dict[ActionBoundActionParamId, SortId]
+ParamsDec = Dict[ActionBoundActionParamId, 'Sort']
 
 ContractParamSubst = Dict[ContractParamId,Data]
 GVarSubst = Dict[GlobalVarId,Data]

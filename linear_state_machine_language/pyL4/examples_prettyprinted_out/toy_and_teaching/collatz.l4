@@ -4,10 +4,10 @@ file: toy_and_teaching/collatz.l4
 roles: Env
 
 contract params:
-    START : ℕ := 99
+    START : Nat := 99
 
 global vars:
-    x : ℕ := START
+    x : Nat := START
 
 section Ongoing:
     if ((x == 0) or (x == 1)):
@@ -19,6 +19,8 @@ section Ongoing:
 
 action DivideBy2()  transitions to Ongoing:
     transform:
+        test : NonnegReal := (x / 2)
+        test2 : Nat := (round (x / 2))
         x := (round (x / 2))
 
 action TripplePlus1()  transitions to Ongoing:

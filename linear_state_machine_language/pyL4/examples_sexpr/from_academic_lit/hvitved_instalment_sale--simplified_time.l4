@@ -6,8 +6,8 @@
 (ContractParams
 	(INTEREST_RATE : PosReal = .1)
 	(TOTAL_DUE_BEFORE_CLOSING : ℕ = 9500)
-	(MIN_PAYMENT : ℕ = 500)
-	(DUE_AT_CLOSING : ℕ = 500)  )
+	(MIN_PAYMENT : Pos$ = 500)
+	(DUE_AT_CLOSING : Pos$ = 500)  )
 
 (GlobalVars
 	(balance_remaining : $ = TOTAL_DUE_BEFORE_CLOSING)
@@ -40,7 +40,7 @@
 			)
 		))
 
-	(Action (PayInstallment(amount:ℕ)) (TransitionsTo WaitingForFirstDayOfNextMonth)
+	(Action (PayInstallment(amount:Pos$)) (TransitionsTo WaitingForFirstDayOfNextMonth)
 		(StateTransform ; conjecture statement is unnecessary
 			(conjecture (amount ≤ balance_remaining)) ; overpaying is forbidden
 			(balance_remaining := (cast Nat (balance_remaining - amount)))
@@ -49,7 +49,7 @@
 			(next_payment_month += 1)   ))
 
 
-	(Action (PayLastInstallment(amount:ℕ)) (TransitionsTo Fulfilled)
+	(Action (PayLastInstallment(amount:Pos$)) (TransitionsTo Fulfilled)
 		(StateTransform ; neither of these statements is necessary
 			(conjecture (amount == (balance_remaining + DUE_AT_CLOSING)))
 			(balance_remaining = 0)    )))

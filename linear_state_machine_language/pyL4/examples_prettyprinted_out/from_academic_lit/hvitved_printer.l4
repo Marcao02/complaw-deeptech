@@ -4,13 +4,13 @@ file: from_academic_lit/hvitved_printer.l4
 roles: Env, Buyer, Seller
 
 contract params:
-    CONTRACT_START : Date := 0
-    DELIVERY_DEADLINE : Date := 10
+    CONTRACT_START : TimeDelta := 0
+    DELIVERY_DEADLINE : TimeDelta := 10
 
 global vars:
-    nonoperative buyer_paid : ℕ := 0
-    nonoperative seller_refunded : ℕ := 0
-    writeonce delivery_date : DateTime
+    nonoperative buyer_paid : Nat := 0
+    nonoperative seller_refunded : Nat := 0
+    writeonce delivery_date : TimeDelta
 
 claims:
     ['MAX_TIME', '=', '44D']

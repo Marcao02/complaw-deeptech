@@ -27,7 +27,7 @@ class L4Contract:
         self.claims : Iterable[ContractClaim] = []
         self.roles : List[RoleId] = [ENV_ROLE]
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
-        self.sorts : Set[SortId] = set()
+        self.sorts : Set[Sort] = set()
         self.definitions : Dict[DefinitionId, Definition] = dict()
         self.fnsymbs : Dict[str, FnSymb] = dict()
 
@@ -56,7 +56,7 @@ class L4Contract:
                 yield nar
     def futureaction_rules(self) -> Iterator[PartyFutureActionRule]:
         for a in self.actions_iter():
-            for far in a.action_rules():
+            for far in a.future_action_rules():
                 yield far
     def action_rules(self) -> Iterator[ActionRule]: return chain(self.nextaction_rules(), self.futureaction_rules())
 
@@ -77,7 +77,7 @@ class L4Contract:
     # def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> Set[ActionId]:
     #     cursection = self.section(sectionid)
     #     rv : Set[ActionId] = set()
-    #     for c in cursection.action_rules():
+    #     for c in cursection.future_action_rules():
     #         if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
     #             if c.action_id == actionid:
     #                 rv.add(c.action_id)
@@ -151,7 +151,7 @@ class L4Contract:
     #         return sectionid2 == self.start_section
     #
     #     cursection = self.section(sectionid1)
-    #     for c in cursection.action_rules():
+    #     for c in cursection.future_action_rules():
     #         if isinstance(c, PartyNextActionRule):
     #             action = self.action(c.action_id)
     #             if action.dest_section_id == sectionid2:

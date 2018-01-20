@@ -5,15 +5,15 @@ roles: Env, Landlord, Tenant
 
 contract params:
     LEASE_DURATION : TimeDelta := (days (4 * 29))
-    RENT : ℕ := 1000
+    RENT : Nat := 1000
     MAX_RENT_DELAY : TimeDelta := 7d
     MIN_TERMINATION_NOTICE : TimeDelta := 30d
 
 global vars:
-    lease_term_start : ℕ
-    lease_term_end : ℕ
+    lease_term_start : TimeDelta
+    lease_term_end : TimeDelta
     writeOnceMore lease_terminated : Bool := False
-    branchUnaffecting inconly total_rent_paid : ℕ := 0
+    branchUnaffecting inconly total_rent_paid : Nat := 0
 
 section Start:
     Landlord must EnsureApartmentReady immediately

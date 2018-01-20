@@ -5,6 +5,7 @@ from src.model.GlobalVarDec import GlobalVarDec
 from src.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
 from src.model.Term import Term
 from src.util import indent
+from src.typesystem.Sorts import Sort
 
 """ Just the common parent """
 class GlobalStateTransformStatement:
@@ -36,14 +37,14 @@ class IfElse(GlobalStateTransformStatement):
 
 
 class StateTransformLocalVarDec(GlobalStateTransformStatement):
-    def __init__(self, varname:StateTransformLocalVarId, value_expr:Term, sort:str) -> None:
+    def __init__(self, varname:StateTransformLocalVarId, value_expr:Term, sort:Sort) -> None:
         super().__init__()
         self.varname : StateTransformLocalVarId = varname
         self.value_expr = value_expr
         self.sort = sort
 
     def __str__(self):
-        return f"{self.varname} : {self.sort} := {str(self.value_expr)}"
+        return f"{self.varname} : {str(self.sort)} := {str(self.value_expr)}"
 
 # class LocalVarDec(GlobalVarAssignStatement):
 #     def __init__(self, varname:LocalVarId, value_expr:Term, sort:str) -> None:

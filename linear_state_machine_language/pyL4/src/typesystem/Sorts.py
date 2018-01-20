@@ -30,6 +30,7 @@ class NonatomicSort(NamedTuple):
 
 DateTime = 'DateTime'
 TimeDelta = 'TimeDelta'
+PosTimeDelta = 'PosTimeDelta'
 Int = 'Int'
 PosInt = 'PosInt'
 Nat = 'Nat'
@@ -58,7 +59,7 @@ TEMP_SORT_IDENTIFICATION : Dict[Sort,Sort] = {
 
     '%' : "[0,1]"
 }
-def normalize_sort(s:Sort):
+def normalize_sort(s:Sort) -> Sort:
     if s in TEMP_SORT_IDENTIFICATION:
         return TEMP_SORT_IDENTIFICATION[s]
     else:
@@ -73,13 +74,14 @@ BoundedNumericSorts = ("[0,1]","(0,1]","[0,1)","(0,1)")
 # Because all non-empty intersections must be represented (for now)
 FiniteNumericSorts = ("{0,1}","{0}","{1}")
 
-AllAtomicSorts : Tuple[Any,...] = (DateTime,TimeDelta,Bool) + BoundedNumericSorts + UnboundedNumericSorts + FiniteNumericSorts
+AllAtomicSorts : Tuple[Any,...] = (DateTime,TimeDelta,PosTimeDelta,Bool) + BoundedNumericSorts + UnboundedNumericSorts + FiniteNumericSorts
 
 # for
     # (NonatomicSort('Rate',Num,Denom), NonatomicSort('Rate',Num,Denom) for Num
 # )
 
 subtypes_data : Tuple[Tuple[Sort,...],...] = (
+    (PosTimeDelta, TimeDelta),
     ("{0}","[0,1)"),
     ("{1}","(0,1]"),
     ("{0,1}","[0,1]"),

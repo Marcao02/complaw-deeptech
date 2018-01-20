@@ -4,29 +4,29 @@ file: from_academic_lit/hvitved_instalment_sale--simplified_time.l4
 roles: Env, Buyer, Seller
 
 contract params:
-    INTEREST_RATE : ℚ := 0.1
-    TOTAL_DUE_BEFORE_CLOSING : ℕ := 9500
-    MIN_PAYMENT : ℕ := 500
-    DUE_AT_CLOSING : ℕ := 500
+    INTEREST_RATE : PosReal := 0.1
+    TOTAL_DUE_BEFORE_CLOSING : Nat := 9500
+    MIN_PAYMENT : PosReal := 500
+    DUE_AT_CLOSING : PosReal := 500
 
 global vars:
-    balance_remaining : ℕ := TOTAL_DUE_BEFORE_CLOSING
-    next_payment_month : ℕ := 0
+    balance_remaining : NonnegReal := TOTAL_DUE_BEFORE_CLOSING
+    next_payment_month : Nat := 0
 
 section WaitingForFirstDayOfNextMonth:
     if ((MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23)):
         Buyer obligation-options-include PayInstallment(?amount) (next_event_td == (sectionEntrance_td + 30d)) where ((MIN_PAYMENT ≤ ?amount) and (?amount ≤ balance_remaining))
     Buyer obligation-options-include PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (sectionEntrance_td + 30d))
 
-action PayInstallment(amount: ℕ) transitions to WaitingForFirstDayOfNextMonth:
+action PayInstallment(amount: PosReal) transitions to WaitingForFirstDayOfNextMonth:
     transform:
         prove (amount ≤ balance_remaining)
-        balance_remaining := (balance_remaining - amount)
+        balance_remaining := (cast Nat (balance_remaining - amount))
         balance_remaining := (balance_remaining * (1 + INTEREST_RATE))
         balance_remaining := (round balance_remaining)
         next_payment_month := (next_payment_month + 1)
 
-action PayLastInstallment(amount: ℕ) transitions to Fulfilled:
+action PayLastInstallment(amount: PosReal) transitions to Fulfilled:
     transform:
         prove (amount == (balance_remaining + DUE_AT_CLOSING))
         balance_remaining := 0

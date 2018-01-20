@@ -52,9 +52,8 @@ def list_parametric_mult(tps:Sequence[Sequence[Any]], substitutions:Sequence[Dic
 
 
 overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
-    (('event_td',), sfntype(TimeDelta)),
-    (('sectionEntrance_td',), sfntype(TimeDelta)),
-    (('days',), sfntype(Nat,TimeDelta)),
+    (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td'), sfntype(TimeDelta)),
+    (('days',), (sfntype(Nat,TimeDelta), sfntype(PosInt,PosTimeDelta))),
 
     # TODO strengthen types
     (('tuple',), sfntype('Any','Any','Any')),
@@ -78,7 +77,10 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('max',), ( sfntype(PosReal,Real,PosReal),
                  sfntype(PosInt, Int, PosInt),)),
 
-    (('+',), ( sfntype(PosInt,Nat,PosInt), sfntype(Nat,PosInt,PosInt)) ),
+    (('+',), ( sfntype(PosInt,Nat,PosInt), sfntype(Nat,PosInt,PosInt),
+               sfntype(PosReal,NonnegReal,PosReal), sfntype(NonnegReal,PosReal,PosReal),
+               )
+     ),
     # TODO: {0},{1}, and {0,1}.
 
     (('*',),                  sfntype(TimeDelta, Nat, TimeDelta)),
@@ -108,7 +110,7 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
                                 )
                               )
      ),
-    (('/',), list_parametric_mult( [sfntype(N, ('Rate', N, D), R),], (
+     (('/',), list_parametric_mult( [sfntype(N, ('Rate', N, D), R),], (
                 {'NVar':Real,'DVar':PosReal, 'RVar':Real},
                 {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
                 {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
@@ -117,6 +119,19 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
                 {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
             ))
     ),
+
+    (('/',), (sfntype(PosTimeDelta, PosTimeDelta, PosReal),
+              sfntype(TimeDelta, PosTimeDelta, NonnegReal),
+              sfntype(PosInt, Nat, PosInt),
+              )
+
+     ),
+
+    (('^',), ( sfntype(PosReal,Real,PosReal),
+                sfntype(PosInt,Nat,PosInt),
+               )
+
+     ),
 
     (('not',),                sfntype(Bool, Bool)),
     (('and','or'),            sfntype(Bool, Bool, Bool)),

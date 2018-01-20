@@ -46,8 +46,8 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
             # now the statetransform will need to check that both the role and
             # the action params match. this requires a role environment variable.
-            params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.params[i]), action, i) for i in
-                      range(len(action.params))]
+            params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.param_names[i]), action, i) for i in
+                      range(len(action.param_names))]
             statement = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
                                [GlobalVarAssignStatement(
                                    map_dec,
@@ -130,7 +130,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
             rule : PartyNextActionRule
             if kw == 'may-later':
                 rule = PartyNextActionRule(sec.section_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'may'))
-                params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in range(len(action.params))]
+                params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in range(len(action.param_names))]
                 rule.time_constraint =  FnApp("tdGEQ",
                                              [map_var,
                                               FnApp('tuple', params),
@@ -155,7 +155,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
                 rule = PartyNextActionRule(sec.section_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'obligation-options-include'))
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
-                          range(len(action.params))]
+                          range(len(action.param_names))]
                 rule.time_constraint = FnApp("tdGEQ",
                                              [map_var,
                                               FnApp('tuple', params),

@@ -26,7 +26,7 @@ class BoundVar(Term):
         raise NotImplementedError
 
 class RuleBoundActionParam(BoundVar):
-    def __init__(self, _name:RuleBoundActionParamId, conn: 'ActionRule', ind:int) -> None:
+    def __init__(self, _name:RuleBoundActionParamId, conn: ActionRule, ind:int) -> None:
         super().__init__()
         self.action_rule = conn
         self._name = _name
@@ -38,7 +38,7 @@ class RuleBoundActionParam(BoundVar):
 
 
 class ActionBoundActionParam(BoundVar):
-    def __init__(self, _name:ActionBoundActionParamId, action: 'Action', ind:int) -> None:
+    def __init__(self, _name:ActionBoundActionParamId, action: Action, ind:int) -> None:
         super().__init__()
         self.action = action
         self._name = _name

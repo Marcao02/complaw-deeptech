@@ -9,8 +9,8 @@
 (TimeUnit d)
 
 (ContractParams
-	(CONTRACT_START : Date := 0)
-	(DELIVERY_DEADLINE : Date := 10)
+	(CONTRACT_START : TimeDelta := 0)
+	(DELIVERY_DEADLINE : TimeDelta := 10)
 	; (CONTRACT_START : Date := "2010-12-30")
 	; (DELIVERY_DEADlINE : Date := "2011-01-01")
 )
@@ -19,7 +19,7 @@
 (GlobalVars
 	(nonoperative buyer_paid : ℕ := 0)
 	(nonoperative seller_refunded : ℕ := 0)
-	(writeonce delivery_date : DateTime)
+	(writeonce delivery_date : TimeDelta)
 )
 
 (ProseContract
@@ -55,16 +55,16 @@
 		)
 		(FollowingSection
 			(Next
-				(Buyer should Pay2ndInstallment (next_event_td ≤ (30 + delivery_date)))
-				(Buyer may ReturnOnTime (next_event_td ≤ (14 + delivery_date)))
-				(EnterLate2ndInstallment (next_event_td > (30 + delivery_date)))
+				(Buyer should Pay2ndInstallment (next_event_td ≤ (30d + delivery_date)))
+				(Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date)))
+				(EnterLate2ndInstallment (next_event_td > (30d + delivery_date)))
 			)
 		)
 	)
 
 	(Action EnterLate2ndInstallment [ProseRefs P4]
 		(FollowingSection
-			(Next (Buyer must PayLateFee (next_event_td ≤ (44 + delivery_date))))
+			(Next (Buyer must PayLateFee (next_event_td ≤ (44d + delivery_date))))
 		)
 	)
 
@@ -75,15 +75,15 @@
 		)
 		(FollowingSection
 			(Next
-				(Buyer may ReturnOnTime (next_event_td ≤ (14 + delivery_date)))
-				(CompleteNormalSale (next_event_td > (14 + delivery_date)))
+				(Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date)))
+				(CompleteNormalSale (next_event_td > (14d + delivery_date)))
 			)
 		)
 	)
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSection
-			(Next (Seller must DeliverRefund (next_event_td ≤ (7 + sectionEntrance_td))))
+			(Next (Seller must DeliverRefund (next_event_td ≤ (7d + sectionEntrance_td))))
 		)
 	)
 

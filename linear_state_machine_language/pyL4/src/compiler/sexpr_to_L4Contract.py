@@ -3,6 +3,7 @@ from typing import Callable, Tuple
 
 from mypy_extensions import NoReturn
 
+from src.compiler.SourceCoord import SourceCoord
 from src.compiler.SExpr import SExprOrStr
 from src.compiler.parse_sexpr import castse, STRING_LITERAL_MARKER
 from src.correctness_checks import L4ContractConstructorInterface
@@ -125,9 +126,22 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         # floating_rules_transpile_away(self.top)
         return self.top
 
+    def _mk_sort(self, x:SExprOrStr) -> Sort:
+        sort: Sort
+        if isinstance(x,str):
+            sort = normalize_sort(castid(SortId,x))
+        else:
+            assert len(x) == 2 and x[0] == STRING_LITERAL_MARKER
+            assert x[1] in AllSorts
+            sort = self._mk_sort(x[1])
+        self.top.sorts.add(sort)
+        assert sort is not None
+        return sort
+
+
     def _mk_contract_param(self, expr) -> ContractParamDec:
         self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : sort := term)" )
-        sort = normalize_sort(expr[2])
+        sort = self._mk_sort(expr[2])
         return ContractParamDec(expr[0], sort, self._mk_term(expr[4]))
 
     def _mk_global_vars(self, l:SExpr) -> Dict[GlobalVarId, GlobalVarDec]:
@@ -143,8 +157,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     else:
                         break
                 name = cast(GlobalVarId, chcaststr(dec[i]))
-                sort = normalize_sort( cast(SortId, chcaststr(dec[i + 2])) )
-                self.top.sorts.add(sort)
+                sort = self._mk_sort(chcaststr(dec[i + 2]))
 
                 initval : Optional[Term] = None
                 if i+3 < len(dec) and (dec[i+3] == ':=' or dec[i+3] == '='):
@@ -290,9 +303,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         dest_section_id = None
         x: SExpr
         if params_sexpr is not None: #isinstance(params_sexpr, SExpr):
-            a.param_types = self._mk_action_params(params_sexpr)
-            a.params = [castid(ActionBoundActionParamId,y[0]) for y in params_sexpr]
-            a.param_name_to_ind = { a.params[i]: i for i in range(len(a.params)) }
+            a.param_sorts_by_name = self._mk_action_params(params_sexpr)
+            a.param_names = [castid(ActionBoundActionParamId, y[0]) for y in params_sexpr]
+            a.param_name_to_ind = {a.param_names[i]: i for i in range(len(a.param_names))}
         for x in rest:
             def head(constant:str) -> bool:
                 nonlocal x
@@ -364,13 +377,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def _mk_action_params(self, parts:List[List[str]]) -> ParamsDec:
         pdec : List[str]
+        rv : ParamsDec = dict()
         for pdec in parts:
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
-            sort = normalize_sort(castid(SortId,pdec[2]))
-            self.top.sorts.add(sort)
+            sort = self._mk_sort(pdec[2])
+            rv[castid(ActionBoundActionParamId,pdec[0])] = sort
 
-        rv = {castid(ActionBoundActionParamId,pdec[0]) : normalize_sort(castid(SortId,pdec[2])) for pdec in parts}
-        # logging.info(str(rv))
         return rv
 
     def _mk_global_state_transform(self, statements:List[SExpr], a:Action) -> GlobalStateTransform:
@@ -390,7 +402,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type = term) or := instead of =')
                 self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
                                           'Local var dec should have form (local name : type = term)  or := instead of =')
-                sort = normalize_sort(chcaststr(statement[3]))
+                sort = self._mk_sort(statement[3])
                 rhs = self._mk_term(statement[5], parent_action=parent_action)
                 varname = castid(StateTransformLocalVarId,statement[1])
                 lvd = StateTransformLocalVarDec(varname, rhs, sort)
@@ -458,6 +470,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if prog:
             if x in AllSorts:
                 return SortLit(x)
+            y = normalize_sort(x)
+            if y in AllSorts:
+                return SortLit(y)
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 
@@ -493,7 +508,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
                                             parent_action_rule.args_name_to_ind[castid(RuleBoundActionParamId,x)])
 
-            if parent_action and x in parent_action.param_types:
+            if parent_action and x in parent_action.param_sorts_by_name:
                 assert parent_action.param_name_to_ind is not None
                 return ActionBoundActionParam(cast(ActionBoundActionParamId, x), parent_action,
                                               parent_action.param_name_to_ind[castid(ActionBoundActionParamId,x)])
@@ -534,12 +549,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     fnsymb = self.top.fnsymbs[fnsymb_name]
                     return FnApp(
                         fnsymb,
-                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]]
+                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]],
+                        SourceCoord(x.line, x.col)
                     )
                 else:
                     rv = FnApp(
                         fnsymb_name,
-                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]]
+                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]],
+                        SourceCoord(x.line,x.col)
                     )
                     self.top.fnsymbs[fnsymb_name] = rv.fnsymb
                     return rv
@@ -565,7 +582,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 # return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
                 rv = FnApp(
                     pair[0],
-                    [self._mk_term(arg, src_section, src_action, parent_action_rule, expr) for arg in pair[1]]
+                    [self._mk_term(arg, src_section, src_action, parent_action_rule, expr) for arg in pair[1]],
+                    SourceCoord(expr.line, expr.col)
                 )
                 # print("$ " + str(rv))
                 return rv

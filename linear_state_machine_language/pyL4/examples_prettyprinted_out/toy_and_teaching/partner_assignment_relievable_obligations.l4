@@ -7,8 +7,8 @@ contract params:
     DUE_TD : TimeDelta := 40
 
 global vars:
-    probAsolved : boolean := False
-    probBsolved : boolean := False
+    probAsolved : Bool := False
+    probBsolved : Bool := False
 
 section WorkingOnAssignment:
     Alice obligation-options-include SolveProbA (next_event_td ≤ DUE_TD)

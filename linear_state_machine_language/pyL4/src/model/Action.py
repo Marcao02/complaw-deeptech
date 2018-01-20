@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Iterator
+from typing import Optional, Dict, List, Iterator, Union
 
 from src.compiler.SExpr import SExpr
 from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
@@ -9,6 +9,7 @@ from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec, G
 from src.model.Section import Section, ParamsDec
 from src.model.Term import Term
 from src.util import mapjoin, indent, castid, todo_once
+from src.typesystem.Sorts import Sort
 
 todo_once("No references to SExpr.py in src/model")
 class Action:
@@ -30,9 +31,16 @@ class Action:
 
         self.futures : List[PartyFutureActionRule] = []
 
-        self.param_types: ParamsDec = dict()  # str param id -> str sort id
-        self.params : List[ActionBoundActionParamId] = []
+        self.param_sorts_by_name: ParamsDec = dict()  # str param id -> str sort id
+        self.param_names : List[ActionBoundActionParamId] = []
         self.param_name_to_ind : Dict[ActionBoundActionParamId,int] = dict()
+
+    def param_sort(self, ind_or_name:Union[str,int]) -> Sort:
+        if isinstance(ind_or_name,str):
+            return self.param_sorts_by_name[castid(ActionBoundActionParamId,ind_or_name)]
+        if isinstance(ind_or_name,int):
+            return self.param_sorts_by_name[self.param_names[ind_or_name]]
+
 
     def state_transform_statements(self) -> Iterator[GlobalStateTransformStatement]:
         if self.global_state_transform:
@@ -42,7 +50,7 @@ class Action:
     def add_action_rule(self, far:PartyFutureActionRule) -> None:
         self.futures.append(far)
 
-    def action_rules(self) -> Iterator[PartyFutureActionRule]:
+    def future_action_rules(self) -> Iterator[PartyFutureActionRule]:
         return self.futures.__iter__()
 
     def __str__(self) -> str:
@@ -50,8 +58,8 @@ class Action:
 
     def toStr(self,i:int) -> str:
         rv = indent(i) + f"action {self.action_id}"
-        if self.param_types:
-            rv += '(' + ", ".join(param + ": " + self.param_types[param] for param in self.param_types) + ')'
+        if self.param_sorts_by_name:
+            rv += '(' + ", ".join(param + ": " + str(self.param_sorts_by_name[param]) for param in self.param_sorts_by_name) + ')'
         else:
             rv += "() " # makes it look better with python syntax highlighting
         if self.dest_section_id != LOOP_KEYWORD:
@@ -69,7 +77,7 @@ class Action:
         if self.global_state_transform:
             rv += str(self.global_state_transform) + "\n"
 
-        for t in self.action_rules():
+        for t in self.future_action_rules():
             rv += t.toStr(i + 1) + "\n"
 
         for pre in self.postconditions:
