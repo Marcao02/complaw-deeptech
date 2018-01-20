@@ -45,7 +45,8 @@ class StrictSubtypesGraph:
                         reduced_set.remove(v)
                     # else:
                     #     print(f"{u},{v} is not an edge")
-        assert len(reduced_set) <= 1, "This sort set generated from code did not reduce to a single sort:\n" + str(reduced_set)
+        if len(reduced_set) > 1:
+            raise Exception("This sort set generated from code did not reduce to a single sort:\n" + str(reduced_set))
         return reduced_set.pop() if len(reduced_set) == 1 else None
 
     def transitivelyClose(self) -> None:

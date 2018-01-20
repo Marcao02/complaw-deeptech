@@ -8,15 +8,6 @@ from src.typesystem.FnTypes import OverloadedFnType, NonoverloadedFnType, Simple
 from src.typesystem.reducers import flatten_fntype_data, print_types_map, build_graph, eliminate_unbounded_arity
 
 
-standard_types_graph = build_graph()
-
-def sub(s1:Sort,s2:Sort) -> bool:
-    if s1 == s2:
-        return True
-    if s1 == 'Any':
-        print(f"warning: return true on check Any ⊆ {s2}")
-        return True
-    return standard_types_graph.hasEdge(s1,s2)
 
 def abr_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
     return ('aafn', dom, ran)
@@ -50,6 +41,7 @@ def list_parametric_mult(tps:Sequence[Sequence[Any]], substitutions:Sequence[Dic
     return rv
 
 
+todo_once("Strengthen polymorphic types")
 
 overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td'), sfntype(TimeDelta)),
@@ -57,7 +49,13 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
 
     # TODO strengthen types
     (('tuple',), sfntype('Any','Any','Any')),
+    (('tupleGet',), sfntype(('Tuple','Any','Any'),'{0,1}','Any')),
+
     (('mapSet',), sfntype(('TDMap', 'Any'), 'Any','TimeDelta', ('TDMap', 'Any'))),
+    (('tdGEQ',), sfntype(('TDMap', 'Any'), 'Any','TimeDelta', 'Bool')),
+    (('mapDelete'), sfntype(('TDMap', 'Any'), 'Any', ('TDMap', 'Any'))),
+    (('mapHas'), sfntype(('TDMap', 'Any'), 'Any', 'Bool')),
+    (('nonempty','empty'), sfntype(('TDMap', 'Any'), 'Bool')),
 
     (('≤', '≥', '<', '>'), (
         abr_arity_fntype(Real, Bool),
@@ -122,7 +120,7 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
 
     (('/',), (sfntype(PosTimeDelta, PosTimeDelta, PosReal),
               sfntype(TimeDelta, PosTimeDelta, NonnegReal),
-              sfntype(PosInt, Nat, PosInt),
+
               )
 
      ),
@@ -190,15 +188,3 @@ def makeNiceFnTypeMap() -> Dict[str,OverloadedFnType]:
 
 fntypes_map = makeNiceFnTypeMap()
 
-
-for num1 in UnboundedNumericSorts:
-    for num2 in UnboundedNumericSorts:
-        if not sub(num1,num2):
-            continue
-        for den1 in [PosReal,PosInt]:
-            for den2 in [PosReal,PosInt]:
-                if not sub(den1,den2):
-                    continue
-                standard_types_graph.addEdge(NonatomicSort('Rate',(num1,den1)), NonatomicSort('Rate',(num2,den2)))
-
-print("\n" + str(standard_types_graph))

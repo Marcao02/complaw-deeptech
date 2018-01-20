@@ -14,7 +14,7 @@ from src.model.Term import Term, FnApp
 from src.typesystem.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType, Optional
 from src.typesystem.Sorts import Sort
 from src.typesystem.StrictSubtypesGraph import StrictSubtypesGraph
-from src.typesystem.standard_types import standard_types_graph, sub
+from src.typesystem.standard_subtype_graph import standard_types_graph, sub
 from src.util import todo_once
 from src.typesystem.L4TypeErrors import *
 
@@ -110,14 +110,12 @@ class TypeChecker:
                 raise L4TypeInferError(t, f"Function symbol {fnsymb} has no type.")
         elif isinstance(t,Literal):
             if isinstance(t,IntLit):
-                # if t.lit == 0:
-                #     return "{0}"
-                # elif t.lit == 1:
-                #     return "{1}"
-                if t.lit > 0:
+                if t.lit == 0:
+                    return "{0}"
+                elif t.lit == 1:
+                    return "{1}"
+                elif t.lit > 0:
                     return "PosInt"
-                elif t.lit == 0:
-                    return "Nat"
                 else:
                     return "Int"
             elif isinstance(t,FloatLit):
