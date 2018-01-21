@@ -1,4 +1,4 @@
-from typing import Dict, Set
+from typing import Dict, Set, List
 
 from src.typesystem.Sorts import *
 from src.util import mapjoin
@@ -32,7 +32,7 @@ NonoverloadedFnType = Union[SimpleFnType,ArbArityFnType]
 
 
 class OverloadedFnType(NamedTuple):
-    parts: Tuple[NonoverloadedFnType,...]
+    parts: List[NonoverloadedFnType]
     range_memo: Dict[SortTuple, Sort]
     illtyped_memo: Set[Tuple[Sort, ...]]
 

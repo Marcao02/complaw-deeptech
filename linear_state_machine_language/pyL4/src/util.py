@@ -55,6 +55,13 @@ def dictSetOrInc(d:Dict[S,int], key:S, init:int ) -> None:
     else:
         d[key] = init
 
+# def dictSetOrAdd(d:Dict[S,Set[T]], key:S, val:T) -> None:
+def dictSetOrAdd(d: Dict[Any, Set[T]], key: Any, val: T) -> None:
+    if key in d:
+        d[key].add(val)
+    else:
+        d[key] = {val}
+
 def writeFile(path:str, contents:str) -> None:
     f = open(path, 'w', encoding='utf8')
     f.write(contents)

@@ -32,6 +32,10 @@ def add_derived(graph:TransitivelyClosedDirectedGraph[Sort]):
                 continue
             graph.addEdge(SApp('Tuple',S,S), SApp('Tuple',T,T))
 
+    # for copied_sort in all_sort_copies_by_orig:
+    #     for acopy in all_sort_copies_by_orig[copied_sort]:
+    #         graph.addEdge(acopy, copied_sort)
+
 subtypes_data : Tuple[Tuple[Sort,...],...] = (
     (PosTimeDelta, TimeDelta),
     ("{0}","[0,1)"),

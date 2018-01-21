@@ -4,7 +4,7 @@ from src.typesystem.Sorts import *
 from src.util_for_sequences import nested_list_replace, nested_list_replace_mult
 from src.typesystem.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType
 from src.typesystem.reducers import flatten_fntype_data, print_types_map, eliminate_unbounded_arity
-
+from typesystem.standard_subtype_graph import standard_types_graph
 
 
 def arb_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
@@ -58,12 +58,13 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
 
     (('≤', '≥', '<', '>'), (
         arb_arity_fntype(Real, Bool),
+        arb_arity_fntype(PosReal, Bool),
         arb_arity_fntype(TimeDelta, Bool),
         arb_arity_fntype(DateTime, Bool) )),
     (('==',),                 parametric(arb_arity_fntype(T, Bool))),
     (('!=',),                 parametric(sfntype(T, T, Bool))),
     (('ifthenelse',),         parametric(sfntype(Bool, T, T, T))),
-    (('min','max','+','*') ,  parametric(arb_arity_fntype(T, T), UnboundedNumericSorts.union({TimeDelta}))),
+    (('min','max','+','*') ,  parametric(arb_arity_fntype(T, T), UnboundedNumericSorts.union({TimeDelta}).union(BoundedNumericSorts))),
     # temp hack:
     (('min','max','+','*') ,  parametric_mult(arb_arity_fntype(('Rate', N, D), ('Rate', N, D)), (
                                               {'NVar':PosReal,'DVar':PosInt},
@@ -93,7 +94,7 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('*',), list_parametric_mult( [sfntype(('Rate', N, D), T, ('Rate',N,D)), sfntype(T, ('Rate', N, D), ('Rate',N,D))], (
                 {'NVar':PosReal,'DVar':PosInt, 'TVar':PosReal},  # temp hack
     ))),
-    (('*',), parametric(arb_arity_fntype(T, T), BoundedNumericSorts)),
+    # (('*',), parametric(arb_arity_fntype(T, T), BoundedNumericSorts)),
 
     (('-',),                  parametric(sfntype(T, T, T), (Int, Real, TimeDelta))),
 
@@ -181,9 +182,72 @@ def nonoverloaded_fntype_data_to_object(data:Any) -> NonoverloadedFnType:
 def makeNiceFnTypeMap() -> Dict[str,OverloadedFnType]:
     fntype_map : Dict[str,OverloadedFnType] = dict()
     for f in fntype_data_map:
-        fntype_map[f] = OverloadedFnType( tuple(nonoverloaded_fntype_data_to_object(datapart) for datapart in fntype_data_map[f]),
+        fntype_map[f] = OverloadedFnType( [nonoverloaded_fntype_data_to_object(datapart) for datapart in fntype_data_map[f]],
                                           dict(), set())
     return fntype_map
 
 fntypes_map = makeNiceFnTypeMap()
+
+
+def isSimpleNumericFnType(ft:NonoverloadedFnType) -> bool:
+    if isinstance(ft,ArbArityFnType):
+        return ft.dom in AllNumericSorts and ft.dom == ft.ran
+    if isinstance(ft,SimpleFnType):
+        solesort = ft.ran
+        return solesort in AllNumericSorts and all(ft.dom[i] == solesort for i in range(len(ft.dom)))
+
+def copy_sft_if_allowed(ft:NonoverloadedFnType) -> Iterable[NonoverloadedFnType]:
+    if not isSimpleNumericFnType(ft):
+        return []
+    solesort = ft.ran
+    if solesort not in all_sort_copies_by_orig:
+        return []
+
+    ft_copies : List[NonoverloadedFnType] = []
+    # for candidate_supersort in all_sort_copies_by_orig:
+    #     if standard_types_graph.hasEdge(solesort, candidate_supersort):
+    for sort1 in all_sort_copies_by_orig[solesort]:
+        if isinstance(ft, ArbArityFnType):
+            ft_copies.append( ArbArityFnType(sort1,sort1) )
+        if isinstance(ft, SimpleFnType):
+            ft_copies.append( SimpleFnType(tuple(sort1 for inst in ft_copies)) )
+    return ft_copies
+
+for fnsymb,oft in fntypes_map.items():
+    new_nofts : List[NonoverloadedFnType] = []
+    for noft in oft.parts:
+        print(noft)
+        new_nofts.extend(copy_sft_if_allowed(noft))
+    if len(new_nofts) > 0:
+        print("some new ones")
+        oft.parts.extend(new_nofts)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
