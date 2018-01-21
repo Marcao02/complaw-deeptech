@@ -1,7 +1,9 @@
+from typing import List, Sequence
+
 from compiler.parse_sexpr import parse_file
 from compiler.sexpr_to_L4Contract import L4ContractConstructor
 from typesystem.reducers import eliminate_unbounded_arity, print_types_map
-from typesystem.standard_types import fntypes_map
+from typesystem.standard_function_types import fntypes_map
 from typesystem.typecheck import typecheck_prog
 
 EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
@@ -21,18 +23,9 @@ EXAMPLES_TO_TYPECHECK = [
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
 
     'serious/SAFE.l4',
+    'serious/SAFE_2_liq_eventtypes.l4',
     'serious/KISS.l4',
 ]
-
-for filename in EXAMPLES_TO_TYPECHECK:
-    msg = f"Example {filename}:"
-    print(f"\n{'-'*len(msg)}\n{msg}")
-    in_path = EXAMPLES_SEXPR_ROOT + filename
-    parsed = parse_file(in_path)
-    prog = L4ContractConstructor(filename).mk_l4contract(parsed)
-    typecheck_prog(prog)
-    print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
-
 
 def test_eliminate_unbounded_arity():
 
@@ -40,3 +33,18 @@ def test_eliminate_unbounded_arity():
                                '≤': {2, 3}, '<': {2, 3}, '>': {2, 3},
                                '≥': {2, 3}, '==': {2}, '+': {2, 3}}, fntypes_map)
     print_types_map(fntypes_map)
+
+
+def main(sys_argv:Sequence[str]):
+    for filename in EXAMPLES_TO_TYPECHECK:
+        msg = f"Example {filename}:"
+        print(f"\n{'-'*len(msg)}\n{msg}")
+        in_path = EXAMPLES_SEXPR_ROOT + filename
+        parsed = parse_file(in_path)
+        prog = L4ContractConstructor(filename).mk_l4contract(parsed)
+        typecheck_prog(prog)
+        print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
+
+if __name__ == '__main__':
+    import sys
+    main(sys.argv)

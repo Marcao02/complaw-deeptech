@@ -1,5 +1,4 @@
-from typing import Any, List, Tuple, NamedTuple, Dict, Sequence, Optional, Union, NewType, Set, cast
-
+from typing import Any, List, Tuple, NamedTuple, Dict, Sequence, Optional, Union, NewType, Set, cast, Iterable
 
 from src.typesystem.Sorts import *
 from src.util_for_sequences import nested_list_replace, nested_list_replace_mult
@@ -22,16 +21,16 @@ D = 'DVar'
 R = 'RVar'
 typevars = {T,N,D,R}
 
-def parametric(tp:Sequence[Any], substitutions:Sequence[Any] = AllSortData, var:str = T) -> Sequence[Any]:
+def parametric(tp:Sequence[Any], substitutions:Iterable[Any] = AllSortData, var:str = T) -> Sequence[Any]:
     # print(substitutions)
     return  [ nested_list_replace(tp, var, primtype) for primtype in substitutions ]
 
-def parametric_mult(tp:Sequence[Any], substitutions:Sequence[Dict[str,Any]]) -> Sequence[Any]:
+def parametric_mult(tp:Sequence[Any], substitutions:Iterable[Dict[str,Any]]) -> Sequence[Any]:
     # print(substitutions)
     assert all(all(v in typevars for v in subst) for subst in substitutions)
     return  [ nested_list_replace_mult(tp, subst) for subst in substitutions ]
 
-def list_parametric_mult(tps:Sequence[Sequence[Any]], substitutions:Sequence[Dict[str,Any]]) -> Sequence[Any]:
+def list_parametric_mult(tps:Iterable[Sequence[Any]], substitutions:Iterable[Dict[str,Any]]) -> Sequence[Any]:
     # print(substitutions)
     lists = [[ nested_list_replace_mult(tp, subst) for subst in substitutions ] for tp in tps]
     rv = []

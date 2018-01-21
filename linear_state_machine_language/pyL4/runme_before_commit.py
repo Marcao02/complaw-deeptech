@@ -1,6 +1,7 @@
 import os
 import sys
 
+import test_typechecker
 from src.util import print_all_todos
 
 
@@ -28,10 +29,12 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), "Some entries of test_interpreter.EXAMPLES_TO_RUN are probably commented out"
 
     test_interpreter.main(sys.argv)
-    # runit("python3.6 src/interpreter.py")
+    test_typechecker.main(sys.argv)
 
     print_all_todos()
 
 # runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
 runit("export MYPYPATH=.; mypy src", "typechecker")
+
+
 

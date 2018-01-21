@@ -459,7 +459,7 @@ EXAMPLES_TO_RUN = [
     ]
 
 # so can run it as a library too, which respects exceptions
-def main(sys_argv:List[str]):
+def main(sys_argv:Sequence[str]):
 
     for trace in traces:
         subpath = trace[0]
