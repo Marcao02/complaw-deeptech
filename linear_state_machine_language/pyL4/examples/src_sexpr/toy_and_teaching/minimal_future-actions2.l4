@@ -14,12 +14,12 @@
 		(possibly-from-earlier I must-later Catch)
 	]
 
-	[Action [Throw [n : ℕ]]		[TransitionsTo Ongoing]
+	[Action [Throw [n : Nat]]		[TransitionsTo Ongoing]
 		[Future
 			[I must-later [Catch n] no_time_constraint]
 		]
 	]
 
-	[Action [Catch [n : ℕ]] [TransitionsTo Ongoing]]
+	[Action [Catch [n : Nat]] [TransitionsTo Ongoing]]
 	[Action EnterFulfilled [TransitionsTo Fulfilled]]
 ]

@@ -2,7 +2,7 @@
 (Roles I)
 
 (GlobalVars
-	(n : ℕ = 0)
+	(n : Nat = 0)
 )
 
 (TimeUnit d)
@@ -42,6 +42,6 @@
 		)
 		(TransitionsTo Ongoing)
 	)
-	(Action (Catch (m : ℕ)) (TransitionsTo Ongoing))
+	(Action (Catch (m : Nat)) (TransitionsTo Ongoing))
 	(Action EnterFulfilled)
 )

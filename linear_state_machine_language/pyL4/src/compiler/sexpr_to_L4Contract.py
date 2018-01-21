@@ -164,7 +164,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     else:
                         break
                 name = cast(GlobalVarId, chcaststr(dec[i]))
-                sort = self._mk_sort(chcaststr(dec[i + 2]))
+                sort = self._mk_sort(dec[i + 2])
 
                 initval : Optional[Term] = None
                 if i+3 < len(dec) and (dec[i+3] == ':=' or dec[i+3] == '='):

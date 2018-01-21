@@ -62,7 +62,7 @@
 [TimeUnit d]
 
 [ContractParams
-    [MAX_UNITS : ℕ := 1000]
+    [MAX_UNITS : Nat := 1000]
     [CONTRACT_LIFE : TimeDelta := 365d]
     [PRICE_PER_UNIT : Nat := 100]
 ]
@@ -72,8 +72,8 @@
 ]
 
 [GlobalVars
-    [ inconly next_order_id : ℕ = 0 ]
-    [ inconly units_ordered : ℕ = 0 ]
+    [ inconly next_order_id : Nat = 0 ]
+    [ inconly units_ordered : Nat = 0 ]
     [ writeonce order_period_ends : TimeDelta = [contractStart_td + CONTRACT_LIFE]]
 
 
@@ -81,14 +81,14 @@
     ; variables cannot affect program execution. They would only be used
     ; for verification conditions [which we haven't done in this example
     ; yet].
-    [ nonoperative inconly units_delivered : ℕ = 0 ]
-    [ nonoperative inconly units_invoiced : ℕ = 0 ]
-    [ nonoperative inconly total_paid : ℕ = 0 ]
+    [ nonoperative inconly units_delivered : Nat = 0 ]
+    [ nonoperative inconly units_invoiced : Nat = 0 ]
+    [ nonoperative inconly total_paid : Nat = 0 ]
 
 
     ; THESE SHOULD BE LOCAL VARIABLES:
     [this_delivery_deadline : TimeDelta]
-    [this_orderid : ℕ]
+    [this_orderid : Nat]
 ]
 
 [Roles Customer Vendor]
@@ -157,7 +157,7 @@
         [possibly-from-earlier Vendor may-later EmailInvoice]
     ]
 
-    [Action [SubmitNewOrder [quantity : ℕ]]
+    [Action [SubmitNewOrder [quantity : Nat]]
         ; When {Customer} submits a new order for {quantity} printers:
         ;   - {delivery_deadline} is defined to be the later of:
         ;       - 14 days after the order submission
@@ -191,7 +191,7 @@
 
     ]
 
-    [Action [Deliver [quantity : ℕ] [orderid : ℕ]]
+    [Action [Deliver [quantity : Nat] [orderid : Nat]]
         ; When {Vendor} delivers an order for {quantity} units:
         ;   - {units_delivered} is increased by {quantity}.
         ;   - then, {Vendor} may later, within 30 days, send an invoice for the order.
@@ -209,7 +209,7 @@
         ]
     ]
 
-    [Action [EmailInvoice [quantity : ℕ] [orderid : ℕ]]
+    [Action [EmailInvoice [quantity : Nat] [orderid : Nat]]
         ; When {Vendor} sends an invoice for {quantity} units:
         ;   - {units_invoiced} is increased by {quantity}.
         ;   - then, {Customer} must later, within 14 days, pay for the order.
@@ -226,7 +226,7 @@
 
     ]
 
-    [Action [PayBill [quantity : ℕ] [orderid : ℕ]]
+    [Action [PayBill [quantity : Nat] [orderid : Nat]]
         ; When {Customer} pays the bill for an order of {quantity} units:
         ;   - {total_paid} is increased by {quantity}*{PRICE_PER_UNIT}.
         [0 ≤ traversals ≤ nonconstant]

@@ -4,7 +4,7 @@
 
 (ContractParams
 	(LEASE_DURATION : TimeDelta := (days (4 * 29))) ;  approx 4 months
-	(RENT : ℕ = 1000)
+	(RENT : Nat = 1000)
 	(MAX_RENT_DELAY : TimeDelta := 7D) ; 7 days
 	(MIN_TERMINATION_NOTICE : TimeDelta := 30D) ; approx 1 month
 )
@@ -18,7 +18,7 @@
 	(lease_term_start : TimeDelta )		; formerly never : Date
 	(lease_term_end : TimeDelta )		; formerly never : Date
 	(writeOnceMore lease_terminated : Bool := false)
-	(branchUnaffecting inconly total_rent_paid : ℕ := 0)   )
+	(branchUnaffecting inconly total_rent_paid : Nat := 0)   )
 
 (Macro RequestTerminationActionRuleMacroTenant SectionId
 	(if (not lease_terminated)

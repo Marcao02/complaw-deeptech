@@ -2,7 +2,7 @@
 (Roles I)
 
 (GlobalVars
-	(n : ℕ = 3)
+	(n : Nat = 3)
 )
 
 (TimeUnit d)
@@ -18,8 +18,8 @@
 
 	(Action DoIt
 		(StateTransform
-			(local x : ℕ = (n * n))
-			(local y : ℕ = (x * x))
+			(local x : Nat = (n * n))
+			(local y : Nat = (x * x))
 		)
 		(FollowingSection
 			(Next
@@ -28,7 +28,7 @@
 		)
 	)
 
-	(Action (FinishIt (z : ℕ))
+	(Action (FinishIt (z : Nat))
 		(StateTransform
 			(n = z)
 		)

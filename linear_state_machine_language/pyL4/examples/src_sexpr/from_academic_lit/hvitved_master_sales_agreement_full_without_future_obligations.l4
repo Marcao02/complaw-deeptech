@@ -2,7 +2,7 @@
 (Roles Customer Vendor)
 
 (ContractParams
-	(MAX_UNITS : ℕ := 1000)
+	(MAX_UNITS : Nat := 1000)
 	(CONTRACT_LIFE : TimeDelta := 52W)
 	(PRICE_PER_UNIT : $ := 100)
 )
@@ -12,14 +12,14 @@
 	( writeonce order_period_ends : TimeDelta := CONTRACT_LIFE )
 	( furthest_invoice_deadline : TimeDelta := 0D )
 
-	( inconly next_order_id : ℕ := 0 )
+	( inconly next_order_id : Nat := 0 )
 	( 2Bdelivered : TDMap_Order := (emptyTDMap) )
 	( 2Binvoiced : TDMap_Order := (emptyTDMap) )
 	( 2Bpaid : TDMap_Order := (emptyTDMap) )
 
-	( nonoperative inconly units_ordered : ℕ := 0 )
-	( nonoperative inconly units_delivered : ℕ := 0 )
-	( nonoperative inconly units_invoiced : ℕ := 0 )
+	( nonoperative inconly units_ordered : Nat := 0 )
+	( nonoperative inconly units_delivered : Nat := 0 )
+	( nonoperative inconly units_invoiced : Nat := 0 )
 	( nonoperative inconly total_paid : $ := 0 )
 )
 
@@ -27,8 +27,8 @@
 	(orderable_units := (MAX_UNITS - units_ordered))
 
 	; either ids (approach taken here) or ordering are necessary to correctly handle the case when there are two orders on the same day for the same quantity.
-	(Id := ℕ)
-	(Order := [Tuple ℕ Id])
+	(Id := Nat)
+	(Order := [Tuple Nat Id])
 
 )
 
@@ -46,7 +46,7 @@
 
 ; ignored currently:
 (VerificationDefinition (
-	∀ (k : ℕ) (
+	∀ (k : Nat) (
 		(UpperBoundOnDaysBtwDeliverAndInvoice k)
 		iff
 		(
@@ -69,12 +69,12 @@
 
 ; ignored currently:
 (Claims (
-	∀ (k : ℕ) (
+	∀ (k : Nat) (
 		(UpperBoundOnDaysBtwDeliverAndInvoice k)
 		⇒
 		(
 			∀ (d : Date) (
-				∀ (n : ℕ) (
+				∀ (n : Nat) (
 					(n = (units_delivered d))
 					⇒
 					(
@@ -146,7 +146,7 @@
 	(Action [Deliver (order : Order)]
 		(StateTransform
 			( conjecture (mapHas 2Bdelivered order) )
-			( local quantity : ℕ := (tupleGet order 0) )
+			( local quantity : Nat := (tupleGet order 0) )
 			( units_delivered += quantity )
 			( 2Bdelivered := (mapDelete 2Bdelivered order) )
 			( local invoice_deadline : TimeDelta := (event_td + 30D) )
@@ -161,7 +161,7 @@
 	(Action [EmailInvoice (order : Order)]
 		(StateTransform
 			( conjecture (mapHas 2Binvoiced order) )
-			( local quantity : ℕ := (tupleGet order 0) )
+			( local quantity : Nat := (tupleGet order 0) )
 			( units_invoiced += quantity )
 			( 2Binvoiced := (mapDelete 2Binvoiced order) )
 			( 2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14D) ) )
@@ -174,7 +174,7 @@
 	(Action [PayBill (order : Order)]
 		(StateTransform
 			( conjecture (mapHas 2Bpaid order) )
-			( local quantity : ℕ := (tupleGet order 0) )
+			( local quantity : Nat := (tupleGet order 0) )
 			( total_paid += (quantity * PRICE_PER_UNIT) )
 			( 2Bpaid := (mapDelete 2Bpaid order) )
 		)

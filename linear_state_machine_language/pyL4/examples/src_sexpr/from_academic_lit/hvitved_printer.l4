@@ -17,8 +17,8 @@
 
 
 (GlobalVars
-	(nonoperative buyer_paid : ℕ := 0)
-	(nonoperative seller_refunded : ℕ := 0)
+	(nonoperative buyer_paid : Nat := 0)
+	(nonoperative seller_refunded : Nat := 0)
 	(writeonce delivery_date : TimeDelta)
 )
 

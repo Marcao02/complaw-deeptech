@@ -21,9 +21,10 @@ def SApp(symb:str, *args:Any) -> NonatomicSort:
 
 todo_once("this is temporary too")
 TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
-    'ℚ': Real,
-    'ℕ': Nat,
+    
     '$': NonnegReal,
+    # '$': Copy(NonnegReal,"$"),
+
     'Pos$': PosReal,
     # 'Pos$': Copy(PosReal,'Pos$'),
 
@@ -38,8 +39,6 @@ TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
     # 'Order' : Copy(SApp('Tuple', Nat, Nat),'Order'),
     'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),
     # 'TDMap_Order': SApp('TDMap', Copy(SApp('Tuple',Nat,Nat),'Order')),
-
-    '%': "[0,1]"
 }
 
 all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()

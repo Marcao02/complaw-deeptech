@@ -21,8 +21,8 @@
 (Roles ISP Client)
 
 (ContractParams
-	(HIGH_USAGE_FEE : ℕ := 10)
-	(HOURS_PARAM : ℕ := 24)
+	(HIGH_USAGE_FEE : Nat := 10)
+	(HOURS_PARAM : Nat := 24)
 )
 
 (TimeUnit H)
@@ -44,7 +44,7 @@
 	( unsettled_infraction : Bool = false )
 	( usage_level_normal : Bool = true )
 	( sent_delay_email : Bool = false ) ; sent delay-payment-notification email within 24H of infraction.
-	( paid : ℕ := 0 )
+	( paid : Nat := 0 )
 	( paidBefore24 : Bool = false )
 
 	; next var meaningful only when usage_level_normal is true
@@ -117,7 +117,7 @@
 		(StateTransform (sent_delay_email := true) )
 	)
 
-	(Action (Pay (x : ℕ)) (AllowedSubjects Client) (TransitionsTo UnsettledInfraction)
+	(Action (Pay (x : Nat)) (AllowedSubjects Client) (TransitionsTo UnsettledInfraction)
 		(StateTransform
 			(paid += (HIGH_USAGE_FEE * x))
 			(if (event_td ≤ (infraction_time + 24H)) (

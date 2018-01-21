@@ -6,11 +6,11 @@
 (TimeUnit d)
 
 (ContractParams
-	(START : ℕ = 99)
+	(START : Nat = 99)
 )
 
 (GlobalVars
-	(x : ℕ = START)
+	(x : Nat = START)
 )
 
 (Roles) ; only the environment Env

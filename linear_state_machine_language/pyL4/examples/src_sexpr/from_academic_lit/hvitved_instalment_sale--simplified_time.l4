@@ -5,13 +5,13 @@
 
 (ContractParams
 	(INTEREST_RATE : PosReal = .1)
-	(TOTAL_DUE_BEFORE_CLOSING : ℕ = 9500)
+	(TOTAL_DUE_BEFORE_CLOSING : Nat = 9500)
 	(MIN_PAYMENT : Pos$ = 500)
 	(DUE_AT_CLOSING : Pos$ = 500)  )
 
 (GlobalVars
 	(balance_remaining : $ = TOTAL_DUE_BEFORE_CLOSING)
-	(next_payment_month : ℕ = 0)  )
+	(next_payment_month : Nat = 0)  )
 
 (ProseContract
 	(P1 'Buyer agrees to pay to Seller the total sum e10000, in the manner following:')
