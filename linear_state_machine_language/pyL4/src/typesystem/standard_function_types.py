@@ -4,7 +4,7 @@ from src.typesystem.Sorts import *
 from src.util_for_sequences import nested_list_replace, nested_list_replace_mult
 from src.typesystem.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType
 from src.typesystem.reducers import flatten_fntype_data, print_types_map, eliminate_unbounded_arity
-from typesystem.standard_subtype_graph import standard_types_graph
+
 
 
 def arb_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:

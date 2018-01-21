@@ -8,8 +8,8 @@ from src.correctness_checks import test_fns
 from src.state_diagram_generation import contractToDotFile
 from src.util import writeReadOnlyFile
 
-EXAMPLES_SEXPR_ROOT = "./examples_sexpr/"
-EXAMPLES_UNPARSED_ROOT = "./examples_prettyprinted_out/"
+EXAMPLES_SEXPR_ROOT = "./examples/src_sexpr/"
+EXAMPLES_UNPARSED_ROOT = "./examples/out_prettyprinted/"
 
 EXAMPLES = [
     'toy_and_teaching/test_local_vars.l4',
@@ -19,14 +19,16 @@ EXAMPLES = [
     'toy_and_teaching/monster_burger_program_only.l4',
     'toy_and_teaching/partner_assignment_relievable_obligations.l4',
     'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
+    'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
     'from_academic_lit/hvitved_lease.l4',
     'from_academic_lit/hvitved_printer.l4',
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
+
     'serious/SAFE.l4',
     'serious/SAFE_2_liq_eventtypes.l4',
-    'serious/KISS.l4',
-    'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
+    'serious/KISS.l4'
+
 
 ]
 EXAMPLES_FULL_SIZE = 15
