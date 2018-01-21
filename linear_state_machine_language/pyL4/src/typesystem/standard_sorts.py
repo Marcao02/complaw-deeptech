@@ -19,14 +19,6 @@ Bool = 'Bool'
 def SApp(symb:str, *args:Any) -> NonatomicSort:
     return NonatomicSort.mk(symb, tuple(args))
 
-all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
-all_sort_copies : Set[Sort] = set()
-def Copy(sort:Sort, name:str) -> NonatomicSort:
-    rv = SApp('Copy',sort,name)
-    dictSetOrAdd(all_sort_copies_by_orig, sort, rv)
-    all_sort_copies.add(rv)
-    return rv
-
 todo_once("this is temporary too")
 TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
     'ℚ': Real,
@@ -50,11 +42,13 @@ TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
     '%': "[0,1]"
 }
 
-def temp_normalize_sort(s: str) -> Sort:
-    if s in TEMP_SORT_IDENTIFICATION:
-        return TEMP_SORT_IDENTIFICATION[s]
-    else:
-        return s
+all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
+all_sort_copies : Set[Sort] = set()
+def Copy(sort:Sort, name:str) -> NonatomicSort:
+    rv = SApp('Copy',sort,name)
+    dictSetOrAdd(all_sort_copies_by_orig, sort, rv)
+    all_sort_copies.add(rv)
+    return rv
 
 UnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal})
                             # .union(all_sort_copies)
@@ -79,6 +73,7 @@ AllSortData : Set[Any] = AllAtomicSorts.union(TupleAtomicSortData).union(TDMapKe
 
 TupleAtomicSorts = map(SApp,TupleAtomicSortData)
 TDMapKeySorts = map(SApp,TDMapKeySortData)
+
 AllSorts : Set[Any] = AllAtomicSorts\
                         .union( set(TEMP_SORT_IDENTIFICATION.values()) )\
                         .union( TupleAtomicSorts )\

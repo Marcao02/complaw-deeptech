@@ -15,7 +15,7 @@ from src.model.L4Contract import *
 from src.model.L4Macro import L4Macro
 from src.model.Literal import *
 from src.model.Term import FnApp
-from src.typesystem.standard_sorts import temp_normalize_sort
+from src.temp_src.until_sort_duplicates_implemented import temp_normalize_sort
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 
 
@@ -530,14 +530,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             pair = try_parse_as_fn_app(x)
             if pair:
                 fnsymb_name = pair[0]
-                fnsymb_or_name = cast(Union[str,FnSymb], self.top.fnsymbs[fnsymb_name] if fnsymb_name in self.top.fnsymbs else fnsymb_name)
+                # fnsymb_or_name = cast(Union[str,FnSymb], self.top.fnsymbs[fnsymb_name] if fnsymb_name in self.top.fnsymbs else fnsymb_name)
+                self.top.fnsymb_names.add(fnsymb_name)
                 args : List[Term]
                 if fnsymb_name == 'cast':
                     args = [cast(Term,self._mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
                 else:
                     args = [ self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1] ]
                 return FnApp(
-                    fnsymb_or_name,
+                    fnsymb_name,
                     args,
                     FileCoord(x.line, x.col)
                 )

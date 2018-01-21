@@ -43,7 +43,7 @@ def main(sys_argv:Sequence[str]):
         parsed = parse_file(in_path)
         prog = L4ContractConstructor(filename).mk_l4contract(parsed)
         typecheck_prog(prog)
-        print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
+        # print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
 
 if __name__ == '__main__':
     import sys

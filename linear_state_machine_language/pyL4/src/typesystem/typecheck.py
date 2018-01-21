@@ -5,7 +5,6 @@ from src.model.Action import Action
 from src.model.ActionRule import ActionRule
 from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam
-from src.model.FnSymb import FnSymb
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, StateTransformLocalVarDec, \
     GlobalVarAssignStatement
 from src.model.L4Contract import L4Contract
@@ -15,6 +14,7 @@ from src.model.Term import FnApp
 from src.typesystem.L4TypeErrors import *
 from src.typesystem.standard_subtype_graph import standard_types_graph
 from src.util import todo_once
+from src.typesystem.standard_function_types import fntypes_map
 
 graph = standard_types_graph
 def sub(s1:Sort,s2:Sort) -> bool:
@@ -89,24 +89,24 @@ class TypeChecker:
 
     def typeinfer_term(self, t:Term) -> Sort:
         if isinstance(t,FnApp):
-            fnsymb: FnSymb = t.fnsymb
-            if fnsymb.name == 'cast':
+            if t.fnsymb_name == 'cast':
                 return cast(Sort, cast(SortLit,t.args[0]).lit)
 
             argsorts = tuple(self.typeinfer_term(arg) for arg in t.args)
 
-            if fnsymb.type:
+            fnsymb_type = fntypes_map[t.fnsymb_name]
+            if fnsymb_type:
                 try:
-                    rv = overloaded_fnapp_range_memo(fnsymb.type, argsorts, t)
+                    rv = overloaded_fnapp_range_memo(fnsymb_type, argsorts, t)
                 except Exception as e:
                     print("Problem with inferring sort of term:\n" + str(t))
                     print("The original exception: ", e)
                     raise e
                 if rv is None:
-                    raise L4TypeInferError(t, f"overloaded_fnapp_range_memo return None.\nArg sorts: {argsorts}\nFn type:\n{fnsymb.type}")
+                    raise L4TypeInferError(t, f"overloaded_fnapp_range_memo return None.\nArg sorts: {argsorts}\nFn type:\n{fnsymb_type}")
                 return rv
             else:
-                raise L4TypeInferError(t, f"Function symbol {fnsymb} has no type.")
+                raise L4TypeInferError(t, f"Function symbol {t.fnsymb_name} has no type.")
         elif isinstance(t,Literal):
             if isinstance(t,IntLit):
                 if t.lit == 0:

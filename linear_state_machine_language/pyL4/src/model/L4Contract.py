@@ -2,14 +2,12 @@
 from itertools import chain
 from typing import Iterable
 
-from src.model.FnTypes import OverloadedFnType
 from src.model.Action import Action
 from src.model.ActionRule import *
 from src.model.BoundVar import GlobalVar
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
-from src.model.FnSymb import FnSymb
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.L4Macro import L4Macro
 from src.model.Section import *
@@ -29,7 +27,7 @@ class L4Contract:
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
         self.sorts : Set[Sort] = set()
         self.definitions : Dict[DefinitionId, Definition] = dict()
-        self.fnsymbs : Dict[str, FnSymb] = dict()
+        self.fnsymb_names : Set[str] = set()
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
@@ -44,11 +42,6 @@ class L4Contract:
 
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output
-
-    def overloaded_fntypes(self) -> Iterator[OverloadedFnType]:
-        for symb in self.fnsymbs.values():
-            if symb.type:
-                yield symb.type
 
     def nextaction_rules(self) -> Iterator[NextActionRule]:
         for s in self.sections_iter():
