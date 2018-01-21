@@ -19,35 +19,47 @@ Bool = 'Bool'
 def SApp(symb:str, *args:Any) -> NonatomicSort:
     return NonatomicSort.mk(symb, tuple(args))
 
-todo_once("this is temporary too")
-TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
-    
-    '$': NonnegReal,
-    # '$': Copy(NonnegReal,"$"),
-
-    'Pos$': PosReal,
-    # 'Pos$': Copy(PosReal,'Pos$'),
-
-    'Shares': Nat,
-    # 'Shares' : Copy(Nat,'Shares'),
-    'PosShares': PosInt,
-    # 'PosShares' : Copy(PosInt,'PosShares'),
-
-    '$/Shares': SApp('Rate', PosReal, PosInt),
-    # '$/Shares': SApp('Rate', Copy(PosReal,'Pos$'), Copy(PosInt,'PosShares')),
-    'Order': SApp('Tuple', Nat, Nat),
-    # 'Order' : Copy(SApp('Tuple', Nat, Nat),'Order'),
-    'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),
-    # 'TDMap_Order': SApp('TDMap', Copy(SApp('Tuple',Nat,Nat),'Order')),
-}
-
 all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
 all_sort_copies : Set[Sort] = set()
-def Copy(sort:Sort, name:str) -> NonatomicSort:
-    rv = SApp('Copy',sort,name)
-    dictSetOrAdd(all_sort_copies_by_orig, sort, rv)
-    all_sort_copies.add(rv)
+def Dup(sort:Sort, name:str) -> NonatomicSort:
+    rv = SApp('Dup',sort,name)
+    # dictSetOrAdd(all_sort_copies_by_orig, sort, rv)
+    # all_sort_copies.add(rv)
     return rv
+
+dups_used : Dict[str,Sort] = {
+    '$': Dup(NonnegReal,'$'),
+    'Pos$': Dup(PosReal,'Pos$'),
+    'Shares': Dup(Nat,'Shares'),
+    'PosShares': Dup(PosInt,'PosShares')
+}
+dups_used.update({
+    '$/Shares': Dup(SApp('Rate', dups_used['$'], dups_used['PosShares']),'$/Shares'),
+    'Order' : Dup(SApp('Tuple', Nat, Nat),'Order') })
+dups_used.update({
+    'TDMap_Order': Dup(SApp('TDMap', dups_used['Order']),'TDMap_Order')
+})
+todo_once("this is temporary too")
+TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
+
+    '$': NonnegReal,
+    # '$': Dup(NonnegReal,"$"),
+
+    'Pos$': PosReal,
+    # 'Pos$': Dup(PosReal,'Pos$'),
+
+    'Shares': Nat,
+    # 'Shares' : Dup(Nat,'Shares'),
+    'PosShares': PosInt,
+    # 'PosShares' : Dup(PosInt,'PosShares'),
+
+    '$/Shares': SApp('Rate', PosReal, PosInt),
+    # '$/Shares': SApp('Rate', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShares')),
+    'Order': SApp('Tuple', Nat, Nat),
+    # 'Order' : Dup(SApp('Tuple', Nat, Nat),'Order'),
+    'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),
+    # 'TDMap_Order': SApp('TDMap', Dup(SApp('Tuple',Nat,Nat),'Order')),
+}
 
 UnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal})
                             # .union(all_sort_copies)
