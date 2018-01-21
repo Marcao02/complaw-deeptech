@@ -23,6 +23,7 @@ EXAMPLES_TO_TYPECHECK = [
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
 
     'serious/SAFE.l4',
+    'serious/SAFE_2_liq_eventtypes.l4',
     'serious/KISS.l4',
 ]
 

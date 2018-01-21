@@ -28,6 +28,8 @@ class NonatomicSort(NamedTuple):
     def __repr__(self) -> str:
         return str(self)
 
+SortOps = {'TDMap','Rate','Tuple','Copy'}
+
 DateTime = 'DateTime'
 TimeDelta = 'TimeDelta'
 PosTimeDelta = 'PosTimeDelta'
@@ -65,7 +67,7 @@ def normalize_sort(s:Sort) -> Sort:
     else:
         return s
 
-SortOps = {'TDMap','Rate','Tuple'}
+
 
 UnboundedNumericSorts = {Int,Nat,PosInt,Real,NonnegReal,PosReal}
 
