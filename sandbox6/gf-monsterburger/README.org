@@ -108,7 +108,7 @@ timeExpression indicates the relationship between an operation and time. For exa
 
 ** grammar building blocks
 
-*** The main sentence structures
+**** The main sentence structures
 
 A sentence can be built from an adverb and a sentence; a sentence can be built from a clause; an utterance can be built from an adverb
 
@@ -118,19 +118,19 @@ mkS    : Cl -> S
 
 mkUtt  : Adv -> Utt 
 
-*** A clause can be built from a noun phrase and a complement verb phrase (i.e party action object)
+**** A clause can be built from a noun phrase and a complement verb phrase (i.e party action object)
 
 mkCl   : NP -> V2 -> NP -> Cl
 
-*** A noun phrase can be built from a determiner and a common noun (The + Party/Object)
+**** A noun phrase can be built from a determiner and a common noun (The + Party/Object)
 
 mkNP   : Det -> CN -> NP
 
-*** An adverb can be built from a preposition and a noun phrase, which goes into building a sentence
+**** An adverb can be built from a preposition and a noun phrase, which goes into building a sentence
 
 mkAdv  : Prep -> NP -> Adv
 
-*** Subjunctions to join up sentences; an adverb can be built from a subjunction and a sentence, which goes into building a sentence
+**** Subjunctions to join up sentences; an adverb can be built from a subjunction and a sentence, which goes into building a sentence
 
 mkAdv  : Subj -> S -> Adv
 
