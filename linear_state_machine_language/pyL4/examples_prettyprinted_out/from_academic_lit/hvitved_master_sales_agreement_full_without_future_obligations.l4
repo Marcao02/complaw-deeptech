@@ -18,7 +18,7 @@ global vars:
     nonoperative inconly units_ordered : Nat := 0
     nonoperative inconly units_delivered : Nat := 0
     nonoperative inconly units_invoiced : Nat := 0
-    nonoperative inconly total_paid : Nat := 0
+    nonoperative inconly total_paid : NonnegReal := 0
 
 claims:
     ['∀', ['k', ':', 'ℕ'], [['UpperBoundOnDaysBtwDeliverAndInvoice', 'k'], '⇒', ['∀', ['d', ':', 'Date'], ['∀', ['n', ':', 'ℕ'], [['n', '=', ['units_delivered', 'd']], '⇒', [['total_paid', ['d', '+', ['k', '+', '14D']]], '≥', ['n', '*', 'PRICE_PER_UNIT']]]]]]]
@@ -48,7 +48,7 @@ action SubmitNewOrder(quantity: PosInt) transitions to VendorAcceptingOrders:
         2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline)
         next_order_id := (next_order_id + 1)
 
-action Deliver(order: Order) transitions to VendorAcceptingOrders:
+action Deliver(order: Nat×Nat) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bdelivered order)
         quantity : Nat := (tupleGet order 0)
@@ -58,7 +58,7 @@ action Deliver(order: Order) transitions to VendorAcceptingOrders:
         furthest_invoice_deadline := (max furthest_invoice_deadline invoice_deadline)
         2Binvoiced := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline)
 
-action EmailInvoice(order: Order) transitions to VendorAcceptingOrders:
+action EmailInvoice(order: Nat×Nat) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Binvoiced order)
         quantity : Nat := (tupleGet order 0)
@@ -66,7 +66,7 @@ action EmailInvoice(order: Order) transitions to VendorAcceptingOrders:
         2Binvoiced := (mapDelete 2Binvoiced order)
         2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14d))
 
-action PayBill(order: Order) transitions to VendorAcceptingOrders:
+action PayBill(order: Nat×Nat) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bpaid order)
         quantity : Nat := (tupleGet order 0)

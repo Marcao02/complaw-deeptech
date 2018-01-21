@@ -60,15 +60,20 @@ TEMP_SORT_IDENTIFICATION : Dict[Sort,Sort] = {
     'ℚ' : Real,
     'ℕ' : Nat,
     '$' : NonnegReal,
-    'Pos$' : Copy(PosReal,'Pos$'),
+    'Pos$': PosReal,
+    #'Pos$': Copy(PosReal,'Pos$'),
 
-    'Shares' : Copy(Nat,'Shares'),
-    'PosShares' : Copy(PosInt,'PosShares'),
+    'Shares' : Nat,
+    # 'Shares' : Copy(Nat,'Shares'),
+    'PosShares' : PosInt,
+    #'PosShares' : Copy(PosInt,'PosShares'),
 
-    '$/Shares': SApp('Rate', Copy(PosReal,'Pos$'), Copy(PosInt,'PosShares')),
-
-    'Order' : Copy(SApp('Tuple', Nat, Nat),'Order'),
-    'TDMap_Order': SApp('TDMap', Copy(SApp('Tuple',Nat,Nat),'Order')),
+    '$/Shares': SApp('Rate', PosReal, PosInt),
+    #'$/Shares': SApp('Rate', Copy(PosReal,'Pos$'), Copy(PosInt,'PosShares')),
+    'Order' : SApp('Tuple', Nat, Nat),
+    #'Order' : Copy(SApp('Tuple', Nat, Nat),'Order'),
+    'TDMap_Order': SApp('TDMap', SApp('Tuple',Nat,Nat)),
+    #'TDMap_Order': SApp('TDMap', Copy(SApp('Tuple',Nat,Nat),'Order')),
 
     '%' : "[0,1]"
 }

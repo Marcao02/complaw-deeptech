@@ -6,7 +6,7 @@ roles: Env, Investor, Company
 contract params:
     PURCHASE_AMOUNT : PosReal := 100000
     VALUATION_CAP : PosReal := inf
-    DISCOUNT_RATE : PosReal := 1
+    DISCOUNT_RATE : (0,1] := 1
     START_INVESTOR_COMMON_STOCKS : Nat := 0
     START_INVESTOR_SAFE_PREFERRED_STOCKS : Nat := 0
     START_INVESTOR_CASH : NonnegReal := 0
@@ -71,7 +71,7 @@ action CommitToLiquidityEvent(change_of_control: Bool, company_cash_at_liquidity
     transform:
         liq_price := (VALUATION_CAP / liquidity_capitalization)
         investor_liq_hypothetical_shares := (round (PURCHASE_AMOUNT / liq_price))
-        investor_percent_of_cashout_investor_investments := (cast [0,1] (investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares)))
+        investor_percent_of_cashout_investor_investments := (cast (0,1] (investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares)))
         if (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > 0)):
             purchase_amount_reduction : NonnegReal := (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg)
             investor_Common_Stocks := (investor_Common_Stocks + (round (purchase_amount_reduction / liq_price)))
