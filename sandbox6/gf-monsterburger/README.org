@@ -3,9 +3,11 @@
 GF Output
 
 write file MonsterBurgerEngv2.gfo
+
 linking ... OK
 
 Languages: MonsterBurgerEngv2
+
 623 msec
 
 MonsterBurgerv2> gt | l
@@ -90,7 +92,7 @@ Each party is tagged to a specific action. For example, serve is an action that'
 
 It would have been meaningless in the context of the Challenge if the verb randomly attaches to any party during language generation. 
 
-The act of restricting particular actions to particular parties is known as dependent types. Here, simple tagging is used. In the future, 
+The act of restricting particular actions to particular parties is known as dependent types. Here, for now, simple tagging is used. 
 
 Same parameters for Object as those described for Party. 
 
@@ -106,22 +108,30 @@ timeExpression indicates the relationship between an operation and time. For exa
 
 ** grammar building blocks
 
--- the main sentence structures
-a sentence can be built from an adverb and a sentence; a sentence can be built from a clause; an utterance can be built from an adverb
+*** The main sentence structures
+
+A sentence can be built from an adverb and a sentence; a sentence can be built from a clause; an utterance can be built from an adverb
+
 mkS    : Adv -> S -> S
+
 mkS    : Cl -> S
+
 mkUtt  : Adv -> Utt 
 
--- a clause can be built from a noun phrase and a complement verb phrase (i.e party action object)
+*** A clause can be built from a noun phrase and a complement verb phrase (i.e party action object)
+
 mkCl   : NP -> V2 -> NP -> Cl
 
--- a noun phrase can be built from a determiner and a common noun (The + Party/Object)
+*** A noun phrase can be built from a determiner and a common noun (The + Party/Object)
+
 mkNP   : Det -> CN -> NP
 
--- a adverb can be built from a preposition and a noun phrase, which goes into building a sentence
+*** An adverb can be built from a preposition and a noun phrase, which goes into building a sentence
+
 mkAdv  : Prep -> NP -> Adv
 
--- Subjunctions to join up sentences; an adverb can be built from a subjunction and a sentence, which goes into building a sentence
+*** Subjunctions to join up sentences; an adverb can be built from a subjunction and a sentence, which goes into building a sentence
+
 mkAdv  : Subj -> S -> Adv
 
 There is a slight hack done to structure the linearisation of sentences in a specific order, not random; just like how lawyers would use clause numbers to structure a legal document.
@@ -131,8 +141,12 @@ Some agreements of the grammar are still a bit off and will need tweakings, for 
 
 ** To run the code
 
-You will see two GF files in the legalese-compile repo: legalese-compiler/sandbox6/gf-monsterburger
+You will see two GF files in the legalese-compile repo:  
+
+legalese-compiler/sandbox6/gf-monsterburger
+
 An abstract syntax: MonsterBurgerv2.gf
+
 A concrete syntax: MonsterBurgerEngv2.gf
 
 An abstract syntax expresses general grammar categories common to all languages (type assignments) and follow strict rules of combinations for sentence formations.
