@@ -1,20 +1,6 @@
 from typing import Any, List, Tuple, NamedTuple, Dict, Sequence, Optional, Union, NewType, Set, cast
 
 from src.typesystem.Sorts import *
-from src.typesystem.StrictSubtypesGraph import StrictSubtypesGraph
-
-
-def build_graph() -> StrictSubtypesGraph:
-    subtype_pairs : List[Tuple[Sort,Sort]] = []
-    # line: Tuple[str,...]
-    for line in subtypes_data:
-        for i in range(len(line) - 1):
-            subtype_pairs.append((line[i],line[i+1]))
-    graph = StrictSubtypesGraph(AllSorts, subtype_pairs)
-    # print(graph)
-    graph.transitivelyClose()
-    return graph
-
 
 def flatten_fntype_data(overloaded_types_data:Sequence[ Tuple[Sequence[str], Any]]) -> Dict[str, List[Sequence[Any]]]:
     fntypes_map_ : Dict[str, List[Sequence[Any]]] = dict()

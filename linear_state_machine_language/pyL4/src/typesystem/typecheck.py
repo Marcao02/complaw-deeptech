@@ -12,14 +12,13 @@ from src.model.L4Contract import L4Contract
 from src.model.Literal import *
 from src.model.Term import Term, FnApp
 from src.typesystem.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType, Optional
-from src.typesystem.Sorts import Sort
-from src.typesystem.StrictSubtypesGraph import StrictSubtypesGraph
-from src.typesystem.standard_subtype_graph import standard_types_graph, sub
+from src.typesystem.standard_subtype_graph import standard_types_graph
 from src.util import todo_once
 from src.typesystem.L4TypeErrors import *
 
-graph : StrictSubtypesGraph = standard_types_graph
-
+graph = standard_types_graph
+def sub(s1:Sort,s2:Sort) -> bool:
+    return graph.hasEdge(s1,s2)
 
 def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple, term: FnApp) -> Optional[Sort]:
     todo_once("contrib: cast shouldn't be necessary")
@@ -129,7 +128,7 @@ class TypeChecker:
                     return "TimeDelta"
             elif isinstance(t,DeadlineLit):
                 todo_once('type for deadline literals? or ensure this never comes up?')
-                return "Any"
+                return "Bool"
             elif isinstance(t,RoleIdLit):
                 return "RoleId"
             elif isinstance(t,StringLit):
@@ -152,6 +151,7 @@ class TypeChecker:
         inferred = self.typeinfer_term(t)
         assert inferred is not None
         if not sub(inferred,s):
+            print(f"{inferred} not ≤ {s}")
             raise L4TypeInferCheckError(t,inferred,s)
         return True
 

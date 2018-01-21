@@ -1,4 +1,4 @@
-from typing import NamedTuple, Tuple, Any, Union, cast, NewType, Optional, Dict
+from typing import NamedTuple, Tuple, Any, Union, cast, NewType, Optional, Dict, Set
 
 from src.util import todo_once, mapjoin
 
@@ -66,59 +66,25 @@ def normalize_sort(s:Sort) -> Sort:
     else:
         return s
 
-SortOps = ('TDMap','Rate','Tuple')
+SortOps = {'TDMap','Rate','Tuple'}
 
-UnboundedNumericSorts = (Int,Nat,PosInt,Real,NonnegReal,PosReal)
+UnboundedNumericSorts = {Int,Nat,PosInt,Real,NonnegReal,PosReal}
 
-BoundedNumericSorts = ("[0,1]","(0,1]","[0,1)","(0,1)")
+BoundedNumericSorts = {"[0,1]","(0,1]","[0,1)","(0,1)"}
 
 # Because all non-empty intersections must be represented (for now)
-FiniteNumericSorts = ("{0,1}","{0}","{1}")
+FiniteNumericSorts = {"{0,1}","{0}","{1}"}
 
-AllAtomicSorts : Tuple[Any,...] = (DateTime,TimeDelta,PosTimeDelta,Bool,'Any') + BoundedNumericSorts + UnboundedNumericSorts + FiniteNumericSorts
+AllAtomicSorts : Set[str] = {DateTime,TimeDelta,PosTimeDelta,Bool}.union(BoundedNumericSorts).union(UnboundedNumericSorts).union(FiniteNumericSorts)
 
-# for
-    # (NonatomicSort('Rate',Num,Denom), NonatomicSort('Rate',Num,Denom) for Num
-# )
+TupleAtomicSortData = {('Tuple',S,S) for S in AllAtomicSorts}
+TDMapKeySortData = TupleAtomicSortData.union(AllAtomicSorts)
+AllSortData : Set[Any] = AllAtomicSorts.union(TupleAtomicSortData).union(TDMapKeySortData)
 
-subtypes_data : Tuple[Tuple[Sort,...],...] = (
-    (PosTimeDelta, TimeDelta),
-    ("{0}","[0,1)"),
-    ("{1}","(0,1]"),
-    ("{0,1}","[0,1]"),
-    ("{0}","{0,1}",Nat),
-    ("{1}","{0,1}"),
-    ("{1}",PosInt),
-    ("(0,1)", "[0,1)", "[0,1]", NonnegReal),
-    ("(0,1)", "(0,1]", "[0,1]", NonnegReal),
-    ("(0,1)", "(0,1]", PosReal),
-    (PosInt,Nat,Int),
-    (PosReal,NonnegReal,Real),
-    (PosInt,PosReal),
-    (Nat,NonnegReal),
-    (Int,Real),
-    # TEMP. Willl generate these later.
-    (SApp('Rate',PosInt, PosInt), SApp('Rate', PosInt, PosReal), SApp('Rate',PosReal,PosReal), SApp('Rate',NonnegReal,PosReal), SApp('Rate',Real,PosReal)),
-    (SApp('Rate',Int, PosInt),    SApp('Rate', Int, PosReal),    SApp('Rate',Real,PosReal)),
-    (SApp('Rate',Real, PosInt),    SApp('Rate', Real, PosReal)),
-    (SApp('Rate',NonnegReal, PosInt),    SApp('Rate', NonnegReal, PosReal)),
-    (SApp('Rate',NonnegReal, PosInt),    SApp('Rate', Real, PosInt)),
-    (SApp('Rate',NonnegReal, PosReal), NonnegReal),
-    (SApp('Rate',NonnegReal, PosInt), NonnegReal),
-    (SApp('Rate',PosReal,PosReal), PosReal),
-    (SApp('Rate',Real,PosReal), Real),
-    (SApp('Rate',PosReal,PosInt), PosReal),
-    (SApp('Rate',Real,PosInt), Real),
+TupleAtomicSorts = map(SApp,TupleAtomicSortData)
+TDMapKeySorts = map(SApp,TDMapKeySortData)
+AllSorts : Set[Any] = AllAtomicSorts\
+                        .union( set(TEMP_SORT_IDENTIFICATION.values()) )\
+                        .union( TupleAtomicSorts )\
+                        .union( TDMapKeySorts )
 
-    (SApp('TDMap', SApp('Tuple',Nat,Nat)), SApp('TDMap', 'Any')),
-    (SApp('TDMap', 'Any'), SApp('TDMap', SApp('Tuple',Nat,Nat))),
-)
-
-todo_once("temp computation of 'all sorts' (not really)")
-NonatomicSortData : Tuple[Any,...] = (
-    ('Rate',PosReal,PosInt), ('Rate',Real,PosInt), ('Rate',PosReal,PosInt),
-    ('TDMap',('Tuple',PosInt, Nat)))
-
-AllSortData : Tuple[Any,...] = AllAtomicSorts + (('Rate',PosReal,PosInt),)
-
-AllSorts : Tuple[Sort,...] = AllAtomicSorts + tuple(TEMP_SORT_IDENTIFICATION.values())

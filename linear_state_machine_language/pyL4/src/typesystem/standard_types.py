@@ -1,15 +1,14 @@
 from typing import Any, List, Tuple, NamedTuple, Dict, Sequence, Optional, Union, NewType, Set, cast
-from itertools import chain
 
 
 from src.typesystem.Sorts import *
 from src.util_for_sequences import nested_list_replace, nested_list_replace_mult
 from src.typesystem.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType
-from src.typesystem.reducers import flatten_fntype_data, print_types_map, build_graph, eliminate_unbounded_arity
+from src.typesystem.reducers import flatten_fntype_data, print_types_map, eliminate_unbounded_arity
 
 
 
-def abr_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
+def arb_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
     return ('aafn', dom, ran)
 
 # simple function type
@@ -43,30 +42,31 @@ def list_parametric_mult(tps:Sequence[Sequence[Any]], substitutions:Sequence[Dic
 
 todo_once("Strengthen polymorphic types")
 
+
+
 overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td'), sfntype(TimeDelta)),
     (('days',), (sfntype(Nat,TimeDelta), sfntype(PosInt,PosTimeDelta))),
 
-    # TODO strengthen types
-    (('tuple',), sfntype('Any','Any','Any')),
-    (('tupleGet',), sfntype(('Tuple','Any','Any'),'{0,1}','Any')),
+    (('tuple',), parametric(sfntype(T,T,('Tuple',T,T)),AllAtomicSorts)),
+    (('tupleGet',), parametric(sfntype(('Tuple',T,T),'{0,1}',T), AllAtomicSorts)),
 
-    (('mapSet',), sfntype(('TDMap', 'Any'), 'Any','TimeDelta', ('TDMap', 'Any'))),
-    (('tdGEQ',), sfntype(('TDMap', 'Any'), 'Any','TimeDelta', 'Bool')),
-    (('mapDelete'), sfntype(('TDMap', 'Any'), 'Any', ('TDMap', 'Any'))),
-    (('mapHas'), sfntype(('TDMap', 'Any'), 'Any', 'Bool')),
-    (('nonempty','empty'), sfntype(('TDMap', 'Any'), 'Bool')),
+    (('mapSet',), parametric(sfntype(('TDMap', T), T,'TimeDelta', ('TDMap', T)),TDMapKeySortData)),
+    (('tdGEQ',), parametric(sfntype(('TDMap', T), T,'TimeDelta', 'Bool'),TDMapKeySortData)),
+    (('mapDelete',), parametric(sfntype(('TDMap', T), T, ('TDMap', T)),TDMapKeySortData)),
+    (('mapHas',), parametric(sfntype(('TDMap', T), T, 'Bool'),TDMapKeySortData)),
+    (('nonempty','empty'), parametric(sfntype(('TDMap',T), 'Bool'), TDMapKeySortData)),
 
     (('≤', '≥', '<', '>'), (
-        abr_arity_fntype(Real, Bool),
-        abr_arity_fntype(TimeDelta, Bool),
-        abr_arity_fntype(DateTime, Bool) )),
-    (('==',),                 parametric(abr_arity_fntype(T, Bool))),
+        arb_arity_fntype(Real, Bool),
+        arb_arity_fntype(TimeDelta, Bool),
+        arb_arity_fntype(DateTime, Bool) )),
+    (('==',),                 parametric(arb_arity_fntype(T, Bool))),
     (('!=',),                 parametric(sfntype(T, T, Bool))),
     (('ifthenelse',),         parametric(sfntype(Bool, T, T, T))),
-    (('min','max','+','*') ,  parametric(abr_arity_fntype(T, T), UnboundedNumericSorts + (TimeDelta,))),
+    (('min','max','+','*') ,  parametric(arb_arity_fntype(T, T), UnboundedNumericSorts.union({TimeDelta}))),
     # temp hack:
-    (('min','max','+','*') ,  parametric_mult(abr_arity_fntype(('Rate',N,D), ('Rate',N,D)), (
+    (('min','max','+','*') ,  parametric_mult(arb_arity_fntype(('Rate', N, D), ('Rate', N, D)), (
                                               {'NVar':PosReal,'DVar':PosInt},
                                             ))
      ),
@@ -94,7 +94,7 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
     (('*',), list_parametric_mult( [sfntype(('Rate', N, D), T, ('Rate',N,D)), sfntype(T, ('Rate', N, D), ('Rate',N,D))], (
                 {'NVar':PosReal,'DVar':PosInt, 'TVar':PosReal},  # temp hack
     ))),
-    (('*',), parametric(abr_arity_fntype(T, T), BoundedNumericSorts )),
+    (('*',), parametric(arb_arity_fntype(T, T), BoundedNumericSorts)),
 
     (('-',),                  parametric(sfntype(T, T, T), (Int, Real, TimeDelta))),
 
@@ -133,7 +133,7 @@ overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
 
     (('not',),                sfntype(Bool, Bool)),
     (('and','or'),            sfntype(Bool, Bool, Bool)),
-    (('and*','or*'),          abr_arity_fntype(Bool, Bool)),
+    (('and*','or*'), arb_arity_fntype(Bool, Bool)),
     # (('and*','or*'),          sfntype(Bool, Bool)),
     (('floor','round','ceil'), (
         sfntype(Real, Int),
@@ -162,7 +162,7 @@ for fntype_data in fntype_data_map.values():
                 assert x not in typevars, x
             if isinstance(x, tuple):
                 for y in x:
-                    assert isinstance(y, str) and y not in typevars, str(y) + " and " + str(nonover_fntype_data)
+                    assert  y not in typevars, str(y) + " and " + str(nonover_fntype_data)
 
 print_types_map(fntype_data_map)
 
