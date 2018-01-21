@@ -11,7 +11,7 @@ from src.model.Term import Term
 from src.util import mapjoin, indent, castid, todo_once
 from src.typesystem.Sorts import Sort
 
-todo_once("No references to SExpr.py in src/model")
+todo_once("No references to SExpr.py in src/model/*. Only in src/compiler/*")
 class Action:
     def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id

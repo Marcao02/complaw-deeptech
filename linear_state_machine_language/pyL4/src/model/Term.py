@@ -4,7 +4,7 @@ from src.compiler.SourceCoord import SourceCoord
 from src.model.FnSymb import FnSymb
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
     EXEC_ENV_VARIABLES
-from src.typesystem.standard_types import fntypes_map
+from src.typesystem.standard_function_types import fntypes_map
 
 
 class Term:

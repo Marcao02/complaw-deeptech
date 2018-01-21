@@ -57,7 +57,6 @@ TEMP_SORT_IDENTIFICATION : Dict[Sort,Sort] = {
     'Order' : SApp('Tuple', Nat, Nat),
     'TDMap_Order': SApp('TDMap', SApp('Tuple',Nat,Nat)),
 
-
     '%' : "[0,1]"
 }
 def normalize_sort(s:Sort) -> Sort:
@@ -77,13 +76,13 @@ FiniteNumericSorts = {"{0,1}","{0}","{1}"}
 
 AllAtomicSorts : Set[str] = {DateTime,TimeDelta,PosTimeDelta,Bool}.union(BoundedNumericSorts).union(UnboundedNumericSorts).union(FiniteNumericSorts)
 
-TupleAtomicSortData = {('Tuple',S,S) for S in AllAtomicSorts}
+TupleAtomicSortData : Set[Any] = {('Tuple',S,S) for S in AllAtomicSorts}
 TDMapKeySortData = TupleAtomicSortData.union(AllAtomicSorts)
 AllSortData : Set[Any] = AllAtomicSorts.union(TupleAtomicSortData).union(TDMapKeySortData)
 
 TupleAtomicSorts = map(SApp,TupleAtomicSortData)
 TDMapKeySorts = map(SApp,TDMapKeySortData)
-AllSorts : Set[Any] = AllAtomicSorts\
+AllSorts : Set[Any] = cast(Set[Sort],AllAtomicSorts)\
                         .union( set(TEMP_SORT_IDENTIFICATION.values()) )\
                         .union( TupleAtomicSorts )\
                         .union( TDMapKeySorts )
