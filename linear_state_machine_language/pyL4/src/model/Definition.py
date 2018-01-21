@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from src.compiler.SExpr import SExpr
+from src.independent.SExpr import SExpr
 
 
 class Definition(NamedTuple):

@@ -2,9 +2,9 @@ from itertools import chain
 from math import inf
 from typing import Sequence, Tuple, Optional
 
-from src.constants_and_defined_types import *
-from src.compiler.parse_sexpr import prettySExprStr, parse_file
+from src.independent.parse_sexpr import prettySExprStr, parse_file
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
+from src.constants_and_defined_types import *
 from src.interpreter.interpreter_runner import evalTrace
 from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSectionId, EventType
 from src.model.L4Contract import L4Contract

@@ -1,8 +1,8 @@
 from typing import Union, Iterator, cast
 
+from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType
 from src.model.Action import Action
-from src.model.ActionRule import NextActionRule, ActionRule
-from src.model.Section import Section
+from src.model.ActionRule import ActionRule
 from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam
 from src.model.FnSymb import FnSymb
@@ -10,11 +10,11 @@ from src.model.GlobalStateTransformStatement import GlobalStateTransformStatemen
     GlobalVarAssignStatement
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
-from src.model.Term import Term, FnApp
-from src.typesystem.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType, Optional
+from src.model.Section import Section
+from src.model.Term import FnApp
+from src.typesystem.L4TypeErrors import *
 from src.typesystem.standard_subtype_graph import standard_types_graph
 from src.util import todo_once
-from src.typesystem.L4TypeErrors import *
 
 graph = standard_types_graph
 def sub(s1:Sort,s2:Sort) -> bool:

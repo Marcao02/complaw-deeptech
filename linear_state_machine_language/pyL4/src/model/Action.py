@@ -1,6 +1,5 @@
-from typing import Optional, Dict, List, Iterator, Union
+from typing import Optional, Dict, List, Iterator, Union, Any
 
-from src.compiler.SExpr import SExpr
 from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
     StateTransformLocalVarId
 from src.model.ActionRule import PartyFutureActionRule
@@ -9,15 +8,15 @@ from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec, G
 from src.model.Section import Section, ParamsDec
 from src.model.Term import Term
 from src.util import mapjoin, indent, castid, todo_once
-from src.typesystem.Sorts import Sort
+from src.model.Sort import Sort
 
 todo_once("No references to SExpr.py in src/model/*. Only in src/compiler/*")
 class Action:
     def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id
         self.dest_section_id : SectionId = castid(SectionId,"to be set after constructor")
-        self.traversal_bounds: Optional[SExpr] = None
-        self.allowed_subjects: Optional[SExpr] = None
+        self.traversal_bounds: Optional[Any] = None # SExpr
+        self.allowed_subjects: Optional[Any] = None # SExpr
         self.action_description: Optional[str] = None
         self.local_vars: Dict[StateTransformLocalVarId,StateTransformLocalVarDec] = dict()
         self.is_compound = False

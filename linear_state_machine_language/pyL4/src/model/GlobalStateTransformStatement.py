@@ -5,7 +5,7 @@ from src.model.GlobalVarDec import GlobalVarDec
 from src.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
 from src.model.Term import Term
 from src.util import indent
-from src.typesystem.Sorts import Sort
+from src.model.Sort import Sort
 
 """ Just the common parent """
 class GlobalStateTransformStatement:

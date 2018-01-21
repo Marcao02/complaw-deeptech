@@ -3,7 +3,7 @@ from typing import Any
 
 from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
 from src.model.Term import Term
-from src.typesystem.Sorts import Sort
+from src.model.Sort import Sort
 from src.util import todo_once
 
 

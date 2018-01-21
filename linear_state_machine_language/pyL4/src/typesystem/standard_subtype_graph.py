@@ -1,7 +1,7 @@
 from typing import Tuple, Iterable, Set
 
 from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDirectedGraph
-from src.typesystem.Sorts import *
+from src.typesystem.standard_sorts import *
 
 
 def build_graph(_subtypes_data:Tuple[Tuple[Sort,...],...], initial_nodes:Iterable[Sort]) -> TransitivelyClosedDirectedGraph[Sort]:

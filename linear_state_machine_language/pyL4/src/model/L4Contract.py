@@ -1,18 +1,18 @@
 # from typing import Union, List, Dict, Any, Tuple
 from itertools import chain
-from typing import Iterable, Any, Union
+from typing import Iterable
 
-from src.model.FnSymb import FnSymb
-from src.model.BoundVar import GlobalVar
+from src.model.FnTypes import OverloadedFnType
 from src.model.Action import Action
 from src.model.ActionRule import *
+from src.model.BoundVar import GlobalVar
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
+from src.model.FnSymb import FnSymb
 from src.model.GlobalVarDec import GlobalVarDec
-from src.model.Section import *
 from src.model.L4Macro import L4Macro
-from src.typesystem.FnTypes import OverloadedFnType
+from src.model.Section import *
 
 
 class L4Contract:

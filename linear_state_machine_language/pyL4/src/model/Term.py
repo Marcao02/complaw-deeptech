@@ -1,20 +1,20 @@
-from typing import List, Union, cast, Optional
+from typing import List, Union, Optional
 
-from src.compiler.SourceCoord import SourceCoord
-from src.model.FnSymb import FnSymb
+from src.independent.FileCoord import FileCoord
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
     EXEC_ENV_VARIABLES
+from src.model.FnSymb import FnSymb
 from src.typesystem.standard_function_types import fntypes_map
 
 
 class Term:
-    def __init__(self, coord: Optional[SourceCoord] = None) -> None:
+    def __init__(self, coord: Optional[FileCoord] = None) -> None:
         self.coord = coord
 
 TermOrStr = Union[Term,str]
 
 class FnApp(Term):
-    def __init__(self, head:Union[str, FnSymb], args:List[Term], coord:Optional[SourceCoord] = None) -> None:
+    def __init__(self, head:Union[str, FnSymb], args:List[Term], coord:Optional[FileCoord] = None) -> None:
         super().__init__(coord)
         self.fnsymb : FnSymb
         if isinstance(head, FnSymb):

@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple, NamedTuple, Dict, Sequence, Optional, Union, NewType, Set, cast
 
-from src.typesystem.Sorts import *
+
+from src.typesystem.standard_sorts import *
 
 def flatten_fntype_data(overloaded_types_data:Sequence[ Tuple[Sequence[str], Any]]) -> Dict[str, List[Sequence[Any]]]:
     fntypes_map_ : Dict[str, List[Sequence[Any]]] = dict()
@@ -14,8 +15,6 @@ def flatten_fntype_data(overloaded_types_data:Sequence[ Tuple[Sequence[str], Any
                 fntypes_map_[symb] = list(fntypes)
             else:
                 fntypes_map_[symb] = fntypes_map_[symb] + fntypes
-
-
 
     return fntypes_map_
 
@@ -38,7 +37,16 @@ def eliminate_unbounded_arity(arity_occurrences: Dict[str,Set[int]], fntypes_map
                 for arity in arity_occurrences[f]:
                     ftypes.append(('fn',) + (dom,)*arity + (ran,))
 
-# def eliminate_subtyping()
+# def temp_normalize_sorts(prog:L4Contract) -> None:
+#     for eliminated_sort in TEMP_SORT_IDENTIFICATION:
+#         prog.sorts.remove(eliminated_sort)
+#
+#     def temp_normalize_sort(s: Sort) -> Sort:
+#         if s in TEMP_SORT_IDENTIFICATION:
+#             return TEMP_SORT_IDENTIFICATION[s]
+#         else:
+#             return s
+
 def print_types_map(fntypes_map:Dict[str, List[Sequence[Any]]]):
     for symb in fntypes_map:
         print(symb)

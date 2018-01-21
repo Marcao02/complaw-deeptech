@@ -1,7 +1,8 @@
-from typing import Dict, Set, List
+from typing import Dict, Set, List, NamedTuple, Tuple, Union
 
-from src.typesystem.Sorts import *
-from src.util import mapjoin
+# from src.typesystem.standard_sorts import *
+from src.model.Sort import Sort
+from src.util import mapjoin, todo_once
 
 SortTuple = Tuple[Sort,...]
 

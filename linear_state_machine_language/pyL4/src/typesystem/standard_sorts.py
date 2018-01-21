@@ -1,34 +1,7 @@
 from typing import NamedTuple, Tuple, Any, Union, cast, NewType, Optional, Dict, Set
 
+from src.model.Sort import *
 from src.util import todo_once, mapjoin, dictSetOrAdd
-
-SortOp = str # NewType('SortOp',str)
-AtomicSort = str # NewType('AtomicSort',str)
-Sort = Union[AtomicSort, 'NonatomicSort']
-class NonatomicSort(NamedTuple):
-    sortop: SortOp
-    args_: Tuple[Any,...]
-    @staticmethod
-    def c(sortop:AtomicSort, args:Tuple[Any,...]) -> 'NonatomicSort':
-        return NonatomicSort(sortop, args)
-    @property
-    def args(self) -> Tuple[Sort,...]:
-        return cast(Tuple[Sort], self.args_)
-    @staticmethod
-    def mk(sortop:AtomicSort, args:Tuple[Sort,...]) -> 'NonatomicSort':
-        return NonatomicSort(sortop, args)
-
-    def __str__(self) -> str:
-        if self.sortop == 'Tuple':
-            return f"{mapjoin(str,self.args,'×')}"
-        elif self.sortop == 'Rate':
-            return f"{mapjoin(str,self.args,'/')}"
-        elif self.sortop == 'Copy':
-            return str(self.args[1])
-        else:
-            return f"{self.sortop}[{mapjoin(str,self.args,', ')}]"
-    def __repr__(self) -> str:
-        return str(self)
 
 SortOps = {'TDMap','Rate','Tuple','Copy'}
 
@@ -54,36 +27,34 @@ def Copy(sort:Sort, name:str) -> NonatomicSort:
     all_sort_copies.add(rv)
     return rv
 
-
 todo_once("this is temporary too")
-TEMP_SORT_IDENTIFICATION : Dict[Sort,Sort] = {
-    'ℚ' : Real,
-    'ℕ' : Nat,
-    '$' : NonnegReal,
+TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
+    'ℚ': Real,
+    'ℕ': Nat,
+    '$': NonnegReal,
     'Pos$': PosReal,
-    #'Pos$': Copy(PosReal,'Pos$'),
+    # 'Pos$': Copy(PosReal,'Pos$'),
 
-    'Shares' : Nat,
+    'Shares': Nat,
     # 'Shares' : Copy(Nat,'Shares'),
-    'PosShares' : PosInt,
-    #'PosShares' : Copy(PosInt,'PosShares'),
+    'PosShares': PosInt,
+    # 'PosShares' : Copy(PosInt,'PosShares'),
 
     '$/Shares': SApp('Rate', PosReal, PosInt),
-    #'$/Shares': SApp('Rate', Copy(PosReal,'Pos$'), Copy(PosInt,'PosShares')),
-    'Order' : SApp('Tuple', Nat, Nat),
-    #'Order' : Copy(SApp('Tuple', Nat, Nat),'Order'),
-    'TDMap_Order': SApp('TDMap', SApp('Tuple',Nat,Nat)),
-    #'TDMap_Order': SApp('TDMap', Copy(SApp('Tuple',Nat,Nat),'Order')),
+    # '$/Shares': SApp('Rate', Copy(PosReal,'Pos$'), Copy(PosInt,'PosShares')),
+    'Order': SApp('Tuple', Nat, Nat),
+    # 'Order' : Copy(SApp('Tuple', Nat, Nat),'Order'),
+    'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),
+    # 'TDMap_Order': SApp('TDMap', Copy(SApp('Tuple',Nat,Nat),'Order')),
 
-    '%' : "[0,1]"
+    '%': "[0,1]"
 }
-def normalize_sort(s:Sort) -> Sort:
+
+def temp_normalize_sort(s: str) -> Sort:
     if s in TEMP_SORT_IDENTIFICATION:
         return TEMP_SORT_IDENTIFICATION[s]
     else:
         return s
-
-
 
 UnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal})
                             # .union(all_sort_copies)

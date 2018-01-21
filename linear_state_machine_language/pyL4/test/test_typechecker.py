@@ -1,7 +1,7 @@
-from typing import List, Sequence
+from typing import Sequence
 
+from src.independent.parse_sexpr import parse_file
 from src.compiler.compiler_cli import EXAMPLES_SEXPR_ROOT
-from src.compiler.parse_sexpr import parse_file
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 from src.typesystem.reducers import eliminate_unbounded_arity, print_types_map
 from src.typesystem.standard_function_types import fntypes_map

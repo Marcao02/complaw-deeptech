@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.model.Term import Term
-from src.typesystem.Sorts import Sort
+from src.model.Sort import Sort
 
 
 class L4TypeError(Exception):

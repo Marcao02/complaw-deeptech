@@ -1,7 +1,6 @@
 # from typing import Union, List, Dict, Any, Tuple, Callable
 from typing import Iterator, Optional
 
-from src.compiler.SExpr import SExpr
 from src.constants_and_defined_types import *
 from src.model.ActionRule import NextActionRule, FutureActionRuleType
 from src.model.Term import Term
@@ -11,7 +10,7 @@ from src.util import indent
 class Section:
     def __init__(self, section_id: SectionId) -> None:
         self.section_id = section_id
-        self.visit_bounds: Optional[SExpr] = None
+        self.visit_bounds: Optional[Any] = None  # currently SExpr
         self.section_description: Optional[str] = None
         self.prose_refs: List[str] = []
 

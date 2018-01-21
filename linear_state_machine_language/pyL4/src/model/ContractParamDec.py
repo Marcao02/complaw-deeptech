@@ -1,6 +1,6 @@
 from src.constants_and_defined_types import ContractParamId, SortId
 from src.model.Term import Term
-from src.typesystem.Sorts import Sort
+from src.model.Sort import Sort
 
 
 class ContractParamDec:

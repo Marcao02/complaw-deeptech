@@ -3,11 +3,11 @@ from typing import Callable, Tuple
 
 from mypy_extensions import NoReturn
 
-from src.compiler.SourceCoord import SourceCoord
-from src.compiler.SExpr import SExprOrStr
-from src.compiler.parse_sexpr import castse, STRING_LITERAL_MARKER
+from src.independent.FileCoord import FileCoord
 from src.correctness_checks import L4ContractConstructorInterface
-from src.model.BoundVar import GlobalVar, ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
+from src.independent.SExpr import SExpr, SExprOrStr
+from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER
+from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
     StateTransformLocalVar
 from src.model.GlobalStateTransform import *
 from src.model.GlobalStateTransformStatement import *
@@ -15,8 +15,8 @@ from src.model.L4Contract import *
 from src.model.L4Macro import L4Macro
 from src.model.Literal import *
 from src.model.Term import FnApp
+from src.typesystem.standard_sorts import temp_normalize_sort
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
-from src.typesystem.Sorts import normalize_sort, AllSorts
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):
@@ -129,15 +129,22 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_sort(self, x:SExprOrStr) -> Sort:
         sort: Sort
         if isinstance(x,str):
-            sort = normalize_sort(castid(SortId,x))
+            sort = temp_normalize_sort(castid(SortId, x))
         else:
             assert len(x) == 2 and x[0] == STRING_LITERAL_MARKER
-            assert x[1] in AllSorts
+            # assert x[1] in AllSorts
             sort = self._mk_sort(x[1])
         self.top.sorts.add(sort)
         assert sort is not None
         return sort
 
+    def _mk_sort_lit(self,x:SExprOrStr) -> SortLit:
+        if isinstance(x,str):
+            return SortLit(temp_normalize_sort(x))
+        else:
+            assert len(x) == 2 and x[0] == STRING_LITERAL_MARKER
+            # assert x[1] in AllSorts
+            return SortLit(x[1])
 
     def _mk_contract_param(self, expr) -> ContractParamDec:
         self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : sort := term)" )
@@ -467,12 +474,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower())
             # print('STD', rv)
             return rv
-        if prog:
-            if x in AllSorts:
-                return SortLit(x)
-            y = normalize_sort(x)
-            if y in AllSorts:
-                return SortLit(y)
+
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 
@@ -520,23 +522,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return StateTransformLocalVar(parent_action.local_vars[castid(StateTransformLocalVarId,x)])
 
             return L4ContractConstructor.mk_literal(x, parent_SExpr, self.top)
-            # if isInt(x):
-            #     return IntLit(int(x))
-            # if isFloat(x):
-            #     return FloatLit(float(x))
-            # if x == 'false':
-            #     return BoolLit(False)
-            # if x == 'true':
-            #     return BoolLit(True)
-            # if x == 'never':
-            #     return DeadlineLit(x)
-
-        elif len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
-            # print("HERE?")
-            if x[1] in AllSorts:
-                return SortLit(x[1])
-            else:
-                return StringLit(chcaststr(x[1]))
 
         else: # SExpr
             if x[0] == APPLY_MACRO_LABEL:
@@ -545,21 +530,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             pair = try_parse_as_fn_app(x)
             if pair:
                 fnsymb_name = pair[0]
-                if fnsymb_name in self.top.fnsymbs:
-                    fnsymb = self.top.fnsymbs[fnsymb_name]
-                    return FnApp(
-                        fnsymb,
-                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]],
-                        SourceCoord(x.line, x.col)
-                    )
+                fnsymb_or_name = cast(Union[str,FnSymb], self.top.fnsymbs[fnsymb_name] if fnsymb_name in self.top.fnsymbs else fnsymb_name)
+                args : List[Term]
+                if fnsymb_name == 'cast':
+                    args = [cast(Term,self._mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
                 else:
-                    rv = FnApp(
-                        fnsymb_name,
-                        [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1]],
-                        SourceCoord(x.line,x.col)
-                    )
-                    self.top.fnsymbs[fnsymb_name] = rv.fnsymb
-                    return rv
+                    args = [ self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1] ]
+                return FnApp(
+                    fnsymb_or_name,
+                    args,
+                    FileCoord(x.line, x.col)
+                )
             else:
                 if x in EXEC_ENV_VARIABLES:
                     self.syntaxError(x, f"You're using environment variable {x} like a 0-arg function symbol. Remove the brackets please.")
@@ -583,7 +564,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 rv = FnApp(
                     pair[0],
                     [self._mk_term(arg, src_section, src_action, parent_action_rule, expr) for arg in pair[1]],
-                    SourceCoord(expr.line, expr.col)
+                    FileCoord(expr.line, expr.col)
                 )
                 # print("$ " + str(rv))
                 return rv

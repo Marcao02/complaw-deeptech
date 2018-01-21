@@ -1,8 +1,7 @@
 import logging
 from typing import List
 
-from src.compiler.parse_sexpr import parse_file, prettySExprStr
-
+from src.independent.parse_sexpr import parse_file, prettySExprStr
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
 from src.state_diagram_generation import contractToDotFile
