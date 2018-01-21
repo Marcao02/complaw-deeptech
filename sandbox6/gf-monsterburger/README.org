@@ -2,12 +2,14 @@
 
 GF Output
 
-```write file MonsterBurgerEngv2.gfo
+write file MonsterBurgerEngv2.gfo
 linking ... OK
 
 Languages: MonsterBurgerEngv2
 623 msec
+
 MonsterBurgerv2> gt | l
+
 Upon the customer ordering the monster burger
 the restaurant should serves the monster burger within 15 minutes
 otherwise the restaurant violates its prompt serve guarantee
@@ -38,7 +40,7 @@ If the time is before the the challenge end time
 If the customer pays the bill
 then the amount paid is the amount owing
 and the amount owing is set to S$0
-and the contract fulfills```
+and the contract fulfills
 
 
 **  Modelling MonsterBurger
