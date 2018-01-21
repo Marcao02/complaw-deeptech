@@ -10,39 +10,68 @@ Languages: MonsterBurgerEngv2
 
 MonsterBurgerv2> gt | l
 
-```
 Upon the customer ordering the monster burger
+
 the restaurant should serves the monster burger within 15 minutes
+
 otherwise the restaurant violates its prompt serve guarantee
+
 Upon the restaurant serving the monster burger
+
 the challenge end time is current time plus 1 hour
+
 the amount owing is set to S$50
+
 the challenge is continuing
+
 Whenever the challenge is continuing
+
 the customer may finishes the monster burger before challenge end time
+
 otherwise the challenge is overs
+
 If the time reaches the challenge end time
+
 Upon the challenge end time
+
 the restaurant should checks the customer within 10 minutes
+
 otherwise the restaurant violates its prompt check guarantee
+
 If the restaurant violates its prompt check guarantee
+
 or the restaurant violates its prompt serve guarantee
+
 or the restaurant confirms the customer has finished
+
 then the amount owing is set to S$0
+
 and the contract fulfills
+
 Upon the restaurant the restaurant checks the customer has finished
+
 the restaurant may confirms that immediately
+
 the restaurant may disconfirms that immediately
+
 Upon the restaurant disconfirming the customer
+
 then the customer must pays the bill
+
 If the time reaches the challenge end time
+
 otherwise the challenge is continuing
+
 If the time is before the the challenge end time
+
 If the customer pays the bill
+
 then the amount paid is the amount owing
+
 and the amount owing is set to S$0
+
 and the contract fulfills
-```
+
 
 **  Modelling MonsterBurger
 
