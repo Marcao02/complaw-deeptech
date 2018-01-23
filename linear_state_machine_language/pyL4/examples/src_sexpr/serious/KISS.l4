@@ -81,7 +81,7 @@
 		; Automatic conversion to preferred stock when you raise a qualifying priced round.
 		; Conversion price = lesser of cap or discount.
 		(AllowedSubjects Company)
-		(Pre (qualifying_round_new_money ≥ 1000000))
+		(Pre (qualifying_round_new_money ≥ ($ 1000000)))
 
 		(FollowingSection
 			(Next

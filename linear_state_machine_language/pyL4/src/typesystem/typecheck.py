@@ -263,6 +263,8 @@ class TypeChecker:
         msg2 = f"Typechecking Action {action.action_id}"
         # print("-" * len(msg2) + "\n" + msg2)
         print(msg2 + "\n" + "-" * len(msg2))
+        for prop in action.preconditions:
+            self.typecheck_term(prop, 'Bool')
         for statement in action.state_transform_statements():
             self.typecheck_statement(statement)
         for rule in action.future_action_rules():
