@@ -4,6 +4,8 @@
 (SortDefinitions
 	(Pos$ := (Dup PosReal "Pos$"))
 	($ := (Dup NonnegReal "$"))
+	(Order := (Tuple Nat Nat))
+	(TDMap_Order := (TDMap (Tuple Nat Nat)))
 )
 
 (ContractParams

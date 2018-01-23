@@ -47,32 +47,32 @@ def Dup(sort:Sort, name:str) -> NonatomicSort:
 #     'TDMap_Order': Dup(SApp('TDMap', dups_used['Order']),'TDMap_Order')
 # })
 
-todo_once("this is temporary too")
-TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
-
-    # '$': NonnegReal,
-    # '$': Dup(NonnegReal,"$"),
-
-    # 'Pos$': PosReal,
-    # 'Pos$': Dup(PosReal,'Pos$'),
-
-    # 'ShareCnt': Nat,
-    # 'Shares' : Dup(Nat,'Shares'),
-
-    # 'PosShareCnt': PosInt,
-    # 'PosShares' : Dup(PosInt,'PosShares'),
-
-    # 'SharePrice': SApp('Ratio', PosReal, PosInt),
-    'SharePrice': SApp('Ratio', Dup(NonnegReal,'$'), Dup(PosInt,'PosShareCnt')),
-
-    # 'SharePrice': SApp('Ratio', PosReal, PosInt),
-    'PosSharePrice': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShareCnt')),
-
-    'Order': SApp('Tuple', Nat, Nat),
-    # 'Order' : Dup(SApp('Tuple', Nat, Nat),'Order'),
-    'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),
-    # 'TDMap_Order': SApp('TDMap', Dup(SApp('Tuple',Nat,Nat),'Order')),
-}
+# todo_once("this is temporary too")
+# TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
+#
+#     # '$': NonnegReal,
+#     # '$': Dup(NonnegReal,"$"),
+#
+#     # 'Pos$': PosReal,
+#     # 'Pos$': Dup(PosReal,'Pos$'),
+#
+#     # 'ShareCnt': Nat,
+#     # 'Shares' : Dup(Nat,'Shares'),
+#
+#     # 'PosShareCnt': PosInt,
+#     # 'PosShares' : Dup(PosInt,'PosShares'),
+#
+#     # 'SharePrice': SApp('Ratio', PosReal, PosInt),
+#     'SharePrice': SApp('Ratio', Dup(NonnegReal,'$'), Dup(PosInt,'PosShareCnt')),
+#
+#     # 'SharePrice': SApp('Ratio', PosReal, PosInt),
+#     'PosSharePrice': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShareCnt')),
+#
+#     'Order': SApp('Tuple', Nat, Nat),
+#     # 'Order' : Dup(SApp('Tuple', Nat, Nat),'Order'),
+#     'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),
+#     # 'TDMap_Order': SApp('TDMap', Dup(SApp('Tuple',Nat,Nat),'Order')),
+# }
 
 
 def Ratio(s1,s2):
@@ -105,8 +105,8 @@ TDMapKeySorts = TupleAtomicSorts.union(AllAtomicSorts)
 TDMapSorts = map(lambda t: SApp("TDMap", t), TDMapKeySorts)
 
 AllSorts : Set[Any] = AllAtomicSorts\
-                        .union( set(TEMP_SORT_IDENTIFICATION.values()) )\
                         .union( TupleAtomicSorts )\
                         .union( TDMapSorts ) \
                         .union( RatioAtomicSorts )
+                        # .union( set(TEMP_SORT_IDENTIFICATION.values()) )\
 

@@ -29,7 +29,6 @@ from src.model.L4Contract import L4Contract, is_derived_destination_id, is_deriv
 from src.model.L4Macro import L4Macro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit
 from src.model.Term import FnApp
-from src.temp_src.until_sort_duplicates_implemented import temp_normalize_sort
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 
 
@@ -146,7 +145,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_sort(self, x:SExprOrStr) -> Sort:
         sort: Sort
         if isinstance(x,str):
-            sort = temp_normalize_sort(castid(SortId, x))
+            # sort = temp_normalize_sort(castid(SortId, x))
+            sort = castid(SortId, x)
         else:
             if len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
                 # This is just a sort that has brackets/parentheses/spaces in it, so that it has to be
@@ -161,7 +161,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def mk_sort_lit(self, x:SExprOrStr) -> SortLit:
         if isinstance(x,str):
-            return SortLit(temp_normalize_sort(x))
+            # return SortLit(temp_normalize_sort(x))
+            return SortLit(x)
         else:
             assert len(x) == 2 and x[0] == STRING_LITERAL_MARKER
             # assert x[1] in AllSorts

@@ -69,7 +69,7 @@ def parametric_mult_vars(tps:Iterable[NonoverloadedFnType],
             yield tp.substdict(cast(Dict[Sort,Sort],d)) # false cast, but sound as long as we don't modify the dict.
 
 def print_types_map(fntypesmap:Dict[str,OverloadedFnType]):
-    for symb in fntypes_map:
+    for symb in STANDARD_FNTYPES:
         print("\n"+symb)
         print(str(fntypesmap[symb]))
     print(sum(len(fntypesmap[f]) for f in fntypesmap), "simple function types total.")
@@ -292,8 +292,14 @@ overloaded_types_data : FnTypesData = [
             {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':SApp('Ratio',NonnegReal,PosReal)},
             {'NVar':Real, 'DVar':PosInt, 'RVar':SApp('Ratio',Real,PosInt)},
             {'NVar':PosReal, 'DVar':PosInt, 'RVar':SApp('Ratio',PosReal,PosInt)},
+            {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':SApp('Ratio',NonnegReal,PosInt)},
             {'NVar':PosRealj, 'DVar':PosIntj, 'RVar':SApp('Ratio',PosRealj,PosIntj)},
-            {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':SApp('Ratio',NonnegReal,PosInt)}
+
+            {'NVar':PosRealj, 'DVar':PosRealj, 'RVar':SApp('Ratio',PosRealj,PosRealj)},
+            {'NVar':NonnegRealj, 'DVar':PosRealj, 'RVar':SApp('Ratio',NonnegRealj,PosRealj)},
+            {'NVar':PosRealj, 'DVar':PosIntj, 'RVar':SApp('Ratio',PosRealj,PosIntj)},
+            {'NVar':NonnegRealj, 'DVar':PosIntj, 'RVar':SApp('Ratio',NonnegRealj,PosIntj)},
+
         ])
      ),
      (('/',), parametric_mult_vars(
@@ -347,10 +353,11 @@ overloaded_types_data : FnTypesData = [
 unbounded_arity_fnsymbols = {'≤', '≥', '<', '>', '==', 'or*', 'and*',
                               'min','max','+','*'}
 
-fntypes_map = makeNiceFnTypeMap(overloaded_types_data)
+
+STANDARD_FNTYPES = makeNiceFnTypeMap(overloaded_types_data)
 # print_types_map(fntypes_map)
 
-check_type_vars_gone(fntypes_map)
+check_type_vars_gone(STANDARD_FNTYPES)
 
 # def eliminate_unbounded_arity(arity_occurrences: Dict[str,Set[int]], fntypes_map: Dict[str, List[Sequence[Any]]]) -> None:
 #     for f in fntypes_map:

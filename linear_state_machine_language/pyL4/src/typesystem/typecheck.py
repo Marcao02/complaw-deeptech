@@ -12,17 +12,20 @@ from src.model.Literal import *
 from src.model.Section import Section
 from src.model.Term import FnApp
 from src.typesystem.L4TypeErrors import *
-from src.typesystem.standard_subtype_graph import standard_types_graph
+
 from src.util import todo_once, mytimeit
-from src.typesystem.standard_function_types import fntypes_map
+
 from src.temp_src.l4contract_info_gathering import what_sorts_used, what_fnsymbols_used, what_fnsymbols_used2
 from src.temp_src.for_safe import doit_for_safe
 
-graph = standard_types_graph
+from src.typesystem.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH
+from src.typesystem.standard_function_types import STANDARD_FNTYPES
+
+doit_for_safe(STANDARD_FNTYPES, STANDARD_SUBSORTING_GRAPH)
+
+
 def sub(s1:Sort,s2:Sort) -> bool:
-    return graph.hasEdge(s1,s2)
-
-
+    return STANDARD_SUBSORTING_GRAPH.hasEdge(s1, s2)
 
 """
 Just a public API function
@@ -39,14 +42,11 @@ def typecheck_prog(prog:L4Contract):
     print(f"Explicit sorts:")
     print(set(what_sorts_used(prog)))
     print(f"Explicit fn symbols:")
-    fsymbs1 = set(what_fnsymbols_used(prog))
-    print(fsymbs1)
-    fsymbs2 = set(what_fnsymbols_used2(prog))
-    # print(fsymbs2)
-    assert fsymbs1 == fsymbs2
+    fsymbs = set(what_fnsymbols_used(prog))
+    print(fsymbs)
+    assert fsymbs == set(what_fnsymbols_used2(prog))
 
-    doit_for_safe(fntypes_map, graph)
-    assert not graph.hasNode('$')
+    # doit_for_safe(STANDARD_FNTYPES, STANDARD_SUBSORTING_GRAPH)
 
     tc = TypeChecker(prog)
     for action in prog.actions_iter():
@@ -89,7 +89,7 @@ class TypeChecker:
             msg = f"Domain of this overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{self.sort_tuple_toStr(argsorts)}"
             raise L4TypeInferError(term, msg)
         try:
-            intersection = graph.simplifyIntersection(rangeset)
+            intersection = STANDARD_SUBSORTING_GRAPH.simplifyIntersection(rangeset)
         except Exception as e:
             print("Problem with overloaded function type:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
             raise e
@@ -139,14 +139,12 @@ class TypeChecker:
             # if t.fnsymb_name == "==":
             #     print(f"inferring type of {t} using arg sorts {argsorts}")
 
-            fnsymb_type = fntypes_map[t.fnsymb_name]
+            fnsymb_type = STANDARD_FNTYPES[t.fnsymb_name]
             if fnsymb_type:
                 try:
                     rv = self.overloaded_fnapp_range_memo(fnsymb_type, argsorts, t)
                 except Exception as e:
-                    print("Problem with inferring sort of term:\n" + str(t))
-                    print("The original exception: ", e)
-                    raise e
+                    raise L4TypeInferError(t, e.args[0])
                 if rv is None:
                     raise L4TypeInferError(t, f"overloaded_fnapp_range_memo return None.\nArg sorts: {argsorts}\nFn type:\n{fnsymb_type}")
                 return rv

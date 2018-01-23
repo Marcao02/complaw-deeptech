@@ -18,8 +18,9 @@
 	(Pos$ := (Dup PosReal "Pos$"))
 	(ShareCnt := (Dup Nat "ShareCnt"))
 	(PosShareCnt := (Dup PosInt "PosShareCnt"))
-	(SharePrice := (Ratio $ PosShareCnt))
-	(PosSharePrice := (Ratio Pos$ PosShareCnt))
+	; TODO: allow referencing the previous sort definitions
+	(SharePrice := (Ratio (Dup NonnegReal "$") (Dup PosInt "PosShareCnt")))
+	(PosSharePrice := (Ratio (Dup PosReal "Pos$") (Dup PosInt "PosShareCnt")))
 )
 
 (ContractParams
@@ -196,8 +197,6 @@
 				(liq_cashout = cash_currently_unconverted)
 			)
 			else (
-				(local test2 : $ = company_cash)
-				(local test : $ = (company_cash * investor_percent_of_cashout_investor_investments))
 				(liq_cashout = (company_cash * investor_percent_of_cashout_investor_investments))
 			))
 			(investor_cash += liq_cashout)

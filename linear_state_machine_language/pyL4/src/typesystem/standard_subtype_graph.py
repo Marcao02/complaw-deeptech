@@ -25,7 +25,7 @@ def add_derived(graph:SubsortGraph):
                 for den2 in {PosReal, PosInt}:
                     if not graph.hasEdge(den1,den2):
                         continue
-                    graph.addEdge(SApp('Ratio',num1,den1), SApp('Ratio',num2,den2))
+                    graph.addEdge(Ratio(num1,den1), Ratio(num2,den2))
 
     for S in AllAtomicSorts:
         # graph.addEdge(NonatomicSort('Tuple', (S, S)), NonatomicSort('Tuple', ('Any', 'Any')))
@@ -59,19 +59,25 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosInt,PosReal),
     sschain(Nat,NonnegReal),
     sschain(Int,Real),
-    sschain(SApp('Ratio',NonnegReal, PosReal), NonnegReal),
-    sschain(SApp('Ratio',NonnegReal, PosInt), NonnegReal),
-    sschain(SApp('Ratio',PosReal,PosReal), PosReal),
-    sschain(SApp('Ratio',Real,PosReal), Real),
-    sschain(SApp('Ratio',PosReal,PosInt), PosReal),
-    sschain(SApp('Ratio',Real,PosInt), Real),
-    sschain(Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)),
+    sschain(Ratio(NonnegReal, PosReal), NonnegReal),
+    sschain(Ratio(NonnegReal, PosInt), NonnegReal),
+    sschain(Ratio(PosReal,PosReal), PosReal),
+    sschain(Ratio(PosReal,PosInt), PosReal),
+    sschain(Ratio(Real, PosReal), Real),
+    sschain(Ratio(Real,PosInt), Real),
 
+    sschain(Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)),
+    sschain(Ratio(PosRealj, PosRealj), Ratio(NonnegRealj, PosRealj)),
+
+    sschain(Ratio(NonnegRealj, PosRealj), NonnegRealj),
+    sschain(Ratio(NonnegRealj, PosIntj), NonnegRealj),
+    sschain(Ratio(PosRealj,PosRealj), PosRealj),
+    sschain(Ratio(PosRealj,PosIntj), PosRealj),
 
     sschain(PosIntj,Natj),
     sschain(PosRealj,NonnegReal)
 )
 
 
-standard_types_graph = build_graph(SUBSORT_CONSTRAINTS, AllSorts)
+STANDARD_SUBSORTING_GRAPH = build_graph(SUBSORT_CONSTRAINTS, AllSorts)
 # print( standard_types_graph )

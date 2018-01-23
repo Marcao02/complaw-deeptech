@@ -4,9 +4,10 @@ from src.independent.parse_sexpr import parse_file
 from src.compiler.compiler_cli import EXAMPLES_SEXPR_ROOT
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 
-from src.typesystem.standard_function_types import fntypes_map, print_types_map
+from src.typesystem.standard_function_types import STANDARD_FNTYPES, print_types_map
 from src.typesystem.typecheck import typecheck_prog
 from src.temp_src.for_safe import doit_for_safe
+from typesystem.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH
 
 EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/test_local_vars.l4',
@@ -32,12 +33,12 @@ def test_eliminate_unbounded_arity():
 
     eliminate_unbounded_arity({'and*': {3}, '*': {2, 3}, 'max': {2, 3}, 'min': {2},
                                '≤': {2, 3}, '<': {2, 3}, '>': {2, 3},
-                               '≥': {2, 3}, '==': {2}, '+': {2, 3}}, fntypes_map)
-    print_types_map(fntypes_map)
+                               '≥': {2, 3}, '==': {2}, '+': {2, 3}}, STANDARD_FNTYPES)
+    print_types_map(STANDARD_FNTYPES)
 
 
 def main(sys_argv:Sequence[str]):
-    print_types_map(fntypes_map)
+    print_types_map(STANDARD_FNTYPES)
 
     for filename in EXAMPLES_TO_TYPECHECK:
         msg = f"Example {filename}:"
