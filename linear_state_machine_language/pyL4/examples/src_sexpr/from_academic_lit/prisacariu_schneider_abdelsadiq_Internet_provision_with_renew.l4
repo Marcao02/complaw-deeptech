@@ -20,6 +20,10 @@
 
 (Roles ISP Client)
 
+(SortDefinitions
+	($ := (Dup NonnegReal "$"))
+)
+
 (ContractParams
 	(HIGH_USAGE_FEE : Nat := 10)
 	(HOURS_PARAM : TimeDelta := 24h)

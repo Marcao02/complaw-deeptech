@@ -5,8 +5,10 @@ from src.typesystem.standard_sorts import *
 from src.typesystem.SubsortConstraint import sschain, SubsortConstraint
 
 
-def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes:Iterable[Sort]) -> TransitivelyClosedDirectedGraph[Sort]:
-    graph = TransitivelyClosedDirectedGraph[Sort]()
+SubsortGraph = TransitivelyClosedDirectedGraph[Sort]
+
+def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes:Iterable[Sort]) -> SubsortGraph:
+    graph = SubsortGraph()
     graph.addNodes(initial_nodes)
     for constraint in subsort_constraints:
         graph.addEdge(constraint.parts[0],constraint.parts[1])
@@ -14,7 +16,7 @@ def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes
     # graph.addTop('Any')
     return graph
 
-def add_derived(graph:TransitivelyClosedDirectedGraph[Sort]):
+def add_derived(graph:SubsortGraph):
     for num1 in UnboundedNumericSorts:
         for num2 in UnboundedNumericSorts:
             if not graph.hasEdge(num1,num2):

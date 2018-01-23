@@ -35,6 +35,8 @@ class FnApp(Term):
         rviter : Iterable[T] = iteraccum_maybe or []
         rviter = chain(rviter, f(self))
         for term in self.args:
+            if isinstance(term,str):
+                print("This shouldn't happen, a str as an arg to a fn app:", term)
             rviter = term.forEachTerm(f,rviter)
         return rviter
 

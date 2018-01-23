@@ -51,7 +51,7 @@ todo_once("this is temporary too")
 TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
 
     # '$': NonnegReal,
-    '$': Dup(NonnegReal,"$"),
+    # '$': Dup(NonnegReal,"$"),
 
     # 'Pos$': PosReal,
     'Pos$': Dup(PosReal,'Pos$'),

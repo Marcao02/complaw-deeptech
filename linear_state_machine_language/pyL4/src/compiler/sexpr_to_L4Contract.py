@@ -159,7 +159,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         assert sort is not None
         return sort
 
-    def _mk_sort_lit(self,x:SExprOrStr) -> SortLit:
+    def mk_sort_lit(self, x:SExprOrStr) -> SortLit:
         if isinstance(x,str):
             return SortLit(temp_normalize_sort(x))
         else:
@@ -217,7 +217,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                                  "Definition declaration S-expressions should have the form (id = SExpr)")
         return {x[0] : Definition(x[0],x[2]) for x in s}
 
-    def _mk_sort_definitions(self, s:SExpr) -> Dict[DefinitionId, Sort]:
+    def _mk_sort_definitions(self, s:SExpr) -> Dict[str, Sort]:
+        print("Sort defn", s)
         self.assertOrSyntaxError(all(len(x) == 3 for x in s), s,
                                  "Definition declaration S-expressions should have the form (id = SExpr) or (id := SExpr)")
         return {x[0] : self._mk_sort(x[2]) for x in s}
@@ -501,7 +502,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower(), coord)
             # print('STD', rv)
             return rv
-
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 
@@ -561,7 +561,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.fnsymb_names.add(fnsymb_name)
                 args : List[Term]
                 if fnsymb_name == 'cast':
-                    args = [cast(Term,self._mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
+                    args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
                 else:
                     args = [ self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1] ]
                 return FnApp(
@@ -572,6 +572,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 if x in EXEC_ENV_VARIABLES:
                     self.syntaxError(x, f"You're using environment variable {x} like a 0-arg function symbol. Remove the brackets please.")
+                elif x[0] in self.top.sorts:
+                    return FnApp( "cast", [
+                        self.mk_sort_lit(x[0]),
+                        self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
+                    ])
+                    # print("It's a sort!")
                 else:
                     self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
 

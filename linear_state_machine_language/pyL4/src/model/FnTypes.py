@@ -75,4 +75,4 @@ class OverloadedFnType(NamedTuple):
         self.parts.extend(have)
 
     def __str__(self) -> str:
-        return mapjoin(str, self.parts, "\n")
+        return "\t" + mapjoin(str, self.parts, "\n\t")

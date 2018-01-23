@@ -499,7 +499,6 @@ unbounded_arity_fnsymbols = {'≤', '≥', '<', '>', '==', 'or*', 'and*',
                               'min','max','+','*'}
 
 fntypes_map = makeNiceFnTypeMap(overloaded_types_data)
-doit_for_safe(fntypes_map)
 # print_types_map(fntypes_map)
 
 check_type_vars_gone(fntypes_map)

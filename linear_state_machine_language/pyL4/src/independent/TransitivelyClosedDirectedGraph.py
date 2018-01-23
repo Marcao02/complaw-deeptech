@@ -13,6 +13,9 @@ class TransitivelyClosedDirectedGraph(Generic[T]):
         self.edges_from : Dict[T,Set[T]] = dict()
         self.edges_from_inv: Dict[T, Set[T]] = dict()
 
+    def hasNode(self, node:T) -> bool:
+        return node in self.edges_from
+
     def addNode(self, node:T):
         self.addEdge(node,node)
 
