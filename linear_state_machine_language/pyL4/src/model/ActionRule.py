@@ -33,15 +33,35 @@ class ActionRule:
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         rviter : Iterable[T] = iteraccum_maybe or []
         if self.entrance_enabled_guard:
-            rviter = chain(rviter, f(self.entrance_enabled_guard))
+            rviter = self.entrance_enabled_guard.forEachTerm(f,rviter)
         if self.where_clause:
-            rviter = chain(rviter, f(self.where_clause))
+            rviter = self.where_clause.forEachTerm(f,rviter)
         if self.fixed_args:
             for i in range(len(self.fixed_args)):
                 argterm = self.fixed_args[i]
-                rviter = chain(rviter, f(argterm))
+                rviter = argterm.forEachTerm(f, rviter)
+                # rviter = chain(rviter, f(argterm))
         if self.time_constraint:
-            rviter = chain(rviter, f(self.time_constraint))
+            rviter = self.time_constraint.forEachTerm(f, rviter)
+            # rviter = chain(rviter, f(self.time_constraint))
+        return rviter
+
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        if self.entrance_enabled_guard:
+            rviter = chain(rviter, self.entrance_enabled_guard.forEach(pred,f))
+        if self.where_clause:
+            rviter = chain(rviter, self.where_clause.forEach(pred,f))
+        if self.fixed_args:
+            for i in range(len(self.fixed_args)):
+                argterm = self.fixed_args[i]
+                rviter = chain(rviter, argterm.forEach(pred,f))
+                # rviter = chain(rviter, f(argterm))
+        if self.time_constraint:
+            rviter = chain(rviter, self.time_constraint.forEach(pred,f))
+            # rviter = chain(rviter, f(self.time_constraint))
         return rviter
 
     def toStr(self, i:int) -> str:

@@ -12,7 +12,7 @@ from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.GlobalVarDec import GlobalVarDec
-from src.model.Sort import Sort
+from src.model.Sort import Sort, NonatomicSort
 
 from src.independent.FileCoord import FileCoord
 from src.correctness_checks import L4ContractConstructorInterface
@@ -116,6 +116,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.timeunit = chcaststr(x[1]).lower()
                 self.assertOrSyntaxError( self.top.timeunit in SUPPORTED_TIMEUNITS, x, f"{TIMEUNIT_DEC_LABEL} must be one of {str(SUPPORTED_TIMEUNITS)}")
 
+            elif head(SORT_DEFINITIONS_AREA):
+                self.top.sort_definitions = self._mk_sort_definitions(rem)
+
             elif head(DEFINITIONS_AREA):
                 self.top.definitions = self._mk_definitions(rem)
 
@@ -145,9 +148,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if isinstance(x,str):
             sort = temp_normalize_sort(castid(SortId, x))
         else:
-            assert len(x) == 2 and x[0] == STRING_LITERAL_MARKER
-            # assert x[1] in AllSorts
-            sort = self._mk_sort(x[1])
+            if len(x) == 2 and x[0] == STRING_LITERAL_MARKER:
+                # This is just a sort that has brackets/parentheses/spaces in it, so that it has to be
+                # enclosed in quotes in source code.
+                sort = self._mk_sort(x[1])
+            else:
+                assert len(x) >= 2
+                sort = NonatomicSort(x[0], tuple(self._mk_sort(x[i]) for i in range(1,len(x))))
         self.top.sorts.add(sort)
         assert sort is not None
         return sort
@@ -209,6 +216,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.assertOrSyntaxError(all(len(x) == 3 for x in s), s,
                                  "Definition declaration S-expressions should have the form (id = SExpr)")
         return {x[0] : Definition(x[0],x[2]) for x in s}
+
+    def _mk_sort_definitions(self, s:SExpr) -> Dict[DefinitionId, Sort]:
+        self.assertOrSyntaxError(all(len(x) == 3 for x in s), s,
+                                 "Definition declaration S-expressions should have the form (id = SExpr) or (id := SExpr)")
+        return {x[0] : self._mk_sort(x[2]) for x in s}
 
     def _mk_prose_contract(self, l: List[List[str]]) -> ProseContract:
         rv = {castid(ProseClauseId,x[0]): x[1] for x in l}

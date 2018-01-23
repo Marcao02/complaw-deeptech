@@ -5,7 +5,7 @@ roles: Env, Investor, Company
 
 contract params:
     PURCHASE_AMOUNT : PosReal := 100000
-    TIME_TILL_MATURITY : TimeDelta := (days (365 + (364 / 2)))
+    TIME_TILL_MATURITY : TimeDelta := (days (365 + (cast PosInt (364 / 2))))
     VALUATION_CAP : PosReal := inf
     DISCOUNT_RATE : (0,1] := 1
     INTEREST_RATE : [0,1] := 0.04
@@ -51,7 +51,7 @@ action CloseEquityFinancingSale(qualifying_round_price: PosReal/PosInt, company_
         conversion_price : PosReal/PosInt := (min discount_price cap_price)
         if pay_interest_in_cash:
             change : NonnegReal := (ifthenelse (event_td ≤ 365d) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
-            company_cash := (company_cash - change)
+            company_cash := (cast NonnegReal (company_cash - change))
             investor_cash := (investor_cash + change)
             investor_PreferredStock := (investor_PreferredStock + (round (PURCHASE_AMOUNT / conversion_price)))
         else:

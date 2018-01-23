@@ -1,4 +1,6 @@
-from typing import List, Union, Optional
+from itertools import chain
+
+from src.independent.typing_imports import *
 
 from src.independent.FileCoord import FileCoord
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
@@ -8,6 +10,13 @@ from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS,
 class Term:
     def __init__(self, coord: Optional[FileCoord] = None) -> None:
         self.coord = coord
+
+    def forEachTerm(self, f: Callable[['Term'], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
+        raise NotImplementedError
+
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        print(f"{self} of type {type(self)} not handled")
+        raise NotImplementedError
 
 TermOrStr = Union[Term,str]
 
@@ -21,25 +30,22 @@ class FnApp(Term):
     @property
     def head(self) -> str:
         return self.fnsymb_name
-# class FnApp(Term):
-#     def __init__(self, head:Union[str, FnSymb], args:List[Term], coord:Optional[FileCoord] = None) -> None:
-#         super().__init__(coord)
-#         self.fnsymb : FnSymb
-#         if isinstance(head, FnSymb):
-#             self.fnsymb = head
-#             fnsymb_name = self.fnsymb.name
-#         else:
-#             fnsymb_name = head
-#         ofntype = fntypes_map[fnsymb_name] if fnsymb_name in fntypes_map else None
-#
-#         if isinstance(head,str):
-#             self.fnsymb = FnSymb(head, ofntype)
-#         self.args = args
-#         self.coord = coord
-#
-#     @property
-#     def head(self) -> str:
-#         return self.fnsymb.name
+
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        rviter = chain(rviter, f(self))
+        for term in self.args:
+            rviter = term.forEachTerm(f,rviter)
+        return rviter
+
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        for term in self.args:
+            rviter = chain(rviter, term.forEach(pred, f))
+        return rviter
+
 
     def __str__(self) -> str:
         if self.head in EXEC_ENV_VARIABLES:

@@ -3,6 +3,7 @@ from src.independent.typing_imports import *
 
 from src.constants_and_defined_types import *
 from src.model.ActionRule import NextActionRule, FutureActionRuleType
+from src.model.Sort import Sort
 from src.model.Term import Term
 from src.util import indent
 
@@ -41,6 +42,14 @@ class Section:
         rviter : Iterable[T] = iteraccum_maybe or []
         for rule in self.action_rules():
             rviter= chain(rviter, rule.forEachTerm(f,rviter))
+        return rviter
+
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        for rule in self.action_rules():
+            rviter = chain(rviter, rule.forEach(pred, f))
         return rviter
 
     def __str__(self):

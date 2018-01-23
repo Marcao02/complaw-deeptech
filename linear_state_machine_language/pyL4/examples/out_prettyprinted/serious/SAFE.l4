@@ -18,11 +18,11 @@ global vars:
     writeAtMostOnce investor_SAFE_Preferred_Stocks : Nat := START_INVESTOR_SAFE_PREFERRED_STOCKS
     writeAtMostOnce investor_cash : NonnegReal := START_INVESTOR_CASH
     cash_currently_unconverted : NonnegReal := PURCHASE_AMOUNT
-    writeAtMostOnce safe_price : PosReal/PosInt
-    writeAtMostOnce discount_price : PosReal/PosInt
-    writeAtMostOnce conversion_price : PosReal/PosInt
-    writeAtMostOnce initial_price_per_share_standard_preferred_stock : PosReal/PosInt
-    writeAtMostOnce liq_price : PosReal/PosInt
+    writeAtMostOnce safe_price : SharePrice
+    writeAtMostOnce discount_price : SharePrice
+    writeAtMostOnce conversion_price : SharePrice
+    writeAtMostOnce initial_price_per_share_standard_preferred_stock : SharePrice
+    writeAtMostOnce liq_price : SharePrice
     writeAtMostOnce liq_cashout : NonnegReal := 0
     writeAtMostOnce company_cash : NonnegReal
     writeAtMostOnce investor_liq_hypothetical_shares : Nat
@@ -75,7 +75,7 @@ action CommitToLiquidityEvent(change_of_control: Bool, company_cash_at_liquidity
         if (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > 0)):
             purchase_amount_reduction : NonnegReal := (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg)
             investor_Common_Stocks := (investor_Common_Stocks + (round (purchase_amount_reduction / liq_price)))
-            cash_currently_unconverted := (PURCHASE_AMOUNT - purchase_amount_reduction)
+            cash_currently_unconverted := (cast NonnegReal (PURCHASE_AMOUNT - purchase_amount_reduction))
             company_cash := (cast NonnegReal (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
         else:
             cash_currently_unconverted := PURCHASE_AMOUNT
@@ -124,7 +124,7 @@ action CommitToDissolution()  transitions to AfterCommitToDissolution
     following section:
         Company must TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) discretionary
 
-action TransferCash_D(company_cash_at_dissolution_event: NonnegReal, investor_percent_of_dissolving_investor_investments: %) transitions to AfterTransferCash_D:
+action TransferCash_D(company_cash_at_dissolution_event: NonnegReal, investor_percent_of_dissolving_investor_investments: (0,1]) transitions to AfterTransferCash_D:
     transform:
         if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)):
             dis_cashout := PURCHASE_AMOUNT

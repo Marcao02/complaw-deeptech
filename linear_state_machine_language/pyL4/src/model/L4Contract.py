@@ -1,5 +1,6 @@
 # from typing import Union, List, Dict, Any, Tuple
 from itertools import chain
+from typing import Type
 
 from src.independent.typing_imports import *
 from src.constants_and_defined_types import *
@@ -14,6 +15,9 @@ from src.model.Definition import Definition
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.L4Macro import L4Macro
 from src.model.Section import Section
+from src.model.Sort import Sort
+
+S = TypeVar('S')
 
 class L4Contract:
     def __init__(self, filename:str) -> None:
@@ -25,10 +29,14 @@ class L4Contract:
 
         self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
-        self.roles : List[RoleId] = [ENV_ROLE]
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
+
+        # TODO: make `definitions` `term_definitions`
+        self.definitions: Dict[DefinitionId, Definition] = dict()
+        self.sort_definitions: Dict[DefinitionId, Sort] = dict()
+
+        self.roles : List[RoleId] = [ENV_ROLE]
         self.sorts : Set[Sort] = set()
-        self.definitions : Dict[DefinitionId, Definition] = dict()
         self.fnsymb_names : Set[str] = set()
 
         self.sections_by_id: Dict[SectionId, Section] = dict()
@@ -111,18 +119,35 @@ class L4Contract:
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         rviter : Iterable[T] = iteraccum_maybe or []
         for action in self.actions_iter():
-            rviter = chain(rviter, action.forEachTerm(f))
+            rviter = chain(rviter, action.forEachTerm(f,rviter))
         for section in self.sections_iter():
-            rviter = chain(rviter, section.forEachTerm(f))
+            rviter = chain(rviter, section.forEachTerm(f,rviter))
         for contract_param_dec in self.contract_params.values():
-            rviter = f(contract_param_dec.value_expr)
+            rviter = contract_param_dec.value_expr.forEachTerm(f, rviter)
         for gvardec in self.global_var_decs.values():
             if gvardec.initval:
-                rviter = f(gvardec.initval)
+                rviter = gvardec.initval.forEachTerm(f,rviter)
         return rviter
 
-    # def forEachSection(self, Callable[Section,Iterable[T]]):
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
 
+        for action in self.actions_iter():
+            rviter = chain(rviter, action.forEach(pred,f))
+
+        for section in self.sections_iter():
+            rviter = chain(rviter, section.forEach(pred,f))
+
+        for contract_param_dec in self.contract_params.values():
+            if contract_param_dec.name == 'LEASE_DURATION':
+                print("looking at dec of LEASE_DURATION")
+            rviter = chain(rviter, contract_param_dec.forEach(pred, f))
+
+        for gvardec in self.global_var_decs.values():
+            rviter = chain(rviter, gvardec.forEach(pred,f))
+        return rviter
 
     def __str__(self) -> str:
         rv = ''

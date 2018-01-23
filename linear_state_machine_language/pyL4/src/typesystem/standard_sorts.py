@@ -19,6 +19,13 @@ Bool = 'Bool'
 def SApp(symb:str, *args:Any) -> NonatomicSort:
     return NonatomicSort.c(symb, tuple(args))
 
+j = 'jvar'
+Natj = SApp('Dup',Nat,j)
+PosIntj = SApp('Dup',PosInt,j)
+NonnegRealj = SApp('Dup',NonnegReal,j)
+PosRealj = SApp('Dup',PosReal,j)
+
+
 all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
 all_sort_copies : Set[Sort] = set()
 def Dup(sort:Sort, name:str) -> NonatomicSort:
@@ -52,9 +59,15 @@ TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
     # 'Shares' : Dup(Nat,'Shares'),
     'PosShares': PosInt,
     # 'PosShares' : Dup(PosInt,'PosShares'),
+    'ShareCnt': Nat,
+    # 'Shares' : Dup(Nat,'Shares'),
+    'PosShareCnt': PosInt,
+    # 'PosShares' : Dup(PosInt,'PosShares'),
 
     '$/Shares': SApp('Ratio', PosReal, PosInt),
     # '$/Shares': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShares')),
+    'SharePrice': SApp('Ratio', PosReal, PosInt),
+
     'Order': SApp('Tuple', Nat, Nat),
     # 'Order' : Dup(SApp('Tuple', Nat, Nat),'Order'),
     'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),

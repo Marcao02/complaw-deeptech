@@ -132,7 +132,7 @@ action CommitToDissolution()  transitions to AfterCommitToDissolution
     following section:
         Company must TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) discretionary
 
-action TransferCash_D(company_cash_at_dissolution_event: NonnegReal, investor_percent_of_dissolving_investor_investments: %) transitions to AfterTransferCash_D:
+action TransferCash_D(company_cash_at_dissolution_event: NonnegReal, investor_percent_of_dissolving_investor_investments: (0,1]) transitions to AfterTransferCash_D:
     transform:
         if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)):
             dis_cashout := PURCHASE_AMOUNT

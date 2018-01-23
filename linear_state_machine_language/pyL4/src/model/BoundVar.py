@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING
+from itertools import chain
+
+from src.independent.typing_imports import *
 
 from src.constants_and_defined_types import GlobalVarId, ContractParamId, ActionBoundActionParamId, \
     RuleBoundActionParamId, StateTransformLocalVarId
@@ -15,6 +17,21 @@ class BoundVar(Term):
     def __init__(self) -> None:
         super().__init__()
         pass
+
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
+        if iteraccum_maybe:
+            return chain(iteraccum_maybe,f(self))
+        else:
+            return f(self)
+
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        if pred(self.name):
+            rviter = chain(rviter, f(self.name))
+        return rviter
+
 
     def __str__(self):
         return self.name

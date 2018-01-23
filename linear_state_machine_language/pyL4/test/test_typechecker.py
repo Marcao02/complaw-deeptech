@@ -7,6 +7,7 @@ from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 from src.typesystem.standard_function_types import fntypes_map
 from src.typesystem.typecheck import typecheck_prog
 
+
 EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/test_local_vars.l4',
     'toy_and_teaching/partner_assignment_relievable_obligations.l4',

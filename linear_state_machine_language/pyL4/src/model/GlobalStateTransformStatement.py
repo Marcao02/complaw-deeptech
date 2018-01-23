@@ -15,6 +15,8 @@ class GlobalStateTransformStatement:
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         raise NotImplementedError
+    def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
+        raise NotImplementedError
 
     def toStr(self, i:int):
         return indent(i) + str(self)
@@ -31,13 +33,26 @@ class IfElse(GlobalStateTransformStatement):
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         rviter : Iterable[T] = iteraccum_maybe or []
-        rviter = chain(rviter, f(self.test))
+        rviter = chain(rviter, self.test.forEachTerm(f,rviter))
         for statement in self.true_branch:
             rviter = chain(rviter, statement.forEachTerm(f,rviter))
         if self.false_branch:
             for statement in self.false_branch:
                 rviter = chain(rviter, statement.forEachTerm(f, rviter))
         return rviter
+
+    def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        rviter = chain(rviter,self.test.forEach(pred,f))
+        for statement in self.true_branch:
+            rviter = chain(rviter, statement.forEach(pred,f))
+        if self.false_branch:
+            for statement in self.false_branch:
+                rviter = chain(rviter, statement.forEach(pred, f))
+        return rviter
+
 
 
     def toStr(self,i:int):
@@ -59,7 +74,14 @@ class StateTransformLocalVarDec(GlobalStateTransformStatement):
         self.sort = sort
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
-        return chain(iteraccum_maybe or [], f(self.value_expr))
+        return self.value_expr.forEachTerm(f,iteraccum_maybe)
+
+    def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        rviter = chain(rviter, self.value_expr.forEach(pred,f))
+        return rviter
 
     def __str__(self):
         return f"{self.varname} : {str(self.sort)} := {str(self.value_expr)}"
@@ -78,7 +100,15 @@ class InCodeConjectureStatement(GlobalStateTransformStatement):
         self.value_expr = prop
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
-        return chain(iteraccum_maybe or [], f(self.value_expr))
+        return self.value_expr.forEachTerm(f, iteraccum_maybe)
+
+    def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        rviter = chain(rviter, self.value_expr.forEach(pred,f))
+        return rviter
+
 
     def __str__(self) -> str:
         return "prove " + str(self.value_expr)
@@ -91,7 +121,16 @@ class AbstractGlobalVarAssignStatement(GlobalStateTransformStatement):
         self.value_expr = value_expr
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
-        return chain(iteraccum_maybe or [], f(self.value_expr))
+        return self.value_expr.forEachTerm(f, iteraccum_maybe)
+
+    def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        rviter = chain(rviter, self.value_expr.forEach(pred,f))
+        return rviter
+
+
 
     @property
     def varname(self) -> GlobalVarId:

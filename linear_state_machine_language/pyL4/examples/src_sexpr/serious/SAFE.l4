@@ -13,12 +13,20 @@
 
 (TimeUnit d)
 
+(SortDefinitions
+	($ := (Dup NonnegReal "$"))
+	(Pos$ := (Dup PosReal "Pos$"))
+	(ShareCnt := (Dup Nat "ShareCnt"))
+	(PosShareCnt := (Dup PosInt "PosShareCnt"))
+	(SharePrice := (Ratio $ PosShareCnt))
+)
+
 (ContractParams
 	(PURCHASE_AMOUNT : Pos$ = 100000)
 	(VALUATION_CAP : Pos$ = inf)
 	(DISCOUNT_RATE : "(0,1]" = 1)
-	(START_INVESTOR_COMMON_STOCKS : Nat = 0)
-	(START_INVESTOR_SAFE_PREFERRED_STOCKS : Nat = 0)
+	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
+	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_CASH : $ = 0)
 )
 
@@ -26,25 +34,25 @@
 	(has_cap : Bool = (VALUATION_CAP < inf))
 	(has_discount : Bool = (DISCOUNT_RATE < 1))
 
-	(writeAtMostOnce investor_Common_Stocks : Nat = START_INVESTOR_COMMON_STOCKS  )
-	(writeAtMostOnce investor_SAFE_Preferred_Stocks : Nat = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+	(writeAtMostOnce investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
+	(writeAtMostOnce investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
 	(writeAtMostOnce investor_cash : $ = START_INVESTOR_CASH )
 
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
 	; for Equity Financing
-	(writeAtMostOnce safe_price : $/Shares)
-	(writeAtMostOnce discount_price : $/Shares)
-	(writeAtMostOnce conversion_price : $/Shares)
-	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : $/Shares)
+	(writeAtMostOnce safe_price : SharePrice)
+	(writeAtMostOnce discount_price : SharePrice)
+	(writeAtMostOnce conversion_price : SharePrice)
+	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : SharePrice)
 	; don't need this because only used by the action that introduces it:
 	; (writeAtMostOnce company_capitalization : Nat)
 
 	; for Liquidity
-	(writeAtMostOnce liq_price : $/Shares )
+	(writeAtMostOnce liq_price : SharePrice )
 	(writeAtMostOnce liq_cashout : $ = 0 )
 	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
-	(writeAtMostOnce investor_liq_hypothetical_shares : Nat)
+	(writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt)
 	; (writeAtMostOnce liquidity_capitalization : Nat)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
 	(writeAtMostOnce investor_percent_of_cashout_investor_investments : "(0,1]")
 	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need to store. action param only

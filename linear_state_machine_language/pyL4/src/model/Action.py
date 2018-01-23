@@ -62,6 +62,17 @@ class Action:
             rviter = chain(rviter, rule.forEachTerm(f,rviter))
         return rviter
 
+    def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        for statement in self.state_transform_statements():
+            rviter = chain(rviter, statement.forEach(pred, f))
+        for rule in self.future_action_rules():
+            assert isinstance(rule, ActionRule)
+            rviter = chain(rviter, rule.forEach(pred, f))
+        return rviter
+    
     def __str__(self) -> str:
         return self.toStr(0)
 

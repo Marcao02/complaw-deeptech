@@ -4,8 +4,9 @@ from src.independent.typing_imports import *
 from src.model.Sort import Sort, NonatomicSort, AtomicSort
 from src.model.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType
 from src.typesystem.standard_sorts import AllAtomicSorts, TDMapKeySortData, TimeDelta, Bool, UnboundedNumericSorts, \
-    PosInt, PosReal, Int, NonnegReal, AllSortData, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, AllNumericSorts, \
-    all_sort_copies_by_orig, SApp
+    PosInt, PosReal, Int, NonnegReal, AllSortData, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, \
+    AllNumericSorts, \
+    all_sort_copies_by_orig, SApp, NonnegRealj, Natj, PosIntj, PosRealj
 
 """
 We have a rich (and getting richer) numeric hierarchy in the standard library, and we have a few ways of combining
@@ -22,7 +23,7 @@ In SAFE, there are 3 alternate universes:
 detail for now). It has no name for the reals.
 2. Dollar amounts - this universe has a copy of the nonnegative reals (and its positive subset, but again ignore that
 detail for now). It has no name for the integer subset of that set.
-3. Share prices - This universe has a copy of the positive reals, "viewed as" ratios of dollar amounts per share.
+3. Share prices - This universe has a copy of the positive reals, "viewed as" ratios of (2).dollar_amounts per (1).share.
 
 Let's refer to the SMU as U0, and the others as U1, U2, U3.
 
@@ -38,18 +39,14 @@ def sfntype(*tp:Sort) -> SimpleFnType:
     return SimpleFnType(tp)
 
 FnTypesData = List[ Tuple[Tuple[AtomicSort,...], Iterable[NonoverloadedFnType]] ]
+TypeData = Sequence[Any]
 
 X = 'XVar'
 N = 'NVar'
 D = 'DVar'
 R = 'RVar'
 TYPEVARS = {X, N, D, R}
-j = 'jvar'
 
-TypeData = Sequence[Any]
-
-Natj = SApp('Dup',Nat,j)
-PosIntj = SApp('Dup',PosInt,j)
 
 def parametric_one_var(tp_or_tps:Union[NonoverloadedFnType,Iterable[NonoverloadedFnType]],
                        substitutions:Iterable[Sort] = AllSortData,
@@ -141,6 +138,190 @@ def check_type_vars_gone(oftmap:Dict[str,OverloadedFnType]):
             for x in noft.parts:
                 check_type_vars_gone_from_sort(x)
 
+
+overloaded_types_data2 : FnTypesData = [
+
+    # ------------TimeDelta environment variables------------
+    (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td','contractStart_td'), (
+        sfntype(TimeDelta), )
+     ),
+    # ------------TimeDelta fns------------
+    (('days',), (
+        sfntype(Nat,TimeDelta),
+        sfntype(PosInt,PosTimeDelta))
+     ),
+
+    # ------------Tuples------------
+    (('tuple',), parametric_one_var(
+            sfntype(X, X, SApp('Tuple', X, X)),
+            AllAtomicSorts)
+     ),
+    (('tupleGet',), parametric_one_var(
+            sfntype(SApp('Tuple', X, X), '{0,1}', X),
+            AllAtomicSorts)
+     ),
+
+    # ------------TimeDelta Maps------------
+    (('mapSet',), parametric_one_var( (
+        sfntype('EmptyTDMap', X, 'TimeDelta', SApp('TDMap', X)),
+        sfntype(SApp('TDMap', X), X, 'TimeDelta', SApp('TDMap', X))
+        ),
+        TDMapKeySortData)
+     ),
+    (('tdGEQ',), parametric_one_var(
+        sfntype(SApp('TDMap', X), X, 'TimeDelta', 'Bool'),
+        TDMapKeySortData)
+     ),
+    (('mapDelete',), parametric_one_var(
+        sfntype(SApp('TDMap', X), X, SApp('TDMap', X)),
+        TDMapKeySortData)
+     ),
+    (('mapHas',), parametric_one_var(
+        sfntype(SApp('TDMap', X), X, 'Bool'),
+        TDMapKeySortData)
+     ),
+    (('nonempty','empty'), parametric_one_var(
+        sfntype(SApp('TDMap', X), 'Bool'),
+        TDMapKeySortData))
+    ,
+    (('emptyTDMap',), (sfntype('EmptyTDMap'),)),
+    # has intersection problem:
+    # (('emptyTDMap',), parametric_one_var(
+    #     sfntype(SApp('TDMap', X)),
+    #     TDMapKeySortData)
+    #  ),
+
+    # ------------Comparison and (in)equality------------
+    (('≤', '≥', '<', '>'), (
+        aafntype(Real, Bool),
+        aafntype(TimeDelta, Bool),
+        aafntype(DateTime, Bool),
+
+        aafntype(NonnegRealj, Bool),
+        aafntype(Natj, Bool),
+
+        )
+     ),
+    (('==',), parametric_one_var(
+        aafntype(X, Bool),
+        AllAtomicSorts)
+     ),
+    (('!=',), parametric_one_var(
+        sfntype(X, X, Bool),
+        AllAtomicSorts)
+     ),
+
+    # ------------Boolean------------
+     (('not',), (sfntype(Bool, Bool),)),
+     (('and', 'or'), (sfntype(Bool, Bool, Bool),)),
+     (('and*', 'or*'), (aafntype(Bool, Bool),)),
+     (('ifthenelse',), parametric_one_var(
+        sfntype(Bool, X, X, X),
+        AllAtomicSorts)
+     ),
+
+    # ------------Arithmetic------------
+    # TODO should apply for arbitrary Ratio sorts:
+    (('min','max','+','*') , parametric_one_var(
+        (aafntype(X,X),),
+        UnboundedNumericSorts.union(
+            {TimeDelta, SApp('Ratio', PosReal, PosInt)}).union(
+            {NonnegRealj, Natj})
+        )
+     ),
+    # TODO should be arbitrary arity, and order-invariant
+    (('max',), (
+        sfntype(PosReal, Real, PosReal),
+        sfntype(PosInt, Int, PosInt))
+     ),
+    # TODO: {0},{1}, and {0,1}.
+    (('+',), (
+        sfntype(PosIntj,Natj,PosIntj),
+        sfntype(Natj,PosIntj,PosIntj),
+        sfntype(PosRealj,NonnegRealj,PosRealj),
+        sfntype(NonnegRealj,PosRealj,PosRealj),
+        sfntype(PosInt, Nat, PosInt),
+        sfntype(Nat, PosInt, PosInt),
+        sfntype(PosReal, NonnegReal, PosReal),
+        sfntype(NonnegReal, PosReal, PosReal) )
+    ),
+    (('*',), ( # scaling a TimeDelta
+        sfntype(TimeDelta, Nat, TimeDelta),
+         sfntype(Nat, TimeDelta, TimeDelta)
+    )
+     ),
+    # temp hack
+    (('*',), parametric_mult_vars(
+        {sfntype(SApp('Ratio', N, D), D, R),
+         sfntype(D, SApp('Ratio', N, D), R)},
+        [
+                {'NVar':Real,'DVar':PosReal, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
+                {'NVar':Real,'DVar':PosInt, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal}
+        ]
+        )
+     ),
+    (('*',), (
+        sfntype(SApp('Ratio', PosReal, PosInt), PosReal, SApp('Ratio', PosReal, PosInt)),
+        sfntype(PosReal, SApp('Ratio', PosReal, PosInt), SApp('Ratio', PosReal, PosInt)) ),
+     ),
+
+    (('-',), parametric_one_var(
+        sfntype(X, X, X), (Int, Real, TimeDelta))
+     ),
+
+    (('/',), parametric_mult_vars(
+        {sfntype(N, D, R)},
+        [
+            {'NVar':Real, 'DVar':PosReal, 'RVar':SApp('Ratio',Real,PosReal)},
+            {'NVar':PosReal, 'DVar':PosReal, 'RVar':SApp('Ratio',PosReal,PosReal)},
+            {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':SApp('Ratio',NonnegReal,PosReal)},
+            {'NVar':Real, 'DVar':PosInt, 'RVar':SApp('Ratio',Real,PosInt)},
+            {'NVar':PosReal, 'DVar':PosInt, 'RVar':SApp('Ratio',PosReal,PosInt)},
+            {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':SApp('Ratio',NonnegReal,PosInt)}
+        ])
+     ),
+     (('/',), parametric_mult_vars(
+         {sfntype(N, SApp('Ratio', N, D), R)}, [
+                {'NVar':Real,'DVar':PosReal, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
+                {'NVar':Real,'DVar':PosInt, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
+            ])
+    ),
+
+    (('/',), (sfntype(PosTimeDelta, PosTimeDelta, PosReal),
+              sfntype(TimeDelta, PosTimeDelta, NonnegReal) )
+
+     ),
+
+    (('^',), ( sfntype(PosReal,Real,PosReal),
+                sfntype(PosInt,Nat,PosInt) )
+     ),
+
+    (('floor','round','ceil'), (
+        sfntype(Real, Int),
+        sfntype(PosReal, Nat),
+        sfntype(NonnegReal, Nat) )
+     ),
+    (('ceil',), (
+        sfntype(Real, Int),
+        sfntype(PosReal, PosInt),
+        sfntype(NonnegReal, Nat) )
+     ),
+    (('even','odd'), parametric_one_var(
+        sfntype(X, Bool),
+        (Int, Nat, PosInt) )
+     )
+]
+
+
+
 overloaded_types_data : FnTypesData = [
 
     # ------------TimeDelta environment variables------------
@@ -196,7 +377,6 @@ overloaded_types_data : FnTypesData = [
     # ------------Comparison and (in)equality------------
     (('≤', '≥', '<', '>'), (
         aafntype(Real, Bool),
-        aafntype(PosReal, Bool),
         aafntype(TimeDelta, Bool),
         aafntype(DateTime, Bool) )
      ),
@@ -233,9 +413,6 @@ overloaded_types_data : FnTypesData = [
      ),
     # TODO: {0},{1}, and {0,1}.
     (('+',), (
-        sfntype(PosIntj,Natj,PosIntj),
-        sfntype(Natj,PosIntj,PosIntj),
-
         sfntype(PosInt,Nat,PosInt),
         sfntype(Nat,PosInt,PosInt),
         sfntype(PosReal,NonnegReal,PosReal),
@@ -243,7 +420,8 @@ overloaded_types_data : FnTypesData = [
      ),
     (('*',), ( # scaling a TimeDelta
         sfntype(TimeDelta, Nat, TimeDelta),
-         sfntype(Nat, TimeDelta, TimeDelta) )
+         sfntype(Nat, TimeDelta, TimeDelta),
+    )
      ),
     # temp hack
     (('*',), parametric_mult_vars(

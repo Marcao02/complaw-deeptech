@@ -1,6 +1,15 @@
 from typing import Any, List, Callable, Iterable, cast, Dict, Set, TypeVar, Type, Iterator, Union
 import logging
 
+import time
+
+
+def mytimeit(f:Callable[[],Any]) -> Any:
+    start = time.process_time()
+    rv = f()
+    print("TIME", 1000 * (time.process_time() - start))
+    return rv
+
 def indent(i:int) -> str:
     return 4*i*' '
 

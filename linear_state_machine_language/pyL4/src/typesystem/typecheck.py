@@ -13,8 +13,9 @@ from src.model.Section import Section
 from src.model.Term import FnApp
 from src.typesystem.L4TypeErrors import *
 from src.typesystem.standard_subtype_graph import standard_types_graph
-from src.util import todo_once
+from src.util import todo_once, mytimeit
 from src.typesystem.standard_function_types import fntypes_map
+from src.temp_src.l4contract_info_gathering import what_sorts_used, what_fnsymbols_used, what_fnsymbols_used2
 
 graph = standard_types_graph
 def sub(s1:Sort,s2:Sort) -> bool:
@@ -77,6 +78,14 @@ Just a public API function
 #         typecheck_statement(x)
 
 def typecheck_prog(prog:L4Contract):
+    print(f"Explicit sorts:")
+    print(set(what_sorts_used(prog)))
+    print(f"Explicit fn symbols:")
+    fsymbs1 = set(what_fnsymbols_used(prog))
+    print(fsymbs1)
+    fsymbs2 = set(what_fnsymbols_used2(prog))
+    print(fsymbs2)
+    assert fsymbs1 == fsymbs2
     tc = TypeChecker(prog)
     for action in prog.actions_iter():
         tc.typecheck_action(action)

@@ -2,3 +2,5 @@ from typing import Dict, List, Iterator, Optional, Iterable, Callable, TypeVar, 
     Set, Sequence
 
 T = TypeVar('T')
+T1 = TypeVar('T1')
+T2 = TypeVar('T2')

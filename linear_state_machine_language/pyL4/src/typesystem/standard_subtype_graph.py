@@ -61,6 +61,10 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(SApp('Ratio',Real,PosReal), Real),
     sschain(SApp('Ratio',PosReal,PosInt), PosReal),
     sschain(SApp('Ratio',Real,PosInt), Real),
+
+
+    sschain(PosIntj,Natj),
+    sschain(PosRealj,NonnegReal)
 )
 
 
