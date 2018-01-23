@@ -1,17 +1,19 @@
 # from typing import Union, List, Dict, Any, Tuple
 from itertools import chain
-from typing import Iterable
 
+from src.independent.typing_imports import *
+from src.constants_and_defined_types import *
+from src.model.Term import Term
 from src.model.Action import Action
-from src.model.ActionRule import *
+from src.model.ActionRule import ActionRule, PartyFutureActionRule, NextActionRule, EnvNextActionRule, \
+    FutureActionRuleType, PartyNextActionRule
 from src.model.BoundVar import GlobalVar
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.L4Macro import L4Macro
-from src.model.Section import *
-
+from src.model.Section import Section
 
 class L4Contract:
     def __init__(self, filename:str) -> None:
@@ -105,6 +107,21 @@ class L4Contract:
             return None
         # elif isinstance(sec,Section) and varname in sec.local_vars:
         #     return sec.local_vars[varname]
+
+    def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        for action in self.actions_iter():
+            rviter = chain(rviter, action.forEachTerm(f))
+        for section in self.sections_iter():
+            rviter = chain(rviter, section.forEachTerm(f))
+        for contract_param_dec in self.contract_params.values():
+            rviter = f(contract_param_dec.value_expr)
+        for gvardec in self.global_var_decs.values():
+            if gvardec.initval:
+                rviter = f(gvardec.initval)
+        return rviter
+
+    # def forEachSection(self, Callable[Section,Iterable[T]]):
 
 
     def __str__(self) -> str:

@@ -1,8 +1,10 @@
-from typing import Optional, Dict, List, Iterator, Union, Any
+from itertools import chain
+
+from src.independent.typing_imports import *
 
 from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
     StateTransformLocalVarId
-from src.model.ActionRule import PartyFutureActionRule
+from src.model.ActionRule import PartyFutureActionRule, ActionRule
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec, GlobalStateTransformStatement
 from src.model.Section import Section, ParamsDec
@@ -50,6 +52,15 @@ class Action:
 
     def future_action_rules(self) -> Iterator[PartyFutureActionRule]:
         return self.futures.__iter__()
+
+    def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        for statement in self.state_transform_statements():
+            rviter = chain(rviter,statement.forEachTerm(f,rviter))
+        for rule in self.future_action_rules():
+            assert isinstance(rule,ActionRule)
+            rviter = chain(rviter, rule.forEachTerm(f,rviter))
+        return rviter
 
     def __str__(self) -> str:
         return self.toStr(0)

@@ -4,7 +4,7 @@ file: toy_and_teaching/partner_assignment_relievable_obligations.l4
 roles: Env, Alice, Bob
 
 contract params:
-    DUE_TD : TimeDelta := 40
+    DUE_TD : TimeDelta := 40d
 
 global vars:
     probAsolved : Bool := False

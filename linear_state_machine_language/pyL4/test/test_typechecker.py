@@ -36,6 +36,7 @@ def test_eliminate_unbounded_arity():
 
 
 def main(sys_argv:Sequence[str]):
+
     for filename in EXAMPLES_TO_TYPECHECK:
         msg = f"Example {filename}:"
         print(f"\n{'-'*len(msg)}\n{msg}")

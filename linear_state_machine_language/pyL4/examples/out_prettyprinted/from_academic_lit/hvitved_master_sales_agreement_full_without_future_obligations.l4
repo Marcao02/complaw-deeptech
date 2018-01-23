@@ -21,7 +21,7 @@ global vars:
     nonoperative inconly total_paid : NonnegReal := 0
 
 claims:
-    ['∀', ['k', ':', 'ℕ'], [['UpperBoundOnDaysBtwDeliverAndInvoice', 'k'], '⇒', ['∀', ['d', ':', 'Date'], ['∀', ['n', ':', 'ℕ'], [['n', '=', ['units_delivered', 'd']], '⇒', [['total_paid', ['d', '+', ['k', '+', '14D']]], '≥', ['n', '*', 'PRICE_PER_UNIT']]]]]]]
+    ['∀', ['k', ':', 'Nat'], [['UpperBoundOnDaysBtwDeliverAndInvoice', 'k'], '⇒', ['∀', ['d', ':', 'Date'], ['∀', ['n', ':', 'Nat'], [['n', '=', ['units_delivered', 'd']], '⇒', [['total_paid', ['d', '+', ['k', '+', '14D']]], '≥', ['n', '*', 'PRICE_PER_UNIT']]]]]]]
 
 section VendorAcceptingOrders:
     if ((MAX_UNITS - units_ordered) > 0):

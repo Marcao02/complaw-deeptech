@@ -1,19 +1,33 @@
 import logging
-from typing import Callable, Tuple
-
 from mypy_extensions import NoReturn
+
+from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, ActionRule, NextActionRule, EnvNextActionRule, \
+    PartyNextActionRule
+from src.model.Section import Section
+from src.independent.typing_imports import *
+from src.constants_and_defined_types import *
+from src.model.Term import Term
+from src.model.Action import Action
+from src.model.ContractClaim import ContractClaim
+from src.model.ContractParamDec import ContractParamDec
+from src.model.Definition import Definition
+from src.model.GlobalVarDec import GlobalVarDec
+from src.model.Sort import Sort
 
 from src.independent.FileCoord import FileCoord
 from src.correctness_checks import L4ContractConstructorInterface
 from src.independent.SExpr import SExpr, SExprOrStr
 from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER
 from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
-    StateTransformLocalVar
-from src.model.GlobalStateTransform import *
-from src.model.GlobalStateTransformStatement import *
-from src.model.L4Contract import *
+    StateTransformLocalVar, GlobalVar
+from src.model.GlobalStateTransform import GlobalStateTransform
+from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, InCodeConjectureStatement, \
+    StateTransformLocalVarDec, IfElse, GlobalVarAssignStatement, IncrementStatement, DecrementStatement, \
+    TimesEqualsStatement
+from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
+    derived_trigger_id_to_section_id, derived_destination_id
 from src.model.L4Macro import L4Macro
-from src.model.Literal import *
+from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit
 from src.model.Term import FnApp
 from src.temp_src.until_sort_duplicates_implemented import temp_normalize_sort
 from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
@@ -102,7 +116,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.timeunit = chcaststr(x[1]).lower()
                 self.assertOrSyntaxError( self.top.timeunit in SUPPORTED_TIMEUNITS, x, f"{TIMEUNIT_DEC_LABEL} must be one of {str(SUPPORTED_TIMEUNITS)}")
 
-            elif head( DEFINITIONS_AREA ):
+            elif head(DEFINITIONS_AREA):
                 self.top.definitions = self._mk_definitions(rem)
 
             elif head(TOPLEVEL_CLAIMS_AREA_LABEL):

@@ -139,7 +139,7 @@
 			 	; "In ??? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			 	(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
-				(cash_currently_unconverted = (PURCHASE_AMOUNT - purchase_amount_reduction))
+				(cash_currently_unconverted = (cast NonnegReal (PURCHASE_AMOUNT - purchase_amount_reduction)))
 				(company_cash = (cast NonnegReal (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 			)
 			else (
@@ -219,7 +219,7 @@
 
 
 	(Action (TransferCash_D (company_cash_at_dissolution_event: $)
-						    (investor_percent_of_dissolving_investor_investments : %))
+						    (investor_percent_of_dissolving_investor_investments : "(0,1]"))
 		(AllowedSubjects Company)
 		(StateTransform
 			(if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) (

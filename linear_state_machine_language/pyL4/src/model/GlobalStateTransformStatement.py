@@ -1,5 +1,6 @@
+from itertools import chain
 
-from typing import List, Optional, cast
+from src.independent.typing_imports import *
 
 from src.model.GlobalVarDec import GlobalVarDec
 from src.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
@@ -11,6 +12,9 @@ from src.model.Sort import Sort
 class GlobalStateTransformStatement:
     def __init__(self):
         self.orig : Optional[GlobalStateTransformStatement]
+
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        raise NotImplementedError
 
     def toStr(self, i:int):
         return indent(i) + str(self)
@@ -24,6 +28,17 @@ class IfElse(GlobalStateTransformStatement):
         self.test = test
         self.true_branch = true_branch
         self.false_branch = false_branch
+
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        rviter = chain(rviter, f(self.test))
+        for statement in self.true_branch:
+            rviter = chain(rviter, statement.forEachTerm(f,rviter))
+        if self.false_branch:
+            for statement in self.false_branch:
+                rviter = chain(rviter, statement.forEachTerm(f, rviter))
+        return rviter
+
 
     def toStr(self,i:int):
         rv = indent(i) + f"if {self.test}:\n"
@@ -43,6 +58,9 @@ class StateTransformLocalVarDec(GlobalStateTransformStatement):
         self.value_expr = value_expr
         self.sort = sort
 
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        return chain(iteraccum_maybe or [], f(self.value_expr))
+
     def __str__(self):
         return f"{self.varname} : {str(self.sort)} := {str(self.value_expr)}"
 
@@ -59,6 +77,9 @@ class InCodeConjectureStatement(GlobalStateTransformStatement):
         super().__init__()
         self.value_expr = prop
 
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        return chain(iteraccum_maybe or [], f(self.value_expr))
+
     def __str__(self) -> str:
         return "prove " + str(self.value_expr)
 
@@ -68,6 +89,9 @@ class AbstractGlobalVarAssignStatement(GlobalStateTransformStatement):
         super().__init__()
         self.vardec = vardec
         self.value_expr = value_expr
+
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        return chain(iteraccum_maybe or [], f(self.value_expr))
 
     @property
     def varname(self) -> GlobalVarId:

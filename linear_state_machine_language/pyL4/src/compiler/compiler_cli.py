@@ -66,7 +66,7 @@ def main(sys_argv:List[str]):
                 writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, prettyprinted)
 
             if 'dot' in sys_argv:
-                contractToDotFile(prog, "examples_graphviz_out" , True, True)
+                contractToDotFile(prog, "examples/out_graphviz" , True, True)
 
             print("\n~~~~~~~~~~~~~~\nRunning correctness checks...")
             for check in test_fns:

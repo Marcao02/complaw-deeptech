@@ -236,7 +236,7 @@
 
 
 	(Action (TransferCash_D (company_cash_at_dissolution_event: $)
-						    (investor_percent_of_dissolving_investor_investments : %))
+						    (investor_percent_of_dissolving_investor_investments : "(0,1]"))
 		(AllowedSubjects Company)
 		(StateTransform
 			(if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) (

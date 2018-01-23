@@ -5,7 +5,7 @@ roles: Env, ISP, Client
 
 contract params:
     HIGH_USAGE_FEE : Nat := 10
-    HOURS_PARAM : Nat := 24
+    HOURS_PARAM : Nat := 24h
 
 global vars:
     contract_canceled : Bool := False

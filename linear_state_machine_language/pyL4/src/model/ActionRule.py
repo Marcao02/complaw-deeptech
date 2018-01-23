@@ -1,4 +1,6 @@
-from typing import Optional, NamedTuple
+from itertools import chain
+
+from src.independent.typing_imports import *
 
 from src.constants_and_defined_types import *
 from src.model.PartialEvalTerm import PartialEvalTerm
@@ -27,6 +29,20 @@ class ActionRule:
         self.args = args
         self.args_name_to_ind = {self.args[i]:i for i in range(len(self.args))} if self.args else None
         self.fixed_args: Optional[List[Term]] = None
+
+    def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        if self.entrance_enabled_guard:
+            rviter = chain(rviter, f(self.entrance_enabled_guard))
+        if self.where_clause:
+            rviter = chain(rviter, f(self.where_clause))
+        if self.fixed_args:
+            for i in range(len(self.fixed_args)):
+                argterm = self.fixed_args[i]
+                rviter = chain(rviter, f(argterm))
+        if self.time_constraint:
+            rviter = chain(rviter, f(self.time_constraint))
+        return rviter
 
     def toStr(self, i:int) -> str:
         raise NotImplemented

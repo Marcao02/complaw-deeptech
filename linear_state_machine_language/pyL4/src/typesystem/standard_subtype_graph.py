@@ -23,7 +23,7 @@ def add_derived(graph:TransitivelyClosedDirectedGraph[Sort]):
                 for den2 in {PosReal, PosInt}:
                     if not graph.hasEdge(den1,den2):
                         continue
-                    graph.addEdge(SApp('Rate',num1,den1), SApp('Rate',num2,den2))
+                    graph.addEdge(SApp('Ratio',num1,den1), SApp('Ratio',num2,den2))
 
     for S in AllAtomicSorts:
         # graph.addEdge(NonatomicSort('Tuple', (S, S)), NonatomicSort('Tuple', ('Any', 'Any')))
@@ -31,6 +31,9 @@ def add_derived(graph:TransitivelyClosedDirectedGraph[Sort]):
             if not graph.hasEdge(S,T):
                 continue
             graph.addEdge(SApp('Tuple',S,S), SApp('Tuple',T,T))
+
+    for S in TDMapKeySortData:
+        graph.addEdge('EmptyTDMap', SApp('TDMap',S))
 
     # for copied_sort in all_sort_copies_by_orig:
     #     for acopy in all_sort_copies_by_orig[copied_sort]:
@@ -52,12 +55,12 @@ subtypes_data : Tuple[Tuple[Sort,...],...] = (
     (PosInt,PosReal),
     (Nat,NonnegReal),
     (Int,Real),
-    (SApp('Rate',NonnegReal, PosReal), NonnegReal),
-    (SApp('Rate',NonnegReal, PosInt), NonnegReal),
-    (SApp('Rate',PosReal,PosReal), PosReal),
-    (SApp('Rate',Real,PosReal), Real),
-    (SApp('Rate',PosReal,PosInt), PosReal),
-    (SApp('Rate',Real,PosInt), Real),
+    (SApp('Ratio',NonnegReal, PosReal), NonnegReal),
+    (SApp('Ratio',NonnegReal, PosInt), NonnegReal),
+    (SApp('Ratio',PosReal,PosReal), PosReal),
+    (SApp('Ratio',Real,PosReal), Real),
+    (SApp('Ratio',PosReal,PosInt), PosReal),
+    (SApp('Ratio',Real,PosInt), Real),
 )
 
 standard_types_graph = build_graph(subtypes_data, AllSorts)

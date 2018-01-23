@@ -9,8 +9,8 @@
 (TimeUnit d)
 
 (ContractParams
-	(CONTRACT_START : TimeDelta := 0)
-	(DELIVERY_DEADLINE : TimeDelta := 10)
+	(CONTRACT_START : TimeDelta := 0D)
+	(DELIVERY_DEADLINE : TimeDelta := 10D)
 	; (CONTRACT_START : Date := "2010-12-30")
 	; (DELIVERY_DEADlINE : Date := "2011-01-01")
 )

@@ -1,11 +1,12 @@
-# from typing import Union, List, Dict, Any, Tuple, Callable
-from typing import Iterator, Optional
+from itertools import chain
+from src.independent.typing_imports import *
 
 from src.constants_and_defined_types import *
 from src.model.ActionRule import NextActionRule, FutureActionRuleType
 from src.model.Term import Term
 from src.util import indent
 
+T = TypeVar('T')
 
 class Section:
     def __init__(self, section_id: SectionId) -> None:
@@ -35,6 +36,12 @@ class Section:
         for role_subset in self._action_rules_by_role.values():
             for t in role_subset:
                 yield t
+
+    def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        for rule in self.action_rules():
+            rviter= chain(rviter, rule.forEachTerm(f,rviter))
+        return rviter
 
     def __str__(self):
         return self.toStr(0)

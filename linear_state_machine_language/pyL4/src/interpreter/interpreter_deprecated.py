@@ -17,7 +17,7 @@ from src.model.ContractParamDec import ContractParamDec
 from src.model.EvalContext import EvalContext
 from src.model.EventsAndTraces import Event, Trace, breachSectionId, EventType
 from src.model.GlobalStateTransform import GlobalStateTransform
-from src.model.GlobalStateTransformStatement import *
+from src.model.GlobalStateTransformStatement import IfElse, GlobalVarAssignStatement, StateTransformLocalVarDec
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal, DeadlineLit, SimpleTimeDeltaLit

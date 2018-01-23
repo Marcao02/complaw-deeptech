@@ -6,7 +6,7 @@ from src.model.ActionRule import ActionRule
 from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, StateTransformLocalVarDec, \
-    GlobalVarAssignStatement
+    GlobalVarAssignStatement, IfElse, InCodeConjectureStatement
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
 from src.model.Section import Section
@@ -24,7 +24,7 @@ def overloaded_fnapp_range_memo(oft:OverloadedFnType, argsorts:SortTuple, term: 
     todo_once("contrib: cast shouldn't be necessary")
     rangeset = set(cast(Iterator[Sort], filter(lambda x: x is not None, (ft_range(ft, argsorts,term) for ft in oft.parts))))
     if len(rangeset) == 0:
-        msg = f"Domain of overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{argsorts}"
+        msg = f"Domain of this overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{argsorts}"
         raise L4TypeInferError(term, msg)
     try:
         intersection = graph.simplifyIntersection(rangeset)
@@ -82,6 +82,16 @@ def typecheck_prog(prog:L4Contract):
         tc.typecheck_action(action)
     for section in prog.sections_iter():
         tc.typecheck_section(section)
+    msg2 = f"Typechecking contract param declarations"
+    print("-" * len(msg2) + "\n" + msg2)
+    for contract_param_dec in prog.contract_params.values():
+        # print(f"Checking {contract_param_dec.value_expr} against {contract_param_dec.sort}")
+        tc.typecheck_term(contract_param_dec.value_expr, contract_param_dec.sort)
+    msg2 = f"Typechecking global state var declarations"
+    print("-" * len(msg2) + "\n" + msg2)
+    for gvardec in prog.global_var_decs.values():
+        if gvardec.initval:
+            tc.typecheck_term(gvardec.initval, gvardec.sort)
 
 class TypeChecker:
     def __init__(self,prog:L4Contract) -> None:
@@ -93,6 +103,8 @@ class TypeChecker:
                 return cast(Sort, cast(SortLit,t.args[0]).lit)
 
             argsorts = tuple(self.typeinfer_term(arg) for arg in t.args)
+            # if t.fnsymb_name == "==":
+            #     print(f"inferring type of {t} using arg sorts {argsorts}")
 
             fnsymb_type = fntypes_map[t.fnsymb_name]
             if fnsymb_type:
@@ -115,9 +127,16 @@ class TypeChecker:
                     return "{1}"
                 elif t.lit > 0:
                     return "PosInt"
-                else:
-                    return "Int"
+                return "Int"
             elif isinstance(t,FloatLit):
+                if t.lit == 0:
+                    return "{0}"
+                elif t.lit == 1:
+                    return "{1}"
+                elif 0 < t.lit < 1:
+                    return "(0,1)"
+                elif t.lit > 1:
+                    return "PosReal"
                 return "Real"
             elif isinstance(t,BoolLit):
                 return "Bool"
@@ -152,6 +171,7 @@ class TypeChecker:
         assert inferred is not None
         if not sub(inferred,s):
             print(f"{inferred} not ≤ {s}")
+            print(t)
             raise L4TypeInferCheckError(t,inferred,s)
         return True
 
@@ -160,6 +180,17 @@ class TypeChecker:
             self.typecheck_term(s.value_expr,s.sort)
         elif isinstance(s, GlobalVarAssignStatement):
             self.typecheck_term(s.value_expr,s.vardec.sort)
+        elif isinstance(s, IfElse):
+            self.typecheck_term(s.test,'Bool')
+            for statement in s.true_branch:
+                self.typecheck_statement(statement)
+            if s.false_branch:
+                for statement in s.false_branch:
+                    self.typecheck_statement(statement)
+        elif isinstance(s, InCodeConjectureStatement):
+            self.typecheck_term(s.value_expr,'Bool')
+        else:
+            raise NotImplementedError
 
     def typecheck_action_rule(self, rule:ActionRule):
         action = self.prog.action(rule.action_id)

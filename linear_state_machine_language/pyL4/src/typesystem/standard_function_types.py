@@ -1,229 +1,399 @@
-from typing import List, Sequence, Iterable, Any, Set, Dict, Tuple, Union, cast
+from itertools import chain
 
-from src.model.Sort import Sort, NonatomicSort
-from src.model.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType
+import time
+
+from copy import copy
+
+from src.independent.typing_imports import *
+
+from src.model.Sort import Sort, NonatomicSort, AtomicSort
+from src.model.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType, substarb
 
 from src.util_for_sequences import nested_list_replace, nested_list_replace_mult
 from src.typesystem.standard_sorts import AllAtomicSorts, TDMapKeySortData, TimeDelta, Bool, UnboundedNumericSorts, \
-    PosInt, \
-    PosReal, Int, NonnegReal, AllSortData, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, AllNumericSorts, \
-    all_sort_copies_by_orig
+    PosInt, PosReal, Int, NonnegReal, AllSortData, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, AllNumericSorts, \
+    all_sort_copies_by_orig, SApp
 
+"""
+We have a rich (and getting richer) numeric hierarchy in the standard library, and we have a few ways of combining
+the numeric sorts, such as a Tuple operator (which is currently just a Pair operator), and a Ratio operator.
+Let's call this L4's Standard Math Universe (SMU). We'll have some other things like enum sorts, but those are not important
+for the current topic.
 
-def arb_arity_fntype(dom:Any, ran:Any) -> Tuple[str, Any, Any]:
-    return ('aafn', dom, ran)
+We allow alternate universes obtained from copying parts of the SMU, and the built-in function
+symbols have  auto-generated types for operating on such alternate universes, as well as for operating simultaneously
+on objects from different such universes.
+
+In SAFE, there are 3 alternate universes:
+1. Share counts - This universe has a copy of the natural numbers (also its positive subset, but ignore that
+detail for now). It has no name for the reals.
+2. Dollar amounts - this universe has a copy of the nonnegative reals (and its positive subset, but again ignore that
+detail for now). It has no name for the integer subset of that set.
+3. Share prices - This universe has a copy of the positive reals, "viewed as" ratios of dollar amounts per share.
+
+Let's refer to the SMU as U0, and the others as U1, U2, U3.
+
+"""
+
+# arbitrary arity function type
+def aafntype(dom:Sort, ran:Sort) -> ArbArityFnType:
+    return ArbArityFnType(dom, ran)
 
 # simple function type
-def sfntype(*tp:Any) -> Any:
+def sfntype(*tp:Sort) -> SimpleFnType:
     assert len(tp) >= 1
-    return ('fn',) + tp
+    return SimpleFnType(tp)
 
-T = 'TVar'
+X = 'XVar'
 N = 'NVar'
 D = 'DVar'
 R = 'RVar'
-typevars = {T,N,D,R}
+typevars = {X, N, D, R}
 j = 'jvar'
 
 TypeData = Sequence[Any]
 
-Natj = ('Dup',Nat,j)
-PosIntj = ('Dup',PosInt,j)
-def dNat(var:str) -> Tuple[str,...]:
-    return ('Dup',Nat,var)
+Natj = SApp('Dup',Nat,j)
+PosIntj = SApp('Dup',PosInt,j)
 
-def parametric_one_var(tp_or_tps:Union[TypeData,Set[TypeData]], substitutions:Iterable[Any] = AllSortData, var:str = T) -> Sequence[Any]:
-    tps : Set[TypeData]
-    if isinstance(tp_or_tps, Set):
-        tps = tp_or_tps
+# def dNat(var:str) -> Tuple[str,...]:
+#     return ('Dup',Nat,var)
+
+# nl for nested list
+# def flatten_helper(nl: Sequence[Any]) -> Iterable[TypeData]:
+#     # print(nl)
+#     if nl[0] == 'fn' or nl[0] == 'aafn':
+#         return [nl]
+#     else:
+#         # rv = []
+#         # for inner in nl:
+#         #     rv.extend(flatten_helper(inner))
+#         # return rv
+#         return (ft for fts in flatten_helper(nl) for ft in fts)
+
+def parametric_one_var(tp_or_tps:Union[NonoverloadedFnType,Iterable[NonoverloadedFnType]],
+                       substitutions:Iterable[Sort] = AllSortData,
+                       var:str = X) -> Iterable[NonoverloadedFnType]:
+    if isinstance(tp_or_tps, SimpleFnType):
+        for sort in substitutions:
+            yield tp_or_tps.subst(var,sort)
+    elif isinstance(tp_or_tps, ArbArityFnType):
+        for sort in substitutions:
+            yield substarb(tp_or_tps,var,sort)
     else:
-        tps = {tp_or_tps}
-    rv = []
+        for tp in tp_or_tps:
+            for sort in substitutions:
+                yield tp.subst(var,sort)
+
+    # tps : Set[TypeData]
+    # if isinstance(tp_or_tps, Set):
+    #     tps = tp_or_tps
+    # else:
+    #     tps = {tp_or_tps}
+    # rv = []
+    # for tp in tps:
+    #     rv.extend( [ nested_list_replace(tp, var, primtype) for primtype in substitutions ] )
+    # return flatten_helper( nested_list_replace(tp, var, primtype) for )
+
+def parametric_mult_vars(tps:Iterable[NonoverloadedFnType],
+                         substitutions:Iterable[Dict[str, Sort]]) -> Iterable[NonoverloadedFnType]:
     for tp in tps:
-        rv.extend( [ nested_list_replace(tp, var, primtype) for primtype in substitutions ] )
+        for d in substitutions:
+            yield tp.substdict(d)
+
+
+# def dupmult(tp_or_tps:Union[TypeData,Set[TypeData]], substitutions:Iterable[Dict[str, str]]) -> Sequence[Any]:
+#     tps: Set[TypeData]
+#     if isinstance(tp_or_tps, Set):
+#         tps = tp_or_tps
+#     else:
+#         tps = {tp_or_tps}
+#     rv = []
+#     for tp in tps:
+#         rv.extend([nested_list_replace_mult(tp, subst) for subst in substitutions])
+#     raise NotImplementedError
+
+FnTypesData = List[ Tuple[Tuple[AtomicSort,...], Iterable[NonoverloadedFnType]] ]
+
+# def mychain(*iterables:Iterable[T]) -> Iterable[T]:
+#     for iter in iterables:
+#         for x in iter:
+#             yield x
+
+def print_types_map(fntypesmap:Dict[str,OverloadedFnType]):
+    for symb in fntypes_map:
+        print("\n"+symb)
+        print(str(fntypesmap[symb]))
+    print(sum(len(fntypesmap[f]) for f in fntypesmap), "simple function types total.")
+
+def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
+    # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+    start = time.process_time()
+    dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+    for part in data:
+        tuple_from_iter = tuple(part[1])
+        for symb in part[0]:
+            if symb not in dict_of_tuples:
+                dict_of_tuples[symb] = tuple_from_iter
+            else:
+                # no time performance improvement over just tuples, but might save space?
+                dict_of_tuples[symb] = tuple_from_iter + dict_of_tuples[symb]
+
+    rv = { symb: OverloadedFnType( list(dict_of_tuples[symb]), dict(), set() ) for symb in dict_of_tuples }
+    print("TIME", 1000*(time.process_time() - start))
     return rv
 
-def parametric_mult_vars(tp_or_tps:Union[TypeData,Set[TypeData]], substitutions:Iterable[Dict[str, Any]]) -> Sequence[Any]:
-    assert all(all(v in typevars for v in subst) for subst in substitutions)
-    tps: Set[TypeData]
-    if isinstance(tp_or_tps, Set):
-        tps = tp_or_tps
-    else:
-        tps = {tp_or_tps}
-    rv = []
-    for tp in tps:
-        rv.extend( [ nested_list_replace_mult(tp, subst) for subst in substitutions ] )
-    return rv
+# def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
+#     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+#     start = time.process_time()
+#     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+#     for part in data:
+#         tuple_from_iter = tuple(part[1])
+#         for symb in part[0]:
+#             if symb not in dict_of_tuples:
+#                 dict_of_tuples[symb] = tuple_from_iter
+#             else:
+#                 # no time performance improvement over just tuples, but might save space?
+#                 dict_of_tuples[symb] = chain(tuple_from_iter, dict_of_tuples[symb])
+#
+#     rv = { symb: OverloadedFnType( list(dict_of_tuples[symb]), dict(), set() ) for symb in dict_of_tuples }
+#     print("TIME", 1000*(time.process_time() - start))
+#     return rv
 
-def dupmult(tp_or_tps:Union[TypeData,Set[TypeData]], substitutions:Iterable[Dict[str, str]]) -> Sequence[Any]:
-    tps: Set[TypeData]
-    if isinstance(tp_or_tps, Set):
-        tps = tp_or_tps
-    else:
-        tps = {tp_or_tps}
-    rv = []
-    for tp in tps:
-        rv.extend([nested_list_replace_mult(tp, subst) for subst in substitutions])
+# this version is just as fast
+# def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
+#     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+#     start = time.process_time()
+#     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+#     for part in data:
+#         tuple_from_iter = list(part[1])
+#         for symb in part[0]:
+#             if symb not in dict_of_tuples:
+#                 dict_of_tuples[symb] = tuple_from_iter if len(part[0]) == 1 else tuple_from_iter.copy()
+#             else:
+#                 dict_of_tuples[symb].extend(tuple_from_iter)
+#
+#     rv = { symb: OverloadedFnType( list(dict_of_tuples[symb]), dict(), set() ) for symb in dict_of_tuples }
+#     print("TIME", 1000*(time.process_time() - start))
+#     return rv
 
-"""
-Algo to work on a recursive tuple that may contain some terms of the form ('Dup',sort,dupvar). 
-First, figure out which such terms it contains. Returns a Set[Tuple[Sort,dupvar:str]] 
-Let G be that set.
-For each (sort,dupvar) in G:
-    For each dup in dups_used[sort]
-        
- 
+overloaded_types_data : FnTypesData = [
 
-
-
-"""
-
-
-
-
-overloaded_types_data : Sequence[ Tuple[Sequence[str], Any] ] = (
-    (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td'), sfntype(TimeDelta)),
-    (('days',), (sfntype(Nat,TimeDelta), sfntype(PosInt,PosTimeDelta))),
-
-    (('tuple',), parametric_one_var(sfntype(T, T, ('Tuple', T, T)), AllAtomicSorts)),
-    (('tupleGet',), parametric_one_var(sfntype(('Tuple', T, T), '{0,1}', T), AllAtomicSorts)),
-
-    (('mapSet',), parametric_one_var(sfntype(('TDMap', T), T, 'TimeDelta', ('TDMap', T)), TDMapKeySortData)),
-    (('tdGEQ',), parametric_one_var(sfntype(('TDMap', T), T, 'TimeDelta', 'Bool'), TDMapKeySortData)),
-    (('mapDelete',), parametric_one_var(sfntype(('TDMap', T), T, ('TDMap', T)), TDMapKeySortData)),
-    (('mapHas',), parametric_one_var(sfntype(('TDMap', T), T, 'Bool'), TDMapKeySortData)),
-    (('nonempty','empty'), parametric_one_var(sfntype(('TDMap', T), 'Bool'), TDMapKeySortData)),
-
-    (('≤', '≥', '<', '>'), (
-        arb_arity_fntype(Real, Bool),
-        arb_arity_fntype(PosReal, Bool),
-        arb_arity_fntype(TimeDelta, Bool),
-        arb_arity_fntype(DateTime, Bool) )),
-    (('==',), parametric_one_var(arb_arity_fntype(T, Bool))),
-    (('!=',), parametric_one_var(sfntype(T, T, Bool))),
-    (('ifthenelse',), parametric_one_var(sfntype(Bool, T, T, T))),
-    (('min','max','+','*') , parametric_one_var(arb_arity_fntype(T, T), UnboundedNumericSorts.union({TimeDelta}).union(BoundedNumericSorts))),
-    # temp hack:
-    (('min','max','+','*') , parametric_mult_vars(arb_arity_fntype(('Rate', N, D), ('Rate', N, D)), (
-                                              {'NVar':PosReal,'DVar':PosInt},
-                                            ))
+    # ------------TimeDelta environment variables------------
+    (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td','contractStart_td'), (
+        sfntype(TimeDelta), )
+     ),
+    # ------------TimeDelta fns------------
+    (('days',), (
+        sfntype(Nat,TimeDelta),
+        sfntype(PosInt,PosTimeDelta))
      ),
 
-    # temp hack:
-    (('max',), ( sfntype(PosReal,Real,PosReal),
-                 sfntype(PosInt, Int, PosInt),)),
+    # ------------Tuples------------
+    (('tuple',), parametric_one_var(
+            sfntype(X, X, SApp('Tuple', X, X)),
+            AllAtomicSorts)
+     ),
+    (('tupleGet',), parametric_one_var(
+            sfntype(SApp('Tuple', X, X), '{0,1}', X),
+            AllAtomicSorts)
+     ),
 
-    (('+',), ( sfntype(PosIntj,Natj,PosIntj), sfntype(Natj,PosIntj,PosIntj),
-                sfntype(PosInt,Nat,PosInt), sfntype(Nat,PosInt,PosInt),
-               sfntype(PosReal,NonnegReal,PosReal), sfntype(NonnegReal,PosReal,PosReal),
-               )
+    # ------------TimeDelta Maps------------
+    (('mapSet',), parametric_one_var( (
+        sfntype('EmptyTDMap', X, 'TimeDelta', SApp('TDMap', X)),
+        sfntype(SApp('TDMap', X), X, 'TimeDelta', SApp('TDMap', X))
+        ),
+        TDMapKeySortData)
+     ),
+    (('tdGEQ',), parametric_one_var(
+        sfntype(SApp('TDMap', X), X, 'TimeDelta', 'Bool'),
+        TDMapKeySortData)
+     ),
+    (('mapDelete',), parametric_one_var(
+        sfntype(SApp('TDMap', X), X, SApp('TDMap', X)),
+        TDMapKeySortData)
+     ),
+    (('mapHas',), parametric_one_var(
+        sfntype(SApp('TDMap', X), X, 'Bool'),
+        TDMapKeySortData)
+     ),
+    (('nonempty','empty'), parametric_one_var(
+        sfntype(SApp('TDMap', X), 'Bool'),
+        TDMapKeySortData))
+    ,
+    (('emptyTDMap',), (sfntype('EmptyTDMap'),)),
+    # has intersection problem:
+    # (('emptyTDMap',), parametric_one_var(
+    #     sfntype(SApp('TDMap', X)),
+    #     TDMapKeySortData)
+    #  ),
+
+    # ------------Comparison and (in)equality------------
+    (('≤', '≥', '<', '>'), (
+        aafntype(Real, Bool),
+        aafntype(PosReal, Bool),
+        aafntype(TimeDelta, Bool),
+        aafntype(DateTime, Bool) )
+     ),
+    (('==',), parametric_one_var(
+        aafntype(X, Bool),
+        AllAtomicSorts)
+     ),
+    (('!=',), parametric_one_var(
+        sfntype(X, X, Bool),
+        AllAtomicSorts)
+     ),
+
+    # ------------Boolean------------
+     (('not',), (sfntype(Bool, Bool),)),
+     (('and', 'or'), (sfntype(Bool, Bool, Bool),)),
+     (('and*', 'or*'), (aafntype(Bool, Bool),)),
+     (('ifthenelse',), parametric_one_var(
+        sfntype(Bool, X, X, X),
+        AllAtomicSorts)
+     ),
+
+    # ------------Arithmetic------------
+    # TODO should apply for arbitrary Ratio sorts:
+    (('min','max','+','*') , parametric_one_var(
+        (aafntype(X, X),sfntype(X,X)),
+        UnboundedNumericSorts.union(
+            {TimeDelta, SApp('Ratio', PosReal, PosInt)})
+        )
+     ),
+    # TODO should be arbitrary arity, and order-invariant
+    (('max',), (
+        sfntype(PosReal, Real, PosReal),
+        sfntype(PosInt, Int, PosInt))
      ),
     # TODO: {0},{1}, and {0,1}.
+    (('+',), (
+        sfntype(PosIntj,Natj,PosIntj),
+        sfntype(Natj,PosIntj,PosIntj),
 
-    (('*',),                  sfntype(TimeDelta, Nat, TimeDelta)),
-    # temp hack
-    (('*',), parametric_mult_vars( {sfntype(('Rate', N, D), D, R), sfntype(D, ('Rate', N, D), R)}, (
-                {'NVar':Real,'DVar':PosReal, 'RVar':Real},
-                {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
-                {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
-                {'NVar':Real,'DVar':PosInt, 'RVar':Real},
-                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
-                {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
-    ))),
-    (('*',), parametric_mult_vars( {sfntype(('Rate', N, D), T, ('Rate',N,D)), sfntype(T, ('Rate', N, D), ('Rate',N,D))}, (
-                {'NVar':PosReal,'DVar':PosInt, 'TVar':PosReal},  # temp hack
-    ))),
-    # (('*',), parametric_one_var(arb_arity_fntype(T, T), BoundedNumericSorts)),
-
-    (('-',), parametric_one_var(sfntype(T, T, T), (Int, Real, TimeDelta))),
-
-    (('/',), parametric_mult_vars(sfntype(N, D, R), (
-                                {'NVar':Real, 'DVar':PosReal, 'RVar':('Rate',Real,PosReal)},
-                                {'NVar':PosReal, 'DVar':PosReal, 'RVar':('Rate',PosReal,PosReal)},
-                                {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':('Rate',NonnegReal,PosReal)},
-                                {'NVar':Real, 'DVar':PosInt, 'RVar':('Rate',Real,PosInt)},
-                                {'NVar':PosReal, 'DVar':PosInt, 'RVar':('Rate',PosReal,PosInt)},
-                                {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':('Rate',NonnegReal,PosInt)}
-                                )
-                                  )
+        sfntype(PosInt,Nat,PosInt),
+        sfntype(Nat,PosInt,PosInt),
+        sfntype(PosReal,NonnegReal,PosReal),
+        sfntype(NonnegReal,PosReal,PosReal) )
      ),
-     (('/',), parametric_mult_vars( sfntype(N, ('Rate', N, D), R), (
+    (('*',), ( # scaling a TimeDelta
+        sfntype(TimeDelta, Nat, TimeDelta),
+         sfntype(Nat, TimeDelta, TimeDelta) )
+     ),
+    # temp hack
+    (('*',), parametric_mult_vars(
+        {sfntype(SApp('Ratio', N, D), D, R),
+         sfntype(D, SApp('Ratio', N, D), R)},
+        [
+                {'NVar':Real,'DVar':PosReal, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
+                {'NVar':Real,'DVar':PosInt, 'RVar':Real},
+                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
+                {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal}
+        ]
+        )
+     ),
+    (('*',), (
+        sfntype(SApp('Ratio', PosReal, PosInt), PosReal, SApp('Ratio', PosReal, PosInt)),
+        sfntype(PosReal, SApp('Ratio', PosReal, PosInt), SApp('Ratio', PosReal, PosInt)) ),
+     ),
+
+    (('-',), parametric_one_var(
+        sfntype(X, X, X), (Int, Real, TimeDelta))
+     ),
+
+    (('/',), parametric_mult_vars(
+        {sfntype(N, D, R)},
+        [
+            {'NVar':Real, 'DVar':PosReal, 'RVar':SApp('Ratio',Real,PosReal)},
+            {'NVar':PosReal, 'DVar':PosReal, 'RVar':SApp('Ratio',PosReal,PosReal)},
+            {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':SApp('Ratio',NonnegReal,PosReal)},
+            {'NVar':Real, 'DVar':PosInt, 'RVar':SApp('Ratio',Real,PosInt)},
+            {'NVar':PosReal, 'DVar':PosInt, 'RVar':SApp('Ratio',PosReal,PosInt)},
+            {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':SApp('Ratio',NonnegReal,PosInt)}
+        ])
+     ),
+     (('/',), parametric_mult_vars(
+         {sfntype(N, SApp('Ratio', N, D), R)}, [
                 {'NVar':Real,'DVar':PosReal, 'RVar':Real},
                 {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
                 {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
                 {'NVar':Real,'DVar':PosInt, 'RVar':Real},
                 {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
                 {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
-            ))
+            ])
     ),
 
     (('/',), (sfntype(PosTimeDelta, PosTimeDelta, PosReal),
-              sfntype(TimeDelta, PosTimeDelta, NonnegReal),
-
-              )
+              sfntype(TimeDelta, PosTimeDelta, NonnegReal) )
 
      ),
 
     (('^',), ( sfntype(PosReal,Real,PosReal),
-                sfntype(PosInt,Nat,PosInt),
-               )
-
+                sfntype(PosInt,Nat,PosInt) )
      ),
 
-    (('not',),                sfntype(Bool, Bool)),
-    (('and','or'),            sfntype(Bool, Bool, Bool)),
-    (('and*','or*'), arb_arity_fntype(Bool, Bool)),
-    # (('and*','or*'),          sfntype(Bool, Bool)),
     (('floor','round','ceil'), (
         sfntype(Real, Int),
         sfntype(PosReal, Nat),
-        sfntype(NonnegReal, Nat) )),
+        sfntype(NonnegReal, Nat) )
+     ),
     (('ceil',), (
         sfntype(Real, Int),
         sfntype(PosReal, PosInt),
-        sfntype(NonnegReal, Nat)
-    )),
-    (('even','odd'), parametric_one_var(sfntype(T, Bool), (Int, Nat, PosInt))),
-)
+        sfntype(NonnegReal, Nat) )
+     ),
+    (('even','odd'), parametric_one_var(
+        sfntype(X, Bool),
+        (Int, Nat, PosInt) )
+     )
+]
 
 unbounded_arity_fnsymbols = {'≤', '≥', '<', '>', '==', 'or*', 'and*',
                               'min','max','+','*'}
 
+fntypes_map = makeNiceFnTypeMap(overloaded_types_data)
 
-def flatten_fntype_data(_overloaded_types_data:Sequence[ Tuple[Sequence[str], Any]]) -> Dict[str, List[Sequence[Any]]]:
-    fntypes_map_ : Dict[str, List[Sequence[Any]]] = dict()
-    for pair in _overloaded_types_data:
-        fst = pair[0]
-        snd : Any = pair[1]
-        symbs : Sequence[str] = cast(Sequence[str], (fst,) if isinstance(fst,str) else fst)
-        print("?",pair)
-        fntypes = cast(List[Sequence[Any]], [snd] if (snd[0] == 'fn' or snd[0] == 'aafn') else list(snd))
-        for symb in symbs:
-            if symb not in fntypes_map_:
-                fntypes_map_[symb] = list(fntypes)
-            else:
-                fntypes_map_[symb] = fntypes_map_[symb] + fntypes
+print_types_map(fntypes_map)
 
-    return fntypes_map_
-
-
-def eliminate_unbounded_arity(arity_occurrences: Dict[str,Set[int]], fntypes_map: Dict[str, List[Sequence[Any]]]) -> None:
-    for f in fntypes_map:
-        # if len(arity_occurrences[f]) == 0:
-        #     continue
-
-        ftypes = fntypes_map[f]
-        for i in range(len(ftypes)-1,-1,-1):
-            ftype = ftypes[i]
-            if ftype[0] != 'aafn':
-                continue
-            assert len(ftype) == 3
-            del ftypes[i]
-            if f in arity_occurrences:
-                dom = ftype[1]
-                ran = ftype[2]
-                for arity in arity_occurrences[f]:
-                    ftypes.append(('fn',) + (dom,)*arity + (ran,))
+# def flatten_fntype_data(_overloaded_types_data:Iterable[ Tuple[Sequence[str], Any]]) -> Dict[str, List[TypeData]]:
+#
+#     _fntypes_map : Dict[str, List[Sequence[Any]]] = dict()
+#     for pair in _overloaded_types_data:
+#         fst = pair[0]
+#         snd : Any = pair[1]
+#         if isinstance(fst,str):
+#             _fntypes_map[fst] = flatten_helper(snd)
+#         else:
+#             flattened_rhs = flatten_helper(snd)
+#             for symb in fst:
+#                 if symb in _fntypes_map:
+#                     _fntypes_map[symb] = _fntypes_map[symb] + list(flattened_rhs)
+#                 else:
+#                     _fntypes_map[symb] = list(flattened_rhs)
+#
+#     return _fntypes_map
+#
+#
+# def eliminate_unbounded_arity(arity_occurrences: Dict[str,Set[int]], fntypes_map: Dict[str, List[Sequence[Any]]]) -> None:
+#     for f in fntypes_map:
+#         # if len(arity_occurrences[f]) == 0:
+#         #     continue
+#
+#         ftypes = fntypes_map[f]
+#         for i in range(len(ftypes)-1,-1,-1):
+#             ftype = ftypes[i]
+#             if ftype[0] != 'aafn':
+#                 continue
+#             assert len(ftype) == 3
+#             del ftypes[i]
+#             if f in arity_occurrences:
+#                 dom = ftype[1]
+#                 ran = ftype[2]
+#                 for arity in arity_occurrences[f]:
+#                     ftypes.append(('fn',) + (dom,)*arity + (ran,))
 
 # def temp_normalize_sorts(prog:L4Contract) -> None:
 #     for eliminated_sort in TEMP_SORT_IDENTIFICATION:
@@ -235,46 +405,41 @@ def eliminate_unbounded_arity(arity_occurrences: Dict[str,Set[int]], fntypes_map
 #         else:
 #             return s
 
-def print_types_map(fntypes_map:Dict[str, List[Sequence[Any]]]):
-    for symb in fntypes_map:
-        print(symb)
-        print("\t", str(fntypes_map[symb]))
-    print(sum(len(fntypes_map[f]) for f in fntypes_map), "simple function types total.")
+#
+#
+# def check_type_vars_gone():
+#     for fntype_data in fntype_data_map.values():
+#         assert isinstance(fntype_data, list)
+#         for nonover_fntype_data in fntype_data:
+#             assert isinstance(nonover_fntype_data, tuple)
+#             for x in nonover_fntype_data:
+#                 assert isinstance(x, str) or isinstance(x, tuple)
+#                 if isinstance(x,str):
+#                     assert x not in typevars, x
+#                 if isinstance(x, tuple):
+#                     for y in x:
+#                         assert  y not in typevars, str(y) + " and " + str(nonover_fntype_data)
+#
+#
+# def sortdata_to_sort(data:Any) -> Sort:
+#     if isinstance(data,str):
+#         return data
+#     else:
+#         return NonatomicSort(data[0], tuple(sortdata_to_sort(x) for x in data[1:]))
+#
+# def nonoverloaded_fntype_data_to_object(data:Any) -> NonoverloadedFnType:
+#     if data[0] == 'fn':
+#         return SimpleFnType(tuple(sortdata_to_sort(x) for x in data[1:]))
+#     else:
+#         assert data[0] == 'aafn' and len(data) == 3, data
+#         return ArbArityFnType(sortdata_to_sort(data[1]), sortdata_to_sort(data[2]))
 
-
-def check_type_vars_gone():
-    for fntype_data in fntype_data_map.values():
-        assert isinstance(fntype_data, list)
-        for nonover_fntype_data in fntype_data:
-            assert isinstance(nonover_fntype_data, tuple)
-            for x in nonover_fntype_data:
-                assert isinstance(x, str) or isinstance(x, tuple)
-                if isinstance(x,str):
-                    assert x not in typevars, x
-                if isinstance(x, tuple):
-                    for y in x:
-                        assert  y not in typevars, str(y) + " and " + str(nonover_fntype_data)
-
-
-def sortdata_to_sort(data:Any) -> Sort:
-    if isinstance(data,str):
-        return data
-    else:
-        return NonatomicSort(data[0], tuple(sortdata_to_sort(x) for x in data[1:]))
-
-def nonoverloaded_fntype_data_to_object(data:Any) -> NonoverloadedFnType:
-    if data[0] == 'fn':
-        return SimpleFnType(tuple(sortdata_to_sort(x) for x in data[1:]))
-    else:
-        assert data[0] == 'aafn' and len(data) == 3, data
-        return ArbArityFnType(sortdata_to_sort(data[1]), sortdata_to_sort(data[2]))
-
-def makeNiceFnTypeMap() -> Dict[str,OverloadedFnType]:
-    fntype_map : Dict[str,OverloadedFnType] = dict()
-    for f in fntype_data_map:
-        fntype_map[f] = OverloadedFnType( [nonoverloaded_fntype_data_to_object(datapart) for datapart in fntype_data_map[f]],
-                                          dict(), set())
-    return fntype_map
+# def makeNiceFnTypeMap() -> Dict[str,OverloadedFnType]:
+#     fntype_map : Dict[str,OverloadedFnType] = dict()
+#     for f in fntype_data_map:
+#         fntype_map[f] = OverloadedFnType( [nonoverloaded_fntype_data_to_object(datapart) for datapart in fntype_data_map[f]],
+#                                           dict(), set())
+#     return fntype_map
 
 # """
 # depends on dups_used. modifies first arg.
@@ -317,13 +482,6 @@ def makeNiceFnTypeMap() -> Dict[str,OverloadedFnType]:
 #         if isinstance(ft, SimpleFnType):
 #             ft_copies.append( SimpleFnType(tuple(sort1 for inst in ft_copies)) )
 #     return ft_copies
-
-
-
-fntype_data_map = flatten_fntype_data(overloaded_types_data)
-print_types_map(fntype_data_map)
-fntypes_map : Dict[str,OverloadedFnType] = makeNiceFnTypeMap()
-
 
     # for fnsymb,oft in fntypes_map.items():
 #     new_nofts : List[NonoverloadedFnType] = []

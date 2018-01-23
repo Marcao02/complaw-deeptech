@@ -1,8 +1,6 @@
 # from enum import Enum
 from typing import Dict, NewType, cast, Union, List, Any, Set, TYPE_CHECKING
 
-Nat = NewType('Nat',int)
-
 if TYPE_CHECKING:
     from src.model.Sort import Sort
 

@@ -11,7 +11,7 @@
 (ContractParams
 	(PURCHASE_AMOUNT : Pos$ = 100000)
 
-	(TIME_TILL_MATURITY : TimeDelta = (days (365 + (364 / 2))))
+	(TIME_TILL_MATURITY : TimeDelta = (days (365 + (cast PosInt (364 / 2)))))
 	(VALUATION_CAP : Pos$ = inf)
 	(DISCOUNT_RATE : "(0,1]" = 1)
 	(INTEREST_RATE : "[0,1]" = .04)
@@ -112,7 +112,7 @@
 			(local conversion_price : $/Shares = (min discount_price cap_price))
 			(if pay_interest_in_cash (
 				(local change : $ = (apply-macro interest_from_td event_td))
-				(company_cash  -= change)
+				(company_cash  = (cast $ (company_cash - change)))
 				(investor_cash += change)
 				(investor_PreferredStock += (round (PURCHASE_AMOUNT / conversion_price)))
 			) else (

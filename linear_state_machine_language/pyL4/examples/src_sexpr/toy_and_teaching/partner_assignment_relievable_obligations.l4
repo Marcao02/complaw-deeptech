@@ -11,9 +11,11 @@
 ; are jointly responsible for submitting it by DUE_TD.
 
 (ContractParams
-	(DUE_TD : TimeDelta = 40)
+	(DUE_TD : TimeDelta = 40d)
 
 )
+
+(TimeUnit D)
 
 (GlobalVars
 	(probAsolved : Bool = false)

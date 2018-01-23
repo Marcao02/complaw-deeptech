@@ -1,7 +1,7 @@
-from typing import Dict, Set, List, NamedTuple, Tuple, Union
+from src.independent.typing_imports import *
 
 # from src.typesystem.standard_sorts import *
-from src.model.Sort import Sort
+from src.model.Sort import Sort, sortsubst, sortsubstdict
 from src.util import mapjoin, todo_once
 
 SortTuple = Tuple[Sort,...]
@@ -15,6 +15,12 @@ class SimpleFnType(NamedTuple):
     def ran(self) -> Sort:
         return self.parts[-1]
 
+    def subst(self,var:str,val:Sort) -> 'SimpleFnType':
+        return SimpleFnType(tuple(map(lambda s: cast(Sort,sortsubst(s, var, val)), self.parts)))
+
+    def substdict(self,d:Dict[str,Sort]) -> 'SimpleFnType':
+        return SimpleFnType(tuple(map(lambda s: cast(Sort,sortsubstdict(s, d)), self.parts)))
+
     def __str__(self) -> str:
         todo_once("contrib: why cast necessary?")
         return mapjoin(str,self.parts,' -> ')
@@ -24,6 +30,12 @@ class SimpleFnType(NamedTuple):
 class ArbArityFnType(NamedTuple):
     dom: Sort
     ran: Sort
+
+    def subst(self,var:str,val:Sort) -> 'ArbArityFnType':
+        return ArbArityFnType(sortsubst(self.dom,var,val), sortsubst(self.ran,var,val))
+    def substdict(self,d:Dict[str,Sort]) -> 'ArbArityFnType':
+        return ArbArityFnType(sortsubstdict(self.dom, d), sortsubstdict(self.ran, d))
+
     def __str__(self) -> str:
         return f"{self.dom}* -> {self.ran}"
     def __repr__(self) -> str:
@@ -31,6 +43,8 @@ class ArbArityFnType(NamedTuple):
 
 NonoverloadedFnType = Union[SimpleFnType,ArbArityFnType]
 
+def substarb(t:ArbArityFnType, var:str,val:Sort) -> ArbArityFnType:
+    return ArbArityFnType(sortsubst(t.dom,var,val), sortsubst(t.ran,var,val))
 
 class OverloadedFnType(NamedTuple):
     parts: List[NonoverloadedFnType]
