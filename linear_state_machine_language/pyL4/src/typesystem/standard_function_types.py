@@ -7,6 +7,7 @@ from src.typesystem.standard_sorts import AllAtomicSorts, TDMapKeySortData, Time
     PosInt, PosReal, Int, NonnegReal, AllSortData, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, \
     AllNumericSorts, \
     all_sort_copies_by_orig, SApp, NonnegRealj, Natj, PosIntj, PosRealj
+from src.temp_src.for_safe import doit_for_safe
 
 """
 We have a rich (and getting richer) numeric hierarchy in the standard library, and we have a few ways of combining
@@ -66,7 +67,7 @@ def parametric_mult_vars(tps:Iterable[NonoverloadedFnType],
                          substitutions:Iterable[Dict[str, Sort]]) -> Iterable[NonoverloadedFnType]:
     for tp in tps:
         for d in substitutions:
-            yield tp.substdict(d)
+            yield tp.substdict(cast(Dict[Sort,Sort],d)) # false cast, but sound as long as we don't modify the dict.
 
 def print_types_map(fntypesmap:Dict[str,OverloadedFnType]):
     for symb in fntypes_map:
@@ -139,7 +140,7 @@ def check_type_vars_gone(oftmap:Dict[str,OverloadedFnType]):
                 check_type_vars_gone_from_sort(x)
 
 
-overloaded_types_data2 : FnTypesData = [
+overloaded_types_data : FnTypesData = [
 
     # ------------TimeDelta environment variables------------
     (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td','contractStart_td'), (
@@ -322,7 +323,7 @@ overloaded_types_data2 : FnTypesData = [
 
 
 
-overloaded_types_data : FnTypesData = [
+overloaded_types_data_no_dups : FnTypesData = [
 
     # ------------TimeDelta environment variables------------
     (('event_td','next_event_td','future_event_td','sectionEntrance_td','monthStartDay_td','monthEndDay_td','contractStart_td'), (
@@ -498,8 +499,8 @@ unbounded_arity_fnsymbols = {'≤', '≥', '<', '>', '==', 'or*', 'and*',
                               'min','max','+','*'}
 
 fntypes_map = makeNiceFnTypeMap(overloaded_types_data)
-
-print_types_map(fntypes_map)
+doit_for_safe(fntypes_map)
+# print_types_map(fntypes_map)
 
 check_type_vars_gone(fntypes_map)
 

@@ -4,9 +4,9 @@ from src.independent.parse_sexpr import parse_file
 from src.compiler.compiler_cli import EXAMPLES_SEXPR_ROOT
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 
-from src.typesystem.standard_function_types import fntypes_map
+from src.typesystem.standard_function_types import fntypes_map, print_types_map
 from src.typesystem.typecheck import typecheck_prog
-
+from src.temp_src.for_safe import doit_for_safe
 
 EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/test_local_vars.l4',
@@ -37,6 +37,7 @@ def test_eliminate_unbounded_arity():
 
 
 def main(sys_argv:Sequence[str]):
+    print_types_map(fntypes_map)
 
     for filename in EXAMPLES_TO_TYPECHECK:
         msg = f"Example {filename}:"

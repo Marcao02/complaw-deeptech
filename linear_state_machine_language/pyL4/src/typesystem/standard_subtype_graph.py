@@ -69,4 +69,4 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
 
 
 standard_types_graph = build_graph(SUBSORT_CONSTRAINTS, AllSorts)
-print( standard_types_graph )
+# print( standard_types_graph )

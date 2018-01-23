@@ -1,6 +1,7 @@
 from datetime import timedelta
 from itertools import chain
 
+from src.independent.FileCoord import FileCoord
 from src.independent.typing_imports import *
 
 from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
@@ -10,7 +11,8 @@ from src.util import todo_once
 
 
 class Literal(Term):
-    def __init__(self) -> None:
+    def __init__(self, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.lit : Any
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
@@ -29,38 +31,38 @@ class Literal(Term):
         return str(self)
 
 class FloatLit(Literal):
-    def __init__(self,lit:float) -> None:
-        super().__init__()
+    def __init__(self,lit:float, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.lit = lit
 
     def __str__(self) -> str:
         return str(self.lit)
 
 class IntLit(Literal):
-    def __init__(self, lit:int) -> None:
-        super().__init__()
+    def __init__(self, lit:int, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.lit = lit
     def __str__(self):
         return str(self.lit)
 
 class BoolLit(Literal):
-    def __init__(self, lit:bool) -> None:
-        super().__init__()
+    def __init__(self, lit:bool, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.lit = lit
     def __str__(self):
         return str(self.lit)
 
 class SortLit(Literal):
-    def __init__(self, lit:Sort) -> None:
-        super().__init__()
+    def __init__(self, lit:Sort, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.lit : Sort = lit
 
     def __str__(self):
         return str(self.lit)
 
 class DeadlineLit(Literal):
-    def __init__(self, lit:str) -> None:
-        super().__init__()
+    def __init__(self, lit:str, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.lit = lit
     def __str__(self):
         return str(self.lit)
@@ -72,10 +74,9 @@ class RoleIdLit(Literal):
     def __str__(self):
         return str(self.lit)
 
-
 class StringLit(Literal):
-    def __init__(self, lit:str) -> None:
-        super().__init__()
+    def __init__(self, lit:str, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.lit = lit
     def __str__(self):
         return "'" + self.lit + "'"
@@ -88,8 +89,8 @@ class SimpleTimeDeltaLit(Literal):
 
     NOTE some of this functionality is duplicated in interpreter.py
     """
-    def __init__(self, num:int, unit:str) -> None:
-        super().__init__()
+    def __init__(self, num:int, unit:str, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         assert unit in SUPPORTED_TIMEUNITS, f'time unit {unit} unsupported'
         self.num = num
         self.unit = unit

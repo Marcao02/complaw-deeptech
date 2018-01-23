@@ -28,6 +28,18 @@ class L4TypeInferError(L4TypeError):
 
 class L4TypeInferCheckError(L4TypeError):
     def __init__(self, term:Term, inferred_sort:Sort, check_sort:Sort) -> None:
-        super().__init__(f"Term {term}'s inferred sort {inferred_sort} is not a subtype of the sort {check_sort} checked against.", term)
-        self.inferred_sort = inferred_sort
-        self.check_sort = check_sort
+        msg = f"Term {term}'s inferred sort {inferred_sort} is not a subtype of the sort {check_sort} checked against."
+        super().__init__(msg, term)
+
+        # self.inferred_sort = inferred_sort
+        # self.check_sort = check_sort
+        # print(msg)
+    def __str__(self) -> str:
+        rv = self.msg
+
+        if self.term and self.term.coord:
+            if self.term.coord.col:
+                rv += f"\nSee (near) line {self.term.coord.line} col {self.term.coord.col}"
+            else:
+                rv += f"\nSee (near) line {self.term.coord.line}."
+        return rv

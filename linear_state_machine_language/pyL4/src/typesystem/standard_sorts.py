@@ -19,11 +19,11 @@ Bool = 'Bool'
 def SApp(symb:str, *args:Any) -> NonatomicSort:
     return NonatomicSort.c(symb, tuple(args))
 
-j = 'jvar'
-Natj = SApp('Dup',Nat,j)
-PosIntj = SApp('Dup',PosInt,j)
-NonnegRealj = SApp('Dup',NonnegReal,j)
-PosRealj = SApp('Dup',PosReal,j)
+jvar = 'jvar'
+Natj = SApp('Dup', Nat, jvar)
+PosIntj = SApp('Dup', PosInt, jvar)
+NonnegRealj = SApp('Dup', NonnegReal, jvar)
+PosRealj = SApp('Dup', PosReal, jvar)
 
 
 all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
@@ -46,27 +46,27 @@ dups_used.update({
 dups_used.update({
     'TDMap_Order': Dup(SApp('TDMap', dups_used['Order']),'TDMap_Order')
 })
+
 todo_once("this is temporary too")
 TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
 
-    '$': NonnegReal,
-    # '$': Dup(NonnegReal,"$"),
+    # '$': NonnegReal,
+    '$': Dup(NonnegReal,"$"),
 
-    'Pos$': PosReal,
-    # 'Pos$': Dup(PosReal,'Pos$'),
+    # 'Pos$': PosReal,
+    'Pos$': Dup(PosReal,'Pos$'),
 
-    'Shares': Nat,
-    # 'Shares' : Dup(Nat,'Shares'),
-    'PosShares': PosInt,
-    # 'PosShares' : Dup(PosInt,'PosShares'),
-    'ShareCnt': Nat,
-    # 'Shares' : Dup(Nat,'Shares'),
-    'PosShareCnt': PosInt,
-    # 'PosShares' : Dup(PosInt,'PosShares'),
+    # 'ShareCnt': Nat,
+    'Shares' : Dup(Nat,'Shares'),
 
-    '$/Shares': SApp('Ratio', PosReal, PosInt),
-    # '$/Shares': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShares')),
-    'SharePrice': SApp('Ratio', PosReal, PosInt),
+    # 'PosShareCnt': PosInt,
+    'PosShares' : Dup(PosInt,'PosShares'),
+
+    # 'SharePrice': SApp('Ratio', PosReal, PosInt),
+    'SharePrice': SApp('Ratio', Dup(NonnegReal,'$'), Dup(PosInt,'PosShares')),
+
+    # 'SharePrice': SApp('Ratio', PosReal, PosInt),
+    'PosSharePrice': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShares')),
 
     'Order': SApp('Tuple', Nat, Nat),
     # 'Order' : Dup(SApp('Tuple', Nat, Nat),'Order'),

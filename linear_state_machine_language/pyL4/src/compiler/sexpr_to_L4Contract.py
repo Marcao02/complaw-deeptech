@@ -167,10 +167,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             # assert x[1] in AllSorts
             return SortLit(x[1])
 
-    def _mk_contract_param(self, expr) -> ContractParamDec:
+    def _mk_contract_param(self, expr:SExpr) -> ContractParamDec:
         self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : sort := term)" )
         sort = self._mk_sort(expr[2])
-        return ContractParamDec(expr[0], sort, self._mk_term(expr[4]))
+        return ContractParamDec(expr[0], sort, self._mk_term(expr[4], None, None, None, expr))
 
     def _mk_global_vars(self, l:SExpr) -> Dict[GlobalVarId, GlobalVarDec]:
         rv : Dict[GlobalVarId, GlobalVarDec] = dict()
@@ -189,7 +189,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 initval : Optional[Term] = None
                 if i+3 < len(dec) and (dec[i+3] == ':=' or dec[i+3] == '='):
-                    initval = self._mk_term(dec[i + 4])
+                    initval = self._mk_term(dec[i + 4],None,None,None,l)
 
                 # print("sort: ", str(sort))
                 # print("initval: ", str(initval), type(initval))
@@ -296,7 +296,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return streqci(x[0], constant)
 
             if head(SECTION_PRECONDITION_LABEL):
-                section.preconditions.append(self._mk_term(x[1], section, parent_action))
+                section.preconditions.append(self._mk_term(x[1], section, parent_action,None, x))
 
             elif head(SECTION_DESCRIPTION_LABEL):
                 section.section_description = chcaststr(x[1][1]) # extract from STRLIT expression
@@ -429,14 +429,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             if statement[0] == 'conjecture' or statement[0] == 'prove':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformConjecture expression should have length 2")
-                rhs = self._mk_term(statement[1], None, parent_action)
+                rhs = self._mk_term(statement[1], None, parent_action, None, statement)
                 return InCodeConjectureStatement(rhs)
             elif statement[0] == 'local':
                 self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type = term) or := instead of =')
                 self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
                                           'Local var dec should have form (local name : type = term)  or := instead of =')
                 sort = self._mk_sort(statement[3])
-                rhs = self._mk_term(statement[5], parent_action=parent_action)
+                rhs = self._mk_term(statement[5], None, parent_action, None, statement)
                 varname = castid(StateTransformLocalVarId,statement[1])
                 lvd = StateTransformLocalVarDec(varname, rhs, sort)
                 if varname in parent_action.local_vars:
@@ -444,7 +444,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 parent_action.local_vars[varname] = lvd
                 return lvd
             elif statement[0] == 'if':
-                test = self._mk_term(statement[1], None, parent_action, None)
+                test = self._mk_term(statement[1], None, parent_action, None, statement)
                 self.assertOrSyntaxError( isinstance(statement[2],SExpr) and isinstance(statement[4],SExpr), statement )
                 true_branch = [
                     self._mk_statement(inner, parent_action) for inner in statement[2]
@@ -457,7 +457,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             else:
                 self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement))
-                rhs = self._mk_term(statement[2], None, parent_action)
+                rhs = self._mk_term(statement[2], None, parent_action, None, statement)
                 varname = castid(GlobalVarId, statement[0])
                 self.assertOrSyntaxError(varname in self.top.global_var_decs, statement, f"{varname} not recognized as a global state variable.")
                 vardec = self.top.global_var_decs[varname]
@@ -486,18 +486,19 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     @staticmethod
     def mk_literal(x:str, parent_SExpr:Optional[SExpr] = None, prog:Optional[L4Contract] = None) -> Term:
+        coord = FileCoord(parent_SExpr.line, parent_SExpr.col) if parent_SExpr else None
         if isInt(x):
-            return IntLit(int(x))
+            return IntLit(int(x), coord)
         if isFloat(x):
-            return FloatLit(float(x))
+            return FloatLit(float(x), coord)
         if x == 'false':
-            return BoolLit(False)
+            return BoolLit(False, coord)
         if x == 'true':
-            return BoolLit(True)
+            return BoolLit(True, coord)
         if x == 'never':
-            return DeadlineLit(x)
+            return DeadlineLit(x, coord)
         if x[-1].lower() in SUPPORTED_TIMEUNITS and isInt(x[:-1]):
-            rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower())
+            rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower(), coord)
             # print('STD', rv)
             return rv
 
@@ -651,7 +652,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_next_action_rule(self, expr:SExpr, src_section:Section, parent_action:Optional[Action]) -> NextActionRule:
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
-            entrance_enabled_guard = self._mk_term(expr[1], src_section)
+            entrance_enabled_guard = self._mk_term(expr[1], src_section, parent_action, None, expr)
             expr = expr[2]
 
         role_id : RoleId
@@ -710,7 +711,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         for x in rem[1:]:
             if x[0] == "where":
-                rv.where_clause = self._mk_term(x[1], src_section, parent_action, rv)
+                rv.where_clause = self._mk_term(x[1], src_section, parent_action, rv, expr)
 
         assert not rv.fixed_args or not rv.where_clause
 

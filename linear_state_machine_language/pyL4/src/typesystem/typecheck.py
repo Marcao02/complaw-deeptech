@@ -84,8 +84,9 @@ def typecheck_prog(prog:L4Contract):
     fsymbs1 = set(what_fnsymbols_used(prog))
     print(fsymbs1)
     fsymbs2 = set(what_fnsymbols_used2(prog))
-    print(fsymbs2)
+    # print(fsymbs2)
     assert fsymbs1 == fsymbs2
+
     tc = TypeChecker(prog)
     for action in prog.actions_iter():
         tc.typecheck_action(action)
