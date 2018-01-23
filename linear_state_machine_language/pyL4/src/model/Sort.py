@@ -29,7 +29,8 @@ class NonatomicSort(NamedTuple):
         elif self.sortop == 'Ratio':
             return f"{mapjoin(str,self.args,'/')}"
         elif self.sortop == 'Dup':
-            return str(self.args[1]) + f"[{self.args[0]}]"
+            ind = 'j' if self.args[1] == 'jvar' else self.args[1]
+            return str(self.args[0]) + f"[{ind}]"
         else:
             return f"{self.sortop}[{mapjoin(str,self.args,', ')}]"
     def __repr__(self) -> str:

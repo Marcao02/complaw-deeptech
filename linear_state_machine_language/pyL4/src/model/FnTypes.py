@@ -23,7 +23,7 @@ class SimpleFnType(NamedTuple):
 
     def __str__(self) -> str:
         todo_once("contrib: why cast necessary?")
-        return mapjoin(str,self.parts,' -> ')
+        return mapjoin(str,self.parts,' ⟶ ')
     def __repr__(self) -> str:
         return str(self)
 
@@ -42,7 +42,7 @@ class ArbArityFnType(NamedTuple):
         yield self.ran
 
     def __str__(self) -> str:
-        return f"{self.dom}* -> {self.ran}"
+        return f"{self.dom}* ⟶ {self.ran}"
     def __repr__(self) -> str:
         return str(self)
 

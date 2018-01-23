@@ -69,10 +69,10 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)),
     sschain(Ratio(PosRealj, PosRealj), Ratio(NonnegRealj, PosRealj)),
 
-    sschain(Ratio(NonnegRealj, PosRealj), NonnegRealj),
-    sschain(Ratio(NonnegRealj, PosIntj), NonnegRealj),
-    sschain(Ratio(PosRealj,PosRealj), PosRealj),
-    sschain(Ratio(PosRealj,PosIntj), PosRealj),
+    # sschain(Ratio(NonnegRealj, PosRealj), NonnegRealj),
+    # sschain(Ratio(NonnegRealj, PosIntj), NonnegRealj),
+    # sschain(Ratio(PosRealj,PosRealj), PosRealj),
+    # sschain(Ratio(PosRealj,PosIntj), PosRealj),
 
     sschain(PosIntj,Natj),
     sschain(PosRealj,NonnegReal)

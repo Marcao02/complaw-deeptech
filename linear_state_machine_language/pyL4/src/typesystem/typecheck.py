@@ -20,7 +20,9 @@ from src.temp_src.l4contract_info_gathering import what_sorts_used, what_fnsymbo
 from src.temp_src.for_safe import doit_for_safe
 
 from src.typesystem.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts
-from src.typesystem.standard_function_types import STANDARD_FNTYPES
+from src.typesystem.standard_function_types import STANDARD_FNTYPES, print_types_map
+
+print_types_map(STANDARD_FNTYPES)
 
 doit_for_safe(STANDARD_FNTYPES, STANDARD_SUBSORTING_GRAPH)
 

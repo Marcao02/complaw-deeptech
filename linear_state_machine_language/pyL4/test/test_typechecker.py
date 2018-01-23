@@ -40,6 +40,7 @@ def test_eliminate_unbounded_arity():
 def main(sys_argv:Sequence[str]):
     print_types_map(STANDARD_FNTYPES)
 
+    # return
     for filename in EXAMPLES_TO_TYPECHECK:
         msg = f"Example {filename}:"
         # print(f"\n{'='*len(msg)}\n{msg}")

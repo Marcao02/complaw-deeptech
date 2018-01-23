@@ -257,24 +257,24 @@ overloaded_types_data : FnTypesData = [
 
     (('*',), parametric_mult_vars(
         {sfntype(X, R, X), sfntype(R, X, X)},
-        [{X: somenumeric, R: PosReal} for somenumeric in UnboundedNumericSorts]
+        [{X: somenumeric, R: PosReal} for somenumeric in cast(Set[Sort],{NonnegRealj,PosRealj,NonnegReal})]
     )
      ),
 
     # temp hack
-    (('*',), parametric_mult_vars(
-        {sfntype(SApp('Ratio', N, D), D, R),
-         sfntype(D, SApp('Ratio', N, D), R)},
-        [
-                {'NVar':Real,'DVar':PosReal, 'RVar':Real},
-                {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
-                {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
-                {'NVar':Real,'DVar':PosInt, 'RVar':Real},
-                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
-                {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal}
-        ]
-        )
-     ),
+    # (('*',), parametric_mult_vars(
+    #     {sfntype(SApp('Ratio', N, D), D, R),
+    #      sfntype(D, SApp('Ratio', N, D), R)},
+    #     [
+    #             {'NVar':Real,'DVar':PosReal, 'RVar':Real},
+    #             {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
+    #             {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
+    #             {'NVar':Real,'DVar':PosInt, 'RVar':Real},
+    #             {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
+    #             {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal}
+    #     ]
+    #     )
+    #  ),
     (('*',), (
         sfntype(SApp('Ratio', PosReal, PosInt), PosReal, SApp('Ratio', PosReal, PosInt)),
         sfntype(PosReal, SApp('Ratio', PosReal, PosInt), SApp('Ratio', PosReal, PosInt)) ),
