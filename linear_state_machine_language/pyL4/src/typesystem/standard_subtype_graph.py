@@ -1,15 +1,15 @@
-from typing import Tuple, Iterable, Set
+from itertools import chain
 
 from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDirectedGraph
 from src.typesystem.standard_sorts import *
+from src.typesystem.SubsortConstraint import sschain, SubsortConstraint
 
 
-def build_graph(_subtypes_data:Tuple[Tuple[Sort,...],...], initial_nodes:Iterable[Sort]) -> TransitivelyClosedDirectedGraph[Sort]:
+def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes:Iterable[Sort]) -> TransitivelyClosedDirectedGraph[Sort]:
     graph = TransitivelyClosedDirectedGraph[Sort]()
     graph.addNodes(initial_nodes)
-    for line in _subtypes_data:
-        for i in range(len(line) - 1):
-            graph.addEdge(line[i],line[i+1])
+    for constraint in subsort_constraints:
+        graph.addEdge(constraint.parts[0],constraint.parts[1])
     add_derived(graph)
     # graph.addTop('Any')
     return graph
@@ -39,29 +39,30 @@ def add_derived(graph:TransitivelyClosedDirectedGraph[Sort]):
     #     for acopy in all_sort_copies_by_orig[copied_sort]:
     #         graph.addEdge(acopy, copied_sort)
 
-subtypes_data : Tuple[Tuple[Sort,...],...] = (
-    (PosTimeDelta, TimeDelta),
-    ("{0}","[0,1)"),
-    ("{1}","(0,1]"),
-    ("{0,1}","[0,1]"),
-    ("{0}","{0,1}",Nat),
-    ("{1}","{0,1}"),
-    ("{1}",PosInt),
-    ("(0,1)", "[0,1)", "[0,1]", NonnegReal),
-    ("(0,1)", "(0,1]", "[0,1]", NonnegReal),
-    ("(0,1)", "(0,1]", PosReal),
-    (PosInt,Nat,Int),
-    (PosReal,NonnegReal,Real),
-    (PosInt,PosReal),
-    (Nat,NonnegReal),
-    (Int,Real),
-    (SApp('Ratio',NonnegReal, PosReal), NonnegReal),
-    (SApp('Ratio',NonnegReal, PosInt), NonnegReal),
-    (SApp('Ratio',PosReal,PosReal), PosReal),
-    (SApp('Ratio',Real,PosReal), Real),
-    (SApp('Ratio',PosReal,PosInt), PosReal),
-    (SApp('Ratio',Real,PosInt), Real),
+SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
+    sschain(PosTimeDelta, TimeDelta),
+    sschain("{0}","[0,1)"),
+    sschain("{1}","(0,1]"),
+    sschain("{0,1}","[0,1]"),
+    sschain("{0}","{0,1}",Nat),
+    sschain("{1}","{0,1}"),
+    sschain("{1}",PosInt),
+    sschain("(0,1)", "[0,1)", "[0,1]", NonnegReal),
+    sschain("(0,1)", "(0,1]", "[0,1]", NonnegReal),
+    sschain("(0,1)", "(0,1]", PosReal),
+    sschain(PosInt,Nat,Int),
+    sschain(PosReal,NonnegReal,Real),
+    sschain(PosInt,PosReal),
+    sschain(Nat,NonnegReal),
+    sschain(Int,Real),
+    sschain(SApp('Ratio',NonnegReal, PosReal), NonnegReal),
+    sschain(SApp('Ratio',NonnegReal, PosInt), NonnegReal),
+    sschain(SApp('Ratio',PosReal,PosReal), PosReal),
+    sschain(SApp('Ratio',Real,PosReal), Real),
+    sschain(SApp('Ratio',PosReal,PosInt), PosReal),
+    sschain(SApp('Ratio',Real,PosInt), Real),
 )
 
-standard_types_graph = build_graph(subtypes_data, AllSorts)
+
+standard_types_graph = build_graph(SUBSORT_CONSTRAINTS, AllSorts)
 print( standard_types_graph )

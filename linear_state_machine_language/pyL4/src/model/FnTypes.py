@@ -36,15 +36,17 @@ class ArbArityFnType(NamedTuple):
     def substdict(self,d:Dict[str,Sort]) -> 'ArbArityFnType':
         return ArbArityFnType(sortsubstdict(self.dom, d), sortsubstdict(self.ran, d))
 
+    @property
+    def parts(self) -> Iterable[Sort]:
+        yield self.dom
+        yield self.ran
+
     def __str__(self) -> str:
         return f"{self.dom}* -> {self.ran}"
     def __repr__(self) -> str:
         return str(self)
 
 NonoverloadedFnType = Union[SimpleFnType,ArbArityFnType]
-
-def substarb(t:ArbArityFnType, var:str,val:Sort) -> ArbArityFnType:
-    return ArbArityFnType(sortsubst(t.dom,var,val), sortsubst(t.ran,var,val))
 
 class OverloadedFnType(NamedTuple):
     parts: List[NonoverloadedFnType]

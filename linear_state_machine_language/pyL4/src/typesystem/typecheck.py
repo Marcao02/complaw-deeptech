@@ -83,15 +83,17 @@ def typecheck_prog(prog:L4Contract):
     for section in prog.sections_iter():
         tc.typecheck_section(section)
     msg2 = f"Typechecking contract param declarations"
-    print("-" * len(msg2) + "\n" + msg2)
+    print(msg2 + "\n" + "-" * len(msg2))
+    # print("-" * len(msg2) + "\n" + msg2)
     for contract_param_dec in prog.contract_params.values():
         # print(f"Checking {contract_param_dec.value_expr} against {contract_param_dec.sort}")
         tc.typecheck_term(contract_param_dec.value_expr, contract_param_dec.sort)
     msg2 = f"Typechecking global state var declarations"
-    print("-" * len(msg2) + "\n" + msg2)
+    print(msg2 + "\n" + "-" * len(msg2))
     for gvardec in prog.global_var_decs.values():
         if gvardec.initval:
             tc.typecheck_term(gvardec.initval, gvardec.sort)
+    print("✓\n")
 
 class TypeChecker:
     def __init__(self,prog:L4Contract) -> None:
@@ -209,12 +211,16 @@ class TypeChecker:
 
 
     def typecheck_section(self, section:Section):
+        msg2 = f"Typechecking Section {section.section_id}"
+        # print("-" * len(msg2) + "\n" + msg2)
+        print(msg2 + "\n" + "-" * len(msg2))
         for rule in section.action_rules():
             self.typecheck_action_rule(rule)
 
     def typecheck_action(self, action:Action):
         msg2 = f"Typechecking Action {action.action_id}"
-        print("-" * len(msg2) + "\n" + msg2)
+        # print("-" * len(msg2) + "\n" + msg2)
+        print(msg2 + "\n" + "-" * len(msg2))
         for statement in action.state_transform_statements():
             self.typecheck_statement(statement)
         for rule in action.future_action_rules():

@@ -39,7 +39,8 @@ def main(sys_argv:Sequence[str]):
 
     for filename in EXAMPLES_TO_TYPECHECK:
         msg = f"Example {filename}:"
-        print(f"\n{'-'*len(msg)}\n{msg}")
+        # print(f"\n{'='*len(msg)}\n{msg}")
+        print(f"\n{msg}\n{'='*len(msg)}")
         in_path = EXAMPLES_SEXPR_ROOT + filename
         parsed = parse_file(in_path)
         prog = L4ContractConstructor(filename).mk_l4contract(parsed)

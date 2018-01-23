@@ -2,6 +2,7 @@ import logging
 from itertools import chain
 from typing import Optional, Iterable
 
+from src.model.FnTypes import OverloadedFnType
 from src.independent.SExpr import SExprOrStr
 from src.constants_and_defined_types import *
 from src.model.ActionRule import ActionRule
@@ -9,6 +10,9 @@ from src.model.L4Contract import L4Contract, is_derived_destination_id, is_deriv
 
 
 # just for typing!!
+from src.typesystem.standard_function_types import TYPEVARS
+
+
 class L4ContractConstructorInterface:
     top : L4Contract
     referenced_nonderived_section_ids: Set[SectionId]

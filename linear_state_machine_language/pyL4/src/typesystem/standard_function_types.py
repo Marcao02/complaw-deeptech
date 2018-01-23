@@ -1,15 +1,8 @@
-from itertools import chain
-
 import time
 
-from copy import copy
-
 from src.independent.typing_imports import *
-
 from src.model.Sort import Sort, NonatomicSort, AtomicSort
-from src.model.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType, substarb
-
-from src.util_for_sequences import nested_list_replace, nested_list_replace_mult
+from src.model.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType
 from src.typesystem.standard_sorts import AllAtomicSorts, TDMapKeySortData, TimeDelta, Bool, UnboundedNumericSorts, \
     PosInt, PosReal, Int, NonnegReal, AllSortData, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, AllNumericSorts, \
     all_sort_copies_by_orig, SApp
@@ -44,32 +37,19 @@ def sfntype(*tp:Sort) -> SimpleFnType:
     assert len(tp) >= 1
     return SimpleFnType(tp)
 
+FnTypesData = List[ Tuple[Tuple[AtomicSort,...], Iterable[NonoverloadedFnType]] ]
+
 X = 'XVar'
 N = 'NVar'
 D = 'DVar'
 R = 'RVar'
-typevars = {X, N, D, R}
+TYPEVARS = {X, N, D, R}
 j = 'jvar'
 
 TypeData = Sequence[Any]
 
 Natj = SApp('Dup',Nat,j)
 PosIntj = SApp('Dup',PosInt,j)
-
-# def dNat(var:str) -> Tuple[str,...]:
-#     return ('Dup',Nat,var)
-
-# nl for nested list
-# def flatten_helper(nl: Sequence[Any]) -> Iterable[TypeData]:
-#     # print(nl)
-#     if nl[0] == 'fn' or nl[0] == 'aafn':
-#         return [nl]
-#     else:
-#         # rv = []
-#         # for inner in nl:
-#         #     rv.extend(flatten_helper(inner))
-#         # return rv
-#         return (ft for fts in flatten_helper(nl) for ft in fts)
 
 def parametric_one_var(tp_or_tps:Union[NonoverloadedFnType,Iterable[NonoverloadedFnType]],
                        substitutions:Iterable[Sort] = AllSortData,
@@ -79,46 +59,17 @@ def parametric_one_var(tp_or_tps:Union[NonoverloadedFnType,Iterable[Nonoverloade
             yield tp_or_tps.subst(var,sort)
     elif isinstance(tp_or_tps, ArbArityFnType):
         for sort in substitutions:
-            yield substarb(tp_or_tps,var,sort)
+            yield tp_or_tps.subst(var,sort)
     else:
         for tp in tp_or_tps:
             for sort in substitutions:
                 yield tp.subst(var,sort)
-
-    # tps : Set[TypeData]
-    # if isinstance(tp_or_tps, Set):
-    #     tps = tp_or_tps
-    # else:
-    #     tps = {tp_or_tps}
-    # rv = []
-    # for tp in tps:
-    #     rv.extend( [ nested_list_replace(tp, var, primtype) for primtype in substitutions ] )
-    # return flatten_helper( nested_list_replace(tp, var, primtype) for )
 
 def parametric_mult_vars(tps:Iterable[NonoverloadedFnType],
                          substitutions:Iterable[Dict[str, Sort]]) -> Iterable[NonoverloadedFnType]:
     for tp in tps:
         for d in substitutions:
             yield tp.substdict(d)
-
-
-# def dupmult(tp_or_tps:Union[TypeData,Set[TypeData]], substitutions:Iterable[Dict[str, str]]) -> Sequence[Any]:
-#     tps: Set[TypeData]
-#     if isinstance(tp_or_tps, Set):
-#         tps = tp_or_tps
-#     else:
-#         tps = {tp_or_tps}
-#     rv = []
-#     for tp in tps:
-#         rv.extend([nested_list_replace_mult(tp, subst) for subst in substitutions])
-#     raise NotImplementedError
-
-FnTypesData = List[ Tuple[Tuple[AtomicSort,...], Iterable[NonoverloadedFnType]] ]
-
-# def mychain(*iterables:Iterable[T]) -> Iterable[T]:
-#     for iter in iterables:
-#         for x in iter:
-#             yield x
 
 def print_types_map(fntypesmap:Dict[str,OverloadedFnType]):
     for symb in fntypes_map:
@@ -143,39 +94,52 @@ def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
     print("TIME", 1000*(time.process_time() - start))
     return rv
 
-# def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
-#     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
-#     start = time.process_time()
-#     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
-#     for part in data:
-#         tuple_from_iter = tuple(part[1])
-#         for symb in part[0]:
-#             if symb not in dict_of_tuples:
-#                 dict_of_tuples[symb] = tuple_from_iter
-#             else:
-#                 # no time performance improvement over just tuples, but might save space?
-#                 dict_of_tuples[symb] = chain(tuple_from_iter, dict_of_tuples[symb])
-#
-#     rv = { symb: OverloadedFnType( list(dict_of_tuples[symb]), dict(), set() ) for symb in dict_of_tuples }
-#     print("TIME", 1000*(time.process_time() - start))
-#     return rv
+    # speed the same
+    # def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
+    #     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+    #     start = time.process_time()
+    #     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+    #     for part in data:
+    #         tuple_from_iter = tuple(part[1])
+    #         for symb in part[0]:
+    #             if symb not in dict_of_tuples:
+    #                 dict_of_tuples[symb] = tuple_from_iter
+    #             else:
+    #                 # no time performance improvement over just tuples, but might save space?
+    #                 dict_of_tuples[symb] = chain(tuple_from_iter, dict_of_tuples[symb])
+    #
+    #     rv = { symb: OverloadedFnType( list(dict_of_tuples[symb]), dict(), set() ) for symb in dict_of_tuples }
+    #     print("TIME", 1000*(time.process_time() - start))
+    #     return rv
 
-# this version is just as fast
-# def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
-#     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
-#     start = time.process_time()
-#     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
-#     for part in data:
-#         tuple_from_iter = list(part[1])
-#         for symb in part[0]:
-#             if symb not in dict_of_tuples:
-#                 dict_of_tuples[symb] = tuple_from_iter if len(part[0]) == 1 else tuple_from_iter.copy()
-#             else:
-#                 dict_of_tuples[symb].extend(tuple_from_iter)
-#
-#     rv = { symb: OverloadedFnType( list(dict_of_tuples[symb]), dict(), set() ) for symb in dict_of_tuples }
-#     print("TIME", 1000*(time.process_time() - start))
-#     return rv
+    # this version is just as fast
+    # def makeNiceFnTypeMap(data: FnTypesData) -> Dict[str,OverloadedFnType]:
+    #     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+    #     start = time.process_time()
+    #     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+    #     for part in data:
+    #         tuple_from_iter = list(part[1])
+    #         for symb in part[0]:
+    #             if symb not in dict_of_tuples:
+    #                 dict_of_tuples[symb] = tuple_from_iter if len(part[0]) == 1 else tuple_from_iter.copy()
+    #             else:
+    #                 dict_of_tuples[symb].extend(tuple_from_iter)
+    #
+    #     rv = { symb: OverloadedFnType( list(dict_of_tuples[symb]), dict(), set() ) for symb in dict_of_tuples }
+    #     print("TIME", 1000*(time.process_time() - start))
+    #     return rv
+
+def check_type_vars_gone_from_sort(s:Sort):
+    if isinstance(s,str):
+        assert s not in TYPEVARS
+    else:
+        for t in s.args:
+            check_type_vars_gone_from_sort(t)
+def check_type_vars_gone(oftmap:Dict[str,OverloadedFnType]):
+    for oft in oftmap.values():
+        for noft in oft.parts:
+            for x in noft.parts:
+                check_type_vars_gone_from_sort(x)
 
 overloaded_types_data : FnTypesData = [
 
@@ -351,6 +315,7 @@ overloaded_types_data : FnTypesData = [
      )
 ]
 
+# obviously this can be computed from overloaded_types_data, but why bother?
 unbounded_arity_fnsymbols = {'≤', '≥', '<', '>', '==', 'or*', 'and*',
                               'min','max','+','*'}
 
@@ -358,25 +323,8 @@ fntypes_map = makeNiceFnTypeMap(overloaded_types_data)
 
 print_types_map(fntypes_map)
 
-# def flatten_fntype_data(_overloaded_types_data:Iterable[ Tuple[Sequence[str], Any]]) -> Dict[str, List[TypeData]]:
-#
-#     _fntypes_map : Dict[str, List[Sequence[Any]]] = dict()
-#     for pair in _overloaded_types_data:
-#         fst = pair[0]
-#         snd : Any = pair[1]
-#         if isinstance(fst,str):
-#             _fntypes_map[fst] = flatten_helper(snd)
-#         else:
-#             flattened_rhs = flatten_helper(snd)
-#             for symb in fst:
-#                 if symb in _fntypes_map:
-#                     _fntypes_map[symb] = _fntypes_map[symb] + list(flattened_rhs)
-#                 else:
-#                     _fntypes_map[symb] = list(flattened_rhs)
-#
-#     return _fntypes_map
-#
-#
+check_type_vars_gone(fntypes_map)
+
 # def eliminate_unbounded_arity(arity_occurrences: Dict[str,Set[int]], fntypes_map: Dict[str, List[Sequence[Any]]]) -> None:
 #     for f in fntypes_map:
 #         # if len(arity_occurrences[f]) == 0:
@@ -394,52 +342,21 @@ print_types_map(fntypes_map)
 #                 ran = ftype[2]
 #                 for arity in arity_occurrences[f]:
 #                     ftypes.append(('fn',) + (dom,)*arity + (ran,))
+#
+#
 
-# def temp_normalize_sorts(prog:L4Contract) -> None:
-#     for eliminated_sort in TEMP_SORT_IDENTIFICATION:
-#         prog.sorts.remove(eliminated_sort)
-#
-#     def temp_normalize_sort(s: Sort) -> Sort:
-#         if s in TEMP_SORT_IDENTIFICATION:
-#             return TEMP_SORT_IDENTIFICATION[s]
-#         else:
-#             return s
 
-#
-#
-# def check_type_vars_gone():
-#     for fntype_data in fntype_data_map.values():
-#         assert isinstance(fntype_data, list)
-#         for nonover_fntype_data in fntype_data:
-#             assert isinstance(nonover_fntype_data, tuple)
-#             for x in nonover_fntype_data:
-#                 assert isinstance(x, str) or isinstance(x, tuple)
-#                 if isinstance(x,str):
-#                     assert x not in typevars, x
-#                 if isinstance(x, tuple):
-#                     for y in x:
-#                         assert  y not in typevars, str(y) + " and " + str(nonover_fntype_data)
-#
-#
-# def sortdata_to_sort(data:Any) -> Sort:
-#     if isinstance(data,str):
-#         return data
+
+# def dupmult(tp_or_tps:Union[TypeData,Set[TypeData]], substitutions:Iterable[Dict[str, str]]) -> Sequence[Any]:
+#     tps: Set[TypeData]
+#     if isinstance(tp_or_tps, Set):
+#         tps = tp_or_tps
 #     else:
-#         return NonatomicSort(data[0], tuple(sortdata_to_sort(x) for x in data[1:]))
-#
-# def nonoverloaded_fntype_data_to_object(data:Any) -> NonoverloadedFnType:
-#     if data[0] == 'fn':
-#         return SimpleFnType(tuple(sortdata_to_sort(x) for x in data[1:]))
-#     else:
-#         assert data[0] == 'aafn' and len(data) == 3, data
-#         return ArbArityFnType(sortdata_to_sort(data[1]), sortdata_to_sort(data[2]))
-
-# def makeNiceFnTypeMap() -> Dict[str,OverloadedFnType]:
-#     fntype_map : Dict[str,OverloadedFnType] = dict()
-#     for f in fntype_data_map:
-#         fntype_map[f] = OverloadedFnType( [nonoverloaded_fntype_data_to_object(datapart) for datapart in fntype_data_map[f]],
-#                                           dict(), set())
-#     return fntype_map
+#         tps = {tp_or_tps}
+#     rv = []
+#     for tp in tps:
+#         rv.extend([nested_list_replace_mult(tp, subst) for subst in substitutions])
+#     raise NotImplementedError
 
 # """
 # depends on dups_used. modifies first arg.
@@ -457,15 +374,12 @@ print_types_map(fntypes_map)
 #                     if sortop == 'Dup':
 #                         dupsort = cast(Sort,sort.args[0])
 #                         dupvar = cast(str,sort.args[1])
-
-
 # def isSimpleNumericFnType(ft:NonoverloadedFnType) -> bool:
 #     if isinstance(ft,ArbArityFnType):
 #         return ft.dom in AllNumericSorts and ft.dom == ft.ran
 #     if isinstance(ft,SimpleFnType):
 #         solesort = ft.ran
 #         return solesort in AllNumericSorts and all(ft.dom[i] == solesort for i in range(len(ft.dom)))
-
 # def copy_sft_if_allowed(ft:NonoverloadedFnType) -> Iterable[NonoverloadedFnType]:
 #     if not isSimpleNumericFnType(ft):
 #         return []
@@ -482,8 +396,7 @@ print_types_map(fntypes_map)
 #         if isinstance(ft, SimpleFnType):
 #             ft_copies.append( SimpleFnType(tuple(sort1 for inst in ft_copies)) )
 #     return ft_copies
-
-    # for fnsymb,oft in fntypes_map.items():
+# for fnsymb,oft in fntypes_map.items():
 #     new_nofts : List[NonoverloadedFnType] = []
 #     for noft in oft.parts:
 #         print(noft)
