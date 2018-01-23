@@ -1,5 +1,6 @@
 from typing import Union, Iterator, cast
 
+from src.model.Sort import NonatomicSort
 from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
@@ -18,7 +19,7 @@ from src.util import todo_once, mytimeit
 from src.temp_src.l4contract_info_gathering import what_sorts_used, what_fnsymbols_used, what_fnsymbols_used2
 from src.temp_src.for_safe import doit_for_safe
 
-from src.typesystem.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH
+from src.typesystem.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts
 from src.typesystem.standard_function_types import STANDARD_FNTYPES
 
 doit_for_safe(STANDARD_FNTYPES, STANDARD_SUBSORTING_GRAPH)
@@ -144,7 +145,7 @@ class TypeChecker:
                 try:
                     rv = self.overloaded_fnapp_range_memo(fnsymb_type, argsorts, t)
                 except Exception as e:
-                    raise L4TypeInferError(t, e.args[0])
+                    raise L4TypeInferError(t, str(e.args[0]))
                 if rv is None:
                     raise L4TypeInferError(t, f"overloaded_fnapp_range_memo return None.\nArg sorts: {argsorts}\nFn type:\n{fnsymb_type}")
                 return rv
@@ -198,9 +199,18 @@ class TypeChecker:
         raise Exception(f"typeinfer_term unhandled case for {type(t)}: {t}" )
 
     def typecheck_term(self, t:Term, s:Sort) -> bool:
+        s = self.repl_sort_def(s)
         inferred = self.typeinfer_term_with_sort_subst(t)
 
-        s = self.repl_sort_def(s)
+        # we want to infer types of ambiguous numeric literals, at least sometimes
+        # if s is a simple units type compatible with t, we'll allow it.
+        if ((isinstance(t,IntLit) or isinstance(t,FloatLit)) and
+             isinstance(s, NonatomicSort) and
+             s.sortop == "Dup" and
+             s.args[0] in NormalUnboundedNumericSorts and
+             sub(inferred, s.args[0]) ):
+            return True
+        # print(t, s, inferred, type(t), type(s))
 
         assert inferred is not None
         if not sub(inferred,s):

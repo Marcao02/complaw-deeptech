@@ -19,20 +19,20 @@
 )
 
 (ContractParams
-	(PURCHASE_AMOUNT : Pos$ = (Pos$ 100000))
+	(PURCHASE_AMOUNT : Pos$ = 100000)
 
 	(TIME_TILL_MATURITY : TimeDelta = (days (365 + (cast PosInt (364 / 2)))))
-	(VALUATION_CAP : Pos$ = (Pos$ 1000000000000))
+	(VALUATION_CAP : Pos$ = 1000000000000)
 	(DISCOUNT_RATE : "(0,1]" = 1)
 	(INTEREST_RATE : "[0,1]" = .04)
 	(DEBT_VERSION : Bool = true) ; bug "SyntaxError: Don't recognize name INTEREST_RATE"
 
-	(START_INVESTOR_COMMON_STOCK : ShareCnt = (ShareCnt 0))
-	(START_INVESTOR_PREFERRED_STOCK : ShareCnt = (ShareCnt 0))
-	(START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : ShareCnt = (ShareCnt 0))
-	(START_INVESTOR_CASH : $ = ($ 0))
+	(START_INVESTOR_COMMON_STOCK : ShareCnt = 0)
+	(START_INVESTOR_PREFERRED_STOCK : ShareCnt = 0)
+	(START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : ShareCnt = 0)
+	(START_INVESTOR_CASH : $ = 0)
 
-	(START_COMPANY_CASH : $ = ($ 0))
+	(START_COMPANY_CASH : $ = 0)
 )
 
 (GlobalVars

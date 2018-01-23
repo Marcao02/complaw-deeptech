@@ -11,9 +11,9 @@
 
 (ContractParams
 	(INTEREST_RATE : PosReal = .1)
-	(TOTAL_DUE_BEFORE_CLOSING : Pos$ = (Pos$ 9500))
-	(MIN_PAYMENT : Pos$ = (Pos$ 500))
-	(DUE_AT_CLOSING : Pos$ = (Pos$ 500))
+	(TOTAL_DUE_BEFORE_CLOSING : Pos$ = 9500)
+	(MIN_PAYMENT : Pos$ = 500)
+	(DUE_AT_CLOSING : Pos$ = 500)
 )
 
 (GlobalVars

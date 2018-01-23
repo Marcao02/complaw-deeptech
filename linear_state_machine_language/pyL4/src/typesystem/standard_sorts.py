@@ -78,11 +78,13 @@ def Dup(sort:Sort, name:str) -> NonatomicSort:
 def Ratio(s1,s2):
     return SApp('Ratio',s1,s2)
 
-RatioAtomicSorts = { Ratio(PosRealj,PosIntj), Ratio(NonnegRealj,PosIntj) }
+RatioAtomicSorts : Set[Sort] = { Ratio(PosRealj,PosIntj), Ratio(NonnegRealj,PosIntj) }
 
-UnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal,
-                                        PosIntj,PosRealj,Natj,NonnegRealj}.union(RatioAtomicSorts))
-                            # .union(all_sort_copies)
+NormalUnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal})
+
+UnboundedNumericSorts = NormalUnboundedNumericSorts\
+                            .union( cast(Set[Sort],{PosIntj,PosRealj,Natj,NonnegRealj} ) )\
+                            .union( RatioAtomicSorts)
 # UnboundedNumericSortCopies : Set[Sort] = set()
 # for orig in UnboundedNumericSorts:
 #     if orig in all_sort_copies_by_orig:

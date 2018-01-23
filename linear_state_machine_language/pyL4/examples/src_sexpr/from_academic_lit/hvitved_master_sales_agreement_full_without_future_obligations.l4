@@ -27,7 +27,7 @@
 	( nonoperative inconly units_ordered : Nat := 0 )
 	( nonoperative inconly units_delivered : Nat := 0 )
 	( nonoperative inconly units_invoiced : Nat := 0 )
-	( nonoperative inconly total_paid : $ := ($ 0) )
+	( nonoperative inconly total_paid : $ := 0 )
 )
 
 (Definitions

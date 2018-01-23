@@ -11,12 +11,12 @@
 
 (GlobalVars
 	(writeonce challenge_endlimit_timestamp : TimeDelta )
-	(amount_owing                      		: $ = ($ 0))
-	(amount_paid                       		: $ = ($ 0))
+	(amount_owing                      		: $ = 0)
+	(amount_paid                       		: $ = 0)
 )
 
 (ContractParams
-	(MB_PRICE                     : $    = ($ 50))
+	(MB_PRICE                     : $    = 50)
 	(TIME_TO_EAT_BURGER           : TimeDelta = 1h)
 	(MAX_SERVE_DELAY              : TimeDelta = 20m)
 	(MAX_CLAIM_VERIFICATION_DELAY : TimeDelta = 10m)
@@ -79,7 +79,7 @@
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Env)
 		(StateTransform
-			(amount_owing = ($ 0))
+			(amount_owing = 0)
 		)
 	)
 
@@ -120,7 +120,7 @@
 		(0 ≤ traversals ≤ 1)
 		(AllowedSubjects Env)
 		(StateTransform
-			(amount_owing = ($ 0))
+			(amount_owing = 0)
 		)
 	)
 
@@ -167,7 +167,7 @@
 
 		(StateTransform
 			(amount_paid = amount_owing)
-			(amount_owing = ($ 0))
+			(amount_owing = 0)
 		)
 	)
 
@@ -178,7 +178,7 @@
 		(AllowedSubjects Restaurant)
 
 		(StateTransform
-			(amount_owing = ($ 0))
+			(amount_owing = 0)
 		)
 	)
 

@@ -27,9 +27,9 @@
 	(PURCHASE_AMOUNT : Pos$ = (Pos$ 100000))
 	(VALUATION_CAP : Pos$ = (Pos$ 1000000000000))
 	(DISCOUNT_RATE : "(0,1]" = 1)
-	(START_INVESTOR_COMMON_STOCKS : ShareCnt = (ShareCnt 0))
-	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = (ShareCnt 0))
-	(START_INVESTOR_CASH : $ = ($ 0))
+	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
+	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
+	(START_INVESTOR_CASH : $ = 0)
 )
 
 (GlobalVars
@@ -52,7 +52,7 @@
 
 	; for Liquidity
 	(writeAtMostOnce liq_price : SharePrice )
-	(writeAtMostOnce liq_cashout : $ = ($ 0) )
+	(writeAtMostOnce liq_cashout : $ = 0 )
 	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
 	(writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt)
 	; (writeAtMostOnce liquidity_capitalization : Nat)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
