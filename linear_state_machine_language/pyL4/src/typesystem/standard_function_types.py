@@ -257,7 +257,7 @@ overloaded_types_data : FnTypesData = [
 
     (('*',), parametric_mult_vars(
         {sfntype(X, R, X), sfntype(R, X, X)},
-        [{X: somenumeric, R: PosReal} for somenumeric in AllNumericSorts]
+        [{X: somenumeric, R: PosReal} for somenumeric in UnboundedNumericSorts]
     )
      ),
 
