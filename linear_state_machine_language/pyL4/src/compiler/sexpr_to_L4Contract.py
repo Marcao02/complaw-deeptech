@@ -189,7 +189,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 initval : Optional[Term] = None
                 if i+3 < len(dec) and (dec[i+3] == ':=' or dec[i+3] == '='):
-                    initval = self._mk_term(dec[i + 4],None,None,None,l)
+                    initval = self._mk_term(dec[i + 4],None,None,None,dec)
 
                 # print("sort: ", str(sort))
                 # print("initval: ", str(initval), type(initval))
@@ -577,9 +577,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         self.mk_sort_lit(x[0]),
                         self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
                     ])
-                    # print("It's a sort!")
                 else:
-                    self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
+                    print(f"Warning: treating {x[0]} as a defined sort symbol")
+                    return FnApp("cast", [
+                        self.mk_sort_lit(x[0]),
+                        self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
+                    ])
+                    # self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
 
                 assert False # this is just to get mypy to not complain about missing return statement
 

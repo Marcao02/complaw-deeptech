@@ -3,7 +3,7 @@
 
 ; QUESTION: In Acquisition event if investor chooses 2x payment ("(b) get paid a multiple on the original investment."), does that mean the interest rate has no effect? NO -->
 
-; TODO: "No Fractional Shares"
+; TODO: "No Fractional ShareCnt"
 
 (Roles Investor Company)
 (TimeUnit d)
@@ -17,9 +17,9 @@
 	(INTEREST_RATE : "[0,1]" = .04)
 	(DEBT_VERSION : Bool = true) ; bug "SyntaxError: Don't recognize name INTEREST_RATE"
 
-	(START_INVESTOR_COMMON_STOCK : Shares = 0)
-	(START_INVESTOR_PREFERRED_STOCK : Shares = 0)
-	(START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : Shares = 0)
+	(START_INVESTOR_COMMON_STOCK : ShareCnt = 0)
+	(START_INVESTOR_PREFERRED_STOCK : ShareCnt = 0)
+	(START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : ShareCnt = 0)
 	(START_INVESTOR_CASH : $ = 0)
 
 	(START_COMPANY_CASH : $ = 0)
@@ -27,9 +27,9 @@
 
 (GlobalVars
 	(investor_cash : $ = START_INVESTOR_CASH)
-	(investor_Common_Stock : Shares = START_INVESTOR_COMMON_STOCK)
-	(investor_PreferredStock : Shares = START_INVESTOR_PREFERRED_STOCK)
-	(investor_SeriesSeedPreferredStock : Shares = START_INVESTOR_SERIES_SEED_PREFERRED_STOCK)
+	(investor_Common_Stock : ShareCnt = START_INVESTOR_COMMON_STOCK)
+	(investor_PreferredStock : ShareCnt = START_INVESTOR_PREFERRED_STOCK)
+	(investor_SeriesSeedPreferredStock : ShareCnt = START_INVESTOR_SERIES_SEED_PREFERRED_STOCK)
 
 	(company_cash : $ = START_COMPANY_CASH)
 
@@ -101,15 +101,15 @@
 	)
 
 	(Action (CloseEquityFinancingSale
-				(qualifying_round_price : $/Shares)
-				(company_capitalization : PosShares)
+				(qualifying_round_price : SharePrice)
+				(company_capitalization : PosShareCnt)
 		)
 		(AllowedSubjects Company)
 		(TransitionsTo Fulfilled)
 		(StateTransform
-			(local cap_price : $/Shares = (VALUATION_CAP / company_capitalization))
-			(local discount_price : $/Shares = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
-			(local conversion_price : $/Shares = (min discount_price cap_price))
+			(local cap_price : SharePrice = (VALUATION_CAP / company_capitalization))
+			(local discount_price : SharePrice = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
+			(local conversion_price : SharePrice = (min discount_price cap_price))
 			(if pay_interest_in_cash (
 				(local change : $ = (apply-macro interest_from_td event_td))
 				(company_cash  = (cast $ (company_cash - change)))
@@ -124,7 +124,7 @@
 	)
 
 
-	(Action (CommitToAcquisition (company_capitalization : PosShares))
+	(Action (CommitToAcquisition (company_capitalization : PosShareCnt))
 		; Option to either (a) convert to common stock at the cap or (b) get paid a multiple on the original investment.
 		(AllowedSubjects Company)
 
@@ -149,7 +149,7 @@
 		(TransitionsTo Fulfilled)
 	)
 
-	(Action (ChooseConvertToCommonStock (company_capitalization : PosShares))
+	(Action (ChooseConvertToCommonStock (company_capitalization : PosShareCnt))
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : Pos$ = (VALUATION_CAP / company_capitalization))
@@ -184,7 +184,7 @@
 		(TransitionsTo Fulfilled)
 	)
 
-	(Action (ChooseConversionToSeriesSeedPreferredStock (company_capitalization : PosShares))
+	(Action (ChooseConversionToSeriesSeedPreferredStock (company_capitalization : PosShareCnt))
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : Pos$ = (VALUATION_CAP / company_capitalization))
@@ -199,9 +199,9 @@
 
 
 ; PurchasePrice : #
-; ConversionShares ... of CompanyPreferredStock
-; ConversionSharesSect21 ... of a ShadowSeries
+; ConversionShareCnt ... of CompanyPreferredStock
+; ConversionShareCntSect21 ... of a ShadowSeries
 
-; Definition (a) of ConversionShares tells us there are 3 kinds of conversions:
+; Definition (a) of ConversionShareCnt tells us there are 3 kinds of conversions:
 
 ; CapPrice (my term) := ValuationCap / ...

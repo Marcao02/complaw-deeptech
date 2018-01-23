@@ -26,26 +26,26 @@ NonnegRealj = SApp('Dup', NonnegReal, jvar)
 PosRealj = SApp('Dup', PosReal, jvar)
 
 
-all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
-all_sort_copies : Set[Sort] = set()
+# all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
+# all_sort_copies : Set[Sort] = set()
 def Dup(sort:Sort, name:str) -> NonatomicSort:
     rv = SApp('Dup',sort,name)
     # dictSetOrAdd(all_sort_copies_by_orig, sort, rv)
     # all_sort_copies.add(rv)
     return rv
-
-dups_used : Dict[str,Sort] = {
-    '$': Dup(NonnegReal,'$'),
-    'Pos$': Dup(PosReal,'Pos$'),
-    'Shares': Dup(Nat,'Shares'),
-    'PosShares': Dup(PosInt,'PosShares')
-}
-dups_used.update({
-    '$/Shares': Dup(SApp('Ratio', dups_used['$'], dups_used['PosShares']),'$/Shares'),
-    'Order' : Dup(SApp('Tuple', Nat, Nat),'Order') })
-dups_used.update({
-    'TDMap_Order': Dup(SApp('TDMap', dups_used['Order']),'TDMap_Order')
-})
+#
+# dups_used : Dict[str,Sort] = {
+#     '$': Dup(NonnegReal,'$'),
+#     'Pos$': Dup(PosReal,'Pos$'),
+#     'ShareCnt': Dup(Nat,'ShareCnt'),
+#     'PosShareCnt': Dup(PosInt,'PosShareCnt')
+# }
+# dups_used.update({
+#     'SharePrice': Dup(SApp('Ratio', dups_used['$'], dups_used['PosShareCnt']),'SharePrice'),
+#     'Order' : Dup(SApp('Tuple', Nat, Nat),'Order') })
+# dups_used.update({
+#     'TDMap_Order': Dup(SApp('TDMap', dups_used['Order']),'TDMap_Order')
+# })
 
 todo_once("this is temporary too")
 TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
@@ -54,19 +54,19 @@ TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
     # '$': Dup(NonnegReal,"$"),
 
     # 'Pos$': PosReal,
-    'Pos$': Dup(PosReal,'Pos$'),
+    # 'Pos$': Dup(PosReal,'Pos$'),
 
     # 'ShareCnt': Nat,
-    'Shares' : Dup(Nat,'Shares'),
+    # 'Shares' : Dup(Nat,'Shares'),
 
     # 'PosShareCnt': PosInt,
-    'PosShares' : Dup(PosInt,'PosShares'),
+    # 'PosShares' : Dup(PosInt,'PosShares'),
 
     # 'SharePrice': SApp('Ratio', PosReal, PosInt),
-    'SharePrice': SApp('Ratio', Dup(NonnegReal,'$'), Dup(PosInt,'PosShares')),
+    'SharePrice': SApp('Ratio', Dup(NonnegReal,'$'), Dup(PosInt,'PosShareCnt')),
 
     # 'SharePrice': SApp('Ratio', PosReal, PosInt),
-    'PosSharePrice': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShares')),
+    'PosSharePrice': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShareCnt')),
 
     'Order': SApp('Tuple', Nat, Nat),
     # 'Order' : Dup(SApp('Tuple', Nat, Nat),'Order'),
@@ -74,12 +74,19 @@ TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
     # 'TDMap_Order': SApp('TDMap', Dup(SApp('Tuple',Nat,Nat),'Order')),
 }
 
-UnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal})
+
+def Ratio(s1,s2):
+    return SApp('Ratio',s1,s2)
+
+RatioAtomicSorts = { Ratio(PosRealj,PosIntj), Ratio(NonnegRealj,PosIntj) }
+
+UnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal,
+                                        PosIntj,PosRealj,Natj,NonnegRealj}.union(RatioAtomicSorts))
                             # .union(all_sort_copies)
-UnboundedNumericSortCopies : Set[Sort] = set()
-for orig in UnboundedNumericSorts:
-    if orig in all_sort_copies_by_orig:
-        UnboundedNumericSortCopies.union(all_sort_copies_by_orig[orig])
+# UnboundedNumericSortCopies : Set[Sort] = set()
+# for orig in UnboundedNumericSorts:
+#     if orig in all_sort_copies_by_orig:
+#         UnboundedNumericSortCopies.union(all_sort_copies_by_orig[orig])
 
 BoundedNumericSorts = {"[0,1]","(0,1]","[0,1)","(0,1)"}
 
@@ -91,15 +98,15 @@ AllNumericSorts = UnboundedNumericSorts.union(BoundedNumericSorts).union(FiniteN
 AllAtomicSorts : Set[Sort] = cast(Set[Sort],{DateTime,TimeDelta,PosTimeDelta,Bool,'EmptyTDMap'})\
                                 .union(AllNumericSorts)
 
-TupleAtomicSortData : Set[Sort] = {SApp('Tuple',S,S) for S in AllAtomicSorts}
-TDMapKeySortData = TupleAtomicSortData.union(AllAtomicSorts)
-AllSortData : Set[Sort] = AllAtomicSorts.union(TupleAtomicSortData).union(TDMapKeySortData)
+TupleAtomicSorts : Set[Sort] = {SApp('Tuple',S,S) for S in AllAtomicSorts}
+# TupleAtomicSorts = map(lambda t: SApp("Tuple",t) ,TupleAtomicSortData)
 
-TupleAtomicSorts = map(lambda t: SApp("Tuple",t) ,TupleAtomicSortData)
-TDMapKeySorts = map(lambda t: SApp("TDMap",t),TDMapKeySortData)
+TDMapKeySorts = TupleAtomicSorts.union(AllAtomicSorts)
+TDMapSorts = map(lambda t: SApp("TDMap", t), TDMapKeySorts)
 
 AllSorts : Set[Any] = AllAtomicSorts\
                         .union( set(TEMP_SORT_IDENTIFICATION.values()) )\
                         .union( TupleAtomicSorts )\
-                        .union( TDMapKeySorts )
+                        .union( TDMapSorts ) \
+                        .union( RatioAtomicSorts )
 

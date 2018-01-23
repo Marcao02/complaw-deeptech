@@ -45,7 +45,7 @@ def sortsubst(intothis:Sort, var_or_sort:Sort, val:Sort) -> Sort:
 
 def sortsubstdict(intothis:Sort, d:Dict[Sort,Sort]) -> Sort:
     if intothis in d:
-        print(f"FOUND {intothis}")
+        # print(f"FOUND {intothis}")
         return d[intothis]
     elif isinstance(intothis, NonatomicSort):
         return cast(Sort,intothis.substdict(d))

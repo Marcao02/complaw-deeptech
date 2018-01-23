@@ -1,10 +1,15 @@
 (TimeUnit d)
 (Roles Customer Vendor)
 
+(SortDefinitions
+	(Pos$ := (Dup PosReal "Pos$"))
+	($ := (Dup NonnegReal "$"))
+)
+
 (ContractParams
 	(MAX_UNITS : Nat := 1000)
 	(CONTRACT_LIFE : TimeDelta := 52W)
-	(PRICE_PER_UNIT : $ := 100)
+	(PRICE_PER_UNIT : $ := ($ 100))
 )
 
 
@@ -20,7 +25,7 @@
 	( nonoperative inconly units_ordered : Nat := 0 )
 	( nonoperative inconly units_delivered : Nat := 0 )
 	( nonoperative inconly units_invoiced : Nat := 0 )
-	( nonoperative inconly total_paid : $ := 0 )
+	( nonoperative inconly total_paid : $ := ($ 0) )
 )
 
 (Definitions

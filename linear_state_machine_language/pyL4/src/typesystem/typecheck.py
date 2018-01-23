@@ -16,7 +16,7 @@ from src.typesystem.standard_subtype_graph import standard_types_graph
 from src.util import todo_once, mytimeit
 from src.typesystem.standard_function_types import fntypes_map
 from src.temp_src.l4contract_info_gathering import what_sorts_used, what_fnsymbols_used, what_fnsymbols_used2
-from temp_src.for_safe import doit_for_safe
+from src.temp_src.for_safe import doit_for_safe
 
 graph = standard_types_graph
 def sub(s1:Sort,s2:Sort) -> bool:
@@ -71,8 +71,8 @@ class TypeChecker:
         self.prog = prog
 
     def repl_sort_def(self,sort:Sort) -> Sort:
-        if sort == "$":
-            print("hmmmmm", sort, self.prog.sort_definitions)
+        # if sort == "$":
+        #     print("hmmmmm", sort, self.prog.sort_definitions)
         if isinstance(sort,str) and sort in self.prog.sort_definitions:
             return self.prog.sort_definitions[sort]
         else:

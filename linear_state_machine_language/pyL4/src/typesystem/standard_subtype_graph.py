@@ -34,12 +34,14 @@ def add_derived(graph:SubsortGraph):
                 continue
             graph.addEdge(SApp('Tuple',S,S), SApp('Tuple',T,T))
 
-    for S in TDMapKeySortData:
+    for S in TDMapKeySorts:
         graph.addEdge('EmptyTDMap', SApp('TDMap',S))
 
     # for copied_sort in all_sort_copies_by_orig:
     #     for acopy in all_sort_copies_by_orig[copied_sort]:
     #         graph.addEdge(acopy, copied_sort)
+
+
 
 SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosTimeDelta, TimeDelta),
@@ -63,6 +65,7 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(SApp('Ratio',Real,PosReal), Real),
     sschain(SApp('Ratio',PosReal,PosInt), PosReal),
     sschain(SApp('Ratio',Real,PosInt), Real),
+    sschain(Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)),
 
 
     sschain(PosIntj,Natj),

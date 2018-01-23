@@ -45,6 +45,17 @@ class TransitivelyClosedDirectedGraph(Generic[T]):
                 self.edges_from[descendent_of_src].add(trg)
                 self.edges_from_inv[trg].add(descendent_of_src)
 
+    def edgeIter(self) -> Iterator[Tuple[T,T]]:
+        for src in self.edges_from:
+            for trg in self.edges_from[src]:
+                yield (src,trg)
+
+    def edgeSet(self) -> Set[Tuple[T,T]]:
+        rv = set()
+        for src in self.edges_from:
+            for trg in self.edges_from[src]:
+                rv.add((src,trg))
+        return rv
 
     def hasEdge(self, src:T, trg:T) -> bool:
         if src not in self.edges_from:
