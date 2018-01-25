@@ -1,8 +1,8 @@
 from itertools import chain
 
 from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDirectedGraph
-from src.typesystem.standard_sorts import *
-from src.typesystem.SubsortConstraint import sschain, SubsortConstraint
+from src.typechecking.standard_sorts import *
+from src.typechecking.SubsortConstraint import sschain, SubsortConstraint
 
 
 SubsortGraph = TransitivelyClosedDirectedGraph[Sort]

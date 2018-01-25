@@ -1,6 +1,5 @@
 from src.independent.typing_imports import *
 
-# from src.typesystem.standard_sorts import *
 from src.model.Sort import Sort, sortsubst, sortsubstdict
 from src.util import mapjoin, todo_once
 

@@ -12,15 +12,15 @@ from src.model.L4Contract import L4Contract
 from src.model.Literal import *
 from src.model.Section import Section
 from src.model.Term import FnApp
-from src.typesystem.L4TypeErrors import *
+from src.typechecking.L4TypeErrors import *
 
 from src.util import todo_once, mytimeit
 
 from src.temp_src.l4contract_info_gathering import what_sorts_used, what_fnsymbols_used, what_fnsymbols_used2
 from src.temp_src.for_safe import doit_for_safe
 
-from src.typesystem.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts
-from src.typesystem.standard_function_types import STANDARD_FNTYPES, print_types_map
+from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts
+from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map
 
 print_types_map(STANDARD_FNTYPES)
 

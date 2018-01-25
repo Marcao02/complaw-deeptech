@@ -56,7 +56,7 @@
 	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
 	(writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt)
 	; (writeAtMostOnce liquidity_capitalization : Nat)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
-	(writeAtMostOnce investor_percent_of_cashout_investor_investments : "(0,1]")
+	(writeAtMostOnce investor_percent_of_cashout_investor_investments : "[0,1]")
 	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need to store. action param only
 	; (writeAtMostOnce reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ; action param only
 
@@ -75,7 +75,8 @@
 	(Section InvestorInvests
 		(Next
 			(Company obligation-options-include CommitToEquityFinancing no_time_constraint)
-			(Company obligation-options-include (CommitToLiquidityEvent ?1 ?2 ?3 ?4) no_time_constraint) ; IPO
+			(Company obligation-options-include (CommitToLiquidityEvent ?1 ?company_cash ?3 ?reduction) no_time_constraint
+				(where (?reduction < ?company_cash) ) ) ; IPO
 			(Company obligation-options-include CommitToDissolution no_time_constraint)
 		)
 	)
@@ -144,18 +145,20 @@
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares = (round (PURCHASE_AMOUNT / liq_price)))
-			(investor_percent_of_cashout_investor_investments = (cast "(0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
+			(investor_percent_of_cashout_investor_investments = (cast "[0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > ($ 0))) (
 			 	; "In ??? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+			 	(prove (PURCHASE_AMOUNT ≥ purchase_amount_reduction))
 			 	(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
 				(cash_currently_unconverted = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
 				(company_cash = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 			)
 			else (
 				(cash_currently_unconverted = PURCHASE_AMOUNT)
+				(company_cash = company_cash_at_liquidity_event)
 			))
-			(company_cash = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+
 		)
 
 		(FollowingSection
@@ -201,13 +204,16 @@
 			))
 			(investor_cash += liq_cashout)
 			; (company_cash -= liq_cashout)
+
+			(prove (liq_cashout ≤ cash_currently_unconverted))
 		)
 
 		(FollowingSection
 			(Next
+				; these will be verified disjoint exhaustive by  conditions on rules
 				(if (liq_cashout < cash_currently_unconverted)
-					(Company must TransferCommonStock discretionary) )
-
+					(Company must TransferCommonStock discretionary)
+				)
 				(if (liq_cashout == cash_currently_unconverted)
 					(Company must DoLiquidityEvent discretionary)
 				)
@@ -226,7 +232,6 @@
 							?investor_percent_of_dissolving_investor_investments)
 			discretionary))  )
 	)
-
 
 	(Action (TransferCash_D (company_cash_at_dissolution_event: $)
 						    (investor_percent_of_dissolving_investor_investments : "(0,1]"))

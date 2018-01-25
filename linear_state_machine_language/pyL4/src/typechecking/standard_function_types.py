@@ -3,7 +3,7 @@ import time
 from src.independent.typing_imports import *
 from src.model.Sort import Sort, NonatomicSort, AtomicSort
 from src.model.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType, ArbArityFnType
-from src.typesystem.standard_sorts import AllAtomicSorts, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
+from src.typechecking.standard_sorts import AllAtomicSorts, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
     PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, \
     AllNumericSorts, SApp, NonnegRealj, Natj, PosIntj, PosRealj, AllSorts, Ratio
 from src.temp_src.for_safe import doit_for_safe

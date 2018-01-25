@@ -2,8 +2,8 @@ from typing import Dict
 
 from src.model.Sort import Sort, sortsubstdict
 from src.model.FnTypes import OverloadedFnType
-from src.typesystem.standard_sorts import NonnegReal, SApp, PosReal, jvar, Nat, PosInt
-from src.typesystem.standard_subtype_graph import SubsortGraph
+from src.typechecking.standard_sorts import NonnegReal, SApp, PosReal, jvar, Nat, PosInt
+from src.typechecking.standard_subtype_graph import SubsortGraph
 from src.util import todo_once
 
 

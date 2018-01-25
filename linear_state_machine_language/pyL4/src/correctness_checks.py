@@ -9,16 +9,12 @@ from src.model.ActionRule import ActionRule
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id
 
 
-# just for typing!!
-from src.typesystem.standard_function_types import TYPEVARS
-
-
 class L4ContractConstructorInterface:
     top : L4Contract
     referenced_nonderived_section_ids: Set[SectionId]
     referenced_nonderived_action_ids: Set[ActionId]
     def syntaxError(self, expr: SExprOrStr, msg: Optional[str] = None):
-        pass
+        raise Exception(f"{msg}\nExpression: {expr}")
 
 def referenced_nonderived_section_ids_equal_defined_nonderived_section_ids(it:L4ContractConstructorInterface) -> bool:
     referenced_nonderived_section_ids = set(filter( lambda x: not is_derived_destination_id(x), it.top.section_ids())

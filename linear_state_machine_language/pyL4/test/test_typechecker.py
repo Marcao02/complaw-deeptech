@@ -4,10 +4,8 @@ from src.independent.parse_sexpr import parse_file
 from src.compiler.compiler_cli import EXAMPLES_SEXPR_ROOT
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 
-from src.typesystem.standard_function_types import STANDARD_FNTYPES, print_types_map
-from src.typesystem.typecheck import typecheck_prog
-from src.temp_src.for_safe import doit_for_safe
-from typesystem.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH
+from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map
+from src.typechecking.typecheck import typecheck_prog
 
 EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/test_local_vars.l4',
