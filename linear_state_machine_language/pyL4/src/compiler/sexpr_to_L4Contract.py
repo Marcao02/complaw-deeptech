@@ -660,11 +660,19 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
 
-    def _mk_next_action_rule(self, expr:SExpr, src_section:Section, parent_action:Optional[Action]) -> NextActionRule:
+    def _mk_next_action_rule(self, expr:SExpr, src_section:Section, parent_action:Optional[Action]) -> None:
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self._mk_term(expr[1], src_section, parent_action, None, expr)
-            expr = expr[2]
+            if len(expr) == 3:
+                expr = expr[2]
+            else:
+                # multiple rules sharing an enabled-guard
+                for unguarded_rule in expr[2:]:
+                    self._mk_next_action_rule([expr[0],expr[1],unguarded_rule], src_section, parent_action)
+                return
+
+
 
         role_id : RoleId
         action_id : ActionId
@@ -727,7 +735,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         assert not rv.fixed_args or not rv.where_clause
 
         src_section.add_action_rule(rv)
-        return rv
 
 def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:
     return maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)

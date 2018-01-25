@@ -4,7 +4,7 @@ file: toy_and_teaching/monster_burger_program_only.l4
 roles: Env, Challenger, Restaurant
 
 contract params:
-    MB_PRICE : NonnegReal := 50
+    MB_PRICE : $ := 50
     TIME_TO_EAT_BURGER : TimeDelta := 1h
     MAX_SERVE_DELAY : TimeDelta := 20m
     MAX_CLAIM_VERIFICATION_DELAY : TimeDelta := 10m
@@ -12,8 +12,8 @@ contract params:
 
 global vars:
     writeonce challenge_endlimit_timestamp : TimeDelta
-    amount_owing : NonnegReal := 0
-    amount_paid : NonnegReal := 0
+    amount_owing : $ := 0
+    amount_paid : $ := 0
 
 section MonsterBurgerUncooked:
     Challenger must RequestCookMB (next_event_td ≤ (sectionEntrance_td + 30m))

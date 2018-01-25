@@ -4,7 +4,7 @@ file: from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_
 roles: Env, ISP, Client
 
 contract params:
-    HIGH_USAGE_FEE : Nat := 10
+    HIGH_USAGE_FEE : $ := 10
     HOURS_PARAM : TimeDelta := 24h
 
 global vars:
@@ -14,7 +14,7 @@ global vars:
     unsettled_infraction : Bool := False
     usage_level_normal : Bool := True
     sent_delay_email : Bool := False
-    paid : Nat := 0
+    paid : $ := 0
     paidBefore24 : Bool := False
     traffic_low_since : TimeDelta
     infraction_time : TimeDelta
@@ -59,7 +59,7 @@ action SendDelayEmail()  non-transitioning:
     transform:
         sent_delay_email := True
 
-action Pay(x: Nat) transitions to UnsettledInfraction:
+action Pay(x: $) transitions to UnsettledInfraction:
     transform:
         paid := (paid + (HIGH_USAGE_FEE * x))
         if (event_td ≤ (infraction_time + 24h)):
@@ -84,16 +84,16 @@ section UnsettledInfraction:
     if ¬usage_level_normal:
         Client may LowerTraffic (next_event_td ≤ (infraction_time + 48h))
     Client may SendDelayEmail (next_event_td ≤ (infraction_time + 48h))
-    Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where ((?x > 0) and (?x ≤ 3))
-    if (and* ¬sent_delay_email usage_level_normal (paid ≥ 1)):
+    Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where ((?x > (cast $ 0)) and (?x ≤ (cast $ 3)))
+    if (and* ¬sent_delay_email usage_level_normal (paid ≥ (cast $ 1))):
         Reset (event_td ≤ (infraction_time + 24h))
     if (¬sent_delay_email and (¬usage_level_normal or ¬paidBefore24)):
         ClientBreaches (next_event_td > (infraction_time + 24h))
-    if (and* sent_delay_email usage_level_normal (paid ≥ 2)):
+    if (and* sent_delay_email usage_level_normal (paid ≥ (cast $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
-    if (and* sent_delay_email (traffic_low_since ≤ (infraction_time + 24h)) usage_level_normal (paid ≥ 2)):
+    if (and* sent_delay_email (traffic_low_since ≤ (infraction_time + 24h)) usage_level_normal (paid ≥ (cast $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
-    if (and* sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ 3)):
+    if (and* sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ (cast $ 3))):
         Reset (next_event_td ≤ (infraction_time + 48h))
     ClientBreaches (next_event_td > (infraction_time + 48h))
     if contract_canceled:

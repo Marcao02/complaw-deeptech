@@ -4,24 +4,24 @@ file: serious/KISS.l4
 roles: Env, Investor, Company
 
 contract params:
-    PURCHASE_AMOUNT : PosReal := 100000
+    PURCHASE_AMOUNT : Pos$ := 100000
     TIME_TILL_MATURITY : TimeDelta := (days (365 + (cast PosInt (364 / 2))))
-    VALUATION_CAP : PosReal := inf
+    VALUATION_CAP : Pos$ := 1000000000000
     DISCOUNT_RATE : (0,1] := 1
     INTEREST_RATE : [0,1] := 0.04
     DEBT_VERSION : Bool := True
-    START_INVESTOR_COMMON_STOCK : Nat := 0
-    START_INVESTOR_PREFERRED_STOCK : Nat := 0
-    START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : Nat := 0
-    START_INVESTOR_CASH : NonnegReal := 0
-    START_COMPANY_CASH : NonnegReal := 0
+    START_INVESTOR_COMMON_STOCK : ShareCnt := 0
+    START_INVESTOR_PREFERRED_STOCK : ShareCnt := 0
+    START_INVESTOR_SERIES_SEED_PREFERRED_STOCK : ShareCnt := 0
+    START_INVESTOR_CASH : $ := 0
+    START_COMPANY_CASH : $ := 0
 
 global vars:
-    investor_cash : NonnegReal := START_INVESTOR_CASH
-    investor_Common_Stock : Nat := START_INVESTOR_COMMON_STOCK
-    investor_PreferredStock : Nat := START_INVESTOR_PREFERRED_STOCK
-    investor_SeriesSeedPreferredStock : Nat := START_INVESTOR_SERIES_SEED_PREFERRED_STOCK
-    company_cash : NonnegReal := START_COMPANY_CASH
+    investor_cash : $ := START_INVESTOR_CASH
+    investor_Common_Stock : ShareCnt := START_INVESTOR_COMMON_STOCK
+    investor_PreferredStock : ShareCnt := START_INVESTOR_PREFERRED_STOCK
+    investor_SeriesSeedPreferredStock : ShareCnt := START_INVESTOR_SERIES_SEED_PREFERRED_STOCK
+    company_cash : $ := START_COMPANY_CASH
     writeAtMostOnce pay_interest_in_cash : Bool := False
 
 section InvestorInvests:
@@ -29,8 +29,8 @@ section InvestorInvests:
     Company obligation-options-include CommitToFinancing(?1) (next_event_td < (sectionEntrance_td + TIME_TILL_MATURITY))
     ReachMaturity (next_event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY))
 
-action CommitToFinancing(qualifying_round_new_money: NonnegReal) transitions to AfterCommitToFinancing:
-    pre: (qualifying_round_new_money ≥ 1000000)
+action CommitToFinancing(qualifying_round_new_money: $) transitions to AfterCommitToFinancing:
+    pre: (qualifying_round_new_money ≥ (cast $ 1000000))
     following section:
         Company must NotifyInvestorOfNextEquityFinancingTerms no_time_constraint
 
@@ -44,35 +44,35 @@ action choose_cash_interest_repayment()  non-transitioning:
     transform:
         pay_interest_in_cash := True
 
-action CloseEquityFinancingSale(qualifying_round_price: PosReal/PosInt, company_capitalization: PosInt) transitions to Fulfilled:
+action CloseEquityFinancingSale(qualifying_round_price: SharePrice, company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
-        cap_price : PosReal/PosInt := (VALUATION_CAP / company_capitalization)
-        discount_price : PosReal/PosInt := (qualifying_round_price * DISCOUNT_RATE)
-        conversion_price : PosReal/PosInt := (min discount_price cap_price)
+        cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
+        discount_price : SharePrice := (qualifying_round_price * DISCOUNT_RATE)
+        conversion_price : SharePrice := (min discount_price cap_price)
         if pay_interest_in_cash:
-            change : NonnegReal := (ifthenelse (event_td ≤ 365d) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
-            company_cash := (cast NonnegReal (company_cash - change))
+            change : $ := (ifthenelse (event_td ≤ 365d) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
+            company_cash := (cast $ (company_cash - change))
             investor_cash := (investor_cash + change)
             investor_PreferredStock := (investor_PreferredStock + (round (PURCHASE_AMOUNT / conversion_price)))
         else:
-            accrued_interest : NonnegReal := (ifthenelse (event_td ≤ 365d) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
+            accrued_interest : $ := (ifthenelse (event_td ≤ 365d) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
             investor_PreferredStock := (investor_PreferredStock + (round ((PURCHASE_AMOUNT + accrued_interest) / conversion_price)))
 
 
-action CommitToAcquisition(company_capitalization: PosInt) transitions to AfterCommitToAcquisition
+action CommitToAcquisition(company_capitalization: PosShareCnt) transitions to AfterCommitToAcquisition
     following section:
         Investor obligation-options-include ChooseMultipleRepayment discretionary
         Investor obligation-options-include ChooseConvertToCommonStock(company_capitalization) discretionary
 
 action ChooseMultipleRepayment()  transitions to Fulfilled:
     transform:
-        change : NonnegReal := ((ifthenelse (event_td ≤ 365d) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) + (2 * PURCHASE_AMOUNT))
-        company_cash := (cast NonnegReal (company_cash - change))
+        change : $ := ((ifthenelse (event_td ≤ 365d) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) + (2 * PURCHASE_AMOUNT))
+        company_cash := (cast $ (company_cash - change))
         investor_cash := (investor_cash + change)
 
-action ChooseConvertToCommonStock(company_capitalization: PosInt) transitions to Fulfilled:
+action ChooseConvertToCommonStock(company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
-        cap_price : PosReal := (VALUATION_CAP / company_capitalization)
+        cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
         investor_Common_Stock := (investor_Common_Stock + (round (PURCHASE_AMOUNT / cap_price)))
 
 action ReachMaturity()  transitions to AfterReachMaturity
@@ -83,11 +83,11 @@ action ReachMaturity()  transitions to AfterReachMaturity
 
 action ChooseMaturityRepayment()  transitions to Fulfilled:
     transform:
-        change : NonnegReal := ((ifthenelse (event_td ≤ 365d) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast PosReal (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) + PURCHASE_AMOUNT)
-        company_cash := (cast NonnegReal (company_cash - change))
+        change : $ := ((ifthenelse (event_td ≤ 365d) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) + PURCHASE_AMOUNT)
+        company_cash := (cast $ (company_cash - change))
         investor_cash := (investor_cash + change)
 
-action ChooseConversionToSeriesSeedPreferredStock(company_capitalization: PosInt) transitions to Fulfilled:
+action ChooseConversionToSeriesSeedPreferredStock(company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
-        cap_price : PosReal := (VALUATION_CAP / company_capitalization)
+        cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
         investor_SeriesSeedPreferredStock := (investor_SeriesSeedPreferredStock + (round (PURCHASE_AMOUNT / cap_price)))

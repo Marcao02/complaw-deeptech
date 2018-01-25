@@ -19,7 +19,8 @@ class Section:
         self.preconditions: List[Term] = []
 
         # currently can replace this with just a list...
-        self._action_rules_by_role: Dict[RoleId, List[NextActionRule]] = dict()
+        self._action_rules: List[NextActionRule] = []
+
 
         self.parent_action_id : Optional[ActionId] = None
 
@@ -29,14 +30,11 @@ class Section:
         return self.parent_action_id is not None
 
     def add_action_rule(self, nar:NextActionRule) -> None:
-        if not nar.role_id in self._action_rules_by_role:
-            self._action_rules_by_role[nar.role_id] = []
-        self._action_rules_by_role[nar.role_id].append(nar)
+        self._action_rules.append(nar)
 
     def action_rules(self) -> Iterator[NextActionRule]:
-        for role_subset in self._action_rules_by_role.values():
-            for t in role_subset:
-                yield t
+        for r in self._action_rules:
+            yield r
 
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         rviter : Iterable[T] = iteraccum_maybe or []

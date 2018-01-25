@@ -13,9 +13,10 @@ digraph partner_assignment_demonstrating_relievable_obligations {
     
     WorkingOnAssignment -> SolveProbA;
 	WorkingOnAssignment -> SolveProbB;
-	WorkingOnAssignment -> Submit;
 	WorkingOnAssignment -> SolveProbB;
-	WorkingOnAssignment -> SolveProbA
+	WorkingOnAssignment -> SolveProbA;
+	WorkingOnAssignment -> Submit;
+	WorkingOnAssignment -> Submit
     
     SolveProbA -> WorkingOnAssignment [style=dashed];
 	SolveProbB -> WorkingOnAssignment [style=dashed];

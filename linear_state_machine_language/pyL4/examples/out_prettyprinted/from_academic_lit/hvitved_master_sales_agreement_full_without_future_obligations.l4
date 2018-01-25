@@ -6,19 +6,19 @@ roles: Env, Customer, Vendor
 contract params:
     MAX_UNITS : Nat := 1000
     CONTRACT_LIFE : TimeDelta := 52w
-    PRICE_PER_UNIT : NonnegReal := 100
+    PRICE_PER_UNIT : $ := (cast $ 100)
 
 global vars:
     writeonce order_period_ends : TimeDelta := CONTRACT_LIFE
     furthest_invoice_deadline : TimeDelta := 0d
     inconly next_order_id : Nat := 0
-    2Bdelivered : TDMap[Nat×Nat] := (emptyTDMap )
-    2Binvoiced : TDMap[Nat×Nat] := (emptyTDMap )
-    2Bpaid : TDMap[Nat×Nat] := (emptyTDMap )
+    2Bdelivered : TDMap_Order := (emptyTDMap )
+    2Binvoiced : TDMap_Order := (emptyTDMap )
+    2Bpaid : TDMap_Order := (emptyTDMap )
     nonoperative inconly units_ordered : Nat := 0
     nonoperative inconly units_delivered : Nat := 0
     nonoperative inconly units_invoiced : Nat := 0
-    nonoperative inconly total_paid : NonnegReal := 0
+    nonoperative inconly total_paid : $ := 0
 
 claims:
     ['∀', ['k', ':', 'Nat'], [['UpperBoundOnDaysBtwDeliverAndInvoice', 'k'], '⇒', ['∀', ['d', ':', 'Date'], ['∀', ['n', ':', 'Nat'], [['n', '=', ['units_delivered', 'd']], '⇒', [['total_paid', ['d', '+', ['k', '+', '14D']]], '≥', ['n', '*', 'PRICE_PER_UNIT']]]]]]]
@@ -26,12 +26,12 @@ claims:
 section VendorAcceptingOrders:
     if ((MAX_UNITS - units_ordered) > 0):
         Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where ((?q ≤ (MAX_UNITS - units_ordered)) and (?q > 0))
-    if (nonempty 2Bpaid):
-        Customer obligation-options-include PayBill(?order) (tdGEQ 2Bpaid ?order next_event_td) where (mapHas 2Bpaid ?order)
     if (nonempty 2Bdelivered):
         Vendor obligation-options-include Deliver(?order) (tdGEQ 2Bdelivered ?order next_event_td) where (mapHas 2Bdelivered ?order)
     if (nonempty 2Binvoiced):
         Vendor may EmailInvoice(?order) (tdGEQ 2Binvoiced ?order next_event_td) where (mapHas 2Binvoiced ?order)
+    if (nonempty 2Bpaid):
+        Customer obligation-options-include PayBill(?order) (tdGEQ 2Bpaid ?order next_event_td) where (mapHas 2Bpaid ?order)
     if (and* ((MAX_UNITS - units_ordered) == 0) (empty 2Bpaid) (empty 2Bdelivered)):
         EnterFulfilled (next_event_td > furthest_invoice_deadline)
     if (and* ((MAX_UNITS - units_ordered) > 0) (empty 2Bpaid) (empty 2Bdelivered)):
@@ -48,7 +48,7 @@ action SubmitNewOrder(quantity: PosInt) transitions to VendorAcceptingOrders:
         2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline)
         next_order_id := (next_order_id + 1)
 
-action Deliver(order: Nat×Nat) transitions to VendorAcceptingOrders:
+action Deliver(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bdelivered order)
         quantity : Nat := (tupleGet order 0)
@@ -58,7 +58,7 @@ action Deliver(order: Nat×Nat) transitions to VendorAcceptingOrders:
         furthest_invoice_deadline := (max furthest_invoice_deadline invoice_deadline)
         2Binvoiced := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline)
 
-action EmailInvoice(order: Nat×Nat) transitions to VendorAcceptingOrders:
+action EmailInvoice(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Binvoiced order)
         quantity : Nat := (tupleGet order 0)
@@ -66,7 +66,7 @@ action EmailInvoice(order: Nat×Nat) transitions to VendorAcceptingOrders:
         2Binvoiced := (mapDelete 2Binvoiced order)
         2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14d))
 
-action PayBill(order: Nat×Nat) transitions to VendorAcceptingOrders:
+action PayBill(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bpaid order)
         quantity : Nat := (tupleGet order 0)
