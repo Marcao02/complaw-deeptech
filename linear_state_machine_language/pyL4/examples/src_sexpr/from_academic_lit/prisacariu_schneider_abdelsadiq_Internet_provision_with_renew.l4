@@ -58,7 +58,7 @@
 )
 
 (Definitions
-	(within24HOfInfraction := (event_td ≤ (infraction_time + 24H)))
+	(within24HOfInfraction := (next_event_td ≤ (infraction_time + 24H)))
 	(within48HOfInfraction := (next_event_td ≤ (infraction_time + 48H)))
 	(after24HSinceInfraction := (next_event_td > (infraction_time + 24H)))
 	(after48HSinceInfraction := (next_event_td > (infraction_time + 48H)))

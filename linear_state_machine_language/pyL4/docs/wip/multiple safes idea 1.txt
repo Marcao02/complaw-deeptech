@@ -1,8 +1,107 @@
+; QUESTIONS FOR MENG
+; Can we assume for version 1 that all funds are in the same currency?
+regulated_company.l4 type signature pseudocode
+
+-------
+Imports
+-------
+; Unqualified imports are from the standard library.
+; But we should probably mark most of the standard library as automatically imported.
+
+import $, Pos$ ; Sorts that can be used when multiple currencies are not needed.
+import Map
+; A minimal (immutable, like all L4 types) list type whose only constructor is append.
+; Might also be called a MonotonicList, but that's high falutin!
+import AppendList
+; BoundedNonemptySet[T] is for finite sets of bounded size.
+; We won't quantify over elements of this sort; it is only used for typing constant symbols.
+; When we generate FV instances, we'll have the option of making them easier by assigning a numeral bound to each one.
+; The bounds of all such constants in a contract will sum to less than 2^63, so that under certain assumptions a
+; the theorem prover can use machine integers to represent them.
+import BoundedNonemptySet
+
+-----
+Sorts
+-----
+TransactionType := Deposit | Withdraw
+TransactionSpec := {amount:, time:DateTime, type:TransactionType, description:String}
+
+ShareCnt := Dup[PosInt]
+Round := Dup[PosInt]
+
+SAFEType := Discount(discount:(0,1)) | SafeCap(cap:Pos$) | SafeMFN
+SAFESpec := {investor: Investor, round:Round, type:SAFEType, signdate: DateTime}
+
+-----------
+Quasi-sorts ; These can be used like sorts.
+-----------
+; These sets all intersect each other. E.g. Meng is in all 3.
+Employee : SmallNonemptySet[String]
+Shareholder : SmallNonemptySet[String]
+Investor : SmallNonemptySet[String]
+
+SAFEs : SmallNonemptySet[SAFESpec]
+
+-----
+State
+-----
+; An investor is not included in these maps until they have positive share count.
+; These types are disjoint.
+preferred_share_cnts : Map[Shareholder,ShareCnt]
+common_share_cnts : Map[Shareholder,ShareCnt]
+safe_preferred_share_cnts : Map[Shareholder,ShareCnt]
+
+; this list should constitute a non-strict ordering of transactions by increasing .time value.
+transactions : AppendList[TransactionSpec]
+
+; these might end up being derived:
+investment_funds_total : Pos$
+investment_contributions : Map[Investor,Pos$]
+
+-------
+Actions
+-------
+DepositFunds
+WithdrawFunds
+NewSAFE
+CloseRound
+StartRound
+
+
+
+
+
+
 KISS.l4 is coming along. I'm also beginning to work on the L4 formalization of multiple SAFEs. I think we will go through multiple iterations of that before we find a good one. Here is a first partial idea:
 
-There is a master fundraising contract with one `Company` party and an unbounded number of `Investor` parties (so this would require adding an L4 feature that allows parties to be added during contract execution, but I don't see anyway around that). The `Company` has an action `newSAFE` that takes a fully-instantiated but "unsigned" (= not yet executing) SAFE contract as an argument. That action adds the SAFE contract to the state of the master contract. There is another action `signSAFE` which can be performed by either the `Company` or an `Investor`. Once both parties perform that action, the SAFE is live.
+There is a master fundraising contract with one `Company` party and an unbounded number of `Investor` parties (so this would require adding an L4 feature that allows parties to be added during contract execution, but I don't see any way around that). The `Company` has an action `newSAFE` that takes a fully-instantiated but "unsigned" (= not yet executing) SAFE contract as an argument. That action adds the SAFE contract to the state of the master contract. There is another action `signSAFE` which can be performed by either the `Company` or an `Investor`. Once both parties perform that action, the SAFE is live.
 
 I still need to add the MFN feature to the SAFE formalization, but I think it will be more clear how to do that while working on the master fundraising contract.
 
 I know that KISS allows for non-major investors (< 50k, by default) to have different information rights. Don't recall if SAFE has something like that.
 
+
+
+
+Meng Jan 27 2018:
+
+
+oh. there is some amount of structured data (and associated code) in the v1 system. there isn't quite as much structure in the v2 system at the moment.
+[1:22 PM]
+i can show you some of the documentation for the v1 system, whose logic is (trying to) transfer to the v2 system.
+[1:22 PM]
+is that the sort of thing you're looking for?
+[1:22 PM]
+we make a distinction, for example, between existing shareholders who have chosen to participate in the new round, vs existing shareholders who are sitting out on the new round.
+[1:23 PM]
+the v2 system extracts existing shareholders from ACRA, and tries to do the right thing, via business logic
+[1:24 PM]
+i have located some documentation, but upon review, it goes into so much detail it might miss the wood for the trees
+[1:25 PM]
+https://github.com/legalese/legalese-google-app/blob/master/README.org#internals-documentation
+[1:26 PM]
+what i suspect you'd rather read is a proper data modeling specification
+[1:27 PM]
+https://github.com/legalese/legalese-google-app/blob/master/README.org#roles-imputed-from-the-cap-table might be closer to the mark
+[1:30 PM]
+if you want to look at an actual cap table you might as well look at https://docs.google.com/spreadsheets/d/1zPwx-0S6AwAyYtxtE0X64TkEXQywz99m56xZZWOv8cE/edit#gid=2074738787

@@ -34,6 +34,7 @@ class L4Contract:
         # TODO: make `definitions` `term_definitions`
         self.definitions: Dict[DefinitionId, Definition] = dict()
         self.sort_definitions: Dict[str, Sort] = dict()
+        self.expanded_sort_definitions: Dict[str, Sort] = dict()
 
         self.roles : List[RoleId] = [ENV_ROLE]
         self.sorts : Set[Sort] = set()

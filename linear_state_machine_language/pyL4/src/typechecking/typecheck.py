@@ -77,7 +77,9 @@ class TypeChecker:
         # if sort == "$":
         #     print("hmmmmm", sort, self.prog.sort_definitions)
         if isinstance(sort,str) and sort in self.prog.sort_definitions:
-            return self.prog.sort_definitions[sort]
+            # return self.prog.sort_definitions[sort]
+            assert sort in self.prog.expanded_sort_definitions
+            return self.prog.expanded_sort_definitions[sort]
         else:
             return sort
 

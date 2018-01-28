@@ -86,7 +86,7 @@ section UnsettledInfraction:
     Client may SendDelayEmail (next_event_td ≤ (infraction_time + 48h))
     Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where ((?x > (cast $ 0)) and (?x ≤ (cast $ 3)))
     if (and* ¬sent_delay_email usage_level_normal (paid ≥ (cast $ 1))):
-        Reset (event_td ≤ (infraction_time + 24h))
+        Reset (next_event_td ≤ (infraction_time + 24h))
     if (¬sent_delay_email and (¬usage_level_normal or ¬paidBefore24)):
         ClientBreaches (next_event_td > (infraction_time + 24h))
     if (and* sent_delay_email usage_level_normal (paid ≥ (cast $ 2))):

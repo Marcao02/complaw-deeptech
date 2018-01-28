@@ -18,9 +18,8 @@
 	(Pos$ := (Dup PosReal "Pos$"))
 	(ShareCnt := (Dup Nat "ShareCnt"))
 	(PosShareCnt := (Dup PosInt "PosShareCnt"))
-	; TODO: allow referencing the previous sort definitions
-	(SharePrice := (Ratio (Dup NonnegReal "$") (Dup PosInt "PosShareCnt")))
-	(PosSharePrice := (Ratio (Dup PosReal "Pos$") (Dup PosInt "PosShareCnt")))
+	(SharePrice := (Ratio $ PosShareCnt))
+	(PosSharePrice := (Ratio Pos$ PosShareCnt))
 )
 
 (ContractParams

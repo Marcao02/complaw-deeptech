@@ -1,6 +1,7 @@
 import logging
 from mypy_extensions import NoReturn
 
+from src.compiler.floating_rules_transpile import floating_rules_transpile_away
 from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, ActionRule, NextActionRule, EnvNextActionRule, \
     PartyNextActionRule
 from src.model.Section import Section
@@ -95,7 +96,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 macrobody = chcast(SExpr, x[3])
                 self.top.macros[ macroname] = L4Macro(macroparams, macrobody)
 
-            elif   head(GLOBAL_VARS_AREA_LABEL):
+            elif   head(GLOBAL_VARS_AREA_LABEL) or head("GlobalStateVars"):
                 self.top.global_var_decs = self._mk_global_vars(rem)
 
             elif head(CONTRACT_PARAMETERS_AREA_LABEL):
@@ -116,7 +117,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError( self.top.timeunit in SUPPORTED_TIMEUNITS, x, f"{TIMEUNIT_DEC_LABEL} must be one of {str(SUPPORTED_TIMEUNITS)}")
 
             elif head(SORT_DEFINITIONS_AREA):
-                self.top.sort_definitions = self._mk_sort_definitions(rem)
+                self._mk_sort_definitions(rem)
 
             elif head(DEFINITIONS_AREA):
                 self.top.definitions = self._mk_definitions(rem)
@@ -218,11 +219,38 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                                  "Definition declaration S-expressions should have the form (id = SExpr)")
         return {x[0] : Definition(x[0],x[2]) for x in s}
 
-    def _mk_sort_definitions(self, s:SExpr) -> Dict[str, Sort]:
-        print("Sort defn", s)
+    def _mk_sort_definitions(self, s:SExpr) -> None:
         self.assertOrSyntaxError(all(len(x) == 3 for x in s), s,
                                  "Definition declaration S-expressions should have the form (id = SExpr) or (id := SExpr)")
-        return {x[0] : self._mk_sort(x[2]) for x in s}
+        for x in s:
+            self.top.sort_definitions[x[0]] = self._mk_sort(x[2])
+
+        self._expand_sort_defns()
+
+    def _expand_sort_defns(self):
+        expanded: Dict[str,Optional[Sort]] = {sid: None for sid in self.top.sort_definitions}
+        def helper(sort:Sort) -> Sort:
+            if isinstance(sort,str):
+                if sort in expanded:
+                    expansion = expanded[sort]
+                    assert expansion is not None, "Do you have a cycle in your sort definitions? Or do you need to reorder them?"
+                    # assert expansion is not None, f"{sort}\n{self.top.sort_definitions}\n{expanded}"
+                    return expansion
+                else:
+                    return sort
+            else:
+                assert isinstance(sort,NonatomicSort)
+                if sort.sortop == "Dup":
+                    # need to exclude the second arg to Dup, since it's the string name of this defined sort.
+                    return NonatomicSort(sort.sortop, (helper(sort.args[0]), sort.args[1]))
+                else:
+                    return NonatomicSort(sort.sortop, tuple(helper(x) for x in sort.args))
+
+        for defined_sort_id, sort_defn in self.top.sort_definitions.items():
+            expanded[defined_sort_id] = helper(sort_defn)
+
+        assert all(expanded[x] is not None for x in expanded)
+        self.top.expanded_sort_definitions = cast(Dict[str,Sort], expanded)
 
     def _mk_prose_contract(self, l: List[List[str]]) -> ProseContract:
         rv = {castid(ProseClauseId,x[0]): x[1] for x in l}
@@ -276,7 +304,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.top.actions_by_id[action_id] = action
                 self.top.ordered_declarations.append(action)
 
-            elif head(SECTION_LABEL):
+            elif head(SECTION_LABEL) or head("StateType") or head("SituationType"):
                 section_id = cast(SectionId, chcaststr(x[1]))
                 section_data = x.tillEnd(2)
                 section = self._mk_section(section_id, section_data, None)
@@ -589,12 +617,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 assert False # this is just to get mypy to not complain about missing return statement
 
     def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action], parent_action_rule:Optional[ActionRule]) -> Term:
+        rv : Term
         # if expr in TIME_CONSTRAINT_KEYWORDS:
         #     return self._mk_term(expr, src_section, src_action)
         # elif isinstance(expr,str):
         #     self.syntaxError(expr, f"Unrecognized token {expr} in time constraint keyword position.")
         if isinstance(expr,str):
-            return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
+            rv = self._mk_term(expr, src_section, src_action, parent_action_rule, None)
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
@@ -606,15 +635,19 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     FileCoord(expr.line, expr.col)
                 )
                 # print("$ " + str(rv))
-                return rv
             else:
                 if src_section:
                     print("pair: ", pair)
                     self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in section {src_section.section_id}")
                 elif src_action:
                     self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in action {src_action.action_id}")
-
-        raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
+                raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
+        if not (isinstance(rv,FnApp) and rv.fnsymb_name in ["≤","<=","<"] and isinstance(rv.args[0],FnApp) and rv.args[0].fnsymb_name == "next_event_td"):   # type:ignore
+            if not isinstance(rv,DeadlineLit):
+                print("Atypical time constraint:", rv)
+        # else:
+        #     print("Typical time constraint:", rv)
+        return rv
 
     def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> PartyFutureActionRule:
         entrance_enabled_guard: Optional[Term] = None
@@ -669,10 +702,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 # multiple rules sharing an enabled-guard
                 for unguarded_rule in expr[2:]:
-                    self._mk_next_action_rule([expr[0],expr[1],unguarded_rule], src_section, parent_action)
+                    self._mk_next_action_rule( SExpr(expr.symb, [expr[0],expr[1],unguarded_rule], expr.line, expr.col), src_section, parent_action )
                 return
-
-
 
         role_id : RoleId
         action_id : ActionId
