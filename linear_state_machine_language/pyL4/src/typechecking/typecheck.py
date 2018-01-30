@@ -16,7 +16,7 @@ from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_typ
     FnTypesMap
 from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, \
     SubsortGraph, duplicate_some_edges
-from src.typechecking.standard_sorts import is_valid_sort, check_sorts_valid, jvar
+from src.typechecking.standard_sorts import check_sorts_valid, jvar
 
 print_types_map(STANDARD_FNTYPES)
 

@@ -1,7 +1,7 @@
 from typing import Union, Optional, cast
 
 from src.independent.util import castid
-from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
+from src.parse_and_build_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.constants_and_defined_types import SectionId, GVarSubst, ContractParamId
 from src.interpreter.interpreter import ExecEnv as ExecEnvNF
 from src.interpreter.interpreter_deprecated import ExecEnv as ExecEnvOld
