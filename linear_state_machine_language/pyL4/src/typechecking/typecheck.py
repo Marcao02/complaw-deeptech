@@ -36,7 +36,7 @@ Just a public API function
 
 
 
-def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
+def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
     def f(t:Term):
         if isinstance(t, Literal):
             if isinstance(t, IntLit):
@@ -46,7 +46,8 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
                     yield "{1}"
                 elif t.lit > 0:
                     yield "PosInt"
-                yield "Int"
+                else:
+                    yield "Int"
             elif isinstance(t, FloatLit):
                 if t.lit == 0:
                     yield "{0}"
@@ -56,7 +57,8 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
                     yield "(0,1)"
                 elif t.lit > 1:
                     yield "PosReal"
-                yield "Real"
+                else:
+                    yield "Real"
             elif isinstance(t, BoolLit):
                 yield "Bool"
             elif isinstance(t, SimpleTimeDeltaLit):
@@ -70,6 +72,10 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
                 yield "RoleId"
             elif isinstance(t, StringLit):
                 yield "String"
+            elif isinstance(t, SortLit):
+                yield t.lit
+            else:
+                raise NotImplementedError(str(t) + "," + str(type(t)))
         elif isinstance(t, (StateTransformLocalVar, GlobalVar)):
             yield t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
@@ -82,6 +88,21 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
 
     return prog.forEachTerm(f)
 
+def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
+    def f(t:Term):
+        if isinstance(t, SortLit):
+            yield t.lit
+        elif   isinstance(t, (StateTransformLocalVar, GlobalVar)):
+            yield t.vardec.sort
+        elif isinstance(t, ActionBoundActionParam):
+            yield t.action.param_sorts_by_name[t.name]
+        elif isinstance(t, ContractParam):
+            yield t.paramdec.sort
+        elif isinstance(t, RuleBoundActionParam):
+            action = prog.action(t.action_rule.action_id)
+            yield action.param_sort(t.ind)
+
+    return prog.forEachTerm(f)
 
 def what_fnsymbols_used(prog:L4Contract) -> Iterable[str]:
     def f(t:Term):
@@ -125,7 +146,9 @@ def addDupSortRelnsToGraphAndFnTypes(sorts:Iterable[Sort], expanded_sortdefns: D
 def typecheck_prog(prog:L4Contract):
 
     sorts_used_explicitly = set(what_sorts_used_explicitly(prog))
+    literal_sorts = set(what_sorts_used_explicitly_or_at_leaves(prog))
     print(f"Explicit sorts:\n",sorts_used_explicitly)
+    print(f"Nonexplicit sorts of literals:\n",literal_sorts.difference(sorts_used_explicitly))
     check_sorts_valid(sorts_used_explicitly, prog.sort_definitions)
     addDupSortRelnsToGraphAndFnTypes(sorts_used_explicitly, prog.expanded_sort_definitions, STANDARD_SUBSORTING_GRAPH, STANDARD_FNTYPES)
 

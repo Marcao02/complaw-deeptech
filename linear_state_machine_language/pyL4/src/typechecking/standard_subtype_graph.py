@@ -16,17 +16,20 @@ def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes
     # graph.addTop('Any')
     return graph
 
+# These can instead be done at typechecking time and cached.
 def add_derived(graph:SubsortGraph):
+    # Ratio
     for num1 in UnboundedNumericSorts:
         for num2 in UnboundedNumericSorts:
             if not graph.hasEdge(num1,num2):
                 continue
             for den1 in [PosReal,PosInt]:
-                for den2 in {PosReal, PosInt}:
+                for den2 in [PosReal, PosInt]:
                     if not graph.hasEdge(den1,den2):
                         continue
                     graph.addEdge(Ratio(num1,den1), Ratio(num2,den2))
 
+    # Tuple
     for s1 in AllAtomicSortsAndDups:
         # graph.addEdge(NonatomicSort('Tuple', (S, S)), NonatomicSort('Tuple', ('Any', 'Any')))
         for s2 in AllAtomicSortsAndDups:
@@ -34,12 +37,10 @@ def add_derived(graph:SubsortGraph):
                 continue
             graph.addEdge(SApp('Tuple',s1,s1), SApp('Tuple',s2,s2))
 
+    # EmptyTDMap
     for s in TDMapKeySorts:
         graph.addEdge('EmptyTDMap', SApp('TDMap',s))
 
-    # for copied_sort in all_sort_copies_by_orig:
-    #     for acopy in all_sort_copies_by_orig[copied_sort]:
-    #         graph.addEdge(acopy, copied_sort)
 
 """
 If s1 ⊆ s2 is in graph, and subst maps some sorts to sorts, add s1[subst] ⊆ s2[subst] to graph. 
