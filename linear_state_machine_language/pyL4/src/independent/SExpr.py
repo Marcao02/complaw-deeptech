@@ -2,7 +2,7 @@
 
 from typing import Union, List, Any, cast, Sized, Iterable, Sequence
 
-from src.util import caststr
+from src.independent.util import caststr
 
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"

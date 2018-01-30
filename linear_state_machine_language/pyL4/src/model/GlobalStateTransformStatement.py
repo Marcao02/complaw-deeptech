@@ -1,12 +1,11 @@
 from itertools import chain
 
-from src.independent.typing_imports import *
-
-from src.model.GlobalVarDec import GlobalVarDec
+from src.independent.util import indent
 from src.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
-from src.model.Term import Term
-from src.util import indent
+from src.independent.typing_imports import *
+from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Sort import Sort
+from src.model.Term import Term
 
 """ Just the common parent """
 class GlobalStateTransformStatement:

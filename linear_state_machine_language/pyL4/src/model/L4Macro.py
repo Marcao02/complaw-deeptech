@@ -1,7 +1,7 @@
 from typing import NamedTuple, List
 
+from src.independent.util import chcast
 from src.independent.SExpr import SExpr, sexpr_subst_mult_string, SExprOrStr
-from src.util import chcast
 
 
 class L4Macro(NamedTuple):

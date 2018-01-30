@@ -1,7 +1,7 @@
 from typing import List
 
+from src.independent.util import indent
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement
-from src.util import indent
 
 
 class GlobalStateTransform:

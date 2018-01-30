@@ -1,11 +1,11 @@
 import logging
 from typing import List
 
-from src.independent.parse_sexpr import parse_file, prettySExprStr
+from src.independent.util import writeReadOnlyFile
 from src.compiler.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
+from src.independent.parse_sexpr import parse_file, prettySExprStr
 from src.state_diagram_generation import contractToDotFile
-from src.util import writeReadOnlyFile
 
 EXAMPLES_SEXPR_ROOT = "./examples/src_sexpr/"
 EXAMPLES_UNPARSED_ROOT = "./examples/out_prettyprinted/"

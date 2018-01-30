@@ -1,26 +1,22 @@
-from typing import Union, Iterator, cast
-
-from src.model.Sort import NonatomicSort
-from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, ArbArityFnType
+from src.independent.util import todo_once
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
 from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam
+from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, NonoverloadedFnType
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, StateTransformLocalVarDec, \
     GlobalVarAssignStatement, IfElse, InCodeConjectureStatement
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
 from src.model.Section import Section
+from src.model.Sort import NonatomicSort
 from src.model.Term import FnApp
-from src.typechecking.L4TypeErrors import *
-
-from src.util import todo_once, mytimeit
-
-from src.temp_src.l4contract_info_gathering import what_sorts_used, what_fnsymbols_used, what_fnsymbols_used2
 from src.temp_src.for_safe import doit_for_safe
-
-from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts
-from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map
+from src.temp_src.l4contract_info_gathering import what_sorts_used_explicitly, what_fnsymbols_used, \
+    what_fnsymbols_used2, FilteredFnTypesMap
+from src.typechecking.L4TypeErrors import *
+from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map, ASSOCIATIVE_OPS, CHAIN_PREDS
+from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, SubsortGraph
 
 print_types_map(STANDARD_FNTYPES)
 
@@ -41,9 +37,22 @@ Just a public API function
 #     elif isinstance(x, GlobalStateTransformStatement):
 #         typecheck_statement(x)
 
+def filter_sorts_by_filtered_fn_types(
+        prog:L4Contract,
+        graph:SubsortGraph,
+        fntypes:FilteredFnTypesMap) -> Set[Sort]:
+    tc = TypeChecker(prog)
+    sfts : Set[SimpleFnType] = set()
+    sfts.update( *cast(Iterable[SimpleFnType],fntypes.values()) ) # type:ignore
+    for sft in sfts:
+        assert isinstance(sft,SimpleFnType)
+        pass
+    raise NotImplementedError
+
+
 def typecheck_prog(prog:L4Contract):
     print(f"Explicit sorts:")
-    print(set(what_sorts_used(prog)))
+    print(set(what_sorts_used_explicitly(prog)))
     print(f"Explicit fn symbols:")
     fsymbs = set(what_fnsymbols_used(prog))
     print(fsymbs)
@@ -87,7 +96,9 @@ class TypeChecker:
         return " × ".join(map(str,map(self.repl_sort_def, x)))
 
     def overloaded_fnapp_range_memo(self, oft: OverloadedFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
-        todo_once("contrib: cast shouldn't be necessary")
+        if argsorts in oft.range_memo:
+            return oft.range_memo[argsorts]
+
         rangeset = set(
             cast(Iterator[Sort], filter(lambda x: x is not None, (self.ft_range(ft, argsorts, term) for ft in oft.parts))))
         if len(rangeset) == 0:
@@ -98,15 +109,14 @@ class TypeChecker:
         except Exception as e:
             print("Problem with overloaded function type:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
             raise e
-        if intersection:
-            oft.range_memo[argsorts] = intersection
-            return intersection
-        else:
-            oft.illtyped_memo.add(argsorts)
-            return None
 
-    def ft_range(self, fntype: Union[SimpleFnType, ArbArityFnType], argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
-        rv = self.sft_range(fntype, argsorts, term) if isinstance(fntype, SimpleFnType) else self.aaft_range(fntype, argsorts,term)
+        oft.range_memo[argsorts] = intersection
+        return intersection # possibly None
+
+    def ft_range(self, fntype: NonoverloadedFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
+        # rv = self.sft_range(fntype, argsorts, term) if isinstance(fntype, SimpleFnType) else self.aaft_range(fntype, argsorts,term)
+        rv = self.sft_range(fntype, argsorts, term)
+
         # if not rv:
         #     print(f"arg sorts {argsorts} of {term.head} are NOT a subset of domain of nonoverloaded fn type {fntype}")
         # else:
@@ -124,12 +134,12 @@ class TypeChecker:
         # print(f"Range of fntype {fntype} is {fntype.ran}")
         return fntype.ran
 
-    def aaft_range(self, fntype: ArbArityFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
-        for i in range(len(argsorts)):
-            argsort = self.repl_sort_def(argsorts[i])
-            if not sub(argsort, fntype.dom):
-                return None
-        return fntype.ran
+    # def aaft_range(self, fntype: ArbArityFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
+    #     for i in range(len(argsorts)):
+    #         argsort = self.repl_sort_def(argsorts[i])
+    #         if not sub(argsort, fntype.dom):
+    #             return None
+    #     return fntype.ran
 
     def typeinfer_term_with_sort_subst(self, t:Term) -> Sort:
         return self.repl_sort_def(self.typeinfer_term(t))
@@ -147,7 +157,17 @@ class TypeChecker:
             fnsymb_type = STANDARD_FNTYPES[t.fnsymb_name]
             if fnsymb_type:
                 try:
-                    rv = self.overloaded_fnapp_range_memo(fnsymb_type, argsorts, t)
+                    if t.fnsymb_name in ASSOCIATIVE_OPS and len(argsorts) > 2:
+                        rv = self.overloaded_fnapp_range_memo(fnsymb_type, argsorts[0:2], t)
+                        for i in range(2,len(argsorts)-1):
+                            assert rv is not None
+                            rv = self.overloaded_fnapp_range_memo(fnsymb_type, (rv, argsorts[i]), t)
+                    elif t.fnsymb_name in CHAIN_PREDS and len(argsorts) > 2:
+                        for i in range(0,len(argsorts)-2):
+                            assert self.overloaded_fnapp_range_memo(fnsymb_type, argsorts[i:i+2], t) == 'Bool'
+                        rv = 'Bool'
+                    else:
+                        rv = self.overloaded_fnapp_range_memo(fnsymb_type, argsorts, t)
                 except Exception as e:
                     raise L4TypeInferError(t, str(e.args[0]))
                 if rv is None:

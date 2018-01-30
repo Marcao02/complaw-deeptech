@@ -1,12 +1,11 @@
 import logging
 from datetime import datetime
-from itertools import chain
-from typing import Callable, Any, Dict, Iterator, cast
 
-from src.constants_and_defined_types import GlobalVarId, TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
-    RoleId, ContractParamId, SectionId, ABAPSubst, \
-    Data, GVarSubst, ContractParamSubst
+from src.independent.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, castid
 from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
+from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
+    ContractParamId, SectionId, ABAPSubst, \
+    Data, GVarSubst, ContractParamSubst
 from src.interpreter.interpreter_support import *
 from src.model.Action import Action
 from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule, \
@@ -24,7 +23,6 @@ from src.model.Literal import Literal, DeadlineLit, SimpleTimeDeltaLit
 from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Section import Section
 from src.model.Term import FnApp
-from src.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, castid
 
 logging.basicConfig(
     format="[%(levelname)s] %(funcName)s: %(message)s",

@@ -1,8 +1,7 @@
 import os
 import sys
 
-
-from src.util import print_all_todos
+from src.independent.util import print_all_todos
 
 
 def runit(s, optional_s=""):

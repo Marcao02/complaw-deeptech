@@ -1,36 +1,36 @@
 import logging
+
 from mypy_extensions import NoReturn
 
-from src.compiler.floating_rules_transpile import floating_rules_transpile_away
-from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, ActionRule, NextActionRule, EnvNextActionRule, \
-    PartyNextActionRule
-from src.model.Section import Section
-from src.independent.typing_imports import *
+from src.independent.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 from src.constants_and_defined_types import *
-from src.model.Term import Term
+from src.correctness_checks import L4ContractConstructorInterface
+from src.independent.FileCoord import FileCoord
+from src.independent.SExpr import SExpr, SExprOrStr
+from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER
+from src.independent.typing_imports import *
 from src.model.Action import Action
+from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, ActionRule, NextActionRule, \
+    EnvNextActionRule, \
+    PartyNextActionRule
+from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
+    StateTransformLocalVar, GlobalVar
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
-from src.model.GlobalVarDec import GlobalVarDec
-from src.model.Sort import Sort, NonatomicSort
-
-from src.independent.FileCoord import FileCoord
-from src.correctness_checks import L4ContractConstructorInterface
-from src.independent.SExpr import SExpr, SExprOrStr
-from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER
-from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
-    StateTransformLocalVar, GlobalVar
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, InCodeConjectureStatement, \
     StateTransformLocalVarDec, IfElse, GlobalVarAssignStatement, IncrementStatement, DecrementStatement, \
     TimesEqualsStatement
+from src.model.GlobalVarDec import GlobalVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_section_id, derived_destination_id
 from src.model.L4Macro import L4Macro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit
+from src.model.Section import Section
+from src.model.Sort import Sort, NonatomicSort
 from src.model.Term import FnApp
-from src.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
+from src.model.Term import Term
 
 
 class L4ContractConstructor(L4ContractConstructorInterface):

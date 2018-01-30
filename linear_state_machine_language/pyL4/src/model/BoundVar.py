@@ -1,16 +1,15 @@
 from itertools import chain
 
-from src.independent.typing_imports import *
-
+from src.independent.util import castid
 from src.constants_and_defined_types import GlobalVarId, ContractParamId, ActionBoundActionParamId, \
     RuleBoundActionParamId, StateTransformLocalVarId
-from src.model.Term import Term
+from src.independent.typing_imports import *
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
 from src.model.ContractParamDec import ContractParamDec
 from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec
 from src.model.GlobalVarDec import GlobalVarDec
-from src.util import castid
+from src.model.Term import Term
 
 
 class BoundVar(Term):

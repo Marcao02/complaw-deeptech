@@ -1,13 +1,12 @@
 from datetime import timedelta
 from itertools import chain
 
+from src.independent.util import todo_once
+from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
 from src.independent.FileCoord import FileCoord
 from src.independent.typing_imports import *
-
-from src.constants_and_defined_types import SUPPORTED_TIMEUNITS
-from src.model.Term import Term
 from src.model.Sort import Sort
-from src.util import todo_once
+from src.model.Term import Term
 
 
 class Literal(Term):

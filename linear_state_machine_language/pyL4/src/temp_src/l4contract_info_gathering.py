@@ -1,11 +1,19 @@
+from itertools import chain
+
+from src.model.FnTypes import FilteredOverloadedFnType, SimpleFnType
+from src.independent.util_for_sequences import gather_to_map_to_sets
 from src.model.BoundVar import ActionBoundActionParam, StateTransformLocalVar, GlobalVar, ContractParam, RuleBoundActionParam
 from src.model.Literal import StringLit, RoleIdLit, DeadlineLit, SimpleTimeDeltaLit, BoolLit, FloatLit, IntLit, Literal
 from src.model.Term import Term, FnApp
 from src.model.L4Contract import L4Contract
 from src.model.Sort import Sort
 from src.independent.typing_imports import *
+from src.typechecking.standard_function_types import FnTypesMap
+from src.typechecking.standard_subtype_graph import SubsortGraph
+# from src.typechecking.typecheck import TypeChecker
 
-def what_sorts_used(prog:L4Contract) -> Iterable[Sort]:
+
+def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
     def f(t:Term):
         if isinstance(t, Literal):
             if isinstance(t, IntLit):
@@ -56,8 +64,6 @@ def what_fnsymbols_used(prog:L4Contract) -> Iterable[str]:
     def f(t:Term):
         if isinstance(t, FnApp):
             yield t.fnsymb_name
-
-
     return prog.forEachTerm(f)
 
 def what_fnsymbols_used2(prog:L4Contract) -> Iterable[str]:
@@ -65,5 +71,50 @@ def what_fnsymbols_used2(prog:L4Contract) -> Iterable[str]:
     def f(t:FnApp):
         # if isinstance(t, FnApp):
         yield t.fnsymb_name
-
     return prog.forEach(pred,f)
+
+def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
+    pred = lambda t: isinstance(t,FnApp)
+    def f(t:FnApp):
+        # if isinstance(t, FnApp):
+        yield (t.fnsymb_name, len(t.args))
+    return prog.forEach(pred,f)
+
+
+
+FilteredFnTypesMap = Dict[str, FilteredOverloadedFnType]
+"""
+For each simple fn type T of fn symbol f, include T in f's filtered overloaded type iff f is used at arity arity(T) 
+in prog. 
+For each arbitrary arity fn type D* -> R of fn symbol f, if f is used at arity k in prog, include D^k -> R in f's 
+overloaded fn type.  
+"""
+def filter_fn_types_by_arity_and_remove_arbitrary_arity_fn_types(
+        prog:L4Contract,
+        fntypes:FnTypesMap) -> FilteredFnTypesMap:
+    startsorts = set(what_sorts_used_explicitly(prog))
+    used_arities = gather_to_map_to_sets( what_fnsymbol_arity_pairs_used(prog) )
+    # we're gonna modify it
+    rv : FilteredFnTypesMap = {f: FilteredOverloadedFnType(set(),dict()) for f in fntypes}
+
+    for f in fntypes:
+        if f not in used_arities:
+            # this function symbol isn't used anywhere in prog
+            del fntypes[f]
+        else:
+            # non-overloaded fn type
+            for noft in fntypes[f].parts:
+                if isinstance(noft,SimpleFnType):
+                    if len(noft.dom) in used_arities[f]:
+                        rv[f].parts.add(noft)
+                else: # it's an ArbArityFnType
+                    for k in used_arities[f]:
+                        rv[f].parts.add(SimpleFnType((noft.dom,)*k + (noft.ran,)))
+
+    return rv
+
+
+
+
+
+

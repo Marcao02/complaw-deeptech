@@ -1,6 +1,6 @@
+from src.independent.util import chcaststr
+from src.independent.util_for_sequences import is_singleton_string_list
 from src.independent.SExpr import *
-from src.util import chcaststr
-from src.util_for_sequences import is_singleton_string_list
 
 
 class SExprBuilder:

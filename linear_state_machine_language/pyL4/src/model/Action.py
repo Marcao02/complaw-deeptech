@@ -1,16 +1,16 @@
 from itertools import chain
 
-from src.independent.typing_imports import *
-
+from src.independent.util import indent, castid
 from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
     StateTransformLocalVarId
+from src.independent.typing_imports import *
 from src.model.ActionRule import PartyFutureActionRule, ActionRule
 from src.model.GlobalStateTransform import GlobalStateTransform
 from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec, GlobalStateTransformStatement
 from src.model.Section import Section, ParamsDec
-from src.model.Term import Term
-from src.util import mapjoin, indent, castid, todo_once
 from src.model.Sort import Sort
+from src.model.Term import Term
+
 
 class Action:
     def __init__(self, action_id:ActionId) -> None:

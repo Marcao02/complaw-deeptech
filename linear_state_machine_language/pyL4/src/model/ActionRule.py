@@ -1,11 +1,10 @@
 from itertools import chain
 
-from src.independent.typing_imports import *
-
+from src.independent.util import indent, mapjoin
 from src.constants_and_defined_types import *
+from src.independent.typing_imports import *
 from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Term import Term
-from src.util import indent, mapjoin
 
 
 class FutureActionRuleType(NamedTuple):

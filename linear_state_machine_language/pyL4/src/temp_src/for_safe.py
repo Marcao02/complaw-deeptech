@@ -1,13 +1,15 @@
 from typing import Dict
 
+from src.independent.util import todo_once
 from src.model.Sort import Sort, sortsubstdict
 from src.model.FnTypes import OverloadedFnType
 from src.typechecking.standard_sorts import NonnegReal, SApp, PosReal, jvar, Nat, PosInt
 from src.typechecking.standard_subtype_graph import SubsortGraph
-from src.util import todo_once
+
+FnTypesMap = Dict[str, OverloadedFnType]
 
 
-def doit_for_safe(fntypes_map:Dict[str,OverloadedFnType], graph:SubsortGraph):
+def doit_for_safe(fntypes_map:FnTypesMap, graph:SubsortGraph):
     Dup = lambda x,y: SApp("Dup",x,y)
     subst :Dict[Sort,Sort] = {
         Dup(NonnegReal, jvar): Dup(NonnegReal, '$'),
