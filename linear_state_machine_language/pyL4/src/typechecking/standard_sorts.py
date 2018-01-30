@@ -94,3 +94,7 @@ def is_valid_sort(s:Sort, sort_defns:Dict[str,Sort]) -> bool:
         elif op == 'Dup':
             return s.args[0] in {Nat,PosInt,NonnegReal,PosReal}
         raise NotImplementedError
+
+def check_sorts_valid(sorts:Set[Sort], sort_defns:Dict[str,Sort]) -> None:
+    for s in sorts:
+        assert is_valid_sort(s,sort_defns), f"Explicitly-written sort {s} is not valid."

@@ -27,21 +27,30 @@ def add_derived(graph:SubsortGraph):
                         continue
                     graph.addEdge(Ratio(num1,den1), Ratio(num2,den2))
 
-    for S in AllAtomicSortsAndDups:
+    for s1 in AllAtomicSortsAndDups:
         # graph.addEdge(NonatomicSort('Tuple', (S, S)), NonatomicSort('Tuple', ('Any', 'Any')))
-        for T in AllAtomicSortsAndDups:
-            if not graph.hasEdge(S,T):
+        for s2 in AllAtomicSortsAndDups:
+            if not graph.hasEdge(s1,s2):
                 continue
-            graph.addEdge(SApp('Tuple',S,S), SApp('Tuple',T,T))
+            graph.addEdge(SApp('Tuple',s1,s1), SApp('Tuple',s2,s2))
 
-    for S in TDMapKeySorts:
-        graph.addEdge('EmptyTDMap', SApp('TDMap',S))
+    for s in TDMapKeySorts:
+        graph.addEdge('EmptyTDMap', SApp('TDMap',s))
 
     # for copied_sort in all_sort_copies_by_orig:
     #     for acopy in all_sort_copies_by_orig[copied_sort]:
     #         graph.addEdge(acopy, copied_sort)
 
-
+"""
+If s1 ⊆ s2 is in graph, and subst maps some sorts to sorts, add s1[subst] ⊆ s2[subst] to graph. 
+"""
+def duplicate_some_edges(subst:Dict[Sort,Sort], graph:SubsortGraph):
+    orig_edges = graph.edgeSet()
+    for src,trg in orig_edges:
+        src_new = sortsubstdict(src,subst)
+        trg_new = sortsubstdict(trg,subst)
+        if src != src_new or trg != trg_new:
+            graph.addEdge(src_new,trg_new)
 
 SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosTimeDelta, TimeDelta),
@@ -75,9 +84,13 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     # sschain(Ratio(PosRealj,PosIntj), PosRealj),
 
     sschain(PosIntj,Natj),
-    sschain(PosRealj,NonnegReal)
+    sschain(PosRealj,NonnegReal),
+
+    sschain(PosRealj,NonnegRealj),
+    sschain(PosIntj,Natj)
 )
 
 
 STANDARD_SUBSORTING_GRAPH = build_graph(SUBSORT_CONSTRAINTS, AllSorts)
 # print( standard_types_graph )
+

@@ -11,17 +11,14 @@ from src.model.Literal import *
 from src.model.Section import Section
 from src.model.Sort import NonatomicSort
 from src.model.Term import FnApp
-from src.temp_src.for_safe import doit_for_safe
-from src.temp_src.l4contract_info_gathering import what_sorts_used_explicitly, what_fnsymbols_used, what_fnsymbols_used2
 from src.typechecking.L4TypeErrors import *
-from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map, ASSOCIATIVE_OPS, CHAIN_PREDS
-from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, SubsortGraph
-from src.typechecking.standard_sorts import is_valid_sort
+from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map, ASSOCIATIVE_OPS, CHAIN_PREDS, \
+    FnTypesMap
+from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, \
+    SubsortGraph, duplicate_some_edges
+from src.typechecking.standard_sorts import is_valid_sort, check_sorts_valid, jvar
 
 print_types_map(STANDARD_FNTYPES)
-
-doit_for_safe(STANDARD_FNTYPES, STANDARD_SUBSORTING_GRAPH)
-
 
 def sub(s1:Sort,s2:Sort) -> bool:
     return STANDARD_SUBSORTING_GRAPH.hasEdge(s1, s2)
@@ -39,16 +36,101 @@ Just a public API function
 
 
 
+def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
+    def f(t:Term):
+        if isinstance(t, Literal):
+            if isinstance(t, IntLit):
+                if t.lit == 0:
+                    yield "{0}"
+                elif t.lit == 1:
+                    yield "{1}"
+                elif t.lit > 0:
+                    yield "PosInt"
+                yield "Int"
+            elif isinstance(t, FloatLit):
+                if t.lit == 0:
+                    yield "{0}"
+                elif t.lit == 1:
+                    yield "{1}"
+                elif 0 < t.lit < 1:
+                    yield "(0,1)"
+                elif t.lit > 1:
+                    yield "PosReal"
+                yield "Real"
+            elif isinstance(t, BoolLit):
+                yield "Bool"
+            elif isinstance(t, SimpleTimeDeltaLit):
+                if t.num > 0:
+                    yield "PosTimeDelta"
+                else:
+                    yield "TimeDelta"
+            elif isinstance(t, DeadlineLit):
+                yield "Bool"
+            elif isinstance(t, RoleIdLit):
+                yield "RoleId"
+            elif isinstance(t, StringLit):
+                yield "String"
+        elif isinstance(t, (StateTransformLocalVar, GlobalVar)):
+            yield t.vardec.sort
+        elif isinstance(t, ActionBoundActionParam):
+            yield t.action.param_sorts_by_name[t.name]
+        elif isinstance(t, ContractParam):
+            yield t.paramdec.sort
+        elif isinstance(t, RuleBoundActionParam):
+            action = prog.action(t.action_rule.action_id)
+            yield action.param_sort(t.ind)
+
+    return prog.forEachTerm(f)
+
+
+def what_fnsymbols_used(prog:L4Contract) -> Iterable[str]:
+    def f(t:Term):
+        if isinstance(t, FnApp):
+            yield t.fnsymb_name
+    return prog.forEachTerm(f)
+
+def what_fnsymbols_used2(prog:L4Contract) -> Iterable[str]:
+    pred = lambda t: isinstance(t,FnApp)
+    def f(t:FnApp):
+        # if isinstance(t, FnApp):
+        yield t.fnsymb_name
+    return prog.forEach(pred,f)
+
+def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
+    pred = lambda t: isinstance(t,FnApp)
+    def f(t:FnApp):
+        # if isinstance(t, FnApp):
+        yield (t.fnsymb_name, len(t.args))
+    return prog.forEach(pred,f)
+
+
+
+def addDupSortRelnsToGraphAndFnTypes(sorts:Iterable[Sort], expanded_sortdefns: Dict[str,Sort], graph:SubsortGraph, fntypes:FnTypesMap):
+    subst: Dict[Sort, Sort] = {}
+
+    for s in sorts:
+        if isinstance(s,str) and s in expanded_sortdefns:
+            s = expanded_sortdefns[s]
+        if isinstance(s,NonatomicSort) and s.sortop == "Dup":
+            withvar = NonatomicSort("Dup",(s.args[0], jvar))
+            subst[withvar] = s
+            graph.addNode(s)
+            graph.addEdge(withvar, s)
+    for fsymb, oft in fntypes.items():
+        oft.add_substdict_copies(subst)
+    # oft.replace_sorts(subst)
+
+    duplicate_some_edges(subst, graph)
+
 def typecheck_prog(prog:L4Contract):
-    print(f"Explicit sorts:")
+
     sorts_used_explicitly = set(what_sorts_used_explicitly(prog))
-    print(sorts_used_explicitly)
-    # assert all( is_valid_sort(s, prog.expanded_sort_definitions) for s in sorts_used_explicitly )
-    for s in sorts_used_explicitly:
-        assert is_valid_sort(s, prog.sort_definitions), [s, prog.sort_definitions]
-    print(f"Explicit fn symbols:")
+    print(f"Explicit sorts:\n",sorts_used_explicitly)
+    check_sorts_valid(sorts_used_explicitly, prog.sort_definitions)
+    addDupSortRelnsToGraphAndFnTypes(sorts_used_explicitly, prog.expanded_sort_definitions, STANDARD_SUBSORTING_GRAPH, STANDARD_FNTYPES)
+
     fsymbs = set(what_fnsymbols_used(prog))
-    print(fsymbs)
+    print(f"Explicit fn symbols:\n", fsymbs)
     assert fsymbs == set(what_fnsymbols_used2(prog))
 
     # doit_for_safe(STANDARD_FNTYPES, STANDARD_SUBSORTING_GRAPH)
