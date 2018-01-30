@@ -3,7 +3,7 @@ from src.model.Action import Action
 from src.model.ActionRule import ActionRule
 from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam
-from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, NonoverloadedFnType
+from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, SimpleFnType
 from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, StateTransformLocalVarDec, \
     GlobalVarAssignStatement, IfElse, InCodeConjectureStatement
 from src.model.L4Contract import L4Contract
@@ -12,8 +12,7 @@ from src.model.Section import Section
 from src.model.Sort import NonatomicSort
 from src.model.Term import FnApp
 from src.temp_src.for_safe import doit_for_safe
-from src.temp_src.l4contract_info_gathering import what_sorts_used_explicitly, what_fnsymbols_used, \
-    what_fnsymbols_used2, FilteredFnTypesMap
+from src.temp_src.l4contract_info_gathering import what_sorts_used_explicitly, what_fnsymbols_used, what_fnsymbols_used2
 from src.typechecking.L4TypeErrors import *
 from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map, ASSOCIATIVE_OPS, CHAIN_PREDS
 from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, SubsortGraph
@@ -37,17 +36,6 @@ Just a public API function
 #     elif isinstance(x, GlobalStateTransformStatement):
 #         typecheck_statement(x)
 
-def filter_sorts_by_filtered_fn_types(
-        prog:L4Contract,
-        graph:SubsortGraph,
-        fntypes:FilteredFnTypesMap) -> Set[Sort]:
-    tc = TypeChecker(prog)
-    sfts : Set[SimpleFnType] = set()
-    sfts.update( *cast(Iterable[SimpleFnType],fntypes.values()) ) # type:ignore
-    for sft in sfts:
-        assert isinstance(sft,SimpleFnType)
-        pass
-    raise NotImplementedError
 
 
 def typecheck_prog(prog:L4Contract):
@@ -100,7 +88,7 @@ class TypeChecker:
             return oft.range_memo[argsorts]
 
         rangeset = set(
-            cast(Iterator[Sort], filter(lambda x: x is not None, (self.ft_range(ft, argsorts, term) for ft in oft.parts))))
+            cast(Iterator[Sort], filter(lambda x: x is not None, (self.sft_range(ft, argsorts) for ft in oft.parts))))
         if len(rangeset) == 0:
             msg = f"Domain of this overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{self.sort_tuple_toStr(argsorts)}"
             raise L4TypeInferError(term, msg)
@@ -113,17 +101,8 @@ class TypeChecker:
         oft.range_memo[argsorts] = intersection
         return intersection # possibly None
 
-    def ft_range(self, fntype: NonoverloadedFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
-        # rv = self.sft_range(fntype, argsorts, term) if isinstance(fntype, SimpleFnType) else self.aaft_range(fntype, argsorts,term)
-        rv = self.sft_range(fntype, argsorts, term)
 
-        # if not rv:
-        #     print(f"arg sorts {argsorts} of {term.head} are NOT a subset of domain of nonoverloaded fn type {fntype}")
-        # else:
-        #     print(f"arg sorts {argsorts} of {term.head} ARE a subset of domain of nonoverloaded fn type {fntype}")
-        return rv
-
-    def sft_range(self, fntype: SimpleFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
+    def sft_range(self, fntype: SimpleFnType, argsorts: SortTuple) -> Optional[Sort]:
         if len(fntype.parts) - 1 != len(argsorts):
             return None
         for i in range(len(argsorts)):
@@ -132,14 +111,11 @@ class TypeChecker:
             if not sub(argsort, fnsort):
                 return None
         # print(f"Range of fntype {fntype} is {fntype.ran}")
+        # if not rv:
+        #     print(f"arg sorts {argsorts} of {term.head} are NOT a subset of domain of nonoverloaded fn type {fntype}")
+        # else:
+        #     print(f"arg sorts {argsorts} of {term.head} ARE a subset of domain of nonoverloaded fn type {fntype}")
         return fntype.ran
-
-    # def aaft_range(self, fntype: ArbArityFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
-    #     for i in range(len(argsorts)):
-    #         argsort = self.repl_sort_def(argsorts[i])
-    #         if not sub(argsort, fntype.dom):
-    #             return None
-    #     return fntype.ran
 
     def typeinfer_term_with_sort_subst(self, t:Term) -> Sort:
         return self.repl_sort_def(self.typeinfer_term(t))

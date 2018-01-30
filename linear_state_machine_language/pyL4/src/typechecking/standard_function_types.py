@@ -2,7 +2,7 @@ import time
 
 from src.independent.typing_imports import *
 from src.model.Sort import Sort, NonatomicSort, AtomicSort
-from src.model.FnTypes import OverloadedFnType, NonoverloadedFnType, SimpleFnType
+from src.model.FnTypes import OverloadedFnType, SimpleFnType, SimpleFnType
 from src.typechecking.standard_sorts import AllAtomicSorts, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
     PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, \
     AllNumericSorts, SApp, NonnegRealj, Natj, PosIntj, PosRealj, AllSorts, Ratio
@@ -32,7 +32,7 @@ Let's refer to the SMU as U0, and the others as U1, U2, U3.
 ASSOCIATIVE_OPS = {'or*', 'and*', 'min','max','+','*'}
 CHAIN_PREDS = {'≤', '≥', '<', '>', '=='}
 
-# arbitrary arity function type
+# arbitrary arity function type... which are now handled by virtual reduction to their binary operations in typecheck.py
 # def aafntype(dom:Sort, ran:Sort) -> ArbArityFnType:
 #     return ArbArityFnType(dom, ran)
 def aafntype(dom:Sort, ran:Sort) -> SimpleFnType:
@@ -43,7 +43,7 @@ def sfntype(*tp:Sort) -> SimpleFnType:
     assert len(tp) >= 1
     return SimpleFnType(tp)
 
-FnTypesData = List[ Tuple[Tuple[AtomicSort,...], Iterable[NonoverloadedFnType]] ]
+FnTypesData = List[ Tuple[Tuple[AtomicSort,...], Iterable[SimpleFnType]] ]
 TypeData = Sequence[Any]
 FnTypesMap = Dict[str, OverloadedFnType]
 
@@ -54,9 +54,9 @@ R = 'RVar'
 TYPEVARS = {X, N, D, R}
 
 
-def parametric_one_var(tp_or_tps:Union[NonoverloadedFnType,Iterable[NonoverloadedFnType]],
+def parametric_one_var(tp_or_tps:Union[SimpleFnType,Iterable[SimpleFnType]],
                        substitutions:Iterable[Sort] = AllSorts,
-                       var:str = X) -> Iterable[NonoverloadedFnType]:
+                       var:str = X) -> Iterable[SimpleFnType]:
     if isinstance(tp_or_tps, SimpleFnType):
         for sort in substitutions:
             yield tp_or_tps.subst(var,sort)
@@ -68,8 +68,8 @@ def parametric_one_var(tp_or_tps:Union[NonoverloadedFnType,Iterable[Nonoverloade
             for sort in substitutions:
                 yield tp.subst(var,sort)
 
-def parametric_mult_vars(tps:Iterable[NonoverloadedFnType],
-                         substitutions:Iterable[Dict[str, Sort]]) -> Iterable[NonoverloadedFnType]:
+def parametric_mult_vars(tps:Iterable[SimpleFnType],
+                         substitutions:Iterable[Dict[str, Sort]]) -> Iterable[SimpleFnType]:
     for tp in tps:
         for d in substitutions:
             yield tp.substdict(cast(Dict[Sort,Sort],d)) # false cast, but sound as long as we don't modify the dict.
@@ -81,9 +81,9 @@ def print_types_map(fntypesmap:FnTypesMap):
     print(sum(len(fntypesmap[f]) for f in fntypesmap), "simple function types total.")
 
 def makeNiceFnTypeMap(data: FnTypesData) -> FnTypesMap:
-    # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+    # toiter : Dict[str,Iterable[SimpleFnType]] = dict()
     start = time.process_time()
-    dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+    dict_of_tuples : Dict[str,Tuple[SimpleFnType,...]] = dict()
     for part in data:
         tuple_from_iter = tuple(part[1])
         for symb in part[0]:
@@ -99,9 +99,9 @@ def makeNiceFnTypeMap(data: FnTypesData) -> FnTypesMap:
 
     # speed the same
     # def makeNiceFnTypeMap(data: FnTypesData) -> FnTypesMap:
-    #     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+    #     # toiter : Dict[str,Iterable[SimpleFnType]] = dict()
     #     start = time.process_time()
-    #     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+    #     dict_of_tuples : Dict[str,Tuple[SimpleFnType,...]] = dict()
     #     for part in data:
     #         tuple_from_iter = tuple(part[1])
     #         for symb in part[0]:
@@ -117,9 +117,9 @@ def makeNiceFnTypeMap(data: FnTypesData) -> FnTypesMap:
 
     # this version is just as fast
     # def makeNiceFnTypeMap(data: FnTypesData) -> FnTypesMap:
-    #     # toiter : Dict[str,Iterable[NonoverloadedFnType]] = dict()
+    #     # toiter : Dict[str,Iterable[SimpleFnType]] = dict()
     #     start = time.process_time()
-    #     dict_of_tuples : Dict[str,Tuple[NonoverloadedFnType,...]] = dict()
+    #     dict_of_tuples : Dict[str,Tuple[SimpleFnType,...]] = dict()
     #     for part in data:
     #         tuple_from_iter = list(part[1])
     #         for symb in part[0]:
@@ -353,38 +353,10 @@ overloaded_types_data : FnTypesData = [
 ]
 
 
-
-
-# obviously this can be computed from overloaded_types_data, but why bother?
-unbounded_arity_fnsymbols = {'≤', '≥', '<', '>', '==', 'or*', 'and*',
-                              'min','max','+','*'}
-
-
 STANDARD_FNTYPES = makeNiceFnTypeMap(overloaded_types_data)
 # print_types_map(fntypes_map)
 
 check_type_vars_gone(STANDARD_FNTYPES)
-
-# def eliminate_unbounded_arity(arity_occurrences: Dict[str,Set[int]], fntypes_map: Dict[str, List[Sequence[Any]]]) -> None:
-#     for f in fntypes_map:
-#         # if len(arity_occurrences[f]) == 0:
-#         #     continue
-#
-#         ftypes = fntypes_map[f]
-#         for i in range(len(ftypes)-1,-1,-1):
-#             ftype = ftypes[i]
-#             if ftype[0] != 'aafn':
-#                 continue
-#             assert len(ftype) == 3
-#             del ftypes[i]
-#             if f in arity_occurrences:
-#                 dom = ftype[1]
-#                 ran = ftype[2]
-#                 for arity in arity_occurrences[f]:
-#                     ftypes.append(('fn',) + (dom,)*arity + (ran,))
-#
-#
-
 
 
 # def dupmult(tp_or_tps:Union[TypeData,Set[TypeData]], substitutions:Iterable[Dict[str, str]]) -> Sequence[Any]:
@@ -402,7 +374,7 @@ check_type_vars_gone(STANDARD_FNTYPES)
 # depends on dups_used. modifies first arg.
 # """
 # def subst_concrete_dups(fntypes: FnTypesMap):
-#     newparts : List[NonoverloadedFnType] = []
+#     newparts : List[SimpleFnType] = []
 #     subst : Dict[Tuple[str,str], NonatomicSort] = dict()
 #     for fnsymb,oft in fntypes.items():
 #         newparts.clear()
@@ -414,20 +386,20 @@ check_type_vars_gone(STANDARD_FNTYPES)
 #                     if sortop == 'Dup':
 #                         dupsort = cast(Sort,sort.args[0])
 #                         dupvar = cast(str,sort.args[1])
-# def isSimpleNumericFnType(ft:NonoverloadedFnType) -> bool:
+# def isSimpleNumericFnType(ft:SimpleFnType) -> bool:
 #     if isinstance(ft,ArbArityFnType):
 #         return ft.dom in AllNumericSorts and ft.dom == ft.ran
 #     if isinstance(ft,SimpleFnType):
 #         solesort = ft.ran
 #         return solesort in AllNumericSorts and all(ft.dom[i] == solesort for i in range(len(ft.dom)))
-# def copy_sft_if_allowed(ft:NonoverloadedFnType) -> Iterable[NonoverloadedFnType]:
+# def copy_sft_if_allowed(ft:SimpleFnType) -> Iterable[SimpleFnType]:
 #     if not isSimpleNumericFnType(ft):
 #         return []
 #     solesort = ft.ran
 #     if solesort not in all_sort_copies_by_orig:
 #         return []
 #
-#     ft_copies : List[NonoverloadedFnType] = []
+#     ft_copies : List[SimpleFnType] = []
 #     # for candidate_supersort in all_sort_copies_by_orig:
 #     #     if standard_types_graph.hasEdge(solesort, candidate_supersort):
 #     for sort1 in all_sort_copies_by_orig[solesort]:
@@ -437,7 +409,7 @@ check_type_vars_gone(STANDARD_FNTYPES)
 #             ft_copies.append( SimpleFnType(tuple(sort1 for inst in ft_copies)) )
 #     return ft_copies
 # for fnsymb,oft in fntypes_map.items():
-#     new_nofts : List[NonoverloadedFnType] = []
+#     new_nofts : List[SimpleFnType] = []
 #     for noft in oft.parts:
 #         print(noft)
 #         new_nofts.extend(copy_sft_if_allowed(noft))

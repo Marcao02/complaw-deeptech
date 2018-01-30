@@ -1,6 +1,6 @@
 from itertools import chain
 
-from src.model.FnTypes import FilteredOverloadedFnType, SimpleFnType
+from src.model.FnTypes import SimpleFnType
 from src.independent.util_for_sequences import gather_to_map_to_sets
 from src.model.BoundVar import ActionBoundActionParam, StateTransformLocalVar, GlobalVar, ContractParam, RuleBoundActionParam
 from src.model.Literal import StringLit, RoleIdLit, DeadlineLit, SimpleTimeDeltaLit, BoolLit, FloatLit, IntLit, Literal
@@ -82,39 +82,50 @@ def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
 
 
 
-FilteredFnTypesMap = Dict[str, FilteredOverloadedFnType]
-"""
-For each simple fn type T of fn symbol f, include T in f's filtered overloaded type iff f is used at arity arity(T) 
-in prog. 
-For each arbitrary arity fn type D* -> R of fn symbol f, if f is used at arity k in prog, include D^k -> R in f's 
-overloaded fn type.  
-"""
-def filter_fn_types_by_arity_and_remove_arbitrary_arity_fn_types(
-        prog:L4Contract,
-        fntypes:FnTypesMap) -> FilteredFnTypesMap:
-    startsorts = set(what_sorts_used_explicitly(prog))
-    used_arities = gather_to_map_to_sets( what_fnsymbol_arity_pairs_used(prog) )
-    # we're gonna modify it
-    rv : FilteredFnTypesMap = {f: FilteredOverloadedFnType(set(),dict()) for f in fntypes}
-
-    for f in fntypes:
-        if f not in used_arities:
-            # this function symbol isn't used anywhere in prog
-            del fntypes[f]
-        else:
-            # non-overloaded fn type
-            for noft in fntypes[f].parts:
-                if isinstance(noft,SimpleFnType):
-                    if len(noft.dom) in used_arities[f]:
-                        rv[f].parts.add(noft)
-                else: # it's an ArbArityFnType
-                    for k in used_arities[f]:
-                        rv[f].parts.add(SimpleFnType((noft.dom,)*k + (noft.ran,)))
-
-    return rv
-
-
+# Current form no longer relevant after eliminating ArbArityFnType. Might revisit later.
+# """
+# For each simple fn type T of fn symbol f, include T in f's filtered overloaded type iff f is used at arity arity(T)
+# in prog.
+# For each arbitrary arity fn type D* -> R of fn symbol f, if f is used at arity k in prog, include D^k -> R in f's
+# overloaded fn type.
+# """
+# def filter_fn_types_by_arity_and_remove_arbitrary_arity_fn_types(
+#         prog:L4Contract,
+#         fntypes:FnTypesMap) -> FilteredFnTypesMap:
+#     startsorts = set(what_sorts_used_explicitly(prog))
+#     used_arities = gather_to_map_to_sets( what_fnsymbol_arity_pairs_used(prog) )
+#     # we're gonna modify it
+#     rv : FilteredFnTypesMap = {f: FilteredOverloadedFnType(set(),dict()) for f in fntypes}
+#
+#     for f in fntypes:
+#         if f not in used_arities:
+#             # this function symbol isn't used anywhere in prog
+#             del fntypes[f]
+#         else:
+#             # non-overloaded fn type
+#             for noft in fntypes[f].parts:
+#                 if isinstance(noft,SimpleFnType):
+#                     if len(noft.dom) in used_arities[f]:
+#                         rv[f].parts.add(noft)
+#                 else: # it's an ArbArityFnType
+#                     for k in used_arities[f]:
+#                         rv[f].parts.add(SimpleFnType((noft.dom,)*k + (noft.ran,)))
+#
+#     return rv
 
 
+
+
+# def filter_sorts_by_filtered_fn_types(
+#         prog:L4Contract,
+#         graph:SubsortGraph,
+#         fntypes:FilteredFnTypesMap) -> Set[Sort]:
+#     tc = TypeChecker(prog)
+#     sfts : Set[SimpleFnType] = set()
+#     sfts.update( *cast(Iterable[SimpleFnType],fntypes.values()) ) # type:ignore
+#     for sft in sfts:
+#         assert isinstance(sft,SimpleFnType)
+#         pass
+#     raise NotImplementedError
 
 

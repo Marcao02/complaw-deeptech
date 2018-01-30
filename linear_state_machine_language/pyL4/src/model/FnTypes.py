@@ -25,30 +25,9 @@ class SimpleFnType(NamedTuple):
     def __repr__(self) -> str:
         return str(self)
 
-# class ArbArityFnType(NamedTuple):
-#     dom: Sort
-#     ran: Sort
-#
-#     def subst(self,var_or_sort:Sort,val:Sort) -> 'ArbArityFnType':
-#         return ArbArityFnType(sortsubst(self.dom,var_or_sort,val), sortsubst(self.ran,var_or_sort,val))
-#     def substdict(self,d:Dict[Sort,Sort]) -> 'ArbArityFnType':
-#         return ArbArityFnType(sortsubstdict(self.dom, d),sortsubstdict(self.ran, d))
-#
-#     @property
-#     def parts(self) -> Iterable[Sort]:
-#         yield self.dom
-#         yield self.ran
-#
-#     def __str__(self) -> str:
-#         return f"{self.dom}* ⟶ {self.ran}"
-#     def __repr__(self) -> str:
-#         return str(self)
-
-# NonoverloadedFnType = Union[SimpleFnType,ArbArityFnType]
-NonoverloadedFnType = SimpleFnType
 
 class OverloadedFnType(NamedTuple):
-    parts: Set[NonoverloadedFnType]
+    parts: Set[SimpleFnType]
     range_memo: Dict[SortTuple, Optional[Sort]]
 
     def add_substdict_copies(self,d:Dict[Sort,Sort]):
@@ -74,8 +53,3 @@ class OverloadedFnType(NamedTuple):
 
     def __str__(self) -> str:
         return "\t" + mapjoin(str, self.parts, "\n\t")
-
-class FilteredOverloadedFnType(OverloadedFnType):
-    @property
-    def parts_sft(self) -> Set[SimpleFnType]:
-        return self.parts
