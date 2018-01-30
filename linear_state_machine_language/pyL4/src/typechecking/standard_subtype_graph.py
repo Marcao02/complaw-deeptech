@@ -54,43 +54,43 @@ def duplicate_some_edges(subst:Dict[Sort,Sort], graph:SubsortGraph):
 
 SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosTimeDelta, TimeDelta),
-    sschain("{0}","[0,1)"),
-    sschain("{1}","(0,1]"),
-    sschain("{0,1}","[0,1]"),
-    sschain("{0}","{0,1}",Nat),
-    sschain("{1}","{0,1}"),
-    sschain("{1}",PosInt),
-    sschain("(0,1)", "[0,1)", "[0,1]", NonnegReal),
-    sschain("(0,1)", "(0,1]", "[0,1]", NonnegReal),
-    sschain("(0,1)", "(0,1]", PosReal),
+
     sschain(PosInt,Nat,Int),
     sschain(PosReal,NonnegReal,Real),
     sschain(PosInt,PosReal),
     sschain(Nat,NonnegReal),
     sschain(Int,Real),
+
+    sschain("{0,1}",Nat),
+    sschain("{1}",PosInt),
+    sschain("{0}","{0,1}"),
+    sschain("{1}","{0,1}"),
+    sschain("{0}","[0,1)"),
+    sschain("{1}","(0,1]"),
+    sschain("{0,1}","[0,1]"),
+    sschain("[0,1]",NonnegReal),
+    sschain("(0,1)", "(0,1]", PosReal),
+    sschain("(0,1)", "[0,1)", "[0,1]"),
+    sschain("(0,1)", "(0,1]", "[0,1]"),
+
+
     sschain(Ratio(NonnegReal, PosReal), NonnegReal),
     sschain(Ratio(NonnegReal, PosInt), NonnegReal),
-    sschain(Ratio(PosReal,PosReal), PosReal),
-    sschain(Ratio(PosReal,PosInt), PosReal),
+    sschain(Ratio(PosReal, PosReal), PosReal),
+    sschain(Ratio(PosReal, PosInt), PosReal),
     sschain(Ratio(Real, PosReal), Real),
-    sschain(Ratio(Real,PosInt), Real),
+    sschain(Ratio(Real, PosInt), Real),
 
+    # We don't want all the duplicate copies of numeric types to have all the relations that the original numeric
+    # types have. For now, we only need or want these:
+    sschain(PosIntj,Natj), # makes sense for counting any kind of thing
+    sschain(PosRealj,NonnegRealj), # makes sense for measuring any kind of thing
+    # makes sense as consequence of previous two lines:
     sschain(Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)),
     sschain(Ratio(PosRealj, PosRealj), Ratio(NonnegRealj, PosRealj)),
-
-    # sschain(Ratio(NonnegRealj, PosRealj), NonnegRealj),
-    # sschain(Ratio(NonnegRealj, PosIntj), NonnegRealj),
-    # sschain(Ratio(PosRealj,PosRealj), PosRealj),
-    # sschain(Ratio(PosRealj,PosIntj), PosRealj),
-
-    sschain(PosIntj,Natj),
-    sschain(PosRealj,NonnegReal),
-
-    sschain(PosRealj,NonnegRealj),
-    sschain(PosIntj,Natj)
 )
 
 
 STANDARD_SUBSORTING_GRAPH = build_graph(SUBSORT_CONSTRAINTS, AllSorts)
-# print( standard_types_graph )
+print( STANDARD_SUBSORTING_GRAPH )
 

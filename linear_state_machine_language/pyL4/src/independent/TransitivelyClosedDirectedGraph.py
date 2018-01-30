@@ -26,24 +26,36 @@ class TransitivelyClosedDirectedGraph(Generic[T]):
     def addEdge(self, src:T, trg:T):
         if src not in self.edges_from:
             self.edges_from[src] = {src}
+            assert src not in self.edges_from_inv
             self.edges_from_inv[src] = {src}
         if trg not in self.edges_from:
             self.edges_from[trg] = {trg}
+            assert trg not in self.edges_from_inv
             self.edges_from_inv[trg] = {trg}
 
         if src != trg:
+            # if src in {"{0}","Nat","Real"} or trg in {"{0}","Nat","Real"}:
+            #     print(f"\nbefore ({src},{trg})" +
+            #           f"\n\tedges from {'{0}'}: {self.edges_from['{0}']}" +
+            #           f"\n\tedges from Nat: {self.edges_from['Nat']}" +
+            #           f"\n\tedges from {'{0,1}'}: {self.edges_from['{0,1}']}")
             if trg in self.edges_from[src]:
-                print(f"Edge {src} -> {trg} already in graph.")
+                # print(f"Edge {src} -> {trg} already in graph.")
+                return
             else:
                 self.edges_from[src].add(trg)
                 self.edges_from_inv[trg].add(src)
 
-            for ancestor_of_trg in self.edges_from[trg]:
-                self.edges_from[src].add(ancestor_of_trg)
-                self.edges_from_inv[ancestor_of_trg].add(src)
-            for descendent_of_src in self.edges_from_inv[src]:
-                self.edges_from[descendent_of_src].add(trg)
-                self.edges_from_inv[trg].add(descendent_of_src)
+                for ancestor_of_trg in self.edges_from[trg]:
+                    for descendent_of_src in self.edges_from_inv[src]:
+                        self.edges_from[descendent_of_src].add(ancestor_of_trg)
+                        self.edges_from_inv[ancestor_of_trg].add(descendent_of_src)
+
+            # if src in {"{0}", "Nat", "Real"} or trg in {"{0}", "Nat", "Real"}:
+            #     print(f"after ({src},{trg})" +
+            #           f"\n\tedges from {'{0}'}: {self.edges_from['{0}']}" +
+            #           f"\n\tedges from Nat: {self.edges_from['Nat']}" +
+            #           f"\n\tedges from {'{0,1}'}: {self.edges_from['{0,1}']}")
 
     def edgeIter(self) -> Iterator[Tuple[T,T]]:
         for src in self.edges_from:
