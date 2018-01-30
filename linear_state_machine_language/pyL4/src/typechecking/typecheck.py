@@ -16,6 +16,7 @@ from src.temp_src.l4contract_info_gathering import what_sorts_used_explicitly, w
 from src.typechecking.L4TypeErrors import *
 from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map, ASSOCIATIVE_OPS, CHAIN_PREDS
 from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, SubsortGraph
+from src.typechecking.standard_sorts import is_valid_sort
 
 print_types_map(STANDARD_FNTYPES)
 
@@ -40,7 +41,11 @@ Just a public API function
 
 def typecheck_prog(prog:L4Contract):
     print(f"Explicit sorts:")
-    print(set(what_sorts_used_explicitly(prog)))
+    sorts_used_explicitly = set(what_sorts_used_explicitly(prog))
+    print(sorts_used_explicitly)
+    # assert all( is_valid_sort(s, prog.expanded_sort_definitions) for s in sorts_used_explicitly )
+    for s in sorts_used_explicitly:
+        assert is_valid_sort(s, prog.sort_definitions), [s, prog.sort_definitions]
     print(f"Explicit fn symbols:")
     fsymbs = set(what_fnsymbols_used(prog))
     print(fsymbs)

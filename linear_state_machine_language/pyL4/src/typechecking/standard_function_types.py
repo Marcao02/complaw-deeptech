@@ -3,7 +3,7 @@ import time
 from src.independent.typing_imports import *
 from src.model.Sort import Sort, NonatomicSort, AtomicSort
 from src.model.FnTypes import OverloadedFnType, SimpleFnType, SimpleFnType
-from src.typechecking.standard_sorts import AllAtomicSorts, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
+from src.typechecking.standard_sorts import AllAtomicSortsAndDups, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
     PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedRealIntervalSorts, DateTime, Real, \
     AllNumericSorts, SApp, NonnegRealj, Natj, PosIntj, PosRealj, AllSorts, Ratio
 
@@ -164,11 +164,11 @@ overloaded_types_data : FnTypesData = [
     # ------------Tuples------------
     (('tuple',), parametric_one_var(
             sfntype(X, X, SApp('Tuple', X, X)),
-            AllAtomicSorts)
+            AllAtomicSortsAndDups)
      ),
     (('tupleGet',), parametric_one_var(
             sfntype(SApp('Tuple', X, X), '{0,1}', X),
-            AllAtomicSorts)
+            AllAtomicSortsAndDups)
      ),
 
     # ------------TimeDelta Maps------------
@@ -214,11 +214,11 @@ overloaded_types_data : FnTypesData = [
      ),
     (('==',), parametric_one_var(
         aafntype(X, Bool),
-        AllAtomicSorts)
+        AllAtomicSortsAndDups)
      ),
     (('!=',), parametric_one_var(
         sfntype(X, X, Bool),
-        AllAtomicSorts)
+        AllAtomicSortsAndDups)
      ),
 
     # ------------Boolean------------
@@ -227,7 +227,7 @@ overloaded_types_data : FnTypesData = [
      (('and*', 'or*'), (aafntype(Bool, Bool),)),
      (('ifthenelse',), parametric_one_var(
         sfntype(Bool, X, X, X),
-        AllAtomicSorts)
+        AllAtomicSortsAndDups)
      ),
 
     # ------------Arithmetic------------

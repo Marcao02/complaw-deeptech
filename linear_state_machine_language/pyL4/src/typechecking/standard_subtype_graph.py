@@ -27,9 +27,9 @@ def add_derived(graph:SubsortGraph):
                         continue
                     graph.addEdge(Ratio(num1,den1), Ratio(num2,den2))
 
-    for S in AllAtomicSorts:
+    for S in AllAtomicSortsAndDups:
         # graph.addEdge(NonatomicSort('Tuple', (S, S)), NonatomicSort('Tuple', ('Any', 'Any')))
-        for T in AllAtomicSorts:
+        for T in AllAtomicSortsAndDups:
             if not graph.hasEdge(S,T):
                 continue
             graph.addEdge(SApp('Tuple',S,S), SApp('Tuple',T,T))
