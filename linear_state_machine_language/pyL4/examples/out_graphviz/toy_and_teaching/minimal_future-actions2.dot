@@ -12,7 +12,8 @@ digraph test_contract_2_for_must_later {
     EnterFulfilled -> Fulfilled;
     
     Ongoing -> Throw;
-	Ongoing -> EnterFulfilled
+	Ongoing -> EnterFulfilled;
+	Ongoing -> Catch
     
     Throw -> Ongoing [style=dashed];
 	Catch -> Ongoing [style=dashed];

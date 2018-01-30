@@ -24,83 +24,29 @@ PosIntj = SApp('Dup', PosInt, jvar)
 NonnegRealj = SApp('Dup', NonnegReal, jvar)
 PosRealj = SApp('Dup', PosReal, jvar)
 
-
-# all_sort_copies_by_orig : Dict[Sort, Set[Sort]] = dict()
-# all_sort_copies : Set[Sort] = set()
 def Dup(sort:Sort, name:str) -> NonatomicSort:
-    rv = SApp('Dup',sort,name)
-    # dictSetOrAdd(all_sort_copies_by_orig, sort, rv)
-    # all_sort_copies.add(rv)
-    return rv
-#
-# dups_used : Dict[str,Sort] = {
-#     '$': Dup(NonnegReal,'$'),
-#     'Pos$': Dup(PosReal,'Pos$'),
-#     'ShareCnt': Dup(Nat,'ShareCnt'),
-#     'PosShareCnt': Dup(PosInt,'PosShareCnt')
-# }
-# dups_used.update({
-#     'SharePrice': Dup(SApp('Ratio', dups_used['$'], dups_used['PosShareCnt']),'SharePrice'),
-#     'Order' : Dup(SApp('Tuple', Nat, Nat),'Order') })
-# dups_used.update({
-#     'TDMap_Order': Dup(SApp('TDMap', dups_used['Order']),'TDMap_Order')
-# })
-
-# todo_once("this is temporary too")
-# TEMP_SORT_IDENTIFICATION: Dict[Sort, Sort] = {
-#
-#     # '$': NonnegReal,
-#     # '$': Dup(NonnegReal,"$"),
-#
-#     # 'Pos$': PosReal,
-#     # 'Pos$': Dup(PosReal,'Pos$'),
-#
-#     # 'ShareCnt': Nat,
-#     # 'Shares' : Dup(Nat,'Shares'),
-#
-#     # 'PosShareCnt': PosInt,
-#     # 'PosShares' : Dup(PosInt,'PosShares'),
-#
-#     # 'SharePrice': SApp('Ratio', PosReal, PosInt),
-#     'SharePrice': SApp('Ratio', Dup(NonnegReal,'$'), Dup(PosInt,'PosShareCnt')),
-#
-#     # 'SharePrice': SApp('Ratio', PosReal, PosInt),
-#     'PosSharePrice': SApp('Ratio', Dup(PosReal,'Pos$'), Dup(PosInt,'PosShareCnt')),
-#
-#     'Order': SApp('Tuple', Nat, Nat),
-#     # 'Order' : Dup(SApp('Tuple', Nat, Nat),'Order'),
-#     'TDMap_Order': SApp('TDMap', SApp('Tuple', Nat, Nat)),
-#     # 'TDMap_Order': SApp('TDMap', Dup(SApp('Tuple',Nat,Nat),'Order')),
-# }
-
+    return SApp('Dup',sort,name)
 
 def Ratio(s1,s2):
     return SApp('Ratio',s1,s2)
 
-RatioAtomicSorts : Set[Sort] = { Ratio(PosRealj,PosIntj), Ratio(NonnegRealj,PosIntj) }
-
+# ---------Atomic---------
 NormalUnboundedNumericSorts = cast(Set[Sort],{Int,Nat,PosInt,Real,NonnegReal,PosReal})
-
-UnboundedNumericSorts = NormalUnboundedNumericSorts\
-                            .union( cast(Set[Sort],{PosIntj,PosRealj,Natj,NonnegRealj} ) )\
-                            .union( RatioAtomicSorts)
-# UnboundedNumericSortCopies : Set[Sort] = set()
-# for orig in UnboundedNumericSorts:
-#     if orig in all_sort_copies_by_orig:
-#         UnboundedNumericSortCopies.union(all_sort_copies_by_orig[orig])
-
-BoundedNumericSorts = {"[0,1]","(0,1]","[0,1)","(0,1)"}
-
+NumericSortDups = cast(Set[Sort],{PosIntj,PosRealj,Natj,NonnegRealj} )
+BoundedRealIntervalSorts = {"[0,1]", "(0,1]", "[0,1)", "(0,1)"}
 # Because all non-empty intersections must be represented (for now)
 FiniteNumericSorts = {"{0,1}","{0}","{1}"}
+AtomicNumericSorts = NormalUnboundedNumericSorts.union(NumericSortDups).union(BoundedRealIntervalSorts).union(FiniteNumericSorts)
 
-AllNumericSorts = UnboundedNumericSorts.union(BoundedNumericSorts).union(FiniteNumericSorts)
+PositiveNumericSorts = {"{1}","(0,1)","(0,1]",PosRealj,PosIntj}
 
-AllAtomicSorts : Set[Sort] = cast(Set[Sort],{DateTime,TimeDelta,PosTimeDelta,Bool,'EmptyTDMap'})\
-                                .union(AllNumericSorts)
+AllAtomicSorts : Set[Sort] = cast(Set[Sort],{DateTime,TimeDelta,PosTimeDelta,Bool,'RoleId','EmptyTDMap'})\
+                                .union(AtomicNumericSorts)
+
+# ---------Nonatomic---------
+RatioSorts : Set[Sort] = {Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)}
 
 TupleAtomicSorts : Set[Sort] = {SApp('Tuple',S,S) for S in AllAtomicSorts}
-# TupleAtomicSorts = map(lambda t: SApp("Tuple",t) ,TupleAtomicSortData)
 
 TDMapKeySorts = TupleAtomicSorts.union(AllAtomicSorts)
 TDMapSorts = map(lambda t: SApp("TDMap", t), TDMapKeySorts)
@@ -108,6 +54,23 @@ TDMapSorts = map(lambda t: SApp("TDMap", t), TDMapKeySorts)
 AllSorts : Set[Any] = AllAtomicSorts\
                         .union( TupleAtomicSorts )\
                         .union( TDMapSorts ) \
-                        .union( RatioAtomicSorts )
-                        # .union( set(TEMP_SORT_IDENTIFICATION.values()) )\
+                        .union( RatioSorts )
 
+UnboundedNumericSorts = NormalUnboundedNumericSorts\
+                            .union( NumericSortDups )\
+                            .union( RatioSorts )
+
+AllNumericSorts = UnboundedNumericSorts.union(BoundedRealIntervalSorts).union(FiniteNumericSorts)
+
+def is_valid_sort(s:Sort, sort_defns:Dict[str,Sort]) -> bool:
+    if isinstance(s,str):
+        if s in sort_defns:
+            return is_valid_sort(sort_defns[s], sort_defns)
+        else:
+            return s in AllAtomicSorts
+    else:
+        op = s.sortop
+        if op == 'Ratio':
+            return s.args[0] in AllNumericSorts and s.args[1] in PositiveNumericSorts
+
+    return False

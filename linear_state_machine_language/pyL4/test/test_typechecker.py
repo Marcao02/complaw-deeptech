@@ -27,13 +27,6 @@ EXAMPLES_TO_TYPECHECK = [
     'serious/KISS.l4',
 ]
 
-def test_eliminate_unbounded_arity():
-
-    eliminate_unbounded_arity({'and*': {3}, '*': {2, 3}, 'max': {2, 3}, 'min': {2},
-                               '≤': {2, 3}, '<': {2, 3}, '>': {2, 3},
-                               '≥': {2, 3}, '==': {2}, '+': {2, 3}}, STANDARD_FNTYPES)
-    print_types_map(STANDARD_FNTYPES)
-
 
 def main(sys_argv:Sequence[str]):
     print_types_map(STANDARD_FNTYPES)

@@ -4,7 +4,7 @@ from src.independent.typing_imports import *
 from src.model.Sort import Sort, NonatomicSort, AtomicSort
 from src.model.FnTypes import OverloadedFnType, SimpleFnType, SimpleFnType
 from src.typechecking.standard_sorts import AllAtomicSorts, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
-    PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedNumericSorts, DateTime, Real, \
+    PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedRealIntervalSorts, DateTime, Real, \
     AllNumericSorts, SApp, NonnegRealj, Natj, PosIntj, PosRealj, AllSorts, Ratio
 
 """
@@ -155,6 +155,10 @@ overloaded_types_data : FnTypesData = [
     (('days',), (
         sfntype(Nat,TimeDelta),
         sfntype(PosInt,PosTimeDelta))
+     ),
+    # -----------Event role getter
+    (('event_role',), (
+        sfntype('RoleId'),)
      ),
 
     # ------------Tuples------------

@@ -5,6 +5,7 @@ roles: Env, I
 
 global vars:
     n : Nat := 0
+    I_must_Catch_by : TDMap[Nat] := (emptyTDMap )
 
 section Ongoing:
     if (n < 5):
@@ -13,16 +14,22 @@ section Ongoing:
         I may Stand immediately
     if (n == 5):
         EnterFulfilled
+    if (nonempty I_must_Catch_by):
+        I obligation-options-include Catch(?0) (tdGEQ I_must_Catch_by ?0 next_event_td) where (mapHas I_must_Catch_by ?0)
 
 action Throw()  transitions to Ongoing:
     transform:
         n := (n + 1)
-    I must-later Catch(n) no_time_constraint
+        I_must_Catch_by := (mapSet I_must_Catch_by n 51948w)
 
 action Stand()  transitions to Ongoing:
     transform:
         n := (n + 1)
 
-action Catch(m: Nat) transitions to Ongoing
+action Catch(m: Nat) transitions to Ongoing:
+    transform:
+        if (event_role == I):
+            I_must_Catch_by := (mapDelete I_must_Catch_by m)
+
 
 action EnterFulfilled()  transitions to Fulfilled

@@ -1,0 +1,102 @@
+; ; QUESTIONS FOR MENG
+; ; Can we assume for version 1 that all funds are in the same currency?
+; regulated_company.l4 type signature pseudocode
+
+; -------
+; Imports
+; -------
+; ; Unqualified imports are from the standard library.
+; ; But we should probably mark most of the standard library as automatically imported.
+
+; import $, Pos$ ; Sorts that can be used when multiple currencies are not needed.
+; import Map
+; ; A minimal (immutable, like all L4 types) list type whose only constructor is append.
+; ; Might also be called a MonotonicList, but that's high falutin!
+; import AppendList
+
+; BoundedSort[T] is for nonempty finite sets of bounded size that are used like sorts, with minimal operation supported.
+; We won't quantify over elements of BoundedSort[T]; it is only used for typing constant symbols.
+; When we generate FV instances, we'll have the option of making them (perhaps only slightly) easier by assigning a numeral
+; bound for the size of each one. The bounds of all such constants in a contract will sum to less than 2^63,
+; so that under certain assumptions a the theorem prover can use machine integers to represent them.
+; import BoundedSort
+
+
+; -------
+; Actions
+; -------
+; DepositFunds
+; WithdrawFunds
+; NewSAFE
+; CloseRound
+; StartRound
+
+(SortDefinitions
+	($ := (Dup NonnegReal "$"))
+	(Pos$ := (Dup PosReal "Pos$"))
+	(ShareCnt := (Dup PosInt "ShareCnt"))
+	(PosShareCnt := (Dup PosInt "PosShareCnt"))
+	(SharePrice := (Ratio SharePrice PosShareCnt))
+	(PosSharePrice := (Ratio PosSharePrice PosShareCnt))
+
+	(Round := (Dup PosInt "Round"))
+
+	(TransactionType := (Enum Deposit Withdraw))
+	(TransactionSpec := (Record (amount $) (time DateTime) (type TransactionType) (description String)))
+	(WithdrawalSpec := (Record (amount $) (time DateTime) (type {Withdraw}) (description String)))
+	(DepositSpec := (Record (amount $) (time DateTime) (type {Deposit}) (description String)))
+
+	(SAFEType := (ADT (Discount "(0,1)") (SafeCap Pos$) (SafeMFN)))
+	(SAFESpec := (Record (investor Investor) (round Round) (type SAFEType) (signdate DateTime)))
+)
+
+(QuasiSorts ; These are set objects that can be used like sorts.
+	; ; These sets all intersect each other. E.g. Meng is in all 3.
+	(Employee : (BoundedSort Id) := INITIAL_EMPLOYEES)
+	(Shareholder : (BoundedSort Id) := INITIAL_SHAREHOLDERS)
+	(Investor : (BoundedSort Id) := INITIAL_INVESTORS)
+
+
+)
+
+(GlobalStateVars
+	; An investor is not included in these maps until they have positive share count.
+	; These types are disjoint.
+	(preferred_share_cnts : [Map Shareholder PosShareCnt])
+	(common_share_cnts : [Map Shareholder PosShareCnt])
+	(safe_preferred_share_cnts : [Map Shareholder PosShareCnt])
+
+	; this list should constitute a non-strict ordering of transactions by increasing .time value.
+	(transactions : [AppendList TransactionSpec])
+
+	(agreements : [AppendList SAFESpec])
+
+	; these might end up being derived:
+	(investment_funds_total : Pos$)
+	(investment_contributions : [Map Investor Pos$])
+)
+
+(StartStateType Ongoing)
+
+(StateClass Ongoing
+
+
+)
+
+(Action (NewSAFE (spec : SAFESpec))
+	(StateTranform
+		(agreements = (append agreements spec))
+	)
+)
+
+(Action (Deposit (spec : TransactionSpec))
+	(StateTranform
+		(transactions = (append transactions spec))
+	)
+)
+
+(Action (Withdraw (...))
+	(StateTranform
+		(transactions = (append transactions spec))
+	)
+)

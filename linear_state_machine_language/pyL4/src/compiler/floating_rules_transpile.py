@@ -1,5 +1,6 @@
 from typing import List, Union, cast
 
+from src.model.Sort import NonatomicSort, Sort
 from src.independent.util import todo_once, castid
 from src.constants_and_defined_types import DeonticKeyword, RoleId, ActionId, GlobalVarId, RuleBoundActionParamId, \
     ENV_ROLE, ActionBoundActionParamId
@@ -21,14 +22,17 @@ def tdmapname(roleid:RoleId, actionid:ActionId, keyword:DeonticKeyword) -> Globa
         assert keyword == "may-later"
         return castid(GlobalVarId, f"{roleid}_may_{actionid}_by")
 
-def add_tdmap_dec(prog: L4Contract, mapvar_name: GlobalVarId) -> None:
+def add_tdmap_dec(prog: L4Contract, mapvar_name: GlobalVarId, argsort:Sort) -> None:
     print("Adding global var dec " + mapvar_name)
-    prog.global_var_decs[mapvar_name] = GlobalVarDec(mapvar_name, "TDMap", FnApp('emptyTDMap',[]), [])
+    prog.global_var_decs[mapvar_name] = GlobalVarDec(mapvar_name, NonatomicSort("TDMap",(argsort,)), FnApp('emptyTDMap',[]), [])
 
 
 def floating_rules_transpile_away(prog:L4Contract) -> None:
     statement: GlobalStateTransformStatement
     params: List[Term]
+
+    def pack(_params:List[Term]):
+        return FnApp('tuple',_params) if len(_params) > 1 else _params[0]
 
     # --------------------------------------------------------------
     # Deleting instances of rules when a corresponding action occurs
@@ -40,7 +44,12 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
             map_name = tdmapname(fut_rule_type.rid, fut_rule_type.aid, fut_rule_type.kw)
             if map_name not in prog.global_var_decs:
-                add_tdmap_dec(prog, map_name)
+                if len(action.param_sorts_by_name) == 1:
+                    add_tdmap_dec(prog, map_name, action.param_sort(0))
+                elif len(action.param_sorts_by_name) == 2:
+                    add_tdmap_dec(prog, map_name,
+                                  NonatomicSort('Tuple', tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
+                                  )
             map_dec = prog.global_var_decs[map_name]
             map_var = prog.new_global_var_ref(map_name)
 
@@ -52,7 +61,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                                [GlobalVarAssignStatement(
                                    map_dec,
                                    FnApp("mapDelete", [map_var,
-                                                       FnApp('tuple', params) ])
+                                                       pack(params) ])
                                )]
                                )
 
@@ -82,7 +91,13 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
 
         map_name = tdmapname(far.role_id, far.action_id, far.deontic_keyword)
         if map_name not in prog.global_var_decs:
-            add_tdmap_dec(prog, map_name)
+            if len(action.param_sorts_by_name) == 1:
+                add_tdmap_dec(prog, map_name, action.param_sort(0))
+            elif len(action.param_sorts_by_name) == 2:
+                add_tdmap_dec(prog, map_name,
+                              NonatomicSort('Tuple',
+                                            tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
+                              )
         map_dec = prog.global_var_decs[map_name]
         map_var = prog.new_global_var_ref(map_name)
         if far.entrance_enabled_guard:
@@ -90,7 +105,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                           [GlobalVarAssignStatement(
                               map_dec,
                               FnApp("mapSet",[map_var,
-                                              FnApp('tuple', far.fixed_args),
+                                              pack(far.fixed_args),
                                               timedelta_term])
                           )]
                         )
@@ -98,7 +113,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
             statement = GlobalVarAssignStatement(
                                map_dec,
                                FnApp("mapSet", [map_var,
-                                                FnApp('tuple', far.fixed_args),
+                                                pack(far.fixed_args),
                                                 timedelta_term])
                            )
 
@@ -133,10 +148,10 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in range(len(action.param_names))]
                 rule.time_constraint =  FnApp("tdGEQ",
                                              [map_var,
-                                              FnApp('tuple', params),
-                                              FnApp('event_td',[])
+                                              pack(params),
+                                              FnApp('next_event_td',[])
                                              ])
-                rule.where_clause = FnApp('mapHas', [map_var, FnApp('tuple', params)])
+                rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
                 rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sec.add_action_rule(rule)
             else:
@@ -146,10 +161,10 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                 #           range(len(action.params))]
                 # rule.time_constraint = FnApp("tdGEQ",
                 #                              [map_var,
-                #                               FnApp('tuple', params),
+                #                               pack(params),
                 #                               FnApp('event_td', [])
                 #                               ])
-                # rule.where_clause = FnApp('mapHas', [map_var, FnApp('tuple', params)])
+                # rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
                 # rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 # sec.add_action_rule(rule)
 
@@ -158,10 +173,10 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                           range(len(action.param_names))]
                 rule.time_constraint = FnApp("tdGEQ",
                                              [map_var,
-                                              FnApp('tuple', params),
-                                              FnApp('event_td', [])
+                                              pack(params),
+                                              FnApp('next_event_td', [])
                                               ])
-                rule.where_clause = FnApp('mapHas', [map_var, FnApp('tuple', params)])
+                rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
                 rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sec.add_action_rule(rule)
 

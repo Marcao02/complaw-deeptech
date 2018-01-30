@@ -2,6 +2,7 @@ import logging
 
 from mypy_extensions import NoReturn
 
+from src.compiler.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 from src.constants_and_defined_types import *
 from src.correctness_checks import L4ContractConstructorInterface
@@ -140,7 +141,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not f[0]():
                 raise Exception(f[1])
 
-        # floating_rules_transpile_away(self.top)
+        floating_rules_transpile_away(self.top)
         return self.top
 
     def _mk_sort(self, x:SExprOrStr) -> Sort:
