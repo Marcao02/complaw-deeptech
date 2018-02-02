@@ -1,7 +1,10 @@
+from typing import Optional
+
 from src.independent.util import chcaststr
 from src.independent.util_for_sequences import is_singleton_string_list
 from src.independent.SExpr import *
 
+ALLOW_PRIMED_NAMES = True
 
 class SExprBuilder:
     def __init__(self) -> None:
@@ -99,6 +102,9 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
                     builder.appendTokenInCurScope(COMMENT_LITERAL_MARKER)
 
             elif char in (' ', '\n', '\t') and not in_str_lit:
+                maybeAppendToken()
+
+            elif ALLOW_PRIMED_NAMES and (not in_str_lit) and char == "'" and i > 0 and string[i-1].isalnum():
                 maybeAppendToken()
 
             elif char in quotelike and ((not in_str_lit) or (str_lit_quote == char)):
