@@ -195,11 +195,16 @@
 
 	(Action TransferCash_L (AllowedSubjects Company)
 		(StateTransform
-			(if (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)) (
-				(liq_cashout = cash_currently_unconverted)
-			)
-			else (
-				(liq_cashout = (company_cash * investor_percent_of_cashout_investor_investments))
+			; (if (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)) (
+			; 	(liq_cashout := cash_currently_unconverted)
+			; )
+			; else (
+			; 	(liq_cashout := (company_cash * investor_percent_of_cashout_investor_investments))
+			; ))
+			(liq_cashout := (ifthenelse
+				(cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments))
+				cash_currently_unconverted
+				(company_cash * investor_percent_of_cashout_investor_investments)
 			))
 			(investor_cash += liq_cashout)
 			; (company_cash -= liq_cashout)
@@ -236,11 +241,16 @@
 						    (investor_percent_of_dissolving_investor_investments : "(0,1]"))
 		(AllowedSubjects Company)
 		(StateTransform
-			(if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) (
-				(dis_cashout = PURCHASE_AMOUNT)
-			)
-			else (
-				(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
+			; (if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) (
+			; 	(dis_cashout = PURCHASE_AMOUNT)
+			; )
+			; else (
+			; 	(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
+			; ))
+			(dis_cashout := (ifthenelse
+				(PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
+				PURCHASE_AMOUNT
+				(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
 			))
 			(investor_cash = dis_cashout)
 			; (company_cash = (company_cash_at_dissolution_event - dis_cashout))

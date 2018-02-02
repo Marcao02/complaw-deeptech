@@ -114,11 +114,7 @@ action ChooseCashPayment()  transitions to AfterChooseCashPayment
 
 action TransferCash_L()  transitions to AfterTransferCash_L:
     transform:
-        if (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)):
-            liq_cashout := cash_currently_unconverted
-        else:
-            liq_cashout := (company_cash * investor_percent_of_cashout_investor_investments)
-
+        liq_cashout := (ifthenelse (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)) cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments))
         investor_cash := (investor_cash + liq_cashout)
     following section:
         if (liq_cashout < cash_currently_unconverted):
@@ -134,11 +130,7 @@ action CommitToDissolution()  transitions to AfterCommitToDissolution
 
 action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: (0,1]) transitions to AfterTransferCash_D:
     transform:
-        if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)):
-            dis_cashout := PURCHASE_AMOUNT
-        else:
-            dis_cashout := (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
-
+        dis_cashout := (ifthenelse (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
         investor_cash := dis_cashout
     following section:
         if (dis_cashout < PURCHASE_AMOUNT):
