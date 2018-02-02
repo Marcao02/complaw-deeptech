@@ -18,6 +18,9 @@ class Term:
         print(f"{self} of type {type(self)} not handled")
         raise NotImplementedError
 
+    def subst(self, var:str, term:'Term') -> 'Term':
+        raise NotImplementedError
+
 TermOrStr = Union[Term,str]
 
 class FnApp(Term):
@@ -48,6 +51,8 @@ class FnApp(Term):
             rviter = chain(rviter, term.forEach(pred, f))
         return rviter
 
+    def subst(self, var:str, term:'Term') -> 'Term':
+        return FnApp(self.fnsymb_name, [arg.subst(var,term) for arg in self.args], self.coord)
 
     def __str__(self) -> str:
         if self.head in EXEC_ENV_VARIABLES:

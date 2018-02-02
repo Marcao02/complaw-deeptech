@@ -7,6 +7,11 @@ from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Sort import Sort
 from src.model.Term import Term
 
+Block = List['GlobalStateTransformStatement']
+
+def blocksubst(b:Block, var:str, term:Term) -> Block:
+    return [s.subst(var,term) for s in b]
+
 """ Just the common parent """
 class GlobalStateTransformStatement:
     def __init__(self):
@@ -15,6 +20,12 @@ class GlobalStateTransformStatement:
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         raise NotImplementedError
     def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
+        raise NotImplementedError
+
+    """
+    var can be a local or global var
+    """
+    def subst(self, var:str, term:Term) -> 'GlobalStateTransformStatement':
         raise NotImplementedError
 
     def toStr(self, i:int):
@@ -52,7 +63,10 @@ class IfElse(GlobalStateTransformStatement):
                 rviter = chain(rviter, statement.forEach(pred, f))
         return rviter
 
-
+    def subst(self, var: str, term: Term) -> 'IfElse':
+        return IfElse( self.test.subst(var,term),
+                       blocksubst(self.true_branch, var, term),
+                       blocksubst(self.false_branch, var, term) if self.false_branch else None )
 
     def toStr(self,i:int):
         rv = indent(i) + f"if {self.test}:\n"

@@ -1,6 +1,7 @@
 import logging
 from typing import List
 
+from src.hard_correctness_checks.normal_forms import eliminate_local_vars
 from src.independent.util import writeReadOnlyFile
 from src.parse_and_build_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
@@ -55,6 +56,8 @@ def main(sys_argv:List[str]):
 
             assembler = L4ContractConstructor(filename)
             prog = assembler.mk_l4contract(parsed)
+
+            # eliminate_local_vars(prog)
 
             # print( prog.action_ids() )
             # print( prog.section_ids() )

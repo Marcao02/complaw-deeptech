@@ -74,7 +74,9 @@ FN_SYMB_INTERP = {
     'tdLT' : tdmapTimeDeltaLT,
     'emptyTDMap' : lambda: tuple(),
     'nonempty' : lambda x: len(x) > 0,
-    'empty' : lambda x: len(x) == 0
+    'empty' : lambda x: len(x) == 0,
+
+    'ifthenelse' : lambda t,tbranch,fbranch: tbranch if t else fbranch
 }
 
 def event_to_action_str(event:Event):
