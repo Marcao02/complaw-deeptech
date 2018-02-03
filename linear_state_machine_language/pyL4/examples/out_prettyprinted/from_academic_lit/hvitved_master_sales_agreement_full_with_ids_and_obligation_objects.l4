@@ -15,8 +15,6 @@ global vars:
     nonoperative inconly units_delivered : Nat := 0
     nonoperative inconly units_invoiced : Nat := 0
     nonoperative inconly total_paid : Nat := 0
-    this_delivery_deadline : TimeDelta
-    this_orderid : Nat
     Vendor_must_Deliver_by : TDMap[Nat×Nat] := (emptyTDMap )
     Vendor_may_EmailInvoice_by : TDMap[Nat×Nat] := (emptyTDMap )
     Customer_must_PayBill_by : TDMap[Nat×Nat] := (emptyTDMap )
@@ -28,18 +26,18 @@ section VendorAcceptingOrders:
         EnterFulfilled (next_event_td ≥ order_period_ends)
     if (nonempty Vendor_must_Deliver_by):
         Vendor obligation-options-include Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
-    if (nonempty Customer_must_PayBill_by):
-        Customer obligation-options-include PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
     if (nonempty Vendor_may_EmailInvoice_by):
         Vendor may EmailInvoice(?0, ?1) (tdGEQ Vendor_may_EmailInvoice_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_may_EmailInvoice_by (tuple ?0 ?1))
+    if (nonempty Customer_must_PayBill_by):
+        Customer obligation-options-include PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
 
 action SubmitNewOrder(quantity: Nat) transitions to VendorAcceptingOrders:
     transform:
-        this_delivery_deadline := (max (14d + event_td) ((days (ceil (quantity / 10))) + event_td))
+        this_delivery_deadline : TimeDelta := (max (14d + event_td) ((days (ceil (quantity / 10))) + event_td))
         units_ordered := (units_ordered + quantity)
-        this_orderid := next_order_id
+        this_order_id : Nat := next_order_id
         next_order_id := (next_order_id + 1)
-        Vendor_must_Deliver_by := (mapSet Vendor_must_Deliver_by (tuple quantity this_orderid) this_delivery_deadline)
+        Vendor_must_Deliver_by := (mapSet Vendor_must_Deliver_by (tuple quantity this_order_id) this_delivery_deadline)
 
 action Deliver(quantity: Nat, orderid: Nat) transitions to VendorAcceptingOrders:
     transform:

@@ -36,8 +36,6 @@ class SExprBuilder:
         return '*' + repr(self.stack) + '*'
 
 
-
-
 def parse(string:str, debug=False, strip_comments=True) -> SExpr:
     """
     >>> parse("(+ 5 (+ 3 5))")
@@ -105,6 +103,7 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
                 maybeAppendToken()
 
             elif ALLOW_PRIMED_NAMES and (not in_str_lit) and char == "'" and i > 0 and string[i-1].isalnum():
+                word += char
                 maybeAppendToken()
 
             elif char in quotelike and ((not in_str_lit) or (str_lit_quote == char)):

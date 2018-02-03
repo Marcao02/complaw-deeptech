@@ -76,7 +76,6 @@
     [ inconly units_ordered : Nat = 0 ]
     [ writeonce order_period_ends : TimeDelta = [contractStart_td + CONTRACT_LIFE]]
 
-
     ; `nonoperative` instructs our static checker to verify that these
     ; variables cannot affect program execution. They would only be used
     ; for verification conditions [which we haven't done in this example
@@ -84,11 +83,6 @@
     [ nonoperative inconly units_delivered : Nat = 0 ]
     [ nonoperative inconly units_invoiced : Nat = 0 ]
     [ nonoperative inconly total_paid : Nat = 0 ]
-
-
-    ; THESE SHOULD BE LOCAL VARIABLES:
-    [this_delivery_deadline : TimeDelta]
-    [this_orderid : Nat]
 ]
 
 [Roles Customer Vendor]
@@ -174,19 +168,19 @@
         [AllowedSubjects Customer]
         [StateTransform
             ; 14 days later, or quantity/10 days later, whichever occurs last
-            [this_delivery_deadline := [max
+            [local this_delivery_deadline : TimeDelta := [max
                     [14d + event_td]
                     [[days [ceil [quantity / 10]]] + event_td]
                 ]
             ]
             [units_ordered += quantity]
-            [this_orderid := next_order_id]
+            [local this_order_id : Nat := next_order_id]
             [next_order_id += 1]
             ; [local mytest_for_error : TimeDelta = sectionEntrance_td]
         ]
 
         [Future
-            [ Vendor must-later [Deliver quantity this_orderid] [future_event_td ≤ this_delivery_deadline]]
+            [ Vendor must-later [Deliver quantity this_order_id] [future_event_td ≤ this_delivery_deadline]]
         ]
 
     ]
