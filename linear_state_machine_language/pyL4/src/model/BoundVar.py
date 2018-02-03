@@ -8,7 +8,7 @@ from src.model.Action import Action
 from src.model.ActionRule import ActionRule
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Statement import LocalVarDec
-from src.model.GlobalVarDec import GlobalVarDec
+from src.model.StateVarDec import StateVarDec
 from src.model.Term import Term
 
 
@@ -77,9 +77,9 @@ class LocalVar(BoundVar):
 
 
 class GlobalVar(BoundVar):
-    def __init__(self, vardec:GlobalVarDec) -> None:
+    def __init__(self, vardec:StateVarDec) -> None:
         super().__init__()
-        self.vardec : GlobalVarDec = vardec
+        self.vardec : StateVarDec = vardec
 
     @property
     def name(self) -> StateVarId:

@@ -5,7 +5,7 @@ from src.constants_and_defined_types import ActionBoundActionParamId, SectionId,
     LocalVarId
 from src.independent.typing_imports import *
 from src.model.ActionRule import PartyFutureActionRule, ActionRule
-from src.model.GlobalStateTransform import GlobalStateTransform
+from src.model.StateTransform import StateTransform
 from src.model.Statement import LocalVarDec, Statement
 from src.model.Section import Section, ParamsDec
 from src.model.Sort import Sort
@@ -24,7 +24,7 @@ class Action:
 
         self.following_anon_section : Optional[Section] = None
 
-        self.global_state_transform : Optional[GlobalStateTransform] = None
+        self.global_state_transform : Optional[StateTransform] = None
         self.preconditions: List[Term] = []
         self.postconditions: List[Term] = []
         self.prose_refs : List[str] = []
@@ -40,7 +40,6 @@ class Action:
             return self.param_sorts_by_name[castid(ActionBoundActionParamId,ind_or_name)]
         if isinstance(ind_or_name,int):
             return self.param_sorts_by_name[self.param_names[ind_or_name]]
-
 
     def state_transform_statements(self) -> Iterator[Statement]:
         if self.global_state_transform:

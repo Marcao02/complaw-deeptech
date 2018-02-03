@@ -12,7 +12,7 @@ from src.model.BoundVar import GlobalVar
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
-from src.model.GlobalVarDec import GlobalVarDec
+from src.model.StateVarDec import StateVarDec
 from src.model.L4Macro import L4Macro
 from src.model.Section import Section
 from src.model.Sort import Sort
@@ -27,7 +27,7 @@ class L4Contract:
 
         self.start_section_id = cast(SectionId, "start section id to be assigned")
 
-        self.global_var_decs : Dict[StateVarId, GlobalVarDec] = dict()
+        self.global_var_decs : Dict[StateVarId, StateVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
 
@@ -109,7 +109,7 @@ class L4Contract:
         return self.actions_by_id[anid]
         # return self.actions_by_id[anid] if anid in self.actions_by_id else None
 
-    def gvarDecObj(self, varname:str) -> Optional[GlobalVarDec]:
+    def gvarDecObj(self, varname:str) -> Optional[StateVarDec]:
         if varname in self.global_var_decs:
             return self.global_var_decs[cast(StateVarId, varname)]
         else:

@@ -13,9 +13,9 @@ from src.model.BoundVar import GlobalVar, ContractParam, ActionBoundActionParam,
     RuleBoundActionParam, LocalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.EventsAndTraces import Event, Trace, breachSectionId
-from src.model.GlobalStateTransform import GlobalStateTransform
+from src.model.StateTransform import StateTransform
 from src.model.Statement import IfElse, StateVarAssign, LocalVarDec
-from src.model.GlobalVarDec import GlobalVarDec
+from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal, DeadlineLit, SimpleTimeDeltaLit, RoleIdLit
 from src.model.PartialEvalTerm import PartialEvalTerm
@@ -329,7 +329,7 @@ class ExecEnv:
         return ApplyActionResult(None)
 
 
-    def evalGlobalVarDecs(self, decs : Dict[StateVarId, GlobalVarDec]):
+    def evalGlobalVarDecs(self, decs : Dict[StateVarId, StateVarDec]):
         for (var,dec) in decs.items():
             # print("dec: ", dec, dec.initval)
             if dec.initval is None:
@@ -352,12 +352,12 @@ class ExecEnv:
             # print(name, type(self.contract_param_vals[name]))
 
 
-    def evalCodeBlock(self, transform:GlobalStateTransform):
+    def evalCodeBlock(self, transform:StateTransform):
         for statement in transform.statements:
             self.evalStatement(statement)
 
     def evalStatement(self, stmt:Statement):
-        # An Action's GlobalStateTransform block is *always* evaluated in the most recent global variable and
+        # An Action's StateTransform block is *always* evaluated in the most recent global variable and
         # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
         # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
         # Therefore, this function does not take an EvalContext argument.
@@ -396,9 +396,9 @@ class ExecEnv:
         elif isinstance(stmt, IfElse):
             test_result = chcast(bool, self.evalTerm(stmt.test))
             if test_result:
-                self.evalCodeBlock(GlobalStateTransform( stmt.true_branch ))
+                self.evalCodeBlock(StateTransform(stmt.true_branch))
             elif stmt.false_branch:
-                self.evalCodeBlock(GlobalStateTransform(stmt.false_branch))
+                self.evalCodeBlock(StateTransform(stmt.false_branch))
 
         elif isinstance(stmt, LocalVarDec):
             rhs_value = self.evalTerm(stmt.value_expr)
