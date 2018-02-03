@@ -10,11 +10,11 @@ from src.interpreter.interpreter_support import *
 from src.model.Action import Action
 from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule
 from src.model.BoundVar import GlobalVar, ContractParam, ActionBoundActionParam, \
-    RuleBoundActionParam, StateTransformLocalVar
+    RuleBoundActionParam, LocalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.EventsAndTraces import Event, Trace, breachSectionId
 from src.model.GlobalStateTransform import GlobalStateTransform
-from src.model.GlobalStateTransformStatement import IfElse, GlobalVarAssignStatement, StateTransformLocalVarDec
+from src.model.Statement import IfElse, StateVarAssign, LocalVarDec
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal, DeadlineLit, SimpleTimeDeltaLit, RoleIdLit
@@ -39,7 +39,7 @@ class ExecEnv:
 
         self.localvar_vals: LocalVarSubst = dict()
         self.gvarvals: GVarSubst = dict()
-        self.gvar_write_cnt : Dict[GlobalVarId, int] = dict()
+        self.gvar_write_cnt : Dict[StateVarId, int] = dict()
 
         # following 2 change only in apply_action:
         self.last_or_current_section_id: SectionId = prog.start_section_id
@@ -163,7 +163,7 @@ class ExecEnv:
 
         if final_var_vals:
             for gvarid,expected_val in final_var_vals.items():
-                actual_val = self.gvarvals[castid(GlobalVarId,gvarid)]
+                actual_val = self.gvarvals[castid(StateVarId, gvarid)]
                 assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
         if finalSectionId:
@@ -329,7 +329,7 @@ class ExecEnv:
         return ApplyActionResult(None)
 
 
-    def evalGlobalVarDecs(self, decs : Dict[GlobalVarId, GlobalVarDec]):
+    def evalGlobalVarDecs(self, decs : Dict[StateVarId, GlobalVarDec]):
         for (var,dec) in decs.items():
             # print("dec: ", dec, dec.initval)
             if dec.initval is None:
@@ -356,13 +356,13 @@ class ExecEnv:
         for statement in transform.statements:
             self.evalStatement(statement)
 
-    def evalStatement(self, stmt:GlobalStateTransformStatement):
+    def evalStatement(self, stmt:Statement):
         # An Action's GlobalStateTransform block is *always* evaluated in the most recent global variable and
         # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
         # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
         # Therefore, this function does not take an EvalContext argument.
 
-        if isinstance(stmt, AbstractGlobalVarAssignStatement):
+        if isinstance(stmt, StateVarAssign):
             gvardec = stmt.vardec
             assert gvardec is not None, f"Global variable declaration for {stmt.varname} not found."
 
@@ -372,27 +372,21 @@ class ExecEnv:
             todo_once("use vardec for runtime type checking")
             rhs_value = self.evalTerm(stmt.value_expr)
 
-        if isinstance(stmt, GlobalVarAssignStatement):
-            self.gvarvals[stmt.varname] = rhs_value
-            print(f"\t{stmt.varname} := {rhs_value}")
+            if stmt.varop == ":=":
+                self.gvarvals[stmt.varname] = rhs_value
+            else:
+                current_var_val: Data = self.gvarvals[stmt.varname]
+                if stmt.varop == "+=":
+                    self.gvarvals[stmt.varname] = current_var_val + rhs_value
+                elif stmt.varop == "-=":
+                    self.gvarvals[stmt.varname] = current_var_val - rhs_value
+                elif stmt.varop == "*=":
+                    self.gvarvals[stmt.varname] = current_var_val * rhs_value
+                else:
+                    raise Exception('fixme')
+            print(f"\t{stmt.varname} ← {self.gvarvals[stmt.varname]}")
 
-        elif isinstance(stmt, AbstractGlobalVarAssignStatement):
-            current_var_val : Data = self.gvarvals[stmt.varname]
-            assert current_var_val is not None
-
-            if isinstance(stmt, IncrementStatement):
-                self.gvarvals[stmt.varname] = current_var_val + rhs_value
-                print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
-            elif isinstance(stmt, DecrementStatement):
-                self.gvarvals[stmt.varname] = current_var_val - rhs_value
-                print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
-            elif isinstance(stmt, TimesEqualsStatement):
-                self.gvarvals[stmt.varname] = current_var_val * rhs_value
-                print(f"\t{stmt.varname} := {self.gvarvals[stmt.varname]}")
-            else: raise Exception('fixme')
-
-
-        elif isinstance(stmt, InCodeConjectureStatement):
+        elif isinstance(stmt, FVRequirement):
             # print("conjecture " + str(stmt))
             assert self.evalTerm(stmt.value_expr), f"""Conjecture {stmt.value_expr} is false! Variable values and action params:
             {str(self.gvarvals)}
@@ -406,12 +400,12 @@ class ExecEnv:
             elif stmt.false_branch:
                 self.evalCodeBlock(GlobalStateTransform(stmt.false_branch))
 
-        elif isinstance(stmt, StateTransformLocalVarDec):
+        elif isinstance(stmt, LocalVarDec):
             rhs_value = self.evalTerm(stmt.value_expr)
             self.localvar_vals[stmt.varname] = rhs_value
 
         else:
-            raise NotImplementedError("Unhandled GlobalStateTransformStatement: " + str(stmt))
+            raise NotImplementedError("Unhandled Statement: " + str(stmt))
 
 
     def evalTerm(self,
@@ -454,7 +448,7 @@ class ExecEnv:
             elif isinstance(term, SimpleTimeDeltaLit):
                 return term.timedelta
 
-            elif isinstance(term, StateTransformLocalVar):
+            elif isinstance(term, LocalVar):
                 return self.localvar_vals[term.name]
 
             else:

@@ -1,11 +1,11 @@
 from src.independent.util import todo_once
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
-from src.model.BoundVar import StateTransformLocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
+from src.model.BoundVar import LocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam
 from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, SimpleFnType
-from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, StateTransformLocalVarDec, \
-    GlobalVarAssignStatement, IfElse, InCodeConjectureStatement
+from src.model.Statement import Statement, LocalVarDec, \
+    StateVarAssign, IfElse, FVRequirement
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
 from src.model.Section import Section
@@ -31,7 +31,7 @@ Just a public API function
 #         typecheck_prog(x)
 #     elif isinstance(x, Term):
 #         typeinfer_term(x)
-#     elif isinstance(x, GlobalStateTransformStatement):
+#     elif isinstance(x, Statement):
 #         typecheck_statement(x)
 
 
@@ -76,7 +76,7 @@ def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
                 yield t.lit
             else:
                 raise NotImplementedError(str(t) + "," + str(type(t)))
-        elif isinstance(t, (StateTransformLocalVar, GlobalVar)):
+        elif isinstance(t, (LocalVar, GlobalVar)):
             yield t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             yield t.action.param_sorts_by_name[t.name]
@@ -92,7 +92,7 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
     def f(t:Term):
         if isinstance(t, SortLit):
             yield t.lit
-        elif   isinstance(t, (StateTransformLocalVar, GlobalVar)):
+        elif   isinstance(t, (LocalVar, GlobalVar)):
             yield t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             yield t.action.param_sorts_by_name[t.name]
@@ -294,7 +294,7 @@ class TypeChecker:
                 return "RoleId"
             elif isinstance(t,StringLit):
                 return "String"
-        elif isinstance(t, (StateTransformLocalVar, GlobalVar)):
+        elif isinstance(t, (LocalVar, GlobalVar)):
             return t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             # print(t.action.param_sorts_by_name)
@@ -329,10 +329,10 @@ class TypeChecker:
             raise L4TypeInferCheckError(t,inferred,s)
         return True
 
-    def typecheck_statement(self, s:GlobalStateTransformStatement):
-        if isinstance(s, StateTransformLocalVarDec):
+    def typecheck_statement(self, s:Statement):
+        if isinstance(s, LocalVarDec):
             self.typecheck_term(s.value_expr,s.sort)
-        elif isinstance(s, GlobalVarAssignStatement):
+        elif isinstance(s, StateVarAssign):
             self.typecheck_term(s.value_expr,s.vardec.sort)
         elif isinstance(s, IfElse):
             self.typecheck_term(s.test,'Bool')
@@ -341,7 +341,7 @@ class TypeChecker:
             if s.false_branch:
                 for statement in s.false_branch:
                     self.typecheck_statement(statement)
-        elif isinstance(s, InCodeConjectureStatement):
+        elif isinstance(s, FVRequirement):
             self.typecheck_term(s.value_expr,'Bool')
         else:
             raise NotImplementedError

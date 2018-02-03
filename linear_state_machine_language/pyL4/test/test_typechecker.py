@@ -1,9 +1,8 @@
 from typing import Sequence
 
+from test_parser import EXAMPLES_SEXPR_ROOT
 from src.independent.parse_sexpr import parse_file
-from src.parse_and_build_model.compiler_cli import EXAMPLES_SEXPR_ROOT
-from src.parse_and_build_model.sexpr_to_L4Contract import L4ContractConstructor
-
+from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map
 from src.typechecking.typecheck import typecheck_prog
 

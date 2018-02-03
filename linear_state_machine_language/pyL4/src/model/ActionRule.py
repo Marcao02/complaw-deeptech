@@ -129,7 +129,7 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
     """
     It's derived from, and points at, a PartyFutureActionRule. Call that its parent rule.
     Its parent rule's `entrance_enabled_guard` evaluated to True when this thing was created.
-    It has values for all `GlobalVarId`s that occur in its parent's `where_clause` or `time_constraint`.
+    It has values for all `StateVarId`s that occur in its parent's `where_clause` or `time_constraint`.
     It has values for all `ActionBoundActionParamId`s that occur in its parent's `where_clause`  or `time_constraint`. Such variables can only
     occur if its parent rule is defined in a `FollowingSection` declaration, since that is the only way that
     an `ActionBoundActionParamId` can be in the scope of a `where_clause` or `time_constraint`.

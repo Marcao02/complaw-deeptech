@@ -10,18 +10,17 @@ def runit(s, optional_s=""):
     os.system(s)
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
-    from src.parse_and_build_model import compiler_cli
+    import test_parser
 
-    assert compiler_cli.EXAMPLES_FULL_SIZE == len(
-        compiler_cli.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
+    assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
 
     if "print" in sys.argv:
-        print(f"\n============================================\nRunning `compiler_cli.py` with args `examples printPretty printSExpr dot`")
-        compiler_cli.main("examples printPretty printSExpr dot")
+        print(f"\n============================================\nRunning `test_parser.py` with args `examples printPretty printSExpr dot`")
+        test_parser.main("examples printPretty printSExpr dot")
         # runit("python3.6 src.parse_and_build_model_cli.py examples printPretty printSExpr dot")
     else:
-        print(f"\n============================================\nRunning `compiler_cli.py` with args `examples`")
-        compiler_cli.main("examples")
+        print(f"\n============================================\nRunning `test_parser.py` with args `examples`")
+        test_parser.main("examples")
         # runit("python3.6 src.parse_and_build_model_cli.py examples")
 
     import test_interpreter

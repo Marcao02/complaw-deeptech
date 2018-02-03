@@ -27,7 +27,7 @@ class L4Contract:
 
         self.start_section_id = cast(SectionId, "start section id to be assigned")
 
-        self.global_var_decs : Dict[GlobalVarId, GlobalVarDec] = dict()
+        self.global_var_decs : Dict[StateVarId, GlobalVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
 
@@ -111,7 +111,7 @@ class L4Contract:
 
     def gvarDecObj(self, varname:str) -> Optional[GlobalVarDec]:
         if varname in self.global_var_decs:
-            return self.global_var_decs[cast(GlobalVarId,varname)]
+            return self.global_var_decs[cast(StateVarId, varname)]
         else:
             return None
         # elif isinstance(sec,Section) and varname in sec.local_vars:

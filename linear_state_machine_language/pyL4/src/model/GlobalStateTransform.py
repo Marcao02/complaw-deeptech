@@ -1,11 +1,11 @@
 from typing import List
 
 from src.independent.util import indent
-from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement
+from src.model.Statement import Statement
 
 
 class GlobalStateTransform:
-    def __init__(self, statements: List[GlobalStateTransformStatement]) -> None:
+    def __init__(self, statements: List[Statement]) -> None:
         self.statements = statements
 
     def __str__(self):

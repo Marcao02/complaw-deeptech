@@ -2,11 +2,11 @@ from itertools import chain
 
 from src.independent.util import indent, castid
 from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
-    StateTransformLocalVarId
+    LocalVarId
 from src.independent.typing_imports import *
 from src.model.ActionRule import PartyFutureActionRule, ActionRule
 from src.model.GlobalStateTransform import GlobalStateTransform
-from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec, GlobalStateTransformStatement
+from src.model.Statement import LocalVarDec, Statement
 from src.model.Section import Section, ParamsDec
 from src.model.Sort import Sort
 from src.model.Term import Term
@@ -19,7 +19,7 @@ class Action:
         self.traversal_bounds: Optional[Any] = None # SExpr
         self.allowed_subjects: Optional[Any] = None # SExpr
         self.action_description: Optional[str] = None
-        self.local_vars: Dict[StateTransformLocalVarId,StateTransformLocalVarDec] = dict()
+        self.local_vars: Dict[LocalVarId, LocalVarDec] = dict()
         self.is_compound = False
 
         self.following_anon_section : Optional[Section] = None
@@ -42,7 +42,7 @@ class Action:
             return self.param_sorts_by_name[self.param_names[ind_or_name]]
 
 
-    def state_transform_statements(self) -> Iterator[GlobalStateTransformStatement]:
+    def state_transform_statements(self) -> Iterator[Statement]:
         if self.global_state_transform:
             for s in self.global_state_transform.statements:
                 yield s

@@ -11,8 +11,8 @@ Data = Any # later maybe Tuple[Data] and str
 RoleId = NewType('RoleId',str)
 ProseClauseId = NewType('ProseClauseId',str)
 
-GlobalVarId = NewType('GlobalVarId',str)
-StateTransformLocalVarId = NewType('StateTransformLocalVarId',str)
+StateVarId = NewType('StateVarId', str)
+LocalVarId = NewType('LocalVarId', str)
 ActionId = NewType('ActionId',str)
 SortId = NewType('SortId', str)
 SectionId = NewType('SectionId',str)
@@ -25,8 +25,8 @@ ProseContract = Dict[ProseClauseId,str]
 ParamsDec = Dict[ActionBoundActionParamId, 'Sort']
 
 ContractParamSubst = Dict[ContractParamId,Data]
-GVarSubst = Dict[GlobalVarId,Data]
-LocalVarSubst = Dict[StateTransformLocalVarId,Data]
+GVarSubst = Dict[StateVarId, Data]
+LocalVarSubst = Dict[LocalVarId, Data]
 ABAPNamedSubst = Dict[ActionBoundActionParamId, Data]
 RBAPNamedSubst = Dict[RuleBoundActionParamId, Data]
 AParamsSubst = List[Data]

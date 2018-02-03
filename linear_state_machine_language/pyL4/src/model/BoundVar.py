@@ -1,13 +1,13 @@
 from itertools import chain
 
 from src.independent.util import castid
-from src.constants_and_defined_types import GlobalVarId, ContractParamId, ActionBoundActionParamId, \
-    RuleBoundActionParamId, StateTransformLocalVarId
+from src.constants_and_defined_types import StateVarId, ContractParamId, ActionBoundActionParamId, \
+    RuleBoundActionParamId, LocalVarId
 from src.independent.typing_imports import *
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
 from src.model.ContractParamDec import ContractParamDec
-from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec
+from src.model.Statement import LocalVarDec
 from src.model.GlobalVarDec import GlobalVarDec
 from src.model.Term import Term
 
@@ -65,14 +65,14 @@ class ActionBoundActionParam(BoundVar):
         return self._name
 
 
-class StateTransformLocalVar(BoundVar):
-    def __init__(self, vardec: StateTransformLocalVarDec) -> None:
+class LocalVar(BoundVar):
+    def __init__(self, vardec: LocalVarDec) -> None:
         super().__init__()
-        self.vardec : StateTransformLocalVarDec = vardec
+        self.vardec : LocalVarDec = vardec
 
     @property
-    def name(self) -> StateTransformLocalVarId:
-        # return cast(StateTransformLocalVarId, self.vardec.varname)
+    def name(self) -> LocalVarId:
+        # return cast(LocalVarId, self.vardec.varname)
         return self.vardec.varname
 
 
@@ -82,7 +82,7 @@ class GlobalVar(BoundVar):
         self.vardec : GlobalVarDec = vardec
 
     @property
-    def name(self) -> GlobalVarId:
+    def name(self) -> StateVarId:
         return self.vardec.name
 
 

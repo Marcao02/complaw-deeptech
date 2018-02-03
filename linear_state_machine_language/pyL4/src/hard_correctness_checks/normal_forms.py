@@ -1,12 +1,12 @@
 from typing import FrozenSet
 
 from src.model.Term import Term, FnApp
-from src.model.BoundVar import StateTransformLocalVar, GlobalVar
+from src.model.BoundVar import LocalVar, GlobalVar
 from src.independent.typing_imports import *
-from src.model.GlobalStateTransformStatement import StateTransformLocalVarDec, GlobalVarAssignStatement, IfElse, InCodeConjectureStatement, GlobalStateTransformStatement
+from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement
 from src.model.L4Contract import L4Contract
 
-Block = List[GlobalStateTransformStatement]
+Block = List[Statement]
 OutType = Union[str,Tuple[Any,...]]
 
 def disj(*args:OutType) -> OutType:
@@ -85,8 +85,8 @@ def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_r
     rest = block[1:]
     s = block[0]
 
-    if isinstance(s, StateTransformLocalVarDec):
-        assert s.varname not in forbidden_write, f"local var {s.name} can't be written at (TODO: s.coord)"
+    if isinstance(s, LocalVarDec):
+        assert s.varname not in forbidden_write, f"local var {s.varname} can't be written at (TODO: s.coord)"
         value_expr2 = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
         subst2 = subst.copy()
         subst2[s.varname] = value_expr2
@@ -107,7 +107,7 @@ def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_r
         return eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
 
 
-    elif isinstance(s, GlobalVarAssignStatement):
+    elif isinstance(s, StateVarAssign):
         assert s.varname not in forbidden_write, f"global-state var {s.varname} can't be written at (TODO: s.coord)"
         # forbid writing a second time to this variable in the same forward-scope, because it's potentially confusing
         # and not needed in good code.
@@ -149,7 +149,7 @@ def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_r
                                        forbidden_write1.union(forbidden_write2))
         return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
 
-    elif isinstance(s, InCodeConjectureStatement):
+    elif isinstance(s, FVRequirement):
         s.value_expr = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
 
         (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
@@ -162,7 +162,7 @@ def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_r
 
 
 def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:FrozenSet[str]) -> Term:
-    if isinstance(term, StateTransformLocalVar):
+    if isinstance(term, LocalVar):
         assert term.name not in forbidden_read, f"local var {term} can't be read at {term.coord}"
         if term.name in subst:
             print("SUBST!", term.name, subst[term.name])
@@ -179,9 +179,9 @@ def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:
 
 # def gen_cast_proof_obligs(p:L4Contract):
 #
-#     # def f(s:Union[GlobalStateTransformStatement,Block]) -> OutType:
-#     def okstatement(s: GlobalStateTransformStatement) -> OutType:
-#         if isinstance(s,StateTransformLocalVarDec) or isinstance(s,GlobalVarAssignStatement):
+#     # def f(s:Union[Statement,Block]) -> OutType:
+#     def okstatement(s: Statement) -> OutType:
+#         if isinstance(s,LocalVarDec) or isinstance(s,StateVarAssign):
 #             e = okterm(s.value_expr)
 #             block2 = [s2.subst(s.varname,e) for s2 in rest]
 #             return assert_assume(e, okblock(block2))
@@ -196,7 +196,7 @@ def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:
 #                 )
 #             else:
 #                 return implies(test2, trueblock)
-#         elif isinstance(s,InCodeConjectureStatement):
+#         elif isinstance(s,FVRequirement):
 #             return okterm(s.value_expr)
 #
 #
@@ -263,7 +263,7 @@ def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:
 #         assert block is not None and len(block) > 0
 #         if len(block) == 1:
 #             return okstatement(block[0])
-#         elif isinstance(s,GlobalVarAssignStatement) or isinstance(s,StateTransformLocalVarDec):
+#         elif isinstance(s,StateVarAssign) or isinstance(s,LocalVarDec):
 #             pass
 #         else:
 #             pass

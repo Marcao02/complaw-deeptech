@@ -2,13 +2,13 @@ from itertools import chain
 
 from src.independent.typing_imports import *
 
-from src.constants_and_defined_types import GlobalVarId
+from src.constants_and_defined_types import StateVarId
 from src.model.Term import Term
 from src.model.Sort import Sort
 
 
 class GlobalVarDec(NamedTuple):
-    name: GlobalVarId
+    name: StateVarId
     sort: Sort
     initval: Optional[Term]
     modifier:List[str]
