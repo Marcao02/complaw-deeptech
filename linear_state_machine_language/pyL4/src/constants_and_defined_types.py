@@ -63,7 +63,7 @@ PREFIX_FN_SYMBOLS = { 'cast',
                       'days',
 
                      'ifthenelse',
-                     'and*', 'not',
+                     'and', 'or', 'not',
                      'max', 'min',
 
                      'ceil', 'round',

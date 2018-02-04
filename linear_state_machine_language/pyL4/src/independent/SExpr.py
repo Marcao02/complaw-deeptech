@@ -93,7 +93,7 @@ def mult_replace(s:str, olds:Sequence[str], news:Sequence[SExprOrStr]) -> SExprO
 
 # THIS ONLY MAKES SENSE FOR MACROS
 def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: Sequence[str], replacements: Sequence[SExprOrStr]) -> SExprOrStr:
-    assert len(strs_to_replace) == len(replacements)
+    assert len(strs_to_replace) == len(replacements), f"{strs_to_replace}\n{replacements}"
     if isinstance(sexpr_or_str, str):
         return mult_replace(sexpr_or_str, strs_to_replace, replacements)
     else:

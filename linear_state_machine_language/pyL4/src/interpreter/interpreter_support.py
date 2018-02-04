@@ -39,6 +39,20 @@ ENV_VAR_INTERP = {
     'sectionEntrance_td': lambda execenv: execenv.last_section_entrance_delta
 }
 
+def and_eval(*args:Any) -> bool:
+    if len(args) == 1 and isinstance(args[0],Iterable):
+        return all((y for y in args[0]))
+    else:
+        return all((y for y in args))
+
+
+def or_eval(*args: Any) -> bool:
+    if len(args) == 1 and isinstance(args[0], Iterable):
+        return not all((not y for y in args[0]))
+    else:
+        return not all((not y for y in args))
+
+
 FN_SYMB_INTERP = {
     'cast': lambda x,y: y,
     # '+': lambda *args: sum(args),  # doesn't work with timestamp
@@ -55,10 +69,10 @@ FN_SYMB_INTERP = {
     '≥': lambda x,y: x >= y,
     '<': lambda x,y: x < y,
     '>': lambda x,y: x > y,
-    'and': lambda x,y: x and y,
-    'and*': lambda *x: all([y for y in x]),
-    'or': lambda x,y: x or y,
     'not': lambda x: not x,
+    'and': and_eval,
+    'or': or_eval,
+
     'days': lambda x: timedelta(days=x),
     'round': round,
     'ceil': math.ceil,

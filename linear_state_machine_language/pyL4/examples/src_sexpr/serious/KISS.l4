@@ -46,12 +46,21 @@
 )
 
 
-(Macro principle_and_compound_interest (#principle #ir #full_periods #final_period_fraction)
-	((#principle * ((1 + #ir) ^ #full_periods)) + (((#principle * ((1 + #ir) ^ #full_periods)) * #ir) * #final_period_fraction))
+
+(Macro compounded_full_periods (#princ #ir #periods)
+	(#princ * ((1 + #ir) ^ #periods))
 )
 
-(Macro compound_interest (#principle #ir #full_periods #final_period_fraction)
-	(cast Pos$ ((apply-macro principle_and_compound_interest (#principle #ir #full_periods #final_period_fraction)) - #principle))
+; p * (1 + ir)^N
+; +
+; p * (1 + ir)^N * ir * q
+(Macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction) (
+	(apply-macro compounded_full_periods (#princ #ir #full_periods)) +
+	(((apply-macro compounded_full_periods (#princ #ir #full_periods)) * #ir) * #final_period_fraction)
+))
+
+(Macro compound_interest (#princ #ir #full_periods #final_period_fraction)
+	(cast Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
 )
 
 (Macro interest_from_td #td

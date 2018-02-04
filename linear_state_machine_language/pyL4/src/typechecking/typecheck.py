@@ -16,7 +16,7 @@ from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_typ
     FnTypesMap
 from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, \
     SubsortGraph, duplicate_some_edges
-from src.typechecking.standard_sorts import check_sorts_valid, jvar
+from src.typechecking.standard_sorts import check_sorts_valid, dupvar
 
 print_types_map(STANDARD_FNTYPES)
 
@@ -92,7 +92,7 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
     def f(t:Term):
         if isinstance(t, SortLit):
             yield t.lit
-        elif   isinstance(t, (LocalVar, GlobalVar)):
+        elif isinstance(t, (LocalVar, GlobalVar)):
             yield t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             yield t.action.param_sorts_by_name[t.name]
@@ -133,7 +133,7 @@ def addDupSortRelnsToGraphAndFnTypes(sorts:Iterable[Sort], expanded_sortdefns: D
         if isinstance(s,str) and s in expanded_sortdefns:
             s = expanded_sortdefns[s]
         if isinstance(s,NonatomicSort) and s.sortop == "Dup":
-            withvar = NonatomicSort("Dup",(s.args[0], jvar))
+            withvar = NonatomicSort("Dup", (s.args[0], dupvar))
             subst[withvar] = s
             graph.addNode(s)
             graph.addEdge(withvar, s)

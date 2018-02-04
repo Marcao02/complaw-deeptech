@@ -550,9 +550,6 @@ class ExecEnv:
                 # print("ContractParam case of evalTerm: ", term)
                 # print(self.contract_param_vals[term.name], type(self.contract_param_vals[term.name]))
                 assert hasNotNone(self.contract_param_vals, term.name), term.name
-                if term.name == "CONTRACT_LIFE":
-                    print("...", self.contract_param_vals[term.name])
-
                 return self.contract_param_vals[term.name]
 
             elif isinstance(term, ActionBoundActionParam):
@@ -584,7 +581,7 @@ class ExecEnv:
                 return self.evalTerm(term.term, term.ctx)
 
             elif isinstance(term, SimpleTimeDeltaLit):
-                return term.timedelta
+                return term.lit
 
             elif isinstance(term, LocalVar):
                 return self.localvar_vals[term.name]
@@ -603,7 +600,7 @@ class ExecEnv:
             # return self.cur_event.timestamp == self.last_section_entrance_delta
             return True
         elif isinstance(litterm, SimpleTimeDeltaLit):
-            return litterm.timedelta
+            return litterm.lit
         else:
             return litterm.lit
 

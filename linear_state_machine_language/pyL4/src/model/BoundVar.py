@@ -1,6 +1,6 @@
 from itertools import chain
 
-from src.independent.util import castid
+from src.independent.util import castid, todo_once
 from src.constants_and_defined_types import StateVarId, ContractParamId, ActionBoundActionParamId, \
     RuleBoundActionParamId, LocalVarId
 from src.independent.typing_imports import *
@@ -31,6 +31,9 @@ class BoundVar(Term):
             rviter = chain(rviter, f(self.name))
         return rviter
 
+    def __eq__(self, other:Any) -> bool:
+        todo_once("BoundVar.__eq__ would be unsafe if variable shadowing was allowed, which it current isn't.")
+        return isinstance(other,BoundVar) and type(self) == type(other) and self.name == other.name
 
     def __str__(self):
         return self.name

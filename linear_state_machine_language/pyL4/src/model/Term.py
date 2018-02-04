@@ -21,6 +21,9 @@ class Term:
     def subst(self, var:str, term:'Term') -> 'Term':
         raise NotImplementedError
 
+    def __eq__(self, other: Any) -> bool:
+        raise NotImplemented
+
 TermOrStr = Union[Term,str]
 
 class FnApp(Term):
@@ -53,6 +56,10 @@ class FnApp(Term):
 
     def subst(self, var:str, term:'Term') -> 'Term':
         return FnApp(self.fnsymb_name, [arg.subst(var,term) for arg in self.args], self.coord)
+
+    def __eq__(self,other:Any) -> bool:
+        return isinstance(other,FnApp) and self.fnsymb_name == other.fnsymb_name and \
+               len(self.args) == len(other.args) and all(self.args[i] == other.args[i] for i in range(len(self.args)))
 
     def __str__(self) -> str:
         if self.head in EXEC_ENV_VARIABLES:

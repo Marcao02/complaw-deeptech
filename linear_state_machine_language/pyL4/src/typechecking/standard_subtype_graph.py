@@ -84,11 +84,11 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
 
     # We don't want all the duplicate copies of numeric types to have all the relations that the original numeric
     # types have. For now, we only need or want these:
-    sschain(PosIntj,Natj), # makes sense for counting any kind of thing
-    sschain(PosRealj,NonnegRealj), # makes sense for measuring any kind of thing
+    sschain(PosIntD, NatD), # makes sense for counting any kind of thing
+    sschain(PosRealD, NonnegRealD), # makes sense for measuring any kind of thing
     # makes sense as consequence of previous two lines:
-    sschain(Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)),
-    sschain(Ratio(PosRealj, PosRealj), Ratio(NonnegRealj, PosRealj)),
+    sschain(Ratio(PosRealD, PosIntD), Ratio(NonnegRealD, PosIntD)),
+    sschain(Ratio(PosRealD, PosRealD), Ratio(NonnegRealD, PosRealD)),
 )
 
 

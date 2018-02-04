@@ -18,11 +18,11 @@ Bool = 'Bool'
 def SApp(symb:str, *args:Any) -> NonatomicSort:
     return NonatomicSort.c(symb, tuple(args))
 
-jvar = 'jvar'
-Natj = SApp('Dup', Nat, jvar)
-PosIntj = SApp('Dup', PosInt, jvar)
-NonnegRealj = SApp('Dup', NonnegReal, jvar)
-PosRealj = SApp('Dup', PosReal, jvar)
+dupvar = 'dupvar'
+NatD = SApp('Dup', Nat, dupvar)
+PosIntD = SApp('Dup', PosInt, dupvar)
+NonnegRealD = SApp('Dup', NonnegReal, dupvar)
+PosRealD = SApp('Dup', PosReal, dupvar)
 
 def Dup(sort:Sort, name:str) -> NonatomicSort:
     return SApp('Dup',sort,name)
@@ -48,10 +48,10 @@ AllAtomicSorts : Set[Sort] = cast(Set[Sort], {DateTime, TimeDelta, PosTimeDelta,
 
 
 # ---------Nonatomic---------
-NumericSortDups = cast(Set[Sort],{PosIntj,PosRealj,Natj,NonnegRealj} )
+NumericSortDups = cast(Set[Sort], {PosIntD, PosRealD, NatD, NonnegRealD})
 AllAtomicSortsAndDups : Set[Sort] = AllAtomicSorts.union(NumericSortDups)
 
-RatioSorts : Set[Sort] = {Ratio(PosRealj, PosIntj), Ratio(NonnegRealj, PosIntj)}
+RatioSorts : Set[Sort] = {Ratio(PosRealD, PosIntD), Ratio(NonnegRealD, PosIntD)}
 
 TupleAtomicSorts : Set[Sort] = {SApp('Tuple',S,S) for S in AllAtomicSortsAndDups}
 

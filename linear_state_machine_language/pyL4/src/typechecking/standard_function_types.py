@@ -5,7 +5,7 @@ from src.model.Sort import Sort, NonatomicSort, AtomicSort
 from src.model.FnTypes import OverloadedFnType, SimpleFnType, SimpleFnType
 from src.typechecking.standard_sorts import AllAtomicSortsAndDups, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
     PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedRealIntervalSorts, DateTime, Real, \
-    AllNumericSorts, SApp, NonnegRealj, Natj, PosIntj, PosRealj, AllSorts, Ratio
+    AllNumericSorts, SApp, NonnegRealD, NatD, PosIntD, PosRealD, AllSorts, Ratio
 
 """
 We have a rich (and getting richer) numeric hierarchy in the standard library, and we have a few ways of combining
@@ -29,7 +29,7 @@ Let's refer to the SMU as U0, and the others as U1, U2, U3.
 """
 
 
-ASSOCIATIVE_OPS = {'or*', 'and*', 'min','max','+','*'}
+ASSOCIATIVE_OPS = {'or', 'and', 'min','max','+','*'}
 CHAIN_PREDS = {'≤', '≥', '<', '>', '=='}
 
 # arbitrary arity function type... which are now handled by virtual reduction to their binary operations in typecheck.py
@@ -207,8 +207,8 @@ overloaded_types_data : FnTypesData = [
         aafntype(TimeDelta, Bool),
         aafntype(DateTime, Bool),
 
-        aafntype(NonnegRealj, Bool),
-        aafntype(Natj, Bool),
+        aafntype(NonnegRealD, Bool),
+        aafntype(NatD, Bool),
 
         )
      ),
@@ -224,7 +224,7 @@ overloaded_types_data : FnTypesData = [
     # ------------Boolean------------
      (('not',), (sfntype(Bool, Bool),)),
      (('and', 'or'), (sfntype(Bool, Bool, Bool),)),
-     (('and*', 'or*'), (aafntype(Bool, Bool),)),
+     (('and', 'or'), (aafntype(Bool, Bool),)),
      (('ifthenelse',), parametric_one_var(
         sfntype(Bool, X, X, X),
         AllAtomicSortsAndDups)
@@ -236,7 +236,7 @@ overloaded_types_data : FnTypesData = [
         (aafntype(X,X),),
         UnboundedNumericSorts.union(
             {TimeDelta, SApp('Ratio', PosReal, PosInt)}).union(
-            {NonnegRealj, Natj})
+            {NonnegRealD, NatD})
         )
      ),
     # TODO should be arbitrary arity, and order-invariant
@@ -246,10 +246,10 @@ overloaded_types_data : FnTypesData = [
      ),
     # TODO: {0},{1}, and {0,1}.
     (('+',), (
-        sfntype(PosIntj,Natj,PosIntj),
-        sfntype(Natj,PosIntj,PosIntj),
-        sfntype(PosRealj,NonnegRealj,PosRealj),
-        sfntype(NonnegRealj,PosRealj,PosRealj),
+        sfntype(PosIntD, NatD, PosIntD),
+        sfntype(NatD, PosIntD, PosIntD),
+        sfntype(PosRealD, NonnegRealD, PosRealD),
+        sfntype(NonnegRealD, PosRealD, PosRealD),
         sfntype(PosInt, Nat, PosInt),
         sfntype(Nat, PosInt, PosInt),
         sfntype(PosReal, NonnegReal, PosReal),
@@ -258,16 +258,16 @@ overloaded_types_data : FnTypesData = [
     (('*',), (  # scaling things
         sfntype(TimeDelta, Nat, TimeDelta),
         sfntype(Nat, TimeDelta, TimeDelta),
-        sfntype(NonnegRealj, NonnegReal, NonnegRealj),
-        sfntype(NonnegReal, NonnegRealj, NonnegRealj),
-        sfntype(Ratio(NonnegRealj,PosIntj), PosReal, Ratio(NonnegRealj,PosIntj)),
-        sfntype(Ratio(PosRealj, PosIntj), PosReal, Ratio(PosRealj, PosIntj)),
+        sfntype(NonnegRealD, NonnegReal, NonnegRealD),
+        sfntype(NonnegReal, NonnegRealD, NonnegRealD),
+        sfntype(Ratio(NonnegRealD, PosIntD), PosReal, Ratio(NonnegRealD, PosIntD)),
+        sfntype(Ratio(PosRealD, PosIntD), PosReal, Ratio(PosRealD, PosIntD)),
         )
      ),
 
     (('*',), parametric_mult_vars(
         {sfntype(X, R, X), sfntype(R, X, X)},
-        [{X: somenumeric, R: PosReal} for somenumeric in cast(Set[Sort],{NonnegRealj,PosRealj,NonnegReal})]
+        [{X: somenumeric, R: PosReal} for somenumeric in cast(Set[Sort], {NonnegRealD, PosRealD, NonnegReal})]
     )
      ),
 
@@ -303,12 +303,12 @@ overloaded_types_data : FnTypesData = [
             {'NVar':Real, 'DVar':PosInt, 'RVar':SApp('Ratio',Real,PosInt)},
             {'NVar':PosReal, 'DVar':PosInt, 'RVar':SApp('Ratio',PosReal,PosInt)},
             {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':SApp('Ratio',NonnegReal,PosInt)},
-            {'NVar':PosRealj, 'DVar':PosIntj, 'RVar':SApp('Ratio',PosRealj,PosIntj)},
+            {'NVar':PosRealD, 'DVar':PosIntD, 'RVar':SApp('Ratio', PosRealD, PosIntD)},
 
-            {'NVar':PosRealj, 'DVar':PosRealj, 'RVar':SApp('Ratio',PosRealj,PosRealj)},
-            {'NVar':NonnegRealj, 'DVar':PosRealj, 'RVar':SApp('Ratio',NonnegRealj,PosRealj)},
-            {'NVar':PosRealj, 'DVar':PosIntj, 'RVar':SApp('Ratio',PosRealj,PosIntj)},
-            {'NVar':NonnegRealj, 'DVar':PosIntj, 'RVar':SApp('Ratio',NonnegRealj,PosIntj)},
+            {'NVar':PosRealD, 'DVar':PosRealD, 'RVar':SApp('Ratio', PosRealD, PosRealD)},
+            {'NVar':NonnegRealD, 'DVar':PosRealD, 'RVar':SApp('Ratio', NonnegRealD, PosRealD)},
+            {'NVar':PosRealD, 'DVar':PosIntD, 'RVar':SApp('Ratio', PosRealD, PosIntD)},
+            {'NVar':NonnegRealD, 'DVar':PosIntD, 'RVar':SApp('Ratio', NonnegRealD, PosIntD)},
 
         ])
      ),
@@ -320,9 +320,9 @@ overloaded_types_data : FnTypesData = [
                 {'NVar':Real,'DVar':PosInt, 'RVar':Real},
                 {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
                 {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
-                {'NVar':PosRealj, 'DVar': PosIntj, 'RVar':PosRealj},
-                {'NVar':NonnegRealj, 'DVar': PosIntj, 'RVar':NonnegRealj},
-                {'NVar':NonnegRealj, 'DVar': PosRealj, 'RVar': NonnegRealj}
+                {'NVar':PosRealD, 'DVar': PosIntD, 'RVar':PosRealD},
+                {'NVar':NonnegRealD, 'DVar': PosIntD, 'RVar':NonnegRealD},
+                {'NVar':NonnegRealD, 'DVar': PosRealD, 'RVar': NonnegRealD}
 
             ])
     ),
@@ -340,8 +340,8 @@ overloaded_types_data : FnTypesData = [
         sfntype(Real, Int),
         sfntype(PosReal, Nat),
         sfntype(NonnegReal, Nat),
-        sfntype(PosRealj, Natj),  # is that ok?
-        sfntype(NonnegRealj, Natj),  # is that ok?
+        sfntype(PosRealD, NatD),  # is that ok?
+        sfntype(NonnegRealD, NatD),  # is that ok?
 
         )
      ),

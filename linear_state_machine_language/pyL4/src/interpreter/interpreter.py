@@ -425,12 +425,7 @@ class ExecEnv:
                 return self.gvarvals[term.name]
 
             elif isinstance(term, ContractParam):
-                # print("ContractParam case of evalTerm: ", term)
-                # print(self.contract_param_vals[term.name], type(self.contract_param_vals[term.name]))
                 assert hasNotNone(self.contract_param_vals, term.name), term.name
-                if term.name == "CONTRACT_LIFE":
-                    print("...", self.contract_param_vals[term.name])
-
                 return self.contract_param_vals[term.name]
 
             elif isinstance(term, ActionBoundActionParam):
@@ -446,7 +441,7 @@ class ExecEnv:
                 self.evalError("There should be no PartialEvalTerm in this version of ExecEnv.")
 
             elif isinstance(term, SimpleTimeDeltaLit):
-                return term.timedelta
+                return term.lit
 
             elif isinstance(term, LocalVar):
                 return self.localvar_vals[term.name]
@@ -467,7 +462,7 @@ class ExecEnv:
         elif isinstance(litterm, RoleIdLit):
             return litterm.lit
         elif isinstance(litterm, SimpleTimeDeltaLit):
-            return litterm.timedelta
+            return litterm.lit
         else:
             return litterm.lit
 

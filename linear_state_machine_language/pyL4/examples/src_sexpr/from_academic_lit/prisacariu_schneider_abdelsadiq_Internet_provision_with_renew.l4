@@ -161,7 +161,7 @@
 
 			(Client may (Pay ?x) within48HOfInfraction (where ((?x > ($ 0)) and (?x ≤ ($ 3)))))
 
-			(if (and* (not sent_delay_email) usage_level_normal (paid ≥ ($ 1)))
+			(if (and (not sent_delay_email) usage_level_normal (paid ≥ ($ 1)))
 				(Reset within24HOfInfraction)
 			)
 
@@ -169,15 +169,15 @@
 				(ClientBreaches after24HSinceInfraction)
 			)
 
-			(if (and* sent_delay_email usage_level_normal (paid ≥ ($ 2)))
+			(if (and sent_delay_email usage_level_normal (paid ≥ ($ 2)))
 				(Reset within48HOfInfraction)
 			)
 
-			(if (and* sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 2)))
+			(if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 2)))
 				(Reset within48HOfInfraction)
 			)
 
-			(if (and* sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 3)))
+			(if (and sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 3)))
 				(Reset within48HOfInfraction)
 			)
 

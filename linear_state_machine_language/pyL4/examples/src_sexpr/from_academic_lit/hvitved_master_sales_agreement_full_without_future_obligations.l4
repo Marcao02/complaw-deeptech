@@ -121,12 +121,12 @@
 				; (Customer may (PayBill ?order) (tdGEQ 2Bpaid ?order event_td) (where (mapHas 2Bpaid ?order)))
 			)
 			(if ; conditions for early end of contract
-				( and* (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
+				( and (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
 				; then fulfilled provided all invoice deadlines are expired
 				(EnterFulfilled (next_event_td > furthest_invoice_deadline))
 			)
 			(if ; conditions for end of contract with units remaining
-				( and* (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )
+				( and (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )
 				; then fulfilled provided all invoice deadlines are expired, and the _order period is over
 				(EnterFulfilled ((next_event_td > furthest_invoice_deadline) and (next_event_td > order_period_ends)))
 			)

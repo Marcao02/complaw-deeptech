@@ -10,9 +10,9 @@ from src.model.Term import Term
 
 
 class Literal(Term):
-    def __init__(self, coord:Optional[FileCoord] = None) -> None:
+    def __init__(self, lit:Any, coord:Optional[FileCoord] = None) -> None:
         super().__init__(coord)
-        self.lit : Any
+        self.lit = lit
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
         if iteraccum_maybe:
@@ -29,9 +29,12 @@ class Literal(Term):
     def __repr__(self):
         return str(self)
 
+    def __eq__(self, other:Any) -> bool:
+        return isinstance(other,Literal) and self.lit == other.lit
+
 class FloatLit(Literal):
     def __init__(self,lit:float, coord:Optional[FileCoord] = None) -> None:
-        super().__init__(coord)
+        super().__init__(lit, coord)
         self.lit = lit
 
     def __str__(self) -> str:
@@ -39,21 +42,21 @@ class FloatLit(Literal):
 
 class IntLit(Literal):
     def __init__(self, lit:int, coord:Optional[FileCoord] = None) -> None:
-        super().__init__(coord)
+        super().__init__(lit,coord)
         self.lit = lit
     def __str__(self):
         return str(self.lit)
 
 class BoolLit(Literal):
     def __init__(self, lit:bool, coord:Optional[FileCoord] = None) -> None:
-        super().__init__(coord)
+        super().__init__(lit,coord)
         self.lit = lit
     def __str__(self):
         return str(self.lit)
 
 class SortLit(Literal):
     def __init__(self, lit:Sort, coord:Optional[FileCoord] = None) -> None:
-        super().__init__(coord)
+        super().__init__(lit,coord)
         self.lit : Sort = lit
 
     def __str__(self):
@@ -61,21 +64,21 @@ class SortLit(Literal):
 
 class DeadlineLit(Literal):
     def __init__(self, lit:str, coord:Optional[FileCoord] = None) -> None:
-        super().__init__(coord)
+        super().__init__(lit,coord)
         self.lit = lit
     def __str__(self):
         return str(self.lit)
 
 class RoleIdLit(Literal):
-    def __init__(self, lit:str) -> None:
-        super().__init__()
+    def __init__(self, lit:str, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(lit,coord)
         self.lit = lit
     def __str__(self):
         return str(self.lit)
 
 class StringLit(Literal):
     def __init__(self, lit:str, coord:Optional[FileCoord] = None) -> None:
-        super().__init__(coord)
+        super().__init__(lit,coord)
         self.lit = lit
     def __str__(self):
         return "'" + self.lit + "'"
@@ -89,28 +92,29 @@ class SimpleTimeDeltaLit(Literal):
     NOTE some of this functionality is duplicated in interpreter.py
     """
     def __init__(self, num:int, unit:str, coord:Optional[FileCoord] = None) -> None:
-        super().__init__(coord)
         assert unit in SUPPORTED_TIMEUNITS, f'time unit {unit} unsupported'
         self.num = num
         self.unit = unit
+        td: timedelta
         if self.unit == 'd':
-            self.timedelta = timedelta(days=self.num)
+            td = timedelta(days=self.num)
         elif self.unit == 'h':
-            self.timedelta = timedelta(hours=self.num)
+            td = timedelta(hours=self.num)
         elif self.unit == 'w':
-            self.timedelta = timedelta(weeks=self.num)
+            td = timedelta(weeks=self.num)
         elif self.unit == 'm':
-            self.timedelta = timedelta(minutes=self.num)
+            td = timedelta(minutes=self.num)
         else:
             assert self.unit == 's'
-            self.timedelta = timedelta(seconds=self.num)
+            td = timedelta(seconds=self.num)
+        super().__init__(td, coord)
 
     # Are these used???
     def __lt__(self, other: 'SimpleTimeDeltaLit'):
-        return self.timedelta < other.timedelta
+        return self.lit < other.lit
 
     def __le__(self, other: 'SimpleTimeDeltaLit'):
-        return self.timedelta <= other.timedelta
+        return self.lit <= other.lit
 
     def __str__(self) -> str:
         return f"{self.num}{self.unit}"

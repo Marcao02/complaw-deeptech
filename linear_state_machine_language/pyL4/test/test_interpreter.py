@@ -1,3 +1,4 @@
+from datetime import timedelta
 from itertools import chain
 from math import inf
 from typing import Sequence, Tuple, Optional
@@ -205,7 +206,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
     ( 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
         {
             'MAX_UNITS' : 1000,
-            'CONTRACT_LIFE' : "365d",
+            'CONTRACT_LIFE' : timedelta(days=365),
             'PRICE_PER_UNIT' : 100
         },(
         # start section implicit
@@ -224,7 +225,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
     ( 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4', CompleteTrace(
         {
             'MAX_UNITS' : 1000,
-            'CONTRACT_LIFE' : "365d",
+            'CONTRACT_LIFE' : timedelta(days=365),
             'PRICE_PER_UNIT' : 100
         },(
         # start section implicit
