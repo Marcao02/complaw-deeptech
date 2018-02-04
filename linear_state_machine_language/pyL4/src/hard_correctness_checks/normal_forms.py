@@ -17,6 +17,8 @@ def neg(arg:OutType) -> OutType:
     return ("not", arg) # type:ignore
 def implies(arg1:OutType, arg2:OutType) -> OutType:
     return ("or",("not",arg1), arg2) # type:ignore
+def fnapp(symb:str,*args:OutType) -> OutType:
+    return (symb,) + args # type:ignore
 
 def assert_assume(e1:OutType,e2:OutType) -> OutType:
     return conj(e1,implies(e1,e2))
@@ -174,30 +176,52 @@ def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:
     return term
 
 
+SORT_TO_PRED = {
+    'Pos' : lambda x: x > 0,
+    'Nonneg' : lambda x: x >= 0,
+}
 
-# def gen_cast_proof_obligs(p:L4Contract):
+def gen_cast_proof_obligs(p:L4Contract):
 
-# def gen_cast_proof_obligs(p:L4Contract):
-#
-#     # def f(s:Union[Statement,Block]) -> OutType:
-#     def okstatement(s: Statement) -> OutType:
-#         if isinstance(s,LocalVarDec) or isinstance(s,StateVarAssign):
-#             e = okterm(s.value_expr)
-#             block2 = [s2.subst(s.varname,e) for s2 in rest]
-#             return assert_assume(e, okblock(block2))
-#         elif isinstance(s,IfElse):
-#             test2 = okterm(s.test)
-#             trueblock = okblock(s.true_branch)
-#             falseblock = okblock(s.false_branch) if s.false_branch else None
-#             if falseblock is not None:
-#                 return conj(
-#                     implies(test2,trueblock),
-#                     implies(neg(test2), falseblock)
-#                 )
-#             else:
-#                 return implies(test2, trueblock)
-#         elif isinstance(s,FVRequirement):
-#             return okterm(s.value_expr)
+    def okblock(block: Block) -> OutType:
+        assert block is not None and len(block) > 0
+        s = block[0]
+        rest = block[1:]
+        if isinstance(s,StateVarAssign):
+            e = okterm(s.value_expr)
+            rest2 = [s2.subst(s.varname, s.value_expr) for s2 in rest]
+            return assert_assume(e, okblock(rest2))
+        elif isinstance(s,LocalVarDec):
+            return okblock(rest)
+        elif isinstance(s,IfElse):
+            test2 = okterm(s.test)
+            trueblock = okblock(s.true_branch)
+            falseblock = okblock(s.false_branch) if s.false_branch else None
+            branch_correctness : OutType
+            if falseblock is not None:
+                branch_correctness = conj(
+                    implies(test2, trueblock),
+                    implies(neg(test2), falseblock)
+                )
+            else:
+                branch_correctness = implies(test2, trueblock)
+            return assert_assume(branch_correctness, okblock(rest))
+        elif isinstance(s,FVRequirement):
+            e = okterm(s.value_expr)
+            return assert_assume(e, okblock(rest))
+        else:
+            raise NotImplemented
+
+    def okterm(t: Term) -> OutType:
+        requirements : Any
+        if isinstance(t,FnApp):
+            if t.fnsymb_name == "cast":
+                pass
+        raise NotImplemented
+
+
+
+
 #
 #
 #     """
@@ -255,21 +279,4 @@ def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:
 # 	    $x = new_x
 # 	    $y = f(new_x)
 # 	Alternatively, we could use the primed variables convention for the-next-value.
-#
-#
-#
 #     """
-#     def okblock(block: Block) -> OutType:
-#         assert block is not None and len(block) > 0
-#         if len(block) == 1:
-#             return okstatement(block[0])
-#         elif isinstance(s,StateVarAssign) or isinstance(s,LocalVarDec):
-#             pass
-#         else:
-#             pass
-#
-#
-#
-#
-#     def okterm(t: Term) -> OutType:
-#         pass

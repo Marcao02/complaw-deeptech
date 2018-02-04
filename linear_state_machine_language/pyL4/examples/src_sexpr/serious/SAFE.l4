@@ -141,15 +141,30 @@
 								    (company_cash_at_liquidity_event : $)
 								    (liquidity_capitalization : PosShareCnt)
 								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ) (AllowedSubjects Company)
+		(Precondition (company_cash_at_liquidity_event ≥ reduction_needed_to_qualify_as_usa_tax_free_reorg))
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares = (round (PURCHASE_AMOUNT / liq_price)))
+			; possible Z3 generated problem for following cast (which Z3 does prove unsat)
+			; (declare-const investor_liq_hypothetical_shares Int)
+			; (declare-const liquidity_capitalization Int)
+			; (assert (> investor_liq_hypothetical_shares 0))
+			; (assert (> liquidity_capitalization 0))
+			; (declare-const r Real)
+			; (assert (= r (/ investor_liq_hypothetical_shares (+ liquidity_capitalization investor_liq_hypothetical_shares))))
+			; (assert (not (and (>= r 0) (<= r 1))))
+			; (check-sat)
+			; Another approach using (an unorthodox version of) dependent types:
+			; / : ∀x:PosNat. ∀y:PosNat. {x} -> {(y + x)} -> (0,1)
 			(investor_percent_of_cashout_investor_investments = (cast "[0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > ($ 0))) (
 			 	; "In ??? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+				; * : [0,1] -> Πx:Nat. (LEQ x)
+				; ≥ : Πx:Real. (LEQ x) -> {true}
 			 	(prove (PURCHASE_AMOUNT ≥ purchase_amount_reduction))
 			 	(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
+			 	; - : Πx:Nat. (LEQ x) -> Nat
 				(cash_currently_unconverted = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
 				(company_cash = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 			)
@@ -180,6 +195,7 @@
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
 			; TODO: should we round that division up, down, or to nearest?
+
 			(investor_Common_Stocks += (round ((cast $ (cash_currently_unconverted - liq_cashout)) / liq_price)))
 		)
 		(FollowingSection
