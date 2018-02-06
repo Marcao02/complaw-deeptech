@@ -6,6 +6,7 @@
 (SortDefinitions
 	(Pos$ := (Dup PosReal "Pos$"))
 	($ := (Dup NonnegReal "$"))
+	(MaybeNeg$ := (Dup Real "MaybeNeg$"))
 )
 
 

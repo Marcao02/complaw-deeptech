@@ -15,20 +15,22 @@ PosReal = 'PosReal'
 NonnegReal = 'NonnegReal'
 Bool = 'Bool'
 
-def SApp(symb:str, *args:Any) -> NonatomicSort:
-    return NonatomicSort.c(symb, tuple(args))
+def SApp(symb:str, *args:Any) -> SortOpApp:
+    return SortOpApp.c(symb, tuple(args))
 
-dupvar = 'dupvar'
-NatD = SApp('Dup', Nat, dupvar)
-PosIntD = SApp('Dup', PosInt, dupvar)
-NonnegRealD = SApp('Dup', NonnegReal, dupvar)
-PosRealD = SApp('Dup', PosReal, dupvar)
-
-def Dup(sort:Sort, name:str) -> NonatomicSort:
+def Dup(sort:Sort, name:str) -> SortOpApp:
     return SApp('Dup',sort,name)
 
 def Ratio(s1,s2):
     return SApp('Ratio',s1,s2)
+
+dupvar = 'dupvar'
+NatD = Dup(Nat, dupvar)
+PosIntD = Dup(PosInt, dupvar)
+NonnegRealD = Dup(NonnegReal, dupvar)
+PosRealD = Dup(PosReal, dupvar)
+RealD = Dup(Real, dupvar)
+
 
 # ---------Atomic---------
 NormalUnboundedNumericSorts = {Int,Nat,PosInt,Real,NonnegReal,PosReal}
@@ -74,7 +76,7 @@ def check_sorts_valid(sorts:Set[Sort], sort_defns:Dict[str,Sort]) -> None:
         if isinstance(s, str):
             return sort_compatible(sort_defns[s], U, sort_defns) if s in sort_defns else s in U
         else:
-            return sort_compatible(s.args[0], U, sort_defns) if s.sortop == "Dup" else False
+            return sort_compatible(s.args[0], U, sort_defns) if s.op == "Dup" else False
 
     def is_valid_sort(s: Sort, sort_defns: Dict[str, Sort]) -> bool:
         if isinstance(s, str):
@@ -83,12 +85,12 @@ def check_sorts_valid(sorts:Set[Sort], sort_defns:Dict[str,Sort]) -> None:
             else:
                 return s in AllAtomicSortsAndDups
         else:
-            op = s.sortop
+            op = s.op
             if op == 'Ratio':
                 numok = sort_compatible(s.args[0], AtomicNumericSorts,
-                                        sort_defns)  # s.args[0] in AtomicNumericSorts or (isinstance(s.args[0], NonatomicSort) and s.args[0].sortop == 'Dup' and is_valid_sort(s.args[0].args[0]))
+                                        sort_defns)  # s.args[0] in AtomicNumericSorts or (isinstance(s.args[0], SortOpApp) and s.args[0].op == 'Dup' and is_valid_sort(s.args[0].args[0]))
                 denok = sort_compatible(s.args[1], PositiveAtomicNumericSorts,
-                                        sort_defns)  # s.args[1] in AtomicNumericSorts or (isinstance(s.args[1], NonatomicSort) and s.args[1].sortop == 'Dup' and is_valid_sort(s.args[1].args[0]))
+                                        sort_defns)  # s.args[1] in AtomicNumericSorts or (isinstance(s.args[1], SortOpApp) and s.args[1].op == 'Dup' and is_valid_sort(s.args[1].args[0]))
                 # print(f"??? ({numok},{denok}), {s}")
                 return numok and denok
             elif op == 'Tuple':

@@ -1,34 +1,34 @@
 from typing import List, Union, cast
 
-from src.model.Sort import NonatomicSort, Sort
+from src.model.Sort import SortOpApp, Sort
 from src.independent.util import todo_once, castid
-from src.constants_and_defined_types import DeonticKeyword, RoleId, ActionId, GlobalVarId, RuleBoundActionParamId, \
+from src.constants_and_defined_types import DeonticKeyword, RoleId, ActionId, StateVarId, RuleBoundActionParamId, \
     ENV_ROLE, ActionBoundActionParamId
 from src.model.ActionRule import PartyNextActionRule
 from src.model.BoundVar import RuleBoundActionParam, ActionBoundActionParam
-from src.model.GlobalStateTransform import GlobalStateTransform
-from src.model.GlobalStateTransformStatement import IfElse, GlobalVarAssignStatement, GlobalStateTransformStatement
-from src.model.GlobalVarDec import GlobalVarDec
+from src.model.StateTransform import StateTransform
+from src.model.Statement import IfElse, StateVarAssign, Statement
+from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract
 from src.model.Literal import SimpleTimeDeltaLit, RoleIdLit
 from src.model.Term import FnApp, Term
 
 PRACTICALLY_FOREVER = SimpleTimeDeltaLit(999*52,"w")
 
-def tdmapname(roleid:RoleId, actionid:ActionId, keyword:DeonticKeyword) -> GlobalVarId:
+def tdmapname(roleid:RoleId, actionid:ActionId, keyword:DeonticKeyword) -> StateVarId:
     if keyword == "must-later":
-        return castid(GlobalVarId, f"{roleid}_must_{actionid}_by")
+        return castid(StateVarId, f"{roleid}_must_{actionid}_by")
     else:
         assert keyword == "may-later"
-        return castid(GlobalVarId, f"{roleid}_may_{actionid}_by")
+        return castid(StateVarId, f"{roleid}_may_{actionid}_by")
 
-def add_tdmap_dec(prog: L4Contract, mapvar_name: GlobalVarId, argsort:Sort) -> None:
+def add_tdmap_dec(prog: L4Contract, mapvar_name: StateVarId, argsort:Sort) -> None:
     print("Adding global var dec " + mapvar_name)
-    prog.global_var_decs[mapvar_name] = GlobalVarDec(mapvar_name, NonatomicSort("TDMap",(argsort,)), FnApp('emptyTDMap',[]), [])
+    prog.global_var_decs[mapvar_name] = StateVarDec(mapvar_name, SortOpApp.c("TDMap", (argsort,)), FnApp('emptyTDMap', []), [])
 
 
 def floating_rules_transpile_away(prog:L4Contract) -> None:
-    statement: GlobalStateTransformStatement
+    statement: Statement
     params: List[Term]
 
     def pack(_params:List[Term]):
@@ -48,7 +48,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                     add_tdmap_dec(prog, map_name, action.param_sort(0))
                 elif len(action.param_sorts_by_name) == 2:
                     add_tdmap_dec(prog, map_name,
-                                  NonatomicSort('Tuple', tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
+                                  SortOpApp.c('Tuple', tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
                                   )
             map_dec = prog.global_var_decs[map_name]
             map_var = prog.new_global_var_ref(map_name)
@@ -58,7 +58,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
             params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.param_names[i]), action, i) for i in
                       range(len(action.param_names))]
             statement = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
-                               [GlobalVarAssignStatement(
+                               [StateVarAssign(
                                    map_dec,
                                    FnApp("mapDelete", [map_var,
                                                        pack(params) ])
@@ -66,7 +66,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                                )
 
             if not action.global_state_transform:
-                action.global_state_transform = GlobalStateTransform([])
+                action.global_state_transform = StateTransform([])
             action.global_state_transform.statements.append(statement)
 
     # ---------------------------------
@@ -95,14 +95,14 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                 add_tdmap_dec(prog, map_name, action.param_sort(0))
             elif len(action.param_sorts_by_name) == 2:
                 add_tdmap_dec(prog, map_name,
-                              NonatomicSort('Tuple',
-                                            tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
+                              SortOpApp.c('Tuple',
+                                        tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
                               )
         map_dec = prog.global_var_decs[map_name]
         map_var = prog.new_global_var_ref(map_name)
         if far.entrance_enabled_guard:
             statement = IfElse(far.entrance_enabled_guard,
-                          [GlobalVarAssignStatement(
+                          [StateVarAssign(
                               map_dec,
                               FnApp("mapSet",[map_var,
                                               pack(far.fixed_args),
@@ -110,7 +110,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                           )]
                         )
         else:
-            statement = GlobalVarAssignStatement(
+            statement = StateVarAssign(
                                map_dec,
                                FnApp("mapSet", [map_var,
                                                 pack(far.fixed_args),
@@ -118,7 +118,7 @@ def floating_rules_transpile_away(prog:L4Contract) -> None:
                            )
 
         if not parent_action.global_state_transform:
-            parent_action.global_state_transform = GlobalStateTransform([])
+            parent_action.global_state_transform = StateTransform([])
         parent_action.global_state_transform.statements.append(statement)
 
     # ----------------------------------------------

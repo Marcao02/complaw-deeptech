@@ -140,7 +140,9 @@
 	(Action (CommitToLiquidityEvent (change_of_control : Bool)
 								    (company_cash_at_liquidity_event : $)
 								    (liquidity_capitalization : PosShareCnt)
-								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ) (AllowedSubjects Company)
+								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $) )
+		(AllowedSubjects Company)
+		; (Precondition (reduction_needed_to_qualify_as_usa_tax_free_reorg : (LEQ company_cash_at_liquidity_event)))
 		(Precondition (company_cash_at_liquidity_event ≥ reduction_needed_to_qualify_as_usa_tax_free_reorg))
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
@@ -158,6 +160,7 @@
 			; / : ∀x:PosNat. ∀y:PosNat. {x} -> {(y + x)} -> (0,1)
 			; Or (using unambiguous but confusing mix of styles)
 			; / : ∀y:PosNat. Πx:PostNat. {(y+x)} -> (0,1)
+			; Or ∀x:PosNat. {x} -> (GEQ x) -> (0,1]
 			(investor_percent_of_cashout_investor_investments = (cast "[0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > ($ 0))) (
 			 	; "In ??? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."

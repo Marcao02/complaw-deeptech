@@ -7,7 +7,7 @@ from src.model.Term import Term
 from src.model.Sort import Sort
 
 
-class GlobalVarDec(NamedTuple):
+class StateVarDec(NamedTuple):
     name: StateVarId
     sort: Sort
     initval: Optional[Term]

@@ -4,7 +4,7 @@ from src.independent.util import indent
 from src.model.Statement import Statement
 
 
-class GlobalStateTransform:
+class StateTransform:
     def __init__(self, statements: List[Statement]) -> None:
         self.statements = statements
 

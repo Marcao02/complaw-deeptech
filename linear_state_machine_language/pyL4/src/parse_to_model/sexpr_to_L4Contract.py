@@ -2,7 +2,7 @@ import logging
 
 from mypy_extensions import NoReturn
 
-from src.parse_and_build_model.floating_rules_transpile import floating_rules_transpile_away
+from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
 from src.constants_and_defined_types import *
 from src.correctness_checks import L4ContractConstructorInterface
@@ -15,24 +15,30 @@ from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, Ac
     EnvNextActionRule, \
     PartyNextActionRule
 from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
-    StateTransformLocalVar, GlobalVar
+    LocalVar, GlobalVar
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
-from src.model.GlobalStateTransform import GlobalStateTransform
-from src.model.GlobalStateTransformStatement import GlobalStateTransformStatement, InCodeConjectureStatement, \
-    StateTransformLocalVarDec, IfElse, GlobalVarAssignStatement, IncrementStatement, DecrementStatement, \
-    TimesEqualsStatement
-from src.model.GlobalVarDec import GlobalVarDec
+from src.model.StateTransform import StateTransform
+from src.model.Statement import Statement, FVRequirement, \
+    LocalVarDec, IfElse, StateVarAssign
+from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_section_id, derived_destination_id
 from src.model.L4Macro import L4Macro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit
 from src.model.Section import Section
-from src.model.Sort import Sort, NonatomicSort
+from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
 from src.model.Term import Term
 
+def primed(s:StateVarId) -> StateVarId:
+    return s + "'" # type:ignore
+def unprimed(s:StateVarId) -> StateVarId:
+    assert s[-1] == "'"
+    return s[:-1] # type:ignore
+def isprimed(s:str) -> bool:
+    return s[-1] == "'"
 
 class L4ContractConstructor(L4ContractConstructorInterface):
     def __init__(self, filename:Optional[str] = None) -> None:
@@ -98,7 +104,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.macros[ macroname] = L4Macro(macroparams, macrobody)
 
             elif   head(GLOBAL_VARS_AREA_LABEL) or head("GlobalStateVars"):
-                self.top.global_var_decs = self._mk_global_vars(rem)
+                self.top.global_var_decs = self._mk_statevar_decs(rem)
 
             elif head(CONTRACT_PARAMETERS_AREA_LABEL):
                 # assert all(isinstance(expr[0],str) for expr in rem)
@@ -134,6 +140,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head( IMG_FILE_NAME_LABEL ):
                 self.top.img_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
+            elif head("TypedMacro"):
+                todo_once("Handle TypedMacro")
+
             else:
                 raise Exception("Unsupported: ", x[0])
 
@@ -156,7 +165,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 sort = self._mk_sort(x[1])
             else:
                 assert len(x) >= 2
-                sort = NonatomicSort(x[0], tuple(self._mk_sort(x[i]) for i in range(1,len(x))))
+                sort = SortOpApp.c(x[0], tuple(self._mk_sort(x[i]) for i in range(1, len(x))))
         self.top.sorts.add(sort)
         assert sort is not None
         return sort
@@ -175,8 +184,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         sort = self._mk_sort(expr[2])
         return ContractParamDec(expr[0], sort, self._mk_term(expr[4], None, None, None, expr))
 
-    def _mk_global_vars(self, l:SExpr) -> Dict[GlobalVarId, GlobalVarDec]:
-        rv : Dict[GlobalVarId, GlobalVarDec] = dict()
+    def _mk_statevar_decs(self, l:SExpr) -> Dict[StateVarId, StateVarDec]:
+        rv : Dict[StateVarId, StateVarDec] = dict()
         for dec in l:
             try:
                 i = 0
@@ -187,7 +196,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         i += 1
                     else:
                         break
-                name = cast(GlobalVarId, chcaststr(dec[i]))
+                name = cast(StateVarId, chcaststr(dec[i]))
                 sort = self._mk_sort(dec[i + 2])
 
                 initval : Optional[Term] = None
@@ -196,7 +205,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 # print("sort: ", str(sort))
                 # print("initval: ", str(initval), type(initval))
-                rv[name] = GlobalVarDec(name, sort, initval, modifiers)
+                rv[name] = StateVarDec(name, sort, initval, modifiers)
+                # TODO: for requiring primed variables.
+                # rv[primed(name)] = rv[name]
             except Exception as e:
                 logging.error("Problem processing " + str(dec))
                 raise e
@@ -240,12 +251,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 else:
                     return sort
             else:
-                assert isinstance(sort,NonatomicSort)
-                if sort.sortop == "Dup":
+                assert isinstance(sort, SortOpApp)
+                if sort.op == "Dup":
                     # need to exclude the second arg to Dup, since it's the string name of this defined sort.
-                    return NonatomicSort(sort.sortop, (helper(sort.args[0]), sort.args[1]))
+                    return SortOpApp.c(sort.op, (helper(sort.args[0]), sort.args[1]))
                 else:
-                    return NonatomicSort(sort.sortop, tuple(helper(x) for x in sort.args))
+                    return SortOpApp.c(sort.op, tuple(helper(x) for x in sort.args))
 
         for defined_sort_id, sort_defn in self.top.sort_definitions.items():
             expanded[defined_sort_id] = helper(sort_defn)
@@ -387,7 +398,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 a.action_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(CODE_BLOCK_LABEL):
-                a.global_state_transform= self._mk_global_state_transform(cast(List[SExpr], x.tillEnd(1).lst), a)
+                a.global_state_transform= self._mk_state_transform(cast(List[SExpr], x.tillEnd(1).lst), a)
 
             elif head(PROSE_REFS_LABEL):
                 a.prose_refs  = cast(List[str], x.tillEnd(1).lst)
@@ -449,10 +460,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         return rv
 
-    def _mk_global_state_transform(self, statements:List[SExpr], a:Action) -> GlobalStateTransform:
-        return GlobalStateTransform([self._mk_statement(x, a) for x in statements])
+    def _mk_state_transform(self, statements:List[SExpr], a:Action) -> StateTransform:
+        return StateTransform([self._mk_statement(x, a) for x in statements])
 
-    def _mk_statement(self, statement:SExpr, parent_action:Action) -> GlobalStateTransformStatement:
+    def _mk_statement(self, statement:SExpr, parent_action:Action) -> Statement:
         varname : str
         try:
             if statement[0] == APPLY_MACRO_LABEL:
@@ -461,15 +472,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if statement[0] == 'conjecture' or statement[0] == 'prove':
                 self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformConjecture expression should have length 2")
                 rhs = self._mk_term(statement[1], None, parent_action, None, statement)
-                return InCodeConjectureStatement(rhs)
+                return FVRequirement(rhs)
             elif statement[0] == 'local':
                 self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type = term) or := instead of =')
                 self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
                                           'Local var dec should have form (local name : type = term)  or := instead of =')
                 sort = self._mk_sort(statement[3])
                 rhs = self._mk_term(statement[5], None, parent_action, None, statement)
-                varname = castid(StateTransformLocalVarId,statement[1])
-                lvd = StateTransformLocalVarDec(varname, rhs, sort)
+                varname = castid(LocalVarId, statement[1])
+                lvd = LocalVarDec(varname, rhs, sort)
                 if varname in parent_action.local_vars:
                     self.syntaxError(statement, "Redeclaration of local variable")
                 parent_action.local_vars[varname] = lvd
@@ -489,24 +500,24 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement))
                 rhs = self._mk_term(statement[2], None, parent_action, None, statement)
-                varname = castid(GlobalVarId, statement[0])
+                varname = castid(StateVarId, statement[0])
+                # TODO: for requiring primed variables. recall, though, that this makes += syntax kinda odd.
+                # self.assertOrSyntaxError(isprimed(varname), statement, f"To assign to a state variable {varname}, you must assign to {primed(varname)}, which indicates \"the next value of X\".")
                 self.assertOrSyntaxError(varname in self.top.global_var_decs, statement, f"{varname} not recognized as a global state variable.")
                 vardec = self.top.global_var_decs[varname]
-                orig : GlobalStateTransformStatement
-                reduced : GlobalStateTransformStatement
+                orig : Statement
+                reduced : Statement
                 if statement[1] == ':=' or statement[1] == "=":
-                    return GlobalVarAssignStatement(vardec, rhs)
+                    return StateVarAssign(vardec, rhs)
                 else:
                     var = self.top.new_global_var_ref(varname)
-                    if statement[1] == '+=':
-                        orig = IncrementStatement(vardec, rhs)
-                        reduced = GlobalVarAssignStatement(vardec, FnApp('+', [var, rhs]))
-                    elif statement[1] == '-=':
-                        orig = DecrementStatement(vardec, rhs)
-                        reduced = GlobalVarAssignStatement(vardec, FnApp('-', [var, rhs]))
-                    elif statement[1] == '*=':
-                        orig = TimesEqualsStatement(vardec, rhs)
-                        reduced = GlobalVarAssignStatement(vardec, FnApp('*', [var, rhs]))
+                    orig = StateVarAssign(vardec, rhs, statement[1])
+                    if orig.varop == "+=":
+                        reduced = StateVarAssign(vardec, FnApp('+', [var, rhs]))
+                    elif orig.varop == '-=':
+                        reduced = StateVarAssign(vardec, FnApp('-', [var, rhs]))
+                    elif orig.varop == '*=':
+                        reduced = StateVarAssign(vardec, FnApp('*', [var, rhs]))
                     else:
                         raise Exception
                     reduced.orig = orig
@@ -551,7 +562,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return DeadlineLit(x)
 
             if x in self.top.global_var_decs:
-                return GlobalVar(self.top.global_var_decs[cast(GlobalVarId,x)])
+                return GlobalVar(self.top.global_var_decs[cast(StateVarId, x)])
 
             # if parent_action and (x in parent_action.local_vars):
             #     return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
@@ -576,7 +587,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule)
 
             if parent_action and x in parent_action.local_vars:
-                return StateTransformLocalVar(parent_action.local_vars[castid(StateTransformLocalVarId,x)])
+                return LocalVar(parent_action.local_vars[castid(LocalVarId, x)])
 
             return L4ContractConstructor.mk_literal(x, parent_SExpr, self.top)
 

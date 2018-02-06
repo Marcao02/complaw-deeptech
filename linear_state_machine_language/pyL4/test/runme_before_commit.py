@@ -17,11 +17,11 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     if "print" in sys.argv:
         print(f"\n============================================\nRunning `test_parser.py` with args `examples printPretty printSExpr dot`")
         test_parser.main("examples printPretty printSExpr dot")
-        # runit("python3.6 src.parse_and_build_model_cli.py examples printPretty printSExpr dot")
+        # runit("python3.6 src.parse_to_model_cli.py examples printPretty printSExpr dot")
     else:
         print(f"\n============================================\nRunning `test_parser.py` with args `examples`")
         test_parser.main("examples")
-        # runit("python3.6 src.parse_and_build_model_cli.py examples")
+        # runit("python3.6 src.parse_to_model_cli.py examples")
 
     import test_interpreter
     assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), "Some entries of test_interpreter.EXAMPLES_TO_RUN are probably commented out"

@@ -31,7 +31,7 @@ def add_derived(graph:SubsortGraph):
 
     # Tuple
     for s1 in AllAtomicSortsAndDups:
-        # graph.addEdge(NonatomicSort('Tuple', (S, S)), NonatomicSort('Tuple', ('Any', 'Any')))
+        # graph.addEdge(SortOpApp('Tuple', (S, S)), SortOpApp('Tuple', ('Any', 'Any')))
         for s2 in AllAtomicSortsAndDups:
             if not graph.hasEdge(s1,s2):
                 continue
@@ -89,6 +89,9 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     # makes sense as consequence of previous two lines:
     sschain(Ratio(PosRealD, PosIntD), Ratio(NonnegRealD, PosIntD)),
     sschain(Ratio(PosRealD, PosRealD), Ratio(NonnegRealD, PosRealD)),
+
+    # unfortunately currently needed for subtraction:
+    sschain(NonnegRealD, RealD),
 )
 
 

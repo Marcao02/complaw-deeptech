@@ -20,11 +20,11 @@
 (ContractParams
 	(PURCHASE_AMOUNT : Pos$ = 100000)
 
-	(TIME_TILL_MATURITY : TimeDelta = (days (365 + (cast PosInt (364 / 2)))))
+	(TIME_TILL_MATURITY : TimeDelta = (days 547)) ; approx 18 months
 	(VALUATION_CAP : Pos$ = 1000000000000)
 	(DISCOUNT_RATE : "(0,1]" = 1)
 	(INTEREST_RATE : "[0,1]" = .04)
-	(DEBT_VERSION : Bool = true) ; bug "SyntaxError: Don't recognize name INTEREST_RATE"
+	(DEBT_VERSION : Bool = true)
 
 	(START_INVESTOR_COMMON_STOCK : ShareCnt = 0)
 	(START_INVESTOR_PREFERRED_STOCK : ShareCnt = 0)
@@ -47,22 +47,57 @@
 
 
 
+(TypedMacro compounded_full_periods ((#princ : Pos$) (#ir : "(0,1)") (#periods : PosInt)) -> Pos$
+	(#princ * ((1 + #ir) ^ #periods))
+)
+
 (Macro compounded_full_periods (#princ #ir #periods)
 	(#princ * ((1 + #ir) ^ #periods))
 )
 
-; p * (1 + ir)^N
-; +
-; p * (1 + ir)^N * ir * q
+; [p * (1 + ir)^N] + [p * (1 + ir)^N * ir * q]
+(TypedMacro principle_and_compound_interest
+	; (((#princ : Pos$) (#ir : "(0,1)") (#full_periods : PosInt) (#final_period_fraction: "[0,1)")) -> (Pos$ & (GEQ #princ)))
+	(((#princ : Pos$) (#ir : "(0,1)") (#full_periods : PosInt) (#final_period_fraction: "[0,1)")) -> Pos$)
+	(
+		(apply-macro compounded_full_periods (#princ #ir #full_periods)) +
+		(((apply-macro compounded_full_periods (#princ #ir #full_periods)) * #ir) * #final_period_fraction)
+	)
+	(Post (RETURN_VALUE : (GEQ #princ)))
+)
 (Macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction) (
 	(apply-macro compounded_full_periods (#princ #ir #full_periods)) +
 	(((apply-macro compounded_full_periods (#princ #ir #full_periods)) * #ir) * #final_period_fraction)
 ))
 
+(TypedMacro compound_interest
+	((#princ : Pos$) (#ir : "(0,1)") (#full_periods : PosInt) (#final_period_fraction: "[0,1)")) -> Pos$
+	(cast Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
+)
 (Macro compound_interest (#princ #ir #full_periods #final_period_fraction)
 	(cast Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
 )
 
+; Interesting issue here: ifthenelse (a ≤ t') t_true t_false
+; gives a type (LEQ t') in t_true, and type (GT t') in t_false
+; but that, as it's written now, seems to require an encoding of the relationship between formulas and types.
+; Alternatively, ≤ could have types:
+; ∀x:TimeDelta. {x} -> (GEQ x) -> {true}
+; ∀x:TimeDelta. {x} -> (LT x) -> {false}
+; ∀x:TimeDelta. (LEQ x) -> {x} -> {true}
+; ∀x:TimeDelta. (GT x) -> {x} -> {false}
+; Another option to typecheck ifthenelse:
+;   you infer type of a in t_true by checking (a ≤ t') against {true}
+;   you infer type of a in t_false by checking (a ≤ t') against {false}
+; That's too complicated.
+; FOR NOW just use
+;	iftype (#td : (LEQ 365d)) t1 t2
+(TypedMacro interest_from_td (#td : TimeDelta) -> Pos$
+	(ifthenelse (#td ≤ 365d)
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((cast PosTimeDelta (#td - 365d)) / 365d)))
+	)
+)
 (Macro interest_from_td #td
 	(ifthenelse (#td ≤ 365d)
 		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))

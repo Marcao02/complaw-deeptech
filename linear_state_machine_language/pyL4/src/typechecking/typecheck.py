@@ -9,7 +9,7 @@ from src.model.Statement import Statement, LocalVarDec, \
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
 from src.model.Section import Section
-from src.model.Sort import NonatomicSort
+from src.model.Sort import SortOpApp
 from src.model.Term import FnApp
 from src.typechecking.L4TypeErrors import *
 from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_types_map, ASSOCIATIVE_OPS, CHAIN_PREDS, \
@@ -132,14 +132,17 @@ def addDupSortRelnsToGraphAndFnTypes(sorts:Iterable[Sort], expanded_sortdefns: D
     for s in sorts:
         if isinstance(s,str) and s in expanded_sortdefns:
             s = expanded_sortdefns[s]
-        if isinstance(s,NonatomicSort) and s.sortop == "Dup":
-            withvar = NonatomicSort("Dup", (s.args[0], dupvar))
+        if isinstance(s, SortOpApp) and s.op == "Dup":
+            withvar = SortOpApp.c("Dup", (s.args[0], dupvar))
             subst[withvar] = s
+            # subst[s] = withvar
             graph.addNode(s)
             graph.addEdge(withvar, s)
     for fsymb, oft in fntypes.items():
         oft.add_substdict_copies(subst)
-    # oft.replace_sorts(subst)
+        # oft.replace_sorts(subst)
+
+    # print_types_map(fntypes)
 
     duplicate_some_edges(subst, graph)
 
@@ -234,7 +237,11 @@ class TypeChecker:
     def typeinfer_term(self, t:Term) -> Sort:
         if isinstance(t,FnApp):
             if t.fnsymb_name == 'cast':
-                return cast(Sort, cast(SortLit,t.args[0]).lit)
+                assert len(t.args) == 2
+                inferred_without_cast = self.typeinfer_term(t.args[1])
+                casted_to = t.args[0]
+                print(f"inferred {inferred_without_cast} and casted to {casted_to}")
+                return cast(Sort, cast(SortLit,casted_to).lit)
 
             argsorts = tuple(self.typeinfer_term_with_sort_subst(arg) for arg in t.args)
             # if t.fnsymb_name == "==":
@@ -315,8 +322,8 @@ class TypeChecker:
         # we want to infer types of ambiguous numeric literals, at least sometimes
         # if s is a simple units type compatible with t, we'll allow it.
         if ((isinstance(t,IntLit) or isinstance(t,FloatLit)) and
-             isinstance(s, NonatomicSort) and
-             s.sortop == "Dup" and
+             isinstance(s, SortOpApp) and
+             s.op == "Dup" and
              s.args[0] in NormalUnboundedNumericSorts and
              sub(inferred, s.args[0]) ):
             return True

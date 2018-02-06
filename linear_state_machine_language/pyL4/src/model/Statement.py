@@ -1,21 +1,21 @@
 from itertools import chain
 
 from src.independent.util import indent
-from src.constants_and_defined_types import GlobalVarId, StateTransformLocalVarId
+from src.constants_and_defined_types import StateVarId, LocalVarId
 from src.independent.typing_imports import *
-from src.model.GlobalVarDec import GlobalVarDec
+from src.model.StateVarDec import StateVarDec
 from src.model.Sort import Sort
 from src.model.Term import Term
 
-Block = List['GlobalStateTransformStatement']
+Block = List['Statement']
 
 def blocksubst(b:Block, var:str, term:Term) -> Block:
     return [s.subst(var,term) for s in b]
 
 """ Just the common parent """
-class GlobalStateTransformStatement:
+class Statement:
     def __init__(self):
-        self.orig : Optional[GlobalStateTransformStatement]
+        self.orig : Optional[Statement]
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         raise NotImplementedError
@@ -25,17 +25,17 @@ class GlobalStateTransformStatement:
     """
     var can be a local or global var
     """
-    def subst(self, var:str, term:Term) -> 'GlobalStateTransformStatement':
+    def subst(self, var:str, term:Term) -> 'Statement':
         raise NotImplementedError
 
     def toStr(self, i:int):
         return indent(i) + str(self)
 
 
-class IfElse(GlobalStateTransformStatement):
+class IfElse(Statement):
     def __init__(self, test:Term,
-                 true_branch:List[GlobalStateTransformStatement],
-                 false_branch: Optional[List[GlobalStateTransformStatement]] = None) -> None:
+                 true_branch:List[Statement],
+                 false_branch: Optional[List[Statement]] = None) -> None:
         super().__init__()
         self.test = test
         self.true_branch = true_branch
@@ -79,10 +79,10 @@ class IfElse(GlobalStateTransformStatement):
         return rv
 
 
-class StateTransformLocalVarDec(GlobalStateTransformStatement):
-    def __init__(self, varname:StateTransformLocalVarId, value_expr:Term, sort:Sort) -> None:
+class LocalVarDec(Statement):
+    def __init__(self, varname:LocalVarId, value_expr:Term, sort:Sort) -> None:
         super().__init__()
-        self.varname : StateTransformLocalVarId = varname
+        self.varname : LocalVarId = varname
         self.value_expr = value_expr
         self.sort = sort
 
@@ -96,18 +96,13 @@ class StateTransformLocalVarDec(GlobalStateTransformStatement):
         rviter = chain(rviter, self.value_expr.forEach(pred,f))
         return rviter
 
+    def subst(self, var:str, term:Term) -> 'Statement':
+        return LocalVarDec(self.varname, self.value_expr.subst(var, term), self.sort)
+
     def __str__(self):
         return f"{self.varname} : {str(self.sort)} := {str(self.value_expr)}"
 
-# class LocalVarDec(GlobalVarAssignStatement):
-#     def __init__(self, varname:LocalVarId, value_expr:Term, sort:str) -> None:
-#         super().__init__(castid(GlobalVarId,varname), value_expr)
-#         self.sort = sort
-#
-#     def __str__(self):
-#         return f"{self.varname} := {str(self.value_expr)}"
-
-class InCodeConjectureStatement(GlobalStateTransformStatement):
+class FVRequirement(Statement):
     def __init__(self, prop:Term) -> None:
         super().__init__()
         self.value_expr = prop
@@ -122,16 +117,19 @@ class InCodeConjectureStatement(GlobalStateTransformStatement):
         rviter = chain(rviter, self.value_expr.forEach(pred,f))
         return rviter
 
+    def subst(self, var:str, term:Term) -> 'Statement':
+        return FVRequirement(self.value_expr.subst(var,term))
 
     def __str__(self) -> str:
         return "prove " + str(self.value_expr)
 
 
-class AbstractGlobalVarAssignStatement(GlobalStateTransformStatement):
-    def __init__(self, vardec:GlobalVarDec, value_expr:Term) -> None:
+class StateVarAssign(Statement):
+    def __init__(self, vardec:StateVarDec, value_expr:Term, varop:str = ":=") -> None:
         super().__init__()
         self.vardec = vardec
         self.value_expr = value_expr
+        self.varop = varop
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         return self.value_expr.forEachTerm(f, iteraccum_maybe)
@@ -143,23 +141,13 @@ class AbstractGlobalVarAssignStatement(GlobalStateTransformStatement):
         rviter = chain(rviter, self.value_expr.forEach(pred,f))
         return rviter
 
-
+    def subst(self, var:str, term:Term) -> 'Statement':
+        return StateVarAssign(self.vardec, self.value_expr.subst(var,term), self.varop)
 
     @property
-    def varname(self) -> GlobalVarId:
-        # this cast shouldn't be necessary. weird.
-        # return cast(GlobalVarId,self.vardec.name)
+    def varname(self) -> StateVarId:
         return self.vardec.name
 
-class GlobalVarAssignStatement(AbstractGlobalVarAssignStatement):
     def __str__(self):
-        return f"{self.varname} := {str(self.value_expr)}"
-class IncrementStatement(AbstractGlobalVarAssignStatement):
-    def __str__(self):
-        return f"{self.varname} += {str(self.value_expr)}"
-class DecrementStatement(AbstractGlobalVarAssignStatement):
-    def __str__(self):
-        return f"{self.varname} -= {str(self.value_expr)}"
-class TimesEqualsStatement(AbstractGlobalVarAssignStatement):
-    def __str__(self):
-        return f"{self.varname} *= {str(self.value_expr)}"
+        return f"{self.varname} {self.varop} {str(self.value_expr)}"
+

@@ -1,11 +1,12 @@
 import time
 
 from src.independent.typing_imports import *
-from src.model.Sort import Sort, NonatomicSort, AtomicSort
+from src.model.Sort import Sort, SortOpApp, AtomicSort
 from src.model.FnTypes import OverloadedFnType, SimpleFnType, SimpleFnType
-from src.typechecking.standard_sorts import AllAtomicSortsAndDups, TDMapKeySorts, TimeDelta, Bool, UnboundedNumericSorts, \
+from src.typechecking.standard_sorts import AllAtomicSortsAndDups, TDMapKeySorts, TimeDelta, Bool, \
+    UnboundedNumericSorts, \
     PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedRealIntervalSorts, DateTime, Real, \
-    AllNumericSorts, SApp, NonnegRealD, NatD, PosIntD, PosRealD, AllSorts, Ratio
+    AllNumericSorts, SApp, NonnegRealD, NatD, PosIntD, PosRealD, AllSorts, Ratio, RealD
 
 """
 We have a rich (and getting richer) numeric hierarchy in the standard library, and we have a few ways of combining
@@ -235,7 +236,7 @@ overloaded_types_data : FnTypesData = [
     (('min','max','+','*') , parametric_one_var(
         (aafntype(X,X),),
         UnboundedNumericSorts.union(
-            {TimeDelta, SApp('Ratio', PosReal, PosInt)}).union(
+            {TimeDelta, Ratio( PosReal, PosInt)}).union(
             {NonnegRealD, NatD})
         )
      ),
@@ -273,8 +274,8 @@ overloaded_types_data : FnTypesData = [
 
     # temp hack
     # (('*',), parametric_mult_vars(
-    #     {sfntype(SApp('Ratio', N, D), D, R),
-    #      sfntype(D, SApp('Ratio', N, D), R)},
+    #     {sfntype(Ratio( N, D), D, R),
+    #      sfntype(D, Ratio( N, D), R)},
     #     [
     #             {'NVar':Real,'DVar':PosReal, 'RVar':Real},
     #             {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
@@ -286,34 +287,37 @@ overloaded_types_data : FnTypesData = [
     #     )
     #  ),
     (('*',), (
-        sfntype(SApp('Ratio', PosReal, PosInt), PosReal, SApp('Ratio', PosReal, PosInt)),
-        sfntype(PosReal, SApp('Ratio', PosReal, PosInt), SApp('Ratio', PosReal, PosInt)) ),
+        sfntype(Ratio( PosReal, PosInt), PosReal, Ratio( PosReal, PosInt)),
+        sfntype(PosReal, Ratio( PosReal, PosInt), Ratio( PosReal, PosInt)) ),
      ),
 
     (('-',), parametric_one_var(
-        sfntype(X, X, X), (Int, Real, TimeDelta))
+        sfntype(X, X, X),
+        (Int, Real, TimeDelta, RealD))
      ),
 
     (('/',), parametric_mult_vars(
         {sfntype(N, D, R)},
         [
-            {'NVar':Real, 'DVar':PosReal, 'RVar':SApp('Ratio',Real,PosReal)},
-            {'NVar':PosReal, 'DVar':PosReal, 'RVar':SApp('Ratio',PosReal,PosReal)},
-            {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':SApp('Ratio',NonnegReal,PosReal)},
-            {'NVar':Real, 'DVar':PosInt, 'RVar':SApp('Ratio',Real,PosInt)},
-            {'NVar':PosReal, 'DVar':PosInt, 'RVar':SApp('Ratio',PosReal,PosInt)},
-            {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':SApp('Ratio',NonnegReal,PosInt)},
-            {'NVar':PosRealD, 'DVar':PosIntD, 'RVar':SApp('Ratio', PosRealD, PosIntD)},
+            {'NVar':Real, 'DVar':PosReal, 'RVar':Ratio(Real,PosReal)},
+            {'NVar':PosReal, 'DVar':PosReal, 'RVar':Ratio(PosReal,PosReal)},
+            {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':Ratio(NonnegReal,PosReal)},
+            {'NVar':Real, 'DVar':PosInt, 'RVar':Ratio(Real,PosInt)},
+            {'NVar':PosReal, 'DVar':PosInt, 'RVar':Ratio(PosReal,PosInt)},
+            {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':Ratio(NonnegReal,PosInt)},
 
-            {'NVar':PosRealD, 'DVar':PosRealD, 'RVar':SApp('Ratio', PosRealD, PosRealD)},
-            {'NVar':NonnegRealD, 'DVar':PosRealD, 'RVar':SApp('Ratio', NonnegRealD, PosRealD)},
-            {'NVar':PosRealD, 'DVar':PosIntD, 'RVar':SApp('Ratio', PosRealD, PosIntD)},
-            {'NVar':NonnegRealD, 'DVar':PosIntD, 'RVar':SApp('Ratio', NonnegRealD, PosIntD)},
+            {'NVar':PosRealD, 'DVar':PosRealD, 'RVar':Ratio( PosRealD, PosRealD)},
+            {'NVar':NonnegRealD, 'DVar':PosRealD, 'RVar':Ratio( NonnegRealD, PosRealD)},
+            {'NVar':PosRealD, 'DVar':PosIntD, 'RVar':Ratio( PosRealD, PosIntD)},
+            {'NVar':NonnegRealD, 'DVar':PosIntD, 'RVar':Ratio( NonnegRealD, PosIntD)},
+
+            {'NVar':NatD, 'DVar':PosIntD, 'RVar':Ratio( NatD, PosIntD)},
+            {'NVar':PosIntD, 'DVar':PosIntD, 'RVar':Ratio( PosIntD, PosIntD)}
 
         ])
      ),
      (('/',), parametric_mult_vars(
-         {sfntype(N, SApp('Ratio', N, D), R)}, [
+         {sfntype(N, Ratio( N, D), R)}, [
                 {'NVar':Real,'DVar':PosReal, 'RVar':Real},
                 {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
                 {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
@@ -379,15 +383,15 @@ check_type_vars_gone(STANDARD_FNTYPES)
 # """
 # def subst_concrete_dups(fntypes: FnTypesMap):
 #     newparts : List[SimpleFnType] = []
-#     subst : Dict[Tuple[str,str], NonatomicSort] = dict()
+#     subst : Dict[Tuple[str,str], SortOpApp] = dict()
 #     for fnsymb,oft in fntypes.items():
 #         newparts.clear()
 #         for noft in oft.parts:
 #             subst.clear()
 #             for sort in noft.parts:
-#                 if isinstance(sort,NonatomicSort):
-#                     sortop = sort.sortop
-#                     if sortop == 'Dup':
+#                 if isinstance(sort,SortOpApp):
+#                     op = sort.op
+#                     if op == 'Dup':
 #                         dupsort = cast(Sort,sort.args[0])
 #                         dupvar = cast(str,sort.args[1])
 # def isSimpleNumericFnType(ft:SimpleFnType) -> bool:

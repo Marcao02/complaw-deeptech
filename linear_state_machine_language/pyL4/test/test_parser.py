@@ -3,7 +3,7 @@ from typing import List
 
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars
 from src.independent.util import writeReadOnlyFile
-from src.parse_and_build_model.sexpr_to_L4Contract import L4ContractConstructor
+from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
 from src.independent.parse_sexpr import parse_file, prettySExprStr
 from src.state_diagram_generation import contractToDotFile
@@ -84,13 +84,13 @@ if __name__ == '__main__':
 
                         # from typing import TypeVar, Iterable, Dict, Callable, List
 #
-# from src.model.GlobalVarDec import GlobalVarDec
+# from src.model.StateVarDec import StateVarDec
 # from src.model.L4Contract import L4Contract
 # T = TypeVar('T')
 # def mkdict(iter : List[T], name:Callable[[T],str] = lambda x:x.name) -> Dict[str,T]:
 #     return {name(x): x for x in iter}
-# def gvardec(name: str, sort: str, initval: Optional[Term], modifier:List[str]) -> GlobalVarDec:
-#     return GlobalVarDec(castid(GlobalVarDecId), sort, initval, modifier)
+# def gvardec(name: str, sort: str, initval: Optional[Term], modifier:List[str]) -> StateVarDec:
+#     return StateVarDec(castid(GlobalVarDecId), sort, initval, modifier)
 #
 # c = L4Contract('monster burger')
 # c.start_section_id = 'MonsterBurgerUncooked'
