@@ -5,10 +5,10 @@ roles: Env, Investor, Company
 
 contract params:
     PURCHASE_AMOUNT : Pos$ := 100000
-    TIME_TILL_MATURITY : TimeDelta := (days (365 + (cast PosInt (364 / 2))))
+    TIME_TILL_MATURITY : TimeDelta := (days 547)
     VALUATION_CAP : Pos$ := 1000000000000
-    DISCOUNT_RATE : (0,1] := 1
-    INTEREST_RATE : [0,1] := 0.04
+    DISCOUNT_RATE : Fraction(0,1] := 1
+    INTEREST_RATE : Fraction[0,1] := 0.04
     DEBT_VERSION : Bool := True
     START_INVESTOR_COMMON_STOCK : ShareCnt := 0
     START_INVESTOR_PREFERRED_STOCK : ShareCnt := 0

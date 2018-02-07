@@ -16,7 +16,7 @@ from src.typechecking.standard_function_types import STANDARD_FNTYPES, print_typ
     FnTypesMap
 from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, NormalUnboundedNumericSorts, \
     SubsortGraph, duplicate_some_edges
-from src.typechecking.standard_sorts import check_sorts_valid, dupvar
+from src.typechecking.standard_sorts import check_sorts_valid
 
 print_types_map(STANDARD_FNTYPES)
 
@@ -54,7 +54,7 @@ def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
                 elif t.lit == 1:
                     yield "{1}"
                 elif 0 < t.lit < 1:
-                    yield "(0,1)"
+                    yield "Fraction(0,1)"
                 elif t.lit > 1:
                     yield "PosReal"
                 else:
@@ -126,40 +126,44 @@ def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
 
 
 
-def addDupSortRelnsToGraphAndFnTypes(sorts:Iterable[Sort], expanded_sortdefns: Dict[str,Sort], graph:SubsortGraph, fntypes:FnTypesMap):
-    subst: Dict[Sort, Sort] = {}
-
-    for s in sorts:
-        if isinstance(s,str) and s in expanded_sortdefns:
-            s = expanded_sortdefns[s]
-        if isinstance(s, SortOpApp) and s.op == "Dup":
-            withvar = SortOpApp.c("Dup", (s.args[0], dupvar))
-            subst[withvar] = s
-            # subst[s] = withvar
-            graph.addNode(s)
-            graph.addEdge(withvar, s)
-    for fsymb, oft in fntypes.items():
-        oft.add_substdict_copies(subst)
-        # oft.replace_sorts(subst)
-
-    # print_types_map(fntypes)
-
-    duplicate_some_edges(subst, graph)
+# def addDimensionedNumericSortRelnsToGraphAndFnTypes(sorts:Iterable[Sort], expanded_sortdefns: Dict[str, Sort], graph:SubsortGraph, fntypes:FnTypesMap):
+#     subst: Dict[Sort, Sort] = {}
+#
+#     unit_vars_mentioned : Dict[Sort,List[str]] = {[] for s in sorts}
+#     for s in sorts:
+#
+#
+#     for s in sorts:
+#         if isinstance(s,str) and s in expanded_sortdefns:
+#             s = expanded_sortdefns[s]
+#         if isinstance(s, SortOpApp) and s.op == "Dimensioned":
+#             withvar = SortOpApp.c("Dimensioned", (s.args[0], dupvar))
+#             subst[withvar] = s
+#             # subst[s] = withvar
+#             graph.addNode(s)
+#             graph.addEdge(withvar, s)
+#     for fsymb, oft in fntypes.items():
+#         oft.add_substdict_copies(subst)
+#         # oft.replace_sorts(subst)
+#
+#     print_types_map(fntypes)
+#
+#     duplicate_some_edges(subst, graph)
 
 def typecheck_prog(prog:L4Contract):
 
-    sorts_used_explicitly = set(what_sorts_used_explicitly(prog))
-    literal_sorts = set(what_sorts_used_explicitly_or_at_leaves(prog))
-    print(f"Explicit sorts:\n",sorts_used_explicitly)
+    sorts_used_explicitly = frozenset(what_sorts_used_explicitly(prog)).union(prog.sort_definitions.keys())
+    print(f"Explicit sorts:\n", sorts_used_explicitly)
+
+    literal_sorts = frozenset(what_sorts_used_explicitly_or_at_leaves(prog))
     print(f"Nonexplicit sorts of literals:\n",literal_sorts.difference(sorts_used_explicitly))
+
     check_sorts_valid(sorts_used_explicitly, prog.sort_definitions)
-    addDupSortRelnsToGraphAndFnTypes(sorts_used_explicitly, prog.expanded_sort_definitions, STANDARD_SUBSORTING_GRAPH, STANDARD_FNTYPES)
+    # addDimensionedNumericSortRelnsToGraphAndFnTypes(sorts_used_explicitly, prog.expanded_sort_definitions, STANDARD_SUBSORTING_GRAPH, STANDARD_FNTYPES)
 
     fsymbs = set(what_fnsymbols_used(prog))
     print(f"Explicit fn symbols:\n", fsymbs)
     assert fsymbs == set(what_fnsymbols_used2(prog))
-
-    # doit_for_safe(STANDARD_FNTYPES, STANDARD_SUBSORTING_GRAPH)
 
     tc = TypeChecker(prog)
     for action in prog.actions_iter():
@@ -178,6 +182,13 @@ def typecheck_prog(prog:L4Contract):
         if gvardec.initval:
             tc.typecheck_term(gvardec.initval, gvardec.sort)
     print("✓\n")
+
+def sort_expanded_display(sort:Sort, expanded:Sort) -> str:
+    if sort == expanded:
+        return str(sort)
+    else:
+        return f"{expanded} ({sort})"
+
 
 class TypeChecker:
     def __init__(self,prog:L4Contract) -> None:
@@ -230,6 +241,13 @@ class TypeChecker:
         #     print(f"arg sorts {argsorts} of {term.head} ARE a subset of domain of nonoverloaded fn type {fntype}")
         return fntype.ran
 
+    def cast_allowed(self, t:Term, sfrom:Sort, sto:Sort) -> bool:
+        if isinstance(t,Literal) and isinstance(sto,SortOpApp) and sto.op == "Dimensioned" and isinstance(sfrom,str):
+            return sub( sfrom, sto.args[0] )
+        else:
+            return sub( sto, sfrom )
+
+
     def typeinfer_term_with_sort_subst(self, t:Term) -> Sort:
         return self.repl_sort_def(self.typeinfer_term(t))
 
@@ -237,11 +255,35 @@ class TypeChecker:
     def typeinfer_term(self, t:Term) -> Sort:
         if isinstance(t,FnApp):
             if t.fnsymb_name == 'cast':
+                todo_once("Add `attach_unit_type` fn, and change `cast` to `tighten`?")
                 assert len(t.args) == 2
-                inferred_without_cast = self.typeinfer_term(t.args[1])
-                casted_to = t.args[0]
-                print(f"inferred {inferred_without_cast} and casted to {casted_to}")
-                return cast(Sort, cast(SortLit,casted_to).lit)
+                casted_term = t.args[1]
+                sortlit = t.args[0]
+                assert isinstance(sortlit, SortLit)
+                casted_to = sortlit.lit
+                casted_to_long = self.repl_sort_def(casted_to)
+
+                inferred_without_cast = self.typeinfer_term(casted_term)
+                inferred_without_cast_long = self.repl_sort_def(inferred_without_cast)
+
+                if sub(inferred_without_cast_long, casted_to_long):
+                    raise L4TypeInferError(t,
+                    f"Unnecessary typecast of {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} " 
+                                            f"to {sort_expanded_display(casted_to,casted_to_long)}" )
+
+                if not self.cast_allowed(casted_term, inferred_without_cast_long, casted_to_long):
+                    raise L4TypeInferError(t,
+                    # print(
+                    f"Term {casted_term} of sort {sort_expanded_display(inferred_without_cast, inferred_without_cast_long)} cannot be cast to "
+                    f"{sort_expanded_display(casted_to, casted_to_long)}; see TypeChecker.cast_allowed.")
+
+                if isinstance(casted_term,Literal):
+                    print(f"Innocent cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
+                          f"{sort_expanded_display(casted_to, casted_to_long)} for literal {casted_term}.")
+                else:
+                    print(f"Unsafe cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
+                          f"{sort_expanded_display(casted_to, casted_to_long)} for non-literal.")
+                return casted_to_long
 
             argsorts = tuple(self.typeinfer_term_with_sort_subst(arg) for arg in t.args)
             # if t.fnsymb_name == "==":
@@ -283,7 +325,7 @@ class TypeChecker:
                 elif t.lit == 1:
                     return "{1}"
                 elif 0 < t.lit < 1:
-                    return "(0,1)"
+                    return "Fraction(0,1)"
                 elif t.lit > 1:
                     return "PosReal"
                 return "Real"
@@ -323,7 +365,7 @@ class TypeChecker:
         # if s is a simple units type compatible with t, we'll allow it.
         if ((isinstance(t,IntLit) or isinstance(t,FloatLit)) and
              isinstance(s, SortOpApp) and
-             s.op == "Dup" and
+             s.op == "Dimensioned" and
              s.args[0] in NormalUnboundedNumericSorts and
              sub(inferred, s.args[0]) ):
             return True

@@ -84,16 +84,16 @@ section UnsettledInfraction:
     if ¬usage_level_normal:
         Client may LowerTraffic (next_event_td ≤ (infraction_time + 48h))
     Client may SendDelayEmail (next_event_td ≤ (infraction_time + 48h))
-    Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where ((?x > (cast $ 0)) and (?x ≤ (cast $ 3)))
-    if (and* ¬sent_delay_email usage_level_normal (paid ≥ (cast $ 1))):
+    Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where (and (?x > (cast $ 0)) (?x ≤ (cast $ 3)))
+    if (and ¬sent_delay_email usage_level_normal (paid ≥ (cast $ 1))):
         Reset (next_event_td ≤ (infraction_time + 24h))
-    if (¬sent_delay_email and (¬usage_level_normal or ¬paidBefore24)):
+    if (and ¬sent_delay_email (or ¬usage_level_normal ¬paidBefore24)):
         ClientBreaches (next_event_td > (infraction_time + 24h))
-    if (and* sent_delay_email usage_level_normal (paid ≥ (cast $ 2))):
+    if (and sent_delay_email usage_level_normal (paid ≥ (cast $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
-    if (and* sent_delay_email (traffic_low_since ≤ (infraction_time + 24h)) usage_level_normal (paid ≥ (cast $ 2))):
+    if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24h)) usage_level_normal (paid ≥ (cast $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
-    if (and* sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ (cast $ 3))):
+    if (and sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ (cast $ 3))):
         Reset (next_event_td ≤ (infraction_time + 48h))
     ClientBreaches (next_event_td > (infraction_time + 48h))
     if contract_canceled:

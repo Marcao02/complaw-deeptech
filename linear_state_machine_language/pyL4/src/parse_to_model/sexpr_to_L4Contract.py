@@ -252,8 +252,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     return sort
             else:
                 assert isinstance(sort, SortOpApp)
-                if sort.op == "Dup":
-                    # need to exclude the second arg to Dup, since it's the string name of this defined sort.
+                if sort.op == "Dimensioned":
+                    # need to exclude the second arg to Dimensioned, since it's the string name of this defined sort.
                     return SortOpApp.c(sort.op, (helper(sort.args[0]), sort.args[1]))
                 else:
                     return SortOpApp.c(sort.op, tuple(helper(x) for x in sort.args))

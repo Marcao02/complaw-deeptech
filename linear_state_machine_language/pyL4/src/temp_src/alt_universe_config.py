@@ -7,7 +7,7 @@ class AltUniverseConfig(NamedTuple):
 
 """
 For SAFE and KISS, I THINK just need to simultaneously substitute:
-SApp('Dup',NonnegReal,'$'), for SApp('Dup',NonnegReal,'jVar')  
+SApp('Dimensioned',NonnegReal,'$'), for SApp('Dimensioned',NonnegReal,'jVar')  
 
 Lighter notation...
 In the following order. Substitute simultaneously even within sort op apps:

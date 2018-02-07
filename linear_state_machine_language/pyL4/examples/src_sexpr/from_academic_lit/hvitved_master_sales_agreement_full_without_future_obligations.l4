@@ -2,8 +2,8 @@
 (Roles Customer Vendor)
 
 (SortDefinitions
-	(Pos$ := (Dup PosReal "Pos$"))
-	($ := (Dup NonnegReal "$"))
+	(Pos$ := (Dimensioned PosReal "Pos$"))
+	($ := (Dimensioned NonnegReal "$"))
 	(Order := (Tuple Nat Nat))
 	(TDMap_Order := (TDMap (Tuple Nat Nat)))
 )

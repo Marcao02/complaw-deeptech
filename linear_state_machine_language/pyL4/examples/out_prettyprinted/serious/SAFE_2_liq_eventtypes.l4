@@ -6,7 +6,7 @@ roles: Env, Investor, Company
 contract params:
     PURCHASE_AMOUNT : Pos$ := 100000
     VALUATION_CAP : Pos$ := 1000000000000
-    DISCOUNT_RATE : (0,1] := 1
+    DISCOUNT_RATE : Fraction(0,1] := 1
     START_INVESTOR_COMMON_STOCKS : ShareCnt := 0
     START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt := 0
     START_INVESTOR_CASH : $ := 0
@@ -26,7 +26,7 @@ global vars:
     writeAtMostOnce liq_cashout : $ := 0
     writeAtMostOnce company_cash : $
     writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt
-    writeAtMostOnce investor_percent_of_cashout_investor_investments : (0,1]
+    writeAtMostOnce investor_percent_of_cashout_investor_investments : Fraction(0,1]
     writeAtMostOnce dis_cashout : $
 
 section InvestorInvests:
@@ -72,7 +72,7 @@ action CommitToLiquidityEvent(company_cash_at_liquidity_event: $, liquidity_capi
     transform:
         liq_price := (VALUATION_CAP / liquidity_capitalization)
         investor_liq_hypothetical_shares := (round (PURCHASE_AMOUNT / liq_price))
-        investor_percent_of_cashout_investor_investments := (cast (0,1] (investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares)))
+        investor_percent_of_cashout_investor_investments := (cast Fraction(0,1] (investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares)))
         cash_currently_unconverted := PURCHASE_AMOUNT
         company_cash := company_cash_at_liquidity_event
     following section:
@@ -84,7 +84,7 @@ action CommitToLiquidityEventWithCoCTaxFreeReorg(company_cash_at_liquidity_event
     transform:
         liq_price := (VALUATION_CAP / liquidity_capitalization)
         investor_liq_hypothetical_shares := (round (PURCHASE_AMOUNT / liq_price))
-        investor_percent_of_cashout_investor_investments := (cast (0,1] (investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares)))
+        investor_percent_of_cashout_investor_investments := (cast Fraction(0,1] (investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares)))
         purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg)
         investor_Common_Stocks := (investor_Common_Stocks + (round (purchase_amount_reduction / liq_price)))
         cash_currently_unconverted := (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction))
@@ -128,7 +128,7 @@ action CommitToDissolution()  transitions to AfterCommitToDissolution
     following section:
         Company must TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) discretionary
 
-action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: (0,1]) transitions to AfterTransferCash_D:
+action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: Fraction(0,1]) transitions to AfterTransferCash_D:
     transform:
         dis_cashout := (ifthenelse (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
         investor_cash := dis_cashout

@@ -15,9 +15,9 @@ section WorkingOnAssignment:
     Bob obligation-options-include SolveProbB (next_event_td ≤ DUE_TD)
     Alice may SolveProbB (next_event_td ≤ DUE_TD)
     Bob may SolveProbA (next_event_td ≤ DUE_TD)
-    if (probAsolved and probBsolved):
+    if (and probAsolved probBsolved):
         Alice may Submit (next_event_td ≤ DUE_TD)
-    if (probAsolved and probBsolved):
+    if (and probAsolved probBsolved):
         Bob may Submit (next_event_td ≤ DUE_TD)
 
 action SolveProbA()  transitions to WorkingOnAssignment:

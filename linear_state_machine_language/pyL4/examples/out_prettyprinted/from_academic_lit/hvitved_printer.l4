@@ -60,5 +60,5 @@ action CompleteNormalSale()  transitions to Fulfilled
 action DeliverRefund()  transitions to Fulfilled:
     transform:
         prove (seller_refunded == 0)
-        prove ((buyer_paid == 100) or (buyer_paid == 200))
+        prove (or (buyer_paid == 100) (buyer_paid == 200))
         seller_refunded := buyer_paid

@@ -6,7 +6,7 @@
 (TimeUnit m)
 
 (SortDefinitions
-	($ := (Dup NonnegReal "$"))
+	($ := (Dimensioned NonnegReal "$"))
 )
 
 (GlobalVars

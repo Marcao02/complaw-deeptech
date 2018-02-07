@@ -10,11 +10,11 @@ global vars:
     x : Nat := START
 
 section Ongoing:
-    if ((x == 0) or (x == 1)):
+    if (or (x == 0) (x == 1)):
         EnterFulfilled
-    if ((x > 1) and (even x)):
+    if (and (x > 1) (even x)):
         DivideBy2
-    if ((x > 1) and (odd x)):
+    if (and (x > 1) (odd x)):
         TripplePlus1
 
 action DivideBy2()  transitions to Ongoing:

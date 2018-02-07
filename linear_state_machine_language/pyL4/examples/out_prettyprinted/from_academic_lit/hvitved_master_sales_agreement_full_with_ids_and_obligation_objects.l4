@@ -21,7 +21,7 @@ global vars:
 
 section VendorAcceptingOrders:
     if ((MAX_UNITS - units_ordered) > 0):
-        Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where ((0 < ?q) and (?q ≤ (MAX_UNITS - units_ordered)))
+        Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (0 < ?q) (?q ≤ (MAX_UNITS - units_ordered)))
     if ((MAX_UNITS - units_ordered) == 0):
         EnterFulfilled (next_event_td ≥ order_period_ends)
     if (nonempty Vendor_must_Deliver_by):

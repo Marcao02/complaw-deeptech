@@ -433,12 +433,11 @@ class ExecEnv:
                 return self.last_appliedaction_params[term.ind]
 
             elif isinstance(term, RuleBoundActionParam):
-                # assert hasNotNone(self.cur_event.params_by_abap_name, term.name), f"Trying to get subst value of an RuleBoundActionParam {term.name} but didn't find it among the action parameters."
                 assert self.cur_event and self.cur_event.params is not None, f"Expected current event {self.cur_event} to have an action parameter named {term}"
                 return self.cur_event.params[term.ind]
 
             elif isinstance(term, PartialEvalTerm):
-                self.evalError("There should be no PartialEvalTerm in this version of ExecEnv.")
+                self.evalError("No PartialEvalTerm should be constructed in this version of ExecEnv; that was something only needed in interpreter_deprecated.py, but haven't yet removed it from the codebase.")
 
             elif isinstance(term, SimpleTimeDeltaLit):
                 return term.lit
@@ -486,7 +485,7 @@ class ExecEnv:
                     # use the datetime corresponding to start of month
                     month_start_dt = datetime(year=dt.year, month=dt.month, day=1)
                     return self.datetime2delta(month_start_dt)
-                if fn == "monthEndDay_td":
+                elif fn == "monthEndDay_td":
                     dt = self.cur_event_datetime()
                     # use the datetime corresponding to start of month
                     next_month = dt.month + 1 if dt.month < 12 else 1

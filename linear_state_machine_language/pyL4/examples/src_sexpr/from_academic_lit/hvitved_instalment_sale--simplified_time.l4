@@ -4,9 +4,9 @@
 (TimeUnit d)
 
 (SortDefinitions
-	(Pos$ := (Dup PosReal "Pos$"))
-	($ := (Dup NonnegReal "$"))
-	(MaybeNeg$ := (Dup Real "MaybeNeg$"))
+	(Pos$ := (Dimensioned PosReal "$"))
+	($ := (Dimensioned NonnegReal "$"))
+	(MaybeNeg$ := (Dimensioned Real "$"))
 )
 
 

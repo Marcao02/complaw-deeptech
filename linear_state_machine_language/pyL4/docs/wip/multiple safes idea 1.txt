@@ -26,8 +26,8 @@ Sorts
 TransactionType := Deposit | Withdraw
 TransactionSpec := {amount:, time:DateTime, type:TransactionType, description:String}
 
-ShareCnt := Dup[PosInt]
-Round := Dup[PosInt]
+ShareCnt := Dimensioned[PosInt]
+Round := Dimensioned[PosInt]
 
 SAFEType := Discount(discount:(0,1)) | SafeCap(cap:Pos$) | SafeMFN
 SAFESpec := {investor: Investor, round:Round, type:SAFEType, signdate: DateTime}

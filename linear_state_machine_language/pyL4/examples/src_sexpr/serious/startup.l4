@@ -32,21 +32,21 @@
 ; StartRound
 
 (SortDefinitions
-	($ := (Dup NonnegReal "$"))
-	(Pos$ := (Dup PosReal "Pos$"))
-	(ShareCnt := (Dup PosInt "ShareCnt"))
-	(PosShareCnt := (Dup PosInt "PosShareCnt"))
+	($ := (Dimensioned NonnegReal "$"))
+	(Pos$ := (Dimensioned PosReal "Pos$"))
+	(ShareCnt := (Dimensioned PosInt "ShareCnt"))
+	(PosShareCnt := (Dimensioned PosInt "PosShareCnt"))
 	(SharePrice := (Ratio SharePrice PosShareCnt))
 	(PosSharePrice := (Ratio PosSharePrice PosShareCnt))
 
-	(Round := (Dup PosInt "Round"))
+	(Round := (Dimensioned PosInt "Round"))
 
 	(TransactionType := (Enum Deposit Withdraw))
 	(TransactionSpec := (Record (amount $) (time DateTime) (type TransactionType) (description String)))
 	(WithdrawalSpec := (Record (amount $) (time DateTime) (type {Withdraw}) (description String)))
 	(DepositSpec := (Record (amount $) (time DateTime) (type {Deposit}) (description String)))
 
-	(SAFEType := (ADT (Discount "(0,1)") (SafeCap Pos$) (SafeMFN)))
+	(SAFEType := (ADT (Discount "Fraction(0,1)") (SafeCap Pos$) (SafeMFN)))
 	(SAFESpec := (Record (investor Investor) (round Round) (type SAFEType) (signdate DateTime)))
 )
 

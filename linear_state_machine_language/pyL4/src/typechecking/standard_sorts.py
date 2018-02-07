@@ -1,3 +1,7 @@
+from typing import FrozenSet
+
+from src.independent.util_for_sets import fset
+from src.independent.util import todo_once
 from src.independent.typing_imports import *
 
 from src.model.Sort import *
@@ -18,88 +22,97 @@ Bool = 'Bool'
 def SApp(symb:str, *args:Any) -> SortOpApp:
     return SortOpApp.c(symb, tuple(args))
 
-def Dup(sort:Sort, name:str) -> SortOpApp:
-    return SApp('Dup',sort,name)
+def Dimensioned(sort:Sort, name:str) -> SortOpApp:
+    return SApp('Dimensioned',sort,name)
 
 def Ratio(s1,s2):
     return SApp('Ratio',s1,s2)
 
-dupvar = 'dupvar'
-NatD = Dup(Nat, dupvar)
-PosIntD = Dup(PosInt, dupvar)
-NonnegRealD = Dup(NonnegReal, dupvar)
-PosRealD = Dup(PosReal, dupvar)
-RealD = Dup(Real, dupvar)
+unitvar1 = 'shares'
+unitvar2 = '$'
+# Will use for shares:
+Nat1 = Dimensioned(Nat, unitvar1)
+PosInt1 = Dimensioned(PosInt, unitvar1)
+# Will use for money:
+NonnegReal2 = Dimensioned(NonnegReal, unitvar2)
+PosReal2 = Dimensioned(PosReal, unitvar2)
+Real2 = Dimensioned(Real, unitvar2)
 
+
+def fsortset(*args:Sort) -> FrozenSet[Sort]:
+    return cast(FrozenSet[Sort], frozenset(args))
 
 # ---------Atomic---------
-NormalUnboundedNumericSorts = {Int,Nat,PosInt,Real,NonnegReal,PosReal}
+NormalUnboundedNumericSorts = fsortset(Int,Nat,PosInt,Real,NonnegReal,PosReal)
 
-BoundedRealIntervalSorts = {"[0,1]", "(0,1]", "[0,1)", "(0,1)"}
+BoundedRealIntervalSorts = fsortset("Fraction[0,1]", "Fraction(0,1]", "Fraction[0,1)", "Fraction(0,1)")
 # Because all non-empty intersections must be represented (for now)
-FiniteNumericSorts = {"{0,1}","{0}","{1}"}
+FiniteNumericSorts = fsortset("{0,1}","{0}","{1}")
 AtomicNumericSorts = NormalUnboundedNumericSorts\
                         .union(BoundedRealIntervalSorts)\
                         .union(FiniteNumericSorts)
-                        # .union(NumericSortDups)
+                        # .union(DimensionedNumericSorts)
 
-PositiveAtomicNumericSorts = {"{1}", "(0,1)", "(0,1]", PosInt, PosReal}
+PositiveAtomicNumericSorts = fsortset("{1}", "Fraction(0,1)", "Fraction(0,1]", PosInt, PosReal)
 
-AllAtomicSorts : Set[Sort] = cast(Set[Sort], {DateTime, TimeDelta, PosTimeDelta, Bool, 'RoleId', 'EmptyTDMap'})\
-                                .union(AtomicNumericSorts)
+AllAtomicSorts = fsortset(DateTime, TimeDelta, PosTimeDelta, Bool, 'RoleId', 'EmptyTDMap','SortId')\
+                  .union(AtomicNumericSorts)
 
 
 # ---------Nonatomic---------
-NumericSortDups = cast(Set[Sort], {PosIntD, PosRealD, NatD, NonnegRealD})
-AllAtomicSortsAndDups : Set[Sort] = AllAtomicSorts.union(NumericSortDups)
 
-RatioSorts : Set[Sort] = {Ratio(PosRealD, PosIntD), Ratio(NonnegRealD, PosIntD)}
+todo_once("SHOULD NOT BE PREGENERATING NONATOMIC SORTS\nNot because of efficiency, but because not knowing what the "
+          "Dimensioned sorts are until a contract is read led me to implement a nasty hack that is now technical debt")
 
-TupleAtomicSorts : Set[Sort] = {SApp('Tuple',S,S) for S in AllAtomicSortsAndDups}
+DimensionedNumericSorts = fsortset(Nat1, PosInt1, PosReal2, NonnegReal2, Real2)
+AtomicSortsAndDimensionedNumericSorts = AllAtomicSorts.union(DimensionedNumericSorts)
 
-TDMapKeySorts = TupleAtomicSorts.union(AllAtomicSortsAndDups)
-TDMapSorts = map(lambda t: SApp("TDMap", t), TDMapKeySorts)
+# these are just the only ones we're currently using.
+# later, will deduce which ones we're using in a contract, so they don't need to be declared like this.
+RatioSorts = fsortset(Ratio(PosReal2, PosInt1), Ratio(NonnegReal2, PosInt1))
 
-AllSorts : Set[Any] = AllAtomicSortsAndDups\
-                        .union( TupleAtomicSorts )\
-                        .union( TDMapSorts ) \
-                        .union( RatioSorts )
+TupleAtomicAndDimensionedNumericSorts : FrozenSet[Sort] = frozenset(SApp('Tuple', S, S) for S in AtomicSortsAndDimensionedNumericSorts)
 
-AtomicNumericSortsAndDups = NumericSortDups.union(cast(Set[Sort],AtomicNumericSorts))
-UnboundedNumericSorts = cast(Set[Sort],NormalUnboundedNumericSorts).union( RatioSorts)
-AllNumericSorts = UnboundedNumericSorts.union(BoundedRealIntervalSorts).union(FiniteNumericSorts)
+TDMapKeySorts = TupleAtomicAndDimensionedNumericSorts.union(AtomicSortsAndDimensionedNumericSorts)
+TDMapSorts : FrozenSet[Sort] = frozenset(map(lambda t: SApp("TDMap", t), TDMapKeySorts))
+
+AllSorts : FrozenSet[Sort] = TDMapKeySorts \
+              .union( TDMapSorts ) \
+              .union( RatioSorts )
+
+AtomicNumericSortsAndDimensionedNumericSorts = DimensionedNumericSorts.union( AtomicNumericSorts )
+UnboundedNumericSorts = NormalUnboundedNumericSorts.union( RatioSorts )
+AllNumericSorts = UnboundedNumericSorts.union( BoundedRealIntervalSorts ).union(FiniteNumericSorts)
 
 
 
-def check_sorts_valid(sorts:Set[Sort], sort_defns:Dict[str,Sort]) -> None:
-    def sort_compatible(s: Sort, U: Set[str], sort_defns: Dict[str, Sort]) -> bool:
+def check_sorts_valid(sorts:FrozenSet[Sort], sort_defns:Dict[str,Sort]) -> None:
+    def sort_compatible(s: Sort, U: FrozenSet[Sort]) -> bool:
         if isinstance(s, str):
-            return sort_compatible(sort_defns[s], U, sort_defns) if s in sort_defns else s in U
+            return sort_compatible(sort_defns[s], U) if s in sort_defns else s in U
         else:
-            return sort_compatible(s.args[0], U, sort_defns) if s.op == "Dup" else False
+            return sort_compatible(s.args[0], U) if s.op == "Dimensioned" else False
 
-    def is_valid_sort(s: Sort, sort_defns: Dict[str, Sort]) -> bool:
+    def is_valid_sort(s: Sort) -> bool:
         if isinstance(s, str):
             if s in sort_defns:
-                return is_valid_sort(sort_defns[s], sort_defns)
+                return is_valid_sort(sort_defns[s])
             else:
-                return s in AllAtomicSortsAndDups
+                return s in AtomicSortsAndDimensionedNumericSorts
         else:
             op = s.op
             if op == 'Ratio':
-                numok = sort_compatible(s.args[0], AtomicNumericSorts,
-                                        sort_defns)  # s.args[0] in AtomicNumericSorts or (isinstance(s.args[0], SortOpApp) and s.args[0].op == 'Dup' and is_valid_sort(s.args[0].args[0]))
-                denok = sort_compatible(s.args[1], PositiveAtomicNumericSorts,
-                                        sort_defns)  # s.args[1] in AtomicNumericSorts or (isinstance(s.args[1], SortOpApp) and s.args[1].op == 'Dup' and is_valid_sort(s.args[1].args[0]))
+                numok = sort_compatible(s.args[0], AtomicNumericSorts)
+                denok = sort_compatible(s.args[1], PositiveAtomicNumericSorts)
                 # print(f"??? ({numok},{denok}), {s}")
                 return numok and denok
             elif op == 'Tuple':
-                return all(arg in AllAtomicSortsAndDups for arg in s.args)
+                return all(arg in AtomicSortsAndDimensionedNumericSorts for arg in s.args)
             elif op == 'TDMap':
                 return s.args[0] in TDMapKeySorts
-            elif op == 'Dup':
-                return s.args[0] in {Nat, PosInt, NonnegReal, PosReal}
+            elif op == 'Dimensioned':
+                return s.args[0] in {Nat, PosInt, NonnegReal, PosReal, Real}
             raise NotImplementedError
 
     for s in sorts:
-        assert is_valid_sort(s,sort_defns), f"Explicitly-written sort {s} is not valid."
+        assert is_valid_sort(s), f"Explicitly-written sort {s} is not valid."

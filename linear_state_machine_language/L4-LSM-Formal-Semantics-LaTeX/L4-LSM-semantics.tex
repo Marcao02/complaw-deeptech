@@ -7,6 +7,8 @@
 \usepackage{L4-LSM-semantics_environments}
 \usepackage{L4-LSM-semantics_macros}
 
+\usepackage{ulem}
+
 %\author{Legalese (Dustin Wehr, Meng Wong, \ldots)}
 \author{\href{https://legalese.com}{Legalese.com}}
 
@@ -149,10 +151,12 @@ The \TGuards must satisfy the following conditions, which would be statically ve
 \noindent \introx{uaoc}{unambiguous absolute obligation condition}: For every \TimeStamp t, if some \TGuard of a \mustnarule evaluates to true (at $t$) then every other \TGuard evaluates to false (at $t$).
 \medskip
 
-\noindent \introx{croc}{choiceless relievable obligations condition}: For every \Role r and \TimeStamp t, if one of $r$'s \rmustnarules's \TGuards evaluates to true (at $t$) then any other \rmustnarules for $r$ evaluate to false (at $t$).
+% REMOVED, as I've used it as "obligation-options-include"
+\noindent \sout{\introx{croc}{choiceless relievable obligations condition}: For every \Role r and \TimeStamp t, if one of $r$'s \rmustnarules's \TGuards evaluates to true (at $t$) then any other \rmustnarules for $r$ evaluate to false (at $t$).}
 \medskip
 
-\noindent \introx{bostgc}{breach or somewhere to go condition}: If it is possible for all the \enabled non-\Env \actionrules to expire simultaneously, without causing a breach (which entails that there are no enabled \mustnarules or \rmustnarules) then there must be an \envarule with \Deadline $\infty$.
+Roughly, the contract can't get ``stuck''. 
+\noindent \introx{bostgc}{breach or something to do or somewhere to go condition}: If it is possible for all the \enabled non-\Env \actionrules to expire simultaneously, without causing a breach (which entails that there are no enabled \mustnarules or \rmustnarules with deadlines) then there must be an \envarule with no \Deadline $\infty$.
 \smallskip
 
 
@@ -261,7 +265,7 @@ The three named conditions on \TGuards are updated as follows. For every \State 
 \noindent \introx{uaocz}{unique unrelievable obligation condition}: For every \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \mustnarules evaluates to true (on $G$) then every other \TGuard of $s$ evaluates to false. 
 \medskip
 
-\noindent \introx{crocz}{role-unique relievable obligations condition}: For every \Role r and \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \rmustnarules with \Role $r$ evaluates to true (on $G$) then the \TGuard of every other of $s$'s \rmustnarules with \Role $r$ evaluates to false.
+\noindent \sout{\introx{crocz}{role-unique relievable obligations condition}: For every \Role r and \GlobalState $G$ whose (local) \State is $s$, if the \TGuard of one of $s$'s \rmustnarules with \Role $r$ evaluates to true (on $G$) then the \TGuard of every other of $s$'s \rmustnarules with \Role $r$ evaluates to false.}
 \medskip
 
 \noindent \introx{bostgcz}{breach or somewhere to go condition}: If it is possible for all the \enabled non-\Env \actionrules to expire simultaneously, without causing a breach (which entails that there are no enabled \mustnarules or \rmustnarules) then there must be an \depTrans{\Env} with \Deadline \nodeadline.

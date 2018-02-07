@@ -30,9 +30,9 @@ def add_derived(graph:SubsortGraph):
                     graph.addEdge(Ratio(num1,den1), Ratio(num2,den2))
 
     # Tuple
-    for s1 in AllAtomicSortsAndDups:
+    for s1 in AtomicSortsAndDimensionedNumericSorts:
         # graph.addEdge(SortOpApp('Tuple', (S, S)), SortOpApp('Tuple', ('Any', 'Any')))
-        for s2 in AllAtomicSortsAndDups:
+        for s2 in AtomicSortsAndDimensionedNumericSorts:
             if not graph.hasEdge(s1,s2):
                 continue
             graph.addEdge(SApp('Tuple',s1,s1), SApp('Tuple',s2,s2))
@@ -66,13 +66,13 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain("{1}",PosInt),
     sschain("{0}","{0,1}"),
     sschain("{1}","{0,1}"),
-    sschain("{0}","[0,1)"),
-    sschain("{1}","(0,1]"),
-    sschain("{0,1}","[0,1]"),
-    sschain("[0,1]",NonnegReal),
-    sschain("(0,1)", "(0,1]", PosReal),
-    sschain("(0,1)", "[0,1)", "[0,1]"),
-    sschain("(0,1)", "(0,1]", "[0,1]"),
+    sschain("{0}","Fraction[0,1)"),
+    sschain("{1}","Fraction(0,1]"),
+    sschain("{0,1}","Fraction[0,1]"),
+    sschain("Fraction[0,1]",NonnegReal),
+    sschain("Fraction(0,1)", "Fraction(0,1]", PosReal),
+    sschain("Fraction(0,1)", "Fraction[0,1)", "Fraction[0,1]"),
+    sschain("Fraction(0,1)", "Fraction(0,1]", "Fraction[0,1]"),
 
 
     sschain(Ratio(NonnegReal, PosReal), NonnegReal),
@@ -84,14 +84,17 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
 
     # We don't want all the duplicate copies of numeric types to have all the relations that the original numeric
     # types have. For now, we only need or want these:
-    sschain(PosIntD, NatD), # makes sense for counting any kind of thing
-    sschain(PosRealD, NonnegRealD), # makes sense for measuring any kind of thing
-    # makes sense as consequence of previous two lines:
-    sschain(Ratio(PosRealD, PosIntD), Ratio(NonnegRealD, PosIntD)),
-    sschain(Ratio(PosRealD, PosRealD), Ratio(NonnegRealD, PosRealD)),
-
+    sschain(PosInt1, Nat1), # makes sense for counting any kind of thing
+    sschain(PosReal2, NonnegReal2), # makes sense for measuring any kind of thing
     # unfortunately currently needed for subtraction:
-    sschain(NonnegRealD, RealD),
+    sschain(NonnegReal2, Real2),
+
+    # makes sense as consequence of previous two lines:
+    sschain(Ratio(PosReal2, PosInt1), Ratio(NonnegReal2, PosInt1)),
+    # just not using this stuff yet:
+    # sschain(Ratio(PosReal2, PosReal2), Ratio(NonnegReal2, PosReal2)),
+
+    sschain("Fraction[0,1]", Ratio(Nat,PosInt))
 )
 
 

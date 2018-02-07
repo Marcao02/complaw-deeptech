@@ -28,9 +28,12 @@ class SortOpApp(NamedTuple):
             return f"{mapjoin(str,self.args,'×')}"
         elif self.op == 'Ratio':
             return f"{mapjoin(str,self.args,'/')}"
-        elif self.op == 'Dup':
+        # elif self.op == 'Dimensioned':
+        #     ind = 'i' if self.args[1] == 'dupvar' else self.args[1]
+        #     return str(self.args[0]) + f"[{ind}]"
+        elif self.op == 'Dimensioned':
             ind = 'i' if self.args[1] == 'dupvar' else self.args[1]
-            return str(self.args[0]) + f"[{ind}]"
+            return f"{self.args[1]}.{self.args[0]}"
         else:
             return f"{self.op}[{mapjoin(str,self.args,', ')}]"
     def __repr__(self) -> str:
