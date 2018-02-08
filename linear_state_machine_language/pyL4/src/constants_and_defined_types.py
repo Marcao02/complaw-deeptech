@@ -60,6 +60,7 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'event_role'}
 
 PREFIX_FN_SYMBOLS = { 'cast',
+
                       'days',
 
                      'ifthenelse',
@@ -68,6 +69,7 @@ PREFIX_FN_SYMBOLS = { 'cast',
 
                      'ceil', 'round',
                      'even', 'odd',
+                     'fraction-of-sum',
 
                      'tuple', 'tupleGet',
                      'emptyTDMap', # should be a constant but more important things to do

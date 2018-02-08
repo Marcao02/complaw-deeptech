@@ -274,20 +274,6 @@ overloaded_types_data : FnTypesData = [
     )
      ),
 
-    # temp hack
-    # (('*',), parametric_mult_vars(
-    #     {sfntype(Ratio( N, D), D, R),
-    #      sfntype(D, Ratio( N, D), R)},
-    #     [
-    #             {'NVar':Real,'DVar':PosReal, 'RVar':Real},
-    #             {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
-    #             {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
-    #             {'NVar':Real,'DVar':PosInt, 'RVar':Real},
-    #             {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
-    #             {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal}
-    #     ]
-    #     )
-    #  ),
     (('*',), (
         sfntype(Ratio( PosReal, PosInt), PosReal, Ratio( PosReal, PosInt)),
         sfntype(PosReal, Ratio( PosReal, PosInt), Ratio( PosReal, PosInt)) ),
@@ -336,8 +322,16 @@ overloaded_types_data : FnTypesData = [
 
     (('/',), (sfntype(PosTimeDelta, PosTimeDelta, PosReal),
               sfntype(TimeDelta, PosTimeDelta, NonnegReal) )
-
      ),
+
+    (('fraction-of-sum',), (
+        sfntype(PosInt,Nat,"Fraction(0,1]"),
+        sfntype(PosInt,PosInt,"Fraction(0,1)"),
+        sfntype(Nat,PosInt,"Fraction[0,1)"),
+        sfntype(PosInt1,Nat1,"Fraction(0,1]"),
+        sfntype(PosInt1,PosInt1,"Fraction(0,1)"),
+        sfntype(Nat1,PosInt1,"Fraction[0,1)")
+    )),
 
     (('^',), ( sfntype(PosReal,Real,PosReal),
                 sfntype(PosInt,Nat,PosInt) )

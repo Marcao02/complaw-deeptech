@@ -55,7 +55,7 @@
 	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
 	(writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt)
 	; (writeAtMostOnce liquidity_capitalization : Nat)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
-	(writeAtMostOnce investor_percent_of_cashout_investor_investments : "Fraction(0,1]")
+	(writeAtMostOnce investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
 	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need to store. action param only
 	; (writeAtMostOnce reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ; action param only
 
@@ -143,7 +143,7 @@
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares = (round (PURCHASE_AMOUNT / liq_price)))
-			(investor_percent_of_cashout_investor_investments = (cast "Fraction(0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
+			(investor_percent_of_cashout_investor_investments = (fraction-of-sum investor_liq_hypothetical_shares liquidity_capitalization))
 			(cash_currently_unconverted = PURCHASE_AMOUNT)
 			(company_cash = company_cash_at_liquidity_event)
 		)
@@ -165,7 +165,8 @@
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares = (round (PURCHASE_AMOUNT / liq_price)))
-			(investor_percent_of_cashout_investor_investments = (cast "Fraction(0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
+			; (investor_percent_of_cashout_investor_investments = (cast "Fraction(0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
+			(investor_percent_of_cashout_investor_investments = (fraction-of-sum investor_liq_hypothetical_shares liquidity_capitalization))
 
 		 	; "In ???? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
@@ -209,19 +210,11 @@
 
 	(Action TransferCash_L (AllowedSubjects Company)
 		(StateTransform
-			; (if (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)) (
-			; 	(liq_cashout = cash_currently_unconverted)
-			; )
-			; else (
-			; 	(liq_cashout = (company_cash * investor_percent_of_cashout_investor_investments))
-			; ))
-			(liq_cashout := (ifthenelse
-				(cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments))
+			(liq_cashout := (min
 				cash_currently_unconverted
 				(company_cash * investor_percent_of_cashout_investor_investments)
 			))
 			(investor_cash += liq_cashout)
-			; (company_cash -= liq_cashout)
 		)
 
 		(FollowingSection
@@ -253,19 +246,11 @@
 						    (investor_percent_of_dissolving_investor_investments : "Fraction(0,1]"))
 		(AllowedSubjects Company)
 		(StateTransform
-			; (if (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) (
-			; 	(dis_cashout = PURCHASE_AMOUNT)
-			; )
-			; else (
-			; 	(dis_cashout = (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments) )
-			; ))
-			(dis_cashout := (ifthenelse
-				(PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
+			(dis_cashout := (min
 				PURCHASE_AMOUNT
 				(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
 			))
 			(investor_cash = dis_cashout)
-			; (company_cash = (company_cash_at_dissolution_event - dis_cashout))
 		)
 
 		(FollowingSection
