@@ -232,20 +232,21 @@ overloaded_types_data : FnTypesData = [
      ),
 
     # ------------Arithmetic------------
-    # TODO should apply for arbitrary Ratio sorts:
     (('min','max','+','*') , parametric_one_var(
         (aafntype(X,X),),
-        UnboundedNumericSorts.union(
-            {TimeDelta, Ratio( PosReal, PosInt)}).union(
-            {NonnegReal2, Nat1})
+        UnboundedNumericSorts\
+            .union({TimeDelta})
+            .union({NonnegReal2, Real2, Nat1, Int1})
         )
      ),
-    # TODO should be arbitrary arity, and order-invariant
     (('max',), (
         sfntype(PosReal, Real, PosReal),
-        sfntype(PosInt, Int, PosInt))
-     ),
-    # TODO: {0},{1}, and {0,1}.
+        sfntype(PosInt, Int, PosInt),
+        sfntype(Real,PosReal, PosReal),
+        sfntype(Int, PosInt, PosInt)
+        )
+    ),
+    # to do: {0},{1}, and {0,1}.
     (('+',), (
         sfntype(PosInt, Nat, PosInt),
         sfntype(Nat, PosInt, PosInt),
@@ -270,7 +271,13 @@ overloaded_types_data : FnTypesData = [
 
     (('*',), parametric_mult_vars(
         {sfntype(X, R, X), sfntype(R, X, X)},
-        [{X: somenumeric, R: PosReal} for somenumeric in cast(Set[Sort], {NonnegReal2, PosReal2, NonnegReal})]
+        [{X: somenumeric, R: PosReal} for somenumeric in cast(Set[Sort], {NonnegReal2, PosReal2, Real2})]
+    )
+     ),
+
+    (('*',), parametric_mult_vars(
+        {sfntype(X, R, X), sfntype(R, X, X)},
+        [{X: somenumeric, R: PosInt} for somenumeric in cast(Set[Sort], {Nat1, PosInt1, Int1})]
     )
      ),
 
@@ -302,7 +309,6 @@ overloaded_types_data : FnTypesData = [
             # apparently haven't actually used these:
             {N:PosReal2, D:PosReal2, R:PosReal},
             {N:NonnegReal2, D:PosReal2, R:NonnegReal},
-            # {N:NonnegReal, D:PosReal2, R:Ratio( NonnegReal, PosReal2)},
         ])
      ),
      (('/',), parametric_mult_vars(
@@ -313,11 +319,6 @@ overloaded_types_data : FnTypesData = [
                 {N:Real,D:PosInt, R:Real},
                 {N:PosReal, D: PosInt, R:PosReal},
                 {N:NonnegReal, D: PosInt, R:NonnegReal},
-
-                # {N:PosReal2, D: PosInt1, R:PosReal2},
-                # {N:NonnegReal2, D: PosInt1, R:NonnegReal2},
-                # {N:NonnegReal2, D: PosReal2, R: NonnegReal2}
-
             ])
     ),
 
@@ -328,7 +329,7 @@ overloaded_types_data : FnTypesData = [
     (('floor/','round/'),  parametric_mult_vars(
          {sfntype(N, R, D)}, [
                 {N:NonnegReal2, R: Ratio(NonnegReal2,PosInt1), D:Nat1},
-                # {N:NonnegReal2, R: Ratio(PosInt1,PosReal2), D:Nat1},
+                # {N:PosReal2, R: Ratio(PosReal2,PosInt1), D:Nat1}, # redundant
                 # {N:NonnegReal2, D: PosInt1, R:NonnegReal2},
                 # {N:NonnegReal2, D: PosReal2, R: NonnegReal2}
             ])
@@ -345,7 +346,8 @@ overloaded_types_data : FnTypesData = [
     )),
 
     (('^',), ( sfntype(PosReal,Real,PosReal),
-                sfntype(PosInt,Nat,PosInt) )
+               sfntype(PosInt,Nat,PosInt),
+               sfntype(Nat, PosInt, Nat) )
      ),
 
     (('floor','round','ceil'), (
@@ -355,10 +357,8 @@ overloaded_types_data : FnTypesData = [
         )
      ),
     (('ceil',), (
-        sfntype(Real, Int),
         sfntype(PosReal, PosInt),
-        sfntype(NonnegReal, Nat) )
-     ),
+     )),
     (('even','odd'), parametric_one_var(
         sfntype(X, Bool),
         (Int, Nat, PosInt) )

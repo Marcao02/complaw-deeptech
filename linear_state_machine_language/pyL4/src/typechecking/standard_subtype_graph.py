@@ -16,6 +16,18 @@ def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes
     # graph.addTop('Any')
     return graph
 
+
+"""
+If s1 ⊆ s2 is in graph, and subst maps some sorts to sorts, add s1[subst] ⊆ s2[subst] to graph. 
+"""
+def duplicate_some_edges(subst:Dict[Sort,Sort], graph:SubsortGraph):
+    orig_edges = graph.edgeSet()
+    for src,trg in orig_edges:
+        src_new = sortsubstdict(src,subst)
+        trg_new = sortsubstdict(trg,subst)
+        if src != src_new or trg != trg_new:
+            graph.addEdge(src_new,trg_new)
+
 # These can instead be done at typechecking time and cached.
 def add_derived(graph:SubsortGraph):
     # Ratio
@@ -40,18 +52,6 @@ def add_derived(graph:SubsortGraph):
     # EmptyTDMap
     for s in TDMapKeySorts:
         graph.addEdge('EmptyTDMap', SApp('TDMap',s))
-
-
-"""
-If s1 ⊆ s2 is in graph, and subst maps some sorts to sorts, add s1[subst] ⊆ s2[subst] to graph. 
-"""
-def duplicate_some_edges(subst:Dict[Sort,Sort], graph:SubsortGraph):
-    orig_edges = graph.edgeSet()
-    for src,trg in orig_edges:
-        src_new = sortsubstdict(src,subst)
-        trg_new = sortsubstdict(trg,subst)
-        if src != src_new or trg != trg_new:
-            graph.addEdge(src_new,trg_new)
 
 SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosTimeDelta, TimeDelta),
@@ -87,13 +87,13 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosInt1, Nat1), # makes sense for counting any kind of thing
     sschain(PosReal2, NonnegReal2), # makes sense for measuring any kind of thing
 
-    sschain(Nat1, Int1), # unfortunately currently needed for subtraction
-    sschain(NonnegReal2, Real2), # unfortunately currently needed for subtraction
-
     # makes sense as consequence of previous two lines:
     sschain(Ratio(PosReal2, PosInt1), Ratio(NonnegReal2, PosInt1)),
-    # just not using this stuff yet:
-    # sschain(Ratio(PosReal2, PosReal2), Ratio(NonnegReal2, PosReal2)),
+    # not using this yet, but it's fine:
+    sschain(Ratio(PosReal2, PosReal2), Ratio(NonnegReal2, PosReal2)),
+
+    sschain(Nat1, Int1),  # unfortunately currently needed for subtraction
+    sschain(NonnegReal2, Real2),  # unfortunately currently needed for subtraction
 
     sschain("Fraction[0,1]", Ratio(Nat,PosInt))
 )
