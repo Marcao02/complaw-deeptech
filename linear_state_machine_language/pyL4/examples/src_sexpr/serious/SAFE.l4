@@ -130,7 +130,7 @@
 			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
 			(discount_price = (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE))
 			(conversion_price = (min safe_price discount_price))
-			(investor_SAFE_Preferred_Stocks += (round (PURCHASE_AMOUNT / conversion_price)))
+			(investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT round/ conversion_price))
 		)
 		(FollowingSection
 			(Next (Company must DoEquityFinancing discretionary))  )
@@ -150,7 +150,7 @@
 		(Precondition (company_cash_at_liquidity_event ≥ reduction_needed_to_qualify_as_usa_tax_free_reorg))
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_liq_hypothetical_shares = (round (PURCHASE_AMOUNT / liq_price)))
+			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT round/ liq_price))
 			; possible Z3 generated problem for following cast (which Z3 does prove unsat)
 			; (declare-const investor_liq_hypothetical_shares Int)
 			; (declare-const liquidity_capitalization Int)
@@ -178,7 +178,7 @@
 				; * : ∀x:Nat. [0,1] -> (Single x) -> (LEQ x)
 				; ≥ : ∀x:Real. (Single x) -> (LEQ x) -> (Single true)
 			 	(prove (PURCHASE_AMOUNT ≥ purchase_amount_reduction))
-			 	(investor_Common_Stocks += (round (purchase_amount_reduction / liq_price)))
+			 	(investor_Common_Stocks += (purchase_amount_reduction round/ liq_price))
 			 	; - : Πx:Nat. (LEQ x) -> Nat
 				(cash_currently_unconverted = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
 				(company_cash = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
@@ -211,7 +211,7 @@
 		(StateTransform
 			; TODO: should we round that division up, down, or to nearest?
 
-			(investor_Common_Stocks += (round ((cast $ (cash_currently_unconverted - liq_cashout)) / liq_price)))
+			(investor_Common_Stocks += ((cast $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
 		)
 		(FollowingSection
 			(Next (Company must DoLiquidityEvent discretionary))
@@ -287,7 +287,7 @@
 		(AllowedSubjects Company)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_Common_Stocks += (round ((cast $ (PURCHASE_AMOUNT - dis_cashout)) / liq_price)))
+			(investor_Common_Stocks += ((cast $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price))
 		)
 		(FollowingSection  (Next (Company must Dissolve discretionary)))
 	)

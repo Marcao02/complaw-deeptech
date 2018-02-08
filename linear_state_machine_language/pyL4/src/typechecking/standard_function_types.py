@@ -6,7 +6,7 @@ from src.model.FnTypes import OverloadedFnType, SimpleFnType, SimpleFnType
 from src.typechecking.standard_sorts import AtomicSortsAndDimensionedNumericSorts, TDMapKeySorts, TimeDelta, Bool, \
     UnboundedNumericSorts, \
     PosInt, PosReal, Int, NonnegReal, Nat, PosTimeDelta, BoundedRealIntervalSorts, DateTime, Real, \
-    AllNumericSorts, SApp, NonnegReal2, Nat1, PosInt1, PosReal2, AllSorts, Ratio, Real2
+    AllNumericSorts, SApp, NonnegReal2, Nat1, PosInt1, PosReal2, AllSorts, Ratio, Real2, Int1
 
 """
 We have a rich (and getting richer) numeric hierarchy in the standard library, and we have a few ways of combining
@@ -281,41 +281,42 @@ overloaded_types_data : FnTypesData = [
 
     (('-',), parametric_one_var(
         sfntype(X, X, X),
-        (Int, Real, TimeDelta, Real2))
+        (Int, Real, TimeDelta, Real2, Int1))
      ),
 
     (('/',), parametric_mult_vars(
         {sfntype(N, D, R)},
         [
-            {'NVar':Real, 'DVar':PosReal, 'RVar':Ratio(Real,PosReal)},
-            {'NVar':PosReal, 'DVar':PosReal, 'RVar':Ratio(PosReal,PosReal)},
-            {'NVar':NonnegReal, 'DVar':PosReal, 'RVar':Ratio(NonnegReal,PosReal)},
-            {'NVar':Real, 'DVar':PosInt, 'RVar':Ratio(Real,PosInt)},
-            {'NVar':PosReal, 'DVar':PosInt, 'RVar':Ratio(PosReal,PosInt)},
-            {'NVar':NonnegReal, 'DVar':PosInt, 'RVar':Ratio(NonnegReal,PosInt)},
+            {N:Real, D:PosReal, R:Ratio(Real,PosReal)},
+            {N:PosReal, D:PosReal, R:Ratio(PosReal,PosReal)},
+            {N:NonnegReal, D:PosReal, R:Ratio(NonnegReal,PosReal)},
+            {N:Real, D:PosInt, R:Ratio(Real,PosInt)},
+            {N:PosReal, D:PosInt, R:Ratio(PosReal,PosInt)},
+            {N:NonnegReal, D:PosInt, R:Ratio(NonnegReal,PosInt)},
 
-            {'NVar':PosReal2, 'DVar':PosInt1, 'RVar':Ratio( PosReal2, PosInt1)},
-            {'NVar':NonnegReal2, 'DVar':PosInt1, 'RVar':Ratio( NonnegReal2, PosInt1)},
+            {N:PosReal2, D:PosInt1, R:Ratio( PosReal2, PosInt1)},
+            {N:NonnegReal2, D:PosInt1, R:Ratio( NonnegReal2, PosInt1)},
 
-            {'NVar':Nat1, 'DVar':PosInt1, 'RVar':Ratio( Nat, PosInt)},
-            {'NVar':PosInt1, 'DVar':PosInt1, 'RVar':Ratio( PosInt, PosInt)}
+            {N:Nat1, D:PosInt1, R:Ratio( Nat, PosInt)},
+            {N:PosInt1, D:PosInt1, R:Ratio( PosInt, PosInt)},
             # apparently haven't actually used these:
-            # {'NVar':PosReal2, 'DVar':PosReal2, 'RVar':PosReal},
-            # {'NVar':NonnegReal, 'DVar':PosReal2, 'RVar':Ratio( NonnegReal, PosReal2)},
+            {N:PosReal2, D:PosReal2, R:PosReal},
+            {N:NonnegReal2, D:PosReal2, R:NonnegReal},
+            # {N:NonnegReal, D:PosReal2, R:Ratio( NonnegReal, PosReal2)},
         ])
      ),
      (('/',), parametric_mult_vars(
          {sfntype(N, Ratio( N, D), R)}, [
-                {'NVar':Real,'DVar':PosReal, 'RVar':Real},
-                {'NVar':PosReal, 'DVar': PosReal, 'RVar':PosReal},
-                {'NVar':NonnegReal, 'DVar': PosReal, 'RVar':NonnegReal},
-                {'NVar':Real,'DVar':PosInt, 'RVar':Real},
-                {'NVar':PosReal, 'DVar': PosInt, 'RVar':PosReal},
-                {'NVar':NonnegReal, 'DVar': PosInt, 'RVar':NonnegReal},
+                {N:Real,D:PosReal, R:Real},
+                {N:PosReal, D: PosReal, R:PosReal},
+                {N:NonnegReal, D: PosReal, R:NonnegReal},
+                {N:Real,D:PosInt, R:Real},
+                {N:PosReal, D: PosInt, R:PosReal},
+                {N:NonnegReal, D: PosInt, R:NonnegReal},
 
-                {'NVar':PosReal2, 'DVar': PosInt1, 'RVar':PosReal2},
-                {'NVar':NonnegReal2, 'DVar': PosInt1, 'RVar':NonnegReal2},
-                # {'NVar':NonnegReal2, 'DVar': PosReal2, 'RVar': NonnegReal2}
+                # {N:PosReal2, D: PosInt1, R:PosReal2},
+                # {N:NonnegReal2, D: PosInt1, R:NonnegReal2},
+                # {N:NonnegReal2, D: PosReal2, R: NonnegReal2}
 
             ])
     ),
@@ -323,6 +324,16 @@ overloaded_types_data : FnTypesData = [
     (('/',), (sfntype(PosTimeDelta, PosTimeDelta, PosReal),
               sfntype(TimeDelta, PosTimeDelta, NonnegReal) )
      ),
+
+    (('floor/','round/'),  parametric_mult_vars(
+         {sfntype(N, R, D)}, [
+                {N:NonnegReal2, R: Ratio(NonnegReal2,PosInt1), D:Nat1},
+                # {N:NonnegReal2, R: Ratio(PosInt1,PosReal2), D:Nat1},
+                # {N:NonnegReal2, D: PosInt1, R:NonnegReal2},
+                # {N:NonnegReal2, D: PosReal2, R: NonnegReal2}
+            ])
+    ),
+
 
     (('fraction-of-sum',), (
         sfntype(PosInt,Nat,"Fraction(0,1]"),
@@ -340,10 +351,7 @@ overloaded_types_data : FnTypesData = [
     (('floor','round','ceil'), (
         sfntype(Real, Int),
         sfntype(PosReal, Nat),
-        sfntype(NonnegReal, Nat),
-        sfntype(PosReal2, Nat1),  # is that ok?
-        sfntype(NonnegReal2, Nat1),  # is that ok?
-
+        sfntype(NonnegReal, Nat)
         )
      ),
     (('ceil',), (

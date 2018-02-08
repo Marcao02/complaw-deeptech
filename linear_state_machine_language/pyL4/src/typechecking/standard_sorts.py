@@ -36,6 +36,9 @@ PosInt1 = Dimensioned(PosInt, unitvar1)
 # Will use for money:
 NonnegReal2 = Dimensioned(NonnegReal, unitvar2)
 PosReal2 = Dimensioned(PosReal, unitvar2)
+
+# Maybe these shouldn't exist, but they are useful for typing subtration
+Int1 = Dimensioned(Int, unitvar1)
 Real2 = Dimensioned(Real, unitvar2)
 
 

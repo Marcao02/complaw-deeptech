@@ -167,10 +167,10 @@
 				(local change : $ = (apply-macro interest_from_td event_td))
 				(company_cash  = (cast $ (company_cash - change)))
 				(investor_cash += change)
-				(investor_PreferredStock += (round (PURCHASE_AMOUNT / conversion_price)))
+				(investor_PreferredStock += (PURCHASE_AMOUNT round/ conversion_price))
 			) else (
 				(local accrued_interest : $ = (apply-macro interest_from_td event_td))
-				(investor_PreferredStock += (round ((PURCHASE_AMOUNT + accrued_interest) / conversion_price)))
+				(investor_PreferredStock += ((PURCHASE_AMOUNT + accrued_interest) round/ conversion_price))
 			))
 
 		)
@@ -206,7 +206,7 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : SharePrice = (VALUATION_CAP / company_capitalization))
-			(investor_Common_Stock += (round (PURCHASE_AMOUNT / cap_price)))
+			(investor_Common_Stock += (PURCHASE_AMOUNT round/ cap_price))
 		)
 		(TransitionsTo Fulfilled)
 	)
@@ -241,7 +241,7 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : SharePrice = (VALUATION_CAP / company_capitalization))
-			(investor_SeriesSeedPreferredStock += (round (PURCHASE_AMOUNT / cap_price)))
+			(investor_SeriesSeedPreferredStock += (PURCHASE_AMOUNT round/ cap_price))
 		)
 		(TransitionsTo Fulfilled)
 	)

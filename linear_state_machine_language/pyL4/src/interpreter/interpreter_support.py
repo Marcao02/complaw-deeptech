@@ -59,7 +59,12 @@ FN_SYMB_INTERP = {
     '+': lambda x,y: x + y,
     '-': lambda x,y: x - y,
     '/': lambda x,y: x / y,
+
     'fraction-of-sum': lambda x,y: x / (x+y),
+    'floor/': lambda x,y: math.floor(x/y),
+    'ceil/': lambda x,y: math.ceil(x/y),
+    'round/': lambda x,y: round(x/y),
+
     '*': lambda x,y: x * y,
     'even': lambda x: x % 2 == 0,
     'odd': lambda x: x % 2 == 1,

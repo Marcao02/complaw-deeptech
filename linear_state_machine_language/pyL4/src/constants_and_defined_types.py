@@ -69,6 +69,8 @@ PREFIX_FN_SYMBOLS = { 'cast',
 
                      'ceil', 'round',
                      'even', 'odd',
+
+                      # derived, but useful for being rigorous about types
                      'fraction-of-sum',
 
                      'tuple', 'tupleGet',
@@ -78,7 +80,10 @@ PREFIX_FN_SYMBOLS = { 'cast',
                      }.union(TIME_CONSTRAINT_OPERATORS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
-                    'or','and'}
+                    'or','and',
+                    # derived, but useful for being rigorous about types
+                    'floor/', 'round/', 'ceil/',
+                    }
 
 POSTFIX_FN_SYMBOLS : Set[str] = set()
 
