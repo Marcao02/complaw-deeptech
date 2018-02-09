@@ -1,0 +1,25 @@
+; This is the last of Hvitved's example, which isn't worth formalizing, but I'm doing it just for completeness.
+; It DOES show how prohibitions are modeled, though.
+
+(ProseContract
+	(P1 "The following agreement is enacted on 2011-01-01, and is valid for 5 years.")
+	(P2 "The Employee agrees not to disclose any information regarding the work carried out under the Employer, as stipulated in {P3}")
+	(P3 "(Omitted.)")
+)
+
+(Roles Employee Employer)
+
+(FormalContract
+	"Hvitved prohibitions NDA"
+	(StartSection Employed)
+
+	(Section Employed
+		(Next
+			(Employee may Disclose)
+		)
+	)
+
+	(Action Disclose
+		(TransitionsTo Breach_Employee)
+	)
+)
