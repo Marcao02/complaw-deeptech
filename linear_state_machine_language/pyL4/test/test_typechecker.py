@@ -21,6 +21,7 @@ EXAMPLES_TO_TYPECHECK = [
     'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
     'from_academic_lit/hvitved_printer.l4',
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
+    'from_academic_lit/Farmer_american_call_option_2016.l4',
 
     'serious/SAFE.l4',
     'serious/SAFE_2_liq_eventtypes.l4',
@@ -29,7 +30,7 @@ EXAMPLES_TO_TYPECHECK = [
 
 
 def main(sys_argv:Sequence[str]):
-    print_types_map(STANDARD_FNTYPES)
+    # print_types_map(STANDARD_FNTYPES)
 
     # return
     for filename in EXAMPLES_TO_TYPECHECK:

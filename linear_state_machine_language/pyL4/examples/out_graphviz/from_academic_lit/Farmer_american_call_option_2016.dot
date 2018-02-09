@@ -1,0 +1,22 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Farmer_American_call_option_from_A_Formal_Language_for_Writing_Contracts_2016 {    
+    Fulfilled[label=Fufilled];
+    BeforeOptionPurchase[label=BeforeOptionPurchase]
+    
+     
+    PaySellerForOption[label=PaySellerForOption,shape=box];
+	ExerciseOption[label=ExerciseOption,shape=box];
+	TransferShare[label=TransferShare,shape=box]    
+    
+    
+    
+    BeforeOptionPurchase -> PaySellerForOption;
+	PaySellerForOption -> ExerciseOption;
+	ExerciseOption -> TransferShare
+    
+    TransferShare -> Fulfilled [style=dashed];
+	     
+    
+       
+}

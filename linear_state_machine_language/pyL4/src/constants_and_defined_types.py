@@ -33,9 +33,9 @@ AParamsSubst = List[Data]
 ABAPSubst = List[Data]
 RBAPSubst = List[Data]
 
-VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeAtMostOnce',
-                      'writeOnceMore', 'inconly', 'deconly',
-                      'readonly', 'branchUnaffecting',
+VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeatmostonce',
+                      'writeoncemore', 'inconly', 'deconly',
+                      'readonly', 'branchunaffecting',
                       'reactive', 'nonoperative'}
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of event-states. We might later change this keyword to "validationOnly".

@@ -192,8 +192,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 i = 0
                 modifiers : List[str] = []
                 while True:
-                    if dec[i] in VARIABLE_MODIFIERS:
-                        modifiers.append(chcaststr(dec[i]))
+                    if dec[i].lower() in VARIABLE_MODIFIERS:
+                        modifiers.append(chcaststr(dec[i].lower()))
                         i += 1
                     else:
                         break

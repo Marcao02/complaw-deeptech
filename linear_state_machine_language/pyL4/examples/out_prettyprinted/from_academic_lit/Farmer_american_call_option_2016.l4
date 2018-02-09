@@ -1,0 +1,38 @@
+-----------------------------------------------------------
+file: from_academic_lit/Farmer_american_call_option_2016.l4
+
+roles: Env, Buyer, Seller
+
+contract params:
+    SELLER_FUNDS : $ := 0
+    BUYER_FUNDS : $ := 85
+    BUYER_START_SHARES : ShareCnt := 0
+    SELLER_START_SHARES : PosShareCnt := 1
+
+global vars:
+    writeonce seller_funds : $ := SELLER_FUNDS
+    writeonce buyer_funds : $ := BUYER_FUNDS
+    writeatmostonce buyer_final_shares : ShareCnt
+    writeatmostonce seller_final_shares : ShareCnt
+
+section BeforeOptionPurchase:
+    Buyer must PaySellerForOption (next_event_dt == 2015-06-30 00:00:00)
+
+action PaySellerForOption()  transitions to AfterPaySellerForOption:
+    transform:
+        buyer_funds := (cast $ (buyer_funds - (cast $ 5)))
+        seller_funds := (seller_funds + (cast $ 5))
+    following section:
+        Buyer may ExerciseOption (next_event_dt ≤ 2015-12-17 00:00:00)
+
+action ExerciseOption()  transitions to AfterExerciseOption:
+    transform:
+        buyer_funds := (cast $ (buyer_funds - (cast $ 80)))
+        seller_funds := (seller_funds + (cast $ 80))
+    following section:
+        Buyer must TransferShare (next_event_td ≤ (event_td + 30d))
+
+action TransferShare()  transitions to Fulfilled:
+    transform:
+        buyer_final_shares := (BUYER_START_SHARES + (cast ShareCnt 1))
+        seller_final_shares := (cast ShareCnt (SELLER_START_SHARES - (cast ShareCnt 1)))

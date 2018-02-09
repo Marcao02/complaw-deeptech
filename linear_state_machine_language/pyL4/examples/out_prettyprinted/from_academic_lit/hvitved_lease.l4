@@ -12,8 +12,8 @@ contract params:
 global vars:
     lease_term_start : TimeDelta
     lease_term_end : TimeDelta
-    writeOnceMore lease_terminated : Bool := False
-    branchUnaffecting inconly total_rent_paid : Nat := 0
+    writeoncemore lease_terminated : Bool := False
+    branchunaffecting inconly total_rent_paid : Nat := 0
 
 section Start:
     Landlord must EnsureApartmentReady immediately

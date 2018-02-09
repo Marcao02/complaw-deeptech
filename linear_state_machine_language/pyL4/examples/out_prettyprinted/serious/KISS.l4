@@ -22,7 +22,7 @@ global vars:
     investor_PreferredStock : ShareCnt := START_INVESTOR_PREFERRED_STOCK
     investor_SeriesSeedPreferredStock : ShareCnt := START_INVESTOR_SERIES_SEED_PREFERRED_STOCK
     company_cash : $ := START_COMPANY_CASH
-    writeAtMostOnce pay_interest_in_cash : Bool := False
+    writeatmostonce pay_interest_in_cash : Bool := False
 
 section InvestorInvests:
     Company obligation-options-include CommitToAcquisition(?1) (next_event_td < (sectionEntrance_td + TIME_TILL_MATURITY))
@@ -53,10 +53,10 @@ action CloseEquityFinancingSale(qualifying_round_price: SharePrice, company_capi
             change : $ := (ifthenelse (event_td ≤ 365d) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
             company_cash := (cast $ (company_cash - change))
             investor_cash := (investor_cash + change)
-            investor_PreferredStock := (investor_PreferredStock + (round (PURCHASE_AMOUNT / conversion_price)))
+            investor_PreferredStock := (investor_PreferredStock + (PURCHASE_AMOUNT round/ conversion_price))
         else:
             accrued_interest : $ := (ifthenelse (event_td ≤ 365d) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT)) (cast Pos$ (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
-            investor_PreferredStock := (investor_PreferredStock + (round ((PURCHASE_AMOUNT + accrued_interest) / conversion_price)))
+            investor_PreferredStock := (investor_PreferredStock + ((PURCHASE_AMOUNT + accrued_interest) round/ conversion_price))
 
 
 action CommitToAcquisition(company_capitalization: PosShareCnt) transitions to AfterCommitToAcquisition
@@ -73,7 +73,7 @@ action ChooseMultipleRepayment()  transitions to Fulfilled:
 action ChooseConvertToCommonStock(company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
         cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
-        investor_Common_Stock := (investor_Common_Stock + (round (PURCHASE_AMOUNT / cap_price)))
+        investor_Common_Stock := (investor_Common_Stock + (PURCHASE_AMOUNT round/ cap_price))
 
 action ReachMaturity()  transitions to AfterReachMaturity
     following section:
@@ -90,4 +90,4 @@ action ChooseMaturityRepayment()  transitions to Fulfilled:
 action ChooseConversionToSeriesSeedPreferredStock(company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
         cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
-        investor_SeriesSeedPreferredStock := (investor_SeriesSeedPreferredStock + (round (PURCHASE_AMOUNT / cap_price)))
+        investor_SeriesSeedPreferredStock := (investor_SeriesSeedPreferredStock + (PURCHASE_AMOUNT round/ cap_price))

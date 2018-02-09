@@ -14,20 +14,20 @@ contract params:
 global vars:
     has_cap : Bool := (VALUATION_CAP < (cast Pos$ 1000000000000))
     has_discount : Bool := (DISCOUNT_RATE < 1)
-    writeAtMostOnce investor_Common_Stocks : ShareCnt := START_INVESTOR_COMMON_STOCKS
-    writeAtMostOnce investor_SAFE_Preferred_Stocks : ShareCnt := START_INVESTOR_SAFE_PREFERRED_STOCKS
-    writeAtMostOnce investor_cash : $ := START_INVESTOR_CASH
+    writeatmostonce investor_Common_Stocks : ShareCnt := START_INVESTOR_COMMON_STOCKS
+    writeatmostonce investor_SAFE_Preferred_Stocks : ShareCnt := START_INVESTOR_SAFE_PREFERRED_STOCKS
+    writeatmostonce investor_cash : $ := START_INVESTOR_CASH
     cash_currently_unconverted : $ := PURCHASE_AMOUNT
-    writeAtMostOnce safe_price : SharePrice
-    writeAtMostOnce discount_price : SharePrice
-    writeAtMostOnce conversion_price : SharePrice
-    writeAtMostOnce initial_price_per_share_standard_preferred_stock : SharePrice
-    writeAtMostOnce liq_price : SharePrice
-    writeAtMostOnce liq_cashout : $ := 0
-    writeAtMostOnce company_cash : $
-    writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt
-    writeAtMostOnce investor_percent_of_cashout_investor_investments : Fraction[0,1]
-    writeAtMostOnce dis_cashout : $
+    writeatmostonce safe_price : SharePrice
+    writeatmostonce discount_price : SharePrice
+    writeatmostonce conversion_price : SharePrice
+    writeatmostonce initial_price_per_share_standard_preferred_stock : SharePrice
+    writeatmostonce liq_price : SharePrice
+    writeatmostonce liq_cashout : $ := 0
+    writeatmostonce company_cash : $
+    writeatmostonce investor_liq_hypothetical_shares : ShareCnt
+    writeatmostonce investor_percent_of_cashout_investor_investments : Fraction[0,1)
+    writeatmostonce dis_cashout : $
 
 section InvestorInvests:
     Company obligation-options-include CommitToEquityFinancing no_time_constraint
@@ -61,7 +61,7 @@ action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_val
         initial_price_per_share_standard_preferred_stock := (premoney_valuation / company_capitalization)
         discount_price := (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE)
         conversion_price := (min safe_price discount_price)
-        investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (round (PURCHASE_AMOUNT / conversion_price)))
+        investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price))
     following section:
         Company must DoEquityFinancing discretionary
 
@@ -70,12 +70,12 @@ action DoEquityFinancing()  transitions to Fulfilled
 action CommitToLiquidityEvent(change_of_control: Bool, company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToLiquidityEvent:
     transform:
         liq_price := (VALUATION_CAP / liquidity_capitalization)
-        investor_liq_hypothetical_shares := (round (PURCHASE_AMOUNT / liq_price))
-        investor_percent_of_cashout_investor_investments := (cast Fraction[0,1] (investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares)))
+        investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ liq_price)
+        investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares liquidity_capitalization)
         if (and change_of_control (reduction_needed_to_qualify_as_usa_tax_free_reorg > (cast $ 0))):
             purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg)
             prove (PURCHASE_AMOUNT ≥ purchase_amount_reduction)
-            investor_Common_Stocks := (investor_Common_Stocks + (round (purchase_amount_reduction / liq_price)))
+            investor_Common_Stocks := (investor_Common_Stocks + (purchase_amount_reduction round/ liq_price))
             cash_currently_unconverted := (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction))
             company_cash := (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
         else:
@@ -97,7 +97,7 @@ action ChooseStockPayment()  transitions to AfterChooseStockPayment
 
 action TransferCommonStock()  transitions to AfterTransferCommonStock:
     transform:
-        investor_Common_Stocks := (investor_Common_Stocks + (round ((cast $ (cash_currently_unconverted - liq_cashout)) / liq_price)))
+        investor_Common_Stocks := (investor_Common_Stocks + ((cast $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
     following section:
         Company must DoLiquidityEvent discretionary
 
@@ -107,7 +107,7 @@ action ChooseCashPayment()  transitions to AfterChooseCashPayment
 
 action TransferCash_L()  transitions to AfterTransferCash_L:
     transform:
-        liq_cashout := (ifthenelse (cash_currently_unconverted ≤ (company_cash * investor_percent_of_cashout_investor_investments)) cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments))
+        liq_cashout := (min cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments))
         investor_cash := (investor_cash + liq_cashout)
         prove (liq_cashout ≤ cash_currently_unconverted)
     following section:
@@ -124,7 +124,7 @@ action CommitToDissolution()  transitions to AfterCommitToDissolution
 
 action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: Fraction(0,1]) transitions to AfterTransferCash_D:
     transform:
-        dis_cashout := (ifthenelse (PURCHASE_AMOUNT ≤ (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)) PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
+        dis_cashout := (min PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
         investor_cash := dis_cashout
     following section:
         if (dis_cashout < PURCHASE_AMOUNT):
@@ -135,7 +135,7 @@ action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_
 action TransferAssets(liquidity_capitalization: PosShareCnt) transitions to AfterTransferAssets:
     transform:
         liq_price := (VALUATION_CAP / liquidity_capitalization)
-        investor_Common_Stocks := (investor_Common_Stocks + (round ((cast $ (PURCHASE_AMOUNT - dis_cashout)) / liq_price)))
+        investor_Common_Stocks := (investor_Common_Stocks + ((cast $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price))
     following section:
         Company must Dissolve discretionary
 
