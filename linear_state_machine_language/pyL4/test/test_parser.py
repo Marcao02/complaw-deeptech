@@ -18,6 +18,8 @@ EXAMPLES = [
     'toy_and_teaching/collatz.l4',
     'toy_and_teaching/monster_burger_program_only.l4',
     'toy_and_teaching/partner_assignment_relievable_obligations.l4',
+    'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
+
     'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
     'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
@@ -28,10 +30,8 @@ EXAMPLES = [
     'serious/SAFE.l4',
     'serious/SAFE_2_liq_eventtypes.l4',
     'serious/KISS.l4'
-
-
 ]
-EXAMPLES_FULL_SIZE = 15
+EXAMPLES_FULL_SIZE = 16
 
 # so can run it as a library too, which respects exceptions
 def main(sys_argv:List[str]):

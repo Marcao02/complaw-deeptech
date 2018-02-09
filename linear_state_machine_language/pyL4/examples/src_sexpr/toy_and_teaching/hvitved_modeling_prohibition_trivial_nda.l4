@@ -15,7 +15,7 @@
 
 	(Section Employed
 		(Next
-			(Employee may Disclose)
+			(Employee may Disclose no_time_constraint)
 		)
 	)
 

@@ -13,6 +13,7 @@ EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/monster_burger_program_only.l4',
     'toy_and_teaching/minimal_future-actions.l4',
     'toy_and_teaching/minimal_future-actions2.l4',
+    'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
 
     'from_academic_lit/hvitved_lease.l4',
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
