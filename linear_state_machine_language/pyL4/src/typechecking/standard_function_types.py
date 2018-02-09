@@ -157,7 +157,11 @@ overloaded_types_data : FnTypesData = [
         sfntype(Nat,TimeDelta),
         sfntype(PosInt,PosTimeDelta))
      ),
-    # -----------Event role getter
+    # ------------DateTime environment variables------------
+    (('event_dt','next_event_dt'), (
+        sfntype(DateTime), )
+     ),
+    # ------------Event role getter------------
     (('event_role',), (
         sfntype('RoleId'),)
      ),

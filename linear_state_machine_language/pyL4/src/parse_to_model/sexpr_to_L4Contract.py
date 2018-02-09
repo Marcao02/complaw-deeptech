@@ -1,5 +1,6 @@
 import logging
 
+import dateutil.parser
 from mypy_extensions import NoReturn
 
 from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
@@ -26,7 +27,7 @@ from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_section_id, derived_destination_id
 from src.model.L4Macro import L4Macro
-from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit
+from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit, DateTimeLit
 from src.model.Section import Section
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
@@ -543,6 +544,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower(), coord)
             # print('STD', rv)
             return rv
+
         L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 
@@ -603,6 +605,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args : List[Term]
                 if fnsymb_name == 'cast':
                     args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
+                elif fnsymb_name == "str2datetime":
+                    assert isinstance(pair[1],SExpr) and isinstance(pair[1][0], SExpr) and pair[1][0][0] == STRING_LITERAL_MARKER, pair
+                    try:
+                        dt = dateutil.parser.parse(pair[1][0][1])
+                        return DateTimeLit(dt, pair[1][0].coord())
+                    except Exception as e:
+                        print(e)
+                        raise e
                 else:
                     args = [ self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1] ]
                 return FnApp(

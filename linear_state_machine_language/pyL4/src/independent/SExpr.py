@@ -2,6 +2,7 @@
 
 from typing import Union, List, Any, cast, Sized, Iterable, Sequence
 
+from src.independent.FileCoord import FileCoord
 from src.independent.util import caststr
 
 STRING_LITERAL_MARKER = "STRLIT"
@@ -33,6 +34,9 @@ class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
         self.line = line
         self.col = col
         assert isinstance(symb,str) and symb in all_symb_tags
+
+    def coord(self) -> FileCoord:
+        return FileCoord(self.line, self.col)
 
     def tillEnd(self,i:int) -> 'SExpr':
         return SExpr(self.symb, self.lst[i:], self.line, self.col)

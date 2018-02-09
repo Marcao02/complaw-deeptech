@@ -18,7 +18,7 @@ from src.typechecking.standard_subtype_graph import STANDARD_SUBSORTING_GRAPH, N
     SubsortGraph, duplicate_some_edges
 from src.typechecking.standard_sorts import check_sorts_valid
 
-print_types_map(STANDARD_FNTYPES)
+# print_types_map(STANDARD_FNTYPES)
 
 def sub(s1:Sort,s2:Sort) -> bool:
     return STANDARD_SUBSORTING_GRAPH.hasEdge(s1, s2)
@@ -74,6 +74,8 @@ def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
                 yield "String"
             elif isinstance(t, SortLit):
                 yield t.lit
+            elif isinstance(t, DateTimeLit):
+                return "DateTime"
             else:
                 raise NotImplementedError(str(t) + "," + str(type(t)))
         elif isinstance(t, (LocalVar, GlobalVar)):
@@ -336,6 +338,8 @@ class TypeChecker:
                     return "PosTimeDelta"
                 else:
                     return "TimeDelta"
+            elif isinstance(t,DateTimeLit):
+                return "DateTime"
             elif isinstance(t,DeadlineLit):
                 todo_once('type for deadline literals? or ensure this never comes up?')
                 return "Bool"

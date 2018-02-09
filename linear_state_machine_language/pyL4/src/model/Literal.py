@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from itertools import chain
 
 from src.independent.util import todo_once
@@ -84,6 +84,13 @@ class StringLit(Literal):
         return "'" + self.lit + "'"
 
 todo_once("Need to require that timedeltas are nonnegative")
+
+class DateTimeLit(Literal):
+    def __init__(self, lit:datetime, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(lit,coord)
+        self.lit = lit
+    def __str__(self):
+        return str(self.lit)
 
 class SimpleTimeDeltaLit(Literal):
     """
