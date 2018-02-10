@@ -74,7 +74,7 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain("Fraction(0,1)", "Fraction[0,1)", "Fraction[0,1]"),
     sschain("Fraction(0,1)", "Fraction(0,1]", "Fraction[0,1]"),
 
-
+    # Ratios of non-dimensioned numeric sorts
     sschain(Ratio(NonnegReal, PosReal), NonnegReal),
     sschain(Ratio(NonnegReal, PosInt), NonnegReal),
     sschain(Ratio(PosReal, PosReal), PosReal),

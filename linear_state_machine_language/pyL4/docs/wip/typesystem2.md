@@ -1,5 +1,12 @@
 Note that MatchVar(·) is not yet formalized, so it might be used inconsistently. 
 
+I have not worked out how exactly I should implement the MatchVars part.
+
+**Idea**: Constraint with MatchVar's don't get added to the graph (call them "parametric constraints"). Only their concrete instances do.
+
+For first implementation, whenever a new concrete sort is encountered, it is matched against the left and right sides of every parametric constraint. 
+But wait... that should only be done for constraints up to the given complexity.
+
 # Subtyping
 
 Later: language for saying that a sort is empty, e.g. NonnegReal[shares].
@@ -10,9 +17,20 @@ The _complexity_ of a subtyping relation S₁ ≤ S₂ is the maximum of the com
 
 All sub relns between complexity 1 sorts are always added.
 
-## Ratio
+## Dimensioned numeric sorts
 
 These are complexity 2.
+`u,v: MatchVar(DimUnit)`
+
+`PosInt[u] ⊆ Nat[u]`, # makes sense for counting any kind of thing
+`PosReal[u] ⊆ NonnegReal[u]` # makes sense for measuring any kind of thing
+
+`NonnegReal[u] ⊆ Real[u]` # unfortunately seems to currently be needed for subtraction to be total
+`Nat[u] ⊆ Int[u]` # unfortunately seems to currently be needed for subtraction to be total
+
+## Ratios of nondimensioned numeric sorts
+
+These are complexity 3.
 
 `Ratio(NonnegReal, PosReal) ⊆ NonnegReal`
 `Ratio(NonnegReal, PosInt) ⊆ NonnegReal`
@@ -33,16 +51,6 @@ for num1 in UnboundedNumericSorts:
                 graph.addEdge(Ratio(num1,den1), Ratio(num2,den2))
 ```
 
-## Dimensioned numeric sorts
-
-These are complexity 2.
-`u,v: MatchVar(DimUnit)`
-
-`PosInt[u] ⊆ Nat[u]`, # makes sense for counting any kind of thing
-`PosReal[u] ⊆ NonnegReal[u]` # makes sense for measuring any kind of thing
-
-`NonnegReal[u] ⊆ Real[u]` # unfortunately seems to currently be needed for subtraction to be total
-`Nat[u] ⊆ Int[u]` # unfortunately seems to currently be needed for subtraction to be total
 
 ## Ratios of dimensioned numeric sorts
 

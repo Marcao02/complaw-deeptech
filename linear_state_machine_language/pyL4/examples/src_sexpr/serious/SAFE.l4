@@ -148,17 +148,22 @@
 		(AllowedSubjects Company)
 		; (Precondition (reduction_needed_to_qualify_as_usa_tax_free_reorg : (LEQ company_cash_at_liquidity_event)))
 		(Precondition (company_cash_at_liquidity_event ≥ reduction_needed_to_qualify_as_usa_tax_free_reorg))
+		; Or with proof terms:
+		; (Precondition (π : (reduction_needed_to_qualify_as_usa_tax_free_reorg ≤ company_cash_at_liquidity_event)))
+		; Then, - could just have a function type that takes such a proof explicitly:
+		; - : Πx:NonnegReal. Πy:Real. (y ≤ x) --> ((x - y) ≥ 0)
 		(StateTransform
 			(liq_price = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT round/ liq_price))
 			; possible Z3 generated problem for following cast (which Z3 does prove unsat)
+			; NOTE: no longer have a proof obligation here, since introducing `fraction-of-sum`
 			; (declare-const investor_liq_hypothetical_shares Int)
 			; (declare-const liquidity_capitalization Int)
 			; (assert (>= investor_liq_hypothetical_shares 0))
 			; (assert (> liquidity_capitalization 0))
-			; (declare-const r Real)
-			; (assert (= r (/ investor_liq_hypothetical_shares (+ liquidity_capitalization investor_liq_hypothetical_shares))))
-			; (assert (not (and (>= r 0) (<= r 1))))
+			; (declare-const investor_percent_of_cashout_investor_investments Real)
+			; (assert (= investor_percent_of_cashout_investor_investments (/ investor_liq_hypothetical_shares (+ liquidity_capitalization investor_liq_hypothetical_shares))))
+			; (assert (not (and (>= investor_percent_of_cashout_investor_investments 0) (<= investor_percent_of_cashout_investor_investments 1))))
 			; (check-sat)
 			; Another approach using (an unorthodox version of) dependent types:
 			; / : ∀x:PosNat. ∀y:PosNat. {x} -> {(y + x)} -> (0,1)
@@ -180,10 +185,22 @@
 			 	(prove (PURCHASE_AMOUNT ≥ purchase_amount_reduction))
 			 	(investor_Common_Stocks += (purchase_amount_reduction round/ liq_price))
 			 	; - : Πx:Nat. (LEQ x) -> Nat
+			 	; or z3:
+			 	; ; From type of reduction_needed_to_qualify_as_usa_tax_free_reorg:
+			 	; (declare-const reduction_needed_to_qualify_as_usa_tax_free_reorg Real)
+			 	; (assert (>= reduction_needed_to_qualify_as_usa_tax_free_reorg 0)
+			 	; ; From type of company_cash_at_liquidity_event:
+			 	; (declare-const company_cash_at_liquidity_event Real)
+			 	; (assert (>= company_cash_at_liquidity_event 0)
+			 	; ; From Precondition:
+			 	; (assert (<= reduction_needed_to_qualify_as_usa_tax_free_reorg company_cash_at_liquidity_event))
+			 	; ; Negation of cast correctness:
+			 	; (assert (not (>= (- company_cash_at_liquidity_event reduction_needed_to_qualify_as_usa_tax_free_reorg) 0)))
 				(cash_currently_unconverted = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
 				(company_cash = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 			)
 			else (
+				; This doesn't actually need to be a separate case, but I think code is more readable when it is.
 				(cash_currently_unconverted = PURCHASE_AMOUNT)
 				(company_cash = company_cash_at_liquidity_event)
 			))
