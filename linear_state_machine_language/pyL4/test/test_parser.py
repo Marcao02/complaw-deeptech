@@ -79,58 +79,63 @@ def main(sys_argv:List[str]):
                 3 unsat ✓                
                 
                 """
+
+                statements : T3FormattedStatementsList = []
+                def heading(s:str, indent=0, linebreak=True) -> None:
+                    if linebreak:
+                        statements.append(("",0))
+                    statements.append(('; ' + s, indent))
+                def extend(lines:Iterable[Union[Z3Statement,str]], indent=0):
+                    statements.extend([(statement,indent) for statement in lines])
+                def append(s:Z3Statement, indent=0):
+                    statements.append((s,indent))
+
+                heading("Contract param constant declarations")
+                extend( toz3.contractParamDecs.values() )
+
+                heading("State var constant declarations")
+                extend( toz3.stateVarDecs.values() )
+
+                heading("Contract param constant extra type info")
+                extend( toz3.contractParamDecsExtra.values() )
+
+                heading("Contract param constant extra type info")
+                extend( toz3.stateVarDecsExtra.values() )
+
+                heading("Contract param definitions")
+                extend(toz3.contractParamDefns.values())
+
+                heading("Invariants")
+                extend(toz3.invariants)
+
+
                 for cast_const_name in toz3.cast_const_decs:
-                    statements : T3FormattedStatementsList = []
-                    def heading(s:str, indent=0, linebreak=True) -> None:
-                        if linebreak:
-                            statements.append(("",0))
-                        statements.append(('; ' + s, indent))
-                    def extend(lines:Iterable[Union[Z3Statement,str]], indent=0):
-                        statements.extend([(statement,indent) for statement in lines])
-                    def append(s:Z3Statement, indent=0):
-                        statements.append((s,indent))
+                    append("(push)",0)
 
-                    heading("Contract param constant declarations")
-                    extend( toz3.contractParamDecs.values() )
+                    heading("Cast constant declarations",1,False)
+                    append(toz3.cast_const_decs[cast_const_name],1)
 
-                    heading("Cast constant declarations")
-                    append( toz3.cast_const_decs[cast_const_name] )
-
-                    heading("State var constant declarations")
-                    extend( toz3.stateVarDecs.values() )
-
-                    heading("Contract param constant extra type info")
-                    extend( toz3.contractParamDecsExtra.values() )
-
-                    heading("Contract param constant extra type info")
-                    extend( toz3.stateVarDecsExtra.values() )
-
-                    heading("Contract param definitions")
-                    extend(toz3.contractParamDefns.values())
-
-                    heading("Invariants")
-                    extend(toz3.invariants)
-
-                    # for aid in prog.action_ids():
                     aid = toz3.cast_const_to_enclosing_action[cast_const_name]
-                    heading(f"======{aid}======")
+                    # heading(f"======{aid}======",1)
                     if len(toz3.actionParamDecs[aid]) > 0:
-                        heading(f"Action param decs for {aid}",1,False)
+                        heading(f"Action param decs for {aid}",1)
                         extend(toz3.actionParamDecs[aid].values(),1)
                     if aid in toz3.stateTransformDecsZ3:
-                        heading(f"State transform definition for {aid}",1,False)
+                        heading(f"State transform definition for {aid}",1)
                         append(toz3.stateTransformDecsZ3[aid],1)
 
-                    heading("Cast constant definitions")
-                    append(toz3.cast_const_defs[cast_const_name])
+                    heading("Cast constant definitions",1)
+                    append(toz3.cast_const_defs[cast_const_name],1)
 
-                    heading("Negated conjecture")
-                    append( toz3.cast_const_negated_type_asserts[cast_const_name] )
+                    heading("Negated conjecture",1)
+                    append( toz3.cast_const_negated_type_asserts[cast_const_name],1)
 
-                    append( "(check-sat)" )
+                    append("(check-sat)",1)
 
-                    with open(f"{filename}_{cast_const_name}.z3", 'w') as file:
-                        file.write(z3statements_to_str(statements))
+                    append("(pop)")
+
+                with open(f"{filename}_casts.z3", 'w') as file:
+                    file.write(z3statements_to_str(statements))
 
             if 'printPretty' in sys_argv:
                 prettyprinted = str(prog)
