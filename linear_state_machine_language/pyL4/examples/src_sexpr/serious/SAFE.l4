@@ -231,7 +231,7 @@
 	)
 
 	(Action TransferCommonStock (AllowedSubjects Company)
-		(Pre (liq_cashout ≤ cash_currently_unconverted))
+		; (Pre (liq_cashout ≤ cash_currently_unconverted))
 		(StateTransform
 			; should we round that division up, down, or to nearest?
 			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
@@ -305,7 +305,7 @@
 	)
 
 	(Action (TransferAssets (liquidity_capitalization:PosShareCnt))
-		(Pre (dis_cashout ≤ PURCHASE_AMOUNT))
+		; (Pre (dis_cashout ≤ PURCHASE_AMOUNT))
 		(AllowedSubjects Company)
 		(StateTransform
 			(liq_price' = (VALUATION_CAP / liquidity_capitalization))

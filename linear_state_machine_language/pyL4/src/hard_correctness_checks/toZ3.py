@@ -307,9 +307,11 @@ class ToZ3:
         # assert len(block) > 0
         for s in block:
             self.statement2z3(s)
+        are_same : List[Z3Expr] = []
         for var in self.stateVarDecs:
             if var not in self.state_vars_updated and not isz3primed(var):
-                self.appendAssert(equals(z3primed(var), var))
+                are_same.append(equals(z3primed(var), var))
+        self.appendAssert(conj(*are_same))
 
     def statement2z3(self, s:Statement):
         if isinstance(s, StateVarAssign):
