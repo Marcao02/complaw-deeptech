@@ -1,6 +1,6 @@
 from itertools import chain
 
-from independent.FileCoord import FileCoord
+from src.independent.FileCoord import FileCoord
 from src.independent.util import castid, todo_once
 from src.constants_and_defined_types import StateVarId, ContractParamId, ActionBoundActionParamId, \
     RuleBoundActionParamId, LocalVarId

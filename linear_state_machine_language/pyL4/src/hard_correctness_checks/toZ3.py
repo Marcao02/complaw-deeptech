@@ -1,6 +1,6 @@
-from constants_and_defined_types import ActionBoundActionParamId, ActionId
-from model.Sort import Sort
-from model.StateVarDec import StateVarDec
+from src.constants_and_defined_types import ActionBoundActionParamId, ActionId
+from src.model.Sort import Sort
+from src.model.StateVarDec import StateVarDec
 from src.model.Literal import Literal, SortLit
 from src.model.Action import Action
 from src.model.BoundVar import GlobalVar, BoundVar
@@ -10,12 +10,14 @@ from src.independent.typing_imports import *
 from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement
 Block = List[Statement]
 
-Z3Expr = Union[str, int, Tuple[Any, ...]]
-Z3Statement = Tuple[Union[str, Z3Expr], ...]
+# Z3Expr = Union[str, int, Tuple[Any, ...]]
+# Z3Statement = Tuple[Union[str, Z3Expr], ...]
+Z3Expr = Any
+Z3Statement = Any
 
 Z3_BUILDIN_FNS = frozenset({'and','or','not','==','*','+','>','<','<=','>=','/','-'})
 
-SORT_TO_PRED = {
+SORT_TO_PRED : Dict[str,Callable[[str],Z3Expr]]= {
     "$": lambda x: fnapp(">=", x, 0),
     "Pos$": lambda x: fnapp(">", x, 0),
     "ShareCnt": lambda x: fnapp(">=", x, 0),
@@ -42,13 +44,14 @@ def fnapp(symb:str, *args:Z3Expr) -> Z3Expr:
 
 def declareconst(const:str, sort:str) -> Z3Expr:
     return 'declare-const', const, sort
+
 def assertexpr(expr:Z3Expr) -> Z3Statement:
     return 'assert' , expr
 
 def primed(s:str) -> str:
     return s + "_next"
 
-MACRO_DEFINED_FNS = {
+MACRO_DEFINED_FNS : Dict[str, Callable] = {
     'cast': lambda S,t: t,
     'ifthenelse': lambda a,b,c: ite(a,b,c),
     'fraction-of-sum': lambda a,b: fnapp('/', a, fnapp('+', a, b)),
@@ -78,19 +81,19 @@ def sort2z3primtype(s: Sort) -> str:
 
 class ToZ3:
     def __init__(self) -> None:
-        self.cast_const_decs : Dict[str,Z3Statement] = dict()
+        self.cast_const_decs : Dict[str, Z3Statement] = dict()
         self.cast_const_defs: Dict[str, Z3Expr] = dict()
         self.cast_const_negated_type_asserts: Dict[str, Z3Expr] = dict()
         self.cast_const_ind = 0
         self.stateVarDecs : Dict[str,Z3Statement] = dict()
         self.stateVarDecsExtra: Dict[str,Z3Statement] = dict()
-        self.actionParamDecs : Dict[ActionBoundActionParamId, Dict[str,Z3Statement]] = dict()
-        self.actionParamDecsExtra : Dict[ActionBoundActionParamId, Dict[str, Z3Statement]] = dict()
+        self.actionParamDecs : Dict[ActionId, Dict[str,Z3Statement]] = dict()
+        self.actionParamDecsExtra : Dict[ActionId, Dict[str, Z3Statement]] = dict()
         self.stateTransformDecsZ3 : Dict[ActionId,Z3Expr] = dict()
 
     def statevarDec2z3(self, svd:StateVarDec):
         self.stateVarDecs[svd.name] = declareconst(svd.name, sort2z3primtype(svd.sort)),
-        if svd.sort in SORT_TO_PRED:
+        if svd.sort in SORT_TO_PRED and isinstance(svd.sort, str):
             self.stateVarDecsExtra[svd.name] = assertexpr(SORT_TO_PRED[svd.sort](svd.name))
         else:
             print("Skipping " + str(svd.sort) )
@@ -101,6 +104,7 @@ class ToZ3:
         for apname,apsort in action.param_sorts_by_name.items():
             self.actionParamDecs[action.action_id][apname] = declareconst(apname, sort2z3primtype(apsort))
             if apsort in SORT_TO_PRED:
+                assert isinstance(apsort,str)
                 self.actionParamDecsExtra[action.action_id][apname] = SORT_TO_PRED[apsort](apname)
             else:
                 print(f"Skipping {apname}:{apsort}")
@@ -153,7 +157,7 @@ class ToZ3:
             elif t.fnsymb_name == "cast":
                 cc = self.new_cast_const()
                 assert isinstance(t.args[0], SortLit)
-                sort = cast(SortLit,t.args[0]).lit
+                sort = t.args[0].lit
                 primtype = sort2z3primtype(sort)
                 self.cast_const_decs[cc] = declareconst(cc,primtype)
                 value_expr = self.term2z3def(t.args[1])
@@ -198,6 +202,7 @@ class ToZ3:
                 return implies(self.term2z3def(s.test),   self.block2z3def(s.true_branch))
         elif isinstance(s, FVRequirement):
             return "true"
+        raise NotImplementedError
         # if isinstance(s,)
     
     def term_requirements_to_z3(self,hyp:List[Z3Expr], t:Term) -> Z3Expr:

@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from parse_to_model.sexpr_to_L4Contract import primed, isprimed, unprimed
+from src.parse_to_model.sexpr_to_L4Contract import primed, isprimed, unprimed
 from src.independent.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, castid
 from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \

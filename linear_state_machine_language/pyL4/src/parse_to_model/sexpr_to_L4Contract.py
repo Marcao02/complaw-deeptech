@@ -34,9 +34,9 @@ from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
 from src.model.Term import Term
 
-def primed(s:StateVarId) -> StateVarId:
+def primed(s:str) -> StateVarId:
     return s + "'" # type:ignore
-def unprimed(s:StateVarId) -> StateVarId:
+def unprimed(s:str) -> StateVarId:
     assert s[-1] == "'"
     return s[:-1] # type:ignore
 def isprimed(s:str) -> bool:
@@ -578,49 +578,54 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                  parent_action : Optional[Action] = None,
                  parent_action_rule : Optional[ActionRule] = None,
                  parent_SExpr : Optional[SExpr] = None ) -> Term:
+        assert parent_SExpr is not None, x # todo clean this up
+
         if isinstance(x,str):
             # if isprimed(x):
             if x in EXEC_ENV_VARIABLES:
-                return FnApp(x,[],parent_SExpr.coord())
+                return FnApp(x,[], parent_SExpr.coord() if parent_SExpr else None)
 
             if x in TIME_CONSTRAINT_KEYWORDS:
                 return DeadlineLit(x)
 
             if x in self.top.global_var_decs:
-                return GlobalVar(self.top.global_var_decs[cast(StateVarId, x)], parent_SExpr.coord())
+                return GlobalVar(self.top.global_var_decs[cast(StateVarId, x)], parent_SExpr.coord() if parent_SExpr else None)
 
             if isprimed(x):
                 self.assertOrSyntaxError(unprimed(x) in self.top.global_var_decs, parent_SExpr, f"Primed variable {x} does not appear to be a state variable.")
-                return PrimedGlobalVar(self.top.global_var_decs[cast(StateVarId, unprimed(x))], parent_SExpr.coord())
+                return PrimedGlobalVar(self.top.global_var_decs[unprimed(x)], parent_SExpr.coord() if parent_SExpr else None)
 
             # if parent_action and (x in parent_action.local_vars):
             #     return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
 
             if x in self.top.contract_params:
-                return ContractParam(self.top.contract_params[cast(ContractParamId,x)], parent_SExpr.coord())
+                return ContractParam(self.top.contract_params[cast(ContractParamId,x)], parent_SExpr.coord() if parent_SExpr else None)
 
             # print("parent_action_rule", parent_action_rule)
             # if x == 'order' and parent_action_rule:
             #     print("args", parent_action_rule.args)
             if parent_action_rule and parent_action_rule.args and x in parent_action_rule.args:
-                assert parent_SExpr.coord() is not None
+                assert parent_SExpr is not None and parent_SExpr.coord() is not None
                 assert parent_action_rule.args_name_to_ind is not None
                 return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
                                             parent_action_rule.args_name_to_ind[castid(RuleBoundActionParamId,x)],
                                             parent_SExpr.coord())
 
             if parent_action and x in parent_action.param_sorts_by_name:
-                assert parent_SExpr.coord() is not None
+                assert parent_SExpr is not None and parent_SExpr.coord() is not None
                 assert parent_action.param_name_to_ind is not None
                 return ActionBoundActionParam(cast(ActionBoundActionParamId, x), parent_action,
                                               parent_action.param_name_to_ind[castid(ActionBoundActionParamId,x)],
                                               parent_SExpr.coord())
 
             if x in self.top.definitions:
-                return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule, parent_SExpr)
+                return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body,
+                                     parent_section, parent_action, parent_action_rule,
+                                     parent_SExpr)
 
             if parent_action and x in parent_action.local_vars:
-                return LocalVar(parent_action.local_vars[castid(LocalVarId, x)], parent_SExpr.coord())
+                return LocalVar(parent_action.local_vars[castid(LocalVarId, x)],
+                                parent_SExpr.coord() if parent_SExpr else None)
 
             return L4ContractConstructor.mk_literal(x, parent_SExpr, self.top)
 
@@ -669,14 +674,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 assert False # this is just to get mypy to not complain about missing return statement
 
-    def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action], parent_action_rule:Optional[ActionRule]) -> Term:
+    def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action],
+                            parent_action_rule:Optional[ActionRule], parent_sexpr:SExpr) -> Term:
         rv : Term
         # if expr in TIME_CONSTRAINT_KEYWORDS:
         #     return self._mk_term(expr, src_section, src_action)
         # elif isinstance(expr,str):
         #     self.syntaxError(expr, f"Unrecognized token {expr} in time constraint keyword position.")
         if isinstance(expr,str):
-            rv = self._mk_term(expr, src_section, src_action, parent_action_rule, None)
+            rv = self._mk_term(expr, src_section, src_action, parent_action_rule, parent_sexpr)
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
@@ -735,7 +741,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         rem = expr.tillEnd(3)
         assert len(rem) >= 1
 
-        rv.time_constraint = self._mk_time_constraint(rem[0], None, src_action, rv)
+        rv.time_constraint = self._mk_time_constraint(rem[0], None, src_action, rv, rem)
         assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:
@@ -808,7 +814,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv.fixed_args = [self._mk_term(arg, src_section, parent_action, rv, args_part) for arg in args_part]
         assert len(rem) >= 1
 
-        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, parent_action, rv)
+        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, parent_action, rv, rem)
         assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:

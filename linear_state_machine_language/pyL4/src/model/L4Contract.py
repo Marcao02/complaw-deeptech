@@ -2,7 +2,7 @@
 from itertools import chain
 from typing import Type
 
-from independent.FileCoord import FileCoord
+from src.independent.FileCoord import FileCoord
 from src.independent.typing_imports import *
 from src.constants_and_defined_types import *
 from src.model.Term import Term
