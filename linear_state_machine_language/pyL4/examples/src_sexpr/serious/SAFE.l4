@@ -69,10 +69,10 @@
 	(writeAtMostOnce dis_cashout : $)
 )
 
-; (Invariants
-; 	(liq_cashout ≤ cash_currently_unconverted)
-; 	(dis_cashout ≤ PURCHASE_AMOUNT)
-; )
+(Invariants
+	(liq_cashout ≤ cash_currently_unconverted)
+	(dis_cashout ≤ PURCHASE_AMOUNT)
+)
 
 (FormalContract "SAFE"
 	; apply to all actions and states:

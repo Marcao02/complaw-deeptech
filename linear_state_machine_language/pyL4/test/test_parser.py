@@ -105,7 +105,9 @@ def main(sys_argv:List[str]):
                 extend(toz3.contractParamDefns.values())
 
                 heading("Invariants")
-                extend(toz3.invariants)
+                extend(toz3.invariant_assertions)
+                for inv_assert in toz3.invariant_assertions:
+                    print( toz3.invariantPrimed(inv_assert[1]) )
 
                 for action in prog.actions_iter():
                     heading(action.action_id)

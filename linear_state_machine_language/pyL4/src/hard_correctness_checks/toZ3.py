@@ -23,7 +23,7 @@ Z3Expr = Union[Z3NonatomicExpr,Z3Atom]
 Z3Statement = NewType('Z3Statement',Tuple[Any])
 Z3Line = Union[Z3Statement,str]
 
-Z3_BUILDIN_FNS = frozenset({'and','or','not','=','*','+','>','<','<=','>=','/','-'})
+Z3_BUILDIN_FNS = frozenset({'and','or','not','=>','=','*','+','>','<','<=','>=','/','-'})
 
 SORT_TO_PRED : Dict[str,Callable[[str],Z3Expr]]= {
     "$": lambda x: fnapp(">=", x, 0),
@@ -70,7 +70,8 @@ def conj(*args:Z3Expr) -> Z3NonatomicExpr:
 def neg(arg:Z3Expr) -> Z3NonatomicExpr:
     return cast(Z3NonatomicExpr, ("not", arg))
 def implies(arg1:Z3Expr, arg2:Z3Expr) -> Z3NonatomicExpr:
-    return cast(Z3NonatomicExpr, ("or",("not",arg1), arg2))
+    return cast(Z3NonatomicExpr, ("=>", arg1, arg2))
+    # return cast(Z3NonatomicExpr, ("or",("not",arg1), arg2))
 def equals(arg1:Z3Expr, arg2:Z3Expr) -> Z3NonatomicExpr:
     return cast(Z3NonatomicExpr, ("=", arg1, arg2))
 def ite(a1:Z3Expr, a2:Z3Expr, a3:Z3Expr) -> Z3NonatomicExpr:
@@ -165,11 +166,13 @@ class ToZ3:
         self.contractParamExtraTypeAssertions : Dict[str, Z3Statement] = dict()
         self.contractParamDefns: Dict[str, Z3Statement] = dict()
 
+        # WARNING THIS CONTAINS THE PRIMED VERSIONS TOO
         self.stateVarDecs : Dict[str,Z3Statement] = dict()
         self.stateVarExtraTypeAssertions: Dict[str, Z3Statement] = dict()
 
-        self.invariants : List[Z3Statement] = []
-        self.claims : List[Z3Statement] = []
+        self.invariant_assertions : List[Z3Statement] = []
+        self.invariant_conjectures: List[Z3Expr] = []
+        # self.claims : List[Z3Statement] = []
 
         self.actionParamDecs : Dict[ActionId, Dict[str,Z3Statement]] = dict()
         self.actionParamExtraTypeAssertions : Dict[ActionId, Dict[str, Z3Statement]] = dict()
@@ -204,10 +207,24 @@ class ToZ3:
     def appendProofOblig(self, expr:Z3Expr, msg:str = ""):
         self.push()
         if msg:
-            self.append(f"; {msg}")
+            self.append(f'(echo "{msg}")')
+        else:
+            self.append(f'(echo "Try to prove {z3expr_to_str(expr)}")')
         self.appendAssert(neg(expr))
         self.append("(check-sat)")
         self.pop()
+
+    def invariantPrimed(self, inv:Z3Expr):
+        if isinstance(inv,str):
+            if inv in self.stateVarDecs:
+                if isz3primed(inv):
+                    raise Exception("Can't use primed state variables in an Invariant.")
+                else:
+                    return z3primed(inv)
+            else:
+                return inv
+        else:
+            return tuple(self.invariantPrimed(x) for x in cast(Z3NonatomicExpr,inv))
 
     def statevarDecs2z3(self):
         for svd in self.prog.global_var_decs.values():
@@ -257,8 +274,14 @@ class ToZ3:
 
     def invariant2z3(self):
         for invariant in self.prog.state_invariants:
-            # print(invariant.prop)
-            self.invariants.append(assertexpr(self.term2z3def(invariant.prop)))
+            inv = self.term2z3def(invariant.prop)
+            self.invariant_assertions.append(assertexpr(inv))
+            self.invariant_conjectures.append(
+                implies(
+                    inv,
+                    self.invariantPrimed(inv)
+                )
+            )
 
     def action2z3(self, a:Action):
         self.curaid = a.action_id
@@ -271,14 +294,17 @@ class ToZ3:
                 self.appendAssert(self.term2z3def(pre))
             self.append("; PRE end")
         self.stateTransform2z3(a.global_state_transform)
+        for invcheck in self.invariant_conjectures:
+            # invcheck has the form ('=>', e1, e2)
+            self.appendProofOblig(invcheck, f"{self.curaid} INV CHECK:" + z3expr_to_str(invcheck[1])) # type:ignore
         self.pop()
 
     def stateTransform2z3(self, st:Optional[StateTransform]):
-        if st:
-            self.block2z3(st.statements)
+
+        self.block2z3(st.statements if st else [])
 
     def block2z3(self,block:Block):
-        assert len(block) > 0
+        # assert len(block) > 0
         for s in block:
             self.statement2z3(s)
         for var in self.stateVarDecs:
@@ -304,7 +330,8 @@ class ToZ3:
                 self.pop()
 
         elif isinstance(s, FVRequirement):
-            self.appendProofOblig(self.term2z3def(s.value_expr), "STATIC ASSERT:")
+            expr = self.term2z3def(s.value_expr)
+            self.appendProofOblig(expr, f"STATIC ASSERT: {z3expr_to_str(expr)}")
 
         else:
             raise NotImplementedError(str(s))
@@ -330,7 +357,8 @@ class ToZ3:
                 self.push()
                 self.appendConstDec(cc, primtype)
                 self.appendAssert(equals(cc, value_expr))
-                self.appendProofOblig(SORT_TO_PRED[sort](cc), "CAST VERIFY")
+                proofoblig = SORT_TO_PRED[sort](cc)
+                self.appendProofOblig(proofoblig, f"CAST VERIFY: {z3expr_to_str(proofoblig)}")
                 self.pop()
                 return value_expr
 
