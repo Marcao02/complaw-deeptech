@@ -47,30 +47,38 @@ def main(sys_argv:List[str]):
         doctest.testmod()
 
     if 'examples' in sys_argv:
-        for filename in EXAMPLES:
-            print(f"\n---------------------------------\nExample {filename}:")
-            in_path = EXAMPLES_SEXPR_ROOT + filename
+        for filesubpath in EXAMPLES:
+            print(f"\n---------------------------------\nExample {filesubpath}:")
+            in_path = EXAMPLES_SEXPR_ROOT + filesubpath
             if 'printSExpr' in sys_argv:
-                print("\nLooking at file " + filename + ":\n")
+                print("\nLooking at file " + filesubpath + ":\n")
             parsed = parse_file(in_path)
             if 'printSExpr' in sys_argv:
                 print(prettySExprStr(parsed))
 
-            assembler = L4ContractConstructor(filename)
+            assembler = L4ContractConstructor(filesubpath)
             prog = assembler.mk_l4contract(parsed)
 
-            if "SAFE.l4" in filename:
+            filename = filesubpath.split("/")[1].split(".")[0]
+            if "SAFE" in filename or "Farmer" in filename:
                 eliminate_local_vars(prog)
                 toz3 = ToZ3(prog)
 
                 toz3.prog2z3def(prog)
 
-                # 1 unsat ✓
-                # 2 unknown
-                # 3 unknown
-                # 4 unsat ✓
-                # 5 unsat ✓
-                # 6 unsat ✓
+                """
+                SAFE                
+                1 unknown
+                2 unknown
+                3 unsat ✓
+                4 unsat ✓
+                                
+                Farmer
+                1 unsat ✓
+                2 unsat ✓
+                3 unsat ✓                
+                
+                """
                 for cast_const_name in toz3.cast_const_decs:
                     statements : T3FormattedStatementsList = []
                     def heading(s:str, indent=0, linebreak=True) -> None:
@@ -97,6 +105,9 @@ def main(sys_argv:List[str]):
                     heading("Contract param constant extra type info")
                     extend( toz3.stateVarDecsExtra.values() )
 
+                    heading("Contract param definitions")
+                    extend(toz3.contractParamDefns.values())
+
                     heading("Invariants")
                     extend(toz3.invariants)
 
@@ -118,7 +129,7 @@ def main(sys_argv:List[str]):
 
                     append( "(check-sat)" )
 
-                    with open(f"z3test_{cast_const_name}.txt", 'w') as file:
+                    with open(f"{filename}_{cast_const_name}.z3", 'w') as file:
                         file.write(z3statements_to_str(statements))
 
             if 'printPretty' in sys_argv:

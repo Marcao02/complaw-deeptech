@@ -256,7 +256,7 @@ class TypeChecker:
 
     def typeinfer_term(self, t:Term) -> Sort:
         if isinstance(t,FnApp):
-            if t.fnsymb_name == 'cast':
+            if t.fnsymb_name == 'cast' or t.fnsymb_name == "units":
                 todo_once("Add `attach_unit_type` fn, and change `cast` to `tighten`?")
                 assert len(t.args) == 2
                 casted_term = t.args[1]
@@ -279,7 +279,8 @@ class TypeChecker:
                     f"Term {casted_term} of sort {sort_expanded_display(inferred_without_cast, inferred_without_cast_long)} cannot be cast to "
                     f"{sort_expanded_display(casted_to, casted_to_long)}; see TypeChecker.cast_allowed.")
 
-                if isinstance(casted_term,Literal):
+                if t.fnsymb_name == "units":
+                    assert isinstance(casted_term,Literal)
                     print(f"Innocent cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
                           f"{sort_expanded_display(casted_to, casted_to_long)} for literal {casted_term}.")
                 else:

@@ -3,3 +3,4 @@
 /.idea/
 /todo untracked.txt
 z3test_castconst*.txt
+*.z3

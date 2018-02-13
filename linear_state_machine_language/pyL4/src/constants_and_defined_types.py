@@ -61,6 +61,7 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'event_role'}
 
 PREFIX_FN_SYMBOLS = { 'cast',
+                      'units',
 
                       'days',
                       'str2datetime',

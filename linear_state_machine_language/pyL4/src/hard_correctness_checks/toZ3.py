@@ -125,6 +125,7 @@ class ToZ3:
 
         self.contractParamDecs : Dict[str,Z3Statement] = dict()
         self.contractParamDecsExtra : Dict[str, Z3Statement] = dict()
+        self.contractParamDefns: Dict[str, Z3Statement] = dict()
 
         self.stateVarDecs : Dict[str,Z3Statement] = dict()
         self.stateVarDecsExtra: Dict[str,Z3Statement] = dict()
@@ -156,6 +157,8 @@ class ToZ3:
                 self.contractParamDecsExtra[cpd.name] = assertexpr(SORT_TO_PRED[cpd.sort](cpd.name))
             else:
                 print(f"Skipping extra type prop for contract param {cpd.name}:{cpd.sort}")
+            if cpd.value_expr is not None:
+                self.contractParamDefns[cpd.name] = assertexpr(equals(cpd.name, self.term2z3def(cpd.value_expr)))
 
     def actionParams2z3(self, action:Action):
         aid = action.action_id
@@ -238,6 +241,8 @@ class ToZ3:
                     neg( SORT_TO_PRED[sort](cc) )
                 )
                 return value_expr
+            elif t.fnsymb_name == "units":
+                return self.term2z3def(t.args[1])
             elif t.fnsymb_name in FN_NAME_SUBST:
                 return fnapp(FN_NAME_SUBST[t.fnsymb_name], *[self.term2z3def(arg) for arg in t.args])
             else:

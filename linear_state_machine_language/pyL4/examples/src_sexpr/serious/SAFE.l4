@@ -187,7 +187,6 @@
 				; Or, making clear that {·} is the same kind of thing as LEQ
 				; * : ∀x:Nat. [0,1] -> (Single x) -> (LEQ x)
 				; ≥ : ∀x:Real. (Single x) -> (LEQ x) -> (Single true)
-			 	(prove (PURCHASE_AMOUNT ≥ purchase_amount_reduction))
 			 	(investor_Common_Stocks' += (purchase_amount_reduction round/ liq_price'))
 			 	; - : Πx:Nat. (LEQ x) -> Nat
 			 	; or z3:
@@ -253,8 +252,6 @@
 				(company_cash * investor_percent_of_cashout_investor_investments)
 			))
 			(investor_cash' += liq_cashout')
-
-			(prove (liq_cashout' ≤ cash_currently_unconverted))
 		)
 
 		(FollowingSection

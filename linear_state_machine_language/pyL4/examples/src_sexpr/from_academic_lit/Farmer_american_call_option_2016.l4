@@ -7,8 +7,8 @@
 )
 
 (ContractParams
-	(SELLER_FUNDS : $ = 0)
-	(BUYER_FUNDS : $ = 85)
+	(SELLER_START_FUNDS : $ = 0)
+	(BUYER_START_FUNDS : $ = 85)
 	(BUYER_START_SHARES : ShareCnt = 0)
 	(SELLER_START_SHARES : PosShareCnt = 1)
 )
@@ -21,8 +21,8 @@
 )
 
 (GlobalVars
-	(writeonce seller_funds : $ = SELLER_FUNDS)
-	(writeonce buyer_funds : $ = BUYER_FUNDS)
+	(writeonce seller_funds : $)
+	(writeonce buyer_funds : $)
 	(writeAtMostOnce buyer_final_shares : ShareCnt)
 	(writeAtMostOnce seller_final_shares : ShareCnt)
 )
@@ -40,8 +40,8 @@
 
 	(Action PaySellerForOption
 		(StateTransform
-			(buyer_funds' = (cast $ (buyer_funds - ($ 5))))
-			(seller_funds' += ($ 5))
+			(buyer_funds' = (cast $ (BUYER_START_FUNDS - ($ 5))))
+			(seller_funds' = (SELLER_START_FUNDS + ($ 5)))
 		)
 
 		(FollowingSection
@@ -53,8 +53,8 @@
 
 	(Action ExerciseOption
 		(StateTransform
-			(buyer_funds' = (cast $ (buyer_funds - ($ 80))))
-			(seller_funds' += ($ 80))
+			(buyer_funds' = (cast $ (BUYER_START_FUNDS - ($ 80))))
+			(seller_funds' = (SELLER_START_FUNDS + ($ 80)))
 		)
 
 		(FollowingSection

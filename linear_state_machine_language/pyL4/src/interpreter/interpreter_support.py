@@ -55,6 +55,8 @@ def or_eval(*args: Any) -> bool:
 
 FN_SYMB_INTERP = {
     'cast': lambda x,y: y,
+    'units': lambda x,y: y,
+
     # '+': lambda *args: sum(args),  # doesn't work with timestamp
     '+': lambda x,y: x + y,
     '-': lambda x,y: x - y,

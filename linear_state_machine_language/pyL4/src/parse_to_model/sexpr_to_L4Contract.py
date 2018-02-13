@@ -667,13 +667,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if x in EXEC_ENV_VARIABLES:
                     self.syntaxError(x, f"You're using environment variable {x} like a 0-arg function symbol. Remove the brackets please.")
                 elif x[0] in self.top.sorts:
-                    return FnApp( "cast", [
+                    return FnApp( "units", [
                         self.mk_sort_lit(x[0]),
                         self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr),
                     ], x.coord())
                 else:
                     print(f"Warning: treating {x[0]} as a defined sort symbol")
-                    return FnApp("cast", [
+                    return FnApp("units", [
                         self.mk_sort_lit(x[0]),
                         self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
                     ], x.coord())
