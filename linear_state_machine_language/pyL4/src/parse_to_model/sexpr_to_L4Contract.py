@@ -646,8 +646,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 # fnsymb_or_name = cast(Union[str,FnSymb], self.top.fnsymbs[fnsymb_name] if fnsymb_name in self.top.fnsymbs else fnsymb_name)
                 self.top.fnsymb_names.add(fnsymb_name)
                 args : List[Term]
-                if fnsymb_name == 'cast':
+
+                if fnsymb_name in ('cast','check','trust','units'):
                     args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
+
                 elif fnsymb_name == "str2datetime":
                     assert isinstance(pair[1],SExpr) and isinstance(pair[1][0], SExpr) and pair[1][0][0] == STRING_LITERAL_MARKER, pair
                     try:

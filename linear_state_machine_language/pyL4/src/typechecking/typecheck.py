@@ -256,7 +256,7 @@ class TypeChecker:
 
     def typeinfer_term(self, t:Term) -> Sort:
         if isinstance(t,FnApp):
-            if t.fnsymb_name == 'cast' or t.fnsymb_name == "units":
+            if t.fnsymb_name in {'cast','check','trust','units'}:
                 todo_once("Add `attach_unit_type` fn, and change `cast` to `tighten`?")
                 assert len(t.args) == 2
                 casted_term = t.args[1]
@@ -283,9 +283,13 @@ class TypeChecker:
                     assert isinstance(casted_term,Literal)
                     print(f"Innocent cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
                           f"{sort_expanded_display(casted_to, casted_to_long)} for literal {casted_term}.")
-                else:
-                    print(f"Unsafe cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
+                elif t.fnsymb_name in {"check","cast"}:
+                    print(f"Z3-to-check cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
                           f"{sort_expanded_display(casted_to, casted_to_long)} for non-literal.")
+                else:
+                    print(
+                        f"UNCHECKED cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
+                        f"{sort_expanded_display(casted_to, casted_to_long)} for non-literal.")
                 return casted_to_long
 
             argsorts = tuple(self.typeinfer_term_with_sort_subst(arg) for arg in t.args)

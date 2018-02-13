@@ -40,7 +40,7 @@
 
 	(Action PaySellerForOption
 		(StateTransform
-			(buyer_funds' = (cast $ (BUYER_START_FUNDS - ($ 5))))
+			(buyer_funds' = (check $ (BUYER_START_FUNDS - ($ 5))))
 			(seller_funds' = (SELLER_START_FUNDS + ($ 5)))
 		)
 
@@ -53,7 +53,7 @@
 
 	(Action ExerciseOption
 		(StateTransform
-			(buyer_funds' = (cast $ (BUYER_START_FUNDS - ($ 80))))
+			(buyer_funds' = (check $ (BUYER_START_FUNDS - ($ 80))))
 			(seller_funds' = (SELLER_START_FUNDS + ($ 80)))
 		)
 
@@ -67,7 +67,7 @@
 	(Action TransferShare
 		(StateTransform
 			(buyer_final_shares' = (BUYER_START_SHARES + (ShareCnt 1)))
-			(seller_final_shares' = (cast ShareCnt (SELLER_START_SHARES - (ShareCnt 1))))
+			(seller_final_shares' = (check ShareCnt (SELLER_START_SHARES - (ShareCnt 1))))
 		)
 		(TransitionsTo Fulfilled)
 	)

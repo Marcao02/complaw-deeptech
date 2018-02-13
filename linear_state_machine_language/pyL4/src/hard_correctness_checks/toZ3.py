@@ -35,6 +35,7 @@ SORT_TO_PRED : Dict[str,Callable[[str],Z3Expr]]= {
     "PosShareCnt": lambda x: fnapp(">", x, 0),
     "SharePrice": lambda x: fnapp(">=", x, 0),
     "Fraction[0,1)": lambda x: conj( fnapp(">=", x, 0), fnapp("<", x, 1) ),
+    "Fraction[0,1]": lambda x: conj( fnapp(">=", x, 0), fnapp("<=", x, 1) ),
     "Fraction(0,1]": lambda x: conj( fnapp(">", x, 0), fnapp("<=", x, 1) )
 }
 
@@ -46,7 +47,10 @@ FN_NAME_SUBST : Dict[str,str] = {
 }
 
 MACRO_DEFINED_FNS : Dict[str, Callable] = {
-    'cast': lambda S,t: t,
+    "days": lambda x: x,
+    "cast": lambda S,t: t,
+    "check": lambda S,t: t,
+    "trust": lambda S,t: t,
     'fraction-of-sum': lambda a,b: fnapp('/', a, fnapp('+', a, b)),
     'min': lambda a,b: ite(fnapp('<', a, b), a, b),
      # a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0)
@@ -116,7 +120,9 @@ def z3statements_to_str(lines:List[Z3Line]) -> str:
 
 def sort2z3primtype(s: Sort) -> str:
     if isinstance(s,str):
-        if s in ("$","Pos$","SharePrice","Fraction[0,1)","Fraction(0,1]","PosReal"):
+        if s in ("$","Pos$","SharePrice",
+                 "Fraction[0,1)","Fraction(0,1]","Fraction[0,1]",
+                 "PosReal","TimeDelta"):
             return "Real"
         if s in ("ShareCnt", "PosShareCnt", "Nat"):
             return "Int"
@@ -300,7 +306,7 @@ class ToZ3:
             if t.fnsymb_name in Z3_BUILDIN_FNS:
                 return fnapp(t.fnsymb_name, *[self.term2z3def(arg) for arg in t.args])
 
-            elif t.fnsymb_name == "cast":
+            elif t.fnsymb_name == "cast" or t.fnsymb_name == "check":
                 assert isinstance(t.args[0], SortLit)
                 cc = self.new_cast_const(self.curaid)
                 sort = t.args[0].lit
@@ -313,7 +319,7 @@ class ToZ3:
                 self.pop()
                 return value_expr
 
-            elif t.fnsymb_name == "units":
+            elif t.fnsymb_name == "units" or t.fnsymb_name == "trust":
                 return self.term2z3def(t.args[1])
 
             elif t.fnsymb_name in FN_NAME_SUBST:

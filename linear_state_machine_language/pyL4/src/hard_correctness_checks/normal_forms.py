@@ -169,7 +169,7 @@ def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:
     if isinstance(term, LocalVar):
         assert term.name not in forbidden_read, f"local var {term} can't be read at {term.coord}"
         if term.name in subst:
-            print("SUBST!", term.name, subst[term.name])
+            # print("SUBST!", term.name, subst[term.name])
             return subst[term.name]
     elif isinstance(term, GlobalVar):
         assert term.name not in forbidden_read, f"global-state var {term} can't be read at {term.coord}"

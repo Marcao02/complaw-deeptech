@@ -72,10 +72,10 @@
 
 (TypedMacro compound_interest
 	((#princ : Pos$) (#ir : "Fraction(0,1)") (#full_periods : PosInt) (#final_period_fraction: "Fraction[0,1)")) -> Pos$
-	(cast Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
+	(check Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
 )
 (Macro compound_interest (#princ #ir #full_periods #final_period_fraction)
-	(cast Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
+	(check Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
 )
 
 ; Interesting issue here: ifthenelse (a ≤ t') t_true t_false
@@ -95,13 +95,13 @@
 (TypedMacro interest_from_td (#td : TimeDelta) -> Pos$
 	(ifthenelse (#td ≤ 365d)
 		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
-		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((cast PosTimeDelta (#td - 365d)) / 365d)))
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((trust PosTimeDelta (#td - 365d)) / 365d)))
 	)
 )
 (Macro interest_from_td #td
 	(ifthenelse (#td ≤ 365d)
 		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
-		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((cast PosTimeDelta (#td - 365d)) / 365d)))
+		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((trust PosTimeDelta (#td - 365d)) / 365d)))
 	)
 )
 
@@ -116,7 +116,7 @@
 		)
 	)
 
-	; ((ifthenelse (event_td ≤ 365d) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((cast PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT))
+	; ((ifthenelse (event_td ≤ 365d) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (event_td / 365d))) - PURCHASE_AMOUNT) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((check PosTimeDelta (event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT))
 
 	(Action (CommitToFinancing
 				(qualifying_round_new_money : $)
@@ -165,7 +165,7 @@
 			(local conversion_price : SharePrice = (min discount_price cap_price))
 			(if pay_interest_in_cash (
 				(local change : $ = (apply-macro interest_from_td event_td))
-				(company_cash' += (cast $ (company_cash - change)))
+				(company_cash' += (check $ (company_cash - change)))
 				(investor_cash' += change)
 				(investor_PreferredStock' += (PURCHASE_AMOUNT round/ conversion_price))
 			) else (
@@ -195,7 +195,7 @@
 			; from Corporate Transaction Payment defn
 			(local change : $ = ((apply-macro interest_from_td event_td) + (2 * PURCHASE_AMOUNT)))
 			; (company_cash' -= change)
-			(company_cash' = (cast $ (company_cash - change)))
+			(company_cash' = (check $ (company_cash - change)))
 			(investor_cash' += change)
 
 		)
@@ -231,7 +231,7 @@
 		(StateTransform
 			(local change : $ = ((apply-macro interest_from_td event_td) + PURCHASE_AMOUNT))
 			; (company_cash' -= change)
-			(company_cash' = (cast $ (company_cash - change)))
+			(company_cash' = (check $ (company_cash - change)))
 			(investor_cash' += change)
 		)
 		(TransitionsTo Fulfilled)

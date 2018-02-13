@@ -60,8 +60,8 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'future_event_td',
                       'event_role'}
 
-PREFIX_FN_SYMBOLS = { 'cast',
-                      'units',
+PREFIX_FN_SYMBOLS = { 'cast','check',
+                      'units','trust',
 
                       'days',
                       'str2datetime',
