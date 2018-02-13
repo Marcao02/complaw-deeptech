@@ -1,7 +1,7 @@
 import logging
 from typing import List, Iterable, Union
 
-from src.hard_correctness_checks.toZ3 import ToZ3, Z3Statement, z3statements_to_str
+from src.hard_correctness_checks.toZ3 import ToZ3, Z3Statement, z3statements_to_str, Z3Line
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars
 from src.independent.util import writeReadOnlyFile
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
@@ -61,34 +61,33 @@ def main(sys_argv:List[str]):
 
             filename = filesubpath.split("/")[1].split(".")[0]
             if "SAFE" in filename or "Farmer" in filename:
-                eliminate_local_vars(prog)
-                toz3 = ToZ3(prog)
-
-                toz3.prog2z3def(prog)
-
                 """
                 SAFE                
                 1 unknown
                 2 unknown
                 3 unsat ✓
                 4 unsat ✓
-                                
+
                 Farmer
                 1 unsat ✓
                 2 unsat ✓
                 3 unsat ✓                
-                
+
                 """
 
-                statements : T3FormattedStatementsList = []
+                lines: List[Z3Line] = []
                 def heading(s:str, indent=0, linebreak=True) -> None:
                     if linebreak:
-                        statements.append(("",0))
-                    statements.append(('; ' + s, indent))
-                def extend(lines:Iterable[Union[Z3Statement,str]], indent=0):
-                    statements.extend([(statement,indent) for statement in lines])
+                        lines.append("")
+                    lines.append('; ' + s)
+                def extend(_lines:Iterable[Union[Z3Statement,str]], indent=0):
+                    lines.extend(_lines)
                 def append(s:Z3Statement, indent=0):
-                    statements.append((s,indent))
+                    lines.append(s)
+
+                eliminate_local_vars(prog)
+                toz3 = ToZ3(prog)
+                toz3.prog2z3def()
 
                 heading("Contract param constant declarations")
                 extend( toz3.contractParamDecs.values() )
@@ -108,37 +107,12 @@ def main(sys_argv:List[str]):
                 heading("Invariants")
                 extend(toz3.invariants)
 
-
-                for cast_const_name in toz3.cast_const_decs:
-                    append("(push)",0)
-
-                    heading("Cast constant declarations",1,False)
-                    append(toz3.cast_const_decs[cast_const_name],1)
-
-                    aid = toz3.cast_const_to_enclosing_action[cast_const_name]
-                    # heading(f"======{aid}======",1)
-                    if len(toz3.actionParamDecs[aid]) > 0:
-                        heading(f"Action param decs for {aid}",1)
-                        extend(toz3.actionParamDecs[aid].values(),1)
-                    if aid in toz3.actionParamExtraTypeAssertions and len(toz3.actionParamExtraTypeAssertions[aid]) > 0:
-                        heading(f"Action param extra type info for {aid}", 1)
-                        extend(toz3.actionParamExtraTypeAssertions[aid].values(), 1)
-                    if aid in toz3.stateTransformDefs:
-                        heading(f"State transform definition for {aid}",1)
-                        append(toz3.stateTransformDefs[aid], 1)
-
-                    heading("Cast constant definitions",1)
-                    append(toz3.cast_const_defs[cast_const_name],1)
-
-                    heading("Negated conjecture",1)
-                    append( toz3.cast_const_negated_type_asserts[cast_const_name],1)
-
-                    append("(check-sat)",1)
-
-                    append("(pop)")
+                for action in prog.actions_iter():
+                    heading(action.action_id)
+                    extend(toz3.actionZ3Commands[action.action_id])
 
                 with open(f"{filename}_casts.z3", 'w') as file:
-                    file.write(z3statements_to_str(statements))
+                    file.write(z3statements_to_str(lines))
 
             if 'printPretty' in sys_argv:
                 prettyprinted = str(prog)

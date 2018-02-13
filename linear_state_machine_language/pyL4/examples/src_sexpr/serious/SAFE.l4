@@ -288,7 +288,7 @@
 				PURCHASE_AMOUNT
 				(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
 			))
-			(investor_cash' = dis_cashout')
+			(investor_cash' += dis_cashout')
 		)
 
 		(FollowingSection
