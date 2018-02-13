@@ -69,10 +69,10 @@
 	(writeAtMostOnce dis_cashout : $)
 )
 
-(Invariants
-	(liq_cashout ≤ cash_currently_unconverted)
-	(dis_cashout ≤ PURCHASE_AMOUNT)
-)
+; (Invariants
+; 	(liq_cashout ≤ cash_currently_unconverted)
+; 	(dis_cashout ≤ PURCHASE_AMOUNT)
+; )
 
 (FormalContract "SAFE"
 	; apply to all actions and states:
@@ -150,6 +150,7 @@
 								    (company_cash_at_liquidity_event : $)
 								    (liquidity_capitalization : PosShareCnt)
 								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $) )
+		(Precondition (liq_cashout == ($ 0)))
 		(AllowedSubjects Company)
 		(StateTransform
 			(company_cash' = company_cash_at_liquidity_event)
@@ -232,7 +233,6 @@
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
 			; TODO: should we round that division up, down, or to nearest?
-
 			(investor_Common_Stocks' += ((cast $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
 		)
 		(FollowingSection

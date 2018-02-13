@@ -24,16 +24,40 @@ Z3Statement = NewType('Z3Statement',Tuple[Any])
 Z3Line = Union[Z3Statement,str]
 List[Z3Line]
 
-Z3_BUILDIN_FNS = frozenset({'and','or','not','==','*','+','>','<','<=','>=','/','-'})
+Z3_BUILDIN_FNS = frozenset({'and','or','not','=','*','+','>','<','<=','>=','/','-'})
 
 SORT_TO_PRED : Dict[str,Callable[[str],Z3Expr]]= {
     "$": lambda x: fnapp(">=", x, 0),
     "Pos$": lambda x: fnapp(">", x, 0),
+    "PosReal": lambda x: fnapp(">", x, 0),
     "ShareCnt": lambda x: fnapp(">=", x, 0),
+    "Nat": lambda x: fnapp(">=", x, 0),
     "PosShareCnt": lambda x: fnapp(">", x, 0),
     "SharePrice": lambda x: fnapp(">=", x, 0),
     "Fraction[0,1)": lambda x: conj( fnapp(">=", x, 0), fnapp("<", x, 1) ),
     "Fraction(0,1]": lambda x: conj( fnapp(">", x, 0), fnapp("<=", x, 1) )
+}
+
+FN_NAME_SUBST : Dict[str,str] = {
+    'ifthenelse': 'ite',
+    '≤' : '<=',
+    '≥' : '>=',
+    '==' : '=',
+}
+
+MACRO_DEFINED_FNS : Dict[str, Callable] = {
+    'cast': lambda S,t: t,
+    'fraction-of-sum': lambda a,b: fnapp('/', a, fnapp('+', a, b)),
+    'min': lambda a,b: ite(fnapp('<', a, b), a, b),
+     # a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0)
+    'round/': lambda a,b: fnapp('+', fnapp('div', a, b), ite( fnapp('>=', fnapp('rem',a,b), fnapp('div',b,2)), 1, 0)),
+
+    # not used in SAFE:
+    # 'ceil': ,
+    # 'round': ,
+    # 'even': ,
+    # 'odd'
+    # 'max': ,
 }
 
 def disj(*args:Z3Expr) -> Z3NonatomicExpr:
@@ -48,6 +72,7 @@ def equals(arg1:Z3Expr, arg2:Z3Expr) -> Z3NonatomicExpr:
     return cast(Z3NonatomicExpr, ("=", arg1, arg2))
 def ite(a1:Z3Expr, a2:Z3Expr, a3:Z3Expr) -> Z3NonatomicExpr:
     return cast(Z3NonatomicExpr, ('ite',a1,a2,a3))
+
 def fnapp(symb:str, *args:Z3Expr) -> Z3NonatomicExpr:
     return cast(Z3NonatomicExpr, (symb,*args))
 
@@ -88,36 +113,16 @@ def z3statements_to_str(lines:List[Z3Line]) -> str:
             indent += 1
     return rv
 
-FN_NAME_SUBST : Dict[str,str] = {
-    'ifthenelse': 'ite',
-    '≤' : '<=',
-    '≥' : '>=',
-}
-
-MACRO_DEFINED_FNS : Dict[str, Callable] = {
-    'cast': lambda S,t: t,
-    'fraction-of-sum': lambda a,b: fnapp('/', a, fnapp('+', a, b)),
-    'min': lambda a,b: ite(fnapp('<', a, b), a, b),
-     # a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0)
-    'round/': lambda a,b: fnapp('+', fnapp('div', a, b), ite( fnapp('>=', fnapp('rem',a,b), fnapp('div',b,2)), 1, 0)),
-
-    # not used in SAFE:
-    # 'ceil': ,
-    # 'round': ,
-    # 'even': ,
-    # 'odd'
-    # 'max': ,
-}
-
 
 def sort2z3primtype(s: Sort) -> str:
     if isinstance(s,str):
-        if s in ("$","Pos$","SharePrice","Fraction[0,1)","Fraction(0,1]"):
+        if s in ("$","Pos$","SharePrice","Fraction[0,1)","Fraction(0,1]","PosReal"):
             return "Real"
-        if s in ("ShareCnt", "PosShareCnt"):
+        if s in ("ShareCnt", "PosShareCnt", "Nat"):
             return "Int"
         if s == "Bool":
             return "Bool"
+
 
     raise NotImplementedError(str(s) + ", " + str(type(s)))
 
@@ -179,8 +184,10 @@ class ToZ3:
     def appendConstDec(self, name:str, sort:str):
         self.append(declareconst(name,sort))
 
-    def appendProofOblig(self, expr:Z3Expr):
+    def appendProofOblig(self, expr:Z3Expr, msg:str = ""):
         self.push()
+        if msg:
+            self.append(f"; {msg}")
         self.appendAssert(neg(expr))
         self.append("(check-sat)")
         self.pop()
@@ -233,7 +240,7 @@ class ToZ3:
 
     def invariant2z3(self):
         for invariant in self.prog.state_invariants:
-            print(invariant.prop)
+            # print(invariant.prop)
             self.invariants.append(assertexpr(self.term2z3def(invariant.prop)))
 
     def action2z3(self, a:Action):
@@ -241,6 +248,11 @@ class ToZ3:
         self.actionZ3Commands[a.action_id] = []
         self.push()
         self.actionParams2z3(a)
+        if len(a.preconditions) > 0:
+            self.append("; PRE begin")
+            for pre in a.preconditions:
+                self.appendAssert(self.term2z3def(pre))
+            self.append("; PRE end")
         self.stateTransform2z3(a.global_state_transform)
         self.pop()
 
@@ -271,7 +283,7 @@ class ToZ3:
                 self.pop()
 
         elif isinstance(s, FVRequirement):
-            self.appendProofOblig(self.term2z3def(s.value_expr))
+            self.appendProofOblig(self.term2z3def(s.value_expr), "STATIC ASSERT:")
 
         else:
             raise NotImplementedError(str(s))
@@ -297,7 +309,7 @@ class ToZ3:
                 self.push()
                 self.appendConstDec(cc, primtype)
                 self.appendAssert(equals(cc, value_expr))
-                self.appendProofOblig(SORT_TO_PRED[sort](cc))
+                self.appendProofOblig(SORT_TO_PRED[sort](cc), "CAST VERIFY")
                 self.pop()
                 return value_expr
 

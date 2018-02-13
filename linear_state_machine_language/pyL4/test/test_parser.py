@@ -60,13 +60,12 @@ def main(sys_argv:List[str]):
             prog = assembler.mk_l4contract(parsed)
 
             filename = filesubpath.split("/")[1].split(".")[0]
-            if "SAFE" in filename or "Farmer" in filename:
+            if "SAFE" in filename or "Farmer" in filename or 'hvitved_instalment_sale--simplified_time' in filename:
                 """
                 SAFE                
-                1 unknown
-                2 unknown
-                3 unsat ✓
-                4 unsat ✓
+                1 unsat ✓
+                2 sat
+                3 unknown
 
                 Farmer
                 1 unsat ✓
