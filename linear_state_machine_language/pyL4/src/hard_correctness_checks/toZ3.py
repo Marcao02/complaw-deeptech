@@ -22,7 +22,6 @@ Z3Atom = Union[str,int,float,bool]
 Z3Expr = Union[Z3NonatomicExpr,Z3Atom]
 Z3Statement = NewType('Z3Statement',Tuple[Any])
 Z3Line = Union[Z3Statement,str]
-List[Z3Line]
 
 Z3_BUILDIN_FNS = frozenset({'and','or','not','=','*','+','>','<','<=','>=','/','-'})
 
@@ -88,6 +87,11 @@ def assertexpr(expr:Z3Expr) -> Z3Statement:
 
 def z3primed(s:str) -> str:
     return s + "_next"
+def z3unprimed(s:str) -> str:
+    assert s.endswith("_next")
+    return s[-5:]
+def isz3primed(s:str):
+    return s.endswith("_next")
 
 def rename_with_action_scope(actionparam_name:str, actionid:str) -> str:
     return actionparam_name + "_" + actionid
@@ -150,11 +154,12 @@ class ToZ3:
         # self.stateTransforms: Dict[ActionId, List[Tuple[Z3Line,int]]] = dict()
         self.stateTransforms: Dict[ActionId, List[Z3Line]] = dict()
 
-        self.topZ3Commends: List[Z3Line] = []
+        self.topZ3Commands: List[Z3Line] = []
         self.actionZ3Commands: Dict[ActionId, List[Z3Line]] = dict()
         self.curindent: int = 0
 
-
+        self.state_vars_updated_stack: List[List[str]] = []
+        self.state_vars_updated: Set[str] = set()
 
         self.contractParamDecs : Dict[str,Z3Statement] = dict()
         self.contractParamExtraTypeAssertions : Dict[str, Z3Statement] = dict()
@@ -171,19 +176,25 @@ class ToZ3:
 
         self.allz3symbs: Set[str] = set()
 
+    def noteStateVarUpdated(self,var:str):
+        self.state_vars_updated_stack[-1].append(var)
+        self.state_vars_updated.add(var)
+
     def append(self, s:Z3Line):
         if self.curaid == "":
-            self.topZ3Commends.append(s)
+            self.topZ3Commands.append(s)
         else:
             # self.stateTransforms[self.curaid].append((s,self.curindent))
             self.actionZ3Commands[self.curaid].append(s)
     def push(self):
         # self.append(("(push)",self.curindent))
         self.append("(push)")
+        self.state_vars_updated_stack.append([])
         # self.curindent += 1
     def pop(self):
         # self.append(("(pop)",self.curindent))
         self.append("(pop)")
+        self.state_vars_updated.difference_update( self.state_vars_updated_stack.pop() )
         # self.curindent -= 1
     def appendAssert(self, expr:Z3Expr):
         self.append(assertexpr(expr))
@@ -270,11 +281,15 @@ class ToZ3:
         assert len(block) > 0
         for s in block:
             self.statement2z3(s)
+        for var in self.stateVarDecs:
+            if var not in self.state_vars_updated and not isz3primed(var):
+                self.appendAssert(equals(z3primed(var), var))
 
     def statement2z3(self, s:Statement):
         if isinstance(s, StateVarAssign):
             assert s.varop == ":="
             self.appendAssert( equals( z3primed(s.varname), self.term2z3def(s.value_expr) ) )
+            self.noteStateVarUpdated(s.varname)
 
         elif isinstance(s, IfElse):
             self.push()
