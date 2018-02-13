@@ -52,11 +52,11 @@
 		(Pre (amount ≤ balance_remaining)) ; overpaying is forbidden
 		(StateTransform ; conjecture statement is unnecessary
 			(local before_interest : $ := (cast $ (balance_remaining - amount)))
-			(balance_remaining = (before_interest * (1 + INTEREST_RATE)))
-			(next_payment_month += 1)   ))
+			(balance_remaining' = (before_interest * (1 + INTEREST_RATE)))
+			(next_payment_month' += 1)   ))
 
 
 	(Action (PayLastInstallment(amount:Pos$)) (TransitionsTo Fulfilled)
 		(StateTransform ; neither of these statements is necessary
 			(conjecture (amount == (balance_remaining + DUE_AT_CLOSING)))
-			(balance_remaining = ($ 0))    )))
+			(balance_remaining' = ($ 0))    )))

@@ -20,7 +20,7 @@ section Ongoing:
 action Throw()  transitions to Ongoing:
     transform:
         n := (n + 1)
-        I_must_Catch_by := (mapSet I_must_Catch_by n 51948w)
+        I_must_Catch_by := (mapSet I_must_Catch_by n' 51948w)
 
 action Stand()  transitions to Ongoing:
     transform:

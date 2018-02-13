@@ -30,7 +30,7 @@
 
 	(Action (FinishIt (z : Nat))
 		(StateTransform
-			(n = z)
+			(n' = z)
 		)
 		(TransitionsTo Fulfilled)
 	)

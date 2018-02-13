@@ -37,14 +37,14 @@
 		(StateTransform
 			(local test : NonnegReal := (x / 2))
 			(local test2 : Nat := (round (x / 2)))
-			(x = (round (x / 2)))
+			(x' = (round (x / 2)))
 		)
 	)
 
 	(Action TripplePlus1
 		(TransitionsTo Ongoing)
 		(StateTransform
-			(x = ((3 * x) + 1))
+			(x' = ((3 * x) + 1))
 		)
 	)
 

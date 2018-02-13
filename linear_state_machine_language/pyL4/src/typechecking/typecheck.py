@@ -2,7 +2,7 @@ from src.independent.util import todo_once
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
 from src.model.BoundVar import LocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
-    RuleBoundActionParam
+    RuleBoundActionParam, PrimedGlobalVar
 from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, SimpleFnType
 from src.model.Statement import Statement, LocalVarDec, \
     StateVarAssign, IfElse, FVRequirement
@@ -347,7 +347,7 @@ class TypeChecker:
                 return "RoleId"
             elif isinstance(t,StringLit):
                 return "String"
-        elif isinstance(t, (LocalVar, GlobalVar)):
+        elif isinstance(t, (LocalVar, GlobalVar, PrimedGlobalVar)):
             return t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             # print(t.action.param_sorts_by_name)

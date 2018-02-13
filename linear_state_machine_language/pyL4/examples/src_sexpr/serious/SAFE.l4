@@ -18,12 +18,12 @@
 	; (Pos$ := (Dimensioned PosReal "Pos$"))
 	(Pos$ := (Dimensioned PosReal "$"))
 
-	(ShareCnt := (Dimensioned Nat "shares"))
-	; (PosShareCnt := (Dimensioned PosInt "PosShareCnt"))
-	(PosShareCnt := (Dimensioned PosInt "shares"))
+	(ShareCnt = (Dimensioned Nat "shares"))
+	; (PosShareCnt' = (Dimensioned PosInt "PosShareCnt"))
+	(PosShareCnt = (Dimensioned PosInt "shares"))
 
-	(SharePrice := (Ratio $ PosShareCnt))
-	(PosSharePrice := (Ratio Pos$ PosShareCnt))
+	(SharePrice = (Ratio $ PosShareCnt))
+	(PosSharePrice = (Ratio Pos$ PosShareCnt))
 )
 
 (ContractParams
@@ -126,11 +126,11 @@
 				(company_capitalization : PosShareCnt)
 				(premoney_valuation : Pos$) ) (AllowedSubjects Company)
 		(StateTransform
-			(safe_price = (VALUATION_CAP / company_capitalization))
-			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
-			(discount_price = (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE))
-			(conversion_price = (min safe_price discount_price))
-			(investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT round/ conversion_price))
+			(safe_price' = (VALUATION_CAP / company_capitalization))
+			(initial_price_per_share_standard_preferred_stock' = (premoney_valuation / company_capitalization))
+			(discount_price' = (initial_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
+			(conversion_price' = (min safe_price' discount_price'))
+			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSection
 			(Next (Company must DoEquityFinancing discretionary))  )
@@ -153,8 +153,8 @@
 		; Then, - could just have a function type that takes such a proof explicitly:
 		; - : Πx:NonnegReal. Πy:Real. (y ≤ x) --> ((x - y) ≥ 0)
 		(StateTransform
-			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT round/ liq_price))
+			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
+			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ liq_price'))
 			; possible Z3 generated problem for following cast (which Z3 does prove unsat)
 			; NOTE: no longer have a proof obligation here, since introducing `fraction-of-sum`
 			; (declare-const investor_liq_hypothetical_shares Int)
@@ -170,10 +170,10 @@
 			; Or (using unambiguous but confusing mix of styles)
 			; / : ∀y:PosNat. Πx:PostNat. {(y+x)} -> (0,1)
 			; Or ∀x:PosNat. {x} -> (GEQ x) -> (0,1]
-			(investor_percent_of_cashout_investor_investments = (fraction-of-sum investor_liq_hypothetical_shares liquidity_capitalization))
+			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > ($ 0))) (
 			 	; "In ??? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
-			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 				; * : [0,1] -> Πx:Nat. (LEQ x)
 				; ≥ : Πx:Real. (LEQ x) -> {true}
 				; Or
@@ -183,7 +183,7 @@
 				; * : ∀x:Nat. [0,1] -> (Single x) -> (LEQ x)
 				; ≥ : ∀x:Real. (Single x) -> (LEQ x) -> (Single true)
 			 	(prove (PURCHASE_AMOUNT ≥ purchase_amount_reduction))
-			 	(investor_Common_Stocks += (purchase_amount_reduction round/ liq_price))
+			 	(investor_Common_Stocks' += (purchase_amount_reduction round/ liq_price'))
 			 	; - : Πx:Nat. (LEQ x) -> Nat
 			 	; or z3:
 			 	; ; From type of reduction_needed_to_qualify_as_usa_tax_free_reorg:
@@ -196,13 +196,13 @@
 			 	; (assert (<= reduction_needed_to_qualify_as_usa_tax_free_reorg company_cash_at_liquidity_event))
 			 	; ; Negation of cast correctness:
 			 	; (assert (not (>= (- company_cash_at_liquidity_event reduction_needed_to_qualify_as_usa_tax_free_reorg) 0)))
-				(cash_currently_unconverted = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
-				(company_cash = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+				(cash_currently_unconverted' = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
+				(company_cash' = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 			)
 			else (
 				; This doesn't actually need to be a separate case, but I think code is more readable when it is.
-				(cash_currently_unconverted = PURCHASE_AMOUNT)
-				(company_cash = company_cash_at_liquidity_event)
+				(cash_currently_unconverted' = PURCHASE_AMOUNT)
+				(company_cash' = company_cash_at_liquidity_event)
 			))
 
 		)
@@ -228,7 +228,7 @@
 		(StateTransform
 			; TODO: should we round that division up, down, or to nearest?
 
-			(investor_Common_Stocks += ((cast $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
+			(investor_Common_Stocks' += ((cast $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
 		)
 		(FollowingSection
 			(Next (Company must DoLiquidityEvent discretionary))
@@ -243,13 +243,13 @@
 
 	(Action TransferCash_L (AllowedSubjects Company)
 		(StateTransform
-			(liq_cashout := (min
+			(liq_cashout' = (min
 				cash_currently_unconverted
 				(company_cash * investor_percent_of_cashout_investor_investments)
 			))
-			(investor_cash += liq_cashout)
+			(investor_cash' += liq_cashout')
 
-			(prove (liq_cashout ≤ cash_currently_unconverted))
+			(prove (liq_cashout' ≤ cash_currently_unconverted))
 		)
 
 		(FollowingSection
@@ -281,20 +281,20 @@
 						    (investor_percent_of_dissolving_investor_investments : "Fraction(0,1]"))
 		(AllowedSubjects Company)
 		(StateTransform
-			(dis_cashout := (min
+			(dis_cashout' = (min
 				PURCHASE_AMOUNT
 				(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
 			))
-			(investor_cash = dis_cashout)
+			(investor_cash' = dis_cashout')
 		)
 
 		(FollowingSection
 			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
 			; because that's a requirement of the semantics, and thus will be checked automatically.
 			(Next
-				(if (dis_cashout < PURCHASE_AMOUNT)
+				(if (dis_cashout' < PURCHASE_AMOUNT)
 					(Company must (TransferAssets ?1) discretionary)  )
-				(if (dis_cashout == PURCHASE_AMOUNT)
+				(if (dis_cashout' == PURCHASE_AMOUNT)
 					(Company must Dissolve discretionary)     )
 			)
 		)
@@ -303,8 +303,8 @@
 	(Action (TransferAssets (liquidity_capitalization:PosShareCnt))
 		(AllowedSubjects Company)
 		(StateTransform
-			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_Common_Stocks += ((cast $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price))
+			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
+			(investor_Common_Stocks' += ((cast $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price'))
 		)
 		(FollowingSection  (Next (Company must Dissolve discretionary)))
 	)

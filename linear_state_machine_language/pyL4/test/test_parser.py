@@ -1,6 +1,7 @@
 import logging
 from typing import List
 
+from src.hard_correctness_checks.toZ3 import ToZ3
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars
 from src.independent.util import writeReadOnlyFile
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
@@ -58,7 +59,29 @@ def main(sys_argv:List[str]):
             assembler = L4ContractConstructor(filename)
             prog = assembler.mk_l4contract(parsed)
 
-            # eliminate_local_vars(prog)
+            if "SAFE.l4" in filename:
+                eliminate_local_vars(prog)
+                toz3 = ToZ3()
+
+                toz3.prog2z3def(prog)
+
+                action_id = 'TransferCommonStock'
+                const_name = "castconst5"
+
+                # WHY x[0] ?? Why is it a singleton tuple??
+                statements = [x[0] for x in toz3.stateVarDecs.values()]
+                statements.extend( list(toz3.stateVarDecsExtra.values()) )
+                statements.extend( list(toz3.actionParamDecs[action_id].values()) )
+                statements.append( toz3.stateTransformDecsZ3[action_id] )
+                for zs in statements:
+                    print(zs)
+                # print(toz3.actionParamDecs[action_id] if action_id in toz3.actionParamDecs else "")
+                # print(toz3.stateTransformDecsZ3[action_id])
+
+                # for x in toz3.cast_const_defs.values():
+                #     print(x)
+
+
 
             # print( prog.action_ids() )
             # print( prog.section_ids() )

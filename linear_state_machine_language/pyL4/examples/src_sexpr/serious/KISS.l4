@@ -11,10 +11,10 @@
 (SortDefinitions
 	($ := (Dimensioned NonnegReal "$"))
 	(Pos$ := (Dimensioned PosReal "$"))
-	(ShareCnt := (Dimensioned Nat "shares"))
-	(PosShareCnt := (Dimensioned PosInt "shares"))
-	(SharePrice := (Ratio $ PosShareCnt))
-	(PosSharePrice := (Ratio Pos$ PosShareCnt))
+	(ShareCnt = (Dimensioned Nat "shares"))
+	(PosShareCnt = (Dimensioned PosInt "shares"))
+	(SharePrice = (Ratio $ PosShareCnt))
+	(PosSharePrice = (Ratio Pos$ PosShareCnt))
 )
 
 (ContractParams
@@ -148,7 +148,7 @@
 	(Action choose_cash_interest_repayment (TransitionsTo SRC)
 		(AllowedSubjects Investor)
 		(StateTransform
-			(pay_interest_in_cash = true)
+			(pay_interest_in_cash' = true)
 		)
 
 	)
@@ -165,12 +165,12 @@
 			(local conversion_price : SharePrice = (min discount_price cap_price))
 			(if pay_interest_in_cash (
 				(local change : $ = (apply-macro interest_from_td event_td))
-				(company_cash  = (cast $ (company_cash - change)))
-				(investor_cash += change)
-				(investor_PreferredStock += (PURCHASE_AMOUNT round/ conversion_price))
+				(company_cash' += (cast $ (company_cash - change)))
+				(investor_cash' += change)
+				(investor_PreferredStock' += (PURCHASE_AMOUNT round/ conversion_price))
 			) else (
 				(local accrued_interest : $ = (apply-macro interest_from_td event_td))
-				(investor_PreferredStock += ((PURCHASE_AMOUNT + accrued_interest) round/ conversion_price))
+				(investor_PreferredStock' += ((PURCHASE_AMOUNT + accrued_interest) round/ conversion_price))
 			))
 
 		)
@@ -194,9 +194,9 @@
 		(StateTransform
 			; from Corporate Transaction Payment defn
 			(local change : $ = ((apply-macro interest_from_td event_td) + (2 * PURCHASE_AMOUNT)))
-			; (company_cash -= change)
-			(company_cash = (cast $ (company_cash - change)))
-			(investor_cash += change)
+			; (company_cash' -= change)
+			(company_cash' = (cast $ (company_cash - change)))
+			(investor_cash' += change)
 
 		)
 		(TransitionsTo Fulfilled)
@@ -206,7 +206,7 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : SharePrice = (VALUATION_CAP / company_capitalization))
-			(investor_Common_Stock += (PURCHASE_AMOUNT round/ cap_price))
+			(investor_Common_Stock' += (PURCHASE_AMOUNT round/ cap_price))
 		)
 		(TransitionsTo Fulfilled)
 	)
@@ -230,9 +230,9 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local change : $ = ((apply-macro interest_from_td event_td) + PURCHASE_AMOUNT))
-			; (company_cash -= change)
-			(company_cash = (cast $ (company_cash - change)))
-			(investor_cash += change)
+			; (company_cash' -= change)
+			(company_cash' = (cast $ (company_cash - change)))
+			(investor_cash' += change)
 		)
 		(TransitionsTo Fulfilled)
 	)
@@ -241,7 +241,7 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local cap_price : SharePrice = (VALUATION_CAP / company_capitalization))
-			(investor_SeriesSeedPreferredStock += (PURCHASE_AMOUNT round/ cap_price))
+			(investor_SeriesSeedPreferredStock' += (PURCHASE_AMOUNT round/ cap_price))
 		)
 		(TransitionsTo Fulfilled)
 	)

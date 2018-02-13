@@ -34,20 +34,20 @@
 (SortDefinitions
 	($ := (Dimensioned NonnegReal "$"))
 	(Pos$ := (Dimensioned PosReal "Pos$"))
-	(ShareCnt := (Dimensioned PosInt "ShareCnt"))
-	(PosShareCnt := (Dimensioned PosInt "PosShareCnt"))
-	(SharePrice := (Ratio SharePrice PosShareCnt))
-	(PosSharePrice := (Ratio PosSharePrice PosShareCnt))
+	(ShareCnt' = (Dimensioned PosInt "ShareCnt"))
+	(PosShareCnt' = (Dimensioned PosInt "PosShareCnt"))
+	(SharePrice' = (Ratio SharePrice PosShareCnt))
+	(PosSharePrice' = (Ratio PosSharePrice PosShareCnt))
 
-	(Round := (Dimensioned PosInt "Round"))
+	(Round' = (Dimensioned PosInt "Round"))
 
-	(TransactionType := (Enum Deposit Withdraw))
-	(TransactionSpec := (Record (amount $) (time DateTime) (type TransactionType) (description String)))
-	(WithdrawalSpec := (Record (amount $) (time DateTime) (type {Withdraw}) (description String)))
-	(DepositSpec := (Record (amount $) (time DateTime) (type {Deposit}) (description String)))
+	(TransactionType' = (Enum Deposit Withdraw))
+	(TransactionSpec' = (Record (amount $) (time DateTime) (type TransactionType) (description String)))
+	(WithdrawalSpec' = (Record (amount $) (time DateTime) (type {Withdraw}) (description String)))
+	(DepositSpec' = (Record (amount $) (time DateTime) (type {Deposit}) (description String)))
 
-	(SAFEType := (ADT (Discount "Fraction(0,1)") (SafeCap Pos$) (SafeMFN)))
-	(SAFESpec := (Record (investor Investor) (round Round) (type SAFEType) (signdate DateTime)))
+	(SAFEType' = (ADT (Discount "Fraction(0,1)") (SafeCap Pos$) (SafeMFN)))
+	(SAFESpec' = (Record (investor Investor) (round Round) (type SAFEType) (signdate DateTime)))
 )
 
 (QuasiSorts ; These are set objects that can be used like sorts.
@@ -85,18 +85,18 @@
 
 (Action (NewSAFE (spec : SAFESpec))
 	(StateTranform
-		(agreements = (append agreements spec))
+		(agreements' = (append agreements spec))
 	)
 )
 
 (Action (Deposit (spec : TransactionSpec))
 	(StateTranform
-		(transactions = (append transactions spec))
+		(transactions' = (append transactions spec))
 	)
 )
 
 (Action (Withdraw (...))
 	(StateTranform
-		(transactions = (append transactions spec))
+		(transactions' = (append transactions spec))
 	)
 )

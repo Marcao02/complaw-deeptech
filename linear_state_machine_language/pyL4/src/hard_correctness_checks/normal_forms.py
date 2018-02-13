@@ -116,16 +116,18 @@ def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_r
         # I was actually doing this... but could easily switch to ifthenelse
         forbidden_write.add(s.varname)
 
+        s.value_expr = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
+
         # forbid reading from it in the forward-scope after writing to it, because that's potentially confusing
         # and not needed in good code.
         # ACTUALLY I rely on this for translation in action rules to be sound.
         forbidden_read.add(s.varname)
 
-        s.value_expr = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
-
         (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
                                                                                          forbidden_read,
                                                                                          forbidden_write)
+        new_forbidden_read.discard(s.varname)
+
         return cast(Block,[s]) + new_rest, new_forbidden_read, new_forbidden_write
 
     elif isinstance(s, IfElse):
@@ -172,6 +174,7 @@ def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:
     elif isinstance(term, GlobalVar):
         assert term.name not in forbidden_read, f"global-state var {term} can't be read at {term.coord}"
     elif isinstance(term, FnApp):
+        # assert term.coord is not None, f"No FileCoord for term {term}"
         return FnApp(term.fnsymb_name, [eliminate_local_vars_term(arg, subst, forbidden_read) for arg in term.args], term.coord)
     return term
 
@@ -214,7 +217,10 @@ def gen_cast_proof_obligs(p:L4Contract):
 
     def okterm(t: Term) -> OutType:
         requirements : Any
+
         if isinstance(t,FnApp):
+            if t.fnsymb_name in {'and','or','not','==','*','+','>','<','<=','>='}:
+                pass
             if t.fnsymb_name == "cast":
                 pass
         raise NotImplemented

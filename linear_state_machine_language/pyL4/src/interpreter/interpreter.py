@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+from parse_to_model.sexpr_to_L4Contract import primed, isprimed, unprimed
 from src.independent.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, castid
 from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
@@ -10,7 +11,7 @@ from src.interpreter.interpreter_support import *
 from src.model.Action import Action
 from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule
 from src.model.BoundVar import GlobalVar, ContractParam, ActionBoundActionParam, \
-    RuleBoundActionParam, LocalVar
+    RuleBoundActionParam, LocalVar, PrimedGlobalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.EventsAndTraces import Event, Trace, breachSectionId
 from src.model.StateTransform import StateTransform
@@ -112,6 +113,11 @@ class ExecEnv:
             cur_event_datetime = self.delta2datetime(cur_event_delta)
             cur_action = self.top.action(cur_action_id)
 
+            for gvarid in self.gvarvals:
+                if isprimed(gvarid):
+                    self.gvarvals[unprimed(gvarid)] = self.gvarvals[gvarid]
+            self.gvarvals = {id:self.gvarvals[id] for id in self.gvarvals if not isprimed(id)}
+
             # print("last_section_entrance_delta", self.last_section_entrance_delta)
 
             if self.last_section_entrance_delta is not None and self.last_section_entrance_delta > cur_event_delta:
@@ -152,7 +158,6 @@ class ExecEnv:
             else:
                 assert False, "Can't get here?"
 
-
             if debug:
                 # code, IPython, pdb are other options
                 import ipdb   # type: ignore
@@ -160,6 +165,11 @@ class ExecEnv:
                 # other things tried:
                 # code.InteractiveConsole(locals=locals()).interact()
                 # IPython.embed()
+
+        for gvarid in self.gvarvals:
+            if isprimed(gvarid):
+                self.gvarvals[unprimed(gvarid)] = self.gvarvals[gvarid]
+        self.gvarvals = {id: self.gvarvals[id] for id in self.gvarvals if not isprimed(id)}
 
         if final_var_vals:
             for gvarid,expected_val in final_var_vals.items():
@@ -373,7 +383,7 @@ class ExecEnv:
             rhs_value = self.evalTerm(stmt.value_expr)
 
             if stmt.varop == ":=":
-                self.gvarvals[stmt.varname] = rhs_value
+                self.gvarvals[primed(stmt.varname)] = rhs_value
             else:
                 current_var_val: Data = self.gvarvals[stmt.varname]
                 if stmt.varop == "+=":
@@ -422,6 +432,10 @@ class ExecEnv:
                 return self.evalLit(term)
 
             elif isinstance(term, GlobalVar):
+                return self.gvarvals[term.name]
+
+            elif isinstance(term, PrimedGlobalVar):
+                print(self.gvarvals)
                 return self.gvarvals[term.name]
 
             elif isinstance(term, ContractParam):

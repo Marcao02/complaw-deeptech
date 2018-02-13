@@ -21,8 +21,7 @@ section WaitingForFirstDayOfNextMonth:
 action PayInstallment(amount: Pos$) transitions to WaitingForFirstDayOfNextMonth:
     pre: (amount ≤ balance_remaining)
     transform:
-        before_interest : $ := (cast $ (balance_remaining - amount))
-        balance_remaining := (before_interest * (1 + INTEREST_RATE))
+        balance_remaining := ((cast $ (balance_remaining - amount)) * (1 + INTEREST_RATE))
         next_payment_month := (next_payment_month + 1)
 
 action PayLastInstallment(amount: Pos$) transitions to Fulfilled:

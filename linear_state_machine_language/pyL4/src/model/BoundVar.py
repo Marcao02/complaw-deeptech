@@ -1,5 +1,6 @@
 from itertools import chain
 
+from independent.FileCoord import FileCoord
 from src.independent.util import castid, todo_once
 from src.constants_and_defined_types import StateVarId, ContractParamId, ActionBoundActionParamId, \
     RuleBoundActionParamId, LocalVarId
@@ -12,9 +13,13 @@ from src.model.StateVarDec import StateVarDec
 from src.model.Term import Term
 
 
+def primed(s:StateVarId) -> StateVarId:
+    return s + "'" # type:ignore
+
+
 class BoundVar(Term):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, coord: Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         pass
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
@@ -45,8 +50,8 @@ class BoundVar(Term):
         raise NotImplementedError
 
 class RuleBoundActionParam(BoundVar):
-    def __init__(self, _name:RuleBoundActionParamId, conn: ActionRule, ind:int) -> None:
-        super().__init__()
+    def __init__(self, _name:RuleBoundActionParamId, conn: ActionRule, ind:int, coord: Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.action_rule = conn
         self._name = _name
         self.ind = ind
@@ -57,8 +62,8 @@ class RuleBoundActionParam(BoundVar):
 
 
 class ActionBoundActionParam(BoundVar):
-    def __init__(self, _name:ActionBoundActionParamId, action: Action, ind:int) -> None:
-        super().__init__()
+    def __init__(self, _name:ActionBoundActionParamId, action: Action, ind:int, coord: Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.action = action
         self._name = _name
         self.ind = ind
@@ -69,8 +74,8 @@ class ActionBoundActionParam(BoundVar):
 
 
 class LocalVar(BoundVar):
-    def __init__(self, vardec: LocalVarDec) -> None:
-        super().__init__()
+    def __init__(self, vardec: LocalVarDec, coord: Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.vardec : LocalVarDec = vardec
 
     @property
@@ -80,18 +85,26 @@ class LocalVar(BoundVar):
 
 
 class GlobalVar(BoundVar):
-    def __init__(self, vardec:StateVarDec) -> None:
-        super().__init__()
+    def __init__(self, vardec:StateVarDec, coord: Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.vardec : StateVarDec = vardec
 
     @property
     def name(self) -> StateVarId:
         return self.vardec.name
 
+class PrimedGlobalVar(BoundVar):
+    def __init__(self, vardec:StateVarDec, coord: Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
+        self.vardec : StateVarDec = vardec
+
+    @property
+    def name(self) -> StateVarId:
+        return primed(self.vardec.name)
 
 class ContractParam(BoundVar):
-    def __init__(self, paramdec:ContractParamDec) -> None:
-        super().__init__()
+    def __init__(self, paramdec:ContractParamDec, coord: Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
         self.paramdec : ContractParamDec = paramdec
 
     @property

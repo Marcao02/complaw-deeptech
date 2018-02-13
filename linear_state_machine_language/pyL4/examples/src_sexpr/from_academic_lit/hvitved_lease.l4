@@ -30,7 +30,7 @@
 
 (Macro RequestTerminationActionMacro SectionId
 	(Action RequestTerminationFromSectionId (AllowedSubjects Landlord Tenant) (TransitionsTo SectionId)
-		(StateTransform (lease_terminated := true))		))
+		(StateTransform (lease_terminated' = true))		))
 
 (FormalContract
 	"Lease Hvitved"
@@ -48,8 +48,8 @@
 	(Action StartLeaseTerm (TransitionsTo MonthStarted)
 		(StateTransform
 			; (conjecture ((eventTimestamp) == (monthStartDay_td)))
-			(lease_term_start := event_td)
-			(lease_term_end := (event_td + LEASE_DURATION))   ))
+			(lease_term_start' = event_td)
+			(lease_term_end' = (event_td + LEASE_DURATION))   ))
 
 	(Action EnterMonthStarted (TransitionsTo MonthStarted))
 
@@ -61,7 +61,7 @@
 		)
 	)
 
-	(Action PayRent (StateTransform (total_rent_paid += 1000))
+	(Action PayRent (StateTransform (total_rent_paid' += 1000))
 		(FollowingSection
 			(Next
 				(EnterMonthEnded (next_event_td == (monthEndDay_td)))

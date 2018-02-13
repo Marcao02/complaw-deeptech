@@ -16,8 +16,8 @@
 (SortDefinitions
 	($ := (Dimensioned NonnegReal "$"))
 	(Pos$ := (Dimensioned PosReal "$"))
-	(ShareCnt := (Dimensioned Nat "shares"))
-	(PosShareCnt := (Dimensioned PosInt "shares"))
+	(ShareCnt = (Dimensioned Nat "shares"))
+	(PosShareCnt = (Dimensioned PosInt "shares"))
 )
 
 (GlobalVars
@@ -40,8 +40,8 @@
 
 	(Action PaySellerForOption
 		(StateTransform
-			(buyer_funds := (cast $ (buyer_funds - ($ 5))))
-			(seller_funds += ($ 5))
+			(buyer_funds' = (cast $ (buyer_funds - ($ 5))))
+			(seller_funds' += ($ 5))
 		)
 
 		(FollowingSection
@@ -53,8 +53,8 @@
 
 	(Action ExerciseOption
 		(StateTransform
-			(buyer_funds = (cast $ (buyer_funds - ($ 80))))
-			(seller_funds += ($ 80))
+			(buyer_funds' = (cast $ (buyer_funds - ($ 80))))
+			(seller_funds' += ($ 80))
 		)
 
 		(FollowingSection
@@ -66,8 +66,8 @@
 
 	(Action TransferShare
 		(StateTransform
-			(buyer_final_shares = (BUYER_START_SHARES + (ShareCnt 1)))
-			(seller_final_shares = (cast ShareCnt (SELLER_START_SHARES - (ShareCnt 1))))
+			(buyer_final_shares' = (BUYER_START_SHARES + (ShareCnt 1)))
+			(seller_final_shares' = (cast ShareCnt (SELLER_START_SHARES - (ShareCnt 1))))
 		)
 		(TransitionsTo Fulfilled)
 	)

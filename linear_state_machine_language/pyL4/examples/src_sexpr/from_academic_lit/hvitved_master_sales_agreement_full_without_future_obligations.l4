@@ -4,8 +4,8 @@
 (SortDefinitions
 	(Pos$ := (Dimensioned PosReal "Pos$"))
 	($ := (Dimensioned NonnegReal "$"))
-	(Order := (Tuple Nat Nat))
-	(TDMap_Order := (TDMap (Tuple Nat Nat)))
+	(Order = (Tuple Nat Nat))
+	(TDMap_Order = (TDMap (Tuple Nat Nat)))
 )
 
 (ContractParams
@@ -31,11 +31,11 @@
 )
 
 (Definitions
-	(orderable_units := (MAX_UNITS - units_ordered))
+	(orderable_units = (MAX_UNITS - units_ordered))
 
 	; either ids (approach taken here) or ordering are necessary to correctly handle the case when there are two orders on the same day for the same quantity.
-	(Id := Nat)
-	(Order := [Tuple Nat Id])
+	(Id = Nat)
+	(Order = [Tuple Nat Id])
 
 )
 
@@ -82,7 +82,7 @@
 		(
 			∀ (d : Date) (
 				∀ (n : Nat) (
-					(n = (units_delivered d))
+					(n' = (units_delivered d))
 					⇒
 					(
 						(total_paid (d + (k + 14D)))
@@ -141,9 +141,9 @@
 			(local test : PosInt := (ceil (quantity / 10)))
 			(local test2 : PosInt := (max 14 (ceil (quantity / 10))))
 			(local delivery_deadline : TimeDelta := (event_td + (days (max 14 (ceil (quantity / 10))))) )
-			(units_ordered += quantity)
-			(2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline))
-			(next_order_id += 1)
+			(units_ordered' += quantity)
+			(2Bdelivered' := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline))
+			(next_order_id' += 1)
 		)
 
 		(TransitionsTo VendorAcceptingOrders)
@@ -154,11 +154,11 @@
 		(StateTransform
 			( conjecture (mapHas 2Bdelivered order) )
 			( local quantity : Nat := (tupleGet order 0) )
-			( units_delivered += quantity )
-			( 2Bdelivered := (mapDelete 2Bdelivered order) )
+			( units_delivered' += quantity )
+			( 2Bdelivered' := (mapDelete 2Bdelivered order) )
 			( local invoice_deadline : TimeDelta := (event_td + 30D) )
-			( furthest_invoice_deadline := (max furthest_invoice_deadline invoice_deadline) )
-			( 2Binvoiced := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline ) )
+			( furthest_invoice_deadline' = (max furthest_invoice_deadline invoice_deadline) )
+			( 2Binvoiced' := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline ) )
 		)
 
 		(TransitionsTo VendorAcceptingOrders)
@@ -169,9 +169,9 @@
 		(StateTransform
 			( conjecture (mapHas 2Binvoiced order) )
 			( local quantity : Nat := (tupleGet order 0) )
-			( units_invoiced += quantity )
-			( 2Binvoiced := (mapDelete 2Binvoiced order) )
-			( 2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14D) ) )
+			( units_invoiced' += quantity )
+			( 2Binvoiced' :=  (mapDelete 2Binvoiced order) )
+			( 2Bpaid' :=  (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14D) ) )
 		)
 
 		(TransitionsTo VendorAcceptingOrders)
@@ -182,8 +182,8 @@
 		(StateTransform
 			( conjecture (mapHas 2Bpaid order) )
 			( local quantity : Nat := (tupleGet order 0) )
-			( total_paid += (quantity * PRICE_PER_UNIT) )
-			( 2Bpaid := (mapDelete 2Bpaid order) )
+			( total_paid' += (quantity * PRICE_PER_UNIT) )
+			( 2Bpaid' :=  (mapDelete 2Bpaid order) )
 		)
 
 		(TransitionsTo VendorAcceptingOrders)

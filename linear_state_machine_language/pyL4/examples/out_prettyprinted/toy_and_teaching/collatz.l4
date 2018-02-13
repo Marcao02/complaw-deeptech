@@ -19,8 +19,6 @@ section Ongoing:
 
 action DivideBy2()  transitions to Ongoing:
     transform:
-        test : NonnegReal := (x / 2)
-        test2 : Nat := (round (x / 2))
         x := (round (x / 2))
 
 action TripplePlus1()  transitions to Ongoing:

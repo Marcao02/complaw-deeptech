@@ -2,6 +2,7 @@
 from itertools import chain
 from typing import Type
 
+from independent.FileCoord import FileCoord
 from src.independent.typing_imports import *
 from src.constants_and_defined_types import *
 from src.model.Term import Term
@@ -64,8 +65,8 @@ class L4Contract:
                 yield far
     def action_rules(self) -> Iterator[ActionRule]: return chain(self.nextaction_rules(), self.futureaction_rules())
 
-    def new_global_var_ref(self,varname) -> GlobalVar:
-        return GlobalVar(self.global_var_decs[varname])
+    def new_global_var_ref(self, varname, coord:Optional[FileCoord] = None) -> GlobalVar:
+        return GlobalVar(self.global_var_decs[varname], coord)
 
     def section_mentions_action_in_nextaction_rule(self, sectionid:SectionId, actionid:ActionId) -> bool:
         cursection = self.section(sectionid)

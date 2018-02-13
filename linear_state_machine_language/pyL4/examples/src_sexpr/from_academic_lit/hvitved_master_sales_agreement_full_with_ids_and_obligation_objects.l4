@@ -68,7 +68,7 @@
 ]
 
 [Definitions
-    [orderable_units_remaining := [MAX_UNITS - units_ordered]]
+    [orderable_units_remaining = [MAX_UNITS - units_ordered]]
 ]
 
 [GlobalVars
@@ -107,7 +107,7 @@
         ;   -then {Vendor} begins or continues accepting new orders.
     ;    [visits == 1]
         ;[StateTransform
-        ;    [order_period_ends = [contractStart_dt + CONTRACT_LIFE]] ]
+        ;    [order_period_ends' += [contractStart_dt + CONTRACT_LIFE]] ]
     ;    [FollowingSection
     ;        [Next [EnterVendorAcceptingOrders immediately]]
     ;    ]
@@ -173,9 +173,9 @@
                     [[days [ceil [quantity / 10]]] + event_td]
                 ]
             ]
-            [units_ordered += quantity]
+            [units_ordered' += quantity]
             [local this_order_id : Nat := next_order_id]
-            [next_order_id += 1]
+            [next_order_id' += 1]
             ; [local mytest_for_error : TimeDelta = sectionEntrance_td]
         ]
 
@@ -194,7 +194,7 @@
 
         [AllowedSubjects Vendor]
         [StateTransform
-            [ units_delivered += quantity ]
+            [ units_delivered' += quantity ]
             [ local deadline : TimeDelta = (event_td + 30d) ]
         ]
 
@@ -211,7 +211,7 @@
         [TransitionsTo VendorAcceptingOrders]
         [AllowedSubjects Vendor]
         [StateTransform
-            [ units_invoiced += quantity ]
+            [ units_invoiced' += quantity ]
             [ local deadline : TimeDelta = (event_td + 14d) ]
         ]
         [Future
@@ -227,7 +227,7 @@
         [TransitionsTo VendorAcceptingOrders]
         [AllowedSubjects Customer]
         [StateTransform
-            [ total_paid += [quantity * PRICE_PER_UNIT] ]
+            [ total_paid' += [quantity * PRICE_PER_UNIT] ]
         ]
     ]
 

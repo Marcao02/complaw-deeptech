@@ -1,7 +1,7 @@
 
 (Claims
-	(MAX_TIME = 44D)
-	(MAX_SECTION_VISITS := 6)
+	(MAX_TIME' = 44D)
+	(MAX_SECTION_VISITS' = 6)
 )
 
 (Roles Buyer Seller)
@@ -41,7 +41,7 @@
 
 	(Action Deliver [ProseRefs P1]
 		(StateTransform
-			(delivery_date = event_td)
+			(delivery_date' = event_td)
 		)
 		(FollowingSection
 			(Next (Buyer must Pay1stInstallment immediately))
@@ -51,7 +51,7 @@
 	(Action Pay1stInstallment [ProseRefs P1 P2 P3]
 		(StateTransform
 			(prove (buyer_paid == 0))
-			(buyer_paid := 100)
+			(buyer_paid' = 100)
 		)
 		(FollowingSection
 			(Next
@@ -71,7 +71,7 @@
 	(Action Pay2ndInstallment [ProseRefs P5]
 		(StateTransform
 			(prove (buyer_paid == 100))
-			(buyer_paid := 200)
+			(buyer_paid' = 200)
 		)
 		(FollowingSection
 			(Next
@@ -90,7 +90,7 @@
 	(Action PayLateFee [ProseRefs P4]
 		(StateTransform
 			(prove (buyer_paid == 100))
-			(buyer_paid := 220)
+			(buyer_paid' = 220)
 		)
 		(TransitionsTo Fulfilled)
 	)
@@ -103,7 +103,7 @@
 		(StateTransform
 			(prove (seller_refunded == 0))
 			(prove ((buyer_paid == 100) or (buyer_paid == 200)))
-			(seller_refunded := buyer_paid)
+			(seller_refunded' = buyer_paid)
 		)
 		(TransitionsTo Fulfilled)
 	)

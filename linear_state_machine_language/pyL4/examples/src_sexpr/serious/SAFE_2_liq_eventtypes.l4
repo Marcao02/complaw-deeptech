@@ -16,10 +16,10 @@
 (SortDefinitions
 	($ := (Dimensioned NonnegReal "$"))
 	(Pos$ := (Dimensioned PosReal "$"))
-	(ShareCnt := (Dimensioned Nat "shares"))
-	(PosShareCnt := (Dimensioned PosInt "shares"))
-	(SharePrice := (Ratio $ PosShareCnt))
-	(PosSharePrice := (Ratio Pos$ PosShareCnt))
+	(ShareCnt = (Dimensioned Nat "shares"))
+	(PosShareCnt = (Dimensioned PosInt "shares"))
+	(SharePrice = (Ratio $ PosShareCnt))
+	(PosSharePrice = (Ratio Pos$ PosShareCnt))
 )
 
 (ContractParams
@@ -122,11 +122,11 @@
 				(company_capitalization : PosShareCnt)
 				(premoney_valuation : Pos$) ) (AllowedSubjects Company)
 		(StateTransform
-			(safe_price = (VALUATION_CAP / company_capitalization))
-			(initial_price_per_share_standard_preferred_stock = (premoney_valuation / company_capitalization))
-			(discount_price = (initial_price_per_share_standard_preferred_stock * DISCOUNT_RATE))
-			(conversion_price = (min safe_price discount_price))
-			(investor_SAFE_Preferred_Stocks += (PURCHASE_AMOUNT round/ conversion_price))
+			(safe_price' = (VALUATION_CAP / company_capitalization))
+			(initial_price_per_share_standard_preferred_stock' = (premoney_valuation / company_capitalization))
+			(discount_price' = (initial_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
+			(conversion_price' = (min safe_price' discount_price'))
+			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSection
 			(Next (Company must DoEquityFinancing discretionary))  )
@@ -141,11 +141,11 @@
 								    (liquidity_capitalization:PosShareCnt)
 			) (AllowedSubjects Company)
 		(StateTransform
-			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT round/ liq_price))
-			(investor_percent_of_cashout_investor_investments = (fraction-of-sum investor_liq_hypothetical_shares liquidity_capitalization))
-			(cash_currently_unconverted = PURCHASE_AMOUNT)
-			(company_cash = company_cash_at_liquidity_event)
+			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
+			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ liq_price'))
+			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
+			(cash_currently_unconverted' = PURCHASE_AMOUNT)
+			(company_cash' = company_cash_at_liquidity_event)
 		)
 
 		(FollowingSection
@@ -163,16 +163,16 @@
 								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $)
 			) (AllowedSubjects Company)
 		(StateTransform
-			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_liq_hypothetical_shares = (PURCHASE_AMOUNT round/ liq_price))
-			; (investor_percent_of_cashout_investor_investments = (cast "Fraction(0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
-			(investor_percent_of_cashout_investor_investments = (fraction-of-sum investor_liq_hypothetical_shares liquidity_capitalization))
+			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
+			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ liq_price'))
+			; (investor_percent_of_cashout_investor_investments' = (cast "Fraction(0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
+			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 
 		 	; "In ???? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
-		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
-			(investor_Common_Stocks += (purchase_amount_reduction round/ liq_price))
-			(cash_currently_unconverted = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
-			(company_cash = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+			(investor_Common_Stocks' += (purchase_amount_reduction round/ liq_price'))
+			(cash_currently_unconverted' = (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
+			(company_cash' = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 		)
 
 		(FollowingSection
@@ -194,7 +194,7 @@
 
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
-			(investor_Common_Stocks += ((cast $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
+			(investor_Common_Stocks' += ((cast $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
 		)
 		(FollowingSection
 			(Next (Company must DoLiquidityEvent discretionary))
@@ -209,11 +209,11 @@
 
 	(Action TransferCash_L (AllowedSubjects Company)
 		(StateTransform
-			(liq_cashout := (min
+			(liq_cashout' = (min
 				cash_currently_unconverted
 				(company_cash * investor_percent_of_cashout_investor_investments)
 			))
-			(investor_cash += liq_cashout)
+			(investor_cash' += liq_cashout')
 		)
 
 		(FollowingSection
@@ -245,11 +245,11 @@
 						    (investor_percent_of_dissolving_investor_investments : "Fraction(0,1]"))
 		(AllowedSubjects Company)
 		(StateTransform
-			(dis_cashout := (min
+			(dis_cashout' = (min
 				PURCHASE_AMOUNT
 				(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
 			))
-			(investor_cash = dis_cashout)
+			(investor_cash' = dis_cashout')
 		)
 
 		(FollowingSection
@@ -267,8 +267,8 @@
 	(Action (TransferAssets (liquidity_capitalization:PosShareCnt))
 		(AllowedSubjects Company)
 		(StateTransform
-			(liq_price = (VALUATION_CAP / liquidity_capitalization))
-			(investor_Common_Stocks += ((cast $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price))
+			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
+			(investor_Common_Stocks' += ((cast $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price'))
 		)
 		(FollowingSection  (Next (Company must Dissolve discretionary)))
 	)

@@ -13,8 +13,8 @@ global vars:
     writeonce delivery_date : TimeDelta
 
 claims:
-    ['MAX_TIME', '=', '44D']
-    ['MAX_SECTION_VISITS', ':=', '6']
+    ["MAX_TIME'", '=', '44D']
+    ["MAX_SECTION_VISITS'", '=', '6']
 
 section Awaiting_Delivery:
     Seller must Deliver (next_event_td ≤ DELIVERY_DEADLINE)

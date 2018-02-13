@@ -58,10 +58,10 @@
 )
 
 (Definitions
-	(within24HOfInfraction := (next_event_td ≤ (infraction_time + 24H)))
-	(within48HOfInfraction := (next_event_td ≤ (infraction_time + 48H)))
-	(after24HSinceInfraction := (next_event_td > (infraction_time + 24H)))
-	(after48HSinceInfraction := (next_event_td > (infraction_time + 48H)))
+	(within24HOfInfraction = (next_event_td ≤ (infraction_time + 24H)))
+	(within48HOfInfraction = (next_event_td ≤ (infraction_time + 48H)))
+	(after24HSinceInfraction = (next_event_td > (infraction_time + 24H)))
+	(after48HSinceInfraction = (next_event_td > (infraction_time + 48H)))
 
 )
 
@@ -73,59 +73,59 @@
 
 	(Action SendCancelNoticeByPost (AllowedSubjects ISP) (TransitionsTo SRC)
 		(StateTransform
-			(cancel_notice_sent_by_post := true)
+			(cancel_notice_sent_by_post' = true)
 			(if cancel_notice_sent_by_email (
-				(contract_canceled := true)
+				(contract_canceled' = true)
 			) else ())
 		)
 	)
 
 	(Action SendCancelNoticeByEmail (AllowedSubjects ISP) (TransitionsTo SRC)
 		(StateTransform
-			(cancel_notice_sent_by_email := true)
+			(cancel_notice_sent_by_email' = true)
 			(if cancel_notice_sent_by_post (
-				(contract_canceled := true)
+				(contract_canceled' = true)
 			) else ())
 		)
 	)
 
 	(Action Reset (TransitionsTo NoInfraction) (AllowedSubjects Env)
 		(StateTransform
-			(unsettled_infraction := false)
-			(usage_level_normal := true)
-			(paidBefore24 := false)
-			(sent_delay_email := false)
-			(paid := 0)
+			(unsettled_infraction' = false)
+			(usage_level_normal' = true)
+			(paidBefore24' = false)
+			(sent_delay_email' = false)
+			(paid' = 0)
 		)
 	)
 
 	(Action RaiseTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
 		(StateTransform
-			(traffic_low_since := event_td)
-			(usage_level_normal := false)
+			(traffic_low_since' = event_td)
+			(usage_level_normal' = false)
 			(if (not unsettled_infraction) (
-				(infraction_time := event_td)
-				(unsettled_infraction := true)
+				(infraction_time' = event_td)
+				(unsettled_infraction' = true)
 			) else () )
 		)
 	)
 
 	(Action LowerTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
 		(StateTransform
-			(usage_level_normal := true)
-			(traffic_low_since := event_td)
+			(usage_level_normal' = true)
+			(traffic_low_since' = event_td)
 		)
 	)
 
 	(Action SendDelayEmail (AllowedSubjects Client) (TransitionsTo SRC)
-		(StateTransform (sent_delay_email := true) )
+		(StateTransform (sent_delay_email' = true) )
 	)
 
 	(Action (Pay (x : $)) (AllowedSubjects Client) (TransitionsTo UnsettledInfraction)
 		(StateTransform
-			(paid += (HIGH_USAGE_FEE * x))
+			(paid' += (HIGH_USAGE_FEE * x))
 			(if (event_td ≤ (infraction_time + 24H)) (
-				(paidBefore24 := true)
+				(paidBefore24' = true)
 			) else ())
 		)
 	)

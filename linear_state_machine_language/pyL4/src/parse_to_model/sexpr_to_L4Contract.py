@@ -2,6 +2,7 @@ import logging
 
 import dateutil.parser
 from mypy_extensions import NoReturn
+from copy import deepcopy
 
 from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import streqci, chcaststr, isFloat, isInt, todo_once, castid, chcast
@@ -16,7 +17,7 @@ from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, Ac
     EnvNextActionRule, \
     PartyNextActionRule
 from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
-    LocalVar, GlobalVar
+    LocalVar, GlobalVar, PrimedGlobalVar
 from src.model.ContractClaim import ContractClaim
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
@@ -461,70 +462,91 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         return rv
 
-    def _mk_state_transform(self, statements:List[SExpr], a:Action) -> StateTransform:
-        return StateTransform([self._mk_statement(x, a) for x in statements])
+    def _mk_state_transform(self, statement_exprs:List[SExpr], a:Action) -> StateTransform:
+        # statements : List[Statement] = []
+        # for x in statement_exprs:
+        #     if isinstance(x,StateVarAssign) and isprimed(x.varname):
+        #         statement1 = self._mk_statement(x,a)
+        #         statement2 = deepcopy(statement1)
+        #         statement2 = LocalVarDec
+        #
+        #     else:
+        #         statements.append(self._mk_statement(x, a))
+        #
+        # return StateTransform( for x in statements])
+        return StateTransform([self._mk_statement(x, a) for x in statement_exprs])
 
-    def _mk_statement(self, statement:SExpr, parent_action:Action) -> Statement:
+
+    def _mk_statement(self, statement_expr:SExpr, parent_action:Action) -> Statement:
+        assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None
         varname : str
         try:
-            if statement[0] == APPLY_MACRO_LABEL:
-                statement = self.handle_apply_macro(statement)
+            if statement_expr[0] == APPLY_MACRO_LABEL:
+                statement_expr = self.handle_apply_macro(statement_expr)
 
-            if statement[0] == 'conjecture' or statement[0] == 'prove':
-                self.assertOrSyntaxError( len(statement) == 2, statement, "GlobalStateTransformConjecture expression should have length 2")
-                rhs = self._mk_term(statement[1], None, parent_action, None, statement)
+            if statement_expr[0] == 'conjecture' or statement_expr[0] == 'prove':
+                self.assertOrSyntaxError(len(statement_expr) == 2, statement_expr, "GlobalStateTransformConjecture expression should have length 2")
+                rhs = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
                 return FVRequirement(rhs)
-            elif statement[0] == 'local':
-                self.assertOrSyntaxError( len(statement) == 6, statement, 'Local var dec should have form (local name : type = term) or := instead of =')
-                self.assertOrSyntaxError( statement[2] == ':' and (statement[4] == ":=" or statement[4] == "="), statement,
+            elif statement_expr[0] == 'local':
+                self.assertOrSyntaxError(len(statement_expr) == 6, statement_expr, 'Local var dec should have form (local name : type = term) or := instead of =')
+                self.assertOrSyntaxError(statement_expr[2] == ':' and (statement_expr[4] == ":=" or statement_expr[4] == "="), statement_expr,
                                           'Local var dec should have form (local name : type = term)  or := instead of =')
-                sort = self._mk_sort(statement[3])
-                rhs = self._mk_term(statement[5], None, parent_action, None, statement)
-                varname = castid(LocalVarId, statement[1])
+                sort = self._mk_sort(statement_expr[3])
+                rhs = self._mk_term(statement_expr[5], None, parent_action, None, statement_expr)
+                varname = castid(LocalVarId, statement_expr[1])
                 lvd = LocalVarDec(varname, rhs, sort)
                 if varname in parent_action.local_vars:
-                    self.syntaxError(statement, "Redeclaration of local variable")
+                    self.syntaxError(statement_expr, "Redeclaration of local variable")
                 parent_action.local_vars[varname] = lvd
                 return lvd
-            elif statement[0] == 'if':
-                test = self._mk_term(statement[1], None, parent_action, None, statement)
-                self.assertOrSyntaxError( isinstance(statement[2],SExpr) and isinstance(statement[4],SExpr), statement )
+            elif statement_expr[0] == 'if':
+                test = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
+                self.assertOrSyntaxError(isinstance(statement_expr[2], SExpr) and isinstance(statement_expr[4], SExpr), statement_expr)
                 true_branch = [
-                    self._mk_statement(inner, parent_action) for inner in statement[2]
+                    self._mk_statement(inner, parent_action) for inner in statement_expr[2]
                 ]
-                self.assertOrSyntaxError(statement[3] == 'else', statement)
+                self.assertOrSyntaxError(statement_expr[3] == 'else', statement_expr)
                 false_branch = [
-                    self._mk_statement(inner, parent_action) for inner in statement[4]
+                    self._mk_statement(inner, parent_action) for inner in statement_expr[4]
                 ]
                 return IfElse(test, true_branch, false_branch)
 
             else:
-                self.assertOrSyntaxError( len(statement) == 3, statement, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement))
-                rhs = self._mk_term(statement[2], None, parent_action, None, statement)
-                varname = castid(StateVarId, statement[0])
+                self.assertOrSyntaxError(len(statement_expr) == 3, statement_expr, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement_expr))
+                assert statement_expr.coord() is not None
+                rhs = self._mk_term(statement_expr[2], None, parent_action, None, statement_expr)
+                # print(statement_expr.coord, rhs.coord, statement_expr[2])
+                assert rhs.coord is not None, f"{rhs} has no FileCoord. it's a {type(rhs)}"
+                varname = castid(StateVarId, statement_expr[0])
                 # TODO: for requiring primed variables. recall, though, that this makes += syntax kinda odd.
+                assert isprimed(varname), f"Replace assigned-to state var name {varname} with {primed(varname)}."
+                unprimed_name = unprimed(varname)
+
                 # self.assertOrSyntaxError(isprimed(varname), statement, f"To assign to a state variable {varname}, you must assign to {primed(varname)}, which indicates \"the next value of X\".")
-                self.assertOrSyntaxError(varname in self.top.global_var_decs, statement, f"{varname} not recognized as a global state variable.")
-                vardec = self.top.global_var_decs[varname]
+                self.assertOrSyntaxError(unprimed_name in self.top.global_var_decs, statement_expr, f"{unprimed_name} not recognized as a global state variable.")
+                vardec = self.top.global_var_decs[unprimed_name]
                 orig : Statement
                 reduced : Statement
-                if statement[1] == ':=' or statement[1] == "=":
+
+                if statement_expr[1] == ':=' or statement_expr[1] == "=":
                     return StateVarAssign(vardec, rhs)
                 else:
-                    var = self.top.new_global_var_ref(varname)
-                    orig = StateVarAssign(vardec, rhs, statement[1])
+                    assert statement_expr.coord is not None
+                    var = self.top.new_global_var_ref(unprimed_name, statement_expr.coord())
+                    orig = StateVarAssign(vardec, rhs, statement_expr[1])
                     if orig.varop == "+=":
-                        reduced = StateVarAssign(vardec, FnApp('+', [var, rhs]))
+                        reduced = StateVarAssign(vardec, FnApp('+', [var, rhs], rhs.coord))
                     elif orig.varop == '-=':
-                        reduced = StateVarAssign(vardec, FnApp('-', [var, rhs]))
+                        reduced = StateVarAssign(vardec, FnApp('-', [var, rhs], rhs.coord))
                     elif orig.varop == '*=':
-                        reduced = StateVarAssign(vardec, FnApp('*', [var, rhs]))
+                        reduced = StateVarAssign(vardec, FnApp('*', [var, rhs], rhs.coord))
                     else:
                         raise Exception
                     reduced.orig = orig
                     return reduced
         except Exception as e:
-            logging.error(f"Problem with {statement}")
+            logging.error(f"Problem with {statement_expr}")
             raise e
 
     @staticmethod
@@ -557,39 +579,48 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                  parent_action_rule : Optional[ActionRule] = None,
                  parent_SExpr : Optional[SExpr] = None ) -> Term:
         if isinstance(x,str):
+            # if isprimed(x):
             if x in EXEC_ENV_VARIABLES:
-                return FnApp(x,[])
+                return FnApp(x,[],parent_SExpr.coord())
 
             if x in TIME_CONSTRAINT_KEYWORDS:
                 return DeadlineLit(x)
 
             if x in self.top.global_var_decs:
-                return GlobalVar(self.top.global_var_decs[cast(StateVarId, x)])
+                return GlobalVar(self.top.global_var_decs[cast(StateVarId, x)], parent_SExpr.coord())
+
+            if isprimed(x):
+                self.assertOrSyntaxError(unprimed(x) in self.top.global_var_decs, parent_SExpr, f"Primed variable {x} does not appear to be a state variable.")
+                return PrimedGlobalVar(self.top.global_var_decs[cast(StateVarId, unprimed(x))], parent_SExpr.coord())
 
             # if parent_action and (x in parent_action.local_vars):
             #     return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])
 
             if x in self.top.contract_params:
-                return ContractParam(self.top.contract_params[cast(ContractParamId,x)])
+                return ContractParam(self.top.contract_params[cast(ContractParamId,x)], parent_SExpr.coord())
 
             # print("parent_action_rule", parent_action_rule)
             # if x == 'order' and parent_action_rule:
             #     print("args", parent_action_rule.args)
             if parent_action_rule and parent_action_rule.args and x in parent_action_rule.args:
+                assert parent_SExpr.coord() is not None
                 assert parent_action_rule.args_name_to_ind is not None
                 return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
-                                            parent_action_rule.args_name_to_ind[castid(RuleBoundActionParamId,x)])
+                                            parent_action_rule.args_name_to_ind[castid(RuleBoundActionParamId,x)],
+                                            parent_SExpr.coord())
 
             if parent_action and x in parent_action.param_sorts_by_name:
+                assert parent_SExpr.coord() is not None
                 assert parent_action.param_name_to_ind is not None
                 return ActionBoundActionParam(cast(ActionBoundActionParamId, x), parent_action,
-                                              parent_action.param_name_to_ind[castid(ActionBoundActionParamId,x)])
+                                              parent_action.param_name_to_ind[castid(ActionBoundActionParamId,x)],
+                                              parent_SExpr.coord())
 
             if x in self.top.definitions:
-                return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule)
+                return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body, parent_section, parent_action, parent_action_rule, parent_SExpr)
 
             if parent_action and x in parent_action.local_vars:
-                return LocalVar(parent_action.local_vars[castid(LocalVarId, x)])
+                return LocalVar(parent_action.local_vars[castid(LocalVarId, x)], parent_SExpr.coord())
 
             return L4ContractConstructor.mk_literal(x, parent_SExpr, self.top)
 
@@ -618,7 +649,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return FnApp(
                     fnsymb_name,
                     args,
-                    FileCoord(x.line, x.col)
+                    x.coord()
                 )
             else:
                 if x in EXEC_ENV_VARIABLES:
@@ -626,14 +657,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif x[0] in self.top.sorts:
                     return FnApp( "cast", [
                         self.mk_sort_lit(x[0]),
-                        self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
-                    ])
+                        self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr),
+                    ], x.coord())
                 else:
                     print(f"Warning: treating {x[0]} as a defined sort symbol")
                     return FnApp("cast", [
                         self.mk_sort_lit(x[0]),
                         self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
-                    ])
+                    ], x.coord())
                     # self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
 
                 assert False # this is just to get mypy to not complain about missing return statement
@@ -686,7 +717,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             action_id = castid(ActionId, (expr[2][0]))
 
-            args_part = expr[2][1:]
+            args_part = expr[2].tillEnd(1)
             if len(args_part) == 0:
                 args = []
             elif args_part[0][0] == "?":
@@ -737,7 +768,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args = []
             else:
                 action_id = castid(ActionId, (expr[0][0]))
-                args_part = expr[0][1:]
+                args_part = expr[0].tillEnd(1)
                 if len(args_part) == 0:
                     args = []
                 elif args_part[0][0] == "?":
@@ -759,7 +790,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args = []
             else:
                 action_id = castid(ActionId, (expr[2][0]))
-                args_part = expr[2][1:]
+                args_part = expr[2].tillEnd(1)
                 if len(args_part) == 0:
                     args = []
                 elif args_part[0][0] == "?":
@@ -772,7 +803,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             rv = PartyNextActionRule(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
-
 
         if args is None:
             rv.fixed_args = [self._mk_term(arg, src_section, parent_action, rv, args_part) for arg in args_part]
