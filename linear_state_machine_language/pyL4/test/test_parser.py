@@ -1,7 +1,7 @@
 import logging
 from typing import List, Iterable, Union
 
-from src.hard_correctness_checks.toZ3 import ToZ3, Z3Statement, z3statements_to_str, T3FormattedStatementsList
+from src.hard_correctness_checks.toZ3 import ToZ3, Z3Statement, z3statements_to_str
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars
 from src.independent.util import writeReadOnlyFile
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
@@ -96,11 +96,11 @@ def main(sys_argv:List[str]):
                 heading("State var constant declarations")
                 extend( toz3.stateVarDecs.values() )
 
-                heading("Contract param constant extra type info")
-                extend( toz3.contractParamDecsExtra.values() )
+                heading("Contract param constants extra type info")
+                extend(toz3.contractParamExtraTypeAssertions.values())
 
-                heading("Contract param constant extra type info")
-                extend( toz3.stateVarDecsExtra.values() )
+                heading("State var constants extra type info")
+                extend(toz3.stateVarExtraTypeAssertions.values())
 
                 heading("Contract param definitions")
                 extend(toz3.contractParamDefns.values())
@@ -120,9 +120,12 @@ def main(sys_argv:List[str]):
                     if len(toz3.actionParamDecs[aid]) > 0:
                         heading(f"Action param decs for {aid}",1)
                         extend(toz3.actionParamDecs[aid].values(),1)
-                    if aid in toz3.stateTransformDecsZ3:
+                    if aid in toz3.actionParamExtraTypeAssertions and len(toz3.actionParamExtraTypeAssertions[aid]) > 0:
+                        heading(f"Action param extra type info for {aid}", 1)
+                        extend(toz3.actionParamExtraTypeAssertions[aid].values(), 1)
+                    if aid in toz3.stateTransformDefs:
                         heading(f"State transform definition for {aid}",1)
-                        append(toz3.stateTransformDecsZ3[aid],1)
+                        append(toz3.stateTransformDefs[aid], 1)
 
                     heading("Cast constant definitions",1)
                     append(toz3.cast_const_defs[cast_const_name],1)
@@ -140,7 +143,7 @@ def main(sys_argv:List[str]):
             if 'printPretty' in sys_argv:
                 prettyprinted = str(prog)
                 print(prettyprinted)
-                writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filename, prettyprinted)
+                writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + filesubpath, prettyprinted)
 
             if 'dot' in sys_argv:
                 contractToDotFile(prog, "examples/out_graphviz" , True, True)
