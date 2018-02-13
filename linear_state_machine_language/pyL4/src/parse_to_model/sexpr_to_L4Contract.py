@@ -18,7 +18,7 @@ from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, Ac
     PartyNextActionRule
 from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
     LocalVar, GlobalVar, PrimedGlobalVar
-from src.model.ContractClaim import ContractClaim
+from src.model.ContractClaim import ContractClaim, StateInvariant
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.StateTransform import StateTransform
@@ -134,6 +134,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(TOPLEVEL_CLAIMS_AREA_LABEL):
                 self.top.claims = self._mk_claims(rem)
 
+            elif head(TOPLEVEL_STATE_INVARIANTS_AREA_LABEL):
+                self.top.state_invariants = self._mk_invariants(rem)
+
             elif head("VerificationDefinition"):
                 continue
 
@@ -218,8 +221,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def _mk_claims(self, l:SExpr) -> List[ContractClaim]:
-        # rv = [ContractClaim(self.term(x)) for x in l]
         rv = [ContractClaim(x) for x in l]
+        return rv
+
+    def _mk_invariants(self, l:SExpr) -> List[StateInvariant]:
+        # rv = [ContractClaim(self.term(x)) for x in l]
+        rv = [StateInvariant(self._mk_term(x,None,None,None,x)) for x in l]
         # logging.info(str(rv))
         return rv
 

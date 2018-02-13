@@ -10,7 +10,7 @@ from src.model.Action import Action
 from src.model.ActionRule import ActionRule, PartyFutureActionRule, NextActionRule, EnvNextActionRule, \
     FutureActionRuleType, PartyNextActionRule
 from src.model.BoundVar import GlobalVar
-from src.model.ContractClaim import ContractClaim
+from src.model.ContractClaim import ContractClaim, StateInvariant
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.StateVarDec import StateVarDec
@@ -30,6 +30,7 @@ class L4Contract:
 
         self.global_var_decs : Dict[StateVarId, StateVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
+        self.state_invariants : Iterable[StateInvariant] = []
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
 
         # TODO: make `definitions` `term_definitions`

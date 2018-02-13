@@ -1,7 +1,7 @@
 import logging
-from typing import List
+from typing import List, Iterable, Union
 
-from src.hard_correctness_checks.toZ3 import ToZ3, Z3Statement
+from src.hard_correctness_checks.toZ3 import ToZ3, Z3Statement, z3statements_to_str, T3FormattedStatementsList
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars
 from src.independent.util import writeReadOnlyFile
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
@@ -61,31 +61,65 @@ def main(sys_argv:List[str]):
 
             if "SAFE.l4" in filename:
                 eliminate_local_vars(prog)
-                toz3 = ToZ3()
+                toz3 = ToZ3(prog)
 
                 toz3.prog2z3def(prog)
 
-                action_id = 'TransferCommonStock'
-                const_name = "castconst5"
+                # 1 unsat ✓
+                # 2 unknown
+                # 3 unknown
+                # 4 unsat ✓
+                # 5 unsat ✓
+                # 6 unsat ✓
+                for cast_const_name in toz3.cast_const_decs:
+                    statements : T3FormattedStatementsList = []
+                    def heading(s:str, indent=0, linebreak=True) -> None:
+                        if linebreak:
+                            statements.append(("",0))
+                        statements.append(('; ' + s, indent))
+                    def extend(lines:Iterable[Union[Z3Statement,str]], indent=0):
+                        statements.extend([(statement,indent) for statement in lines])
+                    def append(s:Z3Statement, indent=0):
+                        statements.append((s,indent))
 
-                # WHY x[0] ?? Why is it a singleton tuple??
-                statements : List[Z3Statement] = [x for x in toz3.stateVarDecs.values()]
-                statements.extend( list(toz3.stateVarDecsExtra.values()) )
-                statements.extend( list(toz3.actionParamDecs[action_id].values()) )
-                statements.append( toz3.stateTransformDecsZ3[action_id] )
-                for zs in statements:
-                    print(zs)
-                # print(toz3.actionParamDecs[action_id] if action_id in toz3.actionParamDecs else "")
-                # print(toz3.stateTransformDecsZ3[action_id])
+                    heading("Contract param constant declarations")
+                    extend( toz3.contractParamDecs.values() )
 
-                # for x in toz3.cast_const_defs.values():
-                #     print(x)
+                    heading("Cast constant declarations")
+                    append( toz3.cast_const_decs[cast_const_name] )
 
+                    heading("State var constant declarations")
+                    extend( toz3.stateVarDecs.values() )
 
+                    heading("Contract param constant extra type info")
+                    extend( toz3.contractParamDecsExtra.values() )
 
-            # print( prog.action_ids() )
-            # print( prog.section_ids() )
-            # print(prog.max_section_id_len, prog.max_action_id_len)
+                    heading("Contract param constant extra type info")
+                    extend( toz3.stateVarDecsExtra.values() )
+
+                    heading("Invariants")
+                    extend(toz3.invariants)
+
+                    # for aid in prog.action_ids():
+                    aid = toz3.cast_const_to_enclosing_action[cast_const_name]
+                    heading(f"======{aid}======")
+                    if len(toz3.actionParamDecs[aid]) > 0:
+                        heading(f"Action param decs for {aid}",1,False)
+                        extend(toz3.actionParamDecs[aid].values(),1)
+                    if aid in toz3.stateTransformDecsZ3:
+                        heading(f"State transform definition for {aid}",1,False)
+                        append(toz3.stateTransformDecsZ3[aid],1)
+
+                    heading("Cast constant definitions")
+                    append(toz3.cast_const_defs[cast_const_name])
+
+                    heading("Negated conjecture")
+                    append( toz3.cast_const_negated_type_asserts[cast_const_name] )
+
+                    append( "(check-sat)" )
+
+                    with open(f"z3test_{cast_const_name}.txt", 'w') as file:
+                        file.write(z3statements_to_str(statements))
 
             if 'printPretty' in sys_argv:
                 prettyprinted = str(prog)

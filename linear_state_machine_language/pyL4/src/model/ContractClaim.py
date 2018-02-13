@@ -1,5 +1,7 @@
 from typing import Any
 
+from src.model.Term import Term
+
 
 class ContractClaim:
     # later after handle CONTRACT_VALUE_PROPERTIES
@@ -14,3 +16,8 @@ class ContractClaim:
         return str(self.expr)
 
 
+class StateInvariant:
+    def __init__(self, prop:Term) -> None:
+        self.prop = prop
+    def __str__(self):
+        return str(self.prop)

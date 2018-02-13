@@ -1,9 +1,11 @@
+from src.independent.util import mapjoin
+from src.parse_to_model.sexpr_to_L4Contract import isprimed, unprimed
 from src.constants_and_defined_types import ActionBoundActionParamId, ActionId
 from src.model.Sort import Sort
 from src.model.StateVarDec import StateVarDec
 from src.model.Literal import Literal, SortLit
 from src.model.Action import Action
-from src.model.BoundVar import GlobalVar, BoundVar
+from src.model.BoundVar import GlobalVar, BoundVar, ActionBoundActionParam
 from src.model.L4Contract import L4Contract
 from src.model.Term import Term, FnApp
 from src.independent.typing_imports import *
@@ -14,6 +16,7 @@ Block = List[Statement]
 # Z3Statement = Tuple[Union[str, Z3Expr], ...]
 Z3Expr = Any
 Z3Statement = Any
+T3FormattedStatementsList = List[Tuple[Union[Z3Statement, str], int]]
 
 Z3_BUILDIN_FNS = frozenset({'and','or','not','==','*','+','>','<','<=','>=','/','-'})
 
@@ -42,18 +45,45 @@ def ite(a1:Z3Expr, a2:Z3Expr, a3:Z3Expr) -> Z3Expr:
 def fnapp(symb:str, *args:Z3Expr) -> Z3Expr:
     return (symb,) + args # type:ignore
 
-def declareconst(const:str, sort:str) -> Z3Expr:
+def declareconst(const:str, sort:str) -> Z3Statement:
     return 'declare-const', const, sort
 
 def assertexpr(expr:Z3Expr) -> Z3Statement:
     return 'assert' , expr
 
-def primed(s:str) -> str:
+
+def z3primed(s:str) -> str:
     return s + "_next"
+
+def rename_with_action_scope(actionparam_name:str, actionid:str) -> str:
+    return actionparam_name + "_" + actionid
+
+
+
+def z3expr_to_str(x:Union[Z3Expr,str]) -> str:
+    if isinstance(x,(str,int,bool)):
+        return str(x)
+    else:
+        return f"({mapjoin(z3expr_to_str, x, ' ')})"
+
+def z3statements_to_str(items:T3FormattedStatementsList) -> str:
+    rv = ""
+    for item in items:
+        (printable, indent) = item
+        if isinstance(printable,str):
+            rv += f"{indent*'    '}{printable}\n"
+        else:
+            rv += f"{indent*'    '}({mapjoin(z3expr_to_str, printable, ' ')})\n"
+    return rv
+
+FN_NAME_SUBST : Dict[str,str] = {
+    'ifthenelse': 'ite',
+    '≤' : '<=',
+    '≥' : '>=',
+}
 
 MACRO_DEFINED_FNS : Dict[str, Callable] = {
     'cast': lambda S,t: t,
-    'ifthenelse': lambda a,b,c: ite(a,b,c),
     'fraction-of-sum': lambda a,b: fnapp('/', a, fnapp('+', a, b)),
     'min': lambda a,b: ite(fnapp('<', a, b), a, b),
      # a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0)
@@ -80,46 +110,84 @@ def sort2z3primtype(s: Sort) -> str:
     raise NotImplementedError(str(s) + ", " + str(type(s)))
 
 class ToZ3:
-    def __init__(self) -> None:
-        self.cast_const_decs : Dict[str, Z3Statement] = dict()
-        self.cast_const_defs: Dict[str, Z3Expr] = dict()
-        self.cast_const_negated_type_asserts: Dict[str, Z3Expr] = dict()
+    def __init__(self, prog:L4Contract) -> None:
+        self.prog = prog
+
         self.cast_const_ind = 0
+
+        self.cast_const_decs : Dict[str, Z3Statement] = dict()
+        self.cast_const_defs: Dict[str, Z3Statement] = dict()
+        self.cast_const_to_enclosing_action : Dict[str,str] = dict()
+
+        self.cast_const_negated_type_asserts: Dict[str, Z3Expr] = dict()
+
+        self.stateTransformDecsZ3: Dict[ActionId, Z3Expr] = dict()
+
+        self.contractParamDecs : Dict[str,Z3Statement] = dict()
+        self.contractParamDecsExtra : Dict[str, Z3Statement] = dict()
+
         self.stateVarDecs : Dict[str,Z3Statement] = dict()
         self.stateVarDecsExtra: Dict[str,Z3Statement] = dict()
+
+        self.invariants : List[Z3Statement] = []
+        self.claims : List[Z3Statement] = []
+
         self.actionParamDecs : Dict[ActionId, Dict[str,Z3Statement]] = dict()
         self.actionParamDecsExtra : Dict[ActionId, Dict[str, Z3Statement]] = dict()
-        self.stateTransformDecsZ3 : Dict[ActionId,Z3Expr] = dict()
+
+        self.allz3symbs: Set[str] = set()
+
+        self.curaid : str = ""
+
 
     def statevarDec2z3(self, svd:StateVarDec):
-        self.stateVarDecs[svd.name] = declareconst(svd.name, sort2z3primtype(svd.sort)),
+        self.stateVarDecs[svd.name] = declareconst(svd.name, sort2z3primtype(svd.sort))
+        self.stateVarDecs[z3primed(svd.name)] = declareconst(z3primed(svd.name), sort2z3primtype(svd.sort))
         if svd.sort in SORT_TO_PRED and isinstance(svd.sort, str):
             self.stateVarDecsExtra[svd.name] = assertexpr(SORT_TO_PRED[svd.sort](svd.name))
+            # self.stateVarDecsExtra[primed(svd.name)] = assertexpr(SORT_TO_PRED[svd.sort](primed(svd.name)))
         else:
-            print("Skipping " + str(svd.sort) )
+            print(f"Skipping extra type prop for state var {svd.name}:{svd.sort}")
+
+    def contractParamDecs2z3(self):
+        for cpd in self.prog.contract_params.values():
+            self.contractParamDecs[cpd.name] = declareconst(cpd.name, sort2z3primtype(cpd.sort))
+            if cpd.sort in SORT_TO_PRED and isinstance(cpd.sort, str):
+                self.contractParamDecsExtra[cpd.name] = assertexpr(SORT_TO_PRED[cpd.sort](cpd.name))
+            else:
+                print(f"Skipping extra type prop for contract param {cpd.name}:{cpd.sort}")
 
     def actionParams2z3(self, action:Action):
-        self.actionParamDecs[action.action_id] = dict()
-        self.actionParamDecsExtra[action.action_id] = dict()
+        aid = action.action_id
+        self.actionParamDecs[aid] = dict()
+        self.actionParamDecsExtra[aid] = dict()
         for apname,apsort in action.param_sorts_by_name.items():
-            self.actionParamDecs[action.action_id][apname] = declareconst(apname, sort2z3primtype(apsort))
+            scoped_apname = rename_with_action_scope(apname, aid)
+
+            self.actionParamDecs[aid][scoped_apname] = declareconst(scoped_apname, sort2z3primtype(apsort))
             if apsort in SORT_TO_PRED:
                 assert isinstance(apsort,str)
-                self.actionParamDecsExtra[action.action_id][apname] = SORT_TO_PRED[apsort](apname)
+                self.actionParamDecsExtra[aid][scoped_apname] = SORT_TO_PRED[apsort](scoped_apname)
             else:
-                print(f"Skipping {apname}:{apsort}")
+                print(f"Skipping extra type prop for action param {scoped_apname}:{apsort}")
 
     def prog2z3def(self, prog:L4Contract):
-        for svd in prog.global_var_decs.values():
+        self.contractParamDecs2z3()
+
+        for svd in self.prog.global_var_decs.values():
             self.statevarDec2z3(svd)
 
-        for a in prog.actions_iter():
+        for invariant in self.prog.state_invariants:
+            self.invariants.append(assertexpr(self.term2z3def(invariant.prop)))
+
+        for a in self.prog.actions_iter():
+            self.curaid = a.action_id
             self.actionParams2z3(a)
             self.action2z3def(a)
 
     def action2z3def(self, a:Action):
         if a.global_state_transform:
-            self.stateTransformDecsZ3[a.action_id] = self.block2z3def(a.global_state_transform.statements)
+            self.stateTransformDecsZ3[a.action_id] = assertexpr(self.block2z3def(a.global_state_transform.statements))
     
     def block2z3def(self,block:Block) -> Z3Expr:
         assert len(block) > 0
@@ -131,7 +199,7 @@ class ToZ3:
     def statement2z3def(self,s:Statement) -> Z3Expr:
         if isinstance(s,StateVarAssign):
             assert s.varop == ":="
-            return equals(primed(s.varname), self.term2z3def(s.value_expr))
+            return equals(z3primed(s.varname), self.term2z3def(s.value_expr))
         elif isinstance(s,IfElse):
             if s.false_branch:
                 return conj(
@@ -145,9 +213,11 @@ class ToZ3:
         else:
             raise NotImplementedError(str(s))
     
-    def new_cast_const(self,) -> str:
+    def new_cast_const(self,actionid:str) -> str:
         self.cast_const_ind += 1
-        return "castconst" + str(self.cast_const_ind)
+        rv = "castconst" + str(self.cast_const_ind)
+        self.cast_const_to_enclosing_action[rv] = actionid
+        return rv
     
 
     def term2z3def(self,t:Term) -> Z3Expr:
@@ -155,7 +225,7 @@ class ToZ3:
             if t.fnsymb_name in Z3_BUILDIN_FNS:
                 return fnapp(t.fnsymb_name, *[self.term2z3def(arg) for arg in t.args])
             elif t.fnsymb_name == "cast":
-                cc = self.new_cast_const()
+                cc = self.new_cast_const(self.curaid)
                 assert isinstance(t.args[0], SortLit)
                 sort = t.args[0].lit
                 primtype = sort2z3primtype(sort)
@@ -168,11 +238,17 @@ class ToZ3:
                     neg( SORT_TO_PRED[sort](cc) )
                 )
                 return value_expr
+            elif t.fnsymb_name in FN_NAME_SUBST:
+                return fnapp(FN_NAME_SUBST[t.fnsymb_name], *[self.term2z3def(arg) for arg in t.args])
             else:
                 assert t.fnsymb_name in MACRO_DEFINED_FNS, t.fnsymb_name + " unhandled"
                 return MACRO_DEFINED_FNS[t.fnsymb_name]( *(self.term2z3def(arg) for arg in t.args) )
         elif isinstance(t, BoundVar):
             assert not isinstance(t, LocalVarDec)
+            if isprimed(t.name):
+                return z3primed(unprimed(t.name))
+            if isinstance(t, ActionBoundActionParam):
+                return rename_with_action_scope(t.name, t.action.action_id)
             return t.name
         elif isinstance(t, Literal):
             return t.lit
@@ -190,8 +266,8 @@ class ToZ3:
     def statement_requirements_to_z3(self,hyp:List[Z3Expr], s:Statement) -> Z3Expr:
         if isinstance(s,StateVarAssign):
             assert s.varop == ":="
-            return conj( equals(primed(s.varname), self.term2z3def(s.value_expr)),
-                         self.term_requirements_to_z3(hyp, s.value_expr) )
+            return conj(equals(z3primed(s.varname), self.term2z3def(s.value_expr)),
+                        self.term_requirements_to_z3(hyp, s.value_expr))
         elif isinstance(s,IfElse):
             if s.false_branch:
                 return conj(
