@@ -133,15 +133,15 @@ def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_r
     elif isinstance(s, IfElse):
         newtest = eliminate_local_vars_term(s.test, frozendict(subst), frozenset(forbidden_read))
 
-        # copy_read_forbid = forbidden_read.copy()
-        # copy_write_forbid = forbidden_write.copy()
+        copy_forbidden_read = forbidden_read.copy()
+        copy_forbidden_write = forbidden_write.copy()
         (new_true_branch, forbidden_read1, forbidden_write1) = eliminate_local_vars_block(s.true_branch, subst,
                                                                                           forbidden_read,
                                                                                           forbidden_write)
         # global vars written to in the true branch can be written to in the false branch, so we send the same sets
         (new_false_branch, forbidden_read2, forbidden_write2) = eliminate_local_vars_block(s.false_branch, subst,
-                                                                                           forbidden_read,
-                                                                                           forbidden_write) if s.false_branch is not None else ([],set(),set())
+                                                                                           copy_forbidden_read,
+                                                                                           copy_forbidden_write) if s.false_branch is not None else ([],set(),set())
 
         s.test = newtest
         s.true_branch = new_true_branch
