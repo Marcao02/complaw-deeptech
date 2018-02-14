@@ -84,8 +84,8 @@ FN_SYMB_INTERP = {
     'or': or_eval,
 
     'days': lambda x: timedelta(days=x),
-    'round': round,
-    'ceil': math.ceil,
+    # 'round': round,
+    # 'ceil': math.ceil,
 
     # 'tuple' : lambda x,y: (x,y),
     'tuple' : lambda *x: tuple([*x]),

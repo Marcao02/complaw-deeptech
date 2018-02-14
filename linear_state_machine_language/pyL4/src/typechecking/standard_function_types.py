@@ -331,10 +331,20 @@ overloaded_types_data : FnTypesData = [
 
     (('floor/','round/'),  parametric_mult_vars(
          {sfntype(N, R, D)}, [
+                {N:Nat, R:PosInt, D:Nat},
                 {N:NonnegReal2, R: Ratio(NonnegReal2,PosInt1), D:Nat1},
                 # {N:PosReal2, R: Ratio(PosReal2,PosInt1), D:Nat1}, # redundant
                 # {N:NonnegReal2, D: PosInt1, R:NonnegReal2},
                 # {N:NonnegReal2, D: PosReal2, R: NonnegReal2}
+            ])
+    ),
+
+    (('ceil/',),  parametric_mult_vars(
+         {sfntype(N, R, D)}, [
+                {N:PosReal, R:PosReal, D:PosInt},
+                {N:Nat, R:PosInt, D:Nat},
+                {N:NonnegReal2, R: Ratio(NonnegReal2,PosInt1), D:Nat1},
+                {N:PosReal2, R: Ratio(PosReal2,PosInt1), D:PosInt1}
             ])
     ),
 

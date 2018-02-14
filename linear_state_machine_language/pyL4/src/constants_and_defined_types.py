@@ -70,7 +70,7 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                      'and', 'or', 'not',
                      'max', 'min',
 
-                     'ceil', 'round',
+                     # 'ceil', 'round',
                      'even', 'odd',
 
                       # derived, but useful for being rigorous about types

@@ -673,13 +673,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         self.mk_sort_lit(x[0]),
                         self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr),
                     ], x.coord())
-                else:
-                    print(f"Warning: treating {x[0]} as a defined sort symbol")
+                elif x[0] in self.top.sort_definitions:
                     return FnApp("units", [
                         self.mk_sort_lit(x[0]),
                         self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
                     ], x.coord())
-                    # self.syntaxError(x, "Didn't recognize function symbol in: " + str(x))
+                else:
+                    if x[0] in INFIX_FN_SYMBOLS:
+                        self.syntaxError(x, f"Didn't recognize symbol {x[0]} in: {x}. Did you mean to use infix notation?")
+                    else:
+                        self.syntaxError(x, f"Didn't recognize symbol {x[0]} in: {x}")
 
                 assert False # this is just to get mypy to not complain about missing return statement
 
@@ -841,7 +844,7 @@ def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:
 def maybe_as_prefix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if isinstance(se[0],str):
         symb = se[0]
-        if symb in PREFIX_FN_SYMBOLS:
+        if symb in PREFIX_FN_SYMBOLS or symb in INFIX_FN_SYMBOLS:
             return symb, se.tillEnd(1)
     return None
 

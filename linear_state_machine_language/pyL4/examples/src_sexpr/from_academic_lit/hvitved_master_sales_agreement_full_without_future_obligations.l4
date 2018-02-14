@@ -138,9 +138,9 @@
 
 	(Action [SubmitNewOrder (quantity : PosInt)]
 		(StateTransform
-			(local test : PosInt := (ceil (quantity / 10)))
-			(local test2 : PosInt := (max 14 (ceil (quantity / 10))))
-			(local delivery_deadline : TimeDelta := (event_td + (days (max 14 (ceil (quantity / 10))))) )
+			(local test : PosInt := (ceil/ quantity 10))
+			(local test2 : PosInt := (max 14 (ceil/ quantity 10)))
+			(local delivery_deadline : TimeDelta := (event_td + (days (max 14 (ceil/ quantity 10)))) )
 			(units_ordered' += quantity)
 			(2Bdelivered' := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline))
 			(next_order_id' += 1)

@@ -37,7 +37,7 @@ def smt_test(prog:L4Contract, outfile_name:str):
     heading("Invariants")
     extend(toz3.invariant_assertions)
     for inv_assert in toz3.invariant_assertions:
-        print(toz3.invariantPrimed(inv_assert[1]))
+        print(toz3.invariantPrimed(inv_assert.args[0]))
 
     for action in prog.actions_iter():
         heading(action.action_id)

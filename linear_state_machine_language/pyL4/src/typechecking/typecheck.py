@@ -216,12 +216,12 @@ class TypeChecker:
         rangeset = set(
             cast(Iterator[Sort], filter(lambda x: x is not None, (self.sft_range(ft, argsorts) for ft in oft.parts))))
         if len(rangeset) == 0:
-            msg = f"Domain of this overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{self.sort_tuple_toStr(argsorts)}"
+            msg = f"\nDomain of this overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{self.sort_tuple_toStr(argsorts)}"
             raise L4TypeInferError(term, msg)
         try:
             intersection = STANDARD_SUBSORTING_GRAPH.simplifyIntersection(rangeset)
         except Exception as e:
-            print("Problem with overloaded function type:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
+            print("\nProblem with overloaded function type:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
             raise e
 
         oft.range_memo[argsorts] = intersection
@@ -310,6 +310,8 @@ class TypeChecker:
                         rv = 'Bool'
                     else:
                         rv = self.overloaded_fnapp_range_memo(fnsymb_type, argsorts, t)
+                except L4TypeError as e:
+                    raise e
                 except Exception as e:
                     raise L4TypeInferError(t, str(e.args[0]))
                 if rv is None:

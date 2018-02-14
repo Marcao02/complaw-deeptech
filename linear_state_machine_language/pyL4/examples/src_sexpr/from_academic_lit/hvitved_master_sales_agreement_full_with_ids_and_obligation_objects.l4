@@ -170,7 +170,7 @@
             ; 14 days later, or quantity/10 days later, whichever occurs last
             [local this_delivery_deadline : TimeDelta := [max
                     [14d + event_td]
-                    [[days [ceil [quantity / 10]]] + event_td]
+                    [[days [ceil/ quantity 10]] + event_td]
                 ]
             ]
             [units_ordered' += quantity]
