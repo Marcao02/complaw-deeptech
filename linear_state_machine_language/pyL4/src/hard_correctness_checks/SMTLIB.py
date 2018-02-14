@@ -52,18 +52,16 @@ MACRO_DEFINED_FNS : Dict[str, Callable] = {
     "trust": lambda S,t: t,
     'fraction-of-sum': lambda a,b: fnapp('/', a, fnapp('+', a, b)),
     'min': lambda a,b: ite(fnapp('<', a, b), a, b),
+    'even': lambda a: equals(fnapp('mod', a, 2), 0),
+    'odd': lambda a: equals(fnapp('mod', a, 2), 1),
+    'max': lambda a,b: ite(fnapp('>', b, a), b, a),
      # a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0   (and floor(a/b) is integer division)
     'round/': lambda a,b: fnapp('+', fnapp('div', a, b), ite( fnapp('>=', fnapp('rem',a,b), fnapp('div',b,2)), 1, 0)),
     # a floor/ b is a integer/ b
     'floor/': lambda a,b: fnapp('div', a, b),
     # a ceil/ b is floor(a/b) + (1 if floor(a/b) < a/b else 0)
     'ceil/': lambda a,b: fnapp('+', fnapp('div', a, b), ite( fnapp('<', fnapp('div',a,b), fnapp('/',a,b)), 1, 0)),
-    # not used in SAFE:
-    # 'floor': lambda a: ite(),
-    # 'round': ,
-    # 'even': ,
-    # 'odd'
-    # 'max': ,
+
 }
 
 
