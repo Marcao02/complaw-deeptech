@@ -1,13 +1,13 @@
-
-(Roles I)
+; No `Roles` declaration means only the always-present Env role, equivalent to:
+; (Roles)
+; This is the default:
+; (TimeUnit d)
 
 (GlobalVars
 	(n : Nat = 3)
 )
 
-(TimeUnit d)
-
-(FormalContract "test contract for must later"
+(FormalContract "test for local vars"
 	(StartSection Ongoing)
 
 	(Section Ongoing

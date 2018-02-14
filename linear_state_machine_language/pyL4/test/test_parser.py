@@ -8,6 +8,7 @@ from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
 from src.independent.parse_sexpr import parse_file, prettySExprStr
 from src.state_diagram_generation import contractToDotFile
+from test.test_smt import smt_test
 
 EXAMPLES_SEXPR_ROOT = "./examples/src_sexpr/"
 EXAMPLES_UNPARSED_ROOT = "./examples/out_prettyprinted/"
@@ -74,47 +75,8 @@ def main(sys_argv:List[str]):
                 3 unsat ✓                
 
                 """
+                smt_test(prog, filename)
 
-                lines: List[Z3Line] = []
-                def heading(s:str, indent=0, linebreak=True) -> None:
-                    if linebreak:
-                        lines.append("")
-                    lines.append('; ' + s)
-                def extend(_lines:Iterable[Union[Z3Statement,str]], indent=0):
-                    lines.extend(_lines)
-                def append(s:Z3Statement, indent=0):
-                    lines.append(s)
-
-                eliminate_local_vars(prog)
-                toz3 = ToZ3(prog)
-                toz3.prog2z3def()
-
-                heading("Contract param constant declarations")
-                extend( toz3.contractParamDecs.values() )
-
-                heading("State var constant declarations")
-                extend( toz3.stateVarDecs.values() )
-
-                heading("Contract param constants extra type info")
-                extend(toz3.contractParamExtraTypeAssertions.values())
-
-                heading("State var constants extra type info")
-                extend(toz3.stateVarExtraTypeAssertions.values())
-
-                heading("Contract param definitions")
-                extend(toz3.contractParamDefns.values())
-
-                heading("Invariants")
-                extend(toz3.invariant_assertions)
-                for inv_assert in toz3.invariant_assertions:
-                    print( toz3.invariantPrimed(inv_assert[1]) )
-
-                for action in prog.actions_iter():
-                    heading(action.action_id)
-                    extend(toz3.actionZ3Commands[action.action_id])
-
-                with open(f"{filename}_casts.z3", 'w') as file:
-                    file.write(z3statements_to_str(lines))
 
             if 'printPretty' in sys_argv:
                 prettyprinted = str(prog)
