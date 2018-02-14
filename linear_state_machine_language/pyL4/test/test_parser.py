@@ -1,7 +1,7 @@
 import logging
 from typing import List, Iterable, Union
 
-from src.hard_correctness_checks.toZ3 import ToZ3, Z3Statement, z3statements_to_str, Z3Line
+from src.hard_correctness_checks.toSMTLIB import ToSMTLIB, SMTCommand, smt_lines_to_str, SMTLine
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars
 from src.independent.util import writeReadOnlyFile
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
