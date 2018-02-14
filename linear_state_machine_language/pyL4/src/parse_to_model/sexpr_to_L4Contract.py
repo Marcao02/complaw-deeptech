@@ -43,8 +43,8 @@ def isprimed(s:str) -> bool:
     return s[-1] == "'"
 
 class L4ContractConstructor(L4ContractConstructorInterface):
-    def __init__(self, filename:Optional[str] = None) -> None:
-        self.top : L4Contract = L4Contract(filename or '')
+    def __init__(self, filename:str) -> None:
+        self.top : L4Contract = L4Contract(filename)
         self.referenced_nonderived_section_ids: Set[SectionId] = set()
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
         self.after_model_build_requirements : List[Tuple[Callable[[],bool],str]] = []

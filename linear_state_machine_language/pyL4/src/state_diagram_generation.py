@@ -87,7 +87,7 @@ digraph {cleaned_graphname} {{
     {multiloop_actions_to_sections_str}   
 }}"""
 
-def contractToDotFile(l4file: L4Contract, rootpath = 'out', use_filename = True, verbose = False) -> None:
+def contractToDotFile(l4file: L4Contract, rootpath, use_filename = True, verbose = False) -> None:
     if use_filename:
         print("filename:", l4file.filename)
         cleaned_contract_name = l4file.filename[:-3]

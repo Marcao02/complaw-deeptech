@@ -21,10 +21,10 @@ section WaitingForFirstDayOfNextMonth:
 action PayInstallment(amount: Pos$) transitions to WaitingForFirstDayOfNextMonth:
     pre: (amount ≤ balance_remaining)
     transform:
-        balance_remaining := ((cast $ (balance_remaining - amount)) * (1 + INTEREST_RATE))
+        balance_remaining := ((check $ (balance_remaining - amount)) * (1 + INTEREST_RATE))
         next_payment_month := (next_payment_month + 1)
 
 action PayLastInstallment(amount: Pos$) transitions to Fulfilled:
+    pre: (amount == (balance_remaining + DUE_AT_CLOSING))
     transform:
-        prove (amount == (balance_remaining + DUE_AT_CLOSING))
-        balance_remaining := (cast $ 0)
+        balance_remaining := (units $ 0)

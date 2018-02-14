@@ -1,6 +1,6 @@
 // THIS IS A GENERATED FILE. DO NOT EDIT.
 
-digraph test_contract_for_must_later {    
+digraph test_for_local_vars {    
     Fulfilled[label=Fufilled];
     Ongoing[label=Ongoing]
     

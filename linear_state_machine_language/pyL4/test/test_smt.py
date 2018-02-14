@@ -1,10 +1,33 @@
 from hard_correctness_checks.normal_forms import eliminate_local_vars
+from independent.parse_sexpr import parse_file
 from independent.typing_imports import *
+from parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand, smt_lines_to_str, ToSMTLIB
 from src.model.L4Contract import L4Contract
+from active_examples import *
 
+EXAMPLES_TO_USE = [
+    'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+    'serious/SAFE.l4',
+    'from_academic_lit/Farmer_american_call_option_2016.l4',
+]
 
-def smt_test(prog:L4Contract, outfile_name:str):
+# so can run it as a library too, which respects exceptions
+def main(examples:Dict[str,L4Contract]):
+    for examplekey in examples:
+        if examplekey in EXAMPLES_TO_USE:
+            prog = examples[examplekey]
+            outfilepath = "examples/out_smt/" + prog.filename[:-2] + "z3"
+            smt_test(prog, outfilepath)
+
+def cli(sys_argv:List[str]):
+    raise NotImplementedError
+
+if __name__ == '__main__':
+    import sys
+    cli(sys.argv)
+
+def smt_test(prog:L4Contract, outfilepath:str):
     lines: List[SMTLine] = []
 
     def heading(s: str, linebreak=True) -> None:
@@ -43,5 +66,5 @@ def smt_test(prog:L4Contract, outfile_name:str):
         heading(action.action_id)
         extend(toz3.commands_for_actions[action.action_id])
 
-    with open(f"{outfile_name}.z3", 'w') as file:
+    with open(outfilepath, 'w') as file:
         file.write(smt_lines_to_str(lines))

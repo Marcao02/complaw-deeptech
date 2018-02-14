@@ -257,7 +257,6 @@ class TypeChecker:
     def typeinfer_term(self, t:Term) -> Sort:
         if isinstance(t,FnApp):
             if t.fnsymb_name in {'cast','check','trust','units'}:
-                todo_once("Add `attach_unit_type` fn, and change `cast` to `tighten`?")
                 assert len(t.args) == 2
                 casted_term = t.args[1]
                 sortlit = t.args[0]

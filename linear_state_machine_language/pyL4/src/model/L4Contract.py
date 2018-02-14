@@ -56,6 +56,8 @@ class L4Contract:
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output
 
+
+
     def nextaction_rules(self) -> Iterator[NextActionRule]:
         for s in self.sections_iter():
             for nar in s.action_rules():

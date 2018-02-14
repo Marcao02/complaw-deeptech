@@ -1,7 +1,7 @@
 -----------------------------------------
 file: toy_and_teaching/test_local_vars.l4
 
-roles: Env, I
+roles: Env
 
 global vars:
     n : Nat := 3
@@ -11,6 +11,8 @@ section Ongoing:
 
 action DoIt()  transitions to AfterDoIt:
     transform:
+        x : Nat := (n * n)
+        y : Nat := (x * x)
     following section:
         FinishIt(y)
 

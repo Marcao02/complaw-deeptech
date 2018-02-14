@@ -1,7 +1,7 @@
 from datetime import timedelta
 from itertools import chain
 from math import inf
-from typing import Sequence, Tuple, Optional
+from typing import Sequence, Tuple, Optional, Iterable
 
 from src.constants_and_defined_types import *
 from src.independent.parse_sexpr import prettySExprStr, parse_file
@@ -433,19 +433,16 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
 
 ]
 
-
 # this is used in runme_before_commit.py b/c I often comment out some of the entries of EXAMPLES_TO_RUN
 EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
 traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious)
-
-from test_parser import EXAMPLES_SEXPR_ROOT
 
 EXAMPLES_TO_RUN = [
         'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
 
         'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
         'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
-        'from_academic_lit//hvitved_lease.l4',
+        'from_academic_lit/hvitved_lease.l4',
 
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
 
@@ -460,58 +457,49 @@ EXAMPLES_TO_RUN = [
     ]
 
 # so can run it as a library too, which respects exceptions
-def main(sys_argv:Sequence[str]):
-
+def main(examples:Dict[str,L4Contract]):
     for trace in traces:
-        subpath = trace[0]
-        if subpath in EXAMPLES_TO_RUN:
-            print("\n" + subpath)
-            path = EXAMPLES_SEXPR_ROOT + subpath
-            parsed = parse_file(path)
-            if 'print' in sys_argv:
-                print(prettySExprStr(parsed))
+        examplekey = trace[0]
+        if examplekey in EXAMPLES_TO_RUN:
+            print("\nRunning test trace for " + examplekey)
+            prog = examples[examplekey]
+            evalTrace(trace[1], prog, debug=False)
 
-            assembler = L4ContractConstructor(path)
-            prog : L4Contract = assembler.mk_l4contract(parsed)
+def run_parsed_examples(examples:Dict[str,L4Contract]):
+    for example_key in examples:
+        assert example_key in EXAMPLES_TO_RUN, example_key
 
-            evalTrace(trace[1], prog, 'debug' in sys_argv)
-
+def cli(sys_argv:Sequence[str]):
+    raise NotImplementedError
 
 if __name__ == '__main__':
     import sys
-    main(sys.argv)
+    cli(sys.argv)
 
 
-                # 'examples/hvitved_master_sales_agreement_full_with_ids.LSM': [
-    #     nextTSEvent('Start'),
-    #     nextTSEvent('ContractLive'),
-    #     nextTSEvent('NewOrder',[50]),
-    #     nextTSEvent('ContractLive'),
-    #     nextTSEvent('NewOrder',[40]),
-    # ],
-    # 'examples_sexpr/hvitved_lease.LSM': [
-    #     nextTSEvent('Move_In'),
-    #     nextTSEvent('Lease_Term_Started'),
-    #     nextTSEvent('EnsureApartmentReady'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('RentDue'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('Request_Termination_At_Rent_Or_Before'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Month_Started'),
-    #     nextTSEvent('PayRent'),
-    #     nextTSEvent('Request_Termination_After_Rent'),
-    #     nextTSEvent('Month_Ended'),
-    #     nextTSEvent('Lease_Term_Ended'),
-    #     nextTSEvent('Move_Out'),
-    #     nextTSEvent('Month_Started'),
-    # ],
+# 'examples_sexpr/hvitved_lease.LSM': [
+#     nextTSEvent('Move_In'),
+#     nextTSEvent('Lease_Term_Started'),
+#     nextTSEvent('EnsureApartmentReady'),
+#     nextTSEvent('Month_Started'),
+#     nextTSEvent('PayRent'),
+#     nextTSEvent('Month_Ended'),
+#     nextTSEvent('Month_Started'),
+#     nextTSEvent('RentDue'),
+#     nextTSEvent('PayRent'),
+#     nextTSEvent('Month_Ended'),
+#     nextTSEvent('Month_Started'),
+#     nextTSEvent('Request_Termination_At_Rent_Or_Before'),
+#     nextTSEvent('PayRent'),
+#     nextTSEvent('Month_Ended'),
+#     nextTSEvent('Month_Started'),
+#     nextTSEvent('PayRent'),
+#     nextTSEvent('Month_Ended'),
+#     nextTSEvent('Month_Started'),
+#     nextTSEvent('PayRent'),
+#     nextTSEvent('Request_Termination_After_Rent'),
+#     nextTSEvent('Month_Ended'),
+#     nextTSEvent('Lease_Term_Ended'),
+#     nextTSEvent('Move_Out'),
+#     nextTSEvent('Month_Started'),
+# ],
