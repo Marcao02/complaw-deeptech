@@ -1,5 +1,7 @@
 import os
 import sys
+import time
+from typing import Dict, Optional
 
 from src.independent.util import print_all_todos
 
@@ -17,43 +19,61 @@ def runit(s, optional_s=""):
     os.system(s)
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
+    splits : Dict[str,int] = {}
+    last = ""
+    def timetask_start(label:str):
+        global last
+        splits[label] = time.process_time()
+        last = label
+    def timetask_stop(maybelabel:Optional[str] = None):
+        label = maybelabel if maybelabel else last
+        splits[label] = time.process_time() - splits[label]
+    def show_splits():
+        print()
+        for label in splits:
+            print(label, "time:", str(splits[label]*10)[0:4])
+
     import test_parser
-
     assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
-
-    if "print" in sys.argv:
-        print(f"\n============================================\nRunning `test_parser.py` with args `examples printPretty printSExpr dot`")
-        test_parser.main("examples printPretty printSExpr dot")
-        # runit("python3.6 src.parse_to_model_cli.py examples printPretty printSExpr dot")
-    else:
-        print(f"\n============================================\nRunning `test_parser.py` with args `examples`")
-        test_parser.main("examples")
-        # runit("python3.6 src.parse_to_model_cli.py examples")
-
     progs = test_parser.main(keep=True)
 
+    timetask_start('total')
     if 'interpreter' in tests_to_run:
+        timetask_start('interpreter')
         import test_interpreter
         assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), "Some entries of test_interpreter.EXAMPLES_TO_RUN are probably commented out"
-        test_interpreter.main(progs)
+        test_interpreter.main(progs,False)
+        timetask_stop()
 
     if 'typechecker' in tests_to_run:
+        timetask_start('typechecker')
         import test_typechecker
-        test_typechecker.main(progs)
+        test_typechecker.main(progs,False)
+        timetask_stop()
 
     if 'smt' in tests_to_run:
+        timetask_start('smt')
         import test_smt
         test_smt.main(progs)
+        timetask_stop()
 
     if 'graphviz' in tests_to_run:
+        timetask_start('graphviz')
         import test_graphviz
-        test_graphviz.main(progs)
+        test_graphviz.main(progs,False)
+        timetask_stop()
 
     if 'prettyprint' in tests_to_run:
+        timetask_start('prettyprint')
         import test_prettyprint
         test_prettyprint.main(progs)
+        timetask_stop()
+
+    timetask_stop('total')
 
     print_all_todos()
+
+    show_splits()
 
 # runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
 runit("export MYPYPATH=.; mypy src", "typechecker")

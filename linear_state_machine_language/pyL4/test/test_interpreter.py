@@ -457,17 +457,14 @@ EXAMPLES_TO_RUN = [
     ]
 
 # so can run it as a library too, which respects exceptions
-def main(examples:Dict[str,L4Contract]):
+def main(examples:Dict[str,L4Contract], verbose=True):
     for trace in traces:
         examplekey = trace[0]
         if examplekey in EXAMPLES_TO_RUN:
-            print("\nRunning test trace for " + examplekey)
+            if verbose:
+                print("\nRunning test trace for " + examplekey)
             prog = examples[examplekey]
-            evalTrace(trace[1], prog, debug=False)
-
-def run_parsed_examples(examples:Dict[str,L4Contract]):
-    for example_key in examples:
-        assert example_key in EXAMPLES_TO_RUN, example_key
+            evalTrace(trace[1], prog, verbose=verbose, debug=False)
 
 def cli(sys_argv:Sequence[str]):
     raise NotImplementedError

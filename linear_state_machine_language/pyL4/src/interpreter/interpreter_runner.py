@@ -10,14 +10,13 @@ from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal
 
 
-def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, debug=False):
+def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, verbose:bool=True, debug:bool=False):
     env : Union[ExecEnvOld,ExecEnvNF]
     if len(list(prog.futureaction_rules())) > 0:
         # raise Exception("ExecEnvOld works but we're trying to phase it out.")
         env = ExecEnvOld(prog)
     else:
         env = ExecEnvNF(prog)
-
     if isinstance(it, CompleteTrace):
         for contract_param in it.contract_param_subst:
             # replacing hardcoded contrat param vals with passed in ones
@@ -28,11 +27,11 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, debug=False):
                 paramdec.value_expr.lit = supplied_val
             else:
                 paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)
-
         return env.evalTrace(trace = it.events,
                              finalSectionId = cast(SectionId, it.final_section),
                              final_var_vals = cast(Optional[GVarSubst], it.final_values),
-                             verbose=True, debug=debug)
+                             verbose=verbose, debug=debug)
     else:
-        return env.evalTrace(trace = it, verbose=True, debug=debug)
+        print("2")
+        return env.evalTrace(trace = it, verbose=verbose, debug=debug)
 

@@ -12,7 +12,8 @@ from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequireme
 
 
 class ToSMTLIB:
-    def __init__(self, prog:L4Contract) -> None:
+    def __init__(self, prog:L4Contract, verbose:bool) -> None:
+        self.verbose = verbose
         self.prog = prog
 
         self.cast_const_ind = 0
@@ -111,7 +112,7 @@ class ToSMTLIB:
         self.stateVarDecs[to_smt_primed_token(svd.name)] = declareconst(to_smt_primed_token(svd.name), sort2smtlibprimtype(svd.sort))
         if svd.sort in SORT_TO_PRED and isinstance(svd.sort, str):
             self.stateVarExtraTypeAssertions[svd.name] = assertexpr(SORT_TO_PRED[svd.sort](svd.name))
-        else:
+        elif self.verbose:
             print(f"Skipping extra type prop for state var {svd.name}:{svd.sort}")
 
     def contractParamDecs2smtlib(self):
@@ -119,7 +120,7 @@ class ToSMTLIB:
             self.contractParamDecs[cpd.name] = declareconst(cpd.name, sort2smtlibprimtype(cpd.sort))
             if cpd.sort in SORT_TO_PRED and isinstance(cpd.sort, str):
                 self.contractParamExtraTypeAssertions[cpd.name] = assertexpr(SORT_TO_PRED[cpd.sort](cpd.name))
-            else:
+            elif self.verbose:
                 print(f"Skipping extra type prop for contract param {cpd.name}:{cpd.sort}")
             if cpd.value_expr is not None:
                 self.contractParamDefns[cpd.name] = assertexpr(equals(cpd.name, self.term2smtlibdef(cpd.value_expr)))
@@ -137,7 +138,7 @@ class ToSMTLIB:
                 assert isinstance(apsort,str)
                 self.actionParamExtraTypeAssertions[aid][scoped_apname] = assertexpr(SORT_TO_PRED[apsort](scoped_apname))
                 self.append(self.actionParamExtraTypeAssertions[aid][scoped_apname])
-            else:
+            elif self.verbose:
                 print(f"Skipping extra type prop for action param {scoped_apname}:{apsort}")
 
     def prog2smtlibdef(self):

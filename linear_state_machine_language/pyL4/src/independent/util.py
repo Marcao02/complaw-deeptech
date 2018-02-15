@@ -7,7 +7,7 @@ import time
 def mytimeit(f:Callable[[],Any]) -> Any:
     start = time.process_time()
     rv = f()
-    print("TIME", 1000 * (time.process_time() - start))
+    print("TIME", 10 * (time.process_time() - start))
     return rv
 
 def indent(i:int) -> str:

@@ -118,7 +118,6 @@ class ExecEnv:
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
-
         for i in range(len(trace)):
             # print("Environ", self.environ_tostr())
             eventi = trace[i]

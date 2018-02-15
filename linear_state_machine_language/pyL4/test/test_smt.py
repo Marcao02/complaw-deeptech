@@ -18,7 +18,7 @@ def main(examples:Dict[str,L4Contract]):
         if examplekey in EXAMPLES_TO_USE:
             prog = examples[examplekey]
             outfilepath = "examples/out_smt/" + prog.filename[:-2] + "z3"
-            smt_test(prog, outfilepath)
+            smt_test(prog, outfilepath, verbose=False)
 
 def cli(sys_argv:List[str]):
     raise NotImplementedError
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     import sys
     cli(sys.argv)
 
-def smt_test(prog:L4Contract, outfilepath:str):
+def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
     lines: List[SMTLine] = []
 
     def heading(s: str, linebreak=True) -> None:
@@ -39,7 +39,7 @@ def smt_test(prog:L4Contract, outfilepath:str):
         lines.extend(_lines)
 
     eliminate_local_vars(prog)
-    toz3 = ToSMTLIB(prog)
+    toz3 = ToSMTLIB(prog,verbose)
     toz3.prog2smtlibdef()
 
     heading("Contract param constant declarations")
@@ -59,8 +59,6 @@ def smt_test(prog:L4Contract, outfilepath:str):
 
     heading("Invariants")
     extend(toz3.invariant_assertions)
-    for inv_assert in toz3.invariant_assertions:
-        print(toz3.invariantPrimed(inv_assert.args[0]))
 
     for action in prog.actions_iter():
         heading(action.action_id)

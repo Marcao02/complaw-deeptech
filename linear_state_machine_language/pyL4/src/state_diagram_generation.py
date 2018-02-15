@@ -89,7 +89,8 @@ digraph {cleaned_graphname} {{
 
 def contractToDotFile(l4file: L4Contract, rootpath, use_filename = True, verbose = False) -> None:
     if use_filename:
-        print("filename:", l4file.filename)
+        if verbose:
+            print("filename:", l4file.filename)
         cleaned_contract_name = l4file.filename[:-3]
     else:
         # replace spaces with underscores

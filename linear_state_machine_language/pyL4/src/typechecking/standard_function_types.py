@@ -83,7 +83,7 @@ def print_types_map(fntypesmap:FnTypesMap):
 
 def makeNiceFnTypeMap(data: FnTypesData) -> FnTypesMap:
     # toiter : Dict[str,Iterable[SimpleFnType]] = dict()
-    start = time.process_time()
+    # start = time.process_time()
     dict_of_tuples : Dict[str,Tuple[SimpleFnType,...]] = dict()
     for part in data:
         tuple_from_iter = tuple(part[1])
@@ -95,7 +95,7 @@ def makeNiceFnTypeMap(data: FnTypesData) -> FnTypesMap:
                 dict_of_tuples[symb] = tuple_from_iter + dict_of_tuples[symb]
 
     rv = { symb: OverloadedFnType( set(dict_of_tuples[symb]), dict() ) for symb in dict_of_tuples }
-    print("TIME", 1000*(time.process_time() - start))
+    # print("TIME", 10*(time.process_time() - start))
     return rv
 
     # speed the same

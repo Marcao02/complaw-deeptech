@@ -152,38 +152,51 @@ def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
 #
 #     duplicate_some_edges(subst, graph)
 
-def typecheck_prog(prog:L4Contract):
+def typecheck_prog(prog:L4Contract, verbose=True):
+    def maybesay(*args:Any):
+        if verbose:
+            print(args)
 
     sorts_used_explicitly = frozenset(what_sorts_used_explicitly(prog)).union(prog.sort_definitions.keys())
-    print(f"Explicit sorts:\n", sorts_used_explicitly)
+    maybesay(f"Explicit sorts:\n", sorts_used_explicitly)
+    if verbose:
+        print(f"Explicit sorts:\n", sorts_used_explicitly)
 
     literal_sorts = frozenset(what_sorts_used_explicitly_or_at_leaves(prog))
-    print(f"Nonexplicit sorts of literals:\n",literal_sorts.difference(sorts_used_explicitly))
+    if verbose:
+        print(f"Nonexplicit sorts of literals:\n",literal_sorts.difference(sorts_used_explicitly))
 
     check_sorts_valid(sorts_used_explicitly, prog.sort_definitions)
     # addDimensionedNumericSortRelnsToGraphAndFnTypes(sorts_used_explicitly, prog.expanded_sort_definitions, STANDARD_SUBSORTING_GRAPH, STANDARD_FNTYPES)
 
     fsymbs = set(what_fnsymbols_used(prog))
-    print(f"Explicit fn symbols:\n", fsymbs)
+    if verbose:
+        print(f"Explicit fn symbols:\n", fsymbs)
     assert fsymbs == set(what_fnsymbols_used2(prog))
 
-    tc = TypeChecker(prog)
+    tc = TypeChecker(prog, verbose=verbose)
+
     for action in prog.actions_iter():
-        tc.typecheck_action(action)
+        tc.typecheck_action(action, verbose=verbose)
+
     for section in prog.sections_iter():
-        tc.typecheck_section(section)
-    msg2 = f"Typechecking contract param declarations"
-    print(msg2 + "\n" + "-" * len(msg2))
-    # print("-" * len(msg2) + "\n" + msg2)
+        tc.typecheck_section(section, verbose=verbose)
+
+    if verbose:
+        msg2 = f"Typechecking contract param declarations"
+        print(msg2 + "\n" + "-" * len(msg2))
     for contract_param_dec in prog.contract_params.values():
-        # print(f"Checking {contract_param_dec.value_expr} against {contract_param_dec.sort}")
         tc.typecheck_term(contract_param_dec.value_expr, contract_param_dec.sort)
-    msg2 = f"Typechecking global state var declarations"
-    print(msg2 + "\n" + "-" * len(msg2))
+
+    if verbose:
+        msg2 = f"Typechecking global state var declarations"
+        print(msg2 + "\n" + "-" * len(msg2))
     for gvardec in prog.global_var_decs.values():
         if gvardec.initval:
             tc.typecheck_term(gvardec.initval, gvardec.sort)
-    print("✓\n")
+
+    if verbose:
+        print("✓\n")
 
 def sort_expanded_display(sort:Sort, expanded:Sort) -> str:
     if sort == expanded:
@@ -193,8 +206,9 @@ def sort_expanded_display(sort:Sort, expanded:Sort) -> str:
 
 
 class TypeChecker:
-    def __init__(self,prog:L4Contract) -> None:
+    def __init__(self, prog:L4Contract, verbose=True) -> None:
         self.prog = prog
+        self.verbose = verbose
 
     def repl_sort_def(self,sort:Sort) -> Sort:
         # if sort == "$":
@@ -280,11 +294,13 @@ class TypeChecker:
 
                 if t.fnsymb_name == "units":
                     assert isinstance(casted_term,Literal)
-                    print(f"Innocent cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
-                          f"{sort_expanded_display(casted_to, casted_to_long)} for literal {casted_term}.")
+                    if self.verbose:
+                        print(f"Innocent cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
+                              f"{sort_expanded_display(casted_to, casted_to_long)} for literal {casted_term}.")
                 elif t.fnsymb_name in {"check","cast"}:
-                    print(f"Z3-to-check cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
-                          f"{sort_expanded_display(casted_to, casted_to_long)} for non-literal.")
+                    if self.verbose:
+                        print(f"Z3-to-check cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
+                              f"{sort_expanded_display(casted_to, casted_to_long)} for non-literal.")
                 else:
                     print(
                         f"UNCHECKED cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
@@ -421,17 +437,17 @@ class TypeChecker:
             self.typecheck_term(rule.time_constraint, 'Bool')
 
 
-    def typecheck_section(self, section:Section):
-        msg2 = f"Typechecking Section {section.section_id}"
-        # print("-" * len(msg2) + "\n" + msg2)
-        print(msg2 + "\n" + "-" * len(msg2))
+    def typecheck_section(self, section:Section, verbose=True):
+        if verbose:
+            msg2 = f"Typechecking Section {section.section_id}"
+            print(msg2 + "\n" + "-" * len(msg2))
         for rule in section.action_rules():
             self.typecheck_action_rule(rule)
 
-    def typecheck_action(self, action:Action):
-        msg2 = f"Typechecking Action {action.action_id}"
-        # print("-" * len(msg2) + "\n" + msg2)
-        print(msg2 + "\n" + "-" * len(msg2))
+    def typecheck_action(self, action:Action, verbose=True):
+        if verbose:
+            msg2 = f"Typechecking Action {action.action_id}"
+            print(msg2 + "\n" + "-" * len(msg2))
         for prop in action.preconditions:
             self.typecheck_term(prop, 'Bool')
         for statement in action.state_transform_statements():

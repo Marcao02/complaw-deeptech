@@ -22,12 +22,12 @@ def tdmapname(roleid:RoleId, actionid:ActionId, keyword:DeonticKeyword) -> State
         assert keyword == "may-later"
         return castid(StateVarId, f"{roleid}_may_{actionid}_by")
 
-def add_tdmap_dec(prog: L4Contract, mapvar_name: StateVarId, argsort:Sort) -> None:
-    print("Adding global var dec " + mapvar_name)
-    prog.global_var_decs[mapvar_name] = StateVarDec(mapvar_name, SortOpApp.c("TDMap", (argsort,)), FnApp('emptyTDMap', []), [])
-
-
-def floating_rules_transpile_away(prog:L4Contract) -> None:
+def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
+    def add_tdmap_dec(prog: L4Contract, mapvar_name: StateVarId, argsort: Sort) -> None:
+        if verbose:
+            print("Adding global var dec " + mapvar_name)
+        prog.global_var_decs[mapvar_name] = StateVarDec(mapvar_name, SortOpApp.c("TDMap", (argsort,)),
+                                                        FnApp('emptyTDMap', []), [])
     statement: Statement
     params: List[Term]
 

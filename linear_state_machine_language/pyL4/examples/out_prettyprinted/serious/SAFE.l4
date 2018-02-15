@@ -74,7 +74,13 @@ action CommitToLiquidityEvent(change_of_control: Bool, company_cash_at_liquidity
         investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ liq_price')
         investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization)
         if (and change_of_control (reduction_needed_to_qualify_as_usa_tax_free_reorg > (units $ 0))):
-            <src.model.Statement.IfElse object at 0x104915a20>
+            if ((investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg) ≤ PURCHASE_AMOUNT):
+                investor_Common_Stocks := (investor_Common_Stocks + ((investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg) round/ liq_price'))
+                cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+            else:
+                investor_Common_Stocks := (investor_Common_Stocks + (PURCHASE_AMOUNT round/ liq_price'))
+                cash_currently_unconverted := 0
+
         else:
             cash_currently_unconverted := PURCHASE_AMOUNT
 

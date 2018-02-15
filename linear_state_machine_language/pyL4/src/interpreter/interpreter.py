@@ -103,7 +103,6 @@ class ExecEnv:
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
-
         for i in range(len(trace)):
             # print("Environ", self.environ_tostr())
             eventi = trace[i]
@@ -117,7 +116,6 @@ class ExecEnv:
                 if isprimed(gvarid):
                     self.gvarvals[unprimed(gvarid)] = self.gvarvals[gvarid]
             self.gvarvals = {id:self.gvarvals[id] for id in self.gvarvals if not isprimed(id)}
-
             # print("last_section_entrance_delta", self.last_section_entrance_delta)
 
             if self.last_section_entrance_delta is not None and self.last_section_entrance_delta > cur_event_delta:
@@ -129,24 +127,23 @@ class ExecEnv:
             if not self.top.section_mentions_action_in_nextaction_rule(self.last_or_current_section_id, cur_action_id):
                 self.evalError(  f"Action type indicated using a next-rule, but current section {self.last_or_current_section_id} "
                                  f"has no such rule for action {cur_action_id}." )
-
             self.evaluation_is_in_section = True
-            nextrule_assessment = self.assess_event_legal_wrt_nextrules(eventi)
+            nextrule_assessment = self.assess_event_legal_wrt_nextrules(eventi, verbose=verbose)
             self.evaluation_is_in_section = False
 
             actionstr = event_to_action_str(eventi)
             srcid = self.last_or_current_section_id
             if isinstance(nextrule_assessment, EventOk):
                 self.evaluation_is_in_action = True
-                applyactionresult = self.apply_action(cur_action)
+                applyactionresult = self.apply_action(cur_action,verbose)
                 self.evaluation_is_in_action = False
                 if verbose:
                     print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {self.last_or_current_section_id}\n")
-
             elif isinstance(nextrule_assessment, BreachResult):
-                print("Breach result:", nextrule_assessment)
+                if verbose:
+                    print("Breach result:", nextrule_assessment)
                 breach_section_id = breachSectionId(*nextrule_assessment.role_ids)
-                self.apply_action(cur_action, to_breach_section_id = breach_section_id)
+                self.apply_action(cur_action, verbose, to_breach_section_id = breach_section_id)
 
                 if verbose:
                     print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {breach_section_id}")
@@ -157,7 +154,6 @@ class ExecEnv:
                 break
             else:
                 assert False, "Can't get here?"
-
             if debug:
                 # code, IPython, pdb are other options
                 import ipdb   # type: ignore
@@ -180,7 +176,7 @@ class ExecEnv:
             assert self.last_or_current_section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self.last_or_current_section_id}"
 
 
-    def assess_event_legal_wrt_nextrules(self, event:Event) -> EventLegalityAssessment:
+    def assess_event_legal_wrt_nextrules(self, event:Event, verbose=True) -> EventLegalityAssessment:
 
         enabled_strong_obligs : List[PartyNextActionRule] = list()
 
@@ -279,7 +275,8 @@ class ExecEnv:
             for rule in enabled_weak_obligs_by_role[roleid_with_wo]:
                 # print(f"An enabled weak oblig rule for {roleid_with_wo}: " + str(rule))
                 if self.current_event_compatible_with_enabled_NextActionRule(rule):
-                    print("weak oblig rule checks out: ", rule)
+                    if verbose:
+                        print("weak oblig rule checks out: ", rule)
                     return EventOk()
             # enabled_weak_obligs_by_role[roleid_with_wo] = list(filter( compat_checker, enabled_weak_obligs_by_role[roleid_with_wo] ))
             # if len(enabled_weak_obligs_by_role[roleid_with_wo]) > 0:
@@ -318,24 +315,20 @@ class ExecEnv:
     def environ_tostr(self) -> str:
         return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
 
-    def apply_action(self, action:Action, to_breach_section_id:Optional[SectionId] = None) -> ApplyActionResult:
+    def apply_action(self, action:Action, verbose=True, to_breach_section_id:Optional[SectionId] = None) -> ApplyActionResult:
         assert self.cur_event is not None
 
         if to_breach_section_id is not None:
             self.last_or_current_section_id = to_breach_section_id
             self.last_section_entrance_delta = self.cur_event_delta()
             return ApplyActionResult(None)
-
         self.last_appliedaction_params = self.cur_event.params
         rv: ApplyActionResult
-
         if action.global_state_transform:
-            self.evalCodeBlock(action.global_state_transform)
-
+            self.evalCodeBlock(action.global_state_transform,verbose)
         if action.dest_section_id != LOOP_KEYWORD:
             self.last_or_current_section_id = action.dest_section_id
         self.last_section_entrance_delta = self.cur_event_delta()
-
         return ApplyActionResult(None)
 
 
@@ -362,11 +355,11 @@ class ExecEnv:
             # print(name, type(self.contract_param_vals[name]))
 
 
-    def evalCodeBlock(self, transform:StateTransform):
+    def evalCodeBlock(self, transform:StateTransform, verbose:bool):
         for statement in transform.statements:
-            self.evalStatement(statement)
+            self.evalStatement(statement,verbose)
 
-    def evalStatement(self, stmt:Statement):
+    def evalStatement(self, stmt:Statement, verbose:bool):
         # An Action's StateTransform block is *always* evaluated in the most recent global variable and
         # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
         # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
@@ -394,7 +387,8 @@ class ExecEnv:
                     self.gvarvals[stmt.varname] = current_var_val * rhs_value
                 else:
                     raise Exception('fixme')
-            print(f"\t{stmt.varname} ← {self.gvarvals[stmt.varname]}")
+            if verbose:
+                print(f"\t{stmt.varname} ← {self.gvarvals[stmt.varname]}")
 
         elif isinstance(stmt, FVRequirement):
             # print("conjecture " + str(stmt))
@@ -406,9 +400,9 @@ class ExecEnv:
         elif isinstance(stmt, IfElse):
             test_result = chcast(bool, self.evalTerm(stmt.test))
             if test_result:
-                self.evalCodeBlock(StateTransform(stmt.true_branch))
+                self.evalCodeBlock(StateTransform(stmt.true_branch), verbose)
             elif stmt.false_branch:
-                self.evalCodeBlock(StateTransform(stmt.false_branch))
+                self.evalCodeBlock(StateTransform(stmt.false_branch), verbose)
 
         elif isinstance(stmt, LocalVarDec):
             rhs_value = self.evalTerm(stmt.value_expr)
@@ -435,7 +429,6 @@ class ExecEnv:
                 return self.gvarvals[term.name]
 
             elif isinstance(term, PrimedGlobalVar):
-                print(self.gvarvals)
                 return self.gvarvals[term.name]
 
             elif isinstance(term, ContractParam):

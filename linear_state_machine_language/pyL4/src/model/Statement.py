@@ -71,11 +71,11 @@ class IfElse(Statement):
     def toStr(self,i:int):
         rv = indent(i) + f"if {self.test}:\n"
         for x in self.true_branch:
-            rv += indent(i + 1) + str(x) + "\n"
+            rv += x.toStr(i+1) + "\n"
         if self.false_branch:
             rv += indent(i) + "else:\n"
             for x in self.false_branch:
-                rv += indent(i + 1) + str(x) + "\n"
+                rv += x.toStr(i+1) + "\n"
         return rv
 
 

@@ -18,14 +18,15 @@ def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
         in_path = EXAMPLES_SEXPR_ROOT + filesubpath
         parsed = parse_file(in_path)
         if verbose:
-            print("\nLooking at file " + examplekey + ":\n")
+            print("\nLooking at file " + filesubpath + ":\n")
             print(prettySExprStr(parsed))
-        assembler = L4ContractConstructor(filesubpath)
+        assembler = L4ContractConstructor(filesubpath, verbose)
         prog = assembler.mk_l4contract(parsed)
         if keep:
             rv[filesubpath] = prog
 
-        print("\n~~~~~~~~~~~~~~\nRunning correctness checks...")
+        if verbose:
+            print("\n~~~~~~~~~~~~~~\nRunning correctness checks...")
         for check in test_fns:
             check(assembler)
             # print()

@@ -42,12 +42,24 @@ def unprimed(s:str) -> StateVarId:
 def isprimed(s:str) -> bool:
     return s[-1] == "'"
 
+def syntaxErrorX(expr: Optional[SExprOrStr], msg:Optional[str] = None) -> NoReturn:
+    if isinstance(expr,SExpr):
+        raise SyntaxError((msg if msg else "") +
+                          "\n" + str(expr) +
+                          "\nline " + str(expr.line))
+    elif expr is not None:
+        raise SyntaxError((msg if msg else "") +
+                          "\n" + expr )
+    else:
+        raise SyntaxError((msg if msg else ""))
+
 class L4ContractConstructor(L4ContractConstructorInterface):
-    def __init__(self, filename:str) -> None:
+    def __init__(self, filename:str, verbose=True) -> None:
         self.top : L4Contract = L4Contract(filename)
         self.referenced_nonderived_section_ids: Set[SectionId] = set()
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
         self.after_model_build_requirements : List[Tuple[Callable[[],bool],str]] = []
+        self.verbose = verbose
 
     def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
         self.after_model_build_requirements.append((f,errmsg))
@@ -69,21 +81,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return None
 
     @staticmethod
-    def syntaxErrorX(expr: Optional[SExprOrStr], msg:Optional[str] = None) -> NoReturn:
-        if isinstance(expr,SExpr):
-            raise SyntaxError((msg if msg else "") +
-                              "\n" + str(expr) +
-                              "\nline " + str(expr.line))
-        elif expr is not None:
-            raise SyntaxError((msg if msg else "") +
-                              "\n" + expr )
-        else:
-            raise SyntaxError((msg if msg else ""))
-
-    @staticmethod
     def assertOrSyntaxErrorX(test:bool, expr:Optional[SExpr], msg:Optional[str] = None) -> Union[NoReturn,None]:
         if not test:
-            L4ContractConstructor.syntaxErrorX(expr, msg)
+            syntaxErrorX(expr, msg)
         return None
 
     def mk_l4contract(self, l:List[SExpr]) -> L4Contract:
@@ -155,7 +155,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not f[0]():
                 raise Exception(f[1])
 
-        floating_rules_transpile_away(self.top)
+        floating_rules_transpile_away(self.top, self.verbose)
         return self.top
 
     def _mk_sort(self, x:SExprOrStr) -> Sort:
@@ -574,7 +574,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             # print('STD', rv)
             return rv
 
-        L4ContractConstructor.syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
+        syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
 
     """
@@ -715,7 +715,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
         if not (isinstance(rv,FnApp) and rv.fnsymb_name in ["≤","<=","<"] and isinstance(rv.args[0],FnApp) and rv.args[0].fnsymb_name == "next_event_td"):   # type:ignore
             if not isinstance(rv,DeadlineLit):
-                print("Atypical time constraint:", rv)
+                if self.verbose:
+                    print("Atypical time constraint:", rv)
         # else:
         #     print("Typical time constraint:", rv)
         return rv

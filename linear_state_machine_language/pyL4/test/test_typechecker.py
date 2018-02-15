@@ -29,7 +29,7 @@ EXAMPLES_TO_TYPECHECK = [
     'serious/KISS.l4',
 ]
 
-def main(examples:Dict[str,L4Contract]):
+def main(examples:Dict[str,L4Contract], verbose=True):
     # print_types_map(STANDARD_FNTYPES)
     for examplekey in EXAMPLES_TO_TYPECHECK:
         # msg = f"Example {filename}:"
@@ -39,7 +39,7 @@ def main(examples:Dict[str,L4Contract]):
         # parsed = parse_file(in_path)
         # prog = L4ContractConstructor(filename).mk_l4contract(parsed)
         prog = examples[examplekey]
-        typecheck_prog(prog)
+        typecheck_prog(prog,verbose=verbose)
         # print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
 
 def cli(sys_argv:Sequence[str]):
