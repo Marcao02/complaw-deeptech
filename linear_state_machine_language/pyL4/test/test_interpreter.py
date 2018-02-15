@@ -3,6 +3,7 @@ from itertools import chain
 from math import inf
 from typing import Sequence, Tuple, Optional, Iterable
 
+import test_parser
 from src.constants_and_defined_types import *
 from src.independent.parse_sexpr import prettySExprStr, parse_file
 from src.independent.util import castid
@@ -467,7 +468,7 @@ def main(examples:Dict[str,L4Contract], verbose=True):
             evalTrace(trace[1], prog, verbose=verbose, debug=False)
 
 def cli(sys_argv:Sequence[str]):
-    raise NotImplementedError
+    main(test_parser.main(keep=True, verbose=False), verbose=False)
 
 if __name__ == '__main__':
     import sys

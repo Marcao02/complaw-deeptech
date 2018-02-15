@@ -35,7 +35,7 @@ def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
     return rv
 
 def cli(sys_argv:List[str]):
-    raise NotImplementedError
+    main(False,True)
 
 if __name__ == '__main__':
     import sys

@@ -22,6 +22,9 @@ class SortOpApp(NamedTuple):
     def substdict(self, d:Dict[Sort,Sort]) -> Sort:
         return SortOpApp.c(self.op, tuple(map(lambda s: sortsubstdict(s, d), self.args))) # type:ignore
 
+    def complexity(self) -> int:
+        return 1 + sum(sort_complexity(a) for a in self.args)
+
     def __str__(self) -> str:
         assert len(self.args) > 0
         if self.op == 'Tuple':
@@ -56,3 +59,8 @@ def sortsubstdict(intothis:Sort, d:Dict[Sort,Sort]) -> Sort:
     else:
         return intothis
 
+def sort_complexity(s:Sort) -> int:
+    if isinstance(s,str):
+        return 1
+    else:
+        return s.complexity()

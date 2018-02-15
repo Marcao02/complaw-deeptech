@@ -1,5 +1,6 @@
 from typing import Sequence, Dict
 
+import test_parser
 from model.L4Contract import L4Contract
 from test_parser import EXAMPLES_SEXPR_ROOT
 from src.independent.parse_sexpr import parse_file
@@ -43,7 +44,7 @@ def main(examples:Dict[str,L4Contract], verbose=True):
         # print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
 
 def cli(sys_argv:Sequence[str]):
-    raise NotImplementedError
+    main(test_parser.main(keep=True,verbose=False), verbose=False)
 
 if __name__ == '__main__':
     import sys

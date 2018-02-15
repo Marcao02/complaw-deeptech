@@ -1,3 +1,4 @@
+import test_parser
 from active_examples import EXAMPLES_UNPARSED_ROOT
 from independent.util import writeReadOnlyFile
 from src.independent.typing_imports import *
@@ -11,7 +12,7 @@ def main(examples:Dict[str,L4Contract]):
         writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + examplekey, prettyprinted)
 
 def cli(sys_argv:List[str]):
-    raise NotImplementedError
+    main(test_parser.main(keep=True, verbose=False))
 
 if __name__ == '__main__':
     import sys

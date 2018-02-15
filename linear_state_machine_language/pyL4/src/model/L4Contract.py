@@ -146,8 +146,6 @@ class L4Contract:
             rviter = chain(rviter, section.forEach(pred,f))
 
         for contract_param_dec in self.contract_params.values():
-            if contract_param_dec.name == 'LEASE_DURATION':
-                print("looking at dec of LEASE_DURATION")
             rviter = chain(rviter, contract_param_dec.forEach(pred, f))
 
         for gvardec in self.global_var_decs.values():

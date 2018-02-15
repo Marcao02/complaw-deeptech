@@ -1,11 +1,13 @@
 from src.independent.typing_imports import *
 
-from src.model.Sort import Sort
+from src.model.Sort import Sort, sort_complexity
+
 
 class SubsortConstraint(NamedTuple):
     parts: Tuple[Sort,Sort]
-    # def complexity(self) -> int:
-    #     return max(self.parts[0].complexity(), self.parts[1].complexity())
+    def complexity(self) -> int:
+        return max(sort_complexity(self.parts[0]),
+                   sort_complexity(self.parts[1]) )
 
 # class ParamSubsortConstraint(NamedTuple):
 #     parts: Tuple[Sort,Sort]

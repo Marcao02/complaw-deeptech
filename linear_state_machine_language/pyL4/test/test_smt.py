@@ -1,3 +1,4 @@
+import test_parser
 from hard_correctness_checks.normal_forms import eliminate_local_vars
 from independent.parse_sexpr import parse_file
 from independent.typing_imports import *
@@ -21,7 +22,7 @@ def main(examples:Dict[str,L4Contract]):
             smt_test(prog, outfilepath, verbose=False)
 
 def cli(sys_argv:List[str]):
-    raise NotImplementedError
+    main(test_parser.main(keep=True, verbose=False), verbose=False)
 
 if __name__ == '__main__':
     import sys

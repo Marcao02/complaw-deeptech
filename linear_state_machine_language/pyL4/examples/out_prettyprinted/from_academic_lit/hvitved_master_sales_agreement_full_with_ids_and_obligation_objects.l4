@@ -24,12 +24,12 @@ section VendorAcceptingOrders:
         Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (0 < ?q) (?q ≤ (MAX_UNITS - units_ordered)))
     if ((MAX_UNITS - units_ordered) == 0):
         EnterFulfilled (next_event_td ≥ order_period_ends)
+    if (nonempty Customer_must_PayBill_by):
+        Customer obligation-options-include PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
     if (nonempty Vendor_may_EmailInvoice_by):
         Vendor may EmailInvoice(?0, ?1) (tdGEQ Vendor_may_EmailInvoice_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_may_EmailInvoice_by (tuple ?0 ?1))
     if (nonempty Vendor_must_Deliver_by):
         Vendor obligation-options-include Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
-    if (nonempty Customer_must_PayBill_by):
-        Customer obligation-options-include PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
 
 action SubmitNewOrder(quantity: Nat) transitions to VendorAcceptingOrders:
     transform:
