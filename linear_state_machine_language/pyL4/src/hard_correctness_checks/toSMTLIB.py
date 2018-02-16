@@ -46,7 +46,7 @@ class ToSMTLIB:
         self.stateVarExtraTypeAssertions: Dict[str, SMTCommand_] = dict()
 
         self.invariant_assertions : List[SMTCommand_] = []
-        self.invariant_conjectures: List[SMTExpr] = []
+        self.invariant_conjectures: List[SMTExprNonatom_] = []
         # self.claims : List[Z3Statement] = []
 
         self.actionParamDecs : Dict[ActionId, Dict[str, SMTCommand_]] = dict()
@@ -173,7 +173,8 @@ class ToSMTLIB:
         self.stateTransform2smtlib(a.global_state_transform)
         for invcheck in self.invariant_conjectures:
             # invcheck has the form ('=>', e1, e2)
-            self.appendProofOblig(invcheck, f"{self.curaid} INV CHECK:" + smtlib_expr_to_str(invcheck[1])) # type:ignore
+            hypoth_for_printing = invcheck.args[1]
+            self.appendProofOblig(invcheck, f"{self.curaid} INV CHECK:" + smtlib_expr_to_str(hypoth_for_printing))
         self.pop()
 
     def stateTransform2smtlib(self, st:Optional[StateTransform]):
@@ -188,7 +189,8 @@ class ToSMTLIB:
         for var in self.stateVarDecs:
             if var not in self.state_vars_updated and not is_smt_primed_token(var):
                 are_same.append(equals(to_smt_primed_token(var), var))
-        self.appendAssert(conj(*are_same))
+        if len(are_same) > 0:
+            self.appendAssert(conj(*are_same))
 
     def statement2smtlib(self, s:Statement):
         if isinstance(s, StateVarAssign):

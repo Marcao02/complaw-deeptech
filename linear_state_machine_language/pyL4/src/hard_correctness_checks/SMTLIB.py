@@ -12,7 +12,7 @@ class SMTExprNonatom_(NamedTuple):
     symb: str
     args_: Tuple[Any,...]
     @property # typed accessor
-    def args(self) -> Tuple[SMTExpr]: return cast(Tuple[SMTExpr], self.args_)
+    def args(self) -> Tuple[SMTExpr,...]: return cast(Tuple[SMTExpr,...], self.args_)
 def SMTExprNonatom(symb:str, args:Iterable[SMTExpr]) -> SMTExprNonatom_: return SMTExprNonatom_(symb,tuple(args))
 
 SMTCommand_ = NewType('SMTCommand_', SMTExprNonatom_)
@@ -70,7 +70,7 @@ def disj(*args:SMTExpr) -> SMTExprNonatom_:
 def conj(*args:SMTExpr) -> SMTExprNonatom_:
     return SMTExprNonatom("and", args)
 def neg(arg:SMTExpr) -> SMTExprNonatom_:
-    return SMTExprNonatom("neg", (arg,))
+    return SMTExprNonatom("not", (arg,))
 def implies(arg1:SMTExpr, arg2:SMTExpr) -> SMTExprNonatom_:
     return SMTExprNonatom("=>", (arg1,arg2))
 def equals(arg1:SMTExpr, arg2:SMTExpr) -> SMTExprNonatom_:
@@ -98,11 +98,19 @@ def is_smt_primed_token(s:str):
 def rename_with_action_scope(actionparam_name:str, actionid:ActionId) -> str:
     return actionparam_name + "_" + actionid
 
-def smtlib_expr_to_str(x:Union[SMTExpr, str]) -> str:
+def smtlib_expr_to_str(x:Union[SMTExpr, str, int, float, bool]) -> str:
     if isinstance(x,(str,int,float,bool)):
         return str(x)
+    # else:
+    #     return f"({mapjoin(smtlib_expr_to_str, x, ' ')})"
     else:
-        return f"({mapjoin(smtlib_expr_to_str, x, ' ')})"
+        # print(x)
+        # rv = f"({x.symb} "
+        # for arg in x.args:
+        #     print(arg)
+        # rv += ")"
+        # return rv
+        return f"({x.symb} {mapjoin(smtlib_expr_to_str, x.args, ' ')})"
 
 SMTLIB_OUTPUT_INDENT_SIZE = 2
 def smt_lines_to_str(lines:List[SMTLine]) -> str:
@@ -115,7 +123,8 @@ def smt_lines_to_str(lines:List[SMTLine]) -> str:
         if isinstance(line,str):
             rv += f"{indent*SMTLIB_OUTPUT_INDENT_SIZE*' '}{line}\n"
         else:
-            rv += f"{indent*SMTLIB_OUTPUT_INDENT_SIZE *' '}({mapjoin(smtlib_expr_to_str, line, ' ')})\n"
+            # rv += f"{indent*SMTLIB_OUTPUT_INDENT_SIZE *' '}({mapjoin(smtlib_expr_to_str, line, ' ')})\n"
+            rv += f"{indent*SMTLIB_OUTPUT_INDENT_SIZE *' '}{smtlib_expr_to_str(line)}\n"
 
         if line == "(push)":
             indent += 1
