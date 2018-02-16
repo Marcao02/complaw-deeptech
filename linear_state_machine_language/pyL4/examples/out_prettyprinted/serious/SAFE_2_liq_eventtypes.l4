@@ -85,9 +85,8 @@ action CommitToLiquidityEventWithCoCTaxFreeReorg(company_cash_at_liquidity_event
         liq_price := (VALUATION_CAP / liquidity_capitalization)
         investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ liq_price')
         investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization)
-        purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)
-        investor_Common_Stocks := (investor_Common_Stocks + (purchase_amount_reduction round/ liq_price'))
-        cash_currently_unconverted := (cast $ (PURCHASE_AMOUNT - purchase_amount_reduction))
+        investor_Common_Stocks := (investor_Common_Stocks + ((investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg) round/ liq_price'))
+        cash_currently_unconverted := (cast $ (PURCHASE_AMOUNT - (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
         company_cash := (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
     following section:
         Investor may ChooseCashPayment (next_event_td < (sectionEntrance_td + 1w))

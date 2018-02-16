@@ -1,6 +1,5 @@
 from typing import List, Dict
 
-import test.test_common
 from src.model.L4Contract import L4Contract
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
@@ -16,9 +15,10 @@ def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
     for filesubpath in EXAMPLES:
         # print(f"\n---------------------------------\nExample {filesubpath}:")
         in_path = EXAMPLES_SEXPR_ROOT + filesubpath
-        parsed = parse_file(in_path)
         if verbose:
             print("\nLooking at file " + filesubpath + ":\n")
+        parsed = parse_file(in_path)
+        if verbose:
             print(prettySExprStr(parsed))
         assembler = L4ContractConstructor(filesubpath, verbose)
         prog = assembler.mk_l4contract(parsed)
