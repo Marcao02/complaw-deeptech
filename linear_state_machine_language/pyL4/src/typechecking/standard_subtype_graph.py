@@ -41,17 +41,17 @@ def add_derived(graph:SubsortGraph):
                         continue
                     graph.addEdge(Ratio(num1,den1), Ratio(num2,den2))
 
-    # Tuple
-    for s1 in AtomicSortsAndDimensionedNumericSorts:
-        # graph.addEdge(SortOpApp('Tuple', (S, S)), SortOpApp('Tuple', ('Any', 'Any')))
-        for s2 in AtomicSortsAndDimensionedNumericSorts:
-            if not graph.hasEdge(s1,s2):
-                continue
-            graph.addEdge(SApp('Tuple',s1,s1), SApp('Tuple',s2,s2))
+    # Tuple - moved to typecheck.sub
+    # for s1 in AtomicSortsAndDimensionedNumericSorts:
+    #     # graph.addEdge(SortOpApp('Tuple', (S, S)), SortOpApp('Tuple', ('Any', 'Any')))
+    #     for s2 in AtomicSortsAndDimensionedNumericSorts:
+    #         if not graph.hasEdge(s1,s2):
+    #             continue
+    #         graph.addEdge(SApp('Tuple',s1,s1), SApp('Tuple',s2,s2))
 
-    # EmptyTDMap
-    for s in TDMapKeySorts:
-        graph.addEdge('EmptyTDMap', SApp('TDMap',s))
+    # EmptyTDMap - moved to typecheck.sub
+    # for s in TDMapKeySorts:
+    #     graph.addEdge('EmptyTDMap', SApp('TDMap',s))
 
 SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosTimeDelta, TimeDelta),
@@ -87,13 +87,13 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(PosInt1, Nat1), # makes sense for counting any kind of thing
     sschain(PosReal2, NonnegReal2), # makes sense for measuring any kind of thing
 
+    sschain(Nat1, Int1),  # unfortunately currently needed for subtraction
+    sschain(NonnegReal2, Real2),  # unfortunately currently needed for subtraction
+
     # makes sense as consequence of previous two lines:
     sschain(Ratio(PosReal2, PosInt1), Ratio(NonnegReal2, PosInt1)),
     # not using this yet, but it's fine:
     sschain(Ratio(PosReal2, PosReal2), Ratio(NonnegReal2, PosReal2)),
-
-    sschain(Nat1, Int1),  # unfortunately currently needed for subtraction
-    sschain(NonnegReal2, Real2),  # unfortunately currently needed for subtraction
 
     sschain("Fraction[0,1]", Ratio(Nat,PosInt))
 )

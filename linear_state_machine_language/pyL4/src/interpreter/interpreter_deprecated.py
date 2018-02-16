@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
 
-from src.independent.util import hasNotNone, dictSetOrInc, todo_once, chcast, contract_bug, castid
+from src.independent.util import hasNotNone, todo_once, chcast, contract_bug, castid
+from src.independent.util_for_dicts import dictInc
 from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
     ContractParamId, SectionId, ABAPSubst, \
@@ -317,7 +318,7 @@ class ExecEnv:
 
 
         # Case 2b2: weak obligations are relevant even if they are not compatible with `event`,
-        # since in that case they can result in a breach. Let's see who has weak obligations that match
+        # since in that case they can result in a breach. Let's see who has weak obligations that matchTerm
         # the current event, by "filtering out" those that don't.
         # if there are any left, for and role, then all is well.
         for roleid_with_wo in enabled_weak_obligs_by_role:
@@ -446,11 +447,11 @@ class ExecEnv:
             if dec.initval is None:
                 self.gvarvals[var] = None
                 # print(f"Global var {var} has no initial value.")
-                dictSetOrInc(self.gvar_write_cnt, var, init=0)
+                dictInc(self.gvar_write_cnt, var, init=0)
             else:
                 self.gvarvals[var] = self.evalTerm(dec.initval, None)
                 # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
-                dictSetOrInc(self.gvar_write_cnt, var, init=1)
+                dictInc(self.gvar_write_cnt, var, init=1)
             # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
@@ -479,7 +480,7 @@ class ExecEnv:
 
             if gvardec.isWriteOnceMore() and self.gvar_write_cnt[stmt.varname] >= 2:
                 raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
-            dictSetOrInc(self.gvar_write_cnt, stmt.varname, init=1)
+            dictInc(self.gvar_write_cnt, stmt.varname, init=1)
             todo_once("use vardec for runtime type checking")
             rhs_value = self.evalTerm(stmt.value_expr, None)
 

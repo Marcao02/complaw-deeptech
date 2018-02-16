@@ -5,6 +5,9 @@ from copy import copy
 
 T = TypeVar('T')
 
+class TransitivelyClosedDirectedGraphInvariantError(Exception):
+    pass
+
 """
 Can have cycles and loops
 """
@@ -74,7 +77,7 @@ class TransitivelyClosedDirectedGraph(Generic[T]):
             raise Exception(f"{src} is not a node in the graph.")
         return trg in self.edges_from[src]
 
-    def simplifyIntersection(self, nodes:Set[T]) -> Optional[T]:
+    def simplifyIntersection(self, nodes:Set[T], sub_nonexplicit:Callable[[T,T],bool]) -> Optional[T]:
         assert len(nodes) > 0
         if len(nodes) == 1:
             return nodes.pop()
@@ -84,11 +87,12 @@ class TransitivelyClosedDirectedGraph(Generic[T]):
         for u in nodes:
             for v in nodes:
                 if v in reduced_set and u != v:
-                    if self.hasEdge(u,v):
+                    if sub_nonexplicit(u,v) or self.hasEdge(u,v):
                         # print("removing", str(v))
                         reduced_set.remove(v)
         if len(reduced_set) > 1:
-            raise Exception(f"The set {reduced_set} does not contain its lower bound.")
+            print(self)
+            raise TransitivelyClosedDirectedGraphInvariantError(f"The set {reduced_set} does not contain its lower bound.")
         return reduced_set.pop() if len(reduced_set) == 1 else None
 
     def addTop(self,top:T):

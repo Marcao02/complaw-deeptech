@@ -6,7 +6,7 @@ from src.independent.typing_imports import *
 
 from src.model.Sort import *
 
-SortOps = {'TDMap','Ratio','Tuple','Copy'}
+SortOps = {'TDMap','Ratio','Tuple','Dimensioned'}
 
 DateTime = 'DateTime'
 TimeDelta = 'TimeDelta'
@@ -74,6 +74,7 @@ AtomicSortsAndDimensionedNumericSorts = AllAtomicSorts.union(DimensionedNumericS
 # later, will deduce which ones we're using in a contract, so they don't need to be declared like this.
 RatioSorts = fsortset(Ratio(PosReal2, PosInt1), Ratio(NonnegReal2, PosInt1))
 
+# just because it's used to define TDMapKeySorts:
 TupleAtomicAndDimensionedNumericSorts : FrozenSet[Sort] = frozenset(SApp('Tuple', S, S) for S in AtomicSortsAndDimensionedNumericSorts)
 
 TDMapKeySorts = TupleAtomicAndDimensionedNumericSorts.union(AtomicSortsAndDimensionedNumericSorts)

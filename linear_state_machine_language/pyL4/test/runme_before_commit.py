@@ -33,11 +33,15 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         for label in splits:
             print(label, "time:", str(splits[label]*10)[0:4])
 
+
+    timetask_start('total')
+
+    timetask_start("parse")
     import test_parser
     assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
     progs = test_parser.main(keep=True)
+    timetask_stop()
 
-    timetask_start('total')
     if 'interpreter' in tests_to_run:
         timetask_start('interpreter')
         import test_interpreter

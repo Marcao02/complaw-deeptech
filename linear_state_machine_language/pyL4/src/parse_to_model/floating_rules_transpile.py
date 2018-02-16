@@ -54,7 +54,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             map_var = prog.new_global_var_ref(map_name)
 
             # now the statetransform will need to check that both the role and
-            # the action params match. this requires a role environment variable.
+            # the action params matchTerm. this requires a role environment variable.
             params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.param_names[i]), action, i) for i in
                       range(len(action.param_names))]
             statement = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),

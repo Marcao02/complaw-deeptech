@@ -166,18 +166,18 @@ overloaded_types_data : FnTypesData = [
      ),
 
     # ------------Tuples------------
-    (('tuple',), parametric_one_var(
-            sfntype(X, X, SApp('Tuple', X, X)),
-            AtomicSortsAndDimensionedNumericSorts)
-     ),
-    (('tupleGet',), parametric_one_var(
-            sfntype(SApp('Tuple', X, X), '{0,1}', X),
-            AtomicSortsAndDimensionedNumericSorts)
-     ),
+    # (('tuple',), parametric_one_var(
+    #         sfntype(X, X, SApp('Tuple', X, X)),
+    #         AtomicSortsAndDimensionedNumericSorts)
+    #  ),
+    # (('tupleGet',), parametric_one_var(
+    #         sfntype(SApp('Tuple', X, X), '{0,1}', X),
+    #         AtomicSortsAndDimensionedNumericSorts)
+    #  ),
 
     # ------------TimeDelta Maps------------
     (('mapSet',), parametric_one_var( (
-        sfntype('EmptyTDMap', X, 'TimeDelta', SApp('TDMap', X)),
+        # sfntype('EmptyTDMap',     X, 'TimeDelta', SApp('TDMap', X)), # redundant given EmptyTDMap ≤ TDMap[X]
         sfntype(SApp('TDMap', X), X, 'TimeDelta', SApp('TDMap', X))
         ),
         TDMapKeySorts)

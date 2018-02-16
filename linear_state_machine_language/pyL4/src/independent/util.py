@@ -1,4 +1,4 @@
-from typing import Any, List, Callable, Iterable, cast, Dict, Set, TypeVar, Type, Iterator, Union
+from typing import Any, Callable, Iterable, cast, Dict, Set, TypeVar, Type, Iterator, Union
 import logging
 
 import time
@@ -57,30 +57,6 @@ S = TypeVar('S',bound=str)
 
 def hasNotNone(d:Dict[S,Any], x:S) -> bool:
     return (x in d) and not(d[x] is None)
-
-def dictSetOrInc(d:Dict[S,int], key:S, init:int ) -> None:
-    if key in d:
-        d[key] += 1
-    else:
-        d[key] = init
-
-# def dictSetOrAdd(d:Dict[S,Set[T]], key:S, val:T) -> None:
-def dictSetOrAdd(d: Dict[Any, Set[T]], key: Any, val: T) -> None:
-    if key in d:
-        d[key].add(val)
-    else:
-        d[key] = {val}
-
-def writeFile(path:str, contents:str) -> None:
-    f = open(path, 'w', encoding='utf8')
-    f.write(contents)
-    f.close()
-
-def writeReadOnlyFile(path:str, contents:str) -> None:
-    from os import system
-    system(f'chmod u+w {path}')
-    writeFile(path, contents)
-    system(f'chmod a-w {path}')
 
 warnings_given : Set[str] = set()
 def warn_once(msg) -> None:

@@ -1,3 +1,4 @@
+from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDirectedGraphInvariantError
 from src.independent.util import todo_once
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
@@ -21,6 +22,15 @@ from src.typechecking.standard_sorts import check_sorts_valid
 # print_types_map(STANDARD_FNTYPES)
 
 def sub(s1:Sort,s2:Sort) -> bool:
+    if isinstance(s2,SortOpApp):
+        if isinstance(s1, SortOpApp):
+            if 'Tuple' == s1.op == s2.op and len(s1) == len(s2):
+                return all(sub(s1.args[i],s2.args[i]) for i in range(len(s1)))
+            elif 'TDMap' == s1.op == s2.op:
+                return sub(s1.args[0], s2.args[0])
+        elif s2.op == 'TDMap':
+            return s1 == 'EmptyTDMap'
+
     return STANDARD_SUBSORTING_GRAPH.hasEdge(s1, s2)
 
 """
@@ -210,7 +220,7 @@ class TypeChecker:
         self.prog = prog
         self.verbose = verbose
 
-    def repl_sort_def(self,sort:Sort) -> Sort:
+    def replace_sort_def(self, sort:Sort) -> Sort:
         # if sort == "$":
         #     print("hmmmmm", sort, self.prog.sort_definitions)
         if isinstance(sort,str) and sort in self.prog.sort_definitions:
@@ -221,7 +231,7 @@ class TypeChecker:
             return sort
 
     def sort_tuple_toStr(self, x:SortTuple) -> str:
-        return " × ".join(map(str,map(self.repl_sort_def, x)))
+        return " × ".join(map(str, map(self.replace_sort_def, x)))
 
     def overloaded_fnapp_range_memo(self, oft: OverloadedFnType, argsorts: SortTuple, term: FnApp) -> Optional[Sort]:
         if argsorts in oft.range_memo:
@@ -233,7 +243,7 @@ class TypeChecker:
             msg = f"\nDomain of this overloaded function type:\n{oft}\nis not a superset of arg sorts:\n{self.sort_tuple_toStr(argsorts)}"
             raise L4TypeInferError(term, msg)
         try:
-            intersection = STANDARD_SUBSORTING_GRAPH.simplifyIntersection(rangeset)
+            intersection = STANDARD_SUBSORTING_GRAPH.simplifyIntersection(rangeset, sub)
         except Exception as e:
             print("\nProblem with overloaded function type:\n" + str(oft) + "\nand arg sorts:\n" + str(argsorts))
             raise e
@@ -246,7 +256,7 @@ class TypeChecker:
         if len(fntype.parts) - 1 != len(argsorts):
             return None
         for i in range(len(argsorts)):
-            argsort = self.repl_sort_def(argsorts[i])
+            argsort = self.replace_sort_def(argsorts[i])
             fnsort = fntype.parts[i]
             if not sub(argsort, fnsort):
                 return None
@@ -264,22 +274,23 @@ class TypeChecker:
             return sub( sto, sfrom )
 
 
-    def typeinfer_term_with_sort_subst(self, t:Term) -> Sort:
-        return self.repl_sort_def(self.typeinfer_term(t))
+    def typeinfer_term_then_sortdef_subst(self, t:Term) -> Sort:
+        return self.replace_sort_def(self.typeinfer_term(t))
 
 
     def typeinfer_term(self, t:Term) -> Sort:
         if isinstance(t,FnApp):
+            # ------------`cast` (former name for `check`), `trust`, and `units` ------------
             if t.fnsymb_name in {'cast','check','trust','units'}:
                 assert len(t.args) == 2
                 casted_term = t.args[1]
                 sortlit = t.args[0]
                 assert isinstance(sortlit, SortLit)
                 casted_to = sortlit.lit
-                casted_to_long = self.repl_sort_def(casted_to)
+                casted_to_long = self.replace_sort_def(casted_to)
 
                 inferred_without_cast = self.typeinfer_term(casted_term)
-                inferred_without_cast_long = self.repl_sort_def(inferred_without_cast)
+                inferred_without_cast_long = self.replace_sort_def(inferred_without_cast)
 
                 if sub(inferred_without_cast_long, casted_to_long):
                     raise L4TypeInferError(t,
@@ -304,13 +315,29 @@ class TypeChecker:
                 else:
                     print(
                         f"UNCHECKED cast {sort_expanded_display(inferred_without_cast,inferred_without_cast_long)} to "
-                        f"{sort_expanded_display(casted_to, casted_to_long)} for non-literal.")
+                        f"{sort_expanded_display(casted_to, casted_to_long)} for non-literal. See {t.coord} of {self.prog.filename}")
                 return casted_to_long
 
-            argsorts = tuple(self.typeinfer_term_with_sort_subst(arg) for arg in t.args)
-            # if t.fnsymb_name == "==":
-            #     print(f"inferring type of {t} using arg sorts {argsorts}")
+            argsorts = tuple(self.typeinfer_term_then_sortdef_subst(arg) for arg in t.args)
 
+            # ------------Tuples------------
+            if t.fnsymb_name == "tuple":
+                assert len(argsorts) > 1
+                return SortOpApp('Tuple', argsorts)
+            elif t.fnsymb_name == "tupleGet":
+                tuplesort = cast(SortOpApp, argsorts[0])
+                indlit = t.args[1]
+                if isinstance(indlit, IntLit) and indlit.lit <= len(tuplesort.args):
+                    return cast(Sort,tuplesort.args[indlit.lit]) # cast shouldn't be necessary...
+                else:
+                    raise L4TypeInferError(t, "Problem with tupleGet.")
+
+            # ------------TDMap------------
+            # if t.fnsymb_name in {'mapSet','tdGEQ','mapDelete','mapHas','nonempty','empty','emptyTDMap'}:
+            #     if t.fnsymb_name == 'mapSet':
+
+            # ------------Other function applications------------
+            rv: Optional[Sort]
             fnsymb_type = STANDARD_FNTYPES[t.fnsymb_name]
             if fnsymb_type:
                 try:
@@ -326,15 +353,19 @@ class TypeChecker:
                     else:
                         rv = self.overloaded_fnapp_range_memo(fnsymb_type, argsorts, t)
                 except L4TypeError as e:
-                    raise e
-                except Exception as e:
-                    raise L4TypeInferError(t, str(e.args[0]))
-                if rv is None:
-                    raise L4TypeInferError(t, f"overloaded_fnapp_range_memo return None.\nArg sorts: {argsorts}\nFn type:\n{fnsymb_type}")
-                return rv
+                    if isinstance(e,(L4TypeError,TransitivelyClosedDirectedGraphInvariantError)):
+                        raise e
+                    else:
+                        raise L4TypeInferError(t, str(e.args[0]))
             else:
                 raise L4TypeInferError(t, f"Function symbol {t.fnsymb_name} has no type.")
+            if rv is None:
+                raise L4TypeInferError(t,
+                                       f"overloaded_fnapp_range_memo return None.\nArg sorts: {argsorts}\nFn type:\n{fnsymb_type}")
+            return rv
+
         elif isinstance(t,Literal):
+            # ------------Literals------------
             if isinstance(t,IntLit):
                 if t.lit == 0:
                     return "{0}"
@@ -369,10 +400,11 @@ class TypeChecker:
                 return "RoleId"
             elif isinstance(t,StringLit):
                 return "String"
+
+        # ------------Variables------------
         elif isinstance(t, (LocalVar, GlobalVar, PrimedGlobalVar)):
             return t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
-            # print(t.action.param_sorts_by_name)
             return t.action.param_sorts_by_name[t.name]
         elif isinstance(t,ContractParam):
             return t.paramdec.sort
@@ -384,18 +416,17 @@ class TypeChecker:
         raise Exception(f"typeinfer_term unhandled case for {type(t)}: {t}" )
 
     def typecheck_term(self, t:Term, s:Sort) -> bool:
-        s = self.repl_sort_def(s)
-        inferred = self.typeinfer_term_with_sort_subst(t)
+        s = self.replace_sort_def(s)
+        inferred = self.typeinfer_term_then_sortdef_subst(t)
 
         # we want to infer types of ambiguous numeric literals, at least sometimes
         # if s is a simple units type compatible with t, we'll allow it.
         if ((isinstance(t,IntLit) or isinstance(t,FloatLit)) and
-             isinstance(s, SortOpApp) and
+             isinstance(s,SortOpApp) and
              s.op == "Dimensioned" and
              s.args[0] in NormalUnboundedNumericSorts and
              sub(inferred, s.args[0]) ):
             return True
-        # print(t, s, inferred, type(t), type(s))
 
         assert inferred is not None
         if not sub(inferred,s):
