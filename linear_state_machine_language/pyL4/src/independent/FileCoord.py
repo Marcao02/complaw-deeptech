@@ -1,10 +1,9 @@
-from typing import Optional
+from typing import Optional, NamedTuple
 
 
-class FileCoord:
-    def __init__(self, line:int, col:Optional[int]) -> None:
-        self.line = line
-        self.col = col
+class FileCoord(NamedTuple):
+    line: int
+    col: Optional[int]
 
     def __str__(self) -> str:
         if self.col is None:
