@@ -139,7 +139,7 @@ def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
 
 
 # def addDimensionedNumericSortRelnsToGraphAndFnTypes(sorts:Iterable[Sort], expanded_sortdefns: Dict[str, Sort], graph:SubsortGraph, fntypes:FnTypesMap):
-#     subst: Dict[Sort, Sort] = {}
+#     substForVar: Dict[Sort, Sort] = {}
 #
 #     unit_vars_mentioned : Dict[Sort,List[str]] = {[] for s in sorts}
 #     for s in sorts:
@@ -150,17 +150,17 @@ def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
 #             s = expanded_sortdefns[s]
 #         if isinstance(s, SortOpApp) and s.op == "Dimensioned":
 #             withvar = SortOpApp.c("Dimensioned", (s.args[0], dupvar))
-#             subst[withvar] = s
-#             # subst[s] = withvar
+#             substForVar[withvar] = s
+#             # substForVar[s] = withvar
 #             graph.addNode(s)
 #             graph.addEdge(withvar, s)
 #     for fsymb, oft in fntypes.items():
-#         oft.add_substdict_copies(subst)
-#         # oft.replace_sorts(subst)
+#         oft.add_substdict_copies(substForVar)
+#         # oft.replace_sorts(substForVar)
 #
 #     print_types_map(fntypes)
 #
-#     duplicate_some_edges(subst, graph)
+#     duplicate_some_edges(substForVar, graph)
 
 def typecheck_prog(prog:L4Contract, verbose=True):
     def maybesay(*args:Any):

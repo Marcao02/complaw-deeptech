@@ -4,6 +4,7 @@ from math import inf
 from typing import Sequence, Tuple, Optional, Iterable
 
 import test_parser
+from hard_correctness_checks.normal_forms import eliminate_ifthenelse, eliminate_local_vars
 from src.constants_and_defined_types import *
 from src.independent.parse_sexpr import prettySExprStr, parse_file
 from src.independent.util import castid
@@ -465,6 +466,8 @@ def main(examples:Dict[str,L4Contract], verbose=True):
             if verbose:
                 print("\nRunning test trace for " + examplekey)
             prog = examples[examplekey]
+            eliminate_local_vars(prog)
+            eliminate_ifthenelse(prog)
             evalTrace(trace[1], prog, verbose=verbose, debug=False)
 
 def cli(sys_argv:Sequence[str]):

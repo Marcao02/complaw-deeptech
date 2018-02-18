@@ -18,8 +18,14 @@ class Term:
         print(f"{self} of type {type(self)} not handled")
         raise NotImplementedError
 
-    def subst(self, var:str, term:'Term') -> 'Term':
+    def findFirstTerm(self, pred: Callable[['Term'], bool]) -> Optional['Term']:
+        return self if pred(self) else None
+
+    def substForVar(self, var:str, term: 'Term') -> 'Term':
         raise NotImplementedError
+
+    def substForTerm(self, toremove: 'Term', term: 'Term') -> 'Term':
+        return term if self == toremove else self
 
     def __eq__(self, other: Any) -> bool:
         raise NotImplemented
@@ -42,9 +48,19 @@ class FnApp(Term):
         rviter = chain(rviter, f(self))
         for term in self.args:
             if isinstance(term,str):
-                print("This shouldn't happen, a str as an arg to a fn app:", term)
+                raise Exception("This shouldn't happen, an unwrapped str as an arg to a fn app:", term)
             rviter = term.forEachTerm(f,rviter)
         return rviter
+
+    def findFirstTerm(self, pred: Callable[[Term],bool]) -> Optional[Term]:
+        if pred(self):
+            return self
+        else:
+            for x in self.args:
+                rv = x.findFirstTerm(pred)
+                if rv:
+                    return rv
+            return None
 
     def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
         rviter: Iterable[T] = []
@@ -54,8 +70,14 @@ class FnApp(Term):
             rviter = chain(rviter, term.forEach(pred, f))
         return rviter
 
-    def subst(self, var:str, term:'Term') -> 'Term':
-        return FnApp(self.fnsymb_name, [arg.subst(var,term) for arg in self.args], self.coord)
+    def substForVar(self, var:str, term: 'Term') -> 'Term':
+        return FnApp(self.fnsymb_name, [arg.substForVar(var, term) for arg in self.args], self.coord)
+
+    def substForTerm(self, toremove: 'Term', term: 'Term') -> 'Term':
+        if self == toremove:
+            return term
+        else:
+            return FnApp(self.fnsymb_name, [arg.substForTerm(toremove, term) for arg in self.args], self.coord)
 
     def __eq__(self,other:Any) -> bool:
         return isinstance(other,FnApp) and self.fnsymb_name == other.fnsymb_name and \

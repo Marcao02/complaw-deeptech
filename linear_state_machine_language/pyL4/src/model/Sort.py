@@ -89,7 +89,7 @@ def sort_complexity(s:Sort) -> int:
 #     def args(self) -> Tuple[Sort,...]:
 #         return cast(Tuple[Sort], self.args_)
 #
-#     def subst(self, var_or_sort: Sort, val: Sort) -> SortPat:
+#     def substForVar(self, var_or_sort: Sort, val: Sort) -> SortPat:
 #         return SortOpAppPat.c(self.op, tuple(map(lambda s: sortsubst(s, var_or_sort, val), self.args))) # type:ignore
 #
 #     def substdict(self, d:Dict[Sort,Sort]) -> SortPat:

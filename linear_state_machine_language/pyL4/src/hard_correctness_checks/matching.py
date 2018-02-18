@@ -1,5 +1,4 @@
 from src.independent.typing_imports import *
-from src.model.BoundVar import BoundVar
 from src.model.Literal import IntLit
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import Term, FnApp

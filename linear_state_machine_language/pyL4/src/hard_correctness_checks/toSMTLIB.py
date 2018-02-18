@@ -1,7 +1,7 @@
 from src.hard_correctness_checks.SMTLIB import *
 
 from src.model.StateVarDec import StateVarDec
-from src.model.Literal import Literal, SortLit
+from src.model.Literal import Literal, SortLit, SimpleTimeDeltaLit, BoolLit
 from src.model.Action import Action
 from src.model.BoundVar import BoundVar, ActionBoundActionParam
 from src.model.L4Contract import L4Contract
@@ -263,7 +263,12 @@ class ToSMTLIB:
 
             return t.name
         elif isinstance(t, Literal):
-            assert isinstance(t.lit, (str,int,float,bool))
-            return cast(SMTExpr, t.lit)
+            if isinstance(t, SimpleTimeDeltaLit):
+                return t.num
+            elif isinstance(t, BoolLit):
+                return str(t.lit).lower()
+            else:
+                assert isinstance(t.lit, (str,int,float)), t
+                return cast(SMTExpr, t.lit)
         else:
             raise NotImplementedError(f"self.term2smtlibdef({str(t)}), arg type {type(t)}, {isinstance(t, Literal)}")

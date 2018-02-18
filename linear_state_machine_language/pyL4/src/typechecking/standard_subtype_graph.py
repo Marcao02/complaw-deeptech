@@ -18,7 +18,7 @@ def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes
 
 
 """
-If s1 ⊆ s2 is in graph, and subst maps some sorts to sorts, add s1[subst] ⊆ s2[subst] to graph. 
+If s1 ⊆ s2 is in graph, and substForVar maps some sorts to sorts, add s1[substForVar] ⊆ s2[substForVar] to graph. 
 """
 def duplicate_some_edges(subst:Dict[Sort,Sort], graph:SubsortGraph):
     orig_edges = graph.edgeSet()

@@ -47,6 +47,11 @@ FN_NAME_SUBST : Dict[str,str] = {
 # We could alternatively use SMTLIB `define-fun` command for these, but I believe the result would be the same.
 MACRO_DEFINED_FNS : Dict[str, Callable] = {
     "days": lambda x: x,
+
+    # this is no good obviously. what i need to do is add event_td as an extra PosReal action parameter.
+    # "event_td": lambda: 1,
+
+
     "cast": lambda S,t: t,
     "check": lambda S,t: t,
     "trust": lambda S,t: t,

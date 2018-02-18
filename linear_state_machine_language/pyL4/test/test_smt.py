@@ -1,14 +1,17 @@
 import test.test_parser
-from src.hard_correctness_checks.normal_forms import eliminate_local_vars
+from src.hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse
 from src.independent.typing_imports import *
 from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand, smt_lines_to_str, ToSMTLIB
 from src.model.L4Contract import L4Contract
 
 EXAMPLES_TO_USE = [
+
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
+    'from_academic_lit/Farmer_american_call_option_2016.l4',
     'serious/SAFE.l4',
     'serious/SAFE_2_liq_eventtypes.l4',
-    'from_academic_lit/Farmer_american_call_option_2016.l4',
+    'serious/KISS.l4', # need to handle TimeDelta
+
 ]
 
 def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
@@ -23,6 +26,8 @@ def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
         lines.extend(_lines)
 
     eliminate_local_vars(prog)
+    # eliminate_ifthenelse(prog)
+
     toz3 = ToSMTLIB(prog,verbose)
     toz3.prog2smtlibdef()
 

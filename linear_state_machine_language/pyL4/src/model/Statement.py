@@ -9,8 +9,11 @@ from src.model.Term import Term
 
 Block = List['Statement']
 
-def blocksubst(b:Block, var:str, term:Term) -> Block:
-    return [s.subst(var,term) for s in b]
+def blocksubstForVar(b:Block, var:str, term:Term) -> Block:
+    return [s.substForVar(var, term) for s in b]
+
+def blocksubstForTerm(b:Block, toremove:Term, term:Term) -> Block:
+    return [s.substForTerm(toremove, term) for s in b]
 
 """ Just the common parent """
 class Statement:
@@ -21,12 +24,18 @@ class Statement:
         raise NotImplementedError
     def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
         raise NotImplementedError
+    def findFirstTerm(self, pred:Callable[[Term],bool]) -> Optional[Term]:
+        raise NotImplementedError
 
     """
     var can be a local or global var
     """
-    def subst(self, var:str, term:Term) -> 'Statement':
+    def substForVar(self, var:str, term:Term) -> 'Statement':
         raise NotImplementedError
+
+    def substForTerm(self, toremove:Term, term:Term) -> 'Statement':
+        raise NotImplementedError
+
 
     def toStr(self, i:int):
         return indent(i) + str(self)
@@ -63,10 +72,30 @@ class IfElse(Statement):
                 rviter = chain(rviter, statement.forEach(pred, f))
         return rviter
 
-    def subst(self, var: str, term: Term) -> 'IfElse':
-        return IfElse( self.test.subst(var,term),
-                       blocksubst(self.true_branch, var, term),
-                       blocksubst(self.false_branch, var, term) if self.false_branch else None )
+    def findFirstTerm(self, pred: Callable[[Term], bool]) -> Optional[Term]:
+        in_test = self.test.findFirstTerm(pred)
+        if in_test:
+            return in_test
+        for statement in self.true_branch:
+            payload = statement.findFirstTerm(pred)
+            if payload:
+                return payload
+        if self.false_branch:
+            for statement in self.false_branch:
+                payload = statement.findFirstTerm(pred)
+                if payload:
+                    return payload
+        return None
+
+    def substForVar(self, var: str, term: Term) -> 'IfElse':
+        return IfElse(self.test.substForVar(var, term),
+                      blocksubstForVar(self.true_branch, var, term),
+                      blocksubstForVar(self.false_branch, var, term) if self.false_branch else None)
+
+    def substForTerm(self, toremove: Term, term: Term) -> 'IfElse':
+        return IfElse(self.test.substForTerm(toremove,term),
+                      blocksubstForTerm(self.true_branch, toremove, term),
+                      blocksubstForTerm(self.false_branch, toremove, term) if self.false_branch else None)
 
     def toStr(self,i:int):
         rv = indent(i) + f"if {self.test}:\n"
@@ -78,13 +107,10 @@ class IfElse(Statement):
                 rv += x.toStr(i+1) + "\n"
         return rv
 
-
-class LocalVarDec(Statement):
-    def __init__(self, varname:LocalVarId, value_expr:Term, sort:Sort) -> None:
+class WithOneTermChild(Statement):
+    def __init__(self, value_expr: Term) -> None:
         super().__init__()
-        self.varname : LocalVarId = varname
         self.value_expr = value_expr
-        self.sort = sort
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         return self.value_expr.forEachTerm(f,iteraccum_maybe)
@@ -96,16 +122,30 @@ class LocalVarDec(Statement):
         rviter = chain(rviter, self.value_expr.forEach(pred,f))
         return rviter
 
-    def subst(self, var:str, term:Term) -> 'Statement':
-        return LocalVarDec(self.varname, self.value_expr.subst(var, term), self.sort)
+    def findFirstTerm(self, pred: Callable[[Term], bool]) -> Optional[Term]:
+        rv = self.value_expr.findFirstTerm(pred)
+        return rv if rv else None
+
+
+
+class LocalVarDec(WithOneTermChild):
+    def __init__(self, varname:LocalVarId, value_expr:Term, sort:Sort) -> None:
+        super().__init__(value_expr)
+        self.varname : LocalVarId = varname
+        self.sort = sort
+
+    def substForVar(self, var:str, term:Term) -> 'LocalVarDec':
+        return LocalVarDec(self.varname, self.value_expr.substForVar(var, term), self.sort)
+
+    def substForTerm(self, toremove: Term, term: Term) -> 'LocalVarDec':
+        return LocalVarDec(self.varname, self.value_expr.substForTerm(toremove, term), self.sort)
 
     def __str__(self):
         return f"{self.varname} : {str(self.sort)} := {str(self.value_expr)}"
 
-class FVRequirement(Statement):
+class FVRequirement(WithOneTermChild):
     def __init__(self, prop:Term) -> None:
-        super().__init__()
-        self.value_expr = prop
+        super().__init__(prop)
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         return self.value_expr.forEachTerm(f, iteraccum_maybe)
@@ -117,18 +157,20 @@ class FVRequirement(Statement):
         rviter = chain(rviter, self.value_expr.forEach(pred,f))
         return rviter
 
-    def subst(self, var:str, term:Term) -> 'Statement':
-        return FVRequirement(self.value_expr.subst(var,term))
+    def substForVar(self, var:str, term:Term) -> 'FVRequirement':
+        return FVRequirement(self.value_expr.substForVar(var, term))
+
+    def substForTerm(self, toremove: Term, term: Term) -> 'FVRequirement':
+        return FVRequirement(self.value_expr.substForTerm(toremove, term))
 
     def __str__(self) -> str:
         return "prove " + str(self.value_expr)
 
 
-class StateVarAssign(Statement):
+class StateVarAssign(WithOneTermChild):
     def __init__(self, vardec:StateVarDec, value_expr:Term, varop:str = ":=") -> None:
-        super().__init__()
+        super().__init__(value_expr)
         self.vardec = vardec
-        self.value_expr = value_expr
         self.varop = varop
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
@@ -141,8 +183,12 @@ class StateVarAssign(Statement):
         rviter = chain(rviter, self.value_expr.forEach(pred,f))
         return rviter
 
-    def subst(self, var:str, term:Term) -> 'Statement':
-        return StateVarAssign(self.vardec, self.value_expr.subst(var,term), self.varop)
+    def substForVar(self, var:str, term:Term) -> 'StateVarAssign':
+        return StateVarAssign(self.vardec, self.value_expr.substForVar(var, term), self.varop)
+
+    def substForTerm(self, toremove:Term, term:Term) -> 'StateVarAssign':
+        return StateVarAssign(self.vardec, self.value_expr.substForTerm(toremove, term), self.varop)
+
 
     @property
     def varname(self) -> StateVarId:

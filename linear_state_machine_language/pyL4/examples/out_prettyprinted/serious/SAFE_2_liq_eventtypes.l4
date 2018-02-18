@@ -5,7 +5,7 @@ roles: Env, Investor, Company
 
 contract params:
     PURCHASE_AMOUNT : Pos$ := 100000
-    VALUATION_CAP : Pos$ := 10000000
+    VALUATION_CAP : Pos$ := 1000000000000
     DISCOUNT_RATE : Fraction(0,1] := 1
     START_INVESTOR_COMMON_STOCKS : ShareCnt := 0
     START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt := 0

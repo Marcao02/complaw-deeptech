@@ -558,14 +558,14 @@ class ExecEnv:
                 # print('ActionBoundActionParam:', term)
                 if ctx and ctx.abapvals:
                     # print(f"ActionBoundActionParam value for {term.name} taken from ctx")
-                    # assert hasNotNone(ctx.,term.name), f"Trying to get subst value of an ActionBoundActionParam {term.name} but didn't find it in the execution context."
+                    # assert hasNotNone(ctx.,term.name), f"Trying to get substForVar value of an ActionBoundActionParam {term.name} but didn't find it in the execution context."
                     return ctx.abapvals[term.ind]
                 else:
                     assert self.last_appliedaction_params is not None
                     return self.last_appliedaction_params[term.ind]
 
             elif isinstance(term, RuleBoundActionParam):
-                # assert hasNotNone(self.cur_event.params_by_abap_name, term.name), f"Trying to get subst value of an RuleBoundActionParam {term.name} but didn't find it among the action parameters."
+                # assert hasNotNone(self.cur_event.params_by_abap_name, term.name), f"Trying to get substForVar value of an RuleBoundActionParam {term.name} but didn't find it among the action parameters."
                 assert self.cur_event and self.cur_event.params is not None, f"Expected current event {self.cur_event} to have an action parameter named {term}"
                 return self.cur_event.params[term.ind]
 

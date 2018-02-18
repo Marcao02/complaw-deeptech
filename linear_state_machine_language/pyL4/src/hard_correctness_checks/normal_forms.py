@@ -1,5 +1,6 @@
 from typing import FrozenSet
 
+from independent.util import chcast
 from src.model.Term import Term, FnApp
 from src.model.BoundVar import LocalVar, GlobalVar
 from src.independent.typing_imports import *
@@ -27,6 +28,82 @@ def assert_assume(e1:OutType,e2:OutType) -> OutType:
 FrozenDict = Dict
 def frozendict(d:Dict[T1,T2]) -> FrozenDict[T1,T2]:
     return d
+
+def eliminate_ifthenelse(p:L4Contract):
+    progress_made = False
+
+    def isite(t:Term) -> bool:
+        return isinstance(t,FnApp) and t.fnsymb_name == "ifthenelse"
+
+    def eliminate_ifthenelse_block(block:Block) -> Block:
+        global progress_made
+        if len(block) == 0:
+            return block
+        rest = block[1:]
+        s = block[0]
+
+        maybe_ite_term = s.findFirstTerm(isite)
+        snew : Statement
+        if not maybe_ite_term:
+            snew = s
+        else:
+            progress_made = True
+            ite_term = chcast(FnApp,maybe_ite_term)
+            assert ite_term.fnsymb_name == "ifthenelse", ite_term
+            assert len(ite_term.args) == 3, ite_term.args
+            ite_test, ite_true_expr, ite_false_expr = ite_term.args
+            if isinstance(s, LocalVarDec):
+                raise Exception("Use eliminate_local_vars first")
+
+            elif isinstance(s, StateVarAssign):
+                snew = IfElse(ite_test,
+                              [StateVarAssign(s.vardec,s.value_expr.substForTerm(ite_term, ite_true_expr), s.varop)],
+                              [StateVarAssign(s.vardec, s.value_expr.substForTerm(ite_term, ite_false_expr), s.varop)]
+                              )
+                return cast(Block, [snew]) + eliminate_ifthenelse_block(rest)
+
+            elif isinstance(s, IfElse):
+                maybe_occurence = s.test.findFirstTerm(lambda y: y == ite_term)
+                if not maybe_occurence:
+                    if s.false_branch is not None:
+                        snew = IfElse(s.test,
+                                      eliminate_ifthenelse_block(s.true_branch),
+                                      eliminate_ifthenelse_block(s.false_branch))
+                    else:
+                        snew = IfElse(s.test,
+                                      eliminate_ifthenelse_block(s.true_branch))
+                else:
+                    snew = IfElse(ite_test,
+                                  [s.substForTerm(ite_test, ite_true_expr)],
+                                  [s.substForTerm(ite_test, ite_false_expr)])
+
+            elif isinstance(s, FVRequirement):
+                maybe_occurence = s.value_expr.findFirstTerm(lambda y: y == ite_term)
+                if not maybe_occurence:
+                    snew = s
+                else:
+                    snew = IfElse(ite_test,
+                                  [s.substForTerm(ite_test, ite_true_expr)],
+                                  [s.substForTerm(ite_test, ite_false_expr)])
+
+            else:
+                raise NotImplementedError
+
+        return cast(Block, [snew]) + eliminate_ifthenelse_block(rest)
+
+    def eliminate_ifthenelse_term(term:Term) -> Term:
+        if isinstance(term, FnApp):
+            return FnApp(term.fnsymb_name, [eliminate_ifthenelse_term(x) for x in term.args], term.coord)
+        else:
+            return term
+
+    for act in p.actions_iter():
+        if act.global_state_transform:
+            # but how do I know a change has been made..? can't rely on immutability since Statement and Term aren't immutable.
+            progress_made = True
+            while progress_made:
+                progress_made = False
+                act.global_state_transform.statements = eliminate_ifthenelse_block(act.global_state_transform.statements)
 
 def eliminate_local_vars(p:L4Contract):
     print("WARNING I PLAYED FAST AND LOOSE WITH MUTABLE DATA STRUCTURES")
@@ -67,114 +144,116 @@ def eliminate_local_vars(p:L4Contract):
 	    $y = f(new_x)
 	Alternatively, we could use the primed variables convention for the-next-value."""
 
+    """
+    This both modifies its arguments and returns something, which is naughty.
+    Modify `prog`, eliminating every instance of local var usage.
+
+    """
+
+    # def eliminate_local_vars_block(block: Block, substForVar:Dict[str,Term], forbidden_read:Set[str], forbidden_write:Set[str]) -> Tuple[Block,FrozenSet[str],FrozenSet[str]]:
+    def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_read: Set[str],
+                                   forbidden_write: Set[str]) -> Tuple[Block, Set[str], Set[str]]:
+        assert block is not None
+        if len(block) == 0:
+            return ([], forbidden_read, forbidden_write)
+
+        rest = block[1:]
+        s = block[0]
+
+        if isinstance(s, LocalVarDec):
+            assert s.varname not in forbidden_write, f"local var {s.varname} can't be written at (TODO: s.coord)"
+            value_expr2 = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
+            subst2 = subst.copy()
+            subst2[s.varname] = value_expr2
+
+            # can't write a second time to this variable in the same forward-scope, because it's potentially confusing
+            # and not needed in good code.
+            forbidden_write2 = forbidden_write.union({s.varname})
+
+            # Now that the term giving s.varname its new value has been substituted, we move on to eliminating further
+            # local var decs in the remainder of the block.
+            # return eliminate_local_vars_block(rest, substForVar, forbidden_read, forbidden_write2)
+            # EXCEPT that there's a subtley with eliminating them in action rules, so I won't actually eliminate them,
+            # but I will ignore them when doing FV confined to the state transform section
+            # ACTUALLY, it's all good because no-read-after-write condition ensures that local variable definitions only
+            # depend on current global var vals, not next global var vals
+            # (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
+            # return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
+            return eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
+
+
+        elif isinstance(s, StateVarAssign):
+            assert s.varname not in forbidden_write, f"global-state var {s.varname} can't be written at (TODO: s.coord)"
+            # forbid writing a second time to this variable in the same forward-scope, because it's potentially confusing
+            # and not needed in good code.
+            # I was actually doing this... but could easily switch to ifthenelse
+            forbidden_write.add(s.varname)
+
+            s.value_expr = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
+
+            # forbid reading from it in the forward-scope after writing to it, because that's potentially confusing
+            # and not needed in good code.
+            # ACTUALLY I rely on this for translation in action rules to be sound.
+            forbidden_read.add(s.varname)
+
+            (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
+                                                                                             forbidden_read,
+                                                                                             forbidden_write)
+            new_forbidden_read.discard(s.varname)
+
+            return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
+
+        elif isinstance(s, IfElse):
+            newtest = eliminate_local_vars_term(s.test, frozendict(subst), frozenset(forbidden_read))
+
+            copy_forbidden_read = forbidden_read.copy()
+            copy_forbidden_write = forbidden_write.copy()
+            (new_true_branch, forbidden_read1, forbidden_write1) = eliminate_local_vars_block(s.true_branch, subst,
+                                                                                              forbidden_read,
+                                                                                              forbidden_write)
+            # global vars written to in the true branch can be written to in the false branch, so we send the same sets
+            (new_false_branch, forbidden_read2, forbidden_write2) = eliminate_local_vars_block(s.false_branch, subst,
+                                                                                               copy_forbidden_read,
+                                                                                               copy_forbidden_write) if s.false_branch is not None else (
+            [], set(), set())
+
+            s.test = newtest
+            s.true_branch = new_true_branch
+            s.false_branch = new_false_branch
+
+            (new_rest, new_forbidden_read, new_forbidden_write) = \
+                eliminate_local_vars_block(rest, subst,
+                                           forbidden_read1.union(forbidden_read2),
+                                           forbidden_write1.union(forbidden_write2))
+            return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
+
+        elif isinstance(s, FVRequirement):
+            s.value_expr = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
+
+            (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
+                                                                                             forbidden_read,
+                                                                                             forbidden_write)
+            return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
+
+        else:
+            raise NotImplementedError
+
+    def eliminate_local_vars_term(term: Term, subst: Dict[str, Term], forbidden_read: FrozenSet[str]) -> Term:
+        if isinstance(term, LocalVar):
+            assert term.name not in forbidden_read, f"local var {term} can't be read at {term.coord}"
+            if term.name in subst:
+                # print("SUBST!", term.name, substForVar[term.name])
+                return subst[term.name]
+        elif isinstance(term, GlobalVar):
+            assert term.name not in forbidden_read, f"global-state var {term} can't be read at {term.coord}"
+        elif isinstance(term, FnApp):
+            # assert term.coord is not None, f"No FileCoord for term {term}"
+            return FnApp(term.fnsymb_name, [eliminate_local_vars_term(arg, subst, forbidden_read) for arg in term.args],
+                         term.coord)
+        return term
+
     for act in p.actions_iter():
         if act.global_state_transform:
             (x,y,z) = eliminate_local_vars_block(act.global_state_transform.statements, {}, set(), set())
             act.global_state_transform.statements = x
-
-"""
-This both modifies its arguments and returns something, which is naughty.
-Modify `prog`, eliminating every instance of local var usage.
-
-"""
-# def eliminate_local_vars_block(block: Block, subst:Dict[str,Term], forbidden_read:Set[str], forbidden_write:Set[str]) -> Tuple[Block,FrozenSet[str],FrozenSet[str]]:
-def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_read: Set[str],
-                               forbidden_write: Set[str]) -> Tuple[Block, Set[str], Set[str]]:
-    assert block is not None
-    if len(block) == 0:
-        return ([], forbidden_read, forbidden_write)
-
-    rest = block[1:]
-    s = block[0]
-
-    if isinstance(s, LocalVarDec):
-        assert s.varname not in forbidden_write, f"local var {s.varname} can't be written at (TODO: s.coord)"
-        value_expr2 = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
-        subst2 = subst.copy()
-        subst2[s.varname] = value_expr2
-
-        # can't write a second time to this variable in the same forward-scope, because it's potentially confusing
-        # and not needed in good code.
-        forbidden_write2 = forbidden_write.union({s.varname})
-
-        # Now that the term giving s.varname its new value has been substituted, we move on to eliminating further
-        # local var decs in the remainder of the block.
-        # return eliminate_local_vars_block(rest, subst, forbidden_read, forbidden_write2)
-        # EXCEPT that there's a subtley with eliminating them in action rules, so I won't actually eliminate them,
-        # but I will ignore them when doing FV confined to the state transform section
-        # ACTUALLY, it's all good because no-read-after-write condition ensures that local variable definitions only
-        # depend on current global var vals, not next global var vals
-        # (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
-        # return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
-        return eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
-
-
-    elif isinstance(s, StateVarAssign):
-        assert s.varname not in forbidden_write, f"global-state var {s.varname} can't be written at (TODO: s.coord)"
-        # forbid writing a second time to this variable in the same forward-scope, because it's potentially confusing
-        # and not needed in good code.
-        # I was actually doing this... but could easily switch to ifthenelse
-        forbidden_write.add(s.varname)
-
-        s.value_expr = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
-
-        # forbid reading from it in the forward-scope after writing to it, because that's potentially confusing
-        # and not needed in good code.
-        # ACTUALLY I rely on this for translation in action rules to be sound.
-        forbidden_read.add(s.varname)
-
-        (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
-                                                                                         forbidden_read,
-                                                                                         forbidden_write)
-        new_forbidden_read.discard(s.varname)
-
-        return cast(Block,[s]) + new_rest, new_forbidden_read, new_forbidden_write
-
-    elif isinstance(s, IfElse):
-        newtest = eliminate_local_vars_term(s.test, frozendict(subst), frozenset(forbidden_read))
-
-        copy_forbidden_read = forbidden_read.copy()
-        copy_forbidden_write = forbidden_write.copy()
-        (new_true_branch, forbidden_read1, forbidden_write1) = eliminate_local_vars_block(s.true_branch, subst,
-                                                                                          forbidden_read,
-                                                                                          forbidden_write)
-        # global vars written to in the true branch can be written to in the false branch, so we send the same sets
-        (new_false_branch, forbidden_read2, forbidden_write2) = eliminate_local_vars_block(s.false_branch, subst,
-                                                                                           copy_forbidden_read,
-                                                                                           copy_forbidden_write) if s.false_branch is not None else ([],set(),set())
-
-        s.test = newtest
-        s.true_branch = new_true_branch
-        s.false_branch = new_false_branch
-
-        (new_rest, new_forbidden_read, new_forbidden_write) = \
-            eliminate_local_vars_block(rest, subst,
-                                       forbidden_read1.union(forbidden_read2),
-                                       forbidden_write1.union(forbidden_write2))
-        return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
-
-    elif isinstance(s, FVRequirement):
-        s.value_expr = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
-
-        (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
-                                                                                         forbidden_read,
-                                                                                         forbidden_write)
-        return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
-
-    else:
-        raise NotImplementedError
-
-
-def eliminate_local_vars_term(term: Term, subst:Dict[str,Term],  forbidden_read:FrozenSet[str]) -> Term:
-    if isinstance(term, LocalVar):
-        assert term.name not in forbidden_read, f"local var {term} can't be read at {term.coord}"
-        if term.name in subst:
-            # print("SUBST!", term.name, subst[term.name])
-            return subst[term.name]
-    elif isinstance(term, GlobalVar):
-        assert term.name not in forbidden_read, f"global-state var {term} can't be read at {term.coord}"
-    elif isinstance(term, FnApp):
-        # assert term.coord is not None, f"No FileCoord for term {term}"
-        return FnApp(term.fnsymb_name, [eliminate_local_vars_term(arg, subst, forbidden_read) for arg in term.args], term.coord)
-    return term
 

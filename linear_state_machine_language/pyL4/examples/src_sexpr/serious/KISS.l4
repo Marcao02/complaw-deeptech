@@ -69,6 +69,13 @@
 	(apply-macro compounded_full_periods (#princ #ir #full_periods)) +
 	(((apply-macro compounded_full_periods (#princ #ir #full_periods)) * #ir) * #final_period_fraction)
 ))
+(Macro principle_and_compound_interest_lt_year (#princ #ir #final_period_fraction)
+	(#princ + ((#princ * #ir) * #final_period_fraction))
+)
+(Macro principle_and_compound_interest_gt_year (#princ #ir #final_period_fraction) (
+	(#princ * (1 + #ir)) +
+	(((#princ * (1 + #ir)) * #ir) * #final_period_fraction)
+))
 
 (TypedMacro compound_interest
 	((#princ : Pos$) (#ir : "Fraction(0,1)") (#full_periods : PosInt) (#final_period_fraction: "Fraction[0,1)")) -> Pos$
@@ -77,7 +84,12 @@
 (Macro compound_interest (#princ #ir #full_periods #final_period_fraction)
 	(check Pos$ ((apply-macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
 )
-
+(Macro compound_interest_lt_year (#princ #ir #final_period_fraction)
+	(check Pos$ ((apply-macro principle_and_compound_interest_lt_year (#princ #ir #final_period_fraction)) - #princ))
+)
+(Macro compound_interest_gt_year (#princ #ir #final_period_fraction)
+	(check Pos$ ((apply-macro principle_and_compound_interest_gt_year (#princ #ir #final_period_fraction)) - #princ))
+)
 ; Interesting issue here: ifthenelse (a ≤ t') t_true t_false
 ; gives a type (LEQ t') in t_true, and type (GT t') in t_false
 ; but that, as it's written now, seems to require an encoding of the relationship between formulas and types.
@@ -98,12 +110,27 @@
 		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((trust PosTimeDelta (#td - 365d)) / 365d)))
 	)
 )
+; (Macro interest_from_td #td
+; 	(ifthenelse (#td ≤ 365d)
+; 		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
+; 		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((trust PosTimeDelta (#td - 365d)) / 365d)))
+; 	)
+; )
 (Macro interest_from_td #td
 	(ifthenelse (#td ≤ 365d)
-		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
-		(apply-macro compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((trust PosTimeDelta (#td - 365d)) / 365d)))
+		(apply-macro compound_interest_lt_year (PURCHASE_AMOUNT INTEREST_RATE (#td / 365d)))
+		(apply-macro compound_interest_gt_year (PURCHASE_AMOUNT INTEREST_RATE ((trust PosTimeDelta (#td - 365d)) / 365d)))
 	)
 )
+; issue can't redeclare local var:
+; (Macro interest_from_td (#local_var #td)
+; 	(if (#td ≤ 365d) (
+; 		(local #local_var : $ := (apply-macro compound_interest_lt_year (PURCHASE_AMOUNT INTEREST_RATE (#td / 365d))))
+; 	)
+; 	else (
+; 		(local #local_var : $ := (apply-macro compound_interest_gt_year (PURCHASE_AMOUNT INTEREST_RATE ((trust PosTimeDelta (#td - 365d)) / 365d))))
+; 	))
+; )
 
 (FormalContract "KISS"
 	(StartSection InvestorInvests)
@@ -164,8 +191,11 @@
 			(local discount_price : SharePrice = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
 			(local conversion_price : SharePrice = (min discount_price cap_price))
 			(if pay_interest_in_cash (
-				(local change : $ = (apply-macro interest_from_td event_td))
-				(company_cash' += (check $ (company_cash - change)))
+				; this won't work because we don't have short circuit ifthenelse from Z3's current (very basic) perspective
+				(local change : $ := (min (apply-macro interest_from_td event_td) company_cash))
+				; and this won't work because it declares a local variable twice, which doesn't work with local variable elimination.
+				; (apply-macro interest_from_td (change event_td))
+				(company_cash' = (check $ (company_cash - change)))
 				(investor_cash' += change)
 				(investor_PreferredStock' += (PURCHASE_AMOUNT round/ conversion_price))
 			) else (

@@ -1,5 +1,6 @@
 from typing import List, Dict
 
+from hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse
 from src.model.L4Contract import L4Contract
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.correctness_checks import test_fns
@@ -22,6 +23,10 @@ def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
             print(prettySExprStr(parsed))
         assembler = L4ContractConstructor(filesubpath, verbose)
         prog = assembler.mk_l4contract(parsed)
+        eliminate_local_vars(prog)
+        # eliminate_ifthenelse(prog)
+        print(prog)
+
         if keep:
             rv[filesubpath] = prog
 

@@ -63,7 +63,7 @@ def parametric_one_var(tp_or_tps:Union[SimpleFnType,Iterable[SimpleFnType]],
             yield tp_or_tps.subst(var,sort)
     # elif isinstance(tp_or_tps, ArbArityFnType):
     #     for sort in substitutions:
-    #         yield tp_or_tps.subst(var,sort)
+    #         yield tp_or_tps.substForVar(var,sort)
     else:
         for tp in tp_or_tps:
             for sort in substitutions:
@@ -244,9 +244,18 @@ overloaded_types_data : FnTypesData = [
      ),
     (('max',), (
         sfntype(PosReal, Real, PosReal),
-        sfntype(PosInt, Int, PosInt),
         sfntype(Real,PosReal, PosReal),
-        sfntype(Int, PosInt, PosInt)
+        sfntype(PosReal2, Real2, PosReal2),
+        sfntype(Real2,PosReal2, PosReal2),
+
+        sfntype(PosInt, Int, PosInt),
+        sfntype(Int, PosInt, PosInt),
+
+        sfntype(NonnegReal2, Real2, NonnegReal2),
+        sfntype(Real2,NonnegReal2, NonnegReal2),
+
+        sfntype(Nat, Int, Nat),
+        sfntype(Int, Nat, Nat)
         )
     ),
     # to do: {0},{1}, and {0,1}.
@@ -393,7 +402,7 @@ check_type_vars_gone(STANDARD_FNTYPES)
 #         tps = {tp_or_tps}
 #     rv = []
 #     for tp in tps:
-#         rv.extend([nested_list_replace_mult(tp, subst) for subst in substitutions])
+#         rv.extend([nested_list_replace_mult(tp, substForVar) for substForVar in substitutions])
 #     raise NotImplementedError
 
 # """
@@ -401,11 +410,11 @@ check_type_vars_gone(STANDARD_FNTYPES)
 # """
 # def subst_concrete_dups(fntypes: FnTypesMap):
 #     newparts : List[SimpleFnType] = []
-#     subst : Dict[Tuple[str,str], SortOpApp] = dict()
+#     substForVar : Dict[Tuple[str,str], SortOpApp] = dict()
 #     for fnsymb,oft in fntypes.items():
 #         newparts.clear()
 #         for noft in oft.parts:
-#             subst.clear()
+#             substForVar.clear()
 #             for sort in noft.parts:
 #                 if isinstance(sort,SortOpApp):
 #                     op = sort.op

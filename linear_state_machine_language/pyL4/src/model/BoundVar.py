@@ -36,6 +36,9 @@ class BoundVar(Term):
             rviter = chain(rviter, f(self.name))
         return rviter
 
+    def substForVar(self, var: str, term: 'Term') -> 'Term':
+        return term if self.name == var else self
+
     def __eq__(self, other:Any) -> bool:
         todo_once("BoundVar.__eq__ would be unsafe if variable shadowing was allowed, which it current isn't.")
         return isinstance(other,BoundVar) and type(self) == type(other) and self.name == other.name
