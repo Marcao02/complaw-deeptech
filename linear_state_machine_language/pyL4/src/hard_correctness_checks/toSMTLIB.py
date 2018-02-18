@@ -146,9 +146,12 @@ class ToSMTLIB:
         rv = (
             "(declare-const event_td Int)",
             "(assert (> event_td 0))"
+            "(declare-const next_event_td Int)",
+            "(assert (>= next_event_td event_td))"
         )
-        # self.append(rv[0])
-        # self.append(rv[1])
+        # future_event_td should not be in the program after floating_rules_transpile_away
+        # "(declare-const future_event_td Int)",
+        # "(assert (>= future_event_td next_event_td))"
         return rv
 
 
