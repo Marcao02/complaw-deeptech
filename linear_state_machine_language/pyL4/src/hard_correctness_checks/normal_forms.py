@@ -188,7 +188,7 @@ def eliminate_local_vars(p:L4Contract):
         s = block[0]
 
         if isinstance(s, LocalVarDec):
-            print(f"seeing local var {s.varname}")
+            # print(f"seeing local var {s.varname}")
             assert s.varname not in forbidden_write, f"local var {s.varname} can't be written at (TODO: s.coord)"
             value_expr2 = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
             subst2 = subst.copy()
@@ -198,7 +198,7 @@ def eliminate_local_vars(p:L4Contract):
             # can't write a second time to this variable in the same forward-scope, because it's potentially confusing
             # and not needed in good code.
             forbidden_write2 = forbidden_write.union({s.varname})
-            print(f"just added local var name {s.varname} to forbidden_write after recursing on RHS of {s}")
+            # print(f"just added local var name {s.varname} to forbidden_write after recursing on RHS of {s}")
 
             # Now that the term giving s.varname its new value has been substituted, we move on to eliminating further
             # local var decs in the remainder of the block.

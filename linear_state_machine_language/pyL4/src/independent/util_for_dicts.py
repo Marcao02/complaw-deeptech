@@ -1,5 +1,6 @@
 from typing import Dict, Any, Set, TypeVar
 
+
 T1 = TypeVar('T1')
 T2 = TypeVar('T2')
 
@@ -18,3 +19,6 @@ def dictInc(d:Dict[T1, int], key:T1, init:int) -> None:
     else:
         d[key] = init
 
+
+def hasNotNone(d:Dict[T1,Any], x:T1) -> bool:
+    return (x in d) and not(d[x] is None)

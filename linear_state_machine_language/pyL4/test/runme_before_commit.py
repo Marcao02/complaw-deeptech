@@ -41,7 +41,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     timetask_start("parse")
     import test_parser
     assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
-    progs = test_parser.main(keep=True)
+    progs = test_parser.main(keep=True,verbose=False)
     timetask_stop()
 
     if 'interpreter' in tests_to_run:

@@ -1,4 +1,5 @@
 import test.test_parser
+from src.independent.util_for_str import strwbar
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse
 from src.independent.typing_imports import *
 from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand, smt_lines_to_str, ToSMTLIB
@@ -8,13 +9,28 @@ EXAMPLES_TO_USE = [
 
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
     'from_academic_lit/Farmer_american_call_option_2016.l4',
+    'from_academic_lit/hvitved_lease.l4',
+    # 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
+    # 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
+    'from_academic_lit/hvitved_printer.l4',
+    'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
     'serious/SAFE.l4',
     'serious/SAFE_2_liq_eventtypes.l4',
-    'serious/KISS.l4', # need to handle TimeDelta
+    'serious/KISS.l4',
+    'toy_and_teaching/minimal_future_actions.l4',
+    'toy_and_teaching/minimal_future_actions2.l4',
+    'toy_and_teaching/collatz.l4',
+    'toy_and_teaching/partner_assignment_relievable_obligations.l4',
+    'toy_and_teaching/test_local_vars.l4',
+    'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
+    'toy_and_teaching/monster_burger_program_only.l4'
 
 ]
 
 def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
+    if verbose:
+        print(strwbar(f"\nSMT generation for {prog.filename}",'~'))
+
     lines: List[SMTLine] = []
 
     def heading(s: str, linebreak=True) -> None:

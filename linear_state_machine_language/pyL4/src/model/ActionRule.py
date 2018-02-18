@@ -1,6 +1,7 @@
 from itertools import chain
 
-from src.independent.util import indent, mapjoin
+from src.independent.util import indent
+from src.independent.util_for_str import mapjoin
 from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
 from src.model.PartialEvalTerm import PartialEvalTerm

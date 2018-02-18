@@ -1,4 +1,5 @@
-from src.independent.util import mapjoin, todo_once
+from src.independent.util import todo_once
+from src.independent.util_for_str import mapjoin
 from src.independent.typing_imports import *
 from src.model.Sort import Sort, sortsubst, sortsubstdict
 

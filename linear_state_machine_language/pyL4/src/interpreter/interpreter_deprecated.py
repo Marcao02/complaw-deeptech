@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
 
-from src.independent.util import hasNotNone, todo_once, chcast, contract_bug, castid
+from src.independent.util import todo_once, chcast, contract_bug, castid
+from src.independent.util_for_dicts import hasNotNone
 from src.independent.util_for_dicts import dictInc
 from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \

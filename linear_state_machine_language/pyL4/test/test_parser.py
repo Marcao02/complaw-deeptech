@@ -25,7 +25,7 @@ def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
         prog = assembler.mk_l4contract(parsed)
         # eliminate_local_vars(prog)
         # eliminate_ifthenelse(prog)
-        print(prog)
+        # print(prog)
 
         if keep:
             rv[filesubpath] = prog

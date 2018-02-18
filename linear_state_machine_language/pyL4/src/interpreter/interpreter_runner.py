@@ -32,6 +32,5 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, verbose:bool=True,
                              final_var_vals = cast(Optional[GVarSubst], it.final_values),
                              verbose=verbose, debug=debug)
     else:
-        print("2")
         return env.evalTrace(trace = it, verbose=verbose, debug=debug)
 

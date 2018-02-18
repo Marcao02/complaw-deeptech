@@ -1,4 +1,5 @@
-from src.independent.util import chcaststr, mapjoin
+from src.independent.util import chcaststr
+from src.independent.util_for_str import mapjoin
 from src.model.L4Contract import *
 
 COLORS = ('Blue', 'Red')

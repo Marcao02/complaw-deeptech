@@ -1,6 +1,6 @@
 from typing import NewType
 
-from src.independent.util import mapjoin
+from src.independent.util_for_str import mapjoin
 from src.constants_and_defined_types import ActionId
 from src.model.Sort import Sort
 from src.independent.typing_imports import *
@@ -25,6 +25,7 @@ SMTLine = Union[SMTCommand_, str]
 SMT_BUILDIN_FNS = frozenset({'and', 'or', 'not', '=>', '=', '*', '+', '>', '<', '<=', '>=', '/', '-'})
 
 SORT_TO_PRED : Dict[str,Callable[[str], SMTExpr]]= {
+    "TimeDelta": lambda x: fnapp(">", x, 0),
     "$": lambda x: fnapp(">=", x, 0),
     "Pos$": lambda x: fnapp(">", x, 0),
     "PosReal": lambda x: fnapp(">", x, 0),
@@ -48,12 +49,6 @@ FN_NAME_SUBST : Dict[str,str] = {
 # We could alternatively use SMTLIB `define-fun` command for these, but I believe the result would be the same.
 MACRO_DEFINED_FNS : Dict[str, Callable] = {
     "days": lambda x: x,
-
-    # this is no good obviously. what i need to do is add event_td as an extra PosReal action parameter, or just make
-    # it an uninterpreted constant of type PosReal or PosInt
-    # "event_td": lambda: 1,
-
-
     "cast": lambda S,t: t,
     "check": lambda S,t: t,
     "trust": lambda S,t: t,

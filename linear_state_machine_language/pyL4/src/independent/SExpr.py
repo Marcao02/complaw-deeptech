@@ -3,7 +3,7 @@
 from typing import Union, List, Any, cast, Sized, Iterable, Sequence
 
 from src.independent.FileCoord import FileCoord
-from src.independent.util import caststr
+from src.independent.util import chcaststr
 
 STRING_LITERAL_MARKER = "STRLIT"
 COMMENT_LITERAL_MARKER = "COMMENT"
@@ -89,7 +89,7 @@ def mult_replace(s:str, olds:Sequence[str], news:Sequence[SExprOrStr]) -> SExprO
     rv = s
     for i in range(len(olds)):
         if isinstance(news[i],str):
-            rv = rv.replace(olds[i], caststr(news[i]))
+            rv = rv.replace(olds[i], chcaststr(news[i]))
         elif s == olds[i]: # if a string is exactly the parameter name, only in that case can we substitute in an SExpr
             return news[i]
 
