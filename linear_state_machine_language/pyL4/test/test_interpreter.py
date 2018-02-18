@@ -466,12 +466,14 @@ def main(examples:Dict[str,L4Contract], verbose=True):
             if verbose:
                 print("\nRunning test trace for " + examplekey)
             prog = examples[examplekey]
+            evalTrace(trace[1], prog, verbose=verbose, debug=False)
             eliminate_local_vars(prog)
+            evalTrace(trace[1], prog, verbose=verbose, debug=False)
             eliminate_ifthenelse(prog)
             evalTrace(trace[1], prog, verbose=verbose, debug=False)
 
 def cli(sys_argv:Sequence[str]):
-    main(test_parser.main(keep=True, verbose=False), verbose=False)
+    main(test_parser.main(keep=True, verbose=False), verbose=True)
 
 if __name__ == '__main__':
     import sys

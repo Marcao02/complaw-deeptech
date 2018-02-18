@@ -1,6 +1,7 @@
 from typing import FrozenSet
 
-from independent.util import chcast
+from src.constants_and_defined_types import LocalVarId
+from src.independent.util import chcast
 from src.model.Term import Term, FnApp
 from src.model.BoundVar import LocalVar, GlobalVar
 from src.independent.typing_imports import *
@@ -47,7 +48,7 @@ def eliminate_ifthenelse(p:L4Contract):
         if not maybe_ite_term:
             snew = s
         else:
-            progress_made = True
+            progress_made = True # type:ignore
             ite_term = chcast(FnApp,maybe_ite_term)
             assert ite_term.fnsymb_name == "ifthenelse", ite_term
             assert len(ite_term.args) == 3, ite_term.args
@@ -105,6 +106,26 @@ def eliminate_ifthenelse(p:L4Contract):
                 progress_made = False
                 act.global_state_transform.statements = eliminate_ifthenelse_block(act.global_state_transform.statements)
 
+        if act.following_anon_section:
+            sec = act.following_anon_section
+            for rule in sec.action_rules():
+                # print(rule, rule.fixed_args)
+                if rule.fixed_args:
+                    for i in range(len(rule.fixed_args)):
+                        if rule.fixed_args[i].findFirstTerm(lambda x:isinstance(x,FnApp) and x.fnsymb_name=="ifthenelse"):
+                            raise NotImplementedError("Elimination of ifthenelse expression in action rules is not yet implemented (but nothing preventing it from being).")
+                if rule.where_clause:
+                    if rule.where_clause.findFirstTerm(lambda x:isinstance(x,FnApp) and x.fnsymb_name=="ifthenelse"):
+                        raise NotImplementedError(
+                            "Elimination of ifthenelse expression in action rules is not yet implemented (but nothing preventing it from being).")
+
+# class EliminateLocalVarsInBlockResult(NamedTuple):
+#     block: Block
+#     forbidden_read: Set[str]
+#     forbidden_write: Set[str]
+#     allsubst: Dict[LocalVarId,Term]
+
+
 def eliminate_local_vars(p:L4Contract):
     print("WARNING I PLAYED FAST AND LOOSE WITH MUTABLE DATA STRUCTURES")
     """Currently unchecked conditions: 
@@ -150,9 +171,15 @@ def eliminate_local_vars(p:L4Contract):
 
     """
 
+    allsubst : Dict[str,Term] = dict()
+
     # def eliminate_local_vars_block(block: Block, substForVar:Dict[str,Term], forbidden_read:Set[str], forbidden_write:Set[str]) -> Tuple[Block,FrozenSet[str],FrozenSet[str]]:
-    def eliminate_local_vars_block(block: Block, subst: Dict[str, Term], forbidden_read: Set[str],
-                                   forbidden_write: Set[str]) -> Tuple[Block, Set[str], Set[str]]:
+    def eliminate_local_vars_block(block: Block,
+                                   subst: Dict[str, Term],
+                                   forbidden_read: Set[str],
+                                   forbidden_write: Set[str]) \
+            -> Tuple[Block, Set[str], Set[str]]:
+            # -> EliminateLocalVarsInBlockResult:
         assert block is not None
         if len(block) == 0:
             return ([], forbidden_read, forbidden_write)
@@ -161,14 +188,17 @@ def eliminate_local_vars(p:L4Contract):
         s = block[0]
 
         if isinstance(s, LocalVarDec):
+            print(f"seeing local var {s.varname}")
             assert s.varname not in forbidden_write, f"local var {s.varname} can't be written at (TODO: s.coord)"
             value_expr2 = eliminate_local_vars_term(s.value_expr, frozendict(subst), frozenset(forbidden_read))
             subst2 = subst.copy()
             subst2[s.varname] = value_expr2
+            allsubst[s.varname] = value_expr2
 
             # can't write a second time to this variable in the same forward-scope, because it's potentially confusing
             # and not needed in good code.
             forbidden_write2 = forbidden_write.union({s.varname})
+            print(f"just added local var name {s.varname} to forbidden_write after recursing on RHS of {s}")
 
             # Now that the term giving s.varname its new value has been substituted, we move on to eliminating further
             # local var decs in the remainder of the block.
@@ -194,12 +224,13 @@ def eliminate_local_vars(p:L4Contract):
             # forbid reading from it in the forward-scope after writing to it, because that's potentially confusing
             # and not needed in good code.
             # ACTUALLY I rely on this for translation in action rules to be sound.
-            forbidden_read.add(s.varname)
+            # forbidden_read.add(s.varname)
+            # print(f"just added global var name {s.varname} to forbidden_read after recursing on RHS of {s}")
 
             (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
                                                                                              forbidden_read,
                                                                                              forbidden_write)
-            new_forbidden_read.discard(s.varname)
+            # new_forbidden_read.discard(s.varname)
 
             return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
 
@@ -245,7 +276,8 @@ def eliminate_local_vars(p:L4Contract):
                 # print("SUBST!", term.name, substForVar[term.name])
                 return subst[term.name]
         elif isinstance(term, GlobalVar):
-            assert term.name not in forbidden_read, f"global-state var {term} can't be read at {term.coord}"
+            pass
+            # assert term.name not in forbidden_read, f"global-state var {term} can't be read at {term.coord}. {forbidden_read}"
         elif isinstance(term, FnApp):
             # assert term.coord is not None, f"No FileCoord for term {term}"
             return FnApp(term.fnsymb_name, [eliminate_local_vars_term(arg, subst, forbidden_read) for arg in term.args],
@@ -254,6 +286,20 @@ def eliminate_local_vars(p:L4Contract):
 
     for act in p.actions_iter():
         if act.global_state_transform:
+            allsubst = dict()
             (x,y,z) = eliminate_local_vars_block(act.global_state_transform.statements, {}, set(), set())
             act.global_state_transform.statements = x
+        if act.following_anon_section:
+            sec = act.following_anon_section
+            for rule in sec.action_rules():
+                # print(rule, rule.fixed_args)
+                if rule.fixed_args:
+                    for i in range(len(rule.fixed_args)):
+                        rule.fixed_args[i] = eliminate_local_vars_term(rule.fixed_args[i], allsubst, frozenset())
+                if rule.where_clause:
+                    rule.where_clause = eliminate_local_vars_term(rule.where_clause, allsubst, frozenset())
+
+    # for sec in p.sections_iter():
+                    # rule.arg_vars_bound_by_rule[i]))
+                    # rule.args[i] =
 

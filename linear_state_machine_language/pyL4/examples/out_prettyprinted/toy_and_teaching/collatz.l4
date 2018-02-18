@@ -4,7 +4,7 @@ file: toy_and_teaching/collatz.l4
 roles: Env
 
 contract params:
-    START : Nat := 99
+    START : Nat := 12
 
 global vars:
     x : Nat := START

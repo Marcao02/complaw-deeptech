@@ -6,7 +6,7 @@ roles: Env, Customer, Vendor
 contract params:
     MAX_UNITS : Nat := 1000
     CONTRACT_LIFE : TimeDelta := 52w
-    PRICE_PER_UNIT : $ := (units $ 100)
+    PRICE_PER_UNIT : $ := 100
 
 global vars:
     writeonce order_period_ends : TimeDelta := CONTRACT_LIFE

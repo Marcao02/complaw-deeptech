@@ -23,7 +23,7 @@ def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
             print(prettySExprStr(parsed))
         assembler = L4ContractConstructor(filesubpath, verbose)
         prog = assembler.mk_l4contract(parsed)
-        eliminate_local_vars(prog)
+        # eliminate_local_vars(prog)
         # eliminate_ifthenelse(prog)
         print(prog)
 

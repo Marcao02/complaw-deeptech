@@ -611,11 +611,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             # print("parent_action_rule", parent_action_rule)
             # if x == 'order' and parent_action_rule:
             #     print("args", parent_action_rule.args)
-            if parent_action_rule and parent_action_rule.args and x in parent_action_rule.args:
+            if parent_action_rule and parent_action_rule.arg_vars_bound_by_rule and x in parent_action_rule.arg_vars_bound_by_rule:
                 assert parent_SExpr is not None and parent_SExpr.coord() is not None
-                assert parent_action_rule.args_name_to_ind is not None
+                assert parent_action_rule.arg_vars_name_to_ind is not None
                 return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
-                                            parent_action_rule.args_name_to_ind[castid(RuleBoundActionParamId,x)],
+                                            parent_action_rule.arg_vars_name_to_ind[castid(RuleBoundActionParamId, x)],
                                             parent_SExpr.coord())
 
             if parent_action and x in parent_action.param_sorts_by_name:

@@ -174,13 +174,12 @@
                 ]
             ]
             [units_ordered' += quantity]
-            [local this_order_id : Nat := next_order_id]
-            [next_order_id' += 1]
+            [next_order_id' = [next_order_id + 1]]
             ; [local mytest_for_error : TimeDelta = sectionEntrance_td]
         ]
 
         [Future
-            [ Vendor must-later [Deliver quantity this_order_id] [future_event_td ≤ this_delivery_deadline]]
+            [ Vendor must-later [Deliver quantity next_order_id] [future_event_td ≤ this_delivery_deadline]]
         ]
 
     ]

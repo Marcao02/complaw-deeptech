@@ -8,8 +8,8 @@ from src.independent.util import print_all_todos
 tests_to_run = {
     'typechecker',
     # 'smt',
-    'graphviz',
-    'prettyprint',
+    # 'graphviz',
+    # 'prettyprint',
     'interpreter',
 }
 
@@ -17,6 +17,8 @@ def runit(s, optional_s=""):
     line2 = f"Running {optional_s} `{s}`"
     print(f"\n{'='*len(line2)}\n{line2}")
     os.system(s)
+
+VERBOSE = False
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     splits : Dict[str,int] = {}
@@ -46,13 +48,13 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         timetask_start('interpreter')
         import test_interpreter
         assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), "Some entries of test_interpreter.EXAMPLES_TO_RUN are probably commented out"
-        test_interpreter.main(progs,False)
+        test_interpreter.main(progs, VERBOSE)
         timetask_stop()
 
     if 'typechecker' in tests_to_run:
         timetask_start('typechecker')
         import test_typechecker
-        test_typechecker.main(progs,False)
+        test_typechecker.main(progs, VERBOSE)
         timetask_stop()
 
     if 'smt' in tests_to_run:
@@ -64,7 +66,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     if 'graphviz' in tests_to_run:
         timetask_start('graphviz')
         import test_graphviz
-        test_graphviz.main(progs,False)
+        test_graphviz.main(progs, VERBOSE)
         timetask_stop()
 
     if 'prettyprint' in tests_to_run:

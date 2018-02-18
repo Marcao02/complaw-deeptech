@@ -25,8 +25,8 @@ class ActionRule:
         self.time_constraint: Term
         self.where_clause: Optional[Term] = None
 
-        self.args = args
-        self.args_name_to_ind = {self.args[i]:i for i in range(len(self.args))} if self.args else None
+        self.arg_vars_bound_by_rule = args
+        self.arg_vars_name_to_ind = {self.arg_vars_bound_by_rule[i]:i for i in range(len(self.arg_vars_bound_by_rule))} if self.arg_vars_bound_by_rule else None
         self.fixed_args: Optional[List[Term]] = None
 
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
@@ -89,11 +89,11 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv += indent(indent_level) + f"{ar.role_id} {ar.deontic_keyword} {ar.action_id}"
 
     if fixed_param_vals:
-        assert not ar.args
+        assert not ar.arg_vars_bound_by_rule
         rv += f"({mapjoin(str , fixed_param_vals, ', ')})"
-    elif ar.args:
+    elif ar.arg_vars_bound_by_rule:
         assert not ar.fixed_args
-        rv += f"({mapjoin(str , ar.args, ', ')})"
+        rv += f"({mapjoin(str , ar.arg_vars_bound_by_rule, ', ')})"
     elif ar.fixed_args:
         rv += f"({mapjoin(str , ar.fixed_args, ', ')})"
 
@@ -199,9 +199,9 @@ class EnvNextActionRule(NextActionRule):
         assert self.role_id == ENV_ROLE
         rv += indent(indent_level) + self.action_id
 
-        if self.args:
+        if self.arg_vars_bound_by_rule:
             assert not self.fixed_args
-            rv += f"({mapjoin(str , self.args, ', ')})"
+            rv += f"({mapjoin(str , self.arg_vars_bound_by_rule, ', ')})"
         elif self.fixed_args:
             rv += f"({mapjoin(str , self.fixed_args, ', ')})"
 

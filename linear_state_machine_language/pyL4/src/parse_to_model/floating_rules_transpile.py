@@ -152,7 +152,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               FnApp('next_event_td',[])
                                              ])
                 rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
-                rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
+                rule.arg_vars_bound_by_rule = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sec.add_action_rule(rule)
             else:
                 assert kw == 'must-later'
@@ -177,6 +177,6 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               FnApp('next_event_td', [])
                                               ])
                 rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
-                rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
+                rule.arg_vars_bound_by_rule = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sec.add_action_rule(rule)
 

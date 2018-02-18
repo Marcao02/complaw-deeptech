@@ -12,7 +12,7 @@ section Ongoing:
 action DoIt()  transitions to AfterDoIt:
     transform:
     following section:
-        FinishIt(y)
+        FinishIt(((n * n) * (n * n)))
 
 action FinishIt(z: Nat) transitions to Fulfilled:
     transform:
