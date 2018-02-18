@@ -223,7 +223,7 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			; from Corporate Transaction Payment defn
-			(local change : $ = ((apply-macro interest_from_td event_td) + (2 * PURCHASE_AMOUNT)))
+			(local change : $ = (min ((apply-macro interest_from_td event_td) + (2 * PURCHASE_AMOUNT)) company_cash))
 			; (company_cash' -= change)
 			(company_cash' = (check $ (company_cash - change)))
 			(investor_cash' += change)
@@ -259,7 +259,7 @@
 	(Action ChooseMaturityRepayment
 		(AllowedSubjects Investor)
 		(StateTransform
-			(local change : $ = ((apply-macro interest_from_td event_td) + PURCHASE_AMOUNT))
+			(local change : $ = (min ((apply-macro interest_from_td event_td) + PURCHASE_AMOUNT) company_cash))
 			; (company_cash' -= change)
 			(company_cash' = (check $ (company_cash - change)))
 			(investor_cash' += change)

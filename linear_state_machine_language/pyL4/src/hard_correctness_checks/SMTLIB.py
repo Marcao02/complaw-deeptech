@@ -44,11 +44,13 @@ FN_NAME_SUBST : Dict[str,str] = {
     '==' : '=',
 }
 
+
 # We could alternatively use SMTLIB `define-fun` command for these, but I believe the result would be the same.
 MACRO_DEFINED_FNS : Dict[str, Callable] = {
     "days": lambda x: x,
 
-    # this is no good obviously. what i need to do is add event_td as an extra PosReal action parameter.
+    # this is no good obviously. what i need to do is add event_td as an extra PosReal action parameter, or just make
+    # it an uninterpreted constant of type PosReal or PosInt
     # "event_td": lambda: 1,
 
 

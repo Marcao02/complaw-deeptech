@@ -26,10 +26,13 @@ def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
         lines.extend(_lines)
 
     eliminate_local_vars(prog)
-    # eliminate_ifthenelse(prog)
+    eliminate_ifthenelse(prog)
 
     toz3 = ToSMTLIB(prog,verbose)
     toz3.prog2smtlibdef()
+
+    heading("Boilerplate")
+    extend(toz3.boilerplate_smtlib())
 
     heading("Contract param constant declarations")
     extend(toz3.contractParamDecs.values())

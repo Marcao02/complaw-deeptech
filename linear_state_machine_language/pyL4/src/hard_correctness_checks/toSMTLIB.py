@@ -80,6 +80,7 @@ class ToSMTLIB:
 
     def appendProofOblig(self, expr:SMTExpr, msg:str = ""):
         self.push()
+        self.append(f'(echo "Should be sat:") (check-sat)')
         if msg:
             self.append(f'(echo "{msg}")')
         else:
@@ -140,6 +141,16 @@ class ToSMTLIB:
                 self.append(self.actionParamExtraTypeAssertions[aid][scoped_apname])
             elif self.verbose:
                 print(f"Skipping extra type prop for action param {scoped_apname}:{apsort}")
+
+    def boilerplate_smtlib(self) -> Tuple[str,...]:
+        rv = (
+            "(declare-const event_td Int)",
+            "(assert (> event_td 0))"
+        )
+        # self.append(rv[0])
+        # self.append(rv[1])
+        return rv
+
 
     def prog2smtlibdef(self):
         self.contractParamDecs2smtlib()
@@ -248,6 +259,9 @@ class ToSMTLIB:
 
             elif t.fnsymb_name in FN_NAME_SUBST:
                 return fnapp(FN_NAME_SUBST[t.fnsymb_name], *[self.term2smtlibdef(arg) for arg in t.args])
+
+            elif t.fnsymb_name == "event_td":
+                return t.fnsymb_name
 
             else:
                 assert t.fnsymb_name in MACRO_DEFINED_FNS, t.fnsymb_name + " unhandled"
