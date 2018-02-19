@@ -146,6 +146,20 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          ), FULFILLED_SECTION_LABEL)
      ),
 
+    ('toy_and_teaching/collatz2.l4', CompleteTrace(
+        {'START': 12}, (
+         event('NextInSeq'),
+         event('NextInSeq'),
+         event('NextInSeq'),
+         event('NextInSeq'),
+         event('NextInSeq'),
+         event('NextInSeq'),
+         event('NextInSeq'),
+         event('NextInSeq'),
+         event('NextInSeq')
+         ), 'AfterNextInSeq', {'x':1})
+     ),
+
     ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace({},(
         # start section implicit
         firstTSEvent('RequestCookMB', 'Challenger'),
@@ -452,6 +466,7 @@ EXAMPLES_TO_RUN = [
         'toy_and_teaching/minimal_future-actions.l4',
         'toy_and_teaching/minimal_future-actions2.l4',
         'toy_and_teaching/collatz.l4',
+        'toy_and_teaching/collatz2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
 
         'serious/SAFE.l4',
@@ -462,7 +477,7 @@ EXAMPLES_TO_RUN = [
 def main(examples:Dict[str,L4Contract], verbose=True):
     for trace in traces:
         examplekey = trace[0]
-        if examplekey in EXAMPLES_TO_RUN:
+        if examplekey in examples and examplekey in EXAMPLES_TO_RUN:
             if verbose:
                 print("\nRunning test trace for " + examplekey)
             prog = examples[examplekey]

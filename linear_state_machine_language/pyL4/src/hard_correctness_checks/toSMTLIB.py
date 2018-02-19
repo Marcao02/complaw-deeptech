@@ -147,8 +147,15 @@ class ToSMTLIB:
             "(declare-const event_td Int)",
             "(assert (> event_td 0))"
             "(declare-const next_event_td Int)",
-            "(assert (>= next_event_td event_td))"
+            "(assert (>= next_event_td event_td))",
+
+            "(declare-fun mapSet (TDMapNatNat NatNat Real) TDMapNatNat)"
         )
+
+        # 'mapSet': tdmapSet,
+        # 'mapDelete': tdmapDelete,
+        # 'mapHas': tdmapHas,
+
         # future_event_td should not be in the program after floating_rules_transpile_away
         # "(declare-const future_event_td Int)",
         # "(assert (>= future_event_td next_event_td))"
@@ -263,7 +270,7 @@ class ToSMTLIB:
             elif t.fnsymb_name in FN_NAME_SUBST:
                 return fnapp(FN_NAME_SUBST[t.fnsymb_name], *[self.term2smtlibdef(arg) for arg in t.args])
 
-            elif t.fnsymb_name == "event_td":
+            elif t.fnsymb_name in ENV_VAR_SUBST:
                 return t.fnsymb_name
 
             else:

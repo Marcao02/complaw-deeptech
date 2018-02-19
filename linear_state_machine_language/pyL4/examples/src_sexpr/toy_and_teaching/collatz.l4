@@ -3,7 +3,8 @@
 ; etc proof obligations are undecidable. For this one problem, a decision procedure
 ; would resolve the famous Collatz Conjecture.
 
-(TimeUnit d)
+; (TimeUnit d) ; days is the default
+; (Roles) ; only the environment Env is the default
 
 (ContractParams
 	(START : Nat = 99)
@@ -12,8 +13,6 @@
 (GlobalVars
 	(x : Nat = START)
 )
-
-(Roles) ; only the environment Env
 
 (FormalContract "Collatz"
 	(StartSection Ongoing)
@@ -35,9 +34,7 @@
 	(Action DivideBy2
 		(TransitionsTo Ongoing)
 		(StateTransform
-			(local test : NonnegReal := (x / 2))
-			(local test2 : Nat := (x round/ 2))
-			(x' = (x round/ 2))
+			(x' = (x floor/ 2))
 		)
 	)
 

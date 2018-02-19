@@ -32,16 +32,17 @@ EXAMPLES_TO_TYPECHECK = [
 
 def main(examples:Dict[str,L4Contract], verbose=True):
     # print_types_map(STANDARD_FNTYPES)
-    for examplekey in EXAMPLES_TO_TYPECHECK:
-        # msg = f"Example {filename}:"
-        # print(f"\n{'='*len(msg)}\n{msg}")
-        # print(f"\n{msg}\n{'='*len(msg)}")
-        # in_path = EXAMPLES_SEXPR_ROOT + filename
-        # parsed = parse_file(in_path)
-        # prog = L4ContractConstructor(filename).mk_l4contract(parsed)
-        prog = examples[examplekey]
-        typecheck_prog(prog,verbose=verbose)
-        # print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
+    for examplekey in examples:
+        if examplekey in EXAMPLES_TO_TYPECHECK:
+            # msg = f"Example {filename}:"
+            # print(f"\n{'='*len(msg)}\n{msg}")
+            # print(f"\n{msg}\n{'='*len(msg)}")
+            # in_path = EXAMPLES_SEXPR_ROOT + filename
+            # parsed = parse_file(in_path)
+            # prog = L4ContractConstructor(filename).mk_l4contract(parsed)
+            prog = examples[examplekey]
+            typecheck_prog(prog,verbose=verbose)
+            # print(f"{sum((len(oft.illtyped_memo) + len(oft.range_memo) for oft in prog.overloaded_fntypes()))} cache entries")
 
 def cli(sys_argv:Sequence[str]):
     main(test_parser.main(keep=True,verbose=False), verbose=False)

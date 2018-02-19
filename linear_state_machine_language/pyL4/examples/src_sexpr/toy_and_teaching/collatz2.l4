@@ -1,0 +1,35 @@
+; This is a silly degenerate "contract" with only the environment role Env.
+; It hints at how one would prove that the (traversals == N), (x ≤ traversals ≤ y)
+; etc proof obligations are undecidable. For this one problem, a decision procedure
+; would resolve the famous Collatz Conjecture.
+
+(ContractParams
+	(START : Nat = 99)
+)
+
+(GlobalVars
+	(x : Nat = START)
+)
+
+(FormalContract "Collatz"
+	(StartSection AfterNextInSeq)
+
+	(Action NextInSeq
+		(StateTransform
+			(if (even x) (
+				(x' := (x floor/ 2))
+			)
+			else (
+				(x' := ((3 * x) + 1))
+			))
+		)
+
+		(FollowingSection
+			(Next
+				(if (x > 1)
+					(NextInSeq immediately)
+				)
+			)
+		)
+	)
+)

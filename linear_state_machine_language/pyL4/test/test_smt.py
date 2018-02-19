@@ -10,7 +10,7 @@ EXAMPLES_TO_USE = [
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
     'from_academic_lit/Farmer_american_call_option_2016.l4',
     'from_academic_lit/hvitved_lease.l4',
-    # 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
+    'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
     # 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
     'from_academic_lit/hvitved_printer.l4',
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',

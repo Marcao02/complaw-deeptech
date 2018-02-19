@@ -2,7 +2,7 @@ from typing import NewType
 
 from src.independent.util_for_str import mapjoin
 from src.constants_and_defined_types import ActionId
-from src.model.Sort import Sort
+from src.model.Sort import Sort, SortOpApp
 from src.independent.typing_imports import *
 
 # Immutable recursive datatypes pattern
@@ -24,6 +24,27 @@ SMTLine = Union[SMTCommand_, str]
 
 SMT_BUILDIN_FNS = frozenset({'and', 'or', 'not', '=>', '=', '*', '+', '>', '<', '<=', '>=', '/', '-'})
 
+SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
+    "$":"Real",
+    "Pos$":"Real",
+    "SharePrice":"Real",
+    "Fraction[0,1)":"Real",
+    "Fraction(0,1]":"Real",
+    "Fraction[0,1]":"Real",
+    "PosReal":"Real",
+    "TimeDelta":"Real",
+
+    "ShareCnt": "Int",
+    "PosShareCnt": "Int",
+    "Nat": "Int",
+
+    "Bool": "Bool",
+
+    SortOpApp("TDMap",(SortOpApp("Tuple",("Nat","Nat")),)): "TDMapNatNat",
+    SortOpApp("Tuple",("Nat","Nat")) : "NatNat"
+
+}
+
 SORT_TO_PRED : Dict[str,Callable[[str], SMTExpr]]= {
     "TimeDelta": lambda x: fnapp(">", x, 0),
     "$": lambda x: fnapp(">=", x, 0),
@@ -38,11 +59,22 @@ SORT_TO_PRED : Dict[str,Callable[[str], SMTExpr]]= {
     "Fraction(0,1]": lambda x: conj( fnapp(">", x, 0), fnapp("<=", x, 1) )
 }
 
+ENV_VAR_SUBST : Dict[str,str] = {
+    "event_td":"event_td",
+    "event_role":"event_role"
+}
+
 FN_NAME_SUBST : Dict[str,str] = {
     'ifthenelse': 'ite',
     '≤' : '<=',
     '≥' : '>=',
     '==' : '=',
+
+    # hacky and temporary
+    'mapSet': 'mapSet',
+    'mapDelete': 'mapDelete',
+    'tuple': 'tuple',
+
 }
 
 
@@ -134,15 +166,8 @@ def smt_lines_to_str(lines:List[SMTLine]) -> str:
 
 
 def sort2smtlibprimtype(s: Sort) -> str:
-    if isinstance(s,str):
-        if s in ("$","Pos$","SharePrice",
-                 "Fraction[0,1)","Fraction(0,1]","Fraction[0,1]",
-                 "PosReal","TimeDelta"):
-            return "Real"
-        if s in ("ShareCnt", "PosShareCnt", "Nat"):
-            return "Int"
-        if s == "Bool":
-            return "Bool"
+    if s in SORT_TO_SMTLIB_PRIM_TYPE:
+        return SORT_TO_SMTLIB_PRIM_TYPE[s]
+    print(f"sort {s} of type {type(s)} not in SORT_TO_SMTLIB_PRIM_TYPE")
 
-
-    raise NotImplementedError(str(s) + ", " + str(type(s)))
+    raise NotImplementedError()

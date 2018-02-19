@@ -7,6 +7,7 @@ EXAMPLES = [
     'toy_and_teaching/minimal_future-actions.l4',
     'toy_and_teaching/minimal_future-actions2.l4',
     'toy_and_teaching/collatz.l4',
+    'toy_and_teaching/collatz2.l4',
     'toy_and_teaching/monster_burger_program_only.l4',
     'toy_and_teaching/partner_assignment_relievable_obligations.l4',
     'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
@@ -23,4 +24,4 @@ EXAMPLES = [
     'serious/SAFE_2_liq_eventtypes.l4',
     'serious/KISS.l4'
 ]
-EXAMPLES_FULL_SIZE = 17
+EXAMPLES_FULL_SIZE = 18
