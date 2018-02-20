@@ -120,416 +120,126 @@ We want to display the graph to the user in the form of a bunch of D3 code that 
 
 Initially we hardcode the dependencies.
 
+### Future TODO
+
 It may be possible to represent the dependency rules using something like [SBVR](https://en.wikipedia.org/wiki/Semantics_of_Business_Vocabulary_and_Business_Rules).
 
 After we do that we can generate the legal sequence (using an SMT solver?) as a model that satisfies the rule constraints.
 
+# Running the Program
 
-```
-20171009-14:49:24 mengwong@venice2:~/non-db-src/l/compiler/companyDelta% stack build && stack exec companyDelta-exe  -- examples/case1/before.json examples/case1/after.json | ppsh
-companyDelta-0.1.0.0: unregistering (local file changes: src/CDiff.hs)
-companyDelta-0.1.0.0: build
-Preprocessing library companyDelta-0.1.0.0...
-[2 of 2] Compiling CDiff            ( src/CDiff.hs, .stack-work/dist/x86_64-osx/Cabal-1.24.2.0/build/CDiff.o )
-Preprocessing executable 'companyDelta-exe' for companyDelta-0.1.0.0...
-[1 of 1] Compiling Main             ( app/Main.hs, .stack-work/dist/x86_64-osx/Cabal-1.24.2.0/build/companyDelta-exe/companyDelta-exe-tmp/Main.o ) [CDiff changed]
-Linking .stack-work/dist/x86_64-osx/Cabal-1.24.2.0/build/companyDelta-exe/companyDelta-exe ...
-companyDelta-0.1.0.0: copy/register
-Installing library in
-/Users/mengwong/non-db-src/l/compiler/companyDelta/.stack-work/install/x86_64-osx/lts-9.0/8.0.2/lib/x86_64-osx-ghc-8.0.2/companyDelta-0.1.0.0-2UBEc6mCwzuA4V4iW0oz4N
-Installing executable(s) in
-/Users/mengwong/non-db-src/l/compiler/companyDelta/.stack-work/install/x86_64-osx/lts-9.0/8.0.2/bin
-Registering companyDelta-0.1.0.0...
-Node
-  { rootLabel =
-      Diff
-        Update
-        Just
-        CompanyState
-          { parties =
-              [ Party
-                  { fullname = "Alice"
-                  , idtype = "passport"
-                  , idnum = "E1111111B"
-                  , nature = OtherNature "natural"
-                  , gender = Female
-                  }
-              ]
-          , securities =
-              [ Security
-                  { name = "ordinary shares" , measure = OtherMeasure "ByUnit" }
-              ]
-          , company =
-              Company
-                { name = "Acme Potato Pte. Ltd."
-                , jurisdiction = "Singapore"
-                , address = "1 Corporate Park, Singapore 139951"
-                , idtype = "UEN"
-                , idnum = "UEN11111111A"
-                , constitution =
-                    [ ConExp
-                        { title = "Constitution Default"
-                        , body = "The default constitution shall be substituted here."
-                        }
-                    ]
-                , directors = [ "Alice" ]
-                , secretary = "Alice"
+    20180221-00:42:42 mengwong@venice2:~/non-db-src/l/compiler/companyDelta% stack build && stack exec companyDelta-exe  -- examples/case1/01-addbob-before.json examples/case1/01-addbob-after.json | ppsh
+    paperwork dependency actual investment agreements; testing rule prorata rights
+    rule fired; requires pro rata rights
+    paperwork dependency actual investment agreements; testing rule shareholder approval
+    paperwork dependency actual investment agreements; testing rule director proposal
+    paperwork dependency ratify DORA; testing rule prorata rights
+    paperwork dependency ratify DORA; testing rule shareholder approval
+    paperwork dependency ratify DORA; testing rule director proposal
+    oldEquityHolders: trying this thing Noop "no change to Company"
+    paperwork dependency pro rata rights; testing rule prorata rights
+    paperwork dependency pro rata rights; testing rule shareholder approval
+    rule fired; requires shareholder approval
+    paperwork dependency pro rata rights; testing rule director proposal
+    paperwork dependency shareholder approval; testing rule prorata rights
+    paperwork dependency shareholder approval; testing rule shareholder approval
+    paperwork dependency shareholder approval; testing rule director proposal
+    rule fired; requires director resolutions
+    paperwork dependency director resolutions; testing rule prorata rights
+    paperwork dependency director resolutions; testing rule shareholder approval
+    paperwork dependency director resolutions; testing rule director proposal
+    [ Paperwork
+        { ptitle = "actual investment agreements"
+        , dr = []
+        , mr = []
+        , ag =
+            [ Ag
+                { title = "Investment Agreement"
+                , body =
+                    "The actual investment agreements between the Company and the investors in the new round."
+                , parties = [ "Company" , "Bob" , "Carol" ]
+                , level = AgContract
                 }
-          , holdings =
-              [ Holding
-                  { holder = "Alice"
-                  , holds =
-                      [ HeldSecurity
-                          { securityName = "ordinary shares"
-                          , units = Just 100.0
-                          , money = Nothing
-                          , description = Nothing
-                          }
-                      ]
-                  }
-              ]
-          , agreements =
-              [ Contract
-                  { parties = [ "Alice" , "Company" ]
-                  , dated = 1970 (-01) (-01)
-                  , title = "shareholdersAgreement"
-                  , singleton = True
-                  }
-              ]
-          }
-        Just
-        CompanyState
-          { parties =
-              [ Party
-                  { fullname = "Alice"
-                  , idtype = "passport"
-                  , idnum = "E1111111B"
-                  , nature = OtherNature "natural"
-                  , gender = Female
-                  }
-              , Party
-                  { fullname = "Bob"
-                  , idtype = "nric"
-                  , idnum = "S2222222B"
-                  , nature = OtherNature "natural"
-                  , gender = Male
-                  }
-              , Party
-                  { fullname = "Carol"
-                  , idtype = "nric"
-                  , idnum = "S3333333C"
-                  , nature = OtherNature "natural"
-                  , gender = Female
-                  }
-              ]
-          , securities =
-              [ Security
-                  { name = "ordinary shares" , measure = OtherMeasure "ByUnit" }
-              ]
-          , company =
-              Company
-                { name = "Acme Potato Pte. Ltd."
-                , jurisdiction = "Singapore"
-                , address = "1 Corporate Park, Singapore 139951"
-                , idtype = "UEN"
-                , idnum = "UEN11111111A"
-                , constitution =
-                    [ ConExp
-                        { title = "Constitution Default"
-                        , body = "The default constitution shall be substituted here."
-                        }
-                    ]
-                , directors = [ "Alice" ]
-                , secretary = "Alice"
+            ]
+        , nt = []
+        }
+    , Paperwork
+        { ptitle = "ratify DORA"
+        , dr =
+            [ DR
+                { title = "company to circulate deed of ratification and accession"
+                , body =
+                    "resolved, that the company should circulate a deed of ratification and accession to the shareholders agreement"
                 }
-          , holdings =
-              [ Holding
-                  { holder = "Alice"
-                  , holds =
-                      [ HeldSecurity
-                          { securityName = "ordinary shares"
-                          , units = Just 100.0
-                          , money = Nothing
-                          , description = Nothing
-                          }
-                      ]
-                  }
-              , Holding
-                  { holder = "Bob"
-                  , holds =
-                      [ HeldSecurity
-                          { securityName = "ordinary shares"
-                          , units = Just 200.0
-                          , money = Nothing
-                          , description = Just "Bob is added"
-                          }
-                      ]
-                  }
-              , Holding
-                  { holder = "Carol"
-                  , holds =
-                      [ HeldSecurity
-                          { securityName = "ordinary shares"
-                          , units = Just 300.0
-                          , money = Nothing
-                          , description = Just "Carol is added"
-                          }
-                      ]
-                  }
-              ]
-          , agreements =
-              [ Contract
-                  { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
-                  , dated = 1970 (-01) (-02)
-                  , title = "shareholdersAgreement"
-                  , singleton = True
-                  }
-              ]
-          }
-        changed
-        CompanyState
-  , subForest =
-      [ Node
-          { rootLabel =
-              Diff
-                Update
-                Just
-                [ Party
-                    { fullname = "Alice"
-                    , idtype = "passport"
-                    , idnum = "E1111111B"
-                    , nature = OtherNature "natural"
-                    , gender = Female
-                    }
-                ]
-                Just
-                [ Party
-                    { fullname = "Alice"
-                    , idtype = "passport"
-                    , idnum = "E1111111B"
-                    , nature = OtherNature "natural"
-                    , gender = Female
-                    }
-                , Party
-                    { fullname = "Bob"
-                    , idtype = "nric"
-                    , idnum = "S2222222B"
-                    , nature = OtherNature "natural"
-                    , gender = Male
-                    }
-                , Party
-                    { fullname = "Carol"
-                    , idtype = "nric"
-                    , idnum = "S3333333C"
-                    , nature = OtherNature "natural"
-                    , gender = Female
-                    }
-                ]
-                changed
-                Holders
-          , subForest =
-              [ Node
-                  { rootLabel =
-                      Diff
-                        Create
-                        Nothing
-                        Just
-                        Party
-                          { fullname = "Bob"
-                          , idtype = "nric"
-                          , idnum = "S2222222B"
-                          , nature = OtherNature "natural"
-                          , gender = Male
-                          }
-                        from
-                        Nothing
-                  , subForest = []
-                  }
-              , Node
-                  { rootLabel =
-                      Diff
-                        Create
-                        Nothing
-                        Just
-                        Party
-                          { fullname = "Carol"
-                          , idtype = "nric"
-                          , idnum = "S3333333C"
-                          , nature = OtherNature "natural"
-                          , gender = Female
-                          }
-                        from
-                        Nothing
-                  , subForest = []
-                  }
-              ]
-          }
-      , Node
-          { rootLabel =
-              Diff
-                Update
-                Just
-                [ Holding
-                    { holder = "Alice"
-                    , holds =
-                        [ HeldSecurity
-                            { securityName = "ordinary shares"
-                            , units = Just 100.0
-                            , money = Nothing
-                            , description = Nothing
-                            }
-                        ]
-                    }
-                ]
-                Just
-                [ Holding
-                    { holder = "Alice"
-                    , holds =
-                        [ HeldSecurity
-                            { securityName = "ordinary shares"
-                            , units = Just 100.0
-                            , money = Nothing
-                            , description = Nothing
-                            }
-                        ]
-                    }
-                , Holding
-                    { holder = "Bob"
-                    , holds =
-                        [ HeldSecurity
-                            { securityName = "ordinary shares"
-                            , units = Just 200.0
-                            , money = Nothing
-                            , description = Just "Bob is added"
-                            }
-                        ]
-                    }
-                , Holding
-                    { holder = "Carol"
-                    , holds =
-                        [ HeldSecurity
-                            { securityName = "ordinary shares"
-                            , units = Just 300.0
-                            , money = Nothing
-                            , description = Just "Carol is added"
-                            }
-                        ]
-                    }
-                ]
-                changed
-                Holdings
-          , subForest =
-              [ Node
-                  { rootLabel =
-                      Diff
-                        Create
-                        Nothing
-                        Just
-                        [ HeldSecurity
-                            { securityName = "ordinary shares"
-                            , units = Just 200.0
-                            , money = Nothing
-                            , description = Just "Bob is added"
-                            }
-                        ]
-                        from
-                        Nothing
-                  , subForest = []
-                  }
-              , Node
-                  { rootLabel =
-                      Diff
-                        Create
-                        Nothing
-                        Just
-                        [ HeldSecurity
-                            { securityName = "ordinary shares"
-                            , units = Just 300.0
-                            , money = Nothing
-                            , description = Just "Carol is added"
-                            }
-                        ]
-                        from
-                        Nothing
-                  , subForest = []
-                  }
-              ]
-          }
-      , Node
-          { rootLabel =
-              Diff
-                Update
-                Just
-                [ Contract
-                    { parties = [ "Alice" , "Company" ]
-                    , dated = 1970 (-01) (-01)
-                    , title = "shareholdersAgreement"
-                    , singleton = True
-                    }
-                ]
-                Just
-                [ Contract
-                    { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
-                    , dated = 1970 (-01) (-02)
-                    , title = "shareholdersAgreement"
-                    , singleton = True
-                    }
-                ]
-                changed
-                Contracts
-          , subForest =
-              [ Node
-                  { rootLabel =
-                      Diff
-                        Update
-                        Just
-                        Contract
-                          { parties = [ "Alice" , "Company" ]
-                          , dated = 1970 (-01) (-01)
-                          , title = "shareholdersAgreement"
-                          , singleton = True
-                          }
-                        Just
-                        Contract
-                          { parties = [ "Company" , "Alice" , "Bob" , "Carol" ]
-                          , dated = 1970 (-01) (-02)
-                          , title = "shareholdersAgreement"
-                          , singleton = True
-                          }
-                        changed
-                        Contract
-                  , subForest =
-                      [ Node
-                          { rootLabel =
-                              Diff
-                                Update
-                                Just
-                                [ "Alice" , "Company" ]
-                                Just
-                                [ "Company" , "Alice" , "Bob" , "Carol" ]
-                                changed
-                                PartyNames
-                          , subForest =
-                              [ Node
-                                  { rootLabel = Diff Create Nothing Just "Bob" from Nothing
-                                  , subForest = []
-                                  }
-                              , Node
-                                  { rootLabel = Diff Create Nothing Just "Carol" from Nothing
-                                  , subForest = []
-                                  }
-                              ]
-                          }
-                      , Node
-                          { rootLabel =
-                              Diff Replace Just "1970-01-01" Just "1970-01-02" change string
-                          , subForest = []
-                          }
-                      ]
-                  }
-              ]
-          }
-      ]
-  }
-```
+            , DR
+                { title = "company to sign aforesaid deed"
+                , body =
+                    "resolved, that the company should ratify the aforesaid deed"
+                }
+            ]
+        , mr = []
+        , ag =
+            [ Ag
+                { title = "DORA"
+                , body =
+                    "The signatories hereby ratify and accede to the Shareholders Agreement."
+                , parties = [ "Bob" , "Carol" ]
+                , level = Deed
+                }
+            ]
+        , nt = []
+        }
+    , Paperwork
+        { ptitle = "pro rata rights"
+        , dr = []
+        , mr = []
+        , ag = []
+        , nt =
+            [ Notice
+                { title = "Pro Rata Rights Notice"
+                , body =
+                    "The company proposes to issue new securities. As a member of the company, you have the right to participate. To maintain your proportional allocation, you would need to invest X. But you can indicate your interest in participating up to the full amount on offer -- if any other members do not choose to re-up, we will attempt to satisfy your excess interest"
+                , parties = []
+                }
+            ]
+        }
+    , Paperwork
+        { ptitle = "shareholder approval"
+        , dr = []
+        , mr =
+            [ MR
+                { title = "issue of new securities approved"
+                , body =
+                    "Resolved, that the Directors be empowered to raise funds via an issue of new securities"
+                , level = Special
+                }
+            , MR
+                { title = "conversion of securities to equity approved"
+                , body =
+                    "Resolved, that the Company issue equity securities in the future as needed to satisfy the terms of conversion described by the above securities"
+                , level = Special
+                }
+            ]
+        , ag = []
+        , nt = []
+        }
+    , Paperwork
+        { ptitle = "director resolutions"
+        , dr =
+            [ DR
+                { title = "company to raise funds"
+                , body =
+                    "resolved, that the company should raise funds by issuing XXXX amount of new securities"
+                }
+            , DR
+                { title = "company to seek members' approval"
+                , body =
+                    "resolved, that the approval of the members be sought through an EGM or equivalent resolutions by written means"
+                }
+            ]
+        , mr = []
+        , ag = []
+        , nt = []
+        }
+    ]
 

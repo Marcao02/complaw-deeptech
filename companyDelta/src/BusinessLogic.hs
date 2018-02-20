@@ -149,10 +149,19 @@ diffTree2Paperworks = Map.fromList [
       )
    ]
 
+data RuleOrigin = RO { originName    :: String
+                     , originURL     :: String
+                     , originsection :: String
+                     }
+
 data PaperRule = PaperRule { rulename :: String
                            , matchpaperwork :: PaperworkName
                            , temporal :: Temporal
-                           , requires :: PaperworkName }
+                           , requires :: PaperworkName
+                           , ruleOrigins :: [RuleOrigin] }
+
+-- 185.  Where by this Act special notice is required of a resolution, the resolution shall not be effective unless notice of the intention to move it has been given to the company not less than 28 days before the meeting at which it is moved, and the company shall give its members notice of any such resolution at the same time and in the same manner as it gives notice of the meeting or, if that is not practicable, shall give them notice thereof, in any manner allowed by the constitution, not less than 14 days before the meeting, but if after notice of the intention to move such a resolution has been given to the company, a meeting is called for a date 28 days or less after the notice has been given, the notice, although not given to the company within the time required by this section, shall be deemed to be properly given.
+
 
 paperworks2Paperworks :: Map.Map PaperworkName (MkPaperwork (Tree Diff,Paperwork))
 paperworks2Paperworks = Map.fromList [
@@ -200,10 +209,20 @@ paperworks2Paperworks = Map.fromList [
       )
   ]
 
-paperRules = [ PaperRule "prorata rights"          "actual investment agreements" XY需要 "pro rata rights"
-             , PaperRule "shareholder approval"    "pro rata rights"              XY需要 "shareholder approval"
-             , PaperRule "director proposal"       "shareholder approval"         XY需要 "director resolutions"
+paperRules = [ PaperRule "prorata rights"          "actual investment agreements" XY需要 "pro rata rights"      [(RO "company constitution" "https://sso.agc.gov.sg/SL/CoA1967-S833-2015" "45")]
+-- 45.—(1)  Subject to any direction to the contrary that may be given by the company in general meeting, all new shares must, before issue, be offered to all persons who, as at the date of the offer, are entitled to receive notices from the company of general meetings, in proportion, or as nearly as the circumstances admit, to the amount of the existing shares to which they are entitled.
+
+             , PaperRule "shareholder approval"    "pro rata rights"              XY需要 "shareholder approval" [(RO "50 companies act" "https://sso.agc.gov.sg/Act/CoA1967?ProvIds=pr161-#pr161-" "161")]
+-- Notwithstanding anything in a company’s constitution, the directors shall not, without the prior approval of the company in general meeting, exercise any power of the company to issue shares.
+
+             , PaperRule "director proposal"       "shareholder approval"         XY需要 "director resolutions" [(RO "company constitution" "https://sso.agc.gov.sg/SL/CoA1967-S833-2015" "7")
+-- 7.—(1)  Without prejudice to any special rights previously conferred on the holders of any existing shares or class of shares but subject to the Act, shares in the company may be issued by the directors.
+                                                                                                                ,(RO "50 companies act" "https://sso.agc.gov.sg/Act/CoA1967?ProvIds=pr184C-#pr184C-" "184C") ]
+-- 184C.—(1)  The directors of a private company or an unlisted public company who wish to seek agreement to a resolution of the company and for it to be passed by written means shall send to each member, having the right to vote on that resolution at a general meeting, a copy of the text of the resolution.
+               
              ]
+
+
 
 oldEquityHolders :: Tree Diff -> [PartyName]
 oldEquityHolders csdt = trace ("oldEquityHolders: trying this thing " ++ (show $ rootLabel csdt)) $ case rootLabel csdt of
