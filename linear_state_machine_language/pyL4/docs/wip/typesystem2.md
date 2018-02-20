@@ -54,7 +54,7 @@ for num1 in UnboundedNumericSorts:
 
 ## Ratios of dimensioned numeric sorts
 
-These are complexity 4. Eventually these should be derived from `Ratio` section above, but fine to hardcode for now.
+These are complexity 4. Eventually these should be derived from `Ratio` situation above, but fine to hardcode for now.
 `u,v: MatchVar(DimUnit)`
 
 `Ratio(PosReal[u], PosInt[v]) ⊆ Ratio(NonnegReal[u], PosInt[v]) ≤ Ratio(Real[u], PosInt[v])`

@@ -1,7 +1,7 @@
 
 (Claims
 	(MAX_TIME' = 44D)
-	(MAX_SECTION_VISITS' = 6)
+	(MAX_SITUATION_VISITS' = 6)
 )
 
 (Roles Buyer Seller)
@@ -32,9 +32,9 @@
 
 (FormalContract
 	"Two part sale Hvitved Laser Printer"
-	(StartSection Awaiting_Delivery)
+	(StartSituation Awaiting_Delivery)
 
-	(Section Awaiting_Delivery
+	(Situation Awaiting_Delivery
 		[ProseRefs P1]
 		(Next (Seller must Deliver (next_event_td ≤ DELIVERY_DEADLINE) ))
 	)
@@ -43,7 +43,7 @@
 		(StateTransform
 			(delivery_date' = event_td)
 		)
-		(FollowingSection
+		(FollowingSituation
 			(Next (Buyer must Pay1stInstallment immediately))
 		)
 	)
@@ -53,7 +53,7 @@
 			(prove (buyer_paid == 0))
 			(buyer_paid' = 100)
 		)
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(Buyer should Pay2ndInstallment (next_event_td ≤ (30d + delivery_date)))
 				(Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date)))
@@ -63,7 +63,7 @@
 	)
 
 	(Action EnterLate2ndInstallment [ProseRefs P4]
-		(FollowingSection
+		(FollowingSituation
 			(Next (Buyer must PayLateFee (next_event_td ≤ (44d + delivery_date))))
 		)
 	)
@@ -73,7 +73,7 @@
 			(prove (buyer_paid == 100))
 			(buyer_paid' = 200)
 		)
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date)))
 				(CompleteNormalSale (next_event_td > (14d + delivery_date)))
@@ -82,8 +82,8 @@
 	)
 
 	(Action ReturnOnTime [ProseRefs P5]
-		(FollowingSection
-			(Next (Seller must DeliverRefund (next_event_td ≤ (7d + sectionEntrance_td))))
+		(FollowingSituation
+			(Next (Seller must DeliverRefund (next_event_td ≤ (7d + situationEntrance_td))))
 		)
 	)
 

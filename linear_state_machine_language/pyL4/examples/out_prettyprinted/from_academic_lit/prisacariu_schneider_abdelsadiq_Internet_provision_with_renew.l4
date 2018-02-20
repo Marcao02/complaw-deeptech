@@ -70,7 +70,7 @@ action ClientBreaches()  transitions to Breach_Client
 
 action EnterFulfilled()  transitions to Fulfilled
 
-section NoInfraction:
+situation NoInfraction:
     if ¬contract_canceled:
         Client may RaiseTraffic no_time_constraint
     if contract_canceled:
@@ -78,7 +78,7 @@ section NoInfraction:
     ISP may SendCancelNoticeByPost no_time_constraint
     ISP may SendCancelNoticeByEmail no_time_constraint
 
-section UnsettledInfraction:
+situation UnsettledInfraction:
     ISP may SendCancelNoticeByPost no_time_constraint
     ISP may SendCancelNoticeByEmail no_time_constraint
     if ¬usage_level_normal:

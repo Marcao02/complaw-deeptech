@@ -7,7 +7,7 @@ global vars:
     n : Nat := 0
     I_must_Catch_by : TDMap[Nat] := (emptyTDMap )
 
-section Ongoing:
+situation Ongoing:
     if (n < 5):
         I may Throw immediately
     if (n < 5):

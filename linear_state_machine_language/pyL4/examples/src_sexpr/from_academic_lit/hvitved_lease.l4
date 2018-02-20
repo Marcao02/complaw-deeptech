@@ -20,30 +20,30 @@
 	(writeOnceMore lease_terminated : Bool := false)
 	(branchUnaffecting inconly total_rent_paid : Nat := 0)   )
 
-(Macro RequestTerminationActionRuleMacroTenant SectionId
+(Macro RequestTerminationActionRuleMacroTenant SituationId
 	(if (not lease_terminated)
-		(Tenant may (RequestTerminationFromSectionId) (next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Tenant may (RequestTerminationFromSituationId) (next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
-(Macro RequestTerminationActionRuleMacroLandlord SectionId
+(Macro RequestTerminationActionRuleMacroLandlord SituationId
 	(if (not lease_terminated)
-		(Landlord may (RequestTerminationFromSectionId) (next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Landlord may (RequestTerminationFromSituationId) (next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
-(Macro RequestTerminationActionMacro SectionId
-	(Action RequestTerminationFromSectionId (AllowedSubjects Landlord Tenant) (TransitionsTo SectionId)
+(Macro RequestTerminationActionMacro SituationId
+	(Action RequestTerminationFromSituationId (AllowedSubjects Landlord Tenant) (TransitionsTo SituationId)
 		(StateTransform (lease_terminated' = true))		))
 
 (FormalContract
 	"Lease Hvitved"
-	(StartSection Start)
+	(StartSituation Start)
 
-	(Section Start (Next (Landlord must (EnsureApartmentReady) immediately)))
+	(Situation Start (Next (Landlord must (EnsureApartmentReady) immediately)))
 
 	(apply-macro RequestTerminationActionMacro MonthStarted)
 	(apply-macro RequestTerminationActionMacro AfterPayRent)
 	(apply-macro RequestTerminationActionMacro MonthEnded)
 
 	(Action EnsureApartmentReady (AllowedRoles Landlord))
-	(Section AfterEnsureApartmentReady (Next (StartLeaseTerm immediately)))
+	(Situation AfterEnsureApartmentReady (Next (StartLeaseTerm immediately)))
 
 	(Action StartLeaseTerm (TransitionsTo MonthStarted)
 		(StateTransform
@@ -53,7 +53,7 @@
 
 	(Action EnterMonthStarted (TransitionsTo MonthStarted))
 
-	(Section MonthStarted
+	(Situation MonthStarted
 		(Next
 			(Tenant obligation-options-include (PayRent) (next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
 			(apply-macro RequestTerminationActionRuleMacroTenant MonthStarted)
@@ -62,7 +62,7 @@
 	)
 
 	(Action PayRent (StateTransform (total_rent_paid' += 1000))
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(EnterMonthEnded (next_event_td == (monthEndDay_td)))
 				(apply-macro RequestTerminationActionRuleMacroTenant AfterPayRent)
@@ -70,19 +70,19 @@
 
 	(Action EnterMonthEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
-		(FollowingSection
-			(Pre (sectionEntrance_td ≤ lease_term_end))
+		(FollowingSituation
+			(Pre (situationEntrance_td ≤ lease_term_end))
 			(Next
-				(if (lease_term_end ≤ (sectionEntrance_td + 1D))
+				(if (lease_term_end ≤ (situationEntrance_td + 1D))
 					(EnterLeaseTermEnded immediately)   )
-				(if (lease_term_end > (sectionEntrance_td + 1D))
-					(EnterMonthStarted (next_event_td == (sectionEntrance_td + 1d)))   )
+				(if (lease_term_end > (situationEntrance_td + 1D))
+					(EnterMonthStarted (next_event_td == (situationEntrance_td + 1d)))   )
 				(apply-macro RequestTerminationActionRuleMacroTenant MonthEnded)
 				(apply-macro RequestTerminationActionRuleMacroLandlord MonthEnded)   )))
 
 	(Action EnterLeaseTermEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(if lease_terminated (Tenant must (MoveOut) immediately))
 				(if (not lease_terminated) (StartLeaseTerm immediately))   )))

@@ -106,9 +106,9 @@ def eliminate_ifthenelse(p:L4Contract):
                 progress_made = False
                 act.global_state_transform.statements = eliminate_ifthenelse_block(act.global_state_transform.statements)
 
-        if act.following_anon_section:
-            sec = act.following_anon_section
-            for rule in sec.action_rules():
+        if act.following_anon_situation:
+            sit = act.following_anon_situation
+            for rule in sit.action_rules():
                 # print(rule, rule.fixed_args)
                 if rule.fixed_args:
                     for i in range(len(rule.fixed_args)):
@@ -204,7 +204,7 @@ def eliminate_local_vars(p:L4Contract):
             # local var decs in the remainder of the block.
             # return eliminate_local_vars_block(rest, substForVar, forbidden_read, forbidden_write2)
             # EXCEPT that there's a subtley with eliminating them in action rules, so I won't actually eliminate them,
-            # but I will ignore them when doing FV confined to the state transform section
+            # but I will ignore them when doing FV confined to the state transform situation
             # ACTUALLY, it's all good because no-read-after-write condition ensures that local variable definitions only
             # depend on current global var vals, not next global var vals
             # (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
@@ -289,9 +289,9 @@ def eliminate_local_vars(p:L4Contract):
             allsubst = dict()
             (x,y,z) = eliminate_local_vars_block(act.global_state_transform.statements, {}, set(), set())
             act.global_state_transform.statements = x
-        if act.following_anon_section:
-            sec = act.following_anon_section
-            for rule in sec.action_rules():
+        if act.following_anon_situation:
+            sit = act.following_anon_situation
+            for rule in sit.action_rules():
                 # print(rule, rule.fixed_args)
                 if rule.fixed_args:
                     for i in range(len(rule.fixed_args)):
@@ -299,7 +299,7 @@ def eliminate_local_vars(p:L4Contract):
                 if rule.where_clause:
                     rule.where_clause = eliminate_local_vars_term(rule.where_clause, allsubst, frozenset())
 
-    # for sec in p.sections_iter():
+    # for sit in p.situations_iter():
                     # rule.arg_vars_bound_by_rule[i]))
                     # rule.args[i] =
 

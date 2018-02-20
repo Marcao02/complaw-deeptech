@@ -6,7 +6,7 @@ roles: Env, I
 global vars:
     I_must_Catch_by : TDMap[Nat] := (emptyTDMap )
 
-section Ongoing:
+situation Ongoing:
     I may Throw(?n) no_time_constraint
     I may EnterFulfilled no_time_constraint
     if (nonempty I_must_Catch_by):

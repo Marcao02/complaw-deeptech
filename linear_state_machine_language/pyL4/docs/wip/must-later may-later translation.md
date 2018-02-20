@@ -29,13 +29,13 @@ See Jan 4 discussion on Slack dsl channel.
 
 ## In action declarations
 
-If a rule of the following form occurs in the `Future` section of an `Action` declaration:
+If a rule of the following form occurs in the `Future` situation of an `Action` declaration:
 ```
 (if bool_term
 	(R must-later [A arg₁ arg₂] [event_td ≤ timedelta_term])
 )
 ```
-it is removed and the following is appended to the `Transform` section of the same `Action` declaration:
+it is removed and the following is appended to the `Transform` situation of the same `Action` declaration:
 ```
 (if bool_term
 	(must_R_A = [mapSet must_R_A (tuple arg₁ arg₂) timedelta_term])
@@ -45,7 +45,7 @@ it is removed and the following is appended to the `Transform` section of the sa
 
 ## In state declarations
 
-Suppose a `State` (aka `Section`) declaration contains
+Suppose a `State` (aka `Situation`) declaration contains
 
 `[possibly-from-earlier R must A]`
 

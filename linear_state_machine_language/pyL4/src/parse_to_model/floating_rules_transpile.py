@@ -122,13 +122,13 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
         parent_action.global_state_transform.statements.append(statement)
 
     # ----------------------------------------------
-    # Removing from state (aka section) declarations
+    # Removing from situation declarations
     # ----------------------------------------------
-    for sec in prog.sections_iter():
-        if len(sec.possible_floating_rule_types) == 0:
+    for sit in prog.situations_iter():
+        if len(sit.possible_floating_rule_types) == 0:
             continue
 
-        for frt in sec.possible_floating_rule_types:
+        for frt in sit.possible_floating_rule_types:
             rid = frt[0]
             aid = frt[1]
             kw = frt[2]
@@ -144,7 +144,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             # params : List[Term]
             rule : PartyNextActionRule
             if kw == 'may-later':
-                rule = PartyNextActionRule(sec.section_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'may'))
+                rule = PartyNextActionRule(sit.situation_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'may'))
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in range(len(action.param_names))]
                 rule.time_constraint =  FnApp("tdGEQ",
                                              [map_var,
@@ -153,10 +153,10 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                              ])
                 rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
                 rule.arg_vars_bound_by_rule = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
-                sec.add_action_rule(rule)
+                sit.add_action_rule(rule)
             else:
                 assert kw == 'must-later'
-                # rule = PartyNextActionRule(sec.section_id, rid, aid, [], None, 'may')
+                # rule = PartyNextActionRule(sit.situation_id, rid, aid, [], None, 'may')
                 # params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
                 #           range(len(action.params))]
                 # rule.time_constraint = FnApp("tdGEQ",
@@ -166,9 +166,9 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                 #                               ])
                 # rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
                 # rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
-                # sec.add_action_rule(rule)
+                # sit.add_action_rule(rule)
 
-                rule = PartyNextActionRule(sec.section_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'obligation-options-include'))
+                rule = PartyNextActionRule(sit.situation_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'obligation-options-include'))
                 params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
                           range(len(action.param_names))]
                 rule.time_constraint = FnApp("tdGEQ",
@@ -178,5 +178,5 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               ])
                 rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
                 rule.arg_vars_bound_by_rule = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
-                sec.add_action_rule(rule)
+                sit.add_action_rule(rule)
 

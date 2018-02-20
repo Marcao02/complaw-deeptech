@@ -3,9 +3,9 @@
 [TimeUnit d]
 
 [FormalContract "test contract 2 for must later"
-	[StartSection Ongoing]
+	[StartSituation Ongoing]
 
-	[Section Ongoing
+	[Situation Ongoing
 		[Next
 			[I may [Throw ?n] no_time_constraint]
 			[I may EnterFulfilled no_time_constraint]

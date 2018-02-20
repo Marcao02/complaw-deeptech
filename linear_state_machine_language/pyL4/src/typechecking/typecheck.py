@@ -9,7 +9,7 @@ from src.model.Statement import Statement, LocalVarDec, \
     StateVarAssign, IfElse, FVRequirement
 from src.model.L4Contract import L4Contract
 from src.model.Literal import *
-from src.model.Section import Section
+from src.model.Situation import Situation
 from src.model.Sort import SortOpApp
 from src.model.Term import FnApp
 from src.typechecking.L4TypeErrors import *
@@ -189,8 +189,8 @@ def typecheck_prog(prog:L4Contract, verbose=True):
     for action in prog.actions_iter():
         tc.typecheck_action(action, verbose=verbose)
 
-    for section in prog.sections_iter():
-        tc.typecheck_section(section, verbose=verbose)
+    for situation in prog.situations_iter():
+        tc.typecheck_situation(situation, verbose=verbose)
 
     if verbose:
         msg2 = f"Typechecking contract param declarations"
@@ -468,11 +468,11 @@ class TypeChecker:
             self.typecheck_term(rule.time_constraint, 'Bool')
 
 
-    def typecheck_section(self, section:Section, verbose=True):
+    def typecheck_situation(self, situation:Situation, verbose=True):
         if verbose:
-            msg2 = f"Typechecking Section {section.section_id}"
+            msg2 = f"Typechecking Situation {situation.situation_id}"
             print(msg2 + "\n" + "-" * len(msg2))
-        for rule in section.action_rules():
+        for rule in situation.action_rules():
             self.typecheck_action_rule(rule)
 
     def typecheck_action(self, action:Action, verbose=True):

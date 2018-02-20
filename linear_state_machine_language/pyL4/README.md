@@ -31,13 +31,13 @@ To typecheck, from `pyL4` do `mypy src`.
 
 `should` in L4 is, for the sake of execution, a synonym of `may`. We will differentiate between the two in other situations though, e.g. to define the "happy paths".
 
-About leaving out `(TransitionsTo ‹section_id›`...
+About leaving out `(TransitionsTo ‹situation_id›`...
 
 **Todo: update LaTeX to add "env action" as an action_rule type.**
 
 <!--In LSM, there is only one type of `NextActionRule`, which has a role, action, and a few other things.-->
 <!--In L4, there are PartyNextActionRule, EnvNextActionRule. They are just conveniences:-->
 
-<!--* ActionRuleToSection has no `deontic_keyword` but has an extra `dest_id` (a `Section` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
+<!--* ActionRuleToSituation has no `deontic_keyword` but has an extra `dest_id` (a `Situation` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
 <!--* EnvNextActionRule has no `deontic_keyword` and its `role_id` is always `ENV_ROLE`.-->
 

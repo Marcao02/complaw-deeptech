@@ -2,7 +2,7 @@ from typing import Union, Optional, cast
 
 from src.independent.util import castid
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
-from src.constants_and_defined_types import SectionId, GVarSubst, ContractParamId
+from src.constants_and_defined_types import SituationId, GVarSubst, ContractParamId
 from src.interpreter.interpreter import ExecEnv as ExecEnvNF
 from src.interpreter.interpreter_deprecated import ExecEnv as ExecEnvOld
 from src.model.EventsAndTraces import Trace, CompleteTrace
@@ -28,7 +28,7 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, verbose:bool=True,
             else:
                 paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)
         return env.evalTrace(trace = it.events,
-                             finalSectionId = cast(SectionId, it.final_section),
+                             finalSituationId = cast(SituationId, it.final_situation),
                              final_var_vals = cast(Optional[GVarSubst], it.final_values),
                              verbose=verbose, debug=debug)
     else:

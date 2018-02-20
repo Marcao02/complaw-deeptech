@@ -97,9 +97,9 @@
 
 (FormalContract
 	"Master Sales Agreement"
-	(StartSection VendorAcceptingOrders)
+	(StartSituation VendorAcceptingOrders)
 
-	(Section VendorAcceptingOrders
+	(Situation VendorAcceptingOrders
 		(Next
 			(if (orderable_units > 0)
 				(Customer may (SubmitNewOrder ?q) (next_event_td ≤ order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))

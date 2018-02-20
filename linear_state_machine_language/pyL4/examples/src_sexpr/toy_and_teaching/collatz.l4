@@ -15,9 +15,9 @@
 )
 
 (FormalContract "Collatz"
-	(StartSection Ongoing)
+	(StartSituation Ongoing)
 
-	(Section Ongoing
+	(Situation Ongoing
 		(Next
 			(if ((x == 0) or (x == 1))
 				(EnterFulfilled immediately)

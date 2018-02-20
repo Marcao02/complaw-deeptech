@@ -80,8 +80,8 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv = indent(indent_level) + "if " + str(ar.entrance_enabled_guard) + ":\n"
         indent_level += 1
 
-    if ar.action_id == FULFILLED_SECTION_LABEL and str(ar.time_constraint) == 'immediately':
-        rv += indent(indent_level) + FULFILLED_SECTION_LABEL
+    if ar.action_id == FULFILLED_SITUATION_LABEL and str(ar.time_constraint) == 'immediately':
+        rv += indent(indent_level) + FULFILLED_SITUATION_LABEL
         return rv
 
     if ar.role_id == ENV_ROLE:
@@ -132,7 +132,7 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
     Its parent rule's `entrance_enabled_guard` evaluated to True when this thing was created.
     It has values for all `StateVarId`s that occur in its parent's `where_clause` or `time_constraint`.
     It has values for all `ActionBoundActionParamId`s that occur in its parent's `where_clause`  or `time_constraint`. Such variables can only
-    occur if its parent rule is defined in a `FollowingSection` declaration, since that is the only way that
+    occur if its parent rule is defined in a `FollowingSituation` declaration, since that is the only way that
     an `ActionBoundActionParamId` can be in the scope of a `where_clause` or `time_constraint`.
     It has values for none of the `RuleBoundActionParamId`s that occur in its `where_clause` or `time_constraint`.
     """
@@ -157,7 +157,7 @@ class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
 # ABSTRACT
 class NextActionRule(ActionRule):
     def __init__(self,
-                 src_id: SectionId,
+                 src_id: SituationId,
                  role_id: RoleId,
                  action_id: ActionId,
                  args: Optional[List[RuleBoundActionParamId]],
@@ -168,7 +168,7 @@ class NextActionRule(ActionRule):
 
 class PartyNextActionRule(NextActionRule):
     def __init__(self,
-                 src_id: SectionId,
+                 src_id: SituationId,
                  role_id: RoleId,
                  action_id: ActionId,
                  args: Optional[List[RuleBoundActionParamId]],
@@ -184,7 +184,7 @@ class PartyNextActionRule(NextActionRule):
 
 class EnvNextActionRule(NextActionRule):
     def __init__(self,
-                 src_id: SectionId,
+                 src_id: SituationId,
                  action_id: ActionId,
                  args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:

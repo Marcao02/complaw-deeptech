@@ -8,16 +8,16 @@
 (FormalContract
 	"student and grader from gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints"
 
-	(StartSection AssignmentOut)
+	(StartSituation AssignmentOut)
 
-	(Section AssignmentOut
+	(Situation AssignmentOut
 		(Student must Submit (at 11))
 	)
 
 	(Action Accept (AllowedRoles Grader) (TransitionsTo Fulfilled))
 
 	(Action Submit (AllowedRoles Student)
-		(FollowingSection
+		(FollowingSituation
 			; (Grader must (oneOf Accept Reject) within 7)
 			(Grader obligation-options-include Accept (within 7))
 			(Grader obligation-options-include Reject (within 7))
@@ -25,13 +25,13 @@
 	)
 
 	(Action Reject (AllowedRoles Grader)
-		(FollowingSection
+		(FollowingSituation
 			(Student must Resubmit (before 26))
 		)
 	)
 
 	(Action Resubmit (AllowedRoles Student)
-		(FollowingSection
+		(FollowingSituation
 			(Grader must Accept (within 7))
 		)
 	)

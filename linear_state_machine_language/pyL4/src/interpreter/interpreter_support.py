@@ -36,7 +36,7 @@ ENV_VAR_INTERP = {
     'event_td':  lambda execenv: execenv.cur_event_delta(),
     'next_event_td':  lambda execenv: execenv.cur_event_delta(),
     'future_event_td':  lambda execenv: execenv.cur_event_delta(),
-    'sectionEntrance_td': lambda execenv: execenv.last_section_entrance_delta
+    'situationEntrance_td': lambda execenv: execenv.last_situation_entrance_delta
 }
 
 def and_eval(*args:Any) -> bool:

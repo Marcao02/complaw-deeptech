@@ -13,10 +13,10 @@ global vars:
     balance_remaining : $ := TOTAL_DUE_BEFORE_CLOSING
     next_payment_month : Nat := 0
 
-section WaitingForFirstDayOfNextMonth:
+situation WaitingForFirstDayOfNextMonth:
     if (and (MIN_PAYMENT ≤ balance_remaining) (next_payment_month < 23)):
-        Buyer obligation-options-include PayInstallment(?amount) (next_event_td == (sectionEntrance_td + 30d)) where (and (MIN_PAYMENT ≤ ?amount) (?amount ≤ balance_remaining))
-    Buyer obligation-options-include PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (sectionEntrance_td + 30d))
+        Buyer obligation-options-include PayInstallment(?amount) (next_event_td == (situationEntrance_td + 30d)) where (and (MIN_PAYMENT ≤ ?amount) (?amount ≤ balance_remaining))
+    Buyer obligation-options-include PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (situationEntrance_td + 30d))
 
 action PayInstallment(amount: Pos$) transitions to WaitingForFirstDayOfNextMonth:
     pre: (amount ≤ balance_remaining)

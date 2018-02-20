@@ -14,41 +14,41 @@ global vars:
 
 claims:
     ["MAX_TIME'", '=', '44D']
-    ["MAX_SECTION_VISITS'", '=', '6']
+    ["MAX_SITUATION_VISITS'", '=', '6']
 
-section Awaiting_Delivery:
+situation Awaiting_Delivery:
     Seller must Deliver (next_event_td ≤ DELIVERY_DEADLINE)
 
 action Deliver()  transitions to AfterDeliver:
     transform:
         delivery_date := event_td
-    following section:
+    following situation:
         Buyer must Pay1stInstallment immediately
 
 action Pay1stInstallment()  transitions to AfterPay1stInstallment:
     transform:
         prove (buyer_paid == 0)
         buyer_paid := 100
-    following section:
+    following situation:
         Buyer should Pay2ndInstallment (next_event_td ≤ (30d + delivery_date))
         Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date))
         EnterLate2ndInstallment (next_event_td > (30d + delivery_date))
 
 action EnterLate2ndInstallment()  transitions to Late2ndInstallment
-    following section:
+    following situation:
         Buyer must PayLateFee (next_event_td ≤ (44d + delivery_date))
 
 action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
     transform:
         prove (buyer_paid == 100)
         buyer_paid := 200
-    following section:
+    following situation:
         Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date))
         CompleteNormalSale (next_event_td > (14d + delivery_date))
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
-    following section:
-        Seller must DeliverRefund (next_event_td ≤ (7d + sectionEntrance_td))
+    following situation:
+        Seller must DeliverRefund (next_event_td ≤ (7d + situationEntrance_td))
 
 action PayLateFee()  transitions to Fulfilled:
     transform:

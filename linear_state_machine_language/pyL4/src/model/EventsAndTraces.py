@@ -22,7 +22,7 @@ class Event(NamedTuple):
     params: Optional[AParamsSubst]
     type: EventType
 
-def breachSectionId(*role_ids:str):
+def breachSituationId(*role_ids:str):
     return "Breach_" + "_".join(role_ids)
 
 
@@ -30,6 +30,6 @@ Trace = Sequence[Event]
 class CompleteTrace(NamedTuple):
     contract_param_subst: Dict[str, Any]
     events: Trace
-    final_section: str  # will need to be a SectionId
+    final_situation: str  # will need to be a SituationId
     final_values: Optional[Dict[str,Any]] = None
 

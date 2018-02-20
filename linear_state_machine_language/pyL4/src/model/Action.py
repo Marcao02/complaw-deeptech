@@ -1,13 +1,13 @@
 from itertools import chain
 
 from src.independent.util import indent, castid
-from src.constants_and_defined_types import ActionBoundActionParamId, SectionId, ActionId, LOOP_KEYWORD, \
+from src.constants_and_defined_types import ActionBoundActionParamId, SituationId, ActionId, LOOP_KEYWORD, \
     LocalVarId
 from src.independent.typing_imports import *
 from src.model.ActionRule import PartyFutureActionRule, ActionRule
 from src.model.StateTransform import StateTransform
 from src.model.Statement import LocalVarDec, Statement
-from src.model.Section import Section, ParamsDec
+from src.model.Situation import Situation, ParamsDec
 from src.model.Sort import Sort
 from src.model.Term import Term
 
@@ -15,14 +15,14 @@ from src.model.Term import Term
 class Action:
     def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id
-        self.dest_section_id : SectionId = castid(SectionId,"to be set after constructor")
+        self.dest_situation_id : SituationId = castid(SituationId,"to be set after constructor")
         self.traversal_bounds: Optional[Any] = None # SExpr
         self.allowed_subjects: Optional[Any] = None # SExpr
         self.action_description: Optional[str] = None
         self.local_vars: Dict[LocalVarId, LocalVarDec] = dict()
         self.is_compound = False
 
-        self.following_anon_section : Optional[Section] = None
+        self.following_anon_situation : Optional[Situation] = None
 
         self.global_state_transform : Optional[StateTransform] = None
         self.preconditions: List[Term] = []
@@ -81,8 +81,8 @@ class Action:
             rv += '(' + ", ".join(param + ": " + str(self.param_sorts_by_name[param]) for param in self.param_sorts_by_name) + ')'
         else:
             rv += "() " # makes it look better with python syntax highlighting
-        if self.dest_section_id != LOOP_KEYWORD:
-            rv +=  f" transitions to {self.dest_section_id}"
+        if self.dest_situation_id != LOOP_KEYWORD:
+            rv +=  f" transitions to {self.dest_situation_id}"
         else:
             rv += f" non-transitioning"
         if len(self.preconditions) > 0 or self.global_state_transform or len(self.postconditions) > 0:
@@ -102,9 +102,9 @@ class Action:
         for pre in self.postconditions:
             rv += indent(i+1) + "post: " + str(pre) + "\n"
 
-        if self.following_anon_section:
-            anon_section_str = self.following_anon_section.toStr(i+1)
-            rv += anon_section_str
+        if self.following_anon_situation:
+            anon_situation_str = self.following_anon_situation.toStr(i+1)
+            rv += anon_situation_str
 
         return rv
 

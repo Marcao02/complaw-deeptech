@@ -30,9 +30,9 @@
 (FormalContract
 	"Farmer American call option from A Formal Language for Writing Contracts 2016"
 
-	(StartSection BeforeOptionPurchase)
+	(StartSituation BeforeOptionPurchase)
 
-	(Section BeforeOptionPurchase
+	(Situation BeforeOptionPurchase
 		(Next
 			(Buyer must PaySellerForOption (next_event_dt == (str2datetime "June 30, 2015")))
 		)
@@ -44,7 +44,7 @@
 			(seller_funds' = (SELLER_START_FUNDS + ($ 5)))
 		)
 
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(Buyer may ExerciseOption (next_event_dt ≤ (str2datetime "December 17, 2015")))
 			)
@@ -57,7 +57,7 @@
 			(seller_funds' = (SELLER_START_FUNDS + ($ 80)))
 		)
 
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(Buyer must TransferShare (next_event_td ≤ (event_td + 30D)))
 			)

@@ -27,10 +27,10 @@ from src.model.Statement import Statement, FVRequirement, \
     LocalVarDec, IfElse, StateVarAssign
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
-    derived_trigger_id_to_section_id, derived_destination_id
+    derived_trigger_id_to_situation_id, derived_destination_id
 from src.model.L4Macro import L4Macro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit, DateTimeLit
-from src.model.Section import Section
+from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
 from src.model.Term import Term
@@ -57,7 +57,7 @@ def syntaxErrorX(expr: Optional[SExprOrStr], msg:Optional[str] = None) -> NoRetu
 class L4ContractConstructor(L4ContractConstructorInterface):
     def __init__(self, filename:str, verbose=True) -> None:
         self.top : L4Contract = L4Contract(filename)
-        self.referenced_nonderived_section_ids: Set[SectionId] = set()
+        self.referenced_nonderived_situation_ids: Set[SituationId] = set()
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
         self.after_model_build_requirements : List[Tuple[Callable[[],bool],str]] = []
         self.verbose = verbose
@@ -302,12 +302,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if  head(APPLY_MACRO_LABEL):
                 x = self.handle_apply_macro(x)
 
-            if head(START_SECTION_LABEL):
+            if head(START_SITUATION_LABEL):
                 self.assertOrSyntaxError( len(x) == 2, l, "StartState declaration S-expression should have length 2")
-                section_id = cast(SectionId, chcaststr(x[1]))
-                self.top.start_section_id = section_id
-                if not is_derived_destination_id(section_id):
-                    self.referenced_nonderived_section_ids.add(section_id)
+                situation_id = cast(SituationId, chcaststr(x[1]))
+                self.top.start_situation_id = situation_id
+                if not is_derived_destination_id(situation_id):
+                    self.referenced_nonderived_situation_ids.add(situation_id)
 
             elif head(ACTION_LABEL):
                 action_id : ActionId
@@ -326,19 +326,19 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.top.actions_by_id[action_id] = action
                 self.top.ordered_declarations.append(action)
 
-            elif head(SECTION_LABEL) or head("StateType") or head("SituationType"):
-                section_id = cast(SectionId, chcaststr(x[1]))
-                section_data = x.tillEnd(2)
-                section = self._mk_section(section_id, section_data, None)
-                self.top.sections_by_id[section_id] = section
-                self.top.ordered_declarations.append(section)
+            elif head(SITUATION_LABEL) or head("StateType") or head("SituationType"):
+                situation_id = cast(SituationId, chcaststr(x[1]))
+                situation_data = x.tillEnd(2)
+                situation = self._mk_situation(situation_id, situation_data, None)
+                self.top.situations_by_id[situation_id] = situation
+                self.top.ordered_declarations.append(situation)
 
             else:
                 self.syntaxError(l, f"Unrecognized head {x[0]}")
 
 
-    def _mk_section(self, section_id:SectionId, rest:SExpr, parent_action:Optional[Action]) -> Section:
-        section = Section(section_id)
+    def _mk_situation(self, situation_id:SituationId, rest:SExpr, parent_action:Optional[Action]) -> Situation:
+        situation = Situation(situation_id)
         x: SExpr
         for x in rest:
             assert isinstance(x,SExpr), f"{x} should be an s-expression"
@@ -347,45 +347,45 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 nonlocal x
                 return streqci(x[0], constant)
 
-            if head(SECTION_PRECONDITION_LABEL):
-                section.preconditions.append(self._mk_term(x[1], section, parent_action,None, x))
+            if head(SITUATION_PRECONDITION_LABEL):
+                situation.preconditions.append(self._mk_term(x[1], situation, parent_action,None, x))
 
-            elif head(SECTION_DESCRIPTION_LABEL):
-                section.section_description = chcaststr(x[1][1]) # extract from STRLIT expression
+            elif head(SITUATION_DESCRIPTION_LABEL):
+                situation.description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(OUT_CONNECTIONS_LABEL):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'timeConstraintsPartitionFuture'):
                     x = x[1]
-                    todo_once("guardsDisjointExhaustive etc in section()")
+                    todo_once("guardsDisjointExhaustive etc in situation()")
                 action_rule_exprs = castse(x.tillEnd(1))
                 for action_rule_expr in action_rule_exprs:
                     if action_rule_expr[0] == APPLY_MACRO_LABEL:
                         action_rule_expr = self.handle_apply_macro(action_rule_expr)
 
-                    self._mk_next_action_rule(action_rule_expr, section, parent_action)
+                    self._mk_next_action_rule(action_rule_expr, situation, parent_action)
 
             elif head(PROSE_REFS_LABEL):
-                section.prose_refs = cast(List,x[1:]).copy()
+                situation.prose_refs = cast(List,x[1:]).copy()
 
             elif 'visits' in x or 'traversals' in x:
-                section.visit_bounds = x # self.term(x, None, section)
+                situation.visit_bounds = x # self.term(x, None, situation)
 
             elif head("possibly-from-earlier"):
                 assert x[1] in self.top.roles
                 assert x[2] in ["must-later", "may-later"]
                 floating_rule_type = FutureActionRuleType(x[1], x[3], x[2])
-                section.possible_floating_rule_types.add(floating_rule_type)
+                situation.possible_floating_rule_types.add(floating_rule_type)
                 self.top.possible_floating_rule_types.add(floating_rule_type)
 
             else:
-                self.syntaxError(x, f"Unsupported declaration type {x[0]} in section {section_id}")
-                todo_once(f"Handle {x[0]} in section dec")
+                self.syntaxError(x, f"Unsupported declaration type {x[0]} in situation {situation_id}")
+                todo_once(f"Handle {x[0]} in situation dec")
 
-        return section
+        return situation
 
     def _mk_action(self, action_id:ActionId, params_sexpr:Optional[List[List[str]]], rest:SExpr) -> Action:
         a = Action(action_id)
-        dest_section_id = None
+        dest_situation_id = None
         x: SExpr
         if params_sexpr is not None: #isinstance(params_sexpr, SExpr):
             a.param_sorts_by_name = self._mk_action_params(params_sexpr)
@@ -414,9 +414,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 a.prose_refs  = cast(List[str], x.tillEnd(1).lst)
 
             elif head(TRANSITIONS_TO_LABEL):
-                dest_section_id = x[1]
-                if not is_derived_destination_id(dest_section_id) and dest_section_id != LOOP_KEYWORD:
-                    self.referenced_nonderived_section_ids.add(dest_section_id)
+                dest_situation_id = x[1]
+                if not is_derived_destination_id(dest_situation_id) and dest_situation_id != LOOP_KEYWORD:
+                    self.referenced_nonderived_situation_ids.add(dest_situation_id)
 
             elif 'traversals' in x or 'visits' in x:
                 a.traversal_bounds = x # self.term(x, None, a)
@@ -427,27 +427,27 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(ALLOWED_SUBJECTS_DEC_LABEL):
                 a.allowed_subjects = x.tillEnd(1)
 
-            elif head(FOLLOWING_SECTION_DEC_LABEL):
+            elif head(FOLLOWING_SITUATION_DEC_LABEL):
                 anon_sect_id : str
                 if is_derived_trigger_id(action_id):
-                    anon_sect_id = derived_trigger_id_to_section_id(action_id)
+                    anon_sect_id = derived_trigger_id_to_situation_id(action_id)
                 else:
                     anon_sect_id = derived_destination_id(action_id)
-                a.following_anon_section  = self._mk_section(anon_sect_id, x.tillEnd(1), a)
-                a.following_anon_section.parent_action_id = action_id
-                self.top.sections_by_id[a.following_anon_section.section_id] = a.following_anon_section
+                a.following_anon_situation  = self._mk_situation(anon_sect_id, x.tillEnd(1), a)
+                a.following_anon_situation.parent_action_id = action_id
+                self.top.situations_by_id[a.following_anon_situation.situation_id] = a.following_anon_situation
 
             else:
                 todo_once(f"Handle {x[0]} in action dec.")
 
-        if dest_section_id:
-            a.dest_section_id = dest_section_id
+        if dest_situation_id:
+            a.dest_situation_id = dest_situation_id
         else:
             if is_derived_trigger_id(a.action_id):
-                a.dest_section_id = derived_trigger_id_to_section_id(a.action_id)
-                self.referenced_nonderived_section_ids.add(a.dest_section_id)
+                a.dest_situation_id = derived_trigger_id_to_situation_id(a.action_id)
+                self.referenced_nonderived_situation_ids.add(a.dest_situation_id)
             else:
-                a.dest_section_id = derived_destination_id(a.action_id)
+                a.dest_situation_id = derived_destination_id(a.action_id)
 
         return a
 
@@ -582,7 +582,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     parent_SExpr is used for debugging since s-expressions carry their original line number. not used for anything else. 
     """
     def _mk_term(self, x:Union[str, SExpr],
-                 parent_section : Optional[Section] = None,
+                 parent_situation : Optional[Situation] = None,
                  parent_action : Optional[Action] = None,
                  parent_action_rule : Optional[ActionRule] = None,
                  parent_SExpr : Optional[SExpr] = None ) -> Term:
@@ -628,7 +628,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             if x in self.top.definitions:
                 return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body,
-                                     parent_section, parent_action, parent_action_rule,
+                                     parent_situation, parent_action, parent_action_rule,
                                      parent_SExpr)
 
             if parent_action and x in parent_action.local_vars:
@@ -649,7 +649,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args : List[Term]
 
                 if fnsymb_name in ('cast','check','trust','units'):
-                    args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
+                    args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_situation, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
 
                 elif fnsymb_name == "str2datetime":
                     assert isinstance(pair[1],SExpr) and isinstance(pair[1][0], SExpr) and pair[1][0][0] == STRING_LITERAL_MARKER, pair
@@ -660,7 +660,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         print(e)
                         raise e
                 else:
-                    args = [ self._mk_term(arg, parent_section, parent_action, parent_action_rule, x) for arg in pair[1] ]
+                    args = [ self._mk_term(arg, parent_situation, parent_action, parent_action_rule, x) for arg in pair[1] ]
                 return FnApp(
                     fnsymb_name,
                     args,
@@ -672,12 +672,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif x[0] in self.top.sorts:
                     return FnApp( "units", [
                         self.mk_sort_lit(x[0]),
-                        self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr),
+                        self._mk_term(x[1], parent_situation, parent_action, parent_action_rule, parent_SExpr),
                     ], x.coord())
                 elif x[0] in self.top.sort_definitions:
                     return FnApp("units", [
                         self.mk_sort_lit(x[0]),
-                        self._mk_term(x[1], parent_section, parent_action, parent_action_rule, parent_SExpr)
+                        self._mk_term(x[1], parent_situation, parent_action, parent_action_rule, parent_SExpr)
                     ], x.coord())
                 else:
                     if x[0] in INFIX_FN_SYMBOLS:
@@ -687,30 +687,30 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 assert False # this is just to get mypy to not complain about missing return statement
 
-    def _mk_time_constraint(self, expr:SExprOrStr, src_section:Optional[Section], src_action:Optional[Action],
+    def _mk_time_constraint(self, expr:SExprOrStr, src_situation:Optional[Situation], src_action:Optional[Action],
                             parent_action_rule:Optional[ActionRule], parent_sexpr:SExpr) -> Term:
         rv : Term
         # if expr in TIME_CONSTRAINT_KEYWORDS:
-        #     return self._mk_term(expr, src_section, src_action)
+        #     return self._mk_term(expr, src_situation, src_action)
         # elif isinstance(expr,str):
         #     self.syntaxError(expr, f"Unrecognized token {expr} in time constraint keyword position.")
         if isinstance(expr,str):
-            rv = self._mk_term(expr, src_section, src_action, parent_action_rule, parent_sexpr)
+            rv = self._mk_term(expr, src_situation, src_action, parent_action_rule, parent_sexpr)
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
             if pair and pair[0] in TIME_CONSTRAINT_PREDICATES:
-                # return self._mk_term(expr, src_section, src_action, parent_action_rule, None)
+                # return self._mk_term(expr, src_situation, src_action, parent_action_rule, None)
                 rv = FnApp(
                     pair[0],
-                    [self._mk_term(arg, src_section, src_action, parent_action_rule, expr) for arg in pair[1]],
+                    [self._mk_term(arg, src_situation, src_action, parent_action_rule, expr) for arg in pair[1]],
                     FileCoord(expr.line, expr.col)
                 )
                 # print("$ " + str(rv))
             else:
-                if src_section:
+                if src_situation:
                     print("pair: ", pair)
-                    self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in section {src_section.section_id}")
+                    self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in situation {src_situation.situation_id}")
                 elif src_action:
                     self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in action {src_action.action_id}")
                 raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
@@ -766,16 +766,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
 
-    def _mk_next_action_rule(self, expr:SExpr, src_section:Section, parent_action:Optional[Action]) -> None:
+    def _mk_next_action_rule(self, expr:SExpr, src_situation:Situation, parent_action:Optional[Action]) -> None:
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
-            entrance_enabled_guard = self._mk_term(expr[1], src_section, parent_action, None, expr)
+            entrance_enabled_guard = self._mk_term(expr[1], src_situation, parent_action, None, expr)
             if len(expr) == 3:
                 expr = expr[2]
             else:
                 # multiple rules sharing an enabled-guard
                 for unguarded_rule in expr[2:]:
-                    self._mk_next_action_rule( SExpr(expr.symb, [expr[0],expr[1],unguarded_rule], expr.line, expr.col), src_section, parent_action )
+                    self._mk_next_action_rule( SExpr(expr.symb, [expr[0],expr[1],unguarded_rule], expr.line, expr.col), src_situation, parent_action )
                 return
 
         role_id : RoleId
@@ -799,7 +799,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            rv = EnvNextActionRule(src_section.section_id, action_id, args, entrance_enabled_guard)
+            rv = EnvNextActionRule(src_situation.situation_id, action_id, args, entrance_enabled_guard)
             rem = expr.tillEnd(1)
 
         else:
@@ -821,23 +821,23 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            rv = PartyNextActionRule(src_section.section_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+            rv = PartyNextActionRule(src_situation.situation_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 
         if args is None:
-            rv.fixed_args = [self._mk_term(arg, src_section, parent_action, rv, args_part) for arg in args_part]
+            rv.fixed_args = [self._mk_term(arg, src_situation, parent_action, rv, args_part) for arg in args_part]
         assert len(rem) >= 1
 
-        rv.time_constraint = self._mk_time_constraint(rem[0], src_section, parent_action, rv, rem)
+        rv.time_constraint = self._mk_time_constraint(rem[0], src_situation, parent_action, rv, rem)
         assert rv.time_constraint is not None, str(rem)
 
         for x in rem[1:]:
             if x[0] == "where":
-                rv.where_clause = self._mk_term(x[1], src_section, parent_action, rv, expr)
+                rv.where_clause = self._mk_term(x[1], src_situation, parent_action, rv, expr)
 
         assert not rv.fixed_args or not rv.where_clause
 
-        src_section.add_action_rule(rv)
+        src_situation.add_action_rule(rv)
 
 def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:
     return maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)

@@ -1,6 +1,6 @@
 """
 unambiguous strong obligation condition: For every reachable global state g, if the guard of some must-next action
-rule in stateclass(g) evaluates to true at g, then every other must-next action rule guard in section(g) evaluates
+rule in stateclass(g) evaluates to true at g, then every other must-next action rule guard in situation(g) evaluates
 to false at g.
 
 

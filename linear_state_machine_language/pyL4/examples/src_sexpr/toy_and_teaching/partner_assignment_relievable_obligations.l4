@@ -26,7 +26,7 @@
 
 (FormalContract
 	"partner assignment demonstrating relievable obligations"
-	(Section WorkingOnAssignment
+	(Situation WorkingOnAssignment
 		(Next
 			(Alice obligation-options-include SolveProbA (next_event_td ≤ DUE_TD))
 			(Bob   obligation-options-include SolveProbB (next_event_td ≤ DUE_TD))

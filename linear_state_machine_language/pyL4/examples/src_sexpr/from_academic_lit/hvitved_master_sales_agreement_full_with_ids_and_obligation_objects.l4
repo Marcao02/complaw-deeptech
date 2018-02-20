@@ -98,9 +98,9 @@
 
 [FormalContract
     "Master Sales Agreement"
-    [StartSection VendorAcceptingOrders]
+    [StartSituation VendorAcceptingOrders]
 
-    ;[Section AfterStart]
+    ;[Situation AfterStart]
     ;[Action Start
         ; When the contract starts:
         ;   -{order_period_ends} is defined as {CONTRACT_LIFE} years after {contract_start_date}
@@ -108,13 +108,13 @@
     ;    [visits == 1]
         ;[StateTransform
         ;    [order_period_ends' += [contractStart_dt + CONTRACT_LIFE]] ]
-    ;    [FollowingSection
+    ;    [FollowingSituation
     ;        [Next [EnterVendorAcceptingOrders immediately]]
     ;    ]
     ;]
 
 
-    [Section VendorAcceptingOrders
+    [Situation VendorAcceptingOrders
         ; When {Vendor} is accepting new orders:
         ;   -If {orderable_units_remaining} > 0 and the time has not passed {order_period_ends}:
         ;       -then {Customer} may next submit a new order for q units, where 0 < q ≤ orderable_units_remaining.
@@ -175,7 +175,7 @@
             ]
             [units_ordered' += quantity]
             [next_order_id' = [next_order_id + 1]]
-            ; [local mytest_for_error : TimeDelta = sectionEntrance_td]
+            ; [local mytest_for_error : TimeDelta = situationEntrance_td]
         ]
 
         [Future

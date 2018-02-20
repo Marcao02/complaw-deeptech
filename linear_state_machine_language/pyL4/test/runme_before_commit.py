@@ -9,7 +9,7 @@ tests_to_run = {
     'typechecker',
     'smt',
     # 'graphviz',
-    # 'prettyprint',
+    'prettyprint',
     'interpreter',
 }
 
@@ -51,8 +51,8 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         test_interpreter.main(progs, VERBOSE)
         timetask_stop()
 
-    if 'typechecker' in tests_to_run:
-        timetask_start('typechecker')
+    if 'L4typechecker' in tests_to_run:
+        timetask_start('L4typechecker')
         import test_typechecker
         test_typechecker.main(progs, VERBOSE)
         timetask_stop()

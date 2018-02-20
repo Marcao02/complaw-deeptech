@@ -78,9 +78,9 @@
 	; apply to all actions and states:
 	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 
-	(StartSection InvestorInvests)
+	(StartSituation InvestorInvests)
 
-	(Section InvestorInvests
+	(Situation InvestorInvests
 		(Next
 			(Company obligation-options-include CommitToEquityFinancing no_time_constraint)
 			(Company obligation-options-include (CommitToLiquidityEvent ?1 ?company_cash ?3 ?reduction) no_time_constraint
@@ -93,7 +93,7 @@
 	; NOTE: PRA abbreviates pro rata agreement
 
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(Company obligation-options-include DeliverDocsWithPRA discretionary)
 				(Company obligation-options-include DeliverDocsWithoutPRA discretionary)
@@ -102,19 +102,19 @@
 	)
 
 	(Action DeliverDocsWithPRA (AllowedSubjects Company)
-		(FollowingSection
+		(FollowingSituation
 			(Next (Company must (IssueSAFEPreferredStock ?1 ?2) discretionary))
 		)
 	)
 
 	(Action DeliverDocsWithoutPRA (AllowedSubjects Company)
-		(FollowingSection
+		(FollowingSituation
 			(Next (Company must SubmitProRataRightsAgreementForSigning discretionary))
 		)
 	)
 
 	(Action SubmitProRataRightsAgreementForSigning  (AllowedSubjects Company)
-		(FollowingSection
+		(FollowingSituation
 			; TODO: Obviously this shouldn't be a *must*, since they ought to be
 			; able to send it back with proposed amendments/corrections.
 			; That seems like something we should have a reusable module for.
@@ -122,7 +122,7 @@
 	)
 
 	(Action SignPRA (AllowedSubjects Investor)
-		(FollowingSection
+		(FollowingSituation
 			(Next (Company must (IssueSAFEPreferredStock ?1 ?2) discretionary))
 		)
 	)
@@ -137,7 +137,7 @@
 			(conversion_price' = (min safe_price' discount_price'))
 			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
-		(FollowingSection
+		(FollowingSituation
 			(Next (Company must DoEquityFinancing discretionary))  )
 	)
 
@@ -213,21 +213,21 @@
 
 		)
 
-		(FollowingSection
+		(FollowingSituation
 			(Next
-				(Investor may ChooseCashPayment [next_event_td < (sectionEntrance_td + 1W)])
-				(Investor may ChooseStockPayment [next_event_td < (sectionEntrance_td + 1W)])
-				(Company obligation-options-include AutoChooseStockPayment [next_event_td == (sectionEntrance_td + 1W)])
+				(Investor may ChooseCashPayment [next_event_td < (situationEntrance_td + 1W)])
+				(Investor may ChooseStockPayment [next_event_td < (situationEntrance_td + 1W)])
+				(Company obligation-options-include AutoChooseStockPayment [next_event_td == (situationEntrance_td + 1W)])
 			)
 		)
 	)
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
-		(FollowingSection (Next (Company must TransferCommonStock discretionary)))
+		(FollowingSituation (Next (Company must TransferCommonStock discretionary)))
 	)
 
 	(Action ChooseStockPayment (AllowedSubjects Investor)
-		(FollowingSection (Next (Company must TransferCommonStock discretionary)))
+		(FollowingSituation (Next (Company must TransferCommonStock discretionary)))
 	)
 
 	(Action TransferCommonStock (AllowedSubjects Company)
@@ -236,13 +236,13 @@
 			; should we round that division up, down, or to nearest?
 			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
 		)
-		(FollowingSection
+		(FollowingSituation
 			(Next (Company must DoLiquidityEvent discretionary))
 		)
 	)
 
 	(Action ChooseCashPayment (AllowedSubjects Investor)
-		(FollowingSection
+		(FollowingSituation
 			(Next (Company must TransferCash_L discretionary))
 		)
 	)
@@ -256,7 +256,7 @@
 			(investor_cash' += liq_cashout')
 		)
 
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				; these will be verified disjoint exhaustive by conditions on rules
 				(if (liq_cashout < cash_currently_unconverted)
@@ -275,7 +275,7 @@
 	; ----------------- Dissolution Event -------------------
 
 	(Action CommitToDissolution (AllowedSubjects Company)
-		(FollowingSection (Next (Company must
+		(FollowingSituation (Next (Company must
 			(TransferCash_D ?company_cash_at_dissolution_event
 							?investor_percent_of_dissolving_investor_investments)
 			discretionary))  )
@@ -292,7 +292,7 @@
 			(investor_cash' += dis_cashout')
 		)
 
-		(FollowingSection
+		(FollowingSituation
 			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
 			; because that's a requirement of the semantics, and thus will be checked automatically.
 			(Next
@@ -311,7 +311,7 @@
 			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
 			(investor_Common_Stocks' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price'))
 		)
-		(FollowingSection  (Next (Company must Dissolve discretionary)))
+		(FollowingSituation  (Next (Company must Dissolve discretionary)))
 	)
 
 

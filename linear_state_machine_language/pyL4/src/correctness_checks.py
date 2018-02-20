@@ -11,21 +11,21 @@ from src.model.L4Contract import L4Contract, is_derived_destination_id, is_deriv
 
 class L4ContractConstructorInterface:
     top : L4Contract
-    referenced_nonderived_section_ids: Set[SectionId]
+    referenced_nonderived_situation_ids: Set[SituationId]
     referenced_nonderived_action_ids: Set[ActionId]
     def syntaxError(self, expr: SExprOrStr, msg: Optional[str] = None):
         raise Exception(f"{msg}\nExpression: {expr}")
 
-def referenced_nonderived_section_ids_equal_defined_nonderived_section_ids(it:L4ContractConstructorInterface) -> bool:
-    referenced_nonderived_section_ids = set(filter( lambda x: not is_derived_destination_id(x), it.top.section_ids())
-                                            ).union([FULFILLED_SECTION_LABEL])
-    itset = it.referenced_nonderived_section_ids.union([FULFILLED_SECTION_LABEL])
-    if itset != set(referenced_nonderived_section_ids):
+def referenced_nonderived_situation_ids_equal_defined_nonderived_situation_ids(it:L4ContractConstructorInterface) -> bool:
+    referenced_nonderived_situation_ids = set(filter( lambda x: not is_derived_destination_id(x), it.top.situation_ids())
+                                            ).union([FULFILLED_SITUATION_LABEL])
+    itset = it.referenced_nonderived_situation_ids.union([FULFILLED_SITUATION_LABEL])
+    if itset != set(referenced_nonderived_situation_ids):
         logging.warning(
             f"""
-    ISSUE: Set of referenced nonderived section ids ≠ set of declared nonderived section ids:
+    ISSUE: Set of referenced nonderived situation ids ≠ set of declared nonderived situation ids:
     Referenced : {str(sorted(itset))} 
-    Defined    : {str(sorted(set(referenced_nonderived_section_ids)))}"""
+    Defined    : {str(sorted(set(referenced_nonderived_situation_ids)))}"""
         )
         return False
     else:
@@ -64,7 +64,7 @@ def role_ids_recognized(it:L4ContractConstructorInterface) -> bool:
     return False
 
 test_fns = [
-    referenced_nonderived_section_ids_equal_defined_nonderived_section_ids,
+    referenced_nonderived_situation_ids_equal_defined_nonderived_situation_ids,
     referenced_nonderived_action_ids_equal_defined_nonderived_action_ids,
     actions_correct_number_args,
     role_ids_recognized

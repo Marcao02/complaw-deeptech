@@ -15,7 +15,7 @@ from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Macro import L4Macro
-from src.model.Section import Section
+from src.model.Situation import Situation
 from src.model.Sort import Sort
 
 S = TypeVar('S')
@@ -26,7 +26,7 @@ class L4Contract:
         self.contract_name : str = "to be set"
         self.prose_contract : Dict[ProseClauseId, str] = dict() # mapping clause id string to clause string
 
-        self.start_section_id = cast(SectionId, "start section id to be assigned")
+        self.start_situation_id = cast(SituationId, "start situation id to be assigned")
 
         self.global_var_decs : Dict[StateVarId, StateVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
@@ -42,12 +42,12 @@ class L4Contract:
         self.sorts : Set[Sort] = set()
         self.fnsymb_names : Set[str] = set()
 
-        self.sections_by_id: Dict[SectionId, Section] = dict()
+        self.situations_by_id: Dict[SituationId, Situation] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
 
         self.possible_floating_rule_types: Set[FutureActionRuleType] = set()
 
-        self.ordered_declarations : List[Union[Action,Section]] = list()
+        self.ordered_declarations : List[Union[Action,Situation]] = list()
 
         self.macros : Dict[str, L4Macro] = dict()
 
@@ -59,7 +59,7 @@ class L4Contract:
 
 
     def nextaction_rules(self) -> Iterator[NextActionRule]:
-        for s in self.sections_iter():
+        for s in self.situations_iter():
             for nar in s.action_rules():
                 yield nar
     def futureaction_rules(self) -> Iterator[PartyFutureActionRule]:
@@ -71,9 +71,9 @@ class L4Contract:
     def new_global_var_ref(self, varname, coord:Optional[FileCoord] = None) -> GlobalVar:
         return GlobalVar(self.global_var_decs[varname], coord)
 
-    def section_mentions_action_in_nextaction_rule(self, sectionid:SectionId, actionid:ActionId) -> bool:
-        cursection = self.section(sectionid)
-        for c in cursection.action_rules():
+    def situation_mentions_action_in_nextaction_rule(self, situationid:SituationId, actionid:ActionId) -> bool:
+        cursituation = self.situation(situationid)
+        for c in cursituation.action_rules():
             if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
                 if c.action_id == actionid:
                     return True
@@ -82,10 +82,10 @@ class L4Contract:
 
         return False
 
-    # def actions_sometimes_available_from_section(self, sectionid:SectionId, actionid:ActionId) -> Set[ActionId]:
-    #     cursection = self.section(sectionid)
+    # def actions_sometimes_available_from_situation(self, situationid:SituationId, actionid:ActionId) -> Set[ActionId]:
+    #     cursituation = self.situation(situationid)
     #     rv : Set[ActionId] = set()
-    #     for c in cursection.future_action_rules():
+    #     for c in cursituation.future_action_rules():
     #         if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
     #             if c.action_id == actionid:
     #                 rv.add(c.action_id)
@@ -95,15 +95,15 @@ class L4Contract:
     #     return rv
 
     def transitions(self) -> Iterator[NextActionRule]:
-        for sec in self.sections_iter():
-            for c in sec.action_rules():
+        for sit in self.situations_iter():
+            for c in sit.action_rules():
                 yield c
 
-    def sections_iter(self) -> Iterable[Section]: return self.sections_by_id.values()
-    def section_ids(self) -> Iterable[SectionId]: return self.sections_by_id.keys()
-    def section(self, anid:SectionId) -> Section:
-        assert anid in self.sections_by_id, f"section id '{anid}' not found"
-        return self.sections_by_id[anid]
+    def situations_iter(self) -> Iterable[Situation]: return self.situations_by_id.values()
+    def situation_ids(self) -> Iterable[SituationId]: return self.situations_by_id.keys()
+    def situation(self, anid:SituationId) -> Situation:
+        assert anid in self.situations_by_id, f"situation id '{anid}' not found"
+        return self.situations_by_id[anid]
     
     def actions_iter(self) -> Iterable[Action]: return self.actions_by_id.values()
     def action_ids(self) -> Iterable[ActionId]: return self.actions_by_id.keys()
@@ -118,15 +118,15 @@ class L4Contract:
             return self.global_var_decs[cast(StateVarId, varname)]
         else:
             return None
-        # elif isinstance(sec,Section) and varname in sec.local_vars:
-        #     return sec.local_vars[varname]
+        # elif isinstance(sit,Situation) and varname in sit.local_vars:
+        #     return sit.local_vars[varname]
 
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         rviter : Iterable[T] = iteraccum_maybe or []
         for action in self.actions_iter():
             rviter = chain(rviter, action.forEachTerm(f,rviter))
-        for section in self.sections_iter():
-            rviter = chain(rviter, section.forEachTerm(f,rviter))
+        for situation in self.situations_iter():
+            rviter = chain(rviter, situation.forEachTerm(f,rviter))
         for contract_param_dec in self.contract_params.values():
             rviter = contract_param_dec.value_expr.forEachTerm(f, rviter)
         for gvardec in self.global_var_decs.values():
@@ -142,8 +142,8 @@ class L4Contract:
         for action in self.actions_iter():
             rviter = chain(rviter, action.forEach(pred,f))
 
-        for section in self.sections_iter():
-            rviter = chain(rviter, section.forEach(pred,f))
+        for situation in self.situations_iter():
+            rviter = chain(rviter, situation.forEach(pred,f))
 
         for contract_param_dec in self.contract_params.values():
             rviter = chain(rviter, contract_param_dec.forEach(pred, f))
@@ -184,18 +184,18 @@ class L4Contract:
 
         return rv
 
-    # def can_transition(self, sectionid1:SectionId, sectionid2:SectionId) -> bool:
-    #     if sectionid1 is None:
-    #         return sectionid2 == self.start_section
+    # def can_transition(self, situationid1:SituationId, situationid2:SituationId) -> bool:
+    #     if situationid1 is None:
+    #         return situationid2 == self.start_situation
     #
-    #     cursection = self.section(sectionid1)
-    #     for c in cursection.future_action_rules():
+    #     cursituation = self.situation(situationid1)
+    #     for c in cursituation.future_action_rules():
     #         if isinstance(c, PartyNextActionRule):
     #             action = self.action(c.action_id)
-    #             if action.dest_section_id == sectionid2:
+    #             if action.dest_situation_id == situationid2:
     #                 return True
-    #         elif isinstance(c, ActionRuleToSection):
-    #             if c.dest_id == sectionid2:
+    #         elif isinstance(c, ActionRuleToSituation):
+    #             if c.dest_id == situationid2:
     #                 return True
     #         else:
     #             raise NotImplementedError
@@ -203,13 +203,13 @@ class L4Contract:
     #     return False
 
 
-def derived_destination_id(action_id:ActionId) -> SectionId:
-    return cast(SectionId, "After" + action_id)
-def derived_trigger_id(dest_id:SectionId) -> ActionId:
+def derived_destination_id(action_id:ActionId) -> SituationId:
+    return cast(SituationId, "After" + action_id)
+def derived_trigger_id(dest_id:SituationId) -> ActionId:
     return cast(ActionId, "Enter" + dest_id)
-def derived_trigger_id_to_section_id(action_id:ActionId) -> SectionId:
-    return cast(SectionId, action_id[5:])
-def is_derived_destination_id(section_id:SectionId) -> bool:
-    return section_id.startswith("After") or section_id.startswith("Breach_")
+def derived_trigger_id_to_situation_id(action_id:ActionId) -> SituationId:
+    return cast(SituationId, action_id[5:])
+def is_derived_destination_id(situation_id:SituationId) -> bool:
+    return situation_id.startswith("After") or situation_id.startswith("Breach_")
 def is_derived_trigger_id(action_id:ActionId) -> bool:
     return action_id.startswith("Enter")

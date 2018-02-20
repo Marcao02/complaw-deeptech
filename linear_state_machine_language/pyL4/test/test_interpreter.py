@@ -9,7 +9,7 @@ from src.constants_and_defined_types import *
 from src.independent.parse_sexpr import prettySExprStr, parse_file
 from src.independent.util import castid
 from src.interpreter.interpreter_runner import evalTrace
-from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSectionId, EventType
+from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSituationId, EventType
 from src.model.L4Contract import L4Contract
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 
@@ -73,7 +73,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
             event('DoIt', 'Env', 0),
             event('FinishIt', 'Env', 0, {'z':81})
         ),
-        FULFILLED_SECTION_LABEL,
+        FULFILLED_SITUATION_LABEL,
         {"n": 81})
      ),
 
@@ -86,7 +86,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          foevent('Catch', 'I', 0, {'m': 2}),
          foevent('Catch', 'I', 0, {'m': 1}),
          event('EnterFulfilled', 'Env', 0), # not finished. see next test.
-         ), breachSectionId('Env'))
+         ), breachSituationId('Env'))
     ),
 
     ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
@@ -100,7 +100,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          foevent('Catch', 'I', 0, {'m': 2}),
          event('Stand', 'I'),  # n = 5 after
          event('EnterFulfilled', 'Env', 0),
-         ), FULFILLED_SECTION_LABEL)
+         ), FULFILLED_SITUATION_LABEL)
      ),
 
     ('toy_and_teaching/minimal_future-actions2.l4', CompleteTrace(
@@ -114,7 +114,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         foevent('Catch', 'I', 0, {'n': 4}),
         foevent('Catch', 'I', 0, {'n': 2}),
         event('EnterFulfilled', 'I', 0),
-         ), FULFILLED_SECTION_LABEL)
+         ), FULFILLED_SITUATION_LABEL)
      ),
 
     ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
@@ -127,7 +127,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
             foevent('Catch', 'I', 0, {'m': 4}),
             foevent('Catch', 'I', 0, {'m': 3}),
             # event('EnterFulfilled', 'Env', 0),
-        ), breachSectionId('I'))
+        ), breachSituationId('I'))
     ),
 
 
@@ -143,7 +143,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
          event('DivideBy2'),
          event('DivideBy2'),
          event('EnterFulfilled'),
-         ), FULFILLED_SECTION_LABEL)
+         ), FULFILLED_SITUATION_LABEL)
      ),
 
     ('toy_and_teaching/collatz2.l4', CompleteTrace(
@@ -161,7 +161,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
      ),
 
     ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace({},(
-        # start section implicit
+        # start situation implicit
         firstTSEvent('RequestCookMB', 'Challenger'),
         nextTSEvent('ServeMB', 'Restaurant'),
         nextTSEvent('AnnounceMBFinished', 'Challenger'),
@@ -171,7 +171,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         nextTSEvent('AnnounceMBFinished','Challenger'),
         nextTSEvent('CheckCompletionClaim', 'Restaurant'),
         sameTSEvent('VerifyCompletionClaim', 'Restaurant')
-        ), FULFILLED_SECTION_LABEL)
+        ), FULFILLED_SITUATION_LABEL)
      ),
 )
 traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
@@ -184,7 +184,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             event('SendCancelNoticeByEmail','ISP',50),
             event('EnterFulfilled','Env',51)
         ),
-        FULFILLED_SECTION_LABEL
+        FULFILLED_SITUATION_LABEL
     )),
     ('from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
      CompleteTrace({},(
@@ -196,7 +196,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             event('SendCancelNoticeByEmail','ISP',50),
             event('EnterFulfilled','Env',51)
         ),
-        FULFILLED_SECTION_LABEL
+        FULFILLED_SITUATION_LABEL
     )),
 
     ('from_academic_lit//hvitved_lease.l4',
@@ -217,7 +217,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('EnterMonthEnded', ENV_ROLE, 120),  # April 30
         event('EnterLeaseTermEnded', ENV_ROLE, 120),
         event('MoveOut', 'Tenant', 120),
-      ), FULFILLED_SECTION_LABEL)
+      ), FULFILLED_SITUATION_LABEL)
     ),
     ( 'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4', CompleteTrace(
         {
@@ -225,7 +225,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             'CONTRACT_LIFE' : timedelta(days=365),
             'PRICE_PER_UNIT' : 100
         },(
-        # start section implicit
+        # start situation implicit
         event('SubmitNewOrder', 'Customer', 5, {'quantity':300}), # orderid 0
         event('SubmitNewOrder', 'Customer', 6, {'quantity': 200}),  # orderid 1
         foevent('Deliver', 'Vendor', 10, {'quantity':200,'orderid':1}),
@@ -234,7 +234,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
         foevent('Deliver', 'Vendor', 42, {'quantity':500,'orderid':2}),
         event('EnterFulfilled', 'Env', 50)
-        ), breachSectionId('Customer'))
+        ), breachSituationId('Customer'))
         # It should end in a breach by Customer due to the unpaid invoice.
     ),
 
@@ -244,7 +244,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             'CONTRACT_LIFE' : timedelta(days=365),
             'PRICE_PER_UNIT' : 100
         },(
-        # start section implicit
+        # start situation implicit
         event('SubmitNewOrder', 'Customer', 5, {'quantity':300}), # orderid 0
         event('SubmitNewOrder', 'Customer', 6, {'quantity': 200}),  # orderid 1
         event('Deliver', 'Vendor', 10, {'order':(200,1)}),
@@ -253,22 +253,22 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
         event('Deliver', 'Vendor', 42, {'order':(500,2)}),
         event('EnterFulfilled', 'Env', 50)
-        ), breachSectionId('Customer'))
+        ), breachSituationId('Customer'))
         # It should end in a breach by Customer due to the unpaid invoice.
     ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
-        # start section implicit
+        # start situation implicit
         event('PayInstallment', 'Buyer', 30, {'amount':500}),
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8000}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':3074}),
-        ), FULFILLED_SECTION_LABEL)
+        ), FULFILLED_SITUATION_LABEL)
     ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
         event('PayInstallment', 'Buyer', 30, {'amount':499}),
-        ), breachSectionId('Buyer'))
+        ), breachSituationId('Buyer'))
     ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
@@ -276,7 +276,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':7999}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':1000}),
-        ), breachSectionId('Buyer'))
+        ), breachSituationId('Buyer'))
     ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
@@ -284,7 +284,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('PayInstallment', 'Buyer', 60, {'amount':500}),
         event('PayInstallment', 'Buyer', 90, {'amount':8500}),
         event('PayLastInstallment', 'Buyer', 120, {'amount':2524}),
-        ), FULFILLED_SECTION_LABEL)
+        ), FULFILLED_SITUATION_LABEL)
     ),
 
 )
@@ -303,7 +303,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
                {'company_capitalization': 11 * M, 'premoney_valuation': 10 * M}),
          event('DoEquityFinancing', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL,
+        FULFILLED_SITUATION_LABEL,
         {"investor_SAFE_Preferred_Stocks": 220000})  # primer says 220,022 from rounding price
     ),
 
@@ -319,7 +319,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
                {'company_capitalization': 12.5 * M, 'premoney_valuation': 3 * M}),
          event('DoEquityFinancing', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL,
+        FULFILLED_SITUATION_LABEL,
         {"investor_SAFE_Preferred_Stocks": 416667})
     ),
 
@@ -335,7 +335,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
                {'company_capitalization': 11.5 * M, 'premoney_valuation': 8 * M}),
          event('DoEquityFinancing', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL,
+        FULFILLED_SITUATION_LABEL,
         {"investor_SAFE_Preferred_Stocks": 143750})  # primer says 143,760 from rounding price
     ),
 
@@ -351,7 +351,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
                {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
          event('DoEquityFinancing', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL,
+        FULFILLED_SITUATION_LABEL,
         {"initial_price_per_share_standard_preferred_stock": 2 / 10.5,
          "discount_price": 0.8 * (2 / 10.5),
          "investor_SAFE_Preferred_Stocks": 131250})  # primer says 131,578 from rounding price
@@ -375,7 +375,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
          # event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL,
+        FULFILLED_SITUATION_LABEL,
         {"investor_liq_hypothetical_shares": 115000,
          "investor_Common_Stocks": 0,
          "investor_SAFE_Preferred_Stocks": 0,
@@ -398,7 +398,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
          # event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL,
+        FULFILLED_SITUATION_LABEL,
         {"investor_liq_hypothetical_shares": 115000,
          "investor_Common_Stocks": 0,
          "investor_SAFE_Preferred_Stocks": 0,
@@ -422,7 +422,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
          event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL, {
+        FULFILLED_SITUATION_LABEL, {
             "investor_Common_Stocks": 115000
         })
     ),
@@ -442,7 +442,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
          event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
-        FULFILLED_SECTION_LABEL, {
+        FULFILLED_SITUATION_LABEL, {
             "investor_Common_Stocks": 115000
         })
     ),

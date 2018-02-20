@@ -15,7 +15,7 @@ global vars:
     writeoncemore lease_terminated : Bool := False
     branchunaffecting inconly total_rent_paid : Nat := 0
 
-section Start:
+situation Start:
     Landlord must EnsureApartmentReady immediately
 
 action RequestTerminationFromMonthStarted()  transitions to MonthStarted:
@@ -32,7 +32,7 @@ action RequestTerminationFromMonthEnded()  transitions to MonthEnded:
 
 action EnsureApartmentReady()  transitions to AfterEnsureApartmentReady
 
-section AfterEnsureApartmentReady:
+situation AfterEnsureApartmentReady:
     StartLeaseTerm
 
 action StartLeaseTerm()  transitions to MonthStarted:
@@ -42,7 +42,7 @@ action StartLeaseTerm()  transitions to MonthStarted:
 
 action EnterMonthStarted()  transitions to MonthStarted
 
-section MonthStarted:
+situation MonthStarted:
     Tenant obligation-options-include PayRent (next_event_td ≤ ((monthStartDay_td ) + MAX_RENT_DELAY))
     if ¬lease_terminated:
         Tenant may RequestTerminationFromMonthStarted (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
@@ -52,7 +52,7 @@ section MonthStarted:
 action PayRent()  transitions to AfterPayRent:
     transform:
         total_rent_paid := (total_rent_paid + 1000)
-    following section:
+    following situation:
         EnterMonthEnded (next_event_td == (monthEndDay_td ))
         if ¬lease_terminated:
             Tenant may RequestTerminationFromAfterPayRent (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
@@ -60,19 +60,19 @@ action PayRent()  transitions to AfterPayRent:
             Landlord may RequestTerminationFromAfterPayRent (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
 
 action EnterMonthEnded()  transitions to MonthEnded
-    following section:
-        pre: (sectionEntrance_td ≤ lease_term_end)
-        if (lease_term_end ≤ (sectionEntrance_td + 1d)):
+    following situation:
+        pre: (situationEntrance_td ≤ lease_term_end)
+        if (lease_term_end ≤ (situationEntrance_td + 1d)):
             EnterLeaseTermEnded
-        if (lease_term_end > (sectionEntrance_td + 1d)):
-            EnterMonthStarted (next_event_td == (sectionEntrance_td + 1d))
+        if (lease_term_end > (situationEntrance_td + 1d)):
+            EnterMonthStarted (next_event_td == (situationEntrance_td + 1d))
         if ¬lease_terminated:
             Tenant may RequestTerminationFromMonthEnded (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
         if ¬lease_terminated:
             Landlord may RequestTerminationFromMonthEnded (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
 
 action EnterLeaseTermEnded()  transitions to LeaseTermEnded
-    following section:
+    following situation:
         if lease_terminated:
             Tenant must MoveOut immediately
         if ¬lease_terminated:

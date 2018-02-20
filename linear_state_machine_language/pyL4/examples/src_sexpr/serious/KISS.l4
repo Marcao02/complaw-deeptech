@@ -133,13 +133,13 @@
 ; )
 
 (FormalContract "KISS"
-	(StartSection InvestorInvests)
+	(StartSituation InvestorInvests)
 
-	(Section InvestorInvests
+	(Situation InvestorInvests
 		(Next
-			(Company obligation-options-include (CommitToAcquisition ?1) (next_event_td < (sectionEntrance_td + TIME_TILL_MATURITY)))
-			(Company obligation-options-include (CommitToFinancing ?1) (next_event_td < (sectionEntrance_td + TIME_TILL_MATURITY))) ; IPO
-			(ReachMaturity (next_event_td ≥ (sectionEntrance_td + TIME_TILL_MATURITY)))
+			(Company obligation-options-include (CommitToAcquisition ?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
+			(Company obligation-options-include (CommitToFinancing ?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
+			(ReachMaturity (next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY)))
 		)
 	)
 
@@ -153,7 +153,7 @@
 		(AllowedSubjects Company)
 		(Pre (qualifying_round_new_money ≥ ($ 1000000)))
 
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(Company must NotifyInvestorOfNextEquityFinancingTerms no_time_constraint)
 			)
@@ -165,10 +165,10 @@
 		(TransitionsTo After_NotifyInvestorOfNextEquityFinancingTerms)
 	)
 
-	(Section After_NotifyInvestorOfNextEquityFinancingTerms
+	(Situation After_NotifyInvestorOfNextEquityFinancingTerms
 		(Next
 			(Investor may choose_cash_interest_repayment no_time_constraint)
-			(Company obligation-options-include (CloseEquityFinancingSale ?1 ?2) (next_event_td > (sectionEntrance_td + 5D)))
+			(Company obligation-options-include (CloseEquityFinancingSale ?1 ?2) (next_event_td > (situationEntrance_td + 5D)))
 		)
 	)
 
@@ -211,7 +211,7 @@
 		; Option to either (a) convert to common stock at the cap or (b) get paid a multiple on the original investment.
 		(AllowedSubjects Company)
 
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(Investor obligation-options-include ChooseMultipleRepayment discretionary)
 				(Investor obligation-options-include (ChooseConvertToCommonStock company_capitalization) discretionary)
@@ -245,7 +245,7 @@
 		; Option to convert to Series Seed Preferred Stock at the cap. If debt version, option for repayment.
 		(AllowedSubjects Env)
 
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				(if DEBT_VERSION
 					(Investor obligation-options-include (ChooseConversionToSeriesSeedPreferredStock ?1) discretionary)

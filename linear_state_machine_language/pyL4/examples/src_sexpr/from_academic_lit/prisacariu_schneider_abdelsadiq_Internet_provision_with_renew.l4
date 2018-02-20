@@ -68,7 +68,7 @@
 
 (FormalContract
 	"PS Internet Provision"
-	(StartSection NoInfraction)
+	(StartSituation NoInfraction)
 
 
 	(Action SendCancelNoticeByPost (AllowedSubjects ISP) (TransitionsTo SRC)
@@ -133,7 +133,7 @@
 	(Action ClientBreaches (AllowedSubjects Env) (TransitionsTo Breach_Client))
 	(Action EnterFulfilled (AllowedSubjects Env) (TransitionsTo Fulfilled))
 
-	(Section NoInfraction
+	(Situation NoInfraction
 		(Next
 			(if (not contract_canceled)
 				(Client may RaiseTraffic no_time_constraint)
@@ -146,7 +146,7 @@
 		)
 	)
 
-	(Section UnsettledInfraction
+	(Situation UnsettledInfraction
 		(Next
 			; no penalty for sending multiples.
 			(ISP may SendCancelNoticeByPost no_time_constraint)

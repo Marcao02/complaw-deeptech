@@ -8,9 +8,9 @@
 (TimeUnit d)
 
 (FormalContract "test contract for must later"
-	(StartSection Ongoing)
+	(StartSituation Ongoing)
 
-	(Section Ongoing
+	(Situation Ongoing
 		(Next
 			(if (n < 5)
 				(I may Throw immediately)

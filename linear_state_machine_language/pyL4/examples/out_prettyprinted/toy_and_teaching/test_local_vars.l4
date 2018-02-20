@@ -6,12 +6,12 @@ roles: Env
 global vars:
     n : Nat := 3
 
-section Ongoing:
+situation Ongoing:
     DoIt
 
 action DoIt()  transitions to AfterDoIt:
     transform:
-    following section:
+    following situation:
         FinishIt(((n * n) * (n * n)))
 
 action FinishIt(z: Nat) transitions to Fulfilled:

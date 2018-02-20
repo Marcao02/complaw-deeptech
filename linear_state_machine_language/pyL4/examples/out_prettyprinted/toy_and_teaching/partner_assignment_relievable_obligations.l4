@@ -10,7 +10,7 @@ global vars:
     probAsolved : Bool := False
     probBsolved : Bool := False
 
-section WorkingOnAssignment:
+situation WorkingOnAssignment:
     Alice obligation-options-include SolveProbA (next_event_td ≤ DUE_TD)
     Bob obligation-options-include SolveProbB (next_event_td ≤ DUE_TD)
     Alice may SolveProbB (next_event_td ≤ DUE_TD)

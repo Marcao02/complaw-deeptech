@@ -9,7 +9,7 @@ contract params:
 global vars:
     x : Nat := START
 
-section Ongoing:
+situation Ongoing:
     if (or (x == 0) (x == 1)):
         EnterFulfilled
     if (and (x > 1) (even x)):
@@ -19,7 +19,7 @@ section Ongoing:
 
 action DivideBy2()  transitions to Ongoing:
     transform:
-        x := (x round/ 2)
+        x := (x floor/ 2)
 
 action TripplePlus1()  transitions to Ongoing:
     transform:

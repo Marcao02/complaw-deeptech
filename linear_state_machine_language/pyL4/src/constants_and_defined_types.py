@@ -15,7 +15,7 @@ StateVarId = NewType('StateVarId', str)
 LocalVarId = NewType('LocalVarId', str)
 ActionId = NewType('ActionId',str)
 SortId = NewType('SortId', str)
-SectionId = NewType('SectionId',str)
+SituationId = NewType('SituationId',str)
 DefinitionId = NewType('DefinitionId', str)
 ContractParamId = NewType('ContractParamId',str)
 ActionBoundActionParamId = NewType('ActionBoundActionParamId',str)
@@ -49,11 +49,11 @@ TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
 TIME_CONSTRAINT_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
 # PRACTICALLY_FOREVER = timedelta(weeks=99999)
 
-CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SECTION_VISITS'}
+CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SITUATION_VISITS'}
 
 EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'contractStart_td',
-                      'sectionEntrance_td',
+                      'situationEntrance_td',
                       'event_td',
                       'next_event_dt',
                       'next_event_td',
@@ -113,14 +113,14 @@ IMG_FILE_NAME_LABEL = "ImgFileName"
 
 # ------------Inside main formal contract declarations------------
 APPLY_MACRO_LABEL = "apply-macro"
-START_SECTION_LABEL = "StartSection"
-SECTION_LABEL = "Section"
+START_SITUATION_LABEL = "StartSituation"
+SITUATION_LABEL = "Situation"
 ACTION_LABEL = "Action"
 
-# ------------Inside a section declaration------------
+# ------------Inside a situation declaration------------
 ALLOWED_SUBJECTS_DEC_LABEL = "AllowedSubjects"
-SECTION_DESCRIPTION_LABEL = "Description"
-SECTION_PRECONDITION_LABEL = "Pre"
+SITUATION_DESCRIPTION_LABEL = "Description"
+SITUATION_PRECONDITION_LABEL = "Pre"
 PROSE_REFS_LABEL = "ProseRefs"
 OUT_CONNECTIONS_LABEL = "Next"
 
@@ -131,10 +131,10 @@ CODE_BLOCK_LABEL = "StateTransform" # Or "EntranceTransform"
 ACTION_DESCRIPTION_LABEL = "Description"
 ACTION_PRECONDITION_LABEL = "Pre"
 ACTION_POSTCONDITION_LABEL = "Post"
-FOLLOWING_SECTION_DEC_LABEL = "FollowingSection"
+FOLLOWING_SITUATION_DEC_LABEL = "FollowingSituation"
 
 
 # ------------Misc------------
-FULFILLED_SECTION_LABEL = cast(SectionId, "Fulfilled")
-# CONTINGENT_FULFILLED_SECTION_LABEL = cast(SectionId, "ContingentFulfilled")
+FULFILLED_SITUATION_LABEL = cast(SituationId, "Fulfilled")
+# CONTINGENT_FULFILLED_SITUATION_LABEL = cast(SituationId, "ContingentFulfilled")
 ENV_ROLE = cast(RoleId,"Env")

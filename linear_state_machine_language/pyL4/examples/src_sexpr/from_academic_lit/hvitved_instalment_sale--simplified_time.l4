@@ -29,9 +29,9 @@
 
 (FormalContract
 	"Instalment Sale Hvitved"
-	(StartSection WaitingForFirstDayOfNextMonth)
+	(StartSituation WaitingForFirstDayOfNextMonth)
 
-	(Section WaitingForFirstDayOfNextMonth
+	(Situation WaitingForFirstDayOfNextMonth
 		(Next
 			; note contract says payments happen on the first day of the month, not on-or-before.
 			; so I am being lazy and interpreting it literally.
@@ -40,11 +40,11 @@
 			; and it's before the final month of the contract.
 			(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
 				(Buyer obligation-options-include (PayInstallment ?amount)
-					(next_event_td == (sectionEntrance_td + 30d))
+					(next_event_td == (situationEntrance_td + 30d))
 					(where ((MIN_PAYMENT ≤ ?amount ) and (?amount ≤ balance_remaining))) ))
 
 			(Buyer obligation-options-include (PayLastInstallment (balance_remaining + DUE_AT_CLOSING))
-				(next_event_td == (sectionEntrance_td + 30d))
+				(next_event_td == (situationEntrance_td + 30d))
 			)
 		))
 

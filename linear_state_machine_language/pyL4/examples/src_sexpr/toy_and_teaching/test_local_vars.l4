@@ -8,9 +8,9 @@
 )
 
 (FormalContract "test for local vars"
-	(StartSection Ongoing)
+	(StartSituation Ongoing)
 
-	(Section Ongoing
+	(Situation Ongoing
 		(Next
 			(DoIt immediately)
 		)
@@ -21,7 +21,7 @@
 			(local x : Nat = (n * n))
 			(local y : Nat = (x * x))
 		)
-		(FollowingSection
+		(FollowingSituation
 			(Next
 				((FinishIt y) immediately)
 			)

@@ -9,26 +9,26 @@ def colorStr(role_id, role_ids):
     return COLORS[role_ids.index(role_id)]
 
 
-def sectionAsDotNodeStr(sect: Section) -> str:
-    # vulnerableActors = sect.vulnerableParties()
+def situationAsDotNodeStr(sit: Situation) -> str:
+    # vulnerableActors = sit.vulnerableParties()
     # if len(vulnerableActors) == 1:
-    #     return f"{sect.section_id}[label={sect.section_id},color={colorStr(vulnerableActors[0], all_actors)}]"
+    #     return f"{sit.situation_id}[label={sit.situation_id},color={colorStr(vulnerableActors[0], all_actors)}]"
     # else:
-    return f"{sect.section_id}[label={sect.section_id}]"
+    return f"{sit.situation_id}[label={sit.situation_id}]"
 
 def actionAsDotNodeStr(act: Action) -> str:
-    # vulnerableActors = sect.vulnerableParties()
+    # vulnerableActors = sit.vulnerableParties()
     # if len(vulnerableActors) == 1:
-    #     return f"{sect.section_id}[label={sect.section_id},color={colorStr(vulnerableActors[0], all_actors)}]"
+    #     return f"{sit.situation_id}[label={sit.situation_id},color={colorStr(vulnerableActors[0], all_actors)}]"
     # else:
     return f'{act.action_id}[label={act.action_id},shape=box]'
 
 
 def actionRuleAsDotArcStr(con: NextActionRule, l4file:L4Contract) -> str:
     srcid : str = con.src_id
-    section = l4file.section(con.src_id)
-    if section.is_anon():
-        srcid = chcaststr(section.parent_action_id)
+    situation = l4file.situation(con.src_id)
+    if situation.is_anon():
+        srcid = chcaststr(situation.parent_action_id)
 
     if isinstance(con, PartyNextActionRule):
         return f"{srcid} -> {con.action_id}"
@@ -41,32 +41,32 @@ def actionRuleAsDotArcStr(con: NextActionRule, l4file:L4Contract) -> str:
 def contractToDotFileStr(l4file: L4Contract) -> str:
     # graphname = l4file.construct_main_part.name[1]
     cleaned_graphname = "_".join(l4file.contract_name.split(' ')).replace('-','_')
-    section_nodes_str = mapjoin(lambda x: sectionAsDotNodeStr(x),
+    situation_nodes_str = mapjoin(lambda x: situationAsDotNodeStr(x),
                                 filter(lambda s: not s.is_anon(),
-                                       l4file.sections_iter()),
+                                       l4file.situations_iter()),
                                 ";\n\t")
     action_nodes_str = mapjoin(lambda x: actionAsDotNodeStr(x),
                                l4file.actions_by_id.values(),
                                ";\n\t")
 
-    # actions_to_sections_str = mapjoin(
-    #     lambda action: f"{action.action_id} -> {action.dest_section_id} [style=dashed]", l4file.actions_iter(), ";\n\t")
-    nonmultiloop_actions_to_sections_str = ""
+    # actions_to_situations_str = mapjoin(
+    #     lambda action: f"{action.action_id} -> {action.dest_situation_id} [style=dashed]", l4file.actions_iter(), ";\n\t")
+    nonmultiloop_actions_to_situations_str = ""
     for action in l4file.actions_iter():
-        if not action.following_anon_section:
-            if action.dest_section_id != LOOP_KEYWORD:
-                nonmultiloop_actions_to_sections_str += f"{action.action_id} -> {action.dest_section_id} [style=dashed];\n\t"
+        if not action.following_anon_situation:
+            if action.dest_situation_id != LOOP_KEYWORD:
+                nonmultiloop_actions_to_situations_str += f"{action.action_id} -> {action.dest_situation_id} [style=dashed];\n\t"
         else:
             pass
 
-    multiloop_actions_to_sections_str = ""
-    for section in l4file.sections_iter():
-        for action_rule in section.action_rules():
+    multiloop_actions_to_situations_str = ""
+    for situation in l4file.situations_iter():
+        for action_rule in situation.action_rules():
             action = l4file.action(action_rule.action_id)
-            if action.dest_section_id == LOOP_KEYWORD:
-                multiloop_actions_to_sections_str += f"{action.action_id} -> {section.section_id} [style=dashed];\n\t"
+            if action.dest_situation_id == LOOP_KEYWORD:
+                multiloop_actions_to_situations_str += f"{action.action_id} -> {situation.situation_id} [style=dashed];\n\t"
 
-    action_rulesfrom_sections_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.nextaction_rules(), ";\n\t")
+    action_rulesfrom_situations_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.nextaction_rules(), ";\n\t")
 
 
 
@@ -74,18 +74,18 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
 
 digraph {cleaned_graphname} {{    
     Fulfilled[label=Fufilled];
-    {section_nodes_str}
+    {situation_nodes_str}
     
     {'EnterFulfilled[label=EnterFufilled,shape=box];' if 'EnterFulfilled' in l4file.actions_by_id else ''} 
     {action_nodes_str}    
     
     {'EnterFulfilled -> Fulfilled;' if 'EnterFulfilled' in l4file.actions_by_id else ''}
     
-    {action_rulesfrom_sections_str}
+    {action_rulesfrom_situations_str}
     
-    {nonmultiloop_actions_to_sections_str}     
+    {nonmultiloop_actions_to_situations_str}     
     
-    {multiloop_actions_to_sections_str}   
+    {multiloop_actions_to_situations_str}   
 }}"""
 
 def contractToDotFile(l4file: L4Contract, rootpath, use_filename = True, verbose = False) -> None:

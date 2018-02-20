@@ -8,11 +8,11 @@ from src.model.Term import Term
 
 T = TypeVar('T')
 
-class Section:
-    def __init__(self, section_id: SectionId) -> None:
-        self.section_id = section_id
+class Situation:
+    def __init__(self, situation_id: SituationId) -> None:
+        self.situation_id = situation_id
         self.visit_bounds: Optional[Any] = None  # currently SExpr
-        self.section_description: Optional[str] = None
+        self.description: Optional[str] = None
         self.prose_refs: List[str] = []
 
         self.preconditions: List[Term] = []
@@ -54,15 +54,15 @@ class Section:
 
     def toStr(self,i:int) -> str:
         if self.parent_action_id is None:
-            rv = indent(i) + f"section {self.section_id}:\n"
+            rv = indent(i) + f"situation {self.situation_id}:\n"
         else:
-            rv = indent(i) + f"following section:\n"
+            rv = indent(i) + f"following situation:\n"
 
         for pre in self.preconditions:
             rv += indent(i+1) + "pre: " + str(pre) + "\n"
 
-        if self.section_description:
-            rv += indent(i+1) + "description: " + self.section_description + "\n"
+        if self.description:
+            rv += indent(i+1) + "description: " + self.description + "\n"
 
         # if self.visit_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"

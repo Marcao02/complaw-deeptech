@@ -6,7 +6,7 @@ from src.independent.util_for_dicts import hasNotNone
 from src.independent.util_for_dicts import dictInc
 from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
-    ContractParamId, SectionId, ABAPSubst, \
+    ContractParamId, SituationId, ABAPSubst, \
     Data, GVarSubst, ContractParamSubst
 from src.interpreter.interpreter_support import *
 from src.model.Action import Action
@@ -16,14 +16,14 @@ from src.model.BoundVar import GlobalVar, ContractParam, ActionBoundActionParam,
     RuleBoundActionParam, LocalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.EvalContext import EvalContext
-from src.model.EventsAndTraces import Event, Trace, breachSectionId, EventType
+from src.model.EventsAndTraces import Event, Trace, breachSituationId, EventType
 from src.model.StateTransform import StateTransform
 from src.model.Statement import IfElse, StateVarAssign, LocalVarDec
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal, DeadlineLit, SimpleTimeDeltaLit
 from src.model.PartialEvalTerm import PartialEvalTerm
-from src.model.Section import Section
+from src.model.Situation import Situation
 from src.model.Term import FnApp
 
 logging.basicConfig(
@@ -45,7 +45,7 @@ class ExecEnv:
         self.gvar_write_cnt : Dict[StateVarId, int] = dict()
 
         # following 2 change only in apply_action:
-        self.last_or_current_section_id: SectionId = prog.start_section_id
+        self.last_or_current_situation_id: SituationId = prog.start_situation_id
         self.last_appliedaction_params : Optional[ABAPSubst] = None
         # following changes only in evalTrace
         self.cur_event : Optional[Event] = None
@@ -54,7 +54,7 @@ class ExecEnv:
         # self.start_datetime : datetime = datetime(2000,1,1,0,0,0,0,timezone.utc)
         self.start_datetime: datetime = datetime(2000, 1, 1, 0, 0, 0, 0)
         self.absolute_timeint2timedelta_converter = self.getIntToDeltaConverter()
-        self.last_section_entrance_delta : timedelta = timedelta(0) # = self.timeint2delta(0)
+        self.last_situation_entrance_delta : timedelta = timedelta(0) # = self.timeint2delta(0)
 
         self.future_permissions : List[PartlyInstantiatedPartyFutureActionRule] = []
         self.future_obligations : List[PartlyInstantiatedPartyFutureActionRule] = []
@@ -113,10 +113,10 @@ class ExecEnv:
         return False
 
     @property
-    def last_or_current_section(self) -> Section:
-        return self.top.section(self.last_or_current_section_id)
+    def last_or_current_situation(self) -> Situation:
+        return self.top.situation(self.last_or_current_situation_id)
 
-    def evalTrace(self, trace:Trace, finalSectionId:Optional[SectionId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False, debug=False):
+    def evalTrace(self, trace:Trace, finalSituationId:Optional[SituationId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False, debug=False):
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
         self.evalGlobalVarDecs(prog.global_var_decs)
@@ -129,11 +129,11 @@ class ExecEnv:
             cur_event_datetime = self.delta2datetime(cur_event_delta)
             cur_action = self.top.action(cur_action_id)
 
-            # print("last_section_entrance_delta", self.last_section_entrance_delta)
+            # print("last_situation_entrance_delta", self.last_situation_entrance_delta)
 
-            if self.last_section_entrance_delta is not None and self.last_section_entrance_delta > cur_event_delta:
+            if self.last_situation_entrance_delta is not None and self.last_situation_entrance_delta > cur_event_delta:
                 self.evalError(f"Event timestamps must be non-decreasing, but last event timestamp "
-                               f"{self.last_section_entrance_delta} is greater than current event timestamp {cur_event_delta}")
+                               f"{self.last_situation_entrance_delta} is greater than current event timestamp {cur_event_delta}")
 
             if not cur_action: self.evalError(f"Don't recongize action id {cur_action_id}")
 
@@ -149,44 +149,44 @@ class ExecEnv:
                 if not floatingrule_to_apply:
                     if verbose:
                         actionstr = event_to_action_str(eventi)
-                        print(f"[{cur_event_datetime}] {self.last_or_current_section_id} --{actionstr}--> {breachSectionId(eventi.role_id)}")
+                        print(f"[{cur_event_datetime}] {self.last_or_current_situation_id} --{actionstr}--> {breachSituationId(eventi.role_id)}")
 
                 else:
                     assert floatingrule_to_apply is not None, 'Event type indicated a floating permission or obligation, but no compatible such rule was found.'
                     self.delete_future(floatingrule_to_apply)
-                    prev_section_id = self.last_or_current_section_id
+                    prev_situation_id = self.last_or_current_situation_id
                     applyactionresult = self.apply_action(cur_action)
-                    assert prev_section_id == self.last_or_current_section_id, "An action fulfilling a floating obligation " \
-                            "or using a floating permission is not allowed to change the current Section of the contract."
+                    assert prev_situation_id == self.last_or_current_situation_id, "An action fulfilling a floating obligation " \
+                            "or using a floating permission is not allowed to change the current Situation of the contract."
                     if verbose:
                         actionstr = event_to_action_str(eventi)
                         frules_added_str = f' and added {applyactionresult.floatingrules_added}' if applyactionresult.floatingrules_added else ''
                         frule_deleted_str = f' and deleted [{floatingrule_to_apply}]' if floatingrule_to_apply else ''
-                        print(f"[{cur_event_datetime}] {prev_section_id} --{actionstr}--> {self.last_or_current_section_id} {frule_deleted_str} {frules_added_str}")
+                        print(f"[{cur_event_datetime}] {prev_situation_id} --{actionstr}--> {self.last_or_current_situation_id} {frule_deleted_str} {frules_added_str}")
 
             else:
-                if not self.top.section_mentions_action_in_nextaction_rule(self.last_or_current_section_id, cur_action_id):
-                    self.evalError(  f"Action type indicated using a next-rule, but current section {self.last_or_current_section_id} "
+                if not self.top.situation_mentions_action_in_nextaction_rule(self.last_or_current_situation_id, cur_action_id):
+                    self.evalError(  f"Action type indicated using a next-rule, but current situation {self.last_or_current_situation_id} "
                                      f"has no such rule for action {cur_action_id}." )
 
                 nextrule_assessment = self.assess_event_legal_wrt_nextrules(eventi)
                 actionstr = event_to_action_str(eventi)
-                srcid = self.last_or_current_section_id
+                srcid = self.last_or_current_situation_id
                 if isinstance(nextrule_assessment, EventOk):
 
                     applyactionresult = self.apply_action(cur_action)
 
                     if verbose:
                         frules_added_str = f' and added {applyactionresult.floatingrules_added}' if applyactionresult.floatingrules_added else ''
-                        print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {self.last_or_current_section_id} {frules_added_str}")
+                        print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {self.last_or_current_situation_id} {frules_added_str}")
 
                 elif isinstance(nextrule_assessment, BreachResult):
                     print("Breach result:", nextrule_assessment)
-                    breach_section_id = breachSectionId(*nextrule_assessment.role_ids)
-                    self.apply_action(cur_action, to_breach_section_id = breach_section_id)
+                    breach_situation_id = breachSituationId(*nextrule_assessment.role_ids)
+                    self.apply_action(cur_action, to_breach_situation_id = breach_situation_id)
 
                     if verbose:
-                        print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {breach_section_id}")
+                        print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {breach_situation_id}")
 
                     # if i != len(trace) - 1:
                     #     print("Trace prefix results in a breach, but there are more events after.")
@@ -213,13 +213,13 @@ class ExecEnv:
             roles = set()
             for o in self.future_obligations:
                 roles.add(o.rule.role_id)
-            self.last_or_current_section_id = breachSectionId(*list(roles))
-            print("Trace ended with obligations remaining (Which is ok; finalSectionId, if provided, will need to be the proper breach section)")
+            self.last_or_current_situation_id = breachSituationId(*list(roles))
+            print("Trace ended with obligations remaining (Which is ok; finalSituationId, if provided, will need to be the proper breach situation)")
             # assert False,
             # return
 
-        if finalSectionId:
-            assert self.last_or_current_section_id == finalSectionId, f"Trace expected to end in section {finalSectionId} but ended in section {self.last_or_current_section_id}"
+        if finalSituationId:
+            assert self.last_or_current_situation_id == finalSituationId, f"Trace expected to end in situation {finalSituationId} but ended in situation {self.last_or_current_situation_id}"
 
 
     def assess_event_legal_wrt_nextrules(self, event:Event) -> EventLegalityAssessment:
@@ -234,12 +234,12 @@ class ExecEnv:
 
         nar: NextActionRule
         ctx = EvalContext(self.gvarvals,
-                          self.last_appliedaction_params if self.last_or_current_section.is_anon() else None,
+                          self.last_appliedaction_params if self.last_or_current_situation.is_anon() else None,
                           use_current_event_params_for_rulebound_action_params = False)
 
         compat_checker = lambda x: self.current_event_compatible_with_enabled_NextActionRule(x,ctx)
 
-        for nar in self.last_or_current_section.action_rules():
+        for nar in self.last_or_current_situation.action_rules():
             entrance_enabled = not nar.entrance_enabled_guard or chcast(bool, self.evalTerm(nar.entrance_enabled_guard, ctx))
 
             if entrance_enabled:
@@ -338,7 +338,7 @@ class ExecEnv:
                             f"Role(s) {list(breach_roles)} had weak obligations that went unfulfilled:\n" + str(enabled_weak_obligs_by_role))
 
 
-    # Only if the current section is an anonymous section (i.e. given by a FollowingSection declaration) is it possible
+    # Only if the current situation is an anonymous situation (i.e. given by a FollowingSituation declaration) is it possible
     # for the where_clause of action_rule to contain action-bound action parameters.
     def current_event_compatible_with_enabled_NextActionRule(self, action_rule:NextActionRule, ctx:EvalContext)  -> bool:
         assert self.cur_event is not None
@@ -394,12 +394,12 @@ class ExecEnv:
     def environ_tostr(self) -> str:
         return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
 
-    def apply_action(self, action:Action, to_breach_section_id:Optional[SectionId] = None) -> ApplyActionResult:
+    def apply_action(self, action:Action, to_breach_situation_id:Optional[SituationId] = None) -> ApplyActionResult:
         assert self.cur_event is not None
 
-        if to_breach_section_id is not None:
-            self.last_or_current_section_id = to_breach_section_id
-            self.last_section_entrance_delta = self.cur_event_delta()
+        if to_breach_situation_id is not None:
+            self.last_or_current_situation_id = to_breach_situation_id
+            self.last_situation_entrance_delta = self.cur_event_delta()
             return ApplyActionResult(None)
 
         self.last_appliedaction_params = self.cur_event.params
@@ -435,9 +435,9 @@ class ExecEnv:
             floatingrules_added.append(future)
             # print("new future:", ef)
 
-        if action.dest_section_id != LOOP_KEYWORD:
-            self.last_or_current_section_id = action.dest_section_id
-        self.last_section_entrance_delta = self.cur_event_delta()
+        if action.dest_situation_id != LOOP_KEYWORD:
+            self.last_or_current_situation_id = action.dest_situation_id
+        self.last_situation_entrance_delta = self.cur_event_delta()
 
         return ApplyActionResult(floatingrules_added if len(floatingrules_added) > 0 else None)
 
@@ -597,8 +597,8 @@ class ExecEnv:
     def evalLit(self, litterm:Literal) -> Data:
         if isinstance(litterm, DeadlineLit):
             todo_once("DeadlineLit not correctly handled yet")
-            # print("DeadlineLit: ", term, next_event_timestamp == self.last_section_entrance_delta)
-            # return self.cur_event.timestamp == self.last_section_entrance_delta
+            # print("DeadlineLit: ", term, next_event_timestamp == self.last_situation_entrance_delta)
+            # return self.cur_event.timestamp == self.last_situation_entrance_delta
             return True
         elif isinstance(litterm, SimpleTimeDeltaLit):
             return litterm.lit

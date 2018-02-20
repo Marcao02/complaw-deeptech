@@ -23,7 +23,7 @@ global vars:
 claims:
     ['∀', ['k', ':', 'Nat'], [['UpperBoundOnDaysBtwDeliverAndInvoice', 'k'], '⇒', ['∀', ['d', ':', 'Date'], ['∀', ['n', ':', 'Nat'], [["n'", '=', ['units_delivered', 'd']], '⇒', [['total_paid', ['d', '+', ['k', '+', '14D']]], '≥', ['n', '*', 'PRICE_PER_UNIT']]]]]]]
 
-section VendorAcceptingOrders:
+situation VendorAcceptingOrders:
     if ((MAX_UNITS - units_ordered) > 0):
         Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (?q ≤ (MAX_UNITS - units_ordered)) (?q > 0))
     if (nonempty 2Bdelivered):

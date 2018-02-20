@@ -11,9 +11,9 @@
 
 (FormalContract
 	"Hvitved prohibitions NDA"
-	(StartSection Employed)
+	(StartSituation Employed)
 
-	(Section Employed
+	(Situation Employed
 		(Next
 			(Employee may Disclose no_time_constraint)
 		)
