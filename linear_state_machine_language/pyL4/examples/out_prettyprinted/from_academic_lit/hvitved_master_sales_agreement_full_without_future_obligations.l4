@@ -8,7 +8,7 @@ contract params:
     CONTRACT_LIFE : TimeDelta := 52w
     PRICE_PER_UNIT : $ := 100
 
-global vars:
+state vars:
     writeonce order_period_ends : TimeDelta := CONTRACT_LIFE
     furthest_invoice_deadline : TimeDelta := 0d
     inconly next_order_id : Nat := 0

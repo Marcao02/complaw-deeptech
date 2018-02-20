@@ -9,7 +9,7 @@ contract params:
     BUYER_START_SHARES : ShareCnt := 0
     SELLER_START_SHARES : PosShareCnt := 1
 
-global vars:
+state vars:
     writeonce seller_funds : $
     writeonce buyer_funds : $
     writeatmostonce buyer_final_shares : ShareCnt

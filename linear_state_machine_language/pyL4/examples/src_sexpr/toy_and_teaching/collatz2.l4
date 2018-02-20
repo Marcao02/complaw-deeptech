@@ -7,7 +7,7 @@
 	(START : Nat = 99)
 )
 
-(GlobalVars
+(StateVars
 	(x : Nat = START)
 )
 

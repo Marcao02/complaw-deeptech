@@ -24,7 +24,7 @@ class Action:
 
         self.following_anon_situation : Optional[Situation] = None
 
-        self.global_state_transform : Optional[StateTransform] = None
+        self.state_transform : Optional[StateTransform] = None
         self.preconditions: List[Term] = []
         self.postconditions: List[Term] = []
         self.prose_refs : List[str] = []
@@ -42,8 +42,8 @@ class Action:
             return self.param_sorts_by_name[self.param_names[ind_or_name]]
 
     def state_transform_statements(self) -> Iterator[Statement]:
-        if self.global_state_transform:
-            for s in self.global_state_transform.statements:
+        if self.state_transform:
+            for s in self.state_transform.statements:
                 yield s
 
     def add_action_rule(self, far:PartyFutureActionRule) -> None:
@@ -85,7 +85,7 @@ class Action:
             rv +=  f" transitions to {self.dest_situation_id}"
         else:
             rv += f" non-transitioning"
-        if len(self.preconditions) > 0 or self.global_state_transform or len(self.postconditions) > 0:
+        if len(self.preconditions) > 0 or self.state_transform or len(self.postconditions) > 0:
             rv += ":\n"
         else:
             rv += "\n" # nothing more in this action decl
@@ -93,8 +93,8 @@ class Action:
             rv += indent(i+1) + "pre: " + str(pre) + "\n"
         # if self.traversal_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
-        if self.global_state_transform:
-            rv += str(self.global_state_transform) + "\n"
+        if self.state_transform:
+            rv += str(self.state_transform) + "\n"
 
         for t in self.future_action_rules():
             rv += t.toStr(i + 1) + "\n"

@@ -9,7 +9,7 @@
 	($ := (Dimensioned NonnegReal "$"))
 )
 
-(GlobalVars
+(StateVars
 	(writeonce challenge_endlimit_timestamp : TimeDelta )
 	(amount_owing                      		: $ = 0)
 	(amount_paid                       		: $ = 0)

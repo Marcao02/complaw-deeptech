@@ -7,7 +7,7 @@ contract params:
     HIGH_USAGE_FEE : $ := 10
     HOURS_PARAM : TimeDelta := 24h
 
-global vars:
+state vars:
     contract_canceled : Bool := False
     cancel_notice_sent_by_post : Bool := False
     cancel_notice_sent_by_email : Bool := False

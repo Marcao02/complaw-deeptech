@@ -28,7 +28,7 @@ class Statement:
         raise NotImplementedError
 
     """
-    var can be a local or global var
+    var can be a local or state var
     """
     def substForVar(self, var:str, term:Term) -> 'Statement':
         raise NotImplementedError

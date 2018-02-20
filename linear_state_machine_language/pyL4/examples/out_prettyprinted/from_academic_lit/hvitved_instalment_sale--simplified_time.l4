@@ -9,7 +9,7 @@ contract params:
     MIN_PAYMENT : Pos$ := 500
     DUE_AT_CLOSING : Pos$ := 500
 
-global vars:
+state vars:
     balance_remaining : $ := TOTAL_DUE_BEFORE_CLOSING
     next_payment_month : Nat := 0
 

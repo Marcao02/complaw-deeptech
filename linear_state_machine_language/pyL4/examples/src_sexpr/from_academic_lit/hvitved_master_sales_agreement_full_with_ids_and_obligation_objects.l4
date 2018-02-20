@@ -22,7 +22,7 @@
 ; contract to the following [Γ is added]:
 ; A tupple <t, σ, s, Γ> where
 ; - t is the current time
-; - σ is an assignment of values to the global variables
+; - σ is an assignment of values to the state variables
 ; - s is one of the fixed number of `State`s.
 ; - Γ is a finite set of fully-instantiated `Action`s [all parameters, if any,
 ;   have values], each of which is an obligation or a permission.
@@ -71,7 +71,7 @@
     [orderable_units_remaining = [MAX_UNITS - units_ordered]]
 ]
 
-[GlobalVars
+[StateVars
     [ inconly next_order_id : Nat = 0 ]
     [ inconly units_ordered : Nat = 0 ]
     [ writeonce order_period_ends : TimeDelta = [contractStart_td + CONTRACT_LIFE]]

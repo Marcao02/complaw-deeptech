@@ -9,7 +9,7 @@ from src.model.Term import Term
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule, PartyFutureActionRule, NextActionRule, EnvNextActionRule, \
     FutureActionRuleType, PartyNextActionRule
-from src.model.BoundVar import GlobalVar
+from src.model.BoundVar import StateVar
 from src.model.ContractClaim import ContractClaim, StateInvariant
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
@@ -28,7 +28,7 @@ class L4Contract:
 
         self.start_situation_id = cast(SituationId, "start situation id to be assigned")
 
-        self.global_var_decs : Dict[StateVarId, StateVarDec] = dict()
+        self.state_var_decs : Dict[StateVarId, StateVarDec] = dict()
         self.claims : Iterable[ContractClaim] = []
         self.state_invariants : Iterable[StateInvariant] = []
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
@@ -68,8 +68,8 @@ class L4Contract:
                 yield far
     def action_rules(self) -> Iterator[ActionRule]: return chain(self.nextaction_rules(), self.futureaction_rules())
 
-    def new_global_var_ref(self, varname, coord:Optional[FileCoord] = None) -> GlobalVar:
-        return GlobalVar(self.global_var_decs[varname], coord)
+    def new_state_var_ref(self, varname, coord:Optional[FileCoord] = None) -> StateVar:
+        return StateVar(self.state_var_decs[varname], coord)
 
     def situation_mentions_action_in_nextaction_rule(self, situationid:SituationId, actionid:ActionId) -> bool:
         cursituation = self.situation(situationid)
@@ -114,8 +114,8 @@ class L4Contract:
         # return self.actions_by_id[anid] if anid in self.actions_by_id else None
 
     def gvarDecObj(self, varname:str) -> Optional[StateVarDec]:
-        if varname in self.global_var_decs:
-            return self.global_var_decs[cast(StateVarId, varname)]
+        if varname in self.state_var_decs:
+            return self.state_var_decs[cast(StateVarId, varname)]
         else:
             return None
         # elif isinstance(sit,Situation) and varname in sit.local_vars:
@@ -129,7 +129,7 @@ class L4Contract:
             rviter = chain(rviter, situation.forEachTerm(f,rviter))
         for contract_param_dec in self.contract_params.values():
             rviter = contract_param_dec.value_expr.forEachTerm(f, rviter)
-        for gvardec in self.global_var_decs.values():
+        for gvardec in self.state_var_decs.values():
             if gvardec.initval:
                 rviter = gvardec.initval.forEachTerm(f,rviter)
         return rviter
@@ -148,7 +148,7 @@ class L4Contract:
         for contract_param_dec in self.contract_params.values():
             rviter = chain(rviter, contract_param_dec.forEach(pred, f))
 
-        for gvardec in self.global_var_decs.values():
+        for gvardec in self.state_var_decs.values():
             rviter = chain(rviter, gvardec.forEach(pred,f))
         return rviter
 
@@ -169,8 +169,8 @@ class L4Contract:
             for cp in self.contract_params.values():
                 line(cp, 1)
 
-        line('\nglobal vars:')
-        for gv in self.global_var_decs.values():
+        line('\nstate vars:')
+        for gv in self.state_var_decs.values():
             line(gv,1)
 
         if self.claims:

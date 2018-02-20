@@ -12,7 +12,7 @@ from src.interpreter.interpreter_support import *
 from src.model.Action import Action
 from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule, \
     PartlyInstantiatedPartyFutureActionRule
-from src.model.BoundVar import GlobalVar, ContractParam, ActionBoundActionParam, \
+from src.model.BoundVar import StateVar, ContractParam, ActionBoundActionParam, \
     RuleBoundActionParam, LocalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.EvalContext import EvalContext
@@ -119,7 +119,7 @@ class ExecEnv:
     def evalTrace(self, trace:Trace, finalSituationId:Optional[SituationId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False, debug=False):
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
-        self.evalGlobalVarDecs(prog.global_var_decs)
+        self.evalStateVarDecs(prog.state_var_decs)
         for i in range(len(trace)):
             # print("Environ", self.environ_tostr())
             eventi = trace[i]
@@ -207,7 +207,7 @@ class ExecEnv:
         if final_var_vals:
             for gvarid,expected_val in final_var_vals.items():
                 actual_val = self.gvarvals[castid(StateVarId, gvarid)]
-                assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
+                assert actual_val == expected_val, f"Expected state variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
         if len(self.future_obligations) > 0:
             roles = set()
@@ -405,8 +405,8 @@ class ExecEnv:
         self.last_appliedaction_params = self.cur_event.params
         rv: ApplyActionResult
 
-        if action.global_state_transform:
-            self.evalCodeBlock(action.global_state_transform)
+        if action.state_transform:
+            self.evalCodeBlock(action.state_transform)
 
         future : PartlyInstantiatedPartyFutureActionRule
         floatingrules_added : List[PartlyInstantiatedPartyFutureActionRule] = []
@@ -442,7 +442,7 @@ class ExecEnv:
         return ApplyActionResult(floatingrules_added if len(floatingrules_added) > 0 else None)
 
 
-    def evalGlobalVarDecs(self, decs : Dict[StateVarId, StateVarDec]):
+    def evalStateVarDecs(self, decs : Dict[StateVarId, StateVarDec]):
         for (var,dec) in decs.items():
             # print("dec: ", dec, dec.initval)
             if dec.initval is None:
@@ -453,7 +453,7 @@ class ExecEnv:
                 self.gvarvals[var] = self.evalTerm(dec.initval, None)
                 # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
                 dictInc(self.gvar_write_cnt, var, init=1)
-            # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
+            # print('evalStateVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
         for (name,dec) in decs.items():
@@ -470,7 +470,7 @@ class ExecEnv:
             self.evalStatement(statement)
 
     def evalStatement(self, stmt:Statement):
-        # An Action's StateTransform block is *always* evaluated in the most recent global variable and
+        # An Action's StateTransform block is *always* evaluated in the most recent state variable and
         # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
         # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
         # Therefore, this function does not take an EvalContext argument.
@@ -525,10 +525,10 @@ class ExecEnv:
                  term:Term,
                  ctx:Optional[EvalContext]) -> Any:
         assert term is not None
-        # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec and global var decs
+        # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec and state var decs
 
-        # if partialeval_globals_subst:
-        #     print("partialeval_globals_subst is not None. `term` is ", term)
+        # if partialeval_statevar_subst:
+        #     print("partialeval_statevar_subst is not None. `term` is ", term)
         # next_event_timestamp will be None when evaluating an entrance-guard
         # print('evalTerm: ', term)
         try:
@@ -538,7 +538,7 @@ class ExecEnv:
             elif isinstance(term, Literal):
                 return self.evalLit(term)
 
-            elif isinstance(term, GlobalVar):
+            elif isinstance(term, StateVar):
                 # print(self.contract_param_vals)
                 # print(self.gvarvals)
                 if ctx:
@@ -573,7 +573,7 @@ class ExecEnv:
                 # return ctx.rbapvals[term.name]
 
             elif isinstance(term, PartialEvalTerm):
-                # assert not partialeval_globals_subst, "haven't handled partial eval of partial eval yet"
+                # assert not partialeval_statevar_subst, "haven't handled partial eval of partial eval yet"
                 # assert not partialeval_actionparam_subst, "haven't handled partial eval of partial eval yet"
                 # print("Current ctx:", ctx)
                 # print("PartialEvalTerm's ctx:", term.ctx)

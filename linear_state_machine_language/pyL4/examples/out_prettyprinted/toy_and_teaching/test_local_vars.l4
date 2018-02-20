@@ -3,7 +3,7 @@ file: toy_and_teaching/test_local_vars.l4
 
 roles: Env
 
-global vars:
+state vars:
     n : Nat := 3
 
 situation Ongoing:

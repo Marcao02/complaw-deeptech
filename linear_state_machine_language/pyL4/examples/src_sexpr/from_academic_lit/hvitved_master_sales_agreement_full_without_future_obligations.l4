@@ -15,7 +15,7 @@
 )
 
 
-(GlobalVars
+(StateVars
 	( writeonce order_period_ends : TimeDelta := CONTRACT_LIFE )
 	( furthest_invoice_deadline : TimeDelta := 0D )
 

@@ -17,7 +17,7 @@
 	(DUE_AT_CLOSING : Pos$ = 500)
 )
 
-(GlobalVars
+(StateVars
 	(balance_remaining : $ = TOTAL_DUE_BEFORE_CLOSING)
 	(next_payment_month : Nat = 0)  )
 

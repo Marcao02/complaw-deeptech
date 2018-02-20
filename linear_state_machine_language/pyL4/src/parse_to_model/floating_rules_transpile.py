@@ -25,8 +25,8 @@ def tdmapname(roleid:RoleId, actionid:ActionId, keyword:DeonticKeyword) -> State
 def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
     def add_tdmap_dec(prog: L4Contract, mapvar_name: StateVarId, argsort: Sort) -> None:
         if verbose:
-            print("Adding global var dec " + mapvar_name)
-        prog.global_var_decs[mapvar_name] = StateVarDec(mapvar_name, SortOpApp.c("TDMap", (argsort,)),
+            print("Adding state var dec " + mapvar_name)
+        prog.state_var_decs[mapvar_name] = StateVarDec(mapvar_name, SortOpApp.c("TDMap", (argsort,)),
                                                         FnApp('emptyTDMap', []), [])
     statement: Statement
     params: List[Term]
@@ -43,15 +43,15 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                 continue
 
             map_name = tdmapname(fut_rule_type.rid, fut_rule_type.aid, fut_rule_type.kw)
-            if map_name not in prog.global_var_decs:
+            if map_name not in prog.state_var_decs:
                 if len(action.param_sorts_by_name) == 1:
                     add_tdmap_dec(prog, map_name, action.param_sort(0))
                 elif len(action.param_sorts_by_name) == 2:
                     add_tdmap_dec(prog, map_name,
                                   SortOpApp.c('Tuple', tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
                                   )
-            map_dec = prog.global_var_decs[map_name]
-            map_var = prog.new_global_var_ref(map_name)
+            map_dec = prog.state_var_decs[map_name]
+            map_var = prog.new_state_var_ref(map_name)
 
             # now the statetransform will need to check that both the role and
             # the action params matchTerm. this requires a role environment variable.
@@ -65,14 +65,14 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                )]
                                )
 
-            if not action.global_state_transform:
-                action.global_state_transform = StateTransform([])
-            action.global_state_transform.statements.append(statement)
+            if not action.state_transform:
+                action.state_transform = StateTransform([])
+            action.state_transform.statements.append(statement)
 
     # ---------------------------------
     # Removing from action declarations
     # ---------------------------------
-    # In this section, the new TDMap global state variables are also added
+    # In this section, the new TDMap state variables are also added
     for far in prog.futureaction_rules():
         assert far.fixed_args, "Should not be using a floating rule for an action without arguments. Use a boolean variable instead."
 
@@ -90,7 +90,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             timedelta_term = PRACTICALLY_FOREVER
 
         map_name = tdmapname(far.role_id, far.action_id, far.deontic_keyword)
-        if map_name not in prog.global_var_decs:
+        if map_name not in prog.state_var_decs:
             if len(action.param_sorts_by_name) == 1:
                 add_tdmap_dec(prog, map_name, action.param_sort(0))
             elif len(action.param_sorts_by_name) == 2:
@@ -98,8 +98,8 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                               SortOpApp.c('Tuple',
                                         tuple(action.param_sort(i) for i in range(len(action.param_sorts_by_name))))
                               )
-        map_dec = prog.global_var_decs[map_name]
-        map_var = prog.new_global_var_ref(map_name)
+        map_dec = prog.state_var_decs[map_name]
+        map_var = prog.new_state_var_ref(map_name)
         if far.entrance_enabled_guard:
             statement = IfElse(far.entrance_enabled_guard,
                           [StateVarAssign(
@@ -117,9 +117,9 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                                 timedelta_term])
                            )
 
-        if not parent_action.global_state_transform:
-            parent_action.global_state_transform = StateTransform([])
-        parent_action.global_state_transform.statements.append(statement)
+        if not parent_action.state_transform:
+            parent_action.state_transform = StateTransform([])
+        parent_action.state_transform.statements.append(statement)
 
     # ----------------------------------------------
     # Removing from situation declarations
@@ -135,8 +135,8 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             action = prog.action(aid)
 
             map_name = tdmapname(rid, aid, kw)
-            assert map_name in prog.global_var_decs, f"global state var {map_name} should've been added already. This is it: " + str(prog.global_var_decs)
-            map_var = prog.new_global_var_ref(map_name)
+            assert map_name in prog.state_var_decs, f"state var {map_name} should've been added already. This is it: " + str(prog.state_var_decs)
+            map_var = prog.new_state_var_ref(map_name)
 
             assert rid != ENV_ROLE
 

@@ -3,7 +3,7 @@ file: toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4
 
 roles: Env, Employee, Employer
 
-global vars:
+state vars:
 
 situation Employed:
     Employee may Disclose no_time_constraint

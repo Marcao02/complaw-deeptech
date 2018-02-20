@@ -3,7 +3,7 @@
 ; This is the default:
 ; (TimeUnit d)
 
-(GlobalVars
+(StateVars
 	(n : Nat = 3)
 )
 

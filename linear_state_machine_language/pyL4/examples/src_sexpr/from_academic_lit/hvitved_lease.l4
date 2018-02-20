@@ -14,7 +14,7 @@
 	(P2 'The lease is for 1 apartment, which is provided by Landlord throughout the term.')
 	(P3 'Tenant agrees to pay the amount of {RENT} per month, each payment due within {MAX_DAYS_RENT_DELAY} days of the start of each month.')   )
 
-(GlobalVars
+(StateVars
 	(lease_term_start : TimeDelta )		; formerly never : Date
 	(lease_term_end : TimeDelta )		; formerly never : Date
 	(writeOnceMore lease_terminated : Bool := false)

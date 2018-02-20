@@ -96,7 +96,7 @@ DeonticKeyword = NewType('DeonticKeyword',str)
 # Aside form "Misc" group, the following are not actually case sensitive
 
 # ------------Top-level declarations------------
-GLOBAL_VARS_AREA_LABEL = "GlobalVars"
+GLOBAL_VARS_AREA_LABEL = "StateVars"
 PROSE_CONTRACT_AREA_LABEL = "ProseContract"
 FORMAL_CONTRACT_AREA_LABEL = "FormalContract"
 ROLES_DEC_LABEL = "Roles"

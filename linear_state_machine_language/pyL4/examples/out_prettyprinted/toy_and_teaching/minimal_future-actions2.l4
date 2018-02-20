@@ -3,7 +3,7 @@ file: toy_and_teaching/minimal_future-actions2.l4
 
 roles: Env, I
 
-global vars:
+state vars:
     I_must_Catch_by : TDMap[Nat] := (emptyTDMap )
 
 situation Ongoing:

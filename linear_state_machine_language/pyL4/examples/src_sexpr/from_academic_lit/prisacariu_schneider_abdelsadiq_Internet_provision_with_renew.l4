@@ -39,7 +39,7 @@
 	(P4 'The provider does not have permission to cancel the contract without previous written notification by normal post and by e-mail.')
 )
 
-(GlobalVars
+(StateVars
 	(contract_canceled : Bool = false)
 	(cancel_notice_sent_by_post : Bool = false)
 	(cancel_notice_sent_by_email : Bool = false)

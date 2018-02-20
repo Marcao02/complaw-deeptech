@@ -2,8 +2,8 @@ from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDi
 from src.independent.util import todo_once
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule
-from src.model.BoundVar import LocalVar, GlobalVar, ActionBoundActionParam, ContractParam, \
-    RuleBoundActionParam, PrimedGlobalVar
+from src.model.BoundVar import LocalVar, StateVar, ActionBoundActionParam, ContractParam, \
+    RuleBoundActionParam, PrimedStateVar
 from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, SimpleFnType
 from src.model.Statement import Statement, LocalVarDec, \
     StateVarAssign, IfElse, FVRequirement
@@ -88,7 +88,7 @@ def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
                 return "DateTime"
             else:
                 raise NotImplementedError(str(t) + "," + str(type(t)))
-        elif isinstance(t, (LocalVar, GlobalVar)):
+        elif isinstance(t, (LocalVar, StateVar)):
             yield t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             yield t.action.param_sorts_by_name[t.name]
@@ -104,7 +104,7 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
     def f(t:Term):
         if isinstance(t, SortLit):
             yield t.lit
-        elif isinstance(t, (LocalVar, GlobalVar)):
+        elif isinstance(t, (LocalVar, StateVar)):
             yield t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             yield t.action.param_sorts_by_name[t.name]
@@ -199,9 +199,9 @@ def typecheck_prog(prog:L4Contract, verbose=True):
         tc.typecheck_term(contract_param_dec.value_expr, contract_param_dec.sort)
 
     if verbose:
-        msg2 = f"Typechecking global state var declarations"
+        msg2 = f"Typechecking state var declarations"
         print(msg2 + "\n" + "-" * len(msg2))
-    for gvardec in prog.global_var_decs.values():
+    for gvardec in prog.state_var_decs.values():
         if gvardec.initval:
             tc.typecheck_term(gvardec.initval, gvardec.sort)
 
@@ -402,7 +402,7 @@ class TypeChecker:
                 return "String"
 
         # ------------Variables------------
-        elif isinstance(t, (LocalVar, GlobalVar, PrimedGlobalVar)):
+        elif isinstance(t, (LocalVar, StateVar, PrimedStateVar)):
             return t.vardec.sort
         elif isinstance(t, ActionBoundActionParam):
             return t.action.param_sorts_by_name[t.name]

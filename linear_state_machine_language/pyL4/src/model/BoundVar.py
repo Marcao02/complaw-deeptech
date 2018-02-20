@@ -87,7 +87,7 @@ class LocalVar(BoundVar):
         return self.vardec.varname
 
 
-class GlobalVar(BoundVar):
+class StateVar(BoundVar):
     def __init__(self, vardec:StateVarDec, coord: Optional[FileCoord] = None) -> None:
         super().__init__(coord)
         self.vardec : StateVarDec = vardec
@@ -96,7 +96,7 @@ class GlobalVar(BoundVar):
     def name(self) -> StateVarId:
         return self.vardec.name
 
-class PrimedGlobalVar(BoundVar):
+class PrimedStateVar(BoundVar):
     def __init__(self, vardec:StateVarDec, coord: Optional[FileCoord] = None) -> None:
         super().__init__(coord)
         self.vardec : StateVarDec = vardec

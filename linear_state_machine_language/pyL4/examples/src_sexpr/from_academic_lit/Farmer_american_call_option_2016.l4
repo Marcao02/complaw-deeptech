@@ -20,7 +20,7 @@
 	(PosShareCnt = (Dimensioned PosInt "shares"))
 )
 
-(GlobalVars
+(StateVars
 	(writeonce seller_funds : $)
 	(writeonce buyer_funds : $)
 	(writeAtMostOnce buyer_final_shares : ShareCnt)

@@ -4,7 +4,7 @@ copied from now-closed issue https://github.com/legalese/legalese-compiler/issue
 # Idea
 This reduction works for `must-later`/`may-later` declarations that have no time constraint or a time constraint of the form event\_ts ≤ E for some expression E.
 
-For each role R and action A that takes parameters of type T, such that R has a must-later A-rule, a state variable (aka global variable) is introduced:
+For each role R and action A that takes parameters of type T, such that R has a must-later A-rule, a state variable (aka state variable) is introduced:
 
 `must_R_A : (Map T TimeDelta)`
 

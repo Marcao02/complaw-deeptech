@@ -7,7 +7,7 @@ contract params:
     CONTRACT_START : TimeDelta := 0d
     DELIVERY_DEADLINE : TimeDelta := 10d
 
-global vars:
+state vars:
     nonoperative buyer_paid : Nat := 0
     nonoperative seller_refunded : Nat := 0
     writeonce delivery_date : TimeDelta

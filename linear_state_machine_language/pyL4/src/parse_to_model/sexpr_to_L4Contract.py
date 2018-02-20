@@ -18,7 +18,7 @@ from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, Ac
     EnvNextActionRule, \
     PartyNextActionRule
 from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
-    LocalVar, GlobalVar, PrimedGlobalVar
+    LocalVar, StateVar, PrimedStateVar
 from src.model.ContractClaim import ContractClaim, StateInvariant
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
@@ -107,7 +107,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.macros[ macroname] = L4Macro(macroparams, macrobody)
 
             elif   head(GLOBAL_VARS_AREA_LABEL) or head("GlobalStateVars"):
-                self.top.global_var_decs = self._mk_statevar_decs(rem)
+                self.top.state_var_decs = self._mk_statevar_decs(rem)
 
             elif head(CONTRACT_PARAMETERS_AREA_LABEL):
                 # assert all(isinstance(expr[0],str) for expr in rem)
@@ -408,7 +408,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 a.action_description = chcaststr(x[1][1]) # extract from STRLIT expression
 
             elif head(CODE_BLOCK_LABEL):
-                a.global_state_transform= self._mk_state_transform(cast(List[SExpr], x.tillEnd(1).lst), a)
+                a.state_transform= self._mk_state_transform(cast(List[SExpr], x.tillEnd(1).lst), a)
 
             elif head(PROSE_REFS_LABEL):
                 a.prose_refs  = cast(List[str], x.tillEnd(1).lst)
@@ -532,8 +532,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 unprimed_name = unprimed(varname)
 
                 # self.assertOrSyntaxError(isprimed(varname), statement, f"To assign to a state variable {varname}, you must assign to {primed(varname)}, which indicates \"the next value of X\".")
-                self.assertOrSyntaxError(unprimed_name in self.top.global_var_decs, statement_expr, f"{unprimed_name} not recognized as a global state variable.")
-                vardec = self.top.global_var_decs[unprimed_name]
+                self.assertOrSyntaxError(unprimed_name in self.top.state_var_decs, statement_expr, f"{unprimed_name} not recognized as a state variable.")
+                vardec = self.top.state_var_decs[unprimed_name]
                 orig : Statement
                 reduced : Statement
 
@@ -541,7 +541,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     return StateVarAssign(vardec, rhs)
                 else:
                     assert statement_expr.coord is not None
-                    var = self.top.new_global_var_ref(unprimed_name, statement_expr.coord())
+                    var = self.top.new_state_var_ref(unprimed_name, statement_expr.coord())
                     orig = StateVarAssign(vardec, rhs, statement_expr[1])
                     if orig.varop == "+=":
                         reduced = StateVarAssign(vardec, FnApp('+', [var, rhs], rhs.coord))
@@ -596,12 +596,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in TIME_CONSTRAINT_KEYWORDS:
                 return DeadlineLit(x)
 
-            if x in self.top.global_var_decs:
-                return GlobalVar(self.top.global_var_decs[cast(StateVarId, x)], parent_SExpr.coord() if parent_SExpr else None)
+            if x in self.top.state_var_decs:
+                return StateVar(self.top.state_var_decs[cast(StateVarId, x)], parent_SExpr.coord() if parent_SExpr else None)
 
             if isprimed(x):
-                self.assertOrSyntaxError(unprimed(x) in self.top.global_var_decs, parent_SExpr, f"Primed variable {x} does not appear to be a state variable.")
-                return PrimedGlobalVar(self.top.global_var_decs[unprimed(x)], parent_SExpr.coord() if parent_SExpr else None)
+                self.assertOrSyntaxError(unprimed(x) in self.top.state_var_decs, parent_SExpr, f"Primed variable {x} does not appear to be a state variable.")
+                return PrimedStateVar(self.top.state_var_decs[unprimed(x)], parent_SExpr.coord() if parent_SExpr else None)
 
             # if parent_action and (x in parent_action.local_vars):
             #     return LocalVar(parent_action.local_vars[cast(LocalVarId,x)])

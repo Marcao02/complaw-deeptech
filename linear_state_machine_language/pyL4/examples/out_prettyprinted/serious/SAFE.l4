@@ -11,7 +11,7 @@ contract params:
     START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt := 0
     START_INVESTOR_CASH : $ := 0
 
-global vars:
+state vars:
     has_cap : Bool := (VALUATION_CAP < (units Pos$ 1000000000000))
     has_discount : Bool := (DISCOUNT_RATE < 1)
     writeatmostonce investor_Common_Stocks : ShareCnt := START_INVESTOR_COMMON_STOCKS

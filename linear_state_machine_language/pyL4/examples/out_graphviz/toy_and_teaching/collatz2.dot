@@ -1,0 +1,17 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Collatz {    
+    Fulfilled[label=Fufilled];
+    
+    
+     
+    NextInSeq[label=NextInSeq,shape=box]    
+    
+    
+    
+    NextInSeq -> NextInSeq [style=dashed]
+    
+         
+    
+       
+}

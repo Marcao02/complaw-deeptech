@@ -17,7 +17,7 @@
 
 (TimeUnit D)
 
-(GlobalVars
+(StateVars
 	(probAsolved : Bool = false)
 	(probBsolved : Bool = false)
 )

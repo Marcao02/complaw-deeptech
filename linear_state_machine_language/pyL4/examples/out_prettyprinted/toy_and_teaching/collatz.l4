@@ -6,7 +6,7 @@ roles: Env
 contract params:
     START : Nat := 12
 
-global vars:
+state vars:
     x : Nat := START
 
 situation Ongoing:

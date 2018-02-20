@@ -31,7 +31,7 @@
 	(START_INVESTOR_CASH : $ = 0)
 )
 
-(GlobalVars
+(StateVars
 	(has_cap : Bool = (VALUATION_CAP < (Pos$ 1000000000000)))
 	(has_discount : Bool = (DISCOUNT_RATE < 1))
 

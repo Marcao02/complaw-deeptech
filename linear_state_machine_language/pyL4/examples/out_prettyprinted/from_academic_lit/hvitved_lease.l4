@@ -9,7 +9,7 @@ contract params:
     MAX_RENT_DELAY : TimeDelta := 7d
     MIN_TERMINATION_NOTICE : TimeDelta := 30d
 
-global vars:
+state vars:
     lease_term_start : TimeDelta
     lease_term_end : TimeDelta
     writeoncemore lease_terminated : Bool := False

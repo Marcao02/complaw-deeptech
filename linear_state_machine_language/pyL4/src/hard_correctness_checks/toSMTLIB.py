@@ -105,7 +105,7 @@ class ToSMTLIB:
             return SMTExprNonatom(inv.symb, tuple(self.invariantPrimed(x) for x in inv.args))
 
     def statevarDecs2smtlib(self):
-        for svd in self.prog.global_var_decs.values():
+        for svd in self.prog.state_var_decs.values():
             self.statevarDec2smtlib(svd)
 
     def statevarDec2smtlib(self, svd:StateVarDec):
@@ -191,7 +191,7 @@ class ToSMTLIB:
             for pre in a.preconditions:
                 self.appendAssert(self.term2smtlibdef(pre))
             self.append("; PRE end")
-        self.stateTransform2smtlib(a.global_state_transform)
+        self.stateTransform2smtlib(a.state_transform)
         for invcheck in self.invariant_conjectures:
             # invcheck has the form ('=>', e1, e2)
             hypoth_for_printing = invcheck.args[1]

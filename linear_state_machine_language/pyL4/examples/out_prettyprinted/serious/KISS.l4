@@ -16,7 +16,7 @@ contract params:
     START_INVESTOR_CASH : $ := 0
     START_COMPANY_CASH : $ := 0
 
-global vars:
+state vars:
     investor_cash : $ := START_INVESTOR_CASH
     investor_Common_Stock : ShareCnt := START_INVESTOR_COMMON_STOCK
     investor_PreferredStock : ShareCnt := START_INVESTOR_PREFERRED_STOCK

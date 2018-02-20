@@ -12,8 +12,8 @@ from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONS
 from src.interpreter.interpreter_support import *
 from src.model.Action import Action
 from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule
-from src.model.BoundVar import GlobalVar, ContractParam, ActionBoundActionParam, \
-    RuleBoundActionParam, LocalVar, PrimedGlobalVar
+from src.model.BoundVar import StateVar, ContractParam, ActionBoundActionParam, \
+    RuleBoundActionParam, LocalVar, PrimedStateVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.EventsAndTraces import Event, Trace, breachSituationId
 from src.model.StateTransform import StateTransform
@@ -104,7 +104,7 @@ class ExecEnv:
     def evalTrace(self, trace:Trace, finalSituationId:Optional[SituationId] = None, final_var_vals: Optional[GVarSubst] = None, verbose=False, debug=False):
         prog = self.top
         self.evalContractParamDecs(prog.contract_params)
-        self.evalGlobalVarDecs(prog.global_var_decs)
+        self.evalStateVarDecs(prog.state_var_decs)
         for i in range(len(trace)):
             # print("Environ", self.environ_tostr())
             eventi = trace[i]
@@ -172,7 +172,7 @@ class ExecEnv:
         if final_var_vals:
             for gvarid,expected_val in final_var_vals.items():
                 actual_val = self.gvarvals[castid(StateVarId, gvarid)]
-                assert actual_val == expected_val, f"Expected global variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
+                assert actual_val == expected_val, f"Expected state variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
         if finalSituationId:
             assert self.last_or_current_situation_id == finalSituationId, f"Trace expected to end in situation {finalSituationId} but ended in situation {self.last_or_current_situation_id}"
@@ -326,15 +326,15 @@ class ExecEnv:
             return ApplyActionResult(None)
         self.last_appliedaction_params = self.cur_event.params
         rv: ApplyActionResult
-        if action.global_state_transform:
-            self.evalCodeBlock(action.global_state_transform,verbose)
+        if action.state_transform:
+            self.evalCodeBlock(action.state_transform,verbose)
         if action.dest_situation_id != LOOP_KEYWORD:
             self.last_or_current_situation_id = action.dest_situation_id
         self.last_situation_entrance_delta = self.cur_event_delta()
         return ApplyActionResult(None)
 
 
-    def evalGlobalVarDecs(self, decs : Dict[StateVarId, StateVarDec]):
+    def evalStateVarDecs(self, decs : Dict[StateVarId, StateVarDec]):
         for (var,dec) in decs.items():
             # print("dec: ", dec, dec.initval)
             if dec.initval is None:
@@ -345,7 +345,7 @@ class ExecEnv:
                 self.gvarvals[var] = self.evalTerm(dec.initval)
                 # print(f"Global var {var} has initial value {self.gvarvals[var]}.")
                 dictInc(self.gvar_write_cnt, var, init=1)
-            # print('evalGlobalVarDecs: ', var, dec, self.gvar_write_cnt[var])
+            # print('evalStateVarDecs: ', var, dec, self.gvar_write_cnt[var])
 
     def evalContractParamDecs(self, decs : Dict[ContractParamId, ContractParamDec]):
         for (name,dec) in decs.items():
@@ -362,7 +362,7 @@ class ExecEnv:
             self.evalStatement(statement,verbose)
 
     def evalStatement(self, stmt:Statement, verbose:bool):
-        # An Action's StateTransform block is *always* evaluated in the most recent global variable and
+        # An Action's StateTransform block is *always* evaluated in the most recent state variable and
         # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
         # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
         # Therefore, this function does not take an EvalContext argument.
@@ -417,7 +417,7 @@ class ExecEnv:
     def evalTerm(self,
                  term:Term) -> Any:
         assert term is not None
-        # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec and global var decs
+        # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec and state var decs
 
         # next_event_timestamp will be None when evaluating an entrance-guard
         try:
@@ -427,10 +427,10 @@ class ExecEnv:
             elif isinstance(term, Literal):
                 return self.evalLit(term)
 
-            elif isinstance(term, GlobalVar):
+            elif isinstance(term, StateVar):
                 return self.gvarvals[term.name]
 
-            elif isinstance(term, PrimedGlobalVar):
+            elif isinstance(term, PrimedStateVar):
                 return self.gvarvals[term.name]
 
             elif isinstance(term, ContractParam):
@@ -513,7 +513,7 @@ class ExecEnv:
                 elif fn == "event_td":
                     assert self.evaluation_is_in_action, "Can't use event_td when not in the scope of an action."
                     assert not self.evaluation_is_in_next_action_rule, ("event_td directly within the time constraint or `where` clause of a next-action rule is not currently supported." +
-                                                                      "Evaluate it in the global state transform and save it to a local variable.")
+                                                                      "Evaluate it in the StateTransform section and save it to a local variable.")
                 elif fn == "situationEntrance_td":
                     assert self.evaluation_is_in_situation, "Can't use situationEntrance_td when not in the scope of a situation."
 

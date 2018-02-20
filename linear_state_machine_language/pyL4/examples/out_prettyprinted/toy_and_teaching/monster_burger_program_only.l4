@@ -10,7 +10,7 @@ contract params:
     MAX_CLAIM_VERIFICATION_DELAY : TimeDelta := 10m
     MAX_REFUND_DELAY : TimeDelta := 10m
 
-global vars:
+state vars:
     writeonce challenge_endlimit_timestamp : TimeDelta
     amount_owing : $ := 0
     amount_paid : $ := 0

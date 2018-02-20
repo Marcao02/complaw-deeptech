@@ -6,7 +6,7 @@ roles: Env, Alice, Bob
 contract params:
     DUE_TD : TimeDelta := 40d
 
-global vars:
+state vars:
     probAsolved : Bool := False
     probBsolved : Bool := False
 

@@ -3,7 +3,7 @@ from typing import FrozenSet
 from src.constants_and_defined_types import LocalVarId
 from src.independent.util import chcast
 from src.model.Term import Term, FnApp
-from src.model.BoundVar import LocalVar, GlobalVar
+from src.model.BoundVar import LocalVar, StateVar
 from src.independent.typing_imports import *
 from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement
 from src.model.L4Contract import L4Contract
@@ -99,12 +99,12 @@ def eliminate_ifthenelse(p:L4Contract):
             return term
 
     for act in p.actions_iter():
-        if act.global_state_transform:
+        if act.state_transform:
             # but how do I know a change has been made..? can't rely on immutability since Statement and Term aren't immutable.
             progress_made = True
             while progress_made:
                 progress_made = False
-                act.global_state_transform.statements = eliminate_ifthenelse_block(act.global_state_transform.statements)
+                act.state_transform.statements = eliminate_ifthenelse_block(act.state_transform.statements)
 
         if act.following_anon_situation:
             sit = act.following_anon_situation
@@ -206,14 +206,14 @@ def eliminate_local_vars(p:L4Contract):
             # EXCEPT that there's a subtley with eliminating them in action rules, so I won't actually eliminate them,
             # but I will ignore them when doing FV confined to the state transform situation
             # ACTUALLY, it's all good because no-read-after-write condition ensures that local variable definitions only
-            # depend on current global var vals, not next global var vals
+            # depend on current state var vals, not next state var vals
             # (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
             # return cast(Block, [s]) + new_rest, new_forbidden_read, new_forbidden_write
             return eliminate_local_vars_block(rest, subst2, forbidden_read, forbidden_write2)
 
 
         elif isinstance(s, StateVarAssign):
-            assert s.varname not in forbidden_write, f"global-state var {s.varname} can't be written at (TODO: s.coord)"
+            assert s.varname not in forbidden_write, f"state var {s.varname} can't be written at (TODO: s.coord)"
             # forbid writing a second time to this variable in the same forward-scope, because it's potentially confusing
             # and not needed in good code.
             # I was actually doing this... but could easily switch to ifthenelse
@@ -225,7 +225,7 @@ def eliminate_local_vars(p:L4Contract):
             # and not needed in good code.
             # ACTUALLY I rely on this for translation in action rules to be sound.
             # forbidden_read.add(s.varname)
-            # print(f"just added global var name {s.varname} to forbidden_read after recursing on RHS of {s}")
+            # print(f"just added state var name {s.varname} to forbidden_read after recursing on RHS of {s}")
 
             (new_rest, new_forbidden_read, new_forbidden_write) = eliminate_local_vars_block(rest, subst,
                                                                                              forbidden_read,
@@ -242,7 +242,7 @@ def eliminate_local_vars(p:L4Contract):
             (new_true_branch, forbidden_read1, forbidden_write1) = eliminate_local_vars_block(s.true_branch, subst,
                                                                                               forbidden_read,
                                                                                               forbidden_write)
-            # global vars written to in the true branch can be written to in the false branch, so we send the same sets
+            # state vars written to in the true branch can be written to in the false branch, so we send the same sets
             (new_false_branch, forbidden_read2, forbidden_write2) = eliminate_local_vars_block(s.false_branch, subst,
                                                                                                copy_forbidden_read,
                                                                                                copy_forbidden_write) if s.false_branch is not None else (
@@ -275,9 +275,9 @@ def eliminate_local_vars(p:L4Contract):
             if term.name in subst:
                 # print("SUBST!", term.name, substForVar[term.name])
                 return subst[term.name]
-        elif isinstance(term, GlobalVar):
+        elif isinstance(term, StateVar):
             pass
-            # assert term.name not in forbidden_read, f"global-state var {term} can't be read at {term.coord}. {forbidden_read}"
+            # assert term.name not in forbidden_read, f"state var {term} can't be read at {term.coord}. {forbidden_read}"
         elif isinstance(term, FnApp):
             # assert term.coord is not None, f"No FileCoord for term {term}"
             return FnApp(term.fnsymb_name, [eliminate_local_vars_term(arg, subst, forbidden_read) for arg in term.args],
@@ -285,10 +285,10 @@ def eliminate_local_vars(p:L4Contract):
         return term
 
     for act in p.actions_iter():
-        if act.global_state_transform:
+        if act.state_transform:
             allsubst = dict()
-            (x,y,z) = eliminate_local_vars_block(act.global_state_transform.statements, {}, set(), set())
-            act.global_state_transform.statements = x
+            (x,y,z) = eliminate_local_vars_block(act.state_transform.statements, {}, set(), set())
+            act.state_transform.statements = x
         if act.following_anon_situation:
             sit = act.following_anon_situation
             for rule in sit.action_rules():
