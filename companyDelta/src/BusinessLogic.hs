@@ -307,11 +307,21 @@ applyPrule companystate_treediff rulebase pdep = do
   trace ("rule fired; requires " ++ requires (rule :: PaperRule)) $ return $ runReader (paperworks2Paperworks Map.! (requires (rule :: PaperRule))) (companystate_treediff, pdep)
   
       
+{- THE FOLLOWING ARE TODO -}
 
 {- changes to the Company -}
 
--- change of address requires directors resolution
--- and requires notification to all parties to all agreements
+{-    change of address -}
+--    change of address requires directors resolution
+--    and requires notification to all parties to all agreements
+--    and requires updating the government as well so the updating of the government itself needs to be authorized.
+
+
+{-    change of director -}
+{-    change of secretary -}
+{-    change of auditor -}
+
+
 
 {- changes to Holders -}
 
