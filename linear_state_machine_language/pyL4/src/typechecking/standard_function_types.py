@@ -166,6 +166,7 @@ overloaded_types_data : FnTypesData = [
      ),
 
     # ------------Tuples------------
+    # generalized and moved into typecheck.py
     # (('tuple',), parametric_one_var(
     #         sfntype(X, X, SApp('Tuple', X, X)),
     #         AtomicSortsAndDimensionedNumericSorts)

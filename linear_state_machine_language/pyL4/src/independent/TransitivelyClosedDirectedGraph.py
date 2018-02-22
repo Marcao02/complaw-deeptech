@@ -77,6 +77,7 @@ class TransitivelyClosedDirectedGraph(Generic[T]):
             raise Exception(f"{src} is not a node in the graph.")
         return trg in self.edges_from[src]
 
+    # sub_nonexplicit takes care of structural subtyping rules
     def simplifyIntersection(self, nodes:Set[T], sub_nonexplicit:Callable[[T,T],bool]) -> Optional[T]:
         assert len(nodes) > 0
         if len(nodes) == 1:

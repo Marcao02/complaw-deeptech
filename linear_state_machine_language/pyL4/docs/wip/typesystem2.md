@@ -54,7 +54,7 @@ for num1 in UnboundedNumericSorts:
 
 ## Ratios of dimensioned numeric sorts
 
-These are complexity 4. Eventually these should be derived from `Ratio` situation above, but fine to hardcode for now.
+These are complexity 4. Eventually these should be derived from `Ratio` section above, but fine to hardcode for now.
 `u,v: MatchVar(DimUnit)`
 
 `Ratio(PosReal[u], PosInt[v]) ⊆ Ratio(NonnegReal[u], PosInt[v]) ≤ Ratio(Real[u], PosInt[v])`
@@ -73,7 +73,7 @@ Complexity max(c₁ + ... + cₖ, d₁ + ... + dₖ) + 1 constraints derived fro
 
 ## TDMap
 
-A map from some sort S to TimeDelta. We simply haven't used maps for other value types yet.
+A map from some sort S to TimeDelta. We simply haven't used maps for other value types yet. This is used to transpile away the `must-later`/`may_later` declarations.
 
 Not currently using subtyping with it either.
 

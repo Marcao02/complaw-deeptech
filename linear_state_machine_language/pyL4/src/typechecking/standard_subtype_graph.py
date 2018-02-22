@@ -1,11 +1,11 @@
 from itertools import chain
 
-from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDirectedGraph
+from src.independent.TransitivelyClosedDirectedGraphWithUnions import TransitivelyClosedDirectedGraphWithUnions
 from src.typechecking.standard_sorts import *
 from src.typechecking.SubsortConstraint import sschain, SubsortConstraint
 
 
-SubsortGraph = TransitivelyClosedDirectedGraph[Sort]
+SubsortGraph = TransitivelyClosedDirectedGraphWithUnions[Sort]
 
 def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes:Iterable[Sort]) -> SubsortGraph:
     graph = SubsortGraph()
@@ -14,6 +14,10 @@ def build_graph( subsort_constraints: Iterable[SubsortConstraint], initial_nodes
         graph.addEdge(constraint.parts[0],constraint.parts[1])
     add_derived(graph)
     # graph.addTop('Any')
+
+    for pair in UNIONS:
+        graph.informOfUnion(pair[0],pair[1])
+
     return graph
 
 
@@ -96,6 +100,23 @@ SUBSORT_CONSTRAINTS : Iterable[SubsortConstraint] = chain(
     sschain(Ratio(PosReal2, PosReal2), Ratio(NonnegReal2, PosReal2)),
 
     sschain("Fraction[0,1]", Ratio(Nat,PosInt))
+)
+
+UNIONS : Tuple[Tuple[Set[Sort],Sort],...] = (
+    ({'{0}', PosReal}, NonnegReal),
+    ({'{0}', PosInt}, Nat),
+    ({'{0}', '{1}'}, '{0,1}'),
+    ({'Fraction(0,1]', '{0}'}, 'Fraction[0,1]'),
+    ({'Fraction[0,1)', '{1}'}, 'Fraction[0,1]'),
+    ({'Fraction(0,1)', '{0}'}, 'Fraction[0,1)'),
+    ({'Fraction(0,1)', '{1}'}, 'Fraction(0,1]'),
+    ({'Fraction(0,1)', '{0,1}'}, 'Fraction[0,1]'),
+)
+
+DERIVED_UNIONS = (
+    # can't actually derive this yet, but derivation using other identities would be:
+    # (0,1] ⋃ [0,1) = ((0,1) ⋃ {1}) ⋃ ((0,1) ⋃ {0}) = (0,1) ⋃ {0,1} = [0,1]
+    ({'Fraction(0,1]','Fraction[0,1)'}, 'Fraction[0,1]'),
 )
 
 
