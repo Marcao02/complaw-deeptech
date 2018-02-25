@@ -1,3 +1,5 @@
+from src.model.ActionRule import NextActionRule, PartyNextActionRule, EnvNextActionRule
+from src.model.Situation import Situation
 from src.hard_correctness_checks.SMTLIB import *
 
 from src.model.StateVarDec import StateVarDec
@@ -170,6 +172,9 @@ class ToSMTLIB:
         for a in self.prog.actions_iter():
             self.action2smtlib(a)
 
+        for s in self.prog.situations_iter():
+            self.situation2smtlib(s)
+
     def invariant2smtlib(self):
         for invariant in self.prog.state_invariants:
             inv = self.term2smtlibdef(invariant.prop)
@@ -198,8 +203,20 @@ class ToSMTLIB:
             self.appendProofOblig(invcheck, f"{self.curaid} INV CHECK:" + smtlib_expr_to_str(hypoth_for_printing))
         self.pop()
 
-    def stateTransform2smtlib(self, st:Optional[StateTransform]):
+    def situation2smtlib(self, sit:Situation):
+        # print(sit.situation_id)
+        strong_oblig_rules : List[PartyNextActionRule] = list(filter(
+            lambda x: isinstance(x,PartyNextActionRule) and x.deontic_keyword == 'must',
+                                 list(sit.action_rules())))
 
+        if len(strong_oblig_rules) > 1:
+            enabled_conditions = list(map(lambda x: x.entrance_enabled_guard, strong_oblig_rules))
+            assert all( map(lambda c: c is not None, enabled_conditions) )
+            terms : List[SMTExpr] = list(map(lambda t: self.term2smtlibdef(cast(Term,t)), enabled_conditions))
+            result = disjoint(*terms)
+            # print(result)
+
+    def stateTransform2smtlib(self, st:Optional[StateTransform]):
         self.block2smtlib(st.statements if st else [])
 
     def block2smtlib(self,block:Block):

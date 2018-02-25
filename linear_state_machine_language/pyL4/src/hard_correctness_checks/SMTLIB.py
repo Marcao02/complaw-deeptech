@@ -112,6 +112,17 @@ def equals(arg1:SMTExpr, arg2:SMTExpr) -> SMTExprNonatom_:
 def ite(a1:SMTExpr, a2:SMTExpr, a3:SMTExpr) -> SMTExprNonatom_:
     return SMTExprNonatom('ite', (a1, a2, a3))
 
+def disjoint(*args:SMTExpr) -> SMTExprNonatom_:
+    parts : List[SMTExprNonatom_] = []
+    for a in args:
+        for b in args:
+            if a != b:
+                parts.append(implies( a, neg(b) ))
+    return conj(*parts)
+
+def disjoint_exhaustive(*args:SMTExpr) -> SMTExprNonatom_:
+    return conj(disjoint(*args), disj(*args))
+
 def fnapp(symb:str, *args:SMTExpr) -> SMTExprNonatom_:
     return SMTExprNonatom(symb, args)
 

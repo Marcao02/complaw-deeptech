@@ -72,6 +72,10 @@ def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
         heading(action.action_id)
         extend(toz3.commands_for_actions[action.action_id])
 
+    for sit in prog.situations_iter():
+        # heading(sit.situation_id)
+        toz3.situation2smtlib(sit)
+
     with open(outfilepath, 'w') as file:
         file.write(smt_lines_to_str(lines))
 
