@@ -7,6 +7,7 @@ Given two snapshots of a Company State, what corporate actions are required to t
 We model the state of a company as a data structure.
 
 A Company at a given time consists of
+
 - a list of parties, which represent the other people in the universe of discourse
 - a list of securities (in the abstract), each of which has a name
 - a list of holdings, representing which parties hold how many of which concrete securities
@@ -46,6 +47,7 @@ The full path between the start and end states represents the full Diff tree dis
 Each edge between nodes is an atomic corporate action. Every corporate action takes the form of Paperwork.
 
 Examples of paperwork:
+
 - members resolution to appoint a board of directors
 - directors resolution to change the address of the company
 - directors resolution to appoint a different corporate secretary
