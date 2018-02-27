@@ -131,8 +131,8 @@
 		(FollowingSituation
 			(0 ≤ visits ≤ nonconstant)
 			(Next
-			    (Restaurant obligation-options-include (VerifyCompletionClaim) immediately)
-			    (Restaurant obligation-options-include (RejectCompletionClaim) immediately)
+			    (Restaurant quasi-responsibility (VerifyCompletionClaim) immediately)
+			    (Restaurant quasi-responsibility (RejectCompletionClaim) immediately)
 			)
 		)
 	)

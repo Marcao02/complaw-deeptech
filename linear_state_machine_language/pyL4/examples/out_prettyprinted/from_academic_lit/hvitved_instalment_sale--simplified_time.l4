@@ -15,8 +15,8 @@ state vars:
 
 situation WaitingForFirstDayOfNextMonth:
     if (and (MIN_PAYMENT ≤ balance_remaining) (next_payment_month < 23)):
-        Buyer obligation-options-include PayInstallment(?amount) (next_event_td == (situationEntrance_td + 30d)) where (MIN_PAYMENT ≤ ?amount)
-    Buyer obligation-options-include PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (situationEntrance_td + 30d))
+        Buyer quasi-responsibility PayInstallment(?amount) (next_event_td == (situationEntrance_td + 30d)) where (MIN_PAYMENT ≤ ?amount)
+    Buyer quasi-responsibility PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (situationEntrance_td + 30d))
 
 action PayInstallment(amount: Pos$) transitions to WaitingForFirstDayOfNextMonth:
     pre: (amount ≤ balance_remaining)

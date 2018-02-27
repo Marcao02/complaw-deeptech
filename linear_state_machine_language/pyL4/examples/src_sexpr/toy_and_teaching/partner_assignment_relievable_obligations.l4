@@ -1,6 +1,6 @@
 ; This example demonstrates the need for a kind of obligation that can be "relieved" by another
 ; participant doing a permitted action. See ../L4-LSM-Formal-Semantic-Latex/L4-LSM-semantics.pdf
-; We are using "obligation-options-include" for that here.
+; We are using "quasi-responsibility" for that here.
 
 ; Alice and Bob sign a contract to do an assignment as a team. The assignment has two problems,
 ; ProbA and ProbB. It's Alice's responsibility to get ProbA done, and Bob's responsibility to
@@ -28,8 +28,8 @@
 	"partner assignment demonstrating relievable obligations"
 	(Situation WorkingOnAssignment
 		(Next
-			(Alice obligation-options-include SolveProbA (when next_event_td ≤ DUE_TD))
-			(Bob   obligation-options-include SolveProbB (when next_event_td ≤ DUE_TD))
+			(Alice quasi-responsibility SolveProbA (when next_event_td ≤ DUE_TD))
+			(Bob   quasi-responsibility SolveProbB (when next_event_td ≤ DUE_TD))
 
 			(Alice may SolveProbB (when next_event_td ≤ DUE_TD))
 			(Bob   may SolveProbA (when next_event_td ≤ DUE_TD))

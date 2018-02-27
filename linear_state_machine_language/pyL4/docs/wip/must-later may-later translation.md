@@ -52,7 +52,7 @@ Suppose a `State` (aka `Situation`) declaration contains
 where `A` is an action with (say) 2 parameters. Then it is removed and the following `NextActionRule` gets added to the same `State`:
 
 ```
-(R obligation-options-include
+(R quasi-responsibility
 	(A ?1 ?2)
 	(tdGT must_R_A (tuple ?1 ?2) event_td)	
 )
@@ -60,4 +60,4 @@ where `A` is an action with (say) 2 parameters. Then it is removed and the follo
 The line `(tgGT ...)` compares (i) the deadline that `must_R_A` has stored for `(tuple ?1 ?2)`, and (ii) the current event's timedelta.
 We don't need a where clause such as `(where (mapHas must_R_A (tuple ?1 ?2)))` because it is implied by the time constraint.
 
-`[possibly-from-earlier R may A]` gets handled similarly except that `may` is used instead of `obligation-options-include` in the translation.
+`[possibly-from-earlier R may A]` gets handled similarly except that `may` is used instead of `quasi-responsibility` in the translation.

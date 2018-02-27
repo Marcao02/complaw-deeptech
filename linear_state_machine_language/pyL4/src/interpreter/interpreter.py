@@ -202,7 +202,7 @@ class ExecEnv:
                         enabled_permissions.append(nar)
                     elif nar.deontic_keyword == 'must':
                         enabled_strong_obligs.append(nar)
-                    elif nar.deontic_keyword == 'obligation-options-include':
+                    elif nar.deontic_keyword == 'quasi-responsibility':
                         enabled_weak_obligs.append(nar)
                         if nar.role_id not in enabled_weak_obligs_by_role:
                             enabled_weak_obligs_by_role[nar.role_id] = [nar]

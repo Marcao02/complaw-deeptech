@@ -15,7 +15,7 @@ situation Ongoing:
     if (n == 5):
         EnterFulfilled
     if (nonempty I_must_Catch_by):
-        I obligation-options-include Catch(?0) (tdGEQ I_must_Catch_by ?0 next_event_td) where (mapHas I_must_Catch_by ?0)
+        I quasi-responsibility Catch(?0) (tdGEQ I_must_Catch_by ?0 next_event_td) where (mapHas I_must_Catch_by ?0)
 
 action Throw()  transitions to Ongoing:
     transform:

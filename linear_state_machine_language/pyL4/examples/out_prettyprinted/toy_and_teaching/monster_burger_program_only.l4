@@ -51,8 +51,8 @@ action TimeToCheckCompletionExpires()  transitions to Fulfilled:
 
 action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
     following situation:
-        Restaurant obligation-options-include VerifyCompletionClaim immediately
-        Restaurant obligation-options-include RejectCompletionClaim immediately
+        Restaurant quasi-responsibility VerifyCompletionClaim immediately
+        Restaurant quasi-responsibility RejectCompletionClaim immediately
 
 action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
     following situation:

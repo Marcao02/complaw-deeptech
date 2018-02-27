@@ -30,14 +30,14 @@ state vars:
     writeatmostonce dis_cashout : $
 
 situation InvestorInvests:
-    Company obligation-options-include CommitToEquityFinancing no_time_constraint
-    Company obligation-options-include CommitToLiquidityEvent(?1, ?company_cash, ?3, ?reduction) no_time_constraint where (?reduction < ?company_cash)
-    Company obligation-options-include CommitToDissolution no_time_constraint
+    Company quasi-responsibility CommitToEquityFinancing no_time_constraint
+    Company quasi-responsibility CommitToLiquidityEvent(?1, ?company_cash, ?3, ?reduction) no_time_constraint where (?reduction < ?company_cash)
+    Company quasi-responsibility CommitToDissolution no_time_constraint
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
-        Company obligation-options-include DeliverDocsWithPRA discretionary
-        Company obligation-options-include DeliverDocsWithoutPRA discretionary
+        Company quasi-responsibility DeliverDocsWithPRA discretionary
+        Company quasi-responsibility DeliverDocsWithoutPRA discretionary
 
 action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
     following situation:
@@ -87,7 +87,7 @@ action CommitToLiquidityEvent(change_of_control: Bool, company_cash_at_liquidity
     following situation:
         Investor may ChooseCashPayment (next_event_td < (situationEntrance_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (situationEntrance_td + 1w))
-        Company obligation-options-include AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
+        Company quasi-responsibility AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:

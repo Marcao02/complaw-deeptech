@@ -78,10 +78,10 @@
 
 	(Situation InvestorInvests
 		(Next
-			(Company obligation-options-include CommitToEquityFinancing)
-			(Company obligation-options-include (CommitToLiquidityEvent ?1 ?2)) ; IPO
-			(Company obligation-options-include (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3)) ; IPO
-			(Company obligation-options-include CommitToDissolution)
+			(Company quasi-responsibility CommitToEquityFinancing)
+			(Company quasi-responsibility (CommitToLiquidityEvent ?1 ?2)) ; IPO
+			(Company quasi-responsibility (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3)) ; IPO
+			(Company quasi-responsibility CommitToDissolution)
 		)
 	)
 
@@ -91,8 +91,8 @@
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(FollowingSituation
 			(Next
-				(Company obligation-options-include DeliverDocsWithPRA discretionary)
-				(Company obligation-options-include DeliverDocsWithoutPRA discretionary)
+				(Company quasi-responsibility DeliverDocsWithPRA discretionary)
+				(Company quasi-responsibility DeliverDocsWithoutPRA discretionary)
 			)
 		)
 	)
@@ -184,7 +184,7 @@
 			(Next
 				(Investor may ChooseCashPayment [when next_event_td < (situationEntrance_td + 1W)])
 				(Investor may ChooseStockPayment [when next_event_td < (situationEntrance_td + 1W)])
-				(Company obligation-options-include AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
+				(Company quasi-responsibility AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
 			)
 		)
 	)
