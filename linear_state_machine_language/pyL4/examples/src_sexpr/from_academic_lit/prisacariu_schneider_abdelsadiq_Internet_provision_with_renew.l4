@@ -136,52 +136,52 @@
 	(Situation NoInfraction
 		(Next
 			(if (not contract_canceled)
-				(Client may RaiseTraffic no_time_constraint)
+				(Client may RaiseTraffic)
 			)
 			(if contract_canceled
 				(EnterFulfilled immediately)
 			)
-			(ISP may SendCancelNoticeByPost no_time_constraint)
-			(ISP may SendCancelNoticeByEmail no_time_constraint)
+			(ISP may SendCancelNoticeByPost)
+			(ISP may SendCancelNoticeByEmail)
 		)
 	)
 
 	(Situation UnsettledInfraction
 		(Next
 			; no penalty for sending multiples.
-			(ISP may SendCancelNoticeByPost no_time_constraint)
-			(ISP may SendCancelNoticeByEmail no_time_constraint)
+			(ISP may SendCancelNoticeByPost)
+			(ISP may SendCancelNoticeByEmail)
 
 			(if (not usage_level_normal)
-				(Client may LowerTraffic within48HOfInfraction)
+				(Client may LowerTraffic (when within48HOfInfraction))
 			)
 
 			; it might not do anything, but we don't penalyze them in that case.
-			(Client may SendDelayEmail within48HOfInfraction)
+			(Client may SendDelayEmail (when within48HOfInfraction))
 
-			(Client may (Pay ?x) within48HOfInfraction (where ((?x > ($ 0)) and (?x ≤ ($ 3)))))
+			(Client may (Pay ?x) (when within48HOfInfraction) (where ((?x > ($ 0)) and (?x ≤ ($ 3)))))
 
 			(if (and (not sent_delay_email) usage_level_normal (paid ≥ ($ 1)))
-				(Reset within24HOfInfraction)
+				(Reset (when within24HOfInfraction))
 			)
 
 			(if ((not sent_delay_email) and ((not usage_level_normal) or (not paidBefore24)))
-				(ClientBreaches after24HSinceInfraction)
+				(ClientBreaches (when after24HSinceInfraction))
 			)
 
 			(if (and sent_delay_email usage_level_normal (paid ≥ ($ 2)))
-				(Reset within48HOfInfraction)
+				(Reset (when within48HOfInfraction))
 			)
 
 			(if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 2)))
-				(Reset within48HOfInfraction)
+				(Reset (when within48HOfInfraction))
 			)
 
 			(if (and sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 3)))
-				(Reset within48HOfInfraction)
+				(Reset (when within48HOfInfraction))
 			)
 
-			(ClientBreaches after48HSinceInfraction)
+			(ClientBreaches (when after48HSinceInfraction))
 
 			(if contract_canceled
 				(EnterFulfilled immediately)

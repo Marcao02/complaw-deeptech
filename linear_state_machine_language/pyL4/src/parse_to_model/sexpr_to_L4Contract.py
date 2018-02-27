@@ -74,6 +74,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                               "\n" + str(self.top.filename))
         else:
             raise SyntaxError((msg if msg else "") +
+                              "\n" + expr +
                               "\n" + str(self.top.filename))
 
     def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None) -> Union[NoReturn,None]:
@@ -753,14 +754,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv.fixed_args = [self._mk_term(arg, None, src_action, rv, args_part) for arg in args_part]
 
         rem = expr.tillEnd(3)
-        assert len(rem) >= 1
-
-        rv.time_constraint = self._mk_time_constraint(rem[0], None, src_action, rv, rem)
-        assert rv.time_constraint is not None, str(rem)
-
-        for x in rem[1:]:
-            if x[0] == "where":
-                rv.where_clause = self._mk_term(x[1], None, src_action, rv)
+        self._handle_optional_action_rule_parts(rem, rv, None, src_action)
 
         src_action.add_action_rule(rv)
         return rv
@@ -781,7 +775,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         role_id : RoleId
         action_id : ActionId
         args : Optional[List[RuleBoundActionParamId]] = None
-        rv : NextActionRule
+        nar : NextActionRule
         if len(expr) == 2:
             if isinstance(expr[0],str):
                 action_id = castid(ActionId,expr[0])
@@ -799,7 +793,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            rv = EnvNextActionRule(src_situation.situation_id, action_id, args, entrance_enabled_guard)
+            nar = EnvNextActionRule(src_situation.situation_id, action_id, args, entrance_enabled_guard)
             rem = expr.tillEnd(1)
 
         else:
@@ -821,23 +815,37 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            rv = PartyNextActionRule(src_situation.situation_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+            nar = PartyNextActionRule(src_situation.situation_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 
         if args is None:
-            rv.fixed_args = [self._mk_term(arg, src_situation, parent_action, rv, args_part) for arg in args_part]
-        assert len(rem) >= 1
+            nar.fixed_args = [self._mk_term(arg, src_situation, parent_action, nar, args_part) for arg in args_part]
 
-        rv.time_constraint = self._mk_time_constraint(rem[0], src_situation, parent_action, rv, rem)
-        assert rv.time_constraint is not None, str(rem)
+        self._handle_optional_action_rule_parts(rem, nar, src_situation, parent_action)
+        assert not nar.fixed_args or not nar.where_clause
+        src_situation.add_action_rule(nar)
 
-        for x in rem[1:]:
-            if x[0] == "where":
-                rv.where_clause = self._mk_term(x[1], src_situation, parent_action, rv, expr)
+    def _handle_optional_action_rule_parts(self, rem:SExpr, ar:ActionRule, src_situation:Optional[Situation], src_or_parent_act: Optional[Action]):
+        found_labeled_time_constraint = False
+        for x in rem:
+            if not isinstance(x, str):
+                if x[0] == "when":
+                    found_labeled_time_constraint = True
+                    if len(x) > 2:
+                        ar.time_constraint = self._mk_time_constraint(x.tillEnd(1), src_situation, src_or_parent_act, ar, x)
+                    else:
+                        ar.time_constraint = self._mk_time_constraint(x[1], src_situation, src_or_parent_act, ar, x)
+                elif x[0] == "where":
+                    ar.where_clause = self._mk_term(x[1], src_situation, src_or_parent_act, ar, rem)
+            elif x in TIME_CONSTRAINT_KEYWORDS:
+                found_labeled_time_constraint = True
+                ar.time_constraint = self._mk_time_constraint(x, src_situation, src_or_parent_act, ar, rem)
 
-        assert not rv.fixed_args or not rv.where_clause
+        if not found_labeled_time_constraint:
+            # self.syntaxError(rem, "No 'when' expression")
+            ar.time_constraint = self._mk_time_constraint("no_time_constraint", src_situation, src_or_parent_act, ar, rem)
+            assert ar.time_constraint is not None, f"Currently a time constraint is needed in the S-Expr syntax, but it can be 'no_time_constraint'. See {str(rem)}"
 
-        src_situation.add_action_rule(rv)
 
 def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:
     return maybe_as_infix_fn_app(x) or maybe_as_prefix_fn_app(x) or maybe_as_postfix_fn_app(x)

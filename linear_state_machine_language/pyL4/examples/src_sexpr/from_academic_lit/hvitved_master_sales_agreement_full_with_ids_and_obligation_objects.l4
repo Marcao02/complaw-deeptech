@@ -133,11 +133,11 @@
         [Next
             [guardsDisjointExhaustive
                 [if [orderable_units_remaining > 0]
-                    [Customer may [SubmitNewOrder ?q] [next_event_td ≤ order_period_ends]
+                    [Customer may [SubmitNewOrder ?q] [when next_event_td ≤ order_period_ends]
                          [where [[0 < ?q] and [?q ≤ orderable_units_remaining]]] ]
                 ]
                 [if [orderable_units_remaining == 0]
-                    [EnterFulfilled [next_event_td ≥ order_period_ends]]
+                    [EnterFulfilled [when next_event_td ≥ order_period_ends]]
                 ]
             ]
         ]

@@ -32,7 +32,7 @@
 		)
 		(TransitionsTo Ongoing)
 		(Future
-			(I must-later (Catch n') no_time_constraint)
+			(I must-later (Catch n'))
 		)
 	)
 

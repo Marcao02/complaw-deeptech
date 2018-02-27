@@ -137,9 +137,9 @@
 
 	(Situation InvestorInvests
 		(Next
-			(Company obligation-options-include (CommitToAcquisition ?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
-			(Company obligation-options-include (CommitToFinancing ?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
-			(ReachMaturity (next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY)))
+			(Company obligation-options-include (CommitToAcquisition ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
+			(Company obligation-options-include (CommitToFinancing ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
+			(ReachMaturity (when next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY)))
 		)
 	)
 
@@ -155,7 +155,7 @@
 
 		(FollowingSituation
 			(Next
-				(Company must NotifyInvestorOfNextEquityFinancingTerms no_time_constraint)
+				(Company must NotifyInvestorOfNextEquityFinancingTerms)
 			)
 		)
 	)
@@ -167,8 +167,8 @@
 
 	(Situation After_NotifyInvestorOfNextEquityFinancingTerms
 		(Next
-			(Investor may choose_cash_interest_repayment no_time_constraint)
-			(Company obligation-options-include (CloseEquityFinancingSale ?1 ?2) (next_event_td > (situationEntrance_td + 5D)))
+			(Investor may choose_cash_interest_repayment)
+			(Company obligation-options-include (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (situationEntrance_td + 5D)))
 		)
 	)
 

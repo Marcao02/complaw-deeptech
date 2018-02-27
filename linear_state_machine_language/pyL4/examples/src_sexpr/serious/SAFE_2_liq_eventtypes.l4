@@ -78,10 +78,10 @@
 
 	(Situation InvestorInvests
 		(Next
-			(Company obligation-options-include CommitToEquityFinancing no_time_constraint)
-			(Company obligation-options-include (CommitToLiquidityEvent ?1 ?2) no_time_constraint) ; IPO
-			(Company obligation-options-include (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3) no_time_constraint) ; IPO
-			(Company obligation-options-include CommitToDissolution no_time_constraint)
+			(Company obligation-options-include CommitToEquityFinancing)
+			(Company obligation-options-include (CommitToLiquidityEvent ?1 ?2)) ; IPO
+			(Company obligation-options-include (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3)) ; IPO
+			(Company obligation-options-include CommitToDissolution)
 		)
 	)
 
@@ -182,9 +182,9 @@
 
 		(FollowingSituation
 			(Next
-				(Investor may ChooseCashPayment [next_event_td < (situationEntrance_td + 1W)])
-				(Investor may ChooseStockPayment [next_event_td < (situationEntrance_td + 1W)])
-				(Company obligation-options-include AutoChooseStockPayment [next_event_td == (situationEntrance_td + 1W)])
+				(Investor may ChooseCashPayment [when next_event_td < (situationEntrance_td + 1W)])
+				(Investor may ChooseStockPayment [when next_event_td < (situationEntrance_td + 1W)])
+				(Company obligation-options-include AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
 			)
 		)
 	)

@@ -36,7 +36,7 @@
 
 	(Situation Awaiting_Delivery
 		[ProseRefs P1]
-		(Next (Seller must Deliver (next_event_td ≤ DELIVERY_DEADLINE) ))
+		(Next (Seller must Deliver (when next_event_td ≤ DELIVERY_DEADLINE) ))
 	)
 
 	(Action Deliver [ProseRefs P1]
@@ -55,16 +55,16 @@
 		)
 		(FollowingSituation
 			(Next
-				(Buyer should Pay2ndInstallment (next_event_td ≤ (30d + delivery_date)))
-				(Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date)))
-				(EnterLate2ndInstallment (next_event_td > (30d + delivery_date)))
+				(Buyer should Pay2ndInstallment (when next_event_td ≤ (30d + delivery_date)))
+				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_date)))
+				(EnterLate2ndInstallment (when next_event_td > (30d + delivery_date)))
 			)
 		)
 	)
 
 	(Action EnterLate2ndInstallment [ProseRefs P4]
 		(FollowingSituation
-			(Next (Buyer must PayLateFee (next_event_td ≤ (44d + delivery_date))))
+			(Next (Buyer must PayLateFee (when next_event_td ≤ (44d + delivery_date))))
 		)
 	)
 
@@ -75,15 +75,15 @@
 		)
 		(FollowingSituation
 			(Next
-				(Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date)))
-				(CompleteNormalSale (next_event_td > (14d + delivery_date)))
+				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_date)))
+				(CompleteNormalSale (when next_event_td > (14d + delivery_date)))
 			)
 		)
 	)
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSituation
-			(Next (Seller must DeliverRefund (next_event_td ≤ (7d + situationEntrance_td))))
+			(Next (Seller must DeliverRefund (when next_event_td ≤ (7d + situationEntrance_td))))
 		)
 	)
 

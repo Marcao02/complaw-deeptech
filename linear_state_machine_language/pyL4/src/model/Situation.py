@@ -31,7 +31,7 @@ class Situation:
     def add_action_rule(self, nar:NextActionRule) -> None:
         self._action_rules.append(nar)
 
-    def action_rules(self) -> Iterator[NextActionRule]:
+    def action_rules(self) -> Iterable[NextActionRule]:
         for r in self._action_rules:
             yield r
 

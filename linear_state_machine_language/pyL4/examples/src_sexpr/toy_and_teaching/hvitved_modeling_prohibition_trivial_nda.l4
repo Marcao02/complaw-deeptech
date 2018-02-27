@@ -15,7 +15,7 @@
 
 	(Situation Employed
 		(Next
-			(Employee may Disclose no_time_constraint)
+			(Employee may Disclose)
 		)
 	)
 

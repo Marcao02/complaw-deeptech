@@ -40,11 +40,13 @@
 			; and it's before the final month of the contract.
 			(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
 				(Buyer obligation-options-include (PayInstallment ?amount)
-					(next_event_td == (situationEntrance_td + 30d))
-					(where ((MIN_PAYMENT ≤ ?amount ) and (?amount ≤ balance_remaining))) ))
+					(when next_event_td == (situationEntrance_td + 30d))
+					(where (MIN_PAYMENT ≤ ?amount ) and (?amount ≤ balance_remaining))
+				)
+			)
 
 			(Buyer obligation-options-include (PayLastInstallment (balance_remaining + DUE_AT_CLOSING))
-				(next_event_td == (situationEntrance_td + 30d))
+				(when next_event_td == (situationEntrance_td + 30d))
 			)
 		))
 

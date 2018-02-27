@@ -28,15 +28,15 @@
 	"partner assignment demonstrating relievable obligations"
 	(Situation WorkingOnAssignment
 		(Next
-			(Alice obligation-options-include SolveProbA (next_event_td ≤ DUE_TD))
-			(Bob   obligation-options-include SolveProbB (next_event_td ≤ DUE_TD))
+			(Alice obligation-options-include SolveProbA (when next_event_td ≤ DUE_TD))
+			(Bob   obligation-options-include SolveProbB (when next_event_td ≤ DUE_TD))
 
-			(Alice may SolveProbB (next_event_td ≤ DUE_TD))
-			(Bob   may SolveProbA (next_event_td ≤ DUE_TD))
+			(Alice may SolveProbB (when next_event_td ≤ DUE_TD))
+			(Bob   may SolveProbA (when next_event_td ≤ DUE_TD))
 
 			(if (probAsolved and probBsolved)
-				(Alice may Submit (next_event_td ≤ DUE_TD))
-				(Bob may Submit (next_event_td ≤ DUE_TD))
+				(Alice may Submit (when next_event_td ≤ DUE_TD))
+				(Bob may Submit (when next_event_td ≤ DUE_TD))
 			)
 		)
 	)

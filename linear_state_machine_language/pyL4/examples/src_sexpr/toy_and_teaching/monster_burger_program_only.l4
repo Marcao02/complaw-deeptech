@@ -38,7 +38,7 @@
 
 	(Situation MonsterBurgerUncooked
 		(Next
-			(Challenger must (RequestCookMB) (next_event_td ≤ (situationEntrance_td + 30m)))
+			(Challenger must (RequestCookMB) (when next_event_td ≤ (situationEntrance_td + 30m)))
 		)
 	)
 
@@ -55,8 +55,8 @@
 			(visits == 1) ; LANG note: Similar to (traversal == 1) but for Situations.
 			(Next
 	            (timeConstraintsPartitionFuture
-		            (Restaurant should (ServeMB) (next_event_td < (MAX_SERVE_DELAY + situationEntrance_td)))
-		            (EnterPromptServeGuaranteeViolated (next_event_td ≥ (MAX_SERVE_DELAY + situationEntrance_td)))
+		            (Restaurant should (ServeMB) (when next_event_td < (MAX_SERVE_DELAY + situationEntrance_td)))
+		            (EnterPromptServeGuaranteeViolated (when next_event_td ≥ (MAX_SERVE_DELAY + situationEntrance_td)))
 	            )
 	        )
 		)
@@ -92,10 +92,10 @@
 
         (Next
             (timeConstraintsPartitionFuture ; LANG note: `timeConstraintsPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
-	            (Challenger may (AnnounceMBFinished) (next_event_td < challenge_endlimit_timestamp))
+	            (Challenger may (AnnounceMBFinished) (when next_event_td < challenge_endlimit_timestamp))
 	            ;(Restaurant should (CheckCompletionClaim) (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-	            (Restaurant should (CheckCompletionClaim) ((challenge_endlimit_timestamp ≤ next_event_td) and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td))))
-	            (TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
+	            (Restaurant should (CheckCompletionClaim) (when (challenge_endlimit_timestamp ≤ next_event_td) and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td))))
+	            (TimeToCheckCompletionExpires (when next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
             )
         )
 	)
@@ -108,8 +108,8 @@
 			(0 ≤ visits ≤ nonconstant)
 			(Next
 	            (timeConstraintsPartitionFuture
-		            (Restaurant should (CheckCompletionClaim) (next_event_td ≤ (situationEntrance_td + MAX_CLAIM_VERIFICATION_DELAY)))
-		            (TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td)))
+		            (Restaurant should (CheckCompletionClaim) (when next_event_td ≤ (situationEntrance_td + MAX_CLAIM_VERIFICATION_DELAY)))
+		            (TimeToCheckCompletionExpires (when next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td)))
 	            )
 	        )
 		)

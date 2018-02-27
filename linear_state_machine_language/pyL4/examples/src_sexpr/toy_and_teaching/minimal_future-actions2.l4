@@ -7,8 +7,8 @@
 
 	[Situation Ongoing
 		[Next
-			[I may [Throw ?n] no_time_constraint]
-			[I may EnterFulfilled no_time_constraint]
+			[I may [Throw ?n]]
+			[I may EnterFulfilled]
 		]
 
 		(possibly-from-earlier I must-later Catch)
@@ -16,7 +16,7 @@
 
 	[Action [Throw [n : Nat]]		[TransitionsTo Ongoing]
 		[Future
-			[I must-later [Catch n] no_time_constraint]
+			[I must-later [Catch n]]
 		]
 	]
 

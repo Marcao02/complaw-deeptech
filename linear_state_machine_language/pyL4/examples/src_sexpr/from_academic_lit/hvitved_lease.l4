@@ -22,11 +22,11 @@
 
 (Macro RequestTerminationActionRuleMacroTenant SituationId
 	(if (not lease_terminated)
-		(Tenant may (RequestTerminationFromSituationId) (next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Tenant may (RequestTerminationFromSituationId) (when next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
 (Macro RequestTerminationActionRuleMacroLandlord SituationId
 	(if (not lease_terminated)
-		(Landlord may (RequestTerminationFromSituationId) (next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(Landlord may (RequestTerminationFromSituationId) (when next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
 
 (Macro RequestTerminationActionMacro SituationId
 	(Action RequestTerminationFromSituationId (AllowedSubjects Landlord Tenant) (TransitionsTo SituationId)
@@ -55,7 +55,7 @@
 
 	(Situation MonthStarted
 		(Next
-			(Tenant obligation-options-include (PayRent) (next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
+			(Tenant obligation-options-include (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
 			(apply-macro RequestTerminationActionRuleMacroTenant MonthStarted)
 			(apply-macro RequestTerminationActionRuleMacroLandlord MonthStarted)
 		)
@@ -64,7 +64,7 @@
 	(Action PayRent (StateTransform (total_rent_paid' += 1000))
 		(FollowingSituation
 			(Next
-				(EnterMonthEnded (next_event_td == (monthEndDay_td)))
+				(EnterMonthEnded (when next_event_td == (monthEndDay_td)))
 				(apply-macro RequestTerminationActionRuleMacroTenant AfterPayRent)
 				(apply-macro RequestTerminationActionRuleMacroLandlord AfterPayRent)  )))
 
@@ -76,7 +76,7 @@
 				(if (lease_term_end ≤ (situationEntrance_td + 1D))
 					(EnterLeaseTermEnded immediately)   )
 				(if (lease_term_end > (situationEntrance_td + 1D))
-					(EnterMonthStarted (next_event_td == (situationEntrance_td + 1d)))   )
+					(EnterMonthStarted (when next_event_td == (situationEntrance_td + 1d)))   )
 				(apply-macro RequestTerminationActionRuleMacroTenant MonthEnded)
 				(apply-macro RequestTerminationActionRuleMacroLandlord MonthEnded)   )))
 

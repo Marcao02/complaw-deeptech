@@ -205,9 +205,9 @@ class ToSMTLIB:
 
     def situation2smtlib(self, sit:Situation):
         # print(sit.situation_id)
-        strong_oblig_rules : List[PartyNextActionRule] = list(filter(
+        strong_oblig_rules : List[PartyNextActionRule] = cast(List[PartyNextActionRule], list(filter(
             lambda x: isinstance(x,PartyNextActionRule) and x.deontic_keyword == 'must',
-                                 list(sit.action_rules())))
+                                 sit.action_rules())))
 
         if len(strong_oblig_rules) > 1:
             enabled_conditions = list(map(lambda x: x.entrance_enabled_guard, strong_oblig_rules))
