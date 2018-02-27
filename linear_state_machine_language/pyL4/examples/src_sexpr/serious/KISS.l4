@@ -137,8 +137,8 @@
 
 	(Situation InvestorInvests
 		(Next
-			(Company relievable-responsibility (CommitToAcquisition ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
-			(Company relievable-responsibility (CommitToFinancing ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
+			(Company quasi-responsibility (CommitToAcquisition ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
+			(Company quasi-responsibility (CommitToFinancing ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
 			(ReachMaturity (when next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY)))
 		)
 	)
@@ -168,7 +168,7 @@
 	(Situation After_NotifyInvestorOfNextEquityFinancingTerms
 		(Next
 			(Investor may choose_cash_interest_repayment)
-			(Company relievable-responsibility (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (situationEntrance_td + 5D)))
+			(Company quasi-responsibility (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (situationEntrance_td + 5D)))
 		)
 	)
 
@@ -213,8 +213,8 @@
 
 		(FollowingSituation
 			(Next
-				(Investor relievable-responsibility ChooseMultipleRepayment discretionary)
-				(Investor relievable-responsibility (ChooseConvertToCommonStock company_capitalization) discretionary)
+				(Investor quasi-responsibility ChooseMultipleRepayment discretionary)
+				(Investor quasi-responsibility (ChooseConvertToCommonStock company_capitalization) discretionary)
 			)
 		)
 	)
@@ -248,9 +248,9 @@
 		(FollowingSituation
 			(Next
 				(if DEBT_VERSION
-					(Investor relievable-responsibility (ChooseConversionToSeriesSeedPreferredStock ?1) discretionary)
+					(Investor quasi-responsibility (ChooseConversionToSeriesSeedPreferredStock ?1) discretionary)
 				)
-				(Investor relievable-responsibility ChooseMaturityRepayment discretionary)
+				(Investor quasi-responsibility ChooseMaturityRepayment discretionary)
 
 			)
 		)

@@ -25,8 +25,8 @@ state vars:
     writeatmostonce pay_interest_in_cash : Bool := False
 
 situation InvestorInvests:
-    Company relievable-responsibility CommitToAcquisition(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
-    Company relievable-responsibility CommitToFinancing(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
+    Company quasi-responsibility CommitToAcquisition(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
+    Company quasi-responsibility CommitToFinancing(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
     ReachMaturity (next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY))
 
 action CommitToFinancing(qualifying_round_new_money: $) transitions to AfterCommitToFinancing:
@@ -38,7 +38,7 @@ action NotifyInvestorOfNextEquityFinancingTerms()  transitions to After_NotifyIn
 
 situation After_NotifyInvestorOfNextEquityFinancingTerms:
     Investor may choose_cash_interest_repayment no_time_constraint
-    Company relievable-responsibility CloseEquityFinancingSale(?1, ?2) (next_event_td > (situationEntrance_td + 5d))
+    Company quasi-responsibility CloseEquityFinancingSale(?1, ?2) (next_event_td > (situationEntrance_td + 5d))
 
 action choose_cash_interest_repayment()  non-transitioning:
     transform:
@@ -68,8 +68,8 @@ action CloseEquityFinancingSale(qualifying_round_price: SharePrice, company_capi
 
 action CommitToAcquisition(company_capitalization: PosShareCnt) transitions to AfterCommitToAcquisition
     following situation:
-        Investor relievable-responsibility ChooseMultipleRepayment discretionary
-        Investor relievable-responsibility ChooseConvertToCommonStock(company_capitalization) discretionary
+        Investor quasi-responsibility ChooseMultipleRepayment discretionary
+        Investor quasi-responsibility ChooseConvertToCommonStock(company_capitalization) discretionary
 
 action ChooseMultipleRepayment()  transitions to Fulfilled:
     transform:
@@ -91,8 +91,8 @@ action ChooseConvertToCommonStock(company_capitalization: PosShareCnt) transitio
 action ReachMaturity()  transitions to AfterReachMaturity
     following situation:
         if DEBT_VERSION:
-            Investor relievable-responsibility ChooseConversionToSeriesSeedPreferredStock(?1) discretionary
-        Investor relievable-responsibility ChooseMaturityRepayment discretionary
+            Investor quasi-responsibility ChooseConversionToSeriesSeedPreferredStock(?1) discretionary
+        Investor quasi-responsibility ChooseMaturityRepayment discretionary
 
 action ChooseMaturityRepayment()  transitions to Fulfilled:
     transform:

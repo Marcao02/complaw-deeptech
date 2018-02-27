@@ -42,9 +42,10 @@ class TransitivelyClosedDirectedGraphWithUnions(TransitivelyClosedDirectedGraph[
                 for u2 in nodes:
                     if u2 not in reduced_set or u1 == u2:
                         continue
-                    if {u1,u2} in self.unions_inv:
-                        u1u2 = self.unions_inv[{u1, u2}]
-                        reduced_set.difference_update({u1,u2})
+                    fset = frozenset({u1,u2})
+                    if fset in self.unions_inv:
+                        u1u2 = self.unions_inv[fset]
+                        reduced_set.difference_update(fset)
                         reduced_set.add(u1u2)
                         changes += 1
 

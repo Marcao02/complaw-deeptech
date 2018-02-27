@@ -67,6 +67,7 @@ class Situation:
         # if self.visit_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
 
+        rules = sorted(self.action_rules(), key = lambda x: x.role_id + x.action_id )
         for t in self.action_rules():
             rv += t.toStr(i+1) + "\n"
 
