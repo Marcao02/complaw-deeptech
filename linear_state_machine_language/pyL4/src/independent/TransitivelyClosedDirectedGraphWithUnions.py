@@ -1,3 +1,5 @@
+from typing import FrozenSet
+
 from src.independent.TransitivelyClosedDirectedGraph import *
 
 """
@@ -14,7 +16,7 @@ class TransitivelyClosedDirectedGraphWithUnions(TransitivelyClosedDirectedGraph[
         # self.joins: Dict[T, Tuple[T,...]] = dict()
         # self.joins_inv: Dict[Tuple[T,...], T] = dict()
         self.unions: Dict[T, Set[T]] = dict()
-        self.unions_inv: Dict[Set[T], T] = dict()
+        self.unions_inv: Dict[FrozenSet[T], T] = dict()
 
     def informOfUnion(self, parts:Set[T], union_of_parts:T):
         assert len(parts) == 2, "only unions of two sorts supported at the moment. you'll have to create intermediates manually, for now."
@@ -23,7 +25,7 @@ class TransitivelyClosedDirectedGraphWithUnions(TransitivelyClosedDirectedGraph[
                 f"You must tell the graph that {union_of_parts} ≥ {part} " \
                 f"before you can tell it that {union_of_parts} = {mapjoin(str,parts,'⋃')}"
         self.unions[union_of_parts] = parts
-        self.unions_inv[parts] = union_of_parts
+        self.unions_inv[frozenset(parts)] = union_of_parts
 
     def simplifyUnion(self, nodes:Set[T]) -> Optional[T]:
         assert len(nodes) > 0
