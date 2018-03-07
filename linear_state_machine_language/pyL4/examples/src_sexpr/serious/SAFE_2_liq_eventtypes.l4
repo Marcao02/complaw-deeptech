@@ -155,9 +155,9 @@
 
 		(FollowingSituation
 			(Next
-				(Investor may ChooseCashPayment discretionary)
-				(Investor may ChooseStockPayment discretionary)
-				(Company should AutoChooseStockPayment discretionary)
+				(Investor may ChooseCashPayment [when next_event_td < (situationEntrance_td + 1W)])
+				(Investor may ChooseStockPayment [when next_event_td < (situationEntrance_td + 1W)])
+				(Company quasi-responsibility AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
 			)
 		)
 	)

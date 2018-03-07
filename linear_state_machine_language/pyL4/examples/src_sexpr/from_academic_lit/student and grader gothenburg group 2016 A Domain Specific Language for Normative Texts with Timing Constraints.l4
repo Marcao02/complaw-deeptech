@@ -3,7 +3,7 @@
 ; If the grader rejects, then the student has till a second absolute deadline 26 to resubmit.
 ; The grader must accept a resubmitted assignment within 7 days of resubmission.
 
-(Roles Studednt Gradedr)
+(Roles Student Gradedr)
 
 (FormalContract
 	"student and grader from gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints"
