@@ -195,6 +195,10 @@ overloaded_types_data : FnTypesData = [
         sfntype(SApp('TDMap', X), X, 'Bool'),
         TDMapKeySorts)
      ),
+    (('tdmapHasItemExpiredBefore',), parametric_one_var(
+        sfntype(SApp('TDMap', X), 'TimeDelta', 'Bool'),
+        TDMapKeySorts)
+     ),
     (('nonempty','empty'), parametric_one_var(
         sfntype(SApp('TDMap', X), 'Bool'),
         TDMapKeySorts))

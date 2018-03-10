@@ -9,7 +9,7 @@ from src.constants_and_defined_types import *
 from src.independent.parse_sexpr import prettySExprStr, parse_file
 from src.independent.util import castid
 from src.interpreter.interpreter_runner import evalTrace
-from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSituationId, EventType
+from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSituationId, EventType, breachActionId
 from src.model.L4Contract import L4Contract
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 
@@ -252,10 +252,29 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         event('EmailInvoice', 'Vendor', 40, {'order':(200,1)}),
         event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
         event('Deliver', 'Vendor', 42, {'order':(500,2)}),
-        event('EnterFulfilled', 'Env', 50)
+        event(breachActionId('Customer'), 'Env', 62)
         ), breachSituationId('Customer'))
-        # It should end in a breach by Customer due to the unpaid invoice.
+
     ),
+
+    # ( 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4', CompleteTrace(
+    #     {
+    #         'MAX_UNITS' : 1000,
+    #         'CONTRACT_LIFE' : timedelta(days=365),
+    #         'PRICE_PER_UNIT' : 100
+    #     },(
+    #     # start situation implicit
+    #     event('SubmitNewOrder', 'Customer', 5, {'quantity':300}), # orderid 0
+    #     event('SubmitNewOrder', 'Customer', 6, {'quantity': 200}),  # orderid 1
+    #     event('Deliver', 'Vendor', 10, {'order':(200,1)}),
+    #     event('Deliver', 'Vendor', 19, {'order':(300,0)}),
+    #     event('EmailInvoice', 'Vendor', 40, {'order':(200,1)}),
+    #     event('SubmitNewOrder', 'Customer', 41, {'quantity': 500}),  # orderid 2
+    #     event('Deliver', 'Vendor', 42, {'order':(500,2)}),
+    #     event('EnterFulfilled', 'Env', 50)
+    #     ), breachSituationId('Customer'))
+    #     # It should end in a breach by Customer due to the unpaid invoice.
+    # ),
 
     ('from_academic_lit/hvitved_instalment_sale--simplified_time.l4', CompleteTrace({},(
         # start situation implicit

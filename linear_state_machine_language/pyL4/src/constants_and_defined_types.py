@@ -40,7 +40,7 @@ VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeatmostonce',
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of event-states. We might later change this keyword to "validationOnly".
 
-TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','tdGEQ', 'tdLT'}
+TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','tdGEQ', 'tdLT', 'tdmapHasItemExpiredBefore'}
 
 TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex',
@@ -78,7 +78,7 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
 
                      'tuple', 'tupleGet',
                      'emptyTDMap', # should be a constant but more important things to do
-                     'mapSet','mapDelete','mapHas','tdGEQ','tdLT',
+                     'mapSet','mapDelete','mapHas','tdGEQ','tdLT', 'tdmapHasItemExpiredBefore',
                      'nonempty', 'empty'
                      }.union(TIME_CONSTRAINT_OPERATORS)
 

@@ -20,9 +20,10 @@ EXAMPLES = [
     'from_academic_lit/hvitved_printer.l4',
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
     'from_academic_lit/Farmer_american_call_option_2016.l4',
+    'from_academic_lit/student and grader gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints.l4',
 
     'serious/SAFE.l4',
     'serious/SAFE_2_liq_eventtypes.l4',
     'serious/KISS.l4'
 ]
-EXAMPLES_FULL_SIZE = 19
+EXAMPLES_FULL_SIZE = 20

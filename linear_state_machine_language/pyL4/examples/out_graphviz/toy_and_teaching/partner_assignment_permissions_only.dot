@@ -1,0 +1,39 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph partner_assignment_demonstrating_relievable_obligations_via_permissions {    
+    Fulfilled[label=Fufilled];
+    WorkingOnAssignment[label=WorkingOnAssignment];
+	Breached_Bob[label=Breached_Bob];
+	Breached_Alice[label=Breached_Alice];
+	Breached_Alice_Bob[label=Breached_Alice_Bob]
+    
+     
+    SolveProbA[label=SolveProbA,shape=box];
+	SolveProbB[label=SolveProbB,shape=box];
+	Submit[label=Submit,shape=box];
+	Breach_Bob[label=Breach_Bob,shape=box];
+	Breach_Alice[label=Breach_Alice,shape=box];
+	Breach_Alice_Bob[label=Breach_Alice_Bob,shape=box]    
+    
+    
+    
+    WorkingOnAssignment -> SolveProbA;
+	WorkingOnAssignment -> SolveProbB;
+	WorkingOnAssignment -> SolveProbB;
+	WorkingOnAssignment -> SolveProbA;
+	WorkingOnAssignment -> Submit;
+	WorkingOnAssignment -> Submit;
+	WorkingOnAssignment -> Breach_Alice_Bob [style=dashed];
+	WorkingOnAssignment -> Breach_Alice [style=dashed];
+	WorkingOnAssignment -> Breach_Bob [style=dashed]
+    
+    SolveProbA -> WorkingOnAssignment [style=dashed];
+	SolveProbB -> WorkingOnAssignment [style=dashed];
+	Submit -> Fulfilled [style=dashed];
+	Breach_Bob -> Breached_Bob [style=dashed];
+	Breach_Alice -> Breached_Alice [style=dashed];
+	Breach_Alice_Bob -> Breached_Alice_Bob [style=dashed];
+	     
+    
+       
+}

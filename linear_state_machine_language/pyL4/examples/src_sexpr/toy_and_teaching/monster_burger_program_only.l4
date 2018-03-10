@@ -131,8 +131,9 @@
 		(FollowingSituation
 			(0 ≤ visits ≤ nonconstant)
 			(Next
-			    (Restaurant quasi-responsibility (VerifyCompletionClaim) immediately)
-			    (Restaurant quasi-responsibility (RejectCompletionClaim) immediately)
+			    (Restaurant may (VerifyCompletionClaim) immediately)
+			    (Restaurant may (RejectCompletionClaim) immediately)
+			    (Breach_Restaurant (when event_td == (situationEntrance_td + 1m) ))
 			)
 		)
 	)

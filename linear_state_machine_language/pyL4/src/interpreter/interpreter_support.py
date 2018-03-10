@@ -3,7 +3,8 @@ from datetime import timedelta
 from typing import Iterable, NamedTuple
 
 from src.constants_and_defined_types import RoleId
-from src.interpreter.timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT
+from src.interpreter.timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT, \
+    tdmapHasItemExpiredBefore
 from src.model.ActionRule import PartlyInstantiatedPartyFutureActionRule
 from src.model.EventsAndTraces import Event
 from src.model.Statement import *
@@ -93,6 +94,7 @@ FN_SYMB_INTERP = {
     'mapSet' : tdmapSet,
     'mapDelete' : tdmapDelete,
     'mapHas' : tdmapHas,
+    'tdmapHasItemExpiredBefore' : tdmapHasItemExpiredBefore,
     'tdGEQ' : tdmapTimeDeltaGEQ,
     'tdLT' : tdmapTimeDeltaLT,
     'emptyTDMap' : lambda: tuple(),

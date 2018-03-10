@@ -6,6 +6,6 @@ def writeFile(path:str, contents:str) -> None:
 
 def writeReadOnlyFile(path:str, contents:str) -> None:
     from os import system
-    system(f'chmod u+w {path}')
+    system(f'chmod u+w "{path}"')
     writeFile(path, contents)
-    system(f'chmod a-w {path}')
+    system(f'chmod a-w "{path}"')

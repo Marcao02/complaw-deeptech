@@ -3,7 +3,7 @@
 ; If the grader rejects, then the student has till a second absolute deadline 26 to resubmit.
 ; The grader must accept a resubmitted assignment within 7 days of resubmission.
 
-(Roles Student Gradedr)
+(Roles Student Grader)
 
 (FormalContract
 	"student and grader from gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints"
@@ -11,28 +11,36 @@
 	(StartSituation AssignmentOut)
 
 	(Situation AssignmentOut
-		(Student must Submit (at 11))
+		(Next
+			(Student must Submit (at 11))
+		)
 	)
 
 	(Action Accept (AllowedRoles Grader) (TransitionsTo Fulfilled))
 
 	(Action Submit (AllowedRoles Student)
 		(FollowingSituation
-			; (Grader must (oneOf Accept Reject) within 7)
-			(Grader quasi-responsibility Accept (within 7))
-			(Grader quasi-responsibility Reject (within 7))
+			(Next
+				(Grader may Accept (when next_event_td ≤ (event_td + 7d)))
+				(Grader may Reject (when next_event_td ≤ (event_td + 7d)))
+				(Breach_Grader (when next_event_td == (event_td + 8d)))
+			)
 		)
 	)
 
 	(Action Reject (AllowedRoles Grader)
 		(FollowingSituation
-			(Student must Resubmit (before 26))
+			(Next
+				(Student must Resubmit (before 26))
+			)
 		)
 	)
 
 	(Action Resubmit (AllowedRoles Student)
 		(FollowingSituation
-			(Grader must Accept (within 7))
+			(Next
+				(Grader must Accept (within 7))
+			)
 		)
 	)
 )
