@@ -1,4 +1,4 @@
-from typing import Any, Callable, Union, Iterable, Iterator
+from typing import Any, Callable, Union, Iterable, Iterator, Sequence, List
 
 
 def strwbar(s:str,barsymb:str='-') -> str:
@@ -27,3 +27,19 @@ def isInt(x:str) -> bool:
     except Exception:
         return False
 
+
+def nonemptySortedSubsets( lst:Sequence[str] ) -> List[List[str]]:
+
+    def helper(_lst:List[str]) -> List[List[str]]:
+        if len(_lst) == 0:
+            return [[]]
+        else:
+            subprob = helper(_lst[1:])
+            rv = subprob.copy()
+            for s in subprob:
+                rv.append([_lst[0]] + s)
+            return rv
+
+    lst = sorted(lst)
+    rv = helper(lst)[1:] # first element is empty list
+    return rv

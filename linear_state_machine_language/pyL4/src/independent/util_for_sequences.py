@@ -42,19 +42,3 @@ def nested_list_replace_mult( lst_or_str:Union[str,Sequence[Any]],
     else:
         return tuple(nested_list_replace_mult(part, subst) for part in lst_or_str)
 
-def nonemptySortedSubsets( lst:Sequence[str] ) -> List[List[str]]:
-
-    def helper(_lst:List[str]) -> List[List[str]]:
-        if len(_lst) == 0:
-            return [[]]
-        else:
-            subprob = helper(_lst[1:])
-            rv = subprob.copy()
-            for s in subprob:
-                rv.append([_lst[0]] + s)
-            return rv
-
-    lst = sorted(lst)
-    rv = helper(lst)[1:] # first element is empty list
-    return rv
-

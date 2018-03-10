@@ -22,8 +22,8 @@ def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, verbose:bool=True,
             # replacing hardcoded contrat param vals with passed in ones
             supplied_val = it.contract_param_subst[contract_param]
             paramdec = prog.contract_params[castid(ContractParamId, contract_param)]
-            # if isinstance(paramdec.value_expr,Literal):
-            if isinstance(paramdec.value_expr,Literal) and supplied_val is not None:
+            assert supplied_val is not None
+            if isinstance(paramdec.value_expr,Literal):
                 paramdec.value_expr.lit = supplied_val
             else:
                 paramdec.value_expr = L4ContractConstructor.mk_literal(supplied_val)

@@ -51,7 +51,7 @@ action TimeToCheckCompletionExpires()  transitions to Fulfilled:
 
 action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
     following situation:
-        Breach_Restaurant (event_td == (situationEntrance_td + 1m))
+        Breach_Restaurant (next_event_td == (situationEntrance_td + 1m))
         Restaurant may RejectCompletionClaim immediately
         Restaurant may VerifyCompletionClaim immediately
 

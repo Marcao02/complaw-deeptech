@@ -27,6 +27,7 @@ ParamsDec = Dict[ActionBoundActionParamId, 'Sort']
 ContractParamSubst = Dict[ContractParamId,Data]
 GVarSubst = Dict[StateVarId, Data]
 LocalVarSubst = Dict[LocalVarId, Data]
+# ABAP = Action Bound Action Param
 ABAPNamedSubst = Dict[ActionBoundActionParamId, Data]
 RBAPNamedSubst = Dict[RuleBoundActionParamId, Data]
 AParamsSubst = List[Data]
