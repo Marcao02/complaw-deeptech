@@ -216,11 +216,11 @@
 
 		(FollowingSituation
 			(Next
-				(Investor may ChooseCashPayment [when next_event_td < (situationEntrance_td + 1W)])
-				(Investor may ChooseStockPayment [when next_event_td < (situationEntrance_td + 1W)])
-				(Company may AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
-				; (Breach_Company [when next_event_td == ((situationEntrance_td + 1W) + 1D)])
-				(Breach_Company [after (situationEntrance_td + 1W)])
+				(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
+				(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
+				(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
+				; (Breach_Company [when next_event_td == ((situation_entrance_td + 1W) + 1D)])
+				(Breach_Company [after (situation_entrance_td + 1W)])
 			)
 		)
 	)

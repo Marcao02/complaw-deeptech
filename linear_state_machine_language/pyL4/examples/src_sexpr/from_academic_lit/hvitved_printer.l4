@@ -83,7 +83,7 @@
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSituation
-			(Next (Seller must DeliverRefund (when next_event_td ≤ (7d + situationEntrance_td))))
+			(Next (Seller must DeliverRefund (when next_event_td ≤ (7d + situation_entrance_td))))
 		)
 	)
 

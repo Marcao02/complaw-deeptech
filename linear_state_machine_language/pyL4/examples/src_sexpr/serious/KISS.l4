@@ -137,9 +137,9 @@
 
 	(Situation InvestorInvests
 		(Next
-			(Company may (CommitToAcquisition ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
-			(Company may (CommitToFinancing ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
-			(ReachMaturity (when next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY)))
+			(Company may (CommitToAcquisition ?1) (when next_event_td < (situation_entrance_td + TIME_TILL_MATURITY)))
+			(Company may (CommitToFinancing ?1) (when next_event_td < (situation_entrance_td + TIME_TILL_MATURITY))) ; IPO
+			(ReachMaturity (when next_event_td ≥ (situation_entrance_td + TIME_TILL_MATURITY)))
 		)
 	)
 
@@ -168,7 +168,7 @@
 	(Situation After_NotifyInvestorOfNextEquityFinancingTerms
 		(Next
 			(Investor may choose_cash_interest_repayment)
-			(Company may (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (situationEntrance_td + 5D)))
+			(Company may (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (situation_entrance_td + 5D)))
 			; discretionary Breach if never close?
 		)
 	)

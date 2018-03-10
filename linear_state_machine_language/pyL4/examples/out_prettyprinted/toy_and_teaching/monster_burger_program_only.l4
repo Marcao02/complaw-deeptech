@@ -16,14 +16,14 @@ state vars:
     amount_paid : $ := 0
 
 situation MonsterBurgerUncooked:
-    Challenger must RequestCookMB (next_event_td ≤ (situationEntrance_td + 30m))
+    Challenger must RequestCookMB (next_event_td ≤ (situation_entrance_td + 30m))
 
 action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
         amount_owing := MB_PRICE
     following situation:
-        EnterPromptServeGuaranteeViolated (next_event_td ≥ (MAX_SERVE_DELAY + situationEntrance_td))
-        Restaurant should ServeMB (next_event_td < (MAX_SERVE_DELAY + situationEntrance_td))
+        EnterPromptServeGuaranteeViolated (next_event_td ≥ (MAX_SERVE_DELAY + situation_entrance_td))
+        Restaurant should ServeMB (next_event_td < (MAX_SERVE_DELAY + situation_entrance_td))
 
 action ServeMB()  transitions to EatingMB:
     transform:
@@ -38,12 +38,12 @@ action EnterEatingMB()  transitions to EatingMB
 situation EatingMB:
     Challenger may AnnounceMBFinished (next_event_td < challenge_endlimit_timestamp)
     TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
-    Restaurant should CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td)))
+    Restaurant should CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situation_entrance_td)))
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following situation:
-        TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td))
-        Restaurant should CheckCompletionClaim (next_event_td ≤ (situationEntrance_td + MAX_CLAIM_VERIFICATION_DELAY))
+        TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + situation_entrance_td))
+        Restaurant should CheckCompletionClaim (next_event_td ≤ (situation_entrance_td + MAX_CLAIM_VERIFICATION_DELAY))
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:
@@ -51,15 +51,15 @@ action TimeToCheckCompletionExpires()  transitions to Fulfilled:
 
 action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
     following situation:
-        Breach_Restaurant (next_event_td == (situationEntrance_td + 1m))
+        Breach_Restaurant (next_event_td == (situation_entrance_td + 1m))
         Restaurant may RejectCompletionClaim immediately
         Restaurant may VerifyCompletionClaim immediately
 
 action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
     following situation:
-        if (situationEntrance_td > challenge_endlimit_timestamp):
+        if (situation_entrance_td > challenge_endlimit_timestamp):
             Challenger must PayForMB immediately
-        if (situationEntrance_td ≤ challenge_endlimit_timestamp):
+        if (situation_entrance_td ≤ challenge_endlimit_timestamp):
             EnterEatingMB
 
 action PayForMB()  transitions to Fulfilled:

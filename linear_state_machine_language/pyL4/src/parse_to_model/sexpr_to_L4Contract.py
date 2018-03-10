@@ -616,9 +616,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif x == "event_td":
                     self.assertOrSyntaxError(self._building_action_id is not None, parent_SExpr, "Can't use event_td when not in the scope of an action.")
                     self.assertOrSyntaxError(not self._building_action_rule, parent_SExpr, ("event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
-                                                                      "Use situationEntrance_td instead."))
-                elif x == "situationEntrance_td":
-                    self.assertOrSyntaxError(self._building_situation_id is not None, parent_SExpr, "Can't use situationEntrance_td when not in the scope of a situation.")
+                                                                      "Use situation_entrance_td instead."))
+                elif x == "situation_entrance_td":
+                    self.assertOrSyntaxError(self._building_situation_id is not None, parent_SExpr, "Can't use situation_entrance_td when not in the scope of a situation.")
 
                 return FnApp(x,[], parent_SExpr.coord() if parent_SExpr else None)
 

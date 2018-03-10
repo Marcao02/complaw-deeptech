@@ -48,7 +48,7 @@ action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following situation:
-        Seller must DeliverRefund (next_event_td ≤ (7d + situationEntrance_td))
+        Seller must DeliverRefund (next_event_td ≤ (7d + situation_entrance_td))
 
 action PayLateFee()  transitions to Fulfilled:
     transform:

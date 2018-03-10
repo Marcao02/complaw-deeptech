@@ -148,7 +148,7 @@ def check_type_vars_gone(oftmap:FnTypesMap):
 
 overloaded_types_data : FnTypesData = [
     # ------------TimeDelta environment variables------------
-    (('event_td','next_event_td','future_event_td','situationEntrance_td','monthStartDay_td','monthEndDay_td','contractStart_td'), (
+    (('event_td','next_event_td','future_event_td','situation_entrance_td','monthStartDay_td','monthEndDay_td','contractStart_td'), (
         sfntype(TimeDelta), )
      ),
     # ------------TimeDelta fns------------

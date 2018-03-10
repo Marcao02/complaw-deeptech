@@ -324,7 +324,7 @@ class ExecEnv:
             self.last_situation_entrance_delta = self.cur_event_delta()
             return
         self.last_appliedaction_params = self.cur_event.params
-        rv: ApplyActionResult
+
         if action.state_transform:
             self.evalCodeBlock(action.state_transform,verbose)
         if action.dest_situation_id != LOOP_KEYWORD:
@@ -509,9 +509,9 @@ class ExecEnv:
                 elif fn == "event_td":
                     assert self.evaluation_is_in_action, "Can't use event_td when not in the scope of an action."
                     assert not self.evaluation_is_in_next_action_rule, ("event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
-                                                                      "Use situationEntrance_td instead.")
-                elif fn == "situationEntrance_td":
-                    assert self.evaluation_is_in_situation, "Can't use situationEntrance_td when not in the scope of a situation."
+                                                                      "Use situation_entrance_td instead.")
+                elif fn == "situation_entrance_td":
+                    assert self.evaluation_is_in_situation, "Can't use situation_entrance_td when not in the scope of a situation."
 
                 return ENV_VAR_INTERP[fn](self)
             else:

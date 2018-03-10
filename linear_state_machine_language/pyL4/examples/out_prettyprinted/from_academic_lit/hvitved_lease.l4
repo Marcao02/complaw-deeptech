@@ -61,11 +61,11 @@ action PayRent()  transitions to AfterPayRent:
 
 action EnterMonthEnded()  transitions to MonthEnded
     following situation:
-        pre: (situationEntrance_td ≤ lease_term_end)
-        if (lease_term_end ≤ (situationEntrance_td + 1d)):
+        pre: (situation_entrance_td ≤ lease_term_end)
+        if (lease_term_end ≤ (situation_entrance_td + 1d)):
             EnterLeaseTermEnded
-        if (lease_term_end > (situationEntrance_td + 1d)):
-            EnterMonthStarted (next_event_td == (situationEntrance_td + 1d))
+        if (lease_term_end > (situation_entrance_td + 1d)):
+            EnterMonthStarted (next_event_td == (situation_entrance_td + 1d))
         if ¬lease_terminated:
             Landlord may RequestTerminationFromMonthEnded (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
         if ¬lease_terminated:

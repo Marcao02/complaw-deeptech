@@ -54,7 +54,7 @@ CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SITUATION_VISITS'}
 
 EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'contractStart_td',
-                      'situationEntrance_td',
+                      'situation_entrance_td',
                       'event_td',
                       'next_event_dt',
                       'next_event_td',

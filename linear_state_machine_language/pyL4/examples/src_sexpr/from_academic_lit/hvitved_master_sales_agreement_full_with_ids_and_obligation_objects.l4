@@ -175,7 +175,7 @@
             ]
             [units_ordered' += quantity]
             [next_order_id' = [next_order_id + 1]]
-            ; [local mytest_for_error : TimeDelta = situationEntrance_td]
+            ; [local mytest_for_error : TimeDelta = situation_entrance_td]
         ]
 
         [Future
