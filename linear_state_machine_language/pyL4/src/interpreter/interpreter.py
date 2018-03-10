@@ -505,7 +505,6 @@ class ExecEnv:
                 else:
                     contract_bug(f"Unhandled time constraint fn symbol: {fn}")
             elif fn in ENV_VAR_INTERP:
-                todo_once("Statically check ENV_VAR_INTERP scope (e.g. next_event_td can only occur in the scope of an action rule). Right now only checked at run time.")
                 assert fn != "future_event_td", "All occurrences of future_event_td should be eliminated before using interpreter_no_floating.py."
 
                 if fn == "next_event_td":

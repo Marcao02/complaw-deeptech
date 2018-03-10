@@ -63,6 +63,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self.after_model_build_requirements : List[Tuple[Callable[[],bool],str]] = []
         self.verbose = verbose
 
+        self._building_situation_id : Optional[SituationId] = None
+        self._building_action_id: Optional[ActionId] = None
+        self._building_action_rule: bool = False
+
     def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
         self.after_model_build_requirements.append((f,errmsg))
 
@@ -350,6 +354,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def _mk_situation(self, situation_id:SituationId, rest:SExpr, parent_action:Optional[Action]) -> Situation:
         situation = Situation(situation_id)
+        self._building_situation_id = situation_id
         x: SExpr
         for x in rest:
             assert isinstance(x,SExpr), f"{x} should be an s-expression"
@@ -392,10 +397,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.syntaxError(x, f"Unsupported declaration type {x[0]} in situation {situation_id}")
                 todo_once(f"Handle {x[0]} in situation dec")
 
+        self._building_situation_id = None
         return situation
 
     def _mk_action(self, action_id:ActionId, params_sexpr:Optional[List[List[str]]], rest:SExpr) -> Action:
         a = Action(action_id)
+        self._building_action_id = action_id
         dest_situation_id = None
         x: SExpr
         if params_sexpr is not None: #isinstance(params_sexpr, SExpr):
@@ -460,6 +467,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 a.dest_situation_id = derived_destination_id(a.action_id)
 
+        self._building_action_id = action_id
         return a
 
     def _mk_futures(self, rules:SExpr, src_action:Action) -> List[PartyFutureActionRule]:
@@ -602,6 +610,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if isinstance(x,str):
             # if isprimed(x):
             if x in EXEC_ENV_VARIABLES:
+                if x == "next_event_td":
+                    self.assertOrSyntaxError(self._building_action_rule, parent_SExpr, "Can't use next_event_td when not in the scope of an action rule.")
+
+                elif x == "event_td":
+                    self.assertOrSyntaxError(self._building_action_id is not None, parent_SExpr, "Can't use event_td when not in the scope of an action.")
+                    self.assertOrSyntaxError(not self._building_action_rule, parent_SExpr, ("event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
+                                                                      "Use situationEntrance_td instead."))
+                elif x == "situationEntrance_td":
+                    self.assertOrSyntaxError(self._building_situation_id is not None, parent_SExpr, "Can't use situationEntrance_td when not in the scope of a situation.")
+
                 return FnApp(x,[], parent_SExpr.coord() if parent_SExpr else None)
 
             if x in TIME_CONSTRAINT_KEYWORDS:
@@ -771,6 +789,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
 
     def _mk_next_action_rule(self, expr:SExpr, src_situation:Situation, parent_action:Optional[Action]) -> None:
+        self._building_action_rule = True
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self._mk_term(expr[1], src_situation, parent_action, None, expr)
@@ -834,6 +853,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self._handle_optional_action_rule_parts(rem, nar, src_situation, parent_action)
         assert not nar.fixed_args or not nar.where_clause
         src_situation.add_action_rule(nar)
+        self._building_action_rule = False
 
     def _handle_optional_action_rule_parts(self, rem:SExpr, ar:ActionRule, src_situation:Optional[Situation], src_or_parent_act: Optional[Action]):
         found_labeled_time_constraint = False
