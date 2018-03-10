@@ -4,19 +4,18 @@ from src.independent.util import castid
 from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
 from src.constants_and_defined_types import SituationId, GVarSubst, ContractParamId
 from src.interpreter.interpreter import ExecEnv as ExecEnvNF
-from src.interpreter.interpreter_deprecated import ExecEnv as ExecEnvOld
 from src.model.EventsAndTraces import Trace, CompleteTrace
 from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal
 
 
 def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, verbose:bool=True, debug:bool=False):
-    env : Union[ExecEnvOld,ExecEnvNF]
-    if len(list(prog.futureaction_rules())) > 0:
-        # raise Exception("ExecEnvOld works but we're trying to phase it out.")
-        env = ExecEnvOld(prog)
-    else:
-        env = ExecEnvNF(prog)
+    assert len(list(prog.futureaction_rules())) == 0, "Killed interpreter_deprecated so I could simplify a bunch of other code.\n" +\
+                                                      "Must use floating_rules_transpile.py first now."
+    #     # raise Exception("ExecEnvOld works but we're trying to phase it out.")
+    #     env = ExecEnvOld(prog)
+    # else:
+    env = ExecEnvNF(prog)
     if isinstance(it, CompleteTrace):
         for contract_param in it.contract_param_subst:
             # replacing hardcoded contrat param vals with passed in ones

@@ -21,7 +21,6 @@ from src.model.Statement import IfElse, StateVarAssign, LocalVarDec
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract
 from src.model.Literal import Literal, DeadlineLit, SimpleTimeDeltaLit, RoleIdLit
-from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Situation import Situation
 from src.model.Term import FnApp
 
@@ -137,7 +136,7 @@ class ExecEnv:
             srcid = self.last_or_current_situation_id
             if isinstance(nextrule_assessment, EventOk):
                 self.evaluation_is_in_action = True
-                applyactionresult = self.apply_action(cur_action,verbose)
+                self.apply_action(cur_action,verbose)
                 self.evaluation_is_in_action = False
                 if verbose:
                     print(f"[{cur_event_datetime}] {srcid} --{actionstr}--> {self.last_or_current_situation_id}\n")
@@ -317,13 +316,13 @@ class ExecEnv:
     def environ_tostr(self) -> str:
         return f"{str(self.gvarvals)}\n{str(self.last_appliedaction_params)}\n{str(self.contract_param_vals)}"
 
-    def apply_action(self, action:Action, verbose=True, to_breach_situation_id:Optional[SituationId] = None) -> ApplyActionResult:
+    def apply_action(self, action:Action, verbose=True, to_breach_situation_id:Optional[SituationId] = None):
         assert self.cur_event is not None
 
         if to_breach_situation_id is not None:
             self.last_or_current_situation_id = to_breach_situation_id
             self.last_situation_entrance_delta = self.cur_event_delta()
-            return ApplyActionResult(None)
+            return
         self.last_appliedaction_params = self.cur_event.params
         rv: ApplyActionResult
         if action.state_transform:
@@ -331,7 +330,7 @@ class ExecEnv:
         if action.dest_situation_id != LOOP_KEYWORD:
             self.last_or_current_situation_id = action.dest_situation_id
         self.last_situation_entrance_delta = self.cur_event_delta()
-        return ApplyActionResult(None)
+        return
 
 
     def evalStateVarDecs(self, decs : Dict[StateVarId, StateVarDec]):
@@ -444,9 +443,6 @@ class ExecEnv:
             elif isinstance(term, RuleBoundActionParam):
                 assert self.cur_event and self.cur_event.params is not None, f"Expected current event {self.cur_event} to have an action parameter named {term}"
                 return self.cur_event.params[term.ind]
-
-            elif isinstance(term, PartialEvalTerm):
-                self.evalError("No PartialEvalTerm should be constructed in this version of ExecEnv; that was something only needed in interpreter_deprecated.py, but haven't yet removed it from the codebase.")
 
             elif isinstance(term, SimpleTimeDeltaLit):
                 return term.lit

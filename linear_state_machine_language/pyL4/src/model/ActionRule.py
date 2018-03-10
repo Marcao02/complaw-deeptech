@@ -4,7 +4,6 @@ from src.independent.util import indent
 from src.independent.util_for_str import mapjoin
 from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
-from src.model.PartialEvalTerm import PartialEvalTerm
 from src.model.Term import Term
 
 
@@ -124,35 +123,6 @@ class PartyFutureActionRule(ActionRule):
     def toStr(self, i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
         return common_party_action_rule_toStr(self, i, fixed_param_vals)
 
-
-class PartlyInstantiatedPartyFutureActionRule(NamedTuple):
-    # todo QUESTION: Should time constraint be partially evaluated??
-    """
-    It's derived from, and points at, a PartyFutureActionRule. Call that its parent rule.
-    Its parent rule's `entrance_enabled_guard` evaluated to True when this thing was created.
-    It has values for all `StateVarId`s that occur in its parent's `where_clause` or `time_constraint`.
-    It has values for all `ActionBoundActionParamId`s that occur in its parent's `where_clause`  or `time_constraint`. Such variables can only
-    occur if its parent rule is defined in a `FollowingSituation` declaration, since that is the only way that
-    an `ActionBoundActionParamId` can be in the scope of a `where_clause` or `time_constraint`.
-    It has values for none of the `RuleBoundActionParamId`s that occur in its `where_clause` or `time_constraint`.
-    """
-    rule : PartyFutureActionRule
-    pe_where_clause : Optional[PartialEvalTerm] # "pe" for PartialEval
-    fixed_param_vals : Optional[List[Data]]
-    # pe_time_constraint : PartialEvalTerm
-
-    # not necessary because comes from .pe_where_clause.gvar_subst (== .pe_time_constraint.gvar_subst):
-    #   gvar_vals : GVarSubst
-    # not necessary because comes from .pe_where_clause.abap_subst (== .pe_time_constraint.abap_subst)
-    #   ab_aparam_vals : List[Any] # "ab_aparam" short for action-bound action-param.
-    #   aba_param_vals_dict : Dict[ActionBoundActionParamId,Any]  # shouldn't be necessary except maybe for debugging
-
-    def __repr__(self) -> str:
-        if self.pe_where_clause:
-            return self.rule.toStr(0) + " with partly-instantiated where clause " + str(self.pe_where_clause)
-        else:
-            return self.rule.toStr(0, self.fixed_param_vals)
-        # return "PartlyInstantiatedPartyFutureActionRule..."
 
 # ABSTRACT
 class NextActionRule(ActionRule):
