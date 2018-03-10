@@ -6,7 +6,7 @@ from typing import Dict, Optional
 from src.independent.util import print_all_todos
 
 tests_to_run = {
-    'typechecker',
+    'L4typechecker',
     'smt',
     # 'graphviz',
     'prettyprint',

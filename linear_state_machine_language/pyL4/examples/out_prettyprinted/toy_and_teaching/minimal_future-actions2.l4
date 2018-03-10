@@ -7,10 +7,10 @@ state vars:
     I_must_Catch_by : TDMap[Nat] := (emptyTDMap )
 
 situation Ongoing:
-    I may Throw(?n) no_time_constraint
-    I may EnterFulfilled no_time_constraint
     if (nonempty I_must_Catch_by):
         I quasi-responsibility Catch(?0) (tdGEQ I_must_Catch_by ?0 next_event_td) where (mapHas I_must_Catch_by ?0)
+    I may EnterFulfilled no_time_constraint
+    I may Throw(?n) no_time_constraint
 
 action Throw(n: Nat) transitions to Ongoing:
     transform:

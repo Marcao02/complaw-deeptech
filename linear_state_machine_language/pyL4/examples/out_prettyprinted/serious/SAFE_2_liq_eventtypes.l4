@@ -30,10 +30,10 @@ state vars:
     writeatmostonce dis_cashout : $
 
 situation InvestorInvests:
+    Company quasi-responsibility CommitToDissolution no_time_constraint
     Company quasi-responsibility CommitToEquityFinancing no_time_constraint
     Company quasi-responsibility CommitToLiquidityEvent(?1, ?2) no_time_constraint
     Company quasi-responsibility CommitToLiquidityEventWithCoCTaxFreeReorg(?1, ?2, ?3) no_time_constraint
-    Company quasi-responsibility CommitToDissolution no_time_constraint
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
@@ -76,9 +76,9 @@ action CommitToLiquidityEvent(company_cash_at_liquidity_event: $, liquidity_capi
         cash_currently_unconverted := PURCHASE_AMOUNT
         company_cash := company_cash_at_liquidity_event
     following situation:
-        Investor may ChooseCashPayment discretionary
-        Investor may ChooseStockPayment discretionary
-        Company should AutoChooseStockPayment discretionary
+        Company quasi-responsibility AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
+        Investor may ChooseCashPayment (next_event_td < (situationEntrance_td + 1w))
+        Investor may ChooseStockPayment (next_event_td < (situationEntrance_td + 1w))
 
 action CommitToLiquidityEventWithCoCTaxFreeReorg(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToLiquidityEventWithCoCTaxFreeReorg:
     transform:
@@ -89,9 +89,9 @@ action CommitToLiquidityEventWithCoCTaxFreeReorg(company_cash_at_liquidity_event
         cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
         company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
     following situation:
+        Company quasi-responsibility AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
         Investor may ChooseCashPayment (next_event_td < (situationEntrance_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (situationEntrance_td + 1w))
-        Company quasi-responsibility AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:
@@ -116,10 +116,10 @@ action TransferCash_L()  transitions to AfterTransferCash_L:
         liq_cashout := (min cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments))
         investor_cash := (investor_cash + liq_cashout')
     following situation:
-        if (liq_cashout < cash_currently_unconverted):
-            Company must TransferCommonStock discretionary
         if (liq_cashout == cash_currently_unconverted):
             Company must DoLiquidityEvent discretionary
+        if (liq_cashout < cash_currently_unconverted):
+            Company must TransferCommonStock discretionary
 
 action DoLiquidityEvent()  transitions to Fulfilled
 
@@ -132,10 +132,10 @@ action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_
         dis_cashout := (min PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
         investor_cash := dis_cashout'
     following situation:
-        if (dis_cashout < PURCHASE_AMOUNT):
-            Company must TransferAssets(?1) discretionary
         if (dis_cashout == PURCHASE_AMOUNT):
             Company must Dissolve discretionary
+        if (dis_cashout < PURCHASE_AMOUNT):
+            Company must TransferAssets(?1) discretionary
 
 action TransferAssets(liquidity_capitalization: PosShareCnt) transitions to AfterTransferAssets:
     transform:

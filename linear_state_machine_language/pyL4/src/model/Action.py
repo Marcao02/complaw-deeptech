@@ -1,5 +1,6 @@
 from itertools import chain
 
+from src.model.EventsAndTraces import breachActionId, breachSituationId
 from src.independent.util import indent, castid
 from src.constants_and_defined_types import ActionBoundActionParamId, SituationId, ActionId, LOOP_KEYWORD, \
     LocalVarId
@@ -113,3 +114,9 @@ class Action:
 
     # def vulnerableParties(self) -> List[RoleId]:
     #     print("BROKEN")
+
+    @staticmethod
+    def breachAction(*role_ids:str) -> 'Action':
+        rv = Action(breachActionId(*role_ids))
+        rv.dest_situation_id = breachSituationId(*role_ids)
+        return rv

@@ -20,12 +20,12 @@ state vars:
     Customer_must_PayBill_by : TDMap[Nat×Nat] := (emptyTDMap )
 
 situation VendorAcceptingOrders:
+    if (nonempty Customer_must_PayBill_by):
+        Customer quasi-responsibility PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
     if ((MAX_UNITS - units_ordered) > 0):
         Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (0 < ?q) (?q ≤ (MAX_UNITS - units_ordered)))
     if ((MAX_UNITS - units_ordered) == 0):
         EnterFulfilled (next_event_td ≥ order_period_ends)
-    if (nonempty Customer_must_PayBill_by):
-        Customer quasi-responsibility PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
     if (nonempty Vendor_must_Deliver_by):
         Vendor quasi-responsibility Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
     if (nonempty Vendor_may_EmailInvoice_by):

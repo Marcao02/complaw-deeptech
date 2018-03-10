@@ -104,7 +104,9 @@ class L4Contract:
     def situation(self, anid:SituationId) -> Situation:
         assert anid in self.situations_by_id, f"situation id '{anid}' not found"
         return self.situations_by_id[anid]
-    
+    def sources_of_action(self, a: Action) -> Iterable[Situation]:
+        return filter(lambda s: self.situation_mentions_action_in_nextaction_rule(s.situation_id,a.action_id), self.situations_iter())
+
     def actions_iter(self) -> Iterable[Action]: return self.actions_by_id.values()
     def action_ids(self) -> Iterable[ActionId]: return self.actions_by_id.keys()
     def action(self, anid: ActionId) -> Action:
@@ -210,6 +212,6 @@ def derived_trigger_id(dest_id:SituationId) -> ActionId:
 def derived_trigger_id_to_situation_id(action_id:ActionId) -> SituationId:
     return cast(SituationId, action_id[5:])
 def is_derived_destination_id(situation_id:SituationId) -> bool:
-    return situation_id.startswith("After") or situation_id.startswith("Breach_")
+    return situation_id.startswith("After") or situation_id.startswith("Breached_")
 def is_derived_trigger_id(action_id:ActionId) -> bool:
-    return action_id.startswith("Enter")
+    return action_id.startswith("Enter") or action_id.startswith("Breach_")

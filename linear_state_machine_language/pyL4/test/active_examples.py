@@ -10,6 +10,7 @@ EXAMPLES = [
     'toy_and_teaching/collatz2.l4',
     'toy_and_teaching/monster_burger_program_only.l4',
     'toy_and_teaching/partner_assignment_relievable_obligations.l4',
+    'toy_and_teaching/partner_assignment_permissions_only.l4',
     'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
 
     'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
@@ -24,4 +25,4 @@ EXAMPLES = [
     'serious/SAFE_2_liq_eventtypes.l4',
     'serious/KISS.l4'
 ]
-EXAMPLES_FULL_SIZE = 18
+EXAMPLES_FULL_SIZE = 19

@@ -20,6 +20,6 @@
 	)
 
 	(Action Disclose
-		(TransitionsTo Breach_Employee)
+		(TransitionsTo Breached_Employee)
 	)
 )

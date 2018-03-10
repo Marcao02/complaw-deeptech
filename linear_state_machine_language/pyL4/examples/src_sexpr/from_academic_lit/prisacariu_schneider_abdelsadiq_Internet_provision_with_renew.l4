@@ -130,7 +130,7 @@
 		)
 	)
 
-	(Action ClientBreaches (AllowedSubjects Env) (TransitionsTo Breach_Client))
+	(Action ClientBreaches (AllowedSubjects Env) (TransitionsTo Breached_Client))
 	(Action EnterFulfilled (AllowedSubjects Env) (TransitionsTo Fulfilled))
 
 	(Situation NoInfraction

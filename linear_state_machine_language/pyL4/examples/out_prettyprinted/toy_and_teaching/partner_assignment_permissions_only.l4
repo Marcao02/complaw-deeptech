@@ -1,5 +1,5 @@
--------------------------------------------------------------------
-file: toy_and_teaching/partner_assignment_relievable_obligations.l4
+-------------------------------------------------------------
+file: toy_and_teaching/partner_assignment_permissions_only.l4
 
 roles: Env, Alice, Bob
 
@@ -11,14 +11,20 @@ state vars:
     probBsolved : Bool := False
 
 situation WorkingOnAssignment:
-    Alice quasi-responsibility SolveProbA (next_event_td ≤ DUE_TD)
+    Alice may SolveProbA (next_event_td ≤ DUE_TD)
     Alice may SolveProbB (next_event_td ≤ DUE_TD)
     if (and probAsolved probBsolved):
         Alice may Submit (next_event_td ≤ DUE_TD)
     Bob may SolveProbA (next_event_td ≤ DUE_TD)
-    Bob quasi-responsibility SolveProbB (next_event_td ≤ DUE_TD)
+    Bob may SolveProbB (next_event_td ≤ DUE_TD)
     if (and probAsolved probBsolved):
         Bob may Submit (next_event_td ≤ DUE_TD)
+    if (and ¬probAsolved probBsolved):
+        Breach_Alice (next_event_td == (DUE_TD + 1))
+    if (and ¬probAsolved ¬probBsolved):
+        Breach_Alice_Bob (next_event_td == (DUE_TD + 1))
+    if (and probAsolved ¬probBsolved):
+        Breach_Bob (next_event_td == (DUE_TD + 1))
 
 action SolveProbA()  transitions to WorkingOnAssignment:
     transform:

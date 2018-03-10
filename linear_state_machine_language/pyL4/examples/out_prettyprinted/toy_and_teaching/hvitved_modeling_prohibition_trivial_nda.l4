@@ -8,4 +8,4 @@ state vars:
 situation Employed:
     Employee may Disclose no_time_constraint
 
-action Disclose()  transitions to Breach_Employee
+action Disclose()  transitions to Breached_Employee

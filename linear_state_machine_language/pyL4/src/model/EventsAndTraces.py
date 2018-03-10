@@ -23,8 +23,9 @@ class Event(NamedTuple):
     type: EventType
 
 def breachSituationId(*role_ids:str):
+    return "Breached_" + "_".join(role_ids)
+def breachActionId(*role_ids:str):
     return "Breach_" + "_".join(role_ids)
-
 
 Trace = Sequence[Event]
 class CompleteTrace(NamedTuple):

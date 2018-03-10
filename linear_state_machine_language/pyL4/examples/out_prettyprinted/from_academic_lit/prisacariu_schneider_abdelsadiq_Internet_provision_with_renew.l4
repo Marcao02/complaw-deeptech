@@ -66,7 +66,7 @@ action Pay(x: $) transitions to UnsettledInfraction:
             paidBefore24 := True
 
 
-action ClientBreaches()  transitions to Breach_Client
+action ClientBreaches()  transitions to Breached_Client
 
 action EnterFulfilled()  transitions to Fulfilled
 
@@ -75,26 +75,26 @@ situation NoInfraction:
         Client may RaiseTraffic no_time_constraint
     if contract_canceled:
         EnterFulfilled
-    ISP may SendCancelNoticeByPost no_time_constraint
     ISP may SendCancelNoticeByEmail no_time_constraint
+    ISP may SendCancelNoticeByPost no_time_constraint
 
 situation UnsettledInfraction:
-    ISP may SendCancelNoticeByPost no_time_constraint
-    ISP may SendCancelNoticeByEmail no_time_constraint
     if ¬usage_level_normal:
         Client may LowerTraffic (next_event_td ≤ (infraction_time + 48h))
-    Client may SendDelayEmail (next_event_td ≤ (infraction_time + 48h))
     Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where (and (?x > (units $ 0)) (?x ≤ (units $ 3)))
-    if (and ¬sent_delay_email usage_level_normal (paid ≥ (units $ 1))):
-        Reset (next_event_td ≤ (infraction_time + 24h))
+    Client may SendDelayEmail (next_event_td ≤ (infraction_time + 48h))
     if (and ¬sent_delay_email (or ¬usage_level_normal ¬paidBefore24)):
         ClientBreaches (next_event_td > (infraction_time + 24h))
+    ClientBreaches (next_event_td > (infraction_time + 48h))
+    if contract_canceled:
+        EnterFulfilled
+    if (and ¬sent_delay_email usage_level_normal (paid ≥ (units $ 1))):
+        Reset (next_event_td ≤ (infraction_time + 24h))
     if (and sent_delay_email usage_level_normal (paid ≥ (units $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
     if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24h)) usage_level_normal (paid ≥ (units $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
     if (and sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ (units $ 3))):
         Reset (next_event_td ≤ (infraction_time + 48h))
-    ClientBreaches (next_event_td > (infraction_time + 48h))
-    if contract_canceled:
-        EnterFulfilled
+    ISP may SendCancelNoticeByEmail no_time_constraint
+    ISP may SendCancelNoticeByPost no_time_constraint

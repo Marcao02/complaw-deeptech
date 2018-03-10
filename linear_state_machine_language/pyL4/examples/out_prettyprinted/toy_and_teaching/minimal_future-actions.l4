@@ -8,14 +8,14 @@ state vars:
     I_must_Catch_by : TDMap[Nat] := (emptyTDMap )
 
 situation Ongoing:
-    if (n < 5):
-        I may Throw immediately
-    if (n < 5):
-        I may Stand immediately
     if (n == 5):
         EnterFulfilled
     if (nonempty I_must_Catch_by):
         I quasi-responsibility Catch(?0) (tdGEQ I_must_Catch_by ?0 next_event_td) where (mapHas I_must_Catch_by ?0)
+    if (n < 5):
+        I may Stand immediately
+    if (n < 5):
+        I may Throw immediately
 
 action Throw()  transitions to Ongoing:
     transform:

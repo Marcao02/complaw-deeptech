@@ -1,0 +1,55 @@
+; Read intro of partner_assignment_relievable_obligations.l4 first.
+; This version is an experiment to see how it'd look with just permissions.
+
+(ContractParams
+	(DUE_TD : TimeDelta = 40d)
+)
+(TimeUnit D)
+(StateVars
+	(probAsolved : Bool = false)
+	(probBsolved : Bool = false)
+)
+(Roles Alice Bob)
+
+(FormalContract
+	"partner assignment demonstrating relievable obligations via permissions"
+	(Situation WorkingOnAssignment
+		(Next
+			(Alice may SolveProbA (when next_event_td ≤ DUE_TD))
+			(Bob   may SolveProbB (when next_event_td ≤ DUE_TD))
+			(Alice may SolveProbB (when next_event_td ≤ DUE_TD))
+			(Bob   may SolveProbA (when next_event_td ≤ DUE_TD))
+			; later can abbreviate those:
+			; ({Alice Bob} may {SolveProbA SolveProbB} (when next_event_td ≤ DUE_TD))
+
+			(if (probAsolved and probBsolved)
+				(Alice may Submit (when next_event_td ≤ DUE_TD))
+				(Bob may Submit (when next_event_td ≤ DUE_TD))
+			)
+
+			(if ((not probAsolved) and (not probBsolved))
+				(Breach_Alice_Bob (when next_event_td == (DUE_TD + 1)))
+			)
+			(if ((not probAsolved) and probBsolved)
+				(Breach_Alice (when next_event_td == (DUE_TD + 1)))
+			)
+			(if (probAsolved and (not probBsolved))
+				(Breach_Bob (when next_event_td == (DUE_TD + 1)))
+			)
+		)
+	)
+
+	(Action SolveProbA (TransitionsTo WorkingOnAssignment) (AllowedRoles Alice Bob)
+		(StateTransform
+			(probAsolved' = true)
+		)
+	)
+
+	(Action SolveProbB (TransitionsTo WorkingOnAssignment) (AllowedRoles Alice Bob)
+		(StateTransform
+			(probBsolved' = true)
+		)
+	)
+
+	(Action Submit (TransitionsTo Fulfilled) (AllowedRoles Alice Bob))
+)

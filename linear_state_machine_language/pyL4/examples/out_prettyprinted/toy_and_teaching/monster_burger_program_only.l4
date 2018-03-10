@@ -22,8 +22,8 @@ action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
         amount_owing := MB_PRICE
     following situation:
-        Restaurant should ServeMB (next_event_td < (MAX_SERVE_DELAY + situationEntrance_td))
         EnterPromptServeGuaranteeViolated (next_event_td ≥ (MAX_SERVE_DELAY + situationEntrance_td))
+        Restaurant should ServeMB (next_event_td < (MAX_SERVE_DELAY + situationEntrance_td))
 
 action ServeMB()  transitions to EatingMB:
     transform:
@@ -37,13 +37,13 @@ action EnterEatingMB()  transitions to EatingMB
 
 situation EatingMB:
     Challenger may AnnounceMBFinished (next_event_td < challenge_endlimit_timestamp)
-    Restaurant should CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td)))
     TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
+    Restaurant should CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td)))
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following situation:
-        Restaurant should CheckCompletionClaim (next_event_td ≤ (situationEntrance_td + MAX_CLAIM_VERIFICATION_DELAY))
         TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + situationEntrance_td))
+        Restaurant should CheckCompletionClaim (next_event_td ≤ (situationEntrance_td + MAX_CLAIM_VERIFICATION_DELAY))
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:
@@ -51,15 +51,15 @@ action TimeToCheckCompletionExpires()  transitions to Fulfilled:
 
 action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
     following situation:
-        Restaurant quasi-responsibility VerifyCompletionClaim immediately
         Restaurant quasi-responsibility RejectCompletionClaim immediately
+        Restaurant quasi-responsibility VerifyCompletionClaim immediately
 
 action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
     following situation:
-        if (situationEntrance_td ≤ challenge_endlimit_timestamp):
-            EnterEatingMB
         if (situationEntrance_td > challenge_endlimit_timestamp):
             Challenger must PayForMB immediately
+        if (situationEntrance_td ≤ challenge_endlimit_timestamp):
+            EnterEatingMB
 
 action PayForMB()  transitions to Fulfilled:
     transform:

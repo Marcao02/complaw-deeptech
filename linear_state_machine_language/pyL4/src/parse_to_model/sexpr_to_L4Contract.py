@@ -4,6 +4,7 @@ import dateutil.parser
 from mypy_extensions import NoReturn
 from copy import deepcopy
 
+from src.independent.util_for_sequences import nonemptySortedSubsets
 from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import chcaststr, todo_once, castid, chcast
 from src.independent.util_for_str import streqci, isFloat, isInt
@@ -156,6 +157,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         for f in self.after_model_build_requirements:
             if not f[0]():
                 raise Exception(f[1])
+
+        roles_without_Env = self.top.roles.copy()
+        roles_without_Env.remove(ENV_ROLE)
+        for role_lst in nonemptySortedSubsets(roles_without_Env):
+            sit = Situation.breachSituation(*role_lst)
+            self.top.situations_by_id[sit.situation_id] = sit
+            act = Action.breachAction(*role_lst)
+            self.top.actions_by_id[act.action_id] = act
+
 
         floating_rules_transpile_away(self.top, self.verbose)
         return self.top

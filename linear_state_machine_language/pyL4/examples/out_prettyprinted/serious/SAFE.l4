@@ -30,9 +30,9 @@ state vars:
     writeatmostonce dis_cashout : $
 
 situation InvestorInvests:
+    Company quasi-responsibility CommitToDissolution no_time_constraint
     Company quasi-responsibility CommitToEquityFinancing no_time_constraint
     Company quasi-responsibility CommitToLiquidityEvent(?1, ?company_cash, ?3, ?reduction) no_time_constraint where (?reduction < ?company_cash)
-    Company quasi-responsibility CommitToDissolution no_time_constraint
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
@@ -85,9 +85,9 @@ action CommitToLiquidityEvent(change_of_control: Bool, company_cash_at_liquidity
             cash_currently_unconverted := PURCHASE_AMOUNT
 
     following situation:
+        Company quasi-responsibility AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
         Investor may ChooseCashPayment (next_event_td < (situationEntrance_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (situationEntrance_td + 1w))
-        Company quasi-responsibility AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:
@@ -112,10 +112,10 @@ action TransferCash_L()  transitions to AfterTransferCash_L:
         liq_cashout := (min cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments))
         investor_cash := (investor_cash + liq_cashout')
     following situation:
-        if (liq_cashout < cash_currently_unconverted):
-            Company must TransferCommonStock discretionary
         if (liq_cashout == cash_currently_unconverted):
             Company must DoLiquidityEvent discretionary
+        if (liq_cashout < cash_currently_unconverted):
+            Company must TransferCommonStock discretionary
 
 action DoLiquidityEvent()  transitions to Fulfilled
 
@@ -128,10 +128,10 @@ action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_
         dis_cashout := (min PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
         investor_cash := (investor_cash + dis_cashout')
     following situation:
-        if (dis_cashout' < PURCHASE_AMOUNT):
-            Company must TransferAssets(?1) discretionary
         if (dis_cashout' == PURCHASE_AMOUNT):
             Company must Dissolve discretionary
+        if (dis_cashout' < PURCHASE_AMOUNT):
+            Company must TransferAssets(?1) discretionary
 
 action TransferAssets(liquidity_capitalization: PosShareCnt) transitions to AfterTransferAssets:
     transform:

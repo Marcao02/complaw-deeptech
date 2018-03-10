@@ -1,5 +1,6 @@
 from itertools import chain
 
+from src.model.EventsAndTraces import breachSituationId
 from src.independent.util import indent
 from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
@@ -68,7 +69,7 @@ class Situation:
         #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
 
         rules = sorted(self.action_rules(), key = lambda x: x.role_id + x.action_id )
-        for t in self.action_rules():
+        for t in rules:
             rv += t.toStr(i+1) + "\n"
 
         return rv
@@ -80,3 +81,8 @@ class Situation:
     #     print("BROKEN")
     #     return list(self.action_rules_by_role.keys())
     #
+
+    @staticmethod
+    def breachSituation(*role_ids: str) -> 'Situation':
+        rv = Situation(breachSituationId(*role_ids))
+        return rv

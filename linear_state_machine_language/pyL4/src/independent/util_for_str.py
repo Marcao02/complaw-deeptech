@@ -20,10 +20,10 @@ def isFloat(x:str) -> bool:
     except ValueError:
         return False
 
-
 def isInt(x:str) -> bool:
     try:
         y = int(x)
         return True
     except Exception:
         return False
+
