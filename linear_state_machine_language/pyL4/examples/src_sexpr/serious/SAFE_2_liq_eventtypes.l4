@@ -78,10 +78,11 @@
 
 	(Situation InvestorInvests
 		(Next
-			(Company quasi-responsibility CommitToEquityFinancing)
-			(Company quasi-responsibility (CommitToLiquidityEvent ?1 ?2)) ; IPO
-			(Company quasi-responsibility (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3)) ; IPO
-			(Company quasi-responsibility CommitToDissolution)
+			(Company may CommitToEquityFinancing)
+			(Company may (CommitToLiquidityEvent ?1 ?2)) ; IPO
+			(Company may (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3)) ; IPO
+			(Company may CommitToDissolution)
+			(Breach_Company discretionary)
 		)
 	)
 
@@ -91,8 +92,9 @@
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(FollowingSituation
 			(Next
-				(Company quasi-responsibility DeliverDocsWithPRA discretionary)
-				(Company quasi-responsibility DeliverDocsWithoutPRA discretionary)
+				(Company may DeliverDocsWithPRA discretionary)
+				(Company may DeliverDocsWithoutPRA discretionary)
+				(Breach_Company discretionary)
 			)
 		)
 	)
@@ -157,7 +159,8 @@
 			(Next
 				(Investor may ChooseCashPayment [when next_event_td < (situationEntrance_td + 1W)])
 				(Investor may ChooseStockPayment [when next_event_td < (situationEntrance_td + 1W)])
-				(Company quasi-responsibility AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
+				(Company may AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
+				(Breach_Company [after situationEntrance_td + 1W])
 			)
 		)
 	)
@@ -184,7 +187,8 @@
 			(Next
 				(Investor may ChooseCashPayment [when next_event_td < (situationEntrance_td + 1W)])
 				(Investor may ChooseStockPayment [when next_event_td < (situationEntrance_td + 1W)])
-				(Company quasi-responsibility AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
+				(Company may AutoChooseStockPayment [when next_event_td == (situationEntrance_td + 1W)])
+				(Breach_Company [after (situationEntrance_td + 1W)])
 			)
 		)
 	)

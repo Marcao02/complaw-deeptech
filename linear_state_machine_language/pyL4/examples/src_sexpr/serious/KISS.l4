@@ -137,8 +137,8 @@
 
 	(Situation InvestorInvests
 		(Next
-			(Company quasi-responsibility (CommitToAcquisition ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
-			(Company quasi-responsibility (CommitToFinancing ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
+			(Company may (CommitToAcquisition ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY)))
+			(Company may (CommitToFinancing ?1) (when next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))) ; IPO
 			(ReachMaturity (when next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY)))
 		)
 	)
@@ -168,7 +168,8 @@
 	(Situation After_NotifyInvestorOfNextEquityFinancingTerms
 		(Next
 			(Investor may choose_cash_interest_repayment)
-			(Company quasi-responsibility (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (situationEntrance_td + 5D)))
+			(Company may (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (situationEntrance_td + 5D)))
+			; discretionary Breach if never close?
 		)
 	)
 
@@ -213,8 +214,10 @@
 
 		(FollowingSituation
 			(Next
-				(Investor quasi-responsibility ChooseMultipleRepayment discretionary)
-				(Investor quasi-responsibility (ChooseConvertToCommonStock company_capitalization) discretionary)
+				(Investor may ChooseMultipleRepayment discretionary)
+				(Investor may (ChooseConvertToCommonStock company_capitalization) discretionary)
+				; KISS doesn't say there's a default, so...
+				(Breach_Investor (after 520W))
 			)
 		)
 	)
@@ -248,10 +251,11 @@
 		(FollowingSituation
 			(Next
 				(if DEBT_VERSION
-					(Investor quasi-responsibility (ChooseConversionToSeriesSeedPreferredStock ?1) discretionary)
+					(Investor may (ChooseConversionToSeriesSeedPreferredStock ?1) discretionary)
 				)
-				(Investor quasi-responsibility ChooseMaturityRepayment discretionary)
-
+				(Investor may ChooseMaturityRepayment discretionary)
+				; KISS doesn't say there's a default, so...
+				(Breach_Investor (after 520W))
 			)
 		)
 	)

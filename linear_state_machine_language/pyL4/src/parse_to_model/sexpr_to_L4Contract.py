@@ -847,6 +847,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         ar.time_constraint = self._mk_time_constraint(x[1], src_situation, src_or_parent_act, ar, x)
                 elif x[0] == "where":
                     ar.where_clause = self._mk_term(x[1], src_situation, src_or_parent_act, ar, rem)
+                elif x[0] == "after":
+                    found_labeled_time_constraint = True
+                    rest = x[1] if len(x) == 2 else x.tillEnd(1)
+                    expanded = SExpr('(',['==','next_event_td',
+                                              SExpr('(',['+', rest, "1"+self.top.timeunit],x.line,x.col)],x.line,x.col)
+                    ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
+
             elif x in TIME_CONSTRAINT_KEYWORDS:
                 found_labeled_time_constraint = True
                 ar.time_constraint = self._mk_time_constraint(x, src_situation, src_or_parent_act, ar, rem)

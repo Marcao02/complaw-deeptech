@@ -23,7 +23,7 @@
 			(Next
 				(Grader may Accept (when next_event_td ≤ (event_td + 7d)))
 				(Grader may Reject (when next_event_td ≤ (event_td + 7d)))
-				(Breach_Grader (when next_event_td == (event_td + 8d)))
+				(Breach_Grader (after event_td + 7d))
 			)
 		)
 	)

@@ -39,15 +39,17 @@
 			; Can make a non-final payment, provided it's at least MIN_PAYMENT
 			; and it's before the final month of the contract.
 			(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
-				(Buyer quasi-responsibility (PayInstallment ?amount)
+				(Buyer may (PayInstallment ?amount)
 					(when next_event_td == (situationEntrance_td + 30d))
 					(where (MIN_PAYMENT ≤ ?amount ) and (?amount ≤ balance_remaining))
 				)
 			)
 
-			(Buyer quasi-responsibility (PayLastInstallment (balance_remaining + DUE_AT_CLOSING))
+			(Buyer may (PayLastInstallment (balance_remaining + DUE_AT_CLOSING))
 				(when next_event_td == (situationEntrance_td + 30d))
 			)
+
+			(Breach_Buyer (after situationEntrance_td + 30d))
 		))
 
 	(Action (PayInstallment(amount:Pos$)) (TransitionsTo WaitingForFirstDayOfNextMonth)

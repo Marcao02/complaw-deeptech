@@ -12,7 +12,7 @@ action Accept()  transitions to Fulfilled
 
 action Submit()  transitions to AfterSubmit
     following situation:
-        Breach_Grader (next_event_td == (event_td + 8d))
+        Breach_Grader (next_event_td == ((event_td + 7d) + 1d))
         Grader may Accept (next_event_td ≤ (event_td + 7d))
         Grader may Reject (next_event_td ≤ (event_td + 7d))
 

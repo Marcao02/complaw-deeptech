@@ -25,8 +25,8 @@ state vars:
     writeatmostonce pay_interest_in_cash : Bool := False
 
 situation InvestorInvests:
-    Company quasi-responsibility CommitToAcquisition(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
-    Company quasi-responsibility CommitToFinancing(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
+    Company may CommitToAcquisition(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
+    Company may CommitToFinancing(?1) (next_event_td < (situationEntrance_td + TIME_TILL_MATURITY))
     ReachMaturity (next_event_td ≥ (situationEntrance_td + TIME_TILL_MATURITY))
 
 action CommitToFinancing(qualifying_round_new_money: $) transitions to AfterCommitToFinancing:
@@ -37,7 +37,7 @@ action CommitToFinancing(qualifying_round_new_money: $) transitions to AfterComm
 action NotifyInvestorOfNextEquityFinancingTerms()  transitions to After_NotifyInvestorOfNextEquityFinancingTerms
 
 situation After_NotifyInvestorOfNextEquityFinancingTerms:
-    Company quasi-responsibility CloseEquityFinancingSale(?1, ?2) (next_event_td > (situationEntrance_td + 5d))
+    Company may CloseEquityFinancingSale(?1, ?2) (next_event_td > (situationEntrance_td + 5d))
     Investor may choose_cash_interest_repayment no_time_constraint
 
 action choose_cash_interest_repayment()  non-transitioning:
@@ -68,8 +68,9 @@ action CloseEquityFinancingSale(qualifying_round_price: SharePrice, company_capi
 
 action CommitToAcquisition(company_capitalization: PosShareCnt) transitions to AfterCommitToAcquisition
     following situation:
-        Investor quasi-responsibility ChooseConvertToCommonStock(company_capitalization) discretionary
-        Investor quasi-responsibility ChooseMultipleRepayment discretionary
+        Breach_Investor (next_event_td == (520w + 1d))
+        Investor may ChooseConvertToCommonStock(company_capitalization) discretionary
+        Investor may ChooseMultipleRepayment discretionary
 
 action ChooseMultipleRepayment()  transitions to Fulfilled:
     transform:
@@ -90,9 +91,10 @@ action ChooseConvertToCommonStock(company_capitalization: PosShareCnt) transitio
 
 action ReachMaturity()  transitions to AfterReachMaturity
     following situation:
+        Breach_Investor (next_event_td == (520w + 1d))
         if DEBT_VERSION:
-            Investor quasi-responsibility ChooseConversionToSeriesSeedPreferredStock(?1) discretionary
-        Investor quasi-responsibility ChooseMaturityRepayment discretionary
+            Investor may ChooseConversionToSeriesSeedPreferredStock(?1) discretionary
+        Investor may ChooseMaturityRepayment discretionary
 
 action ChooseMaturityRepayment()  transitions to Fulfilled:
     transform:

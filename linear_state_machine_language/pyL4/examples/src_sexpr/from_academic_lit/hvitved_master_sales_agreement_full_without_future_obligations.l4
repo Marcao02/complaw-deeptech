@@ -106,9 +106,6 @@
 			)
 			(if (nonempty 2Bdelivered)
 				; lang note: the `where (mapHas  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
-				; the static analyzer will check whether the constraint is solvable, and will issue a warning if not (since in this
-				; case that means there's an unfulfillable obligation).
-				; (Vendor quasi-responsibility (Deliver ?order) (when tdGEQ 2Bdelivered ?order next_event_td) (where (mapHas 2Bdelivered ?order)))
 				(Vendor may (Deliver ?order) (when tdGEQ 2Bdelivered ?order next_event_td) (where (mapHas 2Bdelivered ?order)))
 				(Breach_Vendor (when tdmapHasItemExpiredBefore 2Bdelivered next_event_td))
 			)
@@ -116,7 +113,6 @@
 				(Vendor may (EmailInvoice ?order) (when tdGEQ 2Binvoiced ?order next_event_td) (where (mapHas 2Binvoiced ?order)))
 			)
 			(if (nonempty 2Bpaid)
-				; (Customer quasi-responsibility (PayBill ?order) (when tdGEQ 2Bpaid ?order next_event_td) (where (mapHas 2Bpaid ?order)))
 				(Customer may (PayBill ?order) (when tdGEQ 2Bpaid ?order next_event_td) (where (mapHas 2Bpaid ?order)))
 				(Breach_Customer (when tdmapHasItemExpiredBefore 2Bpaid next_event_td))
 			)

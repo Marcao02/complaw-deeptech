@@ -30,14 +30,15 @@ state vars:
     writeatmostonce dis_cashout : $
 
 situation InvestorInvests:
-    Company quasi-responsibility CommitToDissolution no_time_constraint
-    Company quasi-responsibility CommitToEquityFinancing no_time_constraint
-    Company quasi-responsibility CommitToLiquidityEvent(?1, ?company_cash, ?3, ?reduction) no_time_constraint where (?reduction < ?company_cash)
+    Company may CommitToDissolution no_time_constraint
+    Company may CommitToEquityFinancing no_time_constraint
+    Company may CommitToLiquidityEvent(?1, ?company_cash, ?3, ?reduction) no_time_constraint where (?reduction < ?company_cash)
+    Breach_Company discretionary
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
-        Company quasi-responsibility DeliverDocsWithPRA discretionary
-        Company quasi-responsibility DeliverDocsWithoutPRA discretionary
+        Company may DeliverDocsWithPRA discretionary
+        Company may DeliverDocsWithoutPRA discretionary
 
 action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
     following situation:
@@ -85,7 +86,8 @@ action CommitToLiquidityEvent(change_of_control: Bool, company_cash_at_liquidity
             cash_currently_unconverted := PURCHASE_AMOUNT
 
     following situation:
-        Company quasi-responsibility AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
+        Company may AutoChooseStockPayment (next_event_td == (situationEntrance_td + 1w))
+        Breach_Company (next_event_td == ((situationEntrance_td + 1w) + 1d))
         Investor may ChooseCashPayment (next_event_td < (situationEntrance_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (situationEntrance_td + 1w))
 
