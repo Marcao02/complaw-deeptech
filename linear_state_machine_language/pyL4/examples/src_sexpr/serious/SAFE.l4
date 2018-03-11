@@ -86,7 +86,7 @@
 			(Company may (CommitToLiquidityEvent ?1 ?company_cash ?3 ?reduction)
 				(where (?reduction < ?company_cash) ) ) ; IPO
 			(Company may CommitToDissolution )
-			(Breach_Company discretionary)
+			; (Breach_Company discretionary) ; actually company can remain in current state forever.
 		)
 	)
 

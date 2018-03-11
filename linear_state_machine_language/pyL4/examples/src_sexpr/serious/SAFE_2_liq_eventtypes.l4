@@ -82,7 +82,7 @@
 			(Company may (CommitToLiquidityEvent ?1 ?2)) ; IPO
 			(Company may (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3)) ; IPO
 			(Company may CommitToDissolution)
-			(Breach_Company discretionary)
+			; (Breach_Company discretionary) ; actually company can remain in current state forever.
 		)
 	)
 

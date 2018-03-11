@@ -23,7 +23,7 @@
 ; New L4 features needed:
 ; <RoleId>.funds - the value of the funds at the address of the actor with the given role id, and
 ;                  compile error if it is posible to have more than one actor with that role. As of 10 mar 2018
-;                  the L4 never allows more than one actor with the same role, but that would probably be necessary
+;                  pyL4 doesn't support more than one actor with the same role, but that would probably be necessary
 ;                  for blockchain applications.
 ;
 ; $sentval - defined in a PayInAction or PayInOutAction, the value of the funds sent as part of the transaction
