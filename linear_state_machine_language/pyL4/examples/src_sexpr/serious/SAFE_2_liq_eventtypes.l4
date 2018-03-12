@@ -79,8 +79,8 @@
 	(Situation InvestorInvests
 		(Next
 			(Company may CommitToEquityFinancing)
-			(Company may (CommitToLiquidityEvent ?1 ?2)) ; IPO
-			(Company may (CommitToLiquidityEventWithCoCTaxFreeReorg ?1 ?2 ?3)) ; IPO
+			(Company may (CommitToIPO ?1 ?2)) ; IPO
+			(Company may (CommitToChangeOfControl ?1 ?2 ?3)) ; IPO
 			(Company may CommitToDissolution)
 			; (Breach_Company discretionary) ; actually company can remain in current state forever.
 		)
@@ -116,7 +116,8 @@
 			; TODO: Obviously this shouldn't be a *must*, since they ought to be
 			; able to send it back with proposed amendments/corrections.
 			; That seems like something we should have a reusable module for.
-			(Next (Investor must SignPRA discretionary))  )
+			(Next (Investor must SignPRA discretionary))
+		)
 	)
 
 	(Action SignPRA (AllowedSubjects Investor)
@@ -144,7 +145,7 @@
 
 	; ----------------- Liquidity Event -------------------
 
-	(Action (CommitToLiquidityEvent (company_cash_at_liquidity_event:$)
+	(Action (CommitToIPO (company_cash_at_liquidity_event:$)
 								    (liquidity_capitalization:PosShareCnt)
 			) (AllowedSubjects Company)
 		(StateTransform
@@ -157,6 +158,7 @@
 
 		(FollowingSituation
 			(Next
+				; 1W is totally made up by Dustin!
 				(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
 				(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
 				(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
@@ -165,7 +167,7 @@
 		)
 	)
 
-	(Action (CommitToLiquidityEventWithCoCTaxFreeReorg
+	(Action (CommitToChangeOfControl
 								    (company_cash_at_liquidity_event:$)
 								    (liquidity_capitalization:PosShareCnt)
 								    (reduction_needed_to_qualify_as_usa_tax_free_reorg : $)
@@ -176,7 +178,7 @@
 			; (investor_percent_of_cashout_investor_investments' = (cast "Fraction(0,1]" ( investor_liq_hypothetical_shares / (liquidity_capitalization + investor_liq_hypothetical_shares) )))
 			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 
-		 	; "In ???? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
+		 	; "In connection with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			(investor_Common_Stocks' += (purchase_amount_reduction round/ liq_price'))
 			(cash_currently_unconverted' = (check $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
@@ -185,6 +187,7 @@
 
 		(FollowingSituation
 			(Next
+				; 1W is totally made up by Dustin!
 				(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
 				(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
 				(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])

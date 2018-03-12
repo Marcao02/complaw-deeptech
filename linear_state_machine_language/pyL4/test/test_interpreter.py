@@ -407,7 +407,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
          "VALUATION_CAP": 10 * M,
          "DISCOUNT_RATE": 1
          },
-        (event('CommitToLiquidityEvent', 'Company', 0, {
+        (event('CommitToIPO', 'Company', 0, {
             'company_cash_at_liquidity_event': 50 * M,
             'liquidity_capitalization': 11.5 * M
         }),
@@ -452,7 +452,7 @@ traces_serious: Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = [
          "VALUATION_CAP": 10 * M,
          "DISCOUNT_RATE": 1
          },
-        (event('CommitToLiquidityEvent', 'Company', 0, {
+        (event('CommitToIPO', 'Company', 0, {
             'company_cash_at_liquidity_event': 50 * M,
             'liquidity_capitalization': 11.5 * M,
         }),

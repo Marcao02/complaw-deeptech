@@ -33,7 +33,6 @@ situation InvestorInvests:
     Company may CommitToDissolution no_time_constraint
     Company may CommitToEquityFinancing no_time_constraint
     Company may CommitToLiquidityEvent(?1, ?company_cash, ?3, ?reduction) no_time_constraint where (?reduction < ?company_cash)
-    Breach_Company discretionary
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:

@@ -30,11 +30,10 @@ state vars:
     writeatmostonce dis_cashout : $
 
 situation InvestorInvests:
+    Company may CommitToChangeOfControl(?1, ?2, ?3) no_time_constraint
     Company may CommitToDissolution no_time_constraint
     Company may CommitToEquityFinancing no_time_constraint
-    Company may CommitToLiquidityEvent(?1, ?2) no_time_constraint
-    Company may CommitToLiquidityEventWithCoCTaxFreeReorg(?1, ?2, ?3) no_time_constraint
-    Breach_Company discretionary
+    Company may CommitToIPO(?1, ?2) no_time_constraint
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
@@ -70,7 +69,7 @@ action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_val
 
 action DoEquityFinancing()  transitions to Fulfilled
 
-action CommitToLiquidityEvent(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt) transitions to AfterCommitToLiquidityEvent:
+action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt) transitions to AfterCommitToIPO:
     transform:
         liq_price := (VALUATION_CAP / liquidity_capitalization)
         investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ liq_price')
@@ -83,7 +82,7 @@ action CommitToLiquidityEvent(company_cash_at_liquidity_event: $, liquidity_capi
         Investor may ChooseCashPayment (next_event_td < (situation_entrance_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (situation_entrance_td + 1w))
 
-action CommitToLiquidityEventWithCoCTaxFreeReorg(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToLiquidityEventWithCoCTaxFreeReorg:
+action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToChangeOfControl:
     transform:
         liq_price := (VALUATION_CAP / liquidity_capitalization)
         investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ liq_price')
