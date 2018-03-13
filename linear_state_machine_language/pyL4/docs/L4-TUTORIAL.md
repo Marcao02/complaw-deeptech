@@ -19,10 +19,9 @@ The main components of an L4 contract are:
 - **State**. Real world events change the state of the world. L4 events change the software representation of the (tiny) part of the state of the world that a contract models. That representation is an assignment of data values -numbers, strings, dates, durations, lists, etc- to a set of *state variables*.  
 Each state variable has a type, which as usual restricts the set of values it is allowed to have assigned to it. L4 lets you use some types not often found in programming languages, such as currencies, rates (e.g. price of a stock), and some commonly-useful rational number intervals such as (0,1), [0,1), [0,1]. The type system, sometimes with the help of an SMT solver, allows you to prove that all division operations are well defined, that subtraction operations you intend to never result in negative numbers indeed have that property, etc.
 - **Action Rules**. These are rules that govern, as a function of the contract state, which actions by which actors may or must be performed next.
-- **Situations**. These are, in a a technical sense, a superfluous feature of the language[^sitsuperfluous], but they are very useful for organizing large contracts. A coarse but informative view of an execution of an L4 contract (called a **trace**) is a sequence alternating between situation names and action names. A contract defines a finite set of situations. Situations in tutorialSAFE.l4 include `InvestorInvests` and `After_ChooseCashPayment`. The first is named explicitly [see `(Situation InvestorInvests ...)`]. The second has it's name derived from an explicitly-named Action called `ChooseCashPayment` [see `(Action ChooseCashPayment ...)`]. `InvestorInvests` is the *start situation* - the contract always starts there.  
+- **Situations**. These are, in a a technical sense, a superfluous feature of the language,¹ but they are very useful for organizing large contracts. A coarse but informative view of an execution of an L4 contract (called a **trace**) is a sequence alternating between situation names and action names. A contract defines a finite set of situations. Situations in tutorialSAFE.l4 include `InvestorInvests` and `After_ChooseCashPayment`. The first is named explicitly [see `(Situation InvestorInvests ...)`]. The second has it's name derived from an explicitly-named Action called `ChooseCashPayment` [see `(Action ChooseCashPayment ...)`]. `InvestorInvests` is the *start situation* - the contract always starts there.  
 
-
-[^sitsuperfluous]: An L4 Contract with N `Situation` declarations can always be converted into one with 1 `Situation` and a new state variable whose type is an N-valued Enum. (except that I haven't gotten around to implementing Enums...)
+> ¹ An L4 Contract with N `Situation` declarations can always be converted into one with 1 `Situation` and a new state variable whose type is an N-valued Enum... except that I haven't gotten around to implementing Enums.
 
 Let's go into tutorialSAFE.l4 now.
 
@@ -50,9 +49,9 @@ The next section lets you introduce some untyped, argumentless macros. There is 
 		(VALCAP_STRICT_UPPERBOUND = 9e20)
 	)
 
-The next section makes clear that an L4 contract is really a *contract template*. It corresponds to the blanks you need to fill in a normal contract. Each contract parameter has a default value, which of course can and should be overwritten in applications and tests. Note `"Fraction(0,1]"` is another predefined type.[^quotes] The type of `VALUATION_CAP` should really be `(Option Pos$)`, but I haven't gotten around to implementing the Option type constructor yet.
-
-[^quotes]: The reason it has quotes around it is that L4's current parser is essentially a generic S-expression parser, and the bracket symbols are among the few symbols that have special meaning in the language of S-expressions.
+The next section makes clear that an L4 contract is really a *contract template*. It corresponds to the blanks you need to fill in a normal contract. Each contract parameter has a default value, which of course can and should be overwritten in applications and tests. Note `"Fraction(0,1]"` is another predefined type.² The type of `VALUATION_CAP` should really be `(Option Pos$)`, but I haven't gotten around to implementing the Option type constructor yet.
+  
+> ² The reason it has quotes around it is that L4's current parser is essentially a generic S-expression parser, and the bracket symbols are among the few symbols that have special meaning in the language of S-expressions].
 
 	(ContractParams
 		(PURCHASE_AMOUNT : Pos$ = 100000)
