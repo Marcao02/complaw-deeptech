@@ -1,25 +1,11 @@
-; Should these 4 terms just be natural numbers?
-; `Common Stock` ⊆ `Capital Stock`
-; `Preferred Stock` ⊆ `Capital Stock`
-
-; `Common Stock` + `Preferred Stock` ≤ `Capital Stock`
-
-; `Company Capitalization` : Nat
-; `Conversion Price` := min(`Safe Price`, `Discount Price`)
-
-; `EquityFinancingPrice` : Nat
-
-(Roles Investor Company)
-
+(Actors Investor Company)
 (TimeUnit d)
 
-(SortDefinitions
+(TypeDefinitions
 	($ := (Dimensioned NonnegReal "$"))
-	; (Pos$ := (Dimensioned PosReal "Pos$"))
 	(Pos$ := (Dimensioned PosReal "$"))
 
 	(ShareCnt = (Dimensioned Nat "shares"))
-	; (PosShareCnt' = (Dimensioned PosInt "PosShareCnt"))
 	(PosShareCnt = (Dimensioned PosInt "shares"))
 
 	(SharePrice = (Ratio $ PosShareCnt))
@@ -54,22 +40,15 @@
 	(writeAtMostOnce discount_price : SharePrice)
 	(writeAtMostOnce conversion_price : SharePrice)
 	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : SharePrice)
-	; don't need this because only used by the action that introduces it:
-	; (writeAtMostOnce company_capitalization : Nat)
 
 	; for Liquidity
 	(writeAtMostOnce liq_price : SharePrice )
 	(writeAtMostOnce liq_cashout : $ = 0 )
 	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
 	(writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt)
-	; (writeAtMostOnce liquidity_capitalization : Nat)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
 	(writeAtMostOnce investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
-	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need to store. action param only
-	; (writeAtMostOnce reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ; action param only
 
 	; for Dissolution
-	; (company_cash_at_dissolution_event : $) ; action param only
-	; (investor_percent_of_dissolving_investor_investments : %)  ; action param only
 	(writeAtMostOnce dis_cashout : $)
 )
 
@@ -79,7 +58,7 @@
 )
 
 (FormalContract "SAFE"
-	; apply to all actions and states:
+	; todo: apply to all actions and states:
 	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 
 	(StartSituation InvestorInvests)
@@ -161,49 +140,12 @@
 			(company_cash' = company_cash_at_liquidity_event)
 			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ liq_price'))
-			; possible Z3 generated problem for following cast (which Z3 does prove unsat)
-			; NOTE: no longer have a proof obligation here, since introducing `fraction-of-sum`
-			; (declare-const investor_liq_hypothetical_shares Int)
-			; (declare-const liquidity_capitalization Int)
-			; (assert (>= investor_liq_hypothetical_shares 0))
-			; (assert (> liquidity_capitalization 0))
-			; (declare-const investor_percent_of_cashout_investor_investments Real)
-			; (assert (= investor_percent_of_cashout_investor_investments (/ investor_liq_hypothetical_shares (+ liquidity_capitalization investor_liq_hypothetical_shares))))
-			; (assert (not (and (>= investor_percent_of_cashout_investor_investments 0) (<= investor_percent_of_cashout_investor_investments 1))))
-			; (check-sat)
-			; Another approach using (an unorthodox version of) dependent types:
-			; / : ∀x:PosNat. ∀y:PosNat. {x} -> {(y + x)} -> (0,1)
-			; Or (using unambiguous but confusing mix of styles)
-			; / : ∀y:PosNat. Πx:PostNat. {(y+x)} -> (0,1)
-			; Or ∀x:PosNat. {x} -> (GEQ x) -> (0,1]
 			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 			(if  (change_of_control and (reduction_needed_to_qualify_as_usa_tax_free_reorg > ($ 0))) (
-			 	; "In ??? with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of Shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
 			 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 				(if (purchase_amount_reduction ≤ PURCHASE_AMOUNT) (
-					; * : [0,1] -> Πx:Nat. (LEQ x)
-					; ≥ : Πx:Real. (LEQ x) -> {true}
-					; Or
-					; * : ∀x:Nat. [0,1] -> {x} -> (LEQ x)
-					; ≥ : ∀x:Real. {x} -> (LEQ x) -> {true}
-					; Or, making clear that {·} is the same kind of thing as LEQ
-					; * : ∀x:Nat. [0,1] -> (Single x) -> (LEQ x)
-					; ≥ : ∀x:Real. (Single x) -> (LEQ x) -> (Single true)
 				 	(investor_Common_Stocks' += (purchase_amount_reduction round/ liq_price'))
-				 	; - : Πx:Nat. (LEQ x) -> Nat
-				 	; or z3:
-				 	; ; From type of reduction_needed_to_qualify_as_usa_tax_free_reorg:
-				 	; (declare-const reduction_needed_to_qualify_as_usa_tax_free_reorg Real)
-				 	; (assert (>= reduction_needed_to_qualify_as_usa_tax_free_reorg 0)
-				 	; ; From type of company_cash_at_liquidity_event:
-				 	; (declare-const company_cash_at_liquidity_event Real)
-				 	; (assert (>= company_cash_at_liquidity_event 0)
-				 	; ; From Precondition:
-				 	; (assert (<= reduction_needed_to_qualify_as_usa_tax_free_reorg company_cash_at_liquidity_event))
-				 	; ; Negation of cast correctness:
-				 	; (assert (not (>= (- company_cash_at_liquidity_event reduction_needed_to_qualify_as_usa_tax_free_reorg) 0)))
 					(cash_currently_unconverted' = (check $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
-					; WRONG: (company_cash' = (cast $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 				)
 				else (
 					(investor_Common_Stocks' += (PURCHASE_AMOUNT round/ liq_price'))
@@ -224,7 +166,6 @@
 				(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
 				(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
 				(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
-				; (Breach_Company [when next_event_td == ((situation_entrance_td + 1W) + 1D)])
 				(Breach_Company [after (situation_entrance_td + 1W)])
 			)
 		)
@@ -239,9 +180,10 @@
 	)
 
 	(Action TransferCommonStock (AllowedSubjects Company)
+		; Moved this to `Invariants` section:
 		; (Pre (liq_cashout ≤ cash_currently_unconverted))
 		(StateTransform
-			; should we round that division up, down, or to nearest?
+			; Note that round-to-nearest is used.
 			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
 		)
 		(FollowingSituation
@@ -301,8 +243,6 @@
 		)
 
 		(FollowingSituation
-			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
-			; because that's a requirement of the semantics, and thus will be checked automatically.
 			(Next
 				(if (dis_cashout' < PURCHASE_AMOUNT)
 					(Company must (TransferAssets ?1) discretionary)  )
@@ -313,6 +253,7 @@
 	)
 
 	(Action (TransferAssets (liquidity_capitalization:PosShareCnt))
+		; Moved to `Invariants` section:
 		; (Pre (dis_cashout ≤ PURCHASE_AMOUNT))
 		(AllowedSubjects Company)
 		(StateTransform

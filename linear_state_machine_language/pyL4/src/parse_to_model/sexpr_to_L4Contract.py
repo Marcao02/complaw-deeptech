@@ -119,7 +119,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 # assert all(isinstance(expr[0],str) for expr in rem)
                 self.top.contract_params = {castid(ContractParamId,expr[0]) : self._mk_contract_param(expr) for expr in rem}
 
-            elif head(ROLES_DEC_LABEL):
+            elif head(ROLES_DEC_LABEL) or head("Actors"):
                 self.top.roles.extend(self._mk_actors(rem))
 
             elif head(PROSE_CONTRACT_AREA_LABEL):
@@ -129,10 +129,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self._mk_main_program_area(rem)
 
             elif head(TIMEUNIT_DEC_LABEL):
-                self.top.timeunit = chcaststr(x[1]).lower()
-                self.assertOrSyntaxError( self.top.timeunit in SUPPORTED_TIMEUNITS, x, f"{TIMEUNIT_DEC_LABEL} must be one of {str(SUPPORTED_TIMEUNITS)}")
+                given = chcaststr(x[1]).lower()
+                self.assertOrSyntaxError(
+                    given in SUPPORTED_TIMEUNITS or given in LONGFORMS_OF_SUPPORTED_TIMEUNITS, x,
+                    f"{TIMEUNIT_DEC_LABEL} must be one of {SUPPORTED_TIMEUNITS} or {list(LONGFORMS_OF_SUPPORTED_TIMEUNITS.values())}")
+                if given in SUPPORTED_TIMEUNITS:
+                    self.top.timeunit = given
+                else:
+                    self.top.timeunit = LONGFORMS_OF_SUPPORTED_TIMEUNITS[given]
 
-            elif head(SORT_DEFINITIONS_AREA):
+            elif head(SORT_DEFINITIONS_AREA) or head("TypeDefinitions"):
                 self._mk_sort_definitions(rem)
 
             elif head(DEFINITIONS_AREA):

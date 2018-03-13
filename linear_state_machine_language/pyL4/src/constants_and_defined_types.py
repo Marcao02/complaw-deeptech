@@ -103,6 +103,7 @@ FORMAL_CONTRACT_AREA_LABEL = "FormalContract"
 ROLES_DEC_LABEL = "Roles"
 TIMEUNIT_DEC_LABEL = "TimeUnit"
 SUPPORTED_TIMEUNITS = ['w','d','h','m','s']
+LONGFORMS_OF_SUPPORTED_TIMEUNITS = {'weeks':'w','days':'d','hours':'h','minutes':'m','seconds':'s'}
 MACRO_DEC_LABEL = "Macro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"
 TOPLEVEL_CLAIMS_AREA_LABEL = "Claims"

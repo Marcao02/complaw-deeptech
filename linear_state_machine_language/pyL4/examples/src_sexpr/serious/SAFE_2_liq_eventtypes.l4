@@ -22,9 +22,13 @@
 	(PosSharePrice = (Ratio Pos$ PosShareCnt))
 )
 
+(Definitions
+	(VALCAP_STRICT_UPPERBOUND = 9e20)
+)
+
 (ContractParams
 	(PURCHASE_AMOUNT : Pos$ = 100000)
-	(VALUATION_CAP : Pos$ = 1000000000000)
+	(VALUATION_CAP : Pos$ = VALCAP_STRICT_UPPERBOUND)
 	(DISCOUNT_RATE : "Fraction(0,1]" = 1)
 	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
@@ -32,7 +36,7 @@
 )
 
 (StateVars
-	(has_cap : Bool = (VALUATION_CAP < (Pos$ 1000000000000)))
+	(has_cap : Bool = (VALUATION_CAP < (Pos$ VALCAP_STRICT_UPPERBOUND)))
 	(has_discount : Bool = (DISCOUNT_RATE < 1))
 
 	(writeAtMostOnce investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
