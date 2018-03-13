@@ -19,7 +19,7 @@
 (StateVars
 	(nonoperative buyer_paid : Nat := 0)
 	(nonoperative seller_refunded : Nat := 0)
-	(writeonce delivery_date : TimeDelta)
+	(writes1 delivery_date : TimeDelta)
 )
 
 (ProseContract

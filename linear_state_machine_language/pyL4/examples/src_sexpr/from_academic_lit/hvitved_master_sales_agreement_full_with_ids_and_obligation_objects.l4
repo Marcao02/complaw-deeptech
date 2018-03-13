@@ -74,7 +74,7 @@
 [StateVars
     [ inconly next_order_id : Nat = 0 ]
     [ inconly units_ordered : Nat = 0 ]
-    [ writeonce order_period_ends : TimeDelta = [contractStart_td + CONTRACT_LIFE]]
+    [ writes1 order_period_ends : TimeDelta = [contractStart_td + CONTRACT_LIFE]]
 
     ; `nonoperative` instructs our static checker to verify that these
     ; variables cannot affect program execution. They would only be used

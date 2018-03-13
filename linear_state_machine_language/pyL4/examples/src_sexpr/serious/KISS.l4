@@ -42,7 +42,7 @@
 
 	(company_cash : $ = START_COMPANY_CASH)
 
-	(writeAtMostOnce pay_interest_in_cash : Bool = false)
+	(writes≤1 pay_interest_in_cash : Bool = false)
 )
 
 

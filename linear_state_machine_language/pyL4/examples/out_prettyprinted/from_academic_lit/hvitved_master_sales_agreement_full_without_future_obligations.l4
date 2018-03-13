@@ -9,7 +9,7 @@ contract params:
     PRICE_PER_UNIT : $ := 100
 
 state vars:
-    writeonce order_period_ends : TimeDelta := CONTRACT_LIFE
+    writes1 order_period_ends : TimeDelta := CONTRACT_LIFE
     furthest_invoice_deadline : TimeDelta := 0d
     inconly next_order_id : Nat := 0
     2Bdelivered : TDMap_Order := (emptyTDMap )

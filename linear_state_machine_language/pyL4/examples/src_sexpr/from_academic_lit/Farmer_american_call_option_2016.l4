@@ -21,10 +21,10 @@
 )
 
 (StateVars
-	(writeonce seller_funds : $)
-	(writeonce buyer_funds : $)
-	(writeAtMostOnce buyer_final_shares : ShareCnt)
-	(writeAtMostOnce seller_final_shares : ShareCnt)
+	(writes1 seller_funds : $)
+	(writes1 buyer_funds : $)
+	(writes≤1 buyer_final_shares : ShareCnt)
+	(writes≤1 seller_final_shares : ShareCnt)
 )
 
 (FormalContract

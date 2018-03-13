@@ -14,20 +14,20 @@ contract params:
 state vars:
     has_cap : Bool := (VALUATION_CAP < (units Pos$ 1000000000000))
     has_discount : Bool := (DISCOUNT_RATE < 1)
-    writeatmostonce investor_Common_Stocks : ShareCnt := START_INVESTOR_COMMON_STOCKS
-    writeatmostonce investor_SAFE_Preferred_Stocks : ShareCnt := START_INVESTOR_SAFE_PREFERRED_STOCKS
-    writeatmostonce investor_cash : $ := START_INVESTOR_CASH
+    writes≤1 investor_Common_Stocks : ShareCnt := START_INVESTOR_COMMON_STOCKS
+    writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt := START_INVESTOR_SAFE_PREFERRED_STOCKS
+    writes≤1 investor_cash : $ := START_INVESTOR_CASH
     cash_currently_unconverted : $ := PURCHASE_AMOUNT
-    writeatmostonce safe_price : SharePrice
-    writeatmostonce discount_price : SharePrice
-    writeatmostonce conversion_price : SharePrice
-    writeatmostonce initial_price_per_share_standard_preferred_stock : SharePrice
-    writeatmostonce liq_price : SharePrice
-    writeatmostonce liq_cashout : $ := 0
-    writeatmostonce company_cash : $
-    writeatmostonce investor_liq_hypothetical_shares : ShareCnt
-    writeatmostonce investor_percent_of_cashout_investor_investments : Fraction[0,1)
-    writeatmostonce dis_cashout : $
+    writes≤1 safe_price : SharePrice
+    writes≤1 discount_price : SharePrice
+    writes≤1 conversion_price : SharePrice
+    writes≤1 initial_price_per_share_standard_preferred_stock : SharePrice
+    writes≤1 liq_price : SharePrice
+    writes≤1 liq_cashout : $ := 0
+    writes≤1 company_cash : $
+    writes≤1 investor_liq_hypothetical_shares : ShareCnt
+    writes≤1 investor_percent_of_cashout_investor_investments : Fraction[0,1)
+    writes≤1 dis_cashout : $
 
 situation InvestorInvests:
     Company may CommitToDissolution no_time_constraint

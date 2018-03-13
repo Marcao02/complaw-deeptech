@@ -34,7 +34,7 @@ AParamsSubst = List[Data]
 ABAPSubst = List[Data]
 RBAPSubst = List[Data]
 
-VARIABLE_MODIFIERS = {'writeonce', 'writeonly', 'writeatmostonce',
+VARIABLE_MODIFIERS = {'writeonce', 'writes1', 'writeonly', 'writeatmostonce', 'writes≤1',
                       'writeoncemore', 'inconly', 'deconly',
                       'readonly', 'branchunaffecting',
                       'reactive', 'nonoperative'}

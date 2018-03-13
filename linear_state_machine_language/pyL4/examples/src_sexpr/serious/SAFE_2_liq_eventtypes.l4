@@ -39,34 +39,34 @@
 	(has_cap : Bool = (VALUATION_CAP < (Pos$ VALCAP_STRICT_UPPERBOUND)))
 	(has_discount : Bool = (DISCOUNT_RATE < 1))
 
-	(writeAtMostOnce investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
-	(writeAtMostOnce investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
-	(writeAtMostOnce investor_cash : $ = START_INVESTOR_CASH )
+	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
+	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
 
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
 	; for Equity Financing
-	(writeAtMostOnce safe_price : SharePrice)
-	(writeAtMostOnce discount_price : SharePrice)
-	(writeAtMostOnce conversion_price : SharePrice)
-	(writeAtMostOnce initial_price_per_share_standard_preferred_stock : SharePrice)
+	(writes≤1 safe_price : SharePrice)
+	(writes≤1 discount_price : SharePrice)
+	(writes≤1 conversion_price : SharePrice)
+	(writes≤1 initial_price_per_share_standard_preferred_stock : SharePrice)
 	; don't need this because only used by the action that introduces it:
-	; (writeAtMostOnce company_capitalization : Nat)
+	; (writes≤1 company_capitalization : Nat)
 
 	; for Liquidity
-	(writeAtMostOnce liq_price : SharePrice )
-	(writeAtMostOnce liq_cashout : $ = 0 )
-	(writeAtMostOnce company_cash : $) ; maybe this should be an input.
-	(writeAtMostOnce investor_liq_hypothetical_shares : ShareCnt)
-	; (writeAtMostOnce liquidity_capitalization : Nat)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
-	(writeAtMostOnce investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
-	; (writeAtMostOnce company_cash_at_liquidity_event : $) ; don't need to store. action param only
-	; (writeAtMostOnce reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ; action param only
+	(writes≤1 liq_price : SharePrice )
+	(writes≤1 liq_cashout : $ = 0 )
+	(writes≤1 company_cash : $) ; maybe this should be an input.
+	(writes≤1 investor_liq_hypothetical_shares : ShareCnt)
+	; (writes≤1 liquidity_capitalization : Nat)  ; don't need to store this. used by two actions, but they can't both occur in one trace.
+	(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
+	; (writes≤1 company_cash_at_liquidity_event : $) ; don't need to store. action param only
+	; (writes≤1 reduction_needed_to_qualify_as_usa_tax_free_reorg : $) ; action param only
 
 	; for Dissolution
 	; (company_cash_at_dissolution_event : $) ; action param only
 	; (investor_percent_of_dissolving_investor_investments : %)  ; action param only
-	(writeAtMostOnce dis_cashout : $)
+	(writes≤1 dis_cashout : $)
 )
 
 (Invariants
@@ -84,7 +84,7 @@
 		(Next
 			(Company may CommitToEquityFinancing)
 			(Company may (CommitToIPO ?1 ?2)) ; IPO
-			(Company may (CommitToChangeOfControl ?1 ?2 ?3)) ; IPO
+			(Company may (CommitToChangeOfControl ?1 ?2 ?3))
 			(Company may CommitToDissolution)
 			; (Breach_Company discretionary) ; actually company can remain in current state forever.
 		)

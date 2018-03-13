@@ -10,10 +10,10 @@ contract params:
     SELLER_START_SHARES : PosShareCnt := 1
 
 state vars:
-    writeonce seller_funds : $
-    writeonce buyer_funds : $
-    writeatmostonce buyer_final_shares : ShareCnt
-    writeatmostonce seller_final_shares : ShareCnt
+    writes1 seller_funds : $
+    writes1 buyer_funds : $
+    writes≤1 buyer_final_shares : ShareCnt
+    writes≤1 seller_final_shares : ShareCnt
 
 situation BeforeOptionPurchase:
     Buyer must PaySellerForOption (next_event_dt == 2015-06-30 00:00:00)

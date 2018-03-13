@@ -1,6 +1,6 @@
 Welcome to the L4 tutorial. (todo encourage feedback etc)
 
-This will teach you how to use the current implementation of L4, by way of writing a simplified version of Y-Combinator's Simple Agreement for Future Financing. The full version can be found in github. (todo link)
+This will teach you how to use the current implementation of L4, by way of writing a simplified version of Y-Combinator's Simple Agreement for Future Financing. The full version can be found in github (todo link).
 
 Please be aware that you won't be using a carefully-designed concrete syntax. Instead, you'll be using a carefully-designed abstract syntax, which is written in a fully-parenthesized language (like LISP). A nicer looking and slightly-more-concise concrete syntax, with a lot less parentheses, will come later. There are good reasons for delaying it now, which I won't get into. On the other hand, there is one good reason for *not* delaying it, which is that most programmers find fully-parenthesized languages off-putting.
 
@@ -63,8 +63,36 @@ The next section makes clear that an L4 contract is really a *contract template*
 		(START_INVESTOR_CASH : $ = 0)
 	)  
 
+We have a larger section next, which introduces all the state variables, and gives some of them initial values. 
 
+**Note that unicode is never necessary**. You can write `writeAtMostOnce` instead of `writes≤1`, for example.
 
+	(StateVars
+		(has_cap : Bool = (VALUATION_CAP < (Pos$ VALCAP_STRICT_UPPERBOUND)))
+		(has_discount : Bool = (DISCOUNT_RATE < 1))
+	
+		(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
+		(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+		(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
+	
+		(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
+	
+		; for Equity Financing
+		(writes≤1 safe_price : SharePrice)
+		(writes≤1 discount_price : SharePrice)
+		(writes≤1 conversion_price : SharePrice)
+		(writes≤1 initial_price_per_share_standard_preferred_stock : SharePrice)
+	
+		; for Liquidity
+		(writes≤1 liq_price : SharePrice )
+		(writes≤1 liq_cashout : $ = 0 )
+		(writes≤1 company_cash : $)       ; maybe this should be in ContractParams.
+		(writes≤1 investor_liq_hypothetical_shares : ShareCnt)
+		(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
+	
+		; for Dissolution
+		(writes≤1 dis_cashout : $)
+	)
 
 
 

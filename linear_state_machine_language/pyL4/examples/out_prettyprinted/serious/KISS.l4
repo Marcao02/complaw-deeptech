@@ -22,7 +22,7 @@ state vars:
     investor_PreferredStock : ShareCnt := START_INVESTOR_PREFERRED_STOCK
     investor_SeriesSeedPreferredStock : ShareCnt := START_INVESTOR_SERIES_SEED_PREFERRED_STOCK
     company_cash : $ := START_COMPANY_CASH
-    writeatmostonce pay_interest_in_cash : Bool := False
+    writes≤1 pay_interest_in_cash : Bool := False
 
 situation InvestorInvests:
     Company may CommitToAcquisition(?1) (next_event_td < (situation_entrance_td + TIME_TILL_MATURITY))

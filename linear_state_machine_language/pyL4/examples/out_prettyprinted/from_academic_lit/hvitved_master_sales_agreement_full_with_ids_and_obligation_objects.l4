@@ -11,7 +11,7 @@ contract params:
 state vars:
     inconly next_order_id : Nat := 0
     inconly units_ordered : Nat := 0
-    writeonce order_period_ends : TimeDelta := (contractStart_td + CONTRACT_LIFE)
+    writes1 order_period_ends : TimeDelta := (contractStart_td + CONTRACT_LIFE)
     nonoperative inconly units_delivered : Nat := 0
     nonoperative inconly units_invoiced : Nat := 0
     nonoperative inconly total_paid : Nat := 0
