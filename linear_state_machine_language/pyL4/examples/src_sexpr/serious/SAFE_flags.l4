@@ -22,44 +22,74 @@
 	(PosSharePrice = (Ratio Pos$ PosShareCnt))
 )
 
-(Macro set_conversion_price (company_capitalization company_valuation)
-	(if HAS_CAP (
-		(if HAS_DISCOUNT (
+; (Macro theprice
+; 	(safe_price' = (VALUATION_CAP / company_capitalization))
+; 	(undiscounted_price_per_share_standard_preferred_stock' = (premoney_valuation / company_capitalization))
+; 	(discount_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
+; 	(conversion_price' = (min safe_price' discount_price'))
+; )
+
+; when there is no cap, typechecking should not even see VALUATION_CAP.
+; and certainly nothing about valuation cap should appear in the NLG.
+; when there is no discount, I COULD rely on partial evaluation to make discount
+; stuff go away, but I could also just use the same tactic I do with cap (`Options` section+ macros).
+; question: does `Options` section + macros better capture intent than making a bunch of
+; parameters and write-once variables of Optional type, and then using partial eval?
+
+(Flags
+	; this section can ONLY have boolean parameters
+	(HAS_CAP : Bool)
+	(HAS_DISCOUNT : Bool)
+)
+
+(Macro (set_conversion_price company_capitalization company_valuation)
+	(ifflag HAS_CAP (
+		(ifflag HAS_DISCOUNT (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
 			(safe_price' = (VALUATION_CAP / company_capitalization))
 			(discount_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
 			(conversion_price' = (min safe_price' discount_price'))
+			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		else (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
 			(safe_price' = (VALUATION_CAP / company_capitalization))
 			(conversion_price' = (min safe_price' undiscounted_price_per_share_standard_preferred_stock'))
+			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		))
 	)
 	else (
-		(if HAS_DISCOUNT (
+		(ifflag HAS_DISCOUNT
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
 			(conversion_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
+			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
+
 		)
-		else (
+		(ifnotflag HAS_DISCOUNT
 			(conversion_price' = (company_valuation / company_capitalization))
-		))
+			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
+		)
 	))
 
 )
 
 (ContractParams
-	(HAS_CAP : Bool = true)
-	(HAS_DISCOUNT : Bool = true)
 	(PURCHASE_AMOUNT : Pos$ = 100000)
-	(DISCOUNT_RATE : "Fraction(0,1]" = .9)
-	(VALUATION_CAP : Pos$ = 100000000)
+	(ifflag HAS_DISCOUNT
+		(DISCOUNT_RATE : "Fraction(0,1]" = .9)
+	)
+	(ifflag HAS_CAP
+		(VALUATION_CAP : Pos$ = 100000000)
+	)
 	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_CASH : $ = 0)
 )
 
 (StateVars
+	(has_cap : Bool = (VALUATION_CAP < (Pos$ VALCAP_STRICT_UPPERBOUND)))
+	(has_discount : Bool = (DISCOUNT_RATE < 1))
+
 	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
 	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
 	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
@@ -67,13 +97,13 @@
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
 	; for Equity and Liquidity
-	; (ifflag HAS_CAP
+	(ifflag HAS_CAP
 		(writes≤1 safe_price : SharePrice)
-	; )
-	; (ifflag HAS_DISCOUNT
+	)
+	(ifflag HAS_DISCOUNT
 		(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
 		(writes≤1 discount_price : SharePrice)
-	; )
+	)
 	(writes≤1 conversion_price : SharePrice)
 
 	; for Equity Financing
@@ -230,7 +260,7 @@
 
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
-			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ conversion_price))
+			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
 		)
 		(FollowingSituation
 			(Next (Company must DoLiquidityEvent discretionary))
@@ -305,7 +335,8 @@
 		(AllowedSubjects Company)
 		(StateTransform
 			(apply-macro set_conversion_price (liquidity_capitalization company_valuation))
-			(investor_Common_Stocks' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
+			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
+			(investor_Common_Stocks' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ liq_price'))
 		)
 		(FollowingSituation  (Next (Company must Dissolve discretionary)))
 	)
