@@ -15,13 +15,15 @@ Things this tutorial deliberately *won't* say much about, which will eventually 
 The main components of an L4 contract are:
 
 - **Actors**. Typically, they are the signatories of the contract. When/if an L4 program is ever deployed as a smart contract, then actors correspond to private keys. For now, your L4 contracts can only have a constant number of actors. 
-- **Actions**/**Events**. Events are how an L4 contracts gets information about the real world. Actions are events deliberately caused and reported by particular actors (possibly to be disputed by other actors). My sending an e-transfer to you would be modeled as an action. My house getting struck by lightning would be modeled as a non-action event. tutorialSAFE.l4 currently uses only one, non-action event, which is among a few pre-defined events: `Breach_Company`.
-- **State**. Real world events change the state of the world. L4 events change the software representation of the (tiny) part of the state of the world that a contract models. That representation is an assignment of data values -numbers, strings, dates, durations, lists, etc- to a set of *state variables*.  
+- **Actions**/**Events**. Events are how an L4 contracts gets information about the real world. Actions are events deliberately caused and reported by particular actors (possibly to be disputed by other actors). My sending an e-transfer to you would be modeled as an action. My house getting struck by lightning would be modeled as a non-action event. tutorialSAFE.l4 currently uses only one, non-action event, which is among a few pre-defined events: `Breach_Company`. Actions may have parameters, e.g. the amount sent in the e-transfer.
+- **Situations**. These are, in a a technical sense, a superfluous feature of the language (you'll see why soon), but they are very useful for organizing large contracts. A contract defines a finite set of situations. The situations in tutorialSAFE.l4 include `InvestorInvests` and `After_ChooseCashPayment`. The first is named explicitly [see `(Situation InvestorInvests ...)`], whereas the second has it's name and properties derived from an explicitly-named Action called `ChooseCashPayment` [see `(Action ChooseCashPayment ...)`].
+`InvestorInvests` is the *start situation* - the contract always starts there.  
+- **State**. Real world events change the world state. L4 events change the software representation of the (tiny) part of the world state that a contract models. That representation is an assignment of data values -numbers, strings, dates, durations, lists, etc- to a set of **state variables**, together with the current time duration since the start of the contract and the current `Situation` (see below).   
 Each state variable has a type, which as usual restricts the set of values it is allowed to have assigned to it. L4 lets you use some types not often found in programming languages, such as currencies, rates (e.g. price of a stock), and some commonly-useful rational number intervals such as (0,1), [0,1), [0,1]. The type system, sometimes with the help of an SMT solver, allows you to prove that all division operations are well defined, that subtraction operations you intend to never result in negative numbers indeed have that property, etc.
-- **Action Rules**. These are rules that govern, as a function of the contract state, which actions by which actors may or must be performed next.
-- **Situations**. These are, in a a technical sense, a superfluous feature of the language,¹ but they are very useful for organizing large contracts. A coarse but informative view of an execution of an L4 contract (called a **trace**) is a sequence alternating between situation names and action names. A contract defines a finite set of situations. Situations in tutorialSAFE.l4 include `InvestorInvests` and `After_ChooseCashPayment`. The first is named explicitly [see `(Situation InvestorInvests ...)`]. The second has it's name derived from an explicitly-named Action called `ChooseCashPayment` [see `(Action ChooseCashPayment ...)`]. `InvestorInvests` is the *start situation* - the contract always starts there.  
-
-> ¹ An L4 Contract with N `Situation` declarations can always be converted into one with 1 `Situation` and a new state variable whose type is an N-valued Enum... except that I haven't gotten around to implementing Enums.
+- **Action Rules**. These are rules that govern, as a function of the contract state, which actions by which actors may or must be performed next. Each action rule belongs to a unique `Situation`.
+ 
+[//]: # "A coarse but informative view of an execution of an L4 contract (called a **trace**) is a sequence alternating between situation names and action names."
+[//]: # "> An L4 Contract with N `Situation` declarations can always be converted into one with one `Situation` and a new state variable whose type is an N-valued Enum... except that I haven't gotten around to implementing Enums."
 
 Let's go into tutorialSAFE.l4 now.
 
@@ -43,15 +45,17 @@ Next, we use some predefined types (`NonnegReal, PosReal, Nat, PosInt`) and some
 		(PosSharePrice = (Ratio Pos$ PosShareCnt))
 	)
 
-The next section lets you introduce some untyped, argumentless macros. There is a declaration type for macros with arguments as well, but neither tutorialSAFE.l4 nor the full SAFE use them. The one definition we use is part of a temporary hack until we have an `Option` type operator.
+The next section lets you introduce some untyped, argumentless macros. There is a declaration type for macros with arguments as well, but neither tutorialSAFE.l4 nor the full SAFE.l4 use them. The one definition used here is part of a temporary hack until we have an `Option` type operator.
 
 	(Definitions
 		(VALCAP_STRICT_UPPERBOUND = 9e20)
 	)
 
-The next section makes clear that an L4 contract is really a *contract template*. It corresponds to the blanks you need to fill in a normal contract. Each contract parameter has a default value, which of course can and should be overwritten in applications and tests. Note `"Fraction(0,1]"` is another predefined type.² The type of `VALUATION_CAP` should really be `(Option Pos$)`, but I haven't gotten around to implementing the Option type constructor yet.
+The next section makes clear that an L4 contract is really a *contract template*. It corresponds to the blanks you need to fill in a normal contract. Each contract parameter has a default value, which of course can and should be overwritten in applications and tests. `"Fraction(0,1]"` is another predefined type.² 
+
+[//]: # "The type of `VALUATION_CAP` should really be `(Option Pos$)`, but I haven't gotten around to implementing the Option type constructor yet."
   
-> ² The reason it has quotes around it is that L4's current parser is essentially a generic S-expression parser, and the bracket symbols are among the few symbols that have special meaning in the language of S-expressions].
+[//]: # "² The reason it has quotes around it is that L4's current parser is essentially a generic S-expression parser, and the bracket symbols are among the few symbols that have special meaning in the language of S-expressions]."
 
 	(ContractParams
 		(PURCHASE_AMOUNT : Pos$ = 100000)
@@ -62,35 +66,30 @@ The next section makes clear that an L4 contract is really a *contract template*
 		(START_INVESTOR_CASH : $ = 0)
 	)  
 
-We have a larger section next, which introduces all the state variables, and gives some of them initial values. 
+We have a larger section next, which introduces all the state variables, and gives some of them initial values. This is the first 
 
-**Note that unicode is never necessary**. You can write `writeAtMostOnce` instead of `writes≤1`, for example.
+[//]: # "There are keywords that you can prepend to a variable declaration, which do not change how the contract executes, but instructs the formal verification engine to verify certain properties. In this contract, most execution `writes≤1`, `branchUnaffecting`, `writeOnce`"
+[//]: # "**Note that unicode is never necessary**; you can write `writeAtMostOnce` instead of `writes≤1`, for example."
+
 
 	(StateVars
-		(has_cap : Bool = (VALUATION_CAP < (Pos$ VALCAP_STRICT_UPPERBOUND)))
-		(has_discount : Bool = (DISCOUNT_RATE < 1))
-	
-		(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
-		(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
-		(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
-	
+		(investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
+		(investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+		(investor_cash : $ = START_INVESTOR_CASH )
 		(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 	
 		; for Equity Financing
-		(writes≤1 safe_price : SharePrice)
-		(writes≤1 discount_price : SharePrice)
-		(writes≤1 conversion_price : SharePrice)
-		(writes≤1 initial_price_per_share_standard_preferred_stock : SharePrice)
+		(safe_price : SharePrice)
+		(discount_price : SharePrice)
+		(conversion_price : SharePrice)
+		(initial_price_per_share_standard_preferred_stock : SharePrice)
 	
 		; for Liquidity
-		(writes≤1 liq_price : SharePrice )
-		(writes≤1 liq_cashout : $ = 0 )
-		(writes≤1 company_cash : $)       ; maybe this should be in ContractParams.
-		(writes≤1 investor_liq_hypothetical_shares : ShareCnt)
-		(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
-	
-		; for Dissolution
-		(writes≤1 dis_cashout : $)
+		(liq_price : SharePrice )
+		(liq_cashout : $ = 0 )
+		(company_cash : $)       ; maybe this should be in ContractParams.
+		(investor_liq_hypothetical_shares : ShareCnt)
+		(investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
 	)
 
 
