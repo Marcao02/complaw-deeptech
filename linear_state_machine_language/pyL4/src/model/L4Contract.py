@@ -53,6 +53,8 @@ class L4Contract:
 
         self.timeunit : str = "d" # default to days
 
+        # self.flags : Optional[Set[str]] = None
+
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output
 

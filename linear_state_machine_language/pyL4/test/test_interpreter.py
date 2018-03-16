@@ -310,10 +310,10 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
 
 
 traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[str, Union[Trace,CompleteTrace], str]] ] = [
-    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
+    ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 5 * M,
-         "DISCOUNT_RATE": 1
+         # "DISCOUNT_RATE": 1
          },
         (event('CommitToEquityFinancing', 'Company', 0),
          event('DeliverDocsWithPRA', 'Company', 0),
@@ -326,10 +326,10 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
         , "Example 1 in SAFE_Primer.rtf"
     ),
 
-    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
+    ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 4 * M,
-         "DISCOUNT_RATE": 1
+         # "DISCOUNT_RATE": 1
          },
         (event('CommitToEquityFinancing', 'Company', 0),
          event('DeliverDocsWithPRA', 'Company', 0),
@@ -342,10 +342,10 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
         "Example 2 in SAFE_Primer.rtf"
     ),
 
-    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
+    ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 8 * M,
-         "DISCOUNT_RATE": 1
+         # "DISCOUNT_RATE": 1
          },
         (event('CommitToEquityFinancing', 'Company', 0),
          event('DeliverDocsWithPRA', 'Company', 0),
@@ -358,53 +358,10 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
         ,"Example 3 in SAFE_Primer.rtf"
     ),
 
-    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 20 * K,
-         "VALUATION_CAP": inf,
-         "DISCOUNT_RATE": .8
-         },
-        (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverDocsWithPRA', 'Company', 0),
-         event('IssueSAFEPreferredStock', 'Company', 0,
-               {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
-         event('DoEquityFinancing', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {"undiscounted_price_per_share_standard_preferred_stock": 2 / 10.5,
-         "discount_price": 0.8 * (2 / 10.5),
-         "investor_SAFE_Preferred_Stocks": 131250})  # primer says 131,578 from rounding price
-        , "Example 8 in SAFE_Primer.rtf"
-    ),
-    #
-    # ("serious/SAFE.l4", CompleteTrace(
-    #     # Example 4 in SAFE_Primer.rtf, if dumb and choose cash payment
-    #     {"PURCHASE_AMOUNT": 100 * K,
-    #      "VALUATION_CAP": 10 * M,
-    #      "DISCOUNT_RATE": 1
-    #      },
-    #     (event('CommitToLiquidityEvent', 'Company', 0, {
-    #         'change_of_control': False,
-    #         'company_cash_at_liquidity_event': 50 * M,
-    #         'liquidity_capitalization': 11.5 * M,
-    #         'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
-    #     }),
-    #
-    #      event('ChooseCashPayment', 'Investor', 0),
-    #      event('TransferCash_L', 'Company', 0),
-    #      # event('TransferCommonStock', 'Company', 0),
-    #      event('DoLiquidityEvent', 'Company', 0)
-    #      ),
-    #     FULFILLED_SITUATION_LABEL,
-    #     {"investor_liq_hypothetical_shares": 115000,
-    #      "investor_Common_Stocks": 0,
-    #      "investor_SAFE_Preferred_Stocks": 0,
-    #      "investor_cash": 100000})
-    # ),
-
-    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
+    ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 10 * M,
-         "DISCOUNT_RATE": 1
+         # "DISCOUNT_RATE": 1
          },
         (event('CommitToIPO', 'Company', 0, {
             'company_cash_at_liquidity_event': 50 * M,
@@ -423,34 +380,12 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
          "investor_SAFE_Preferred_Stocks": 0,
          "investor_cash": 100000}),
         "Example 4 in SAFE_Primer.rtf, if dumb and choose cash payment"
-     ),
+    ),
 
-    #  ("serious/SAFE.l4", CompleteTrace(
-    #     # Example 4 in SAFE_Primer.rtf
-    #     {"PURCHASE_AMOUNT": 100 * K,
-    #      "VALUATION_CAP": 10 * M,
-    #      "DISCOUNT_RATE": 1
-    #      },
-    #     (event('CommitToLiquidityEvent', 'Company', 0, {
-    #         'change_of_control': False,
-    #         'company_cash_at_liquidity_event': 50 * M,
-    #         'liquidity_capitalization': 11.5 * M,
-    #         'reduction_needed_to_qualify_as_usa_tax_free_reorg': 0
-    #     }),
-    #
-    #      event('ChooseStockPayment', 'Investor', 0),
-    #      event('TransferCommonStock', 'Company', 0),
-    #      event('DoLiquidityEvent', 'Company', 0)
-    #      ),
-    #     FULFILLED_SITUATION_LABEL, {
-    #         "investor_Common_Stocks": 115000
-    #     })
-    # ),
-
-    ('serious/SAFE_2_liq_eventtypes.l4', CompleteTrace(
+    ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 10 * M,
-         "DISCOUNT_RATE": 1
+         # "DISCOUNT_RATE": 1
          },
         (event('CommitToIPO', 'Company', 0, {
             'company_cash_at_liquidity_event': 50 * M,
@@ -466,6 +401,24 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
             "investor_Common_Stocks": 115000
         }), "Example 4 in SAFE_Primer.rtf"
     ),
+
+    ('serious/SAFE_discount.l4', CompleteTrace(
+        {"PURCHASE_AMOUNT": 20 * K,
+         # "VALUATION_CAP": inf,
+         "DISCOUNT_RATE": .8
+         },
+        (event('CommitToEquityFinancing', 'Company', 0),
+         event('DeliverDocsWithPRA', 'Company', 0),
+         event('IssueSAFEPreferredStock', 'Company', 0,
+               {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
+         event('DoEquityFinancing', 'Company', 0)
+         ),
+        FULFILLED_SITUATION_LABEL,
+        {"undiscounted_price_per_share_standard_preferred_stock": 2 / 10.5,
+         "conversion_price": 0.8 * (2 / 10.5),
+         "investor_SAFE_Preferred_Stocks": 131250})  # primer says 131,578 from rounding price
+     , "Example 8 in SAFE_Primer.rtf"
+     ),
 
 ]
 
@@ -490,7 +443,11 @@ EXAMPLES_TO_RUN = [
         'toy_and_teaching/monster_burger_program_only.l4',
 
         # 'serious/SAFE.l4',
-        'serious/SAFE_2_liq_eventtypes.l4'
+        'serious/SAFE_cap.l4',
+        'serious/SAFE_discount.l4',
+        # 'serious/SAFE_cap_discount.l4',
+        # 'serious/SAFE_mfn.l4',
+        # 'serious/SAFE_2_liq_eventtypes.l4'
     ]
 
 # so can run it as a library too, which respects exceptions

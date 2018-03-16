@@ -4,6 +4,7 @@ import dateutil.parser
 from mypy_extensions import NoReturn
 from copy import deepcopy
 
+
 from src.independent.util_for_str import nonemptySortedSubsets
 from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import chcaststr, todo_once, castid, chcast
@@ -12,7 +13,7 @@ from src.constants_and_defined_types import *
 from src.correctness_checks import L4ContractConstructorInterface
 from src.independent.FileCoord import FileCoord
 from src.independent.SExpr import SExpr, SExprOrStr
-from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER
+from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER, prettySExprStr
 from src.independent.typing_imports import *
 from src.model.Action import Action
 from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, ActionRule, NextActionRule, \
@@ -56,7 +57,7 @@ def syntaxErrorX(expr: Optional[SExprOrStr], msg:Optional[str] = None) -> NoRetu
         raise SyntaxError((msg if msg else ""))
 
 class L4ContractConstructor(L4ContractConstructorInterface):
-    def __init__(self, filename:str, verbose=True) -> None:
+    def __init__(self, filename:str, verbose=True, flags:Optional[Dict[str,bool]] = None) -> None:
         self.top : L4Contract = L4Contract(filename)
         self.referenced_nonderived_situation_ids: Set[SituationId] = set()
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
@@ -67,8 +68,50 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self._building_action_id: Optional[ActionId] = None
         self._building_action_rule: bool = False
 
+        self.flags = flags
+
     def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
         self.after_model_build_requirements.append((f,errmsg))
+
+    def _handle_flags(self, l:List[SExpr]) -> List[SExpr]:
+        flags = cast(Dict[str, bool], self.flags)
+        assert flags and len(flags) > 0
+        def helper(x:SExprOrStr) -> List[SExprOrStr]:
+            if isinstance(x,str):
+                return [x]
+            if len(x) == 0:
+                return [x]
+            results : List[SExprOrStr] = []
+            children_to_recurse_on : List[SExprOrStr]
+            if x[0] == "ifflag":
+                assert len(x) == 3 or len(x) == 5, f"ifflag expression has wrong form: {x}\nexpected\n"\
+                        "( ifflag ‹flag› (‹expr1> <expr2> ...) else (<expr1> <expr2> ...) )\n"\
+                        "or\n" \
+                        "( ifflag ‹flag› (‹expr1> <expr2> ...) )\n"
+
+                assert x[1] in flags
+                if flags[x[1]]:
+                    children_to_recurse_on = x[2]
+                elif len(x) == 5:
+                    # if test false and has else part
+                    assert x[3] == "else", f"expected ({x[0]} ‹flag› ‹block› else ‹block›)"
+                    children_to_recurse_on = x[4]
+                else:
+                    # if test false and no else part
+                    children_to_recurse_on = []
+                for c in children_to_recurse_on:
+                    results.extend(helper(c))
+                return results
+            else:
+                children_to_recurse_on = x.lst
+                for c in children_to_recurse_on:
+                    results.extend(helper(c))
+                return [SExpr(x.symb, results, x.line, x.col)]
+
+        rv = []
+        for x in l:
+            rv.extend(helper(x))
+        return cast(List[SExpr],rv)
 
 
     def syntaxError(self, expr: SExprOrStr, msg:Optional[str] = None) -> NoReturn:
@@ -93,76 +136,93 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             syntaxErrorX(expr, msg)
         return None
 
-    def mk_l4contract(self, l:List[SExpr]) -> L4Contract:
-        x : SExpr
-        for x in l:
-            #assert len(x) >= 2, "Problem top-level: " + str(x)
-            rem = x.tillEnd(1)
-            def head(constant:str) -> bool:
-                nonlocal x
-                return streqci(x[0], constant)
+    def _mk_toplevel(self, x:SExpr):
+        rem = x.tillEnd(1)
 
-            if   head(MACRO_DEC_LABEL):
-                macroname = chcaststr(x[1])
-                macroparams : List[str]
-                if isinstance(x[2],str):
-                    macroparams = [x[2]]
-                else:
-                    macroparams = cast(List[str],castse(x[2]).lst)
-                macrobody = chcast(SExpr, x[3])
-                self.top.macros[ macroname] = L4Macro(macroparams, macrobody)
+        def head(constant: str) -> bool:
+            nonlocal x
+            return streqci(x[0], constant)
 
-            elif   head(GLOBAL_VARS_AREA_LABEL) or head("GlobalStateVars"):
-                self.top.state_var_decs = self._mk_statevar_decs(rem)
+        if head(MACRO_DEC_LABEL):
 
-            elif head(CONTRACT_PARAMETERS_AREA_LABEL):
-                # assert all(isinstance(expr[0],str) for expr in rem)
-                self.top.contract_params = {castid(ContractParamId,expr[0]) : self._mk_contract_param(expr) for expr in rem}
+            # print(prettySExprStr(x))
 
-            elif head(ROLES_DEC_LABEL) or head("Actors"):
-                self.top.roles.extend(self._mk_actors(rem))
-
-            elif head(PROSE_CONTRACT_AREA_LABEL):
-                self.top.prose_contract = self._mk_prose_contract(cast(List[List[str]], rem))
-
-            elif head(FORMAL_CONTRACT_AREA_LABEL):
-                self._mk_main_program_area(rem)
-
-            elif head(TIMEUNIT_DEC_LABEL):
-                given = chcaststr(x[1]).lower()
-                self.assertOrSyntaxError(
-                    given in SUPPORTED_TIMEUNITS or given in LONGFORMS_OF_SUPPORTED_TIMEUNITS, x,
-                    f"{TIMEUNIT_DEC_LABEL} must be one of {SUPPORTED_TIMEUNITS} or {list(LONGFORMS_OF_SUPPORTED_TIMEUNITS.values())}")
-                if given in SUPPORTED_TIMEUNITS:
-                    self.top.timeunit = given
-                else:
-                    self.top.timeunit = LONGFORMS_OF_SUPPORTED_TIMEUNITS[given]
-
-            elif head(SORT_DEFINITIONS_AREA) or head("TypeDefinitions"):
-                self._mk_sort_definitions(rem)
-
-            elif head(DEFINITIONS_AREA):
-                self.top.definitions = self._mk_definitions(rem)
-
-            elif head(TOPLEVEL_CLAIMS_AREA_LABEL):
-                self.top.claims = self._mk_claims(rem)
-
-            elif head(TOPLEVEL_STATE_INVARIANTS_AREA_LABEL):
-                self.top.state_invariants = self._mk_invariants(rem)
-
-            elif head("VerificationDefinition"):
-                continue
-
-            elif head( DOT_FILE_NAME_LABEL ):
-                self.top.dot_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
-            elif head( IMG_FILE_NAME_LABEL ):
-                self.top.img_file_name = chcaststr(x[1][1]) # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
-
-            elif head("TypedMacro"):
-                todo_once("Handle TypedMacro")
-
+            assert isinstance(x[1],str) and len(x) == 4, "Macro should have the form (Macro ‹macroname› (‹param1› ‹param2› ...) ‹body sexpr›)"
+            macroname = chcaststr(x[1])
+            macroparams: List[str]
+            if isinstance(x[2], str):
+                macroparams = [x[2]]
             else:
-                raise Exception("Unsupported: ", x[0])
+                macroparams = cast(List[str], castse(x[2]).lst)
+            macrobody = chcast(SExpr, x[3])
+            self.top.macros[macroname] = L4Macro(macroparams, macrobody)
+
+        elif head(GLOBAL_VARS_AREA_LABEL) or head("GlobalStateVars"):
+            self.top.state_var_decs = self._mk_statevar_decs(rem)
+
+        elif head(CONTRACT_PARAMETERS_AREA_LABEL):
+            self.top.contract_params = {castid(ContractParamId, expr[0]): self._mk_contract_param(expr) for expr in rem}
+
+        elif head(ROLES_DEC_LABEL) or head("Actors"):
+            self.top.roles.extend(self._mk_actors(rem))
+
+        elif head(PROSE_CONTRACT_AREA_LABEL):
+            self.top.prose_contract = self._mk_prose_contract(cast(List[List[str]], rem))
+
+        elif head(FORMAL_CONTRACT_AREA_LABEL):
+            self._mk_main_program_area(rem)
+
+        elif head(TIMEUNIT_DEC_LABEL):
+            given = chcaststr(x[1]).lower()
+            self.assertOrSyntaxError(
+                given in SUPPORTED_TIMEUNITS or given in LONGFORMS_OF_SUPPORTED_TIMEUNITS, x,
+                f"{TIMEUNIT_DEC_LABEL} must be one of {SUPPORTED_TIMEUNITS} or {list(LONGFORMS_OF_SUPPORTED_TIMEUNITS.values())}")
+            if given in SUPPORTED_TIMEUNITS:
+                self.top.timeunit = given
+            else:
+                self.top.timeunit = LONGFORMS_OF_SUPPORTED_TIMEUNITS[given]
+
+        elif head(SORT_DEFINITIONS_AREA) or head("TypeDefinitions"):
+            self._mk_sort_definitions(rem)
+
+        elif head(DEFINITIONS_AREA):
+            self.top.definitions = self._mk_definitions(rem)
+
+        elif head(TOPLEVEL_CLAIMS_AREA_LABEL):
+            self.top.claims = self._mk_claims(rem)
+
+        elif head(TOPLEVEL_STATE_INVARIANTS_AREA_LABEL):
+            self.top.state_invariants = self._mk_invariants(rem)
+
+        elif head("VerificationDefinition"):
+            return
+
+        elif head(DOT_FILE_NAME_LABEL):
+            self.top.dot_file_name = chcaststr(
+                x[1][1])  # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+        elif head(IMG_FILE_NAME_LABEL):
+            self.top.img_file_name = chcaststr(
+                x[1][1])  # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
+
+        elif head("TypedMacro"):
+            todo_once("Handle TypedMacro")
+
+        elif head("Flags"):
+            # self._flags = set(x[1:])
+            return
+
+        else:
+            raise Exception("Unsupported: ", x[0])
+
+
+    def mk_l4contract(self, l:List[SExpr]) -> L4Contract:
+        if self.flags and len(self.flags) > 0:
+            l = self._handle_flags(l)
+            for x in l:
+                print(prettySExprStr(x))
+
+        for x in l:
+            self._mk_toplevel(x)
 
         for f in self.after_model_build_requirements:
             if not f[0]():
@@ -211,6 +271,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         sort = self._mk_sort(expr[2])
         return ContractParamDec(expr[0], sort, self._mk_term(expr[4], None, None, None, expr))
 
+    # def _handle_ifflag(self, x:SExprOrStr) -> Optional[SExprOrStr]:
+    #     assert len(x) == 3 or len(x) == 5
+    #     assert x[1] in self.flags
+    #     if x[1]:
+    #         return x[2]
+    #     elif len(x) == 5:
+    #         assert x[3] == "else", "expected ifflag ‹flag› ‹body1› else ‹body2›"
+    #         return x[4]
+    #     else:
+    #         return None
+
     def _mk_statevar_decs(self, l:SExpr) -> Dict[StateVarId, StateVarDec]:
         rv : Dict[StateVarId, StateVarDec] = dict()
         for dec in l:
@@ -218,6 +289,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 i = 0
                 modifiers : List[str] = []
                 while True:
+                    assert isinstance(dec[i],str), dec
                     if dec[i].lower() in VARIABLE_MODIFIERS:
                         modifiers.append(chcaststr(dec[i].lower()))
                         i += 1
@@ -550,7 +622,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return IfElse(test, true_branch, false_branch)
 
             else:
-                self.assertOrSyntaxError(len(statement_expr) == 3, statement_expr, "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement_expr))
+                self.assertOrSyntaxError(len(statement_expr) == 3, statement_expr,
+                    "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be"
+                    "a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement_expr))
                 assert statement_expr.coord() is not None
                 rhs = self._mk_term(statement_expr[2], None, parent_action, None, statement_expr)
                 # print(statement_expr.coord, rhs.coord, statement_expr[2])

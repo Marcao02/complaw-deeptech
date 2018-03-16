@@ -13,22 +13,25 @@ from test.active_examples import *
 # so can run it as a library too, which respects exceptions
 def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
     rv : Dict[str,L4Contract] = {}
-    for filesubpath in EXAMPLES:
+    for example in EXAMPLES:
+        fileinsubpath, fileoutsubpath, flags = (example, example, None) if isinstance(example,str) else (example[0], example[1], example[2])
+        flags_str = "" if flags else f"({flags})"
+
         # print(f"\n---------------------------------\nExample {filesubpath}:")
-        in_path = EXAMPLES_SEXPR_ROOT + filesubpath
+        in_path = EXAMPLES_SEXPR_ROOT + fileinsubpath
         if verbose:
-            print("\nLooking at file " + filesubpath + ":\n")
+            print("\nLooking at file " + fileinsubpath + flags_str + ":\n")
         parsed = parse_file(in_path)
         if verbose:
             print(prettySExprStr(parsed))
-        assembler = L4ContractConstructor(filesubpath, verbose)
+        assembler = L4ContractConstructor(fileoutsubpath, verbose, flags)
         prog = assembler.mk_l4contract(parsed)
         # eliminate_local_vars(prog)
         # eliminate_ifthenelse(prog)
         # print(prog)
 
         if keep:
-            rv[filesubpath] = prog
+            rv[fileoutsubpath] = prog
 
         if verbose:
             print("\n~~~~~~~~~~~~~~\nRunning correctness checks...")
