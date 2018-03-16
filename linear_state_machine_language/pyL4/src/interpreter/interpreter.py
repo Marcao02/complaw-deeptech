@@ -437,7 +437,8 @@ class ExecEnv:
                 return self.contract_param_vals[term.name]
 
             elif isinstance(term, ActionBoundActionParam):
-                assert self.last_appliedaction_params is not None
+                assert (self.last_appliedaction_params is not None) and term.ind < len(self.last_appliedaction_params), \
+                    f"Action-bound action parameter {term} (index {term.ind}) occurrence but only have {len(cast(ABAPSubst,self.last_appliedaction_params))} values supplied."
                 return self.last_appliedaction_params[term.ind]
 
             elif isinstance(term, RuleBoundActionParam):

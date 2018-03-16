@@ -535,11 +535,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return lvd
             elif statement_expr[0] == 'if':
                 test = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
-                self.assertOrSyntaxError(isinstance(statement_expr[2], SExpr) and isinstance(statement_expr[4], SExpr), statement_expr)
+                self.assertOrSyntaxError(isinstance(statement_expr[2], SExpr) and isinstance(statement_expr[4], SExpr), statement_expr), \
+                    f"Expected {statement_expr} to have the form `(if TEST (Block) else (BLOCK))`"
                 true_branch = [
                     self._mk_statement(inner, parent_action) for inner in statement_expr[2]
                 ]
-                self.assertOrSyntaxError(statement_expr[3] == 'else', statement_expr)
+                self.assertOrSyntaxError(statement_expr[3] == 'else', statement_expr), \
+                    f"Expected {statement_expr} to have the form `(if TEST (Block) else (BLOCK))`"
                 false_branch = [
                     self._mk_statement(inner, parent_action) for inner in statement_expr[4]
                 ]
