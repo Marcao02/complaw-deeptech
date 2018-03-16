@@ -301,13 +301,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def handle_apply_macro(self, x:SExpr) -> SExpr:
-        macroname = chcaststr(x[1])
+        macroname, args = (chcaststr(x[1]),x[2]) if x[0] == APPLY_MACRO_LABEL else (x[0],x[1])
         macro : L4Macro = self.top.macros[macroname]
-        if isinstance(x[2],str):
-            return macro.subst([x[2]])
+        if isinstance(args,str):
+            return macro.subst([args])
         else:
-            return macro.subst(x[2])
+            return macro.subst(args)
 
+    def _is_macro_app(self, s:SExprOrStr):
+        return isinstance(s,str) and (s == APPLY_MACRO_LABEL or s in self.top.macros)
 
     def _mk_main_program_area(self, l:SExpr) -> None:
         self.assertOrSyntaxError(l[0][0] == STRING_LITERAL_MARKER, l[0], f"Immediately after the {FORMAL_CONTRACT_AREA_LABEL} keyword should be a string literal that gives the contract's name")
@@ -320,7 +322,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 nonlocal x
                 return streqci(x[0], constant)
 
-            if  head(APPLY_MACRO_LABEL):
+            if self._is_macro_app(x[0]):
                 x = self.handle_apply_macro(x)
 
             if head(START_SITUATION_LABEL):
@@ -381,7 +383,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     todo_once("guardsDisjointExhaustive etc in situation()")
                 action_rule_exprs = castse(x.tillEnd(1))
                 for action_rule_expr in action_rule_exprs:
-                    if action_rule_expr[0] == APPLY_MACRO_LABEL:
+                    if self._is_macro_app(action_rule_expr[0]):
                         action_rule_expr = self.handle_apply_macro(action_rule_expr)
 
                     self._mk_next_action_rule(action_rule_expr, situation, parent_action)
@@ -479,7 +481,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_futures(self, rules:SExpr, src_action:Action) -> List[PartyFutureActionRule]:
         rv : List[PartyFutureActionRule] = []
         for action_rule_expr in rules:
-            if action_rule_expr[0] == APPLY_MACRO_LABEL:
+            if self._is_macro_app(action_rule_expr[0]):
                 action_rule_expr = self.handle_apply_macro(action_rule_expr)
 
             rv.append( self._mk_future_action_rule(action_rule_expr, src_action) )
@@ -514,7 +516,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None
         varname : str
         try:
-            if statement_expr[0] == APPLY_MACRO_LABEL:
+            if self._is_macro_app(statement_expr[0]):
                 statement_expr = self.handle_apply_macro(statement_expr)
 
             if statement_expr[0] == 'conjecture' or statement_expr[0] == 'prove':
@@ -675,7 +677,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return L4ContractConstructor.mk_literal(x, parent_SExpr, self.top)
 
         else: # SExpr
-            if x[0] == APPLY_MACRO_LABEL:
+            if self._is_macro_app(x[0]):
                 x = self.handle_apply_macro(x)
 
             pair = try_parse_as_fn_app(x)

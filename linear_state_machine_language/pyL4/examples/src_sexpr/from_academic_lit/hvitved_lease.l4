@@ -36,9 +36,9 @@
 
 	(Situation Start (Next (Landlord must (EnsureApartmentReady) immediately)))
 
-	(apply-macro RequestTerminationActionMacro MonthStarted)
-	(apply-macro RequestTerminationActionMacro AfterPayRent)
-	(apply-macro RequestTerminationActionMacro MonthEnded)
+	(RequestTerminationActionMacro MonthStarted)
+	(RequestTerminationActionMacro AfterPayRent)
+	(RequestTerminationActionMacro MonthEnded)
 
 	(Action EnsureApartmentReady (AllowedRoles Landlord))
 	(Situation AfterEnsureApartmentReady (Next (StartLeaseTerm immediately)))
@@ -54,8 +54,8 @@
 	(Situation MonthStarted
 		(Next
 			(Tenant responsibility (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
-			(apply-macro RequestTerminationActionRuleMacro (Tenant MonthStarted))
-			(apply-macro RequestTerminationActionRuleMacro (Landlord MonthStarted))
+			(RequestTerminationActionRuleMacro (Tenant MonthStarted))
+			(RequestTerminationActionRuleMacro (Landlord MonthStarted))
 		)
 	)
 
@@ -63,8 +63,8 @@
 		(FollowingSituation
 			(Next
 				(EnterMonthEnded (when next_event_td == (monthEndDay_td)))
-				(apply-macro RequestTerminationActionRuleMacro (Tenant AfterPayRent))
-				(apply-macro RequestTerminationActionRuleMacro (Landlord AfterPayRent))  )))
+				(RequestTerminationActionRuleMacro (Tenant AfterPayRent))
+				(RequestTerminationActionRuleMacro (Landlord AfterPayRent))  )))
 
 	(Action EnterMonthEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
@@ -75,8 +75,8 @@
 					(EnterLeaseTermEnded immediately)   )
 				(if (lease_term_end > (situation_entrance_td + 1D))
 					(EnterMonthStarted (when next_event_td == (situation_entrance_td + 1d)))   )
-				(apply-macro RequestTerminationActionRuleMacro (Tenant MonthEnded))
-				(apply-macro RequestTerminationActionRuleMacro (Landlord MonthEnded))   )))
+				(RequestTerminationActionRuleMacro (Tenant MonthEnded))
+				(RequestTerminationActionRuleMacro (Landlord MonthEnded))   )))
 
 	(Action EnterLeaseTermEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)

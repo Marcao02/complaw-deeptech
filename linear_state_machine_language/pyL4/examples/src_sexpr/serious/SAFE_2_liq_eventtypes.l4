@@ -156,7 +156,7 @@
 				(company_capitalization : PosShareCnt)
 				(premoney_valuation : Pos$) ) (AllowedSubjects Company)
 		(StateTransform
-			(apply-macro set_conversion_price (company_capitalization premoney_valuation))
+			(set_conversion_price (company_capitalization premoney_valuation))
 			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSituation
@@ -173,7 +173,7 @@
 						 (company_valuation : Pos$)
 			) (AllowedSubjects Company)
 		(StateTransform
-			(apply-macro set_conversion_price (liquidity_capitalization company_valuation))
+			(set_conversion_price (liquidity_capitalization company_valuation))
 			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ conversion_price'))
 			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 			(cash_currently_unconverted' = PURCHASE_AMOUNT)
@@ -198,7 +198,7 @@
 
 			) (AllowedSubjects Company)
 		(StateTransform
-			(apply-macro set_conversion_price (liquidity_capitalization company_valuation))
+			(set_conversion_price (liquidity_capitalization company_valuation))
 			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ conversion_price'))
 			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 
@@ -304,7 +304,7 @@
 							(company_valuation : Pos$) )
 		(AllowedSubjects Company)
 		(StateTransform
-			(apply-macro set_conversion_price (liquidity_capitalization company_valuation))
+			(set_conversion_price (liquidity_capitalization company_valuation))
 			(investor_Common_Stocks' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
 		)
 		(FollowingSituation  (Next (Company must Dissolve discretionary)))
