@@ -23,12 +23,11 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
     'from_academic_lit/Farmer_american_call_option_2016.l4',
     'from_academic_lit/student and grader gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints.l4',
 
-    # 'serious/SAFE.l4',
     # 'serious/SAFE_2_liq_eventtypes.l4',
-    ('serious/SAFE_flags.l4', 'serious/SAFE_mfn.l4', {"HAS_CAP":False, "HAS_DISCOUNT":False}, ),
-    ('serious/SAFE_flags.l4', 'serious/SAFE_cap.l4', {"HAS_CAP":True, "HAS_DISCOUNT":False}, ),
-    ('serious/SAFE_flags.l4', 'serious/SAFE_discount.l4', {"HAS_CAP":False, "HAS_DISCOUNT":True}, ),
-    ('serious/SAFE_flags.l4', 'serious/SAFE_cap_discount.l4', {"HAS_CAP":True, "HAS_DISCOUNT":True}, ),
+    ('serious/SAFE.l4', 'serious/SAFE_mfn.l4', {"HAS_CAP":False, "HAS_DISCOUNT":False}, ),
+    ('serious/SAFE.l4', 'serious/SAFE_cap.l4', {"HAS_CAP":True, "HAS_DISCOUNT":False}, ),
+    ('serious/SAFE.l4', 'serious/SAFE_discount.l4', {"HAS_CAP":False, "HAS_DISCOUNT":True}, ),
+    ('serious/SAFE.l4', 'serious/SAFE_cap_discount.l4', {"HAS_CAP":True, "HAS_DISCOUNT":True}, ),
     'serious/KISS.l4'
 ]
 EXAMPLES_FULL_SIZE = 22
