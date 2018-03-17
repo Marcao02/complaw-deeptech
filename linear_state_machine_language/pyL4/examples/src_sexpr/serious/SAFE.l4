@@ -1,14 +1,3 @@
-; Should these 4 terms just be natural numbers?
-; `Common Stock` ⊆ `Capital Stock`
-; `Preferred Stock` ⊆ `Capital Stock`
-
-; `Common Stock` + `Preferred Stock` ≤ `Capital Stock`
-
-; `Company Capitalization` : Nat
-; `Conversion Price` := min(`Safe Price`, `Discount Price`)
-
-; `EquityFinancingPrice` : Nat
-
 (Roles Investor Company)
 
 (TimeUnit d)
@@ -25,8 +14,8 @@
 ; when there is no cap, typechecking should not even see VALUATION_CAP.
 ; and certainly nothing about valuation cap should appear in the NLG.
 ; when there is no discount, I COULD rely on partial evaluation to make discount
-; stuff go away, but I could also just use the same tactic I do with cap (`Options` section+ macros).
-; question: does `Options` section + macros better capture intent than making a bunch of
+; stuff go away, but I could also just use the same tactic I do with cap (`Options` flags+macros).
+; question: does  flags+macros better capture intent than making a bunch of
 ; parameters and write-once variables of Optional type, and then using partial eval?
 
 ; didn't end up using this...
@@ -36,8 +25,6 @@
 ; )
 
 (BlockMacro set_conversion_price (company_capitalization company_valuation)
-	; (if true (
-	; (block (
 	(ifflag HAS_CAP (
 		(ifflag HAS_DISCOUNT (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
@@ -61,8 +48,6 @@
 			(conversion_price' = (company_valuation / company_capitalization))
 		))
 	))
-	; ))
-	; ) else () )
 )
 
 (ContractParams
@@ -84,11 +69,14 @@
 	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
 
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
+	(writes≤1 conversion_price : SharePrice)
+
 
 	; for Equity and Liquidity
 	(ifflag HAS_CAP (
 		(writes≤1 cap_price : SharePrice)
 		(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
+
 		(ifflag HAS_DISCOUNT (
 			(writes≤1 discount_price : SharePrice)
 		))
@@ -100,14 +88,7 @@
 		))
 	))
 
-
-	(writes≤1 conversion_price : SharePrice)
-
-	; for Equity Financing
-	; (writes≤1 conversion_price : SharePrice)
-
 	; for Liquidity
-	; (writes≤1 liq_price : SharePrice )
 	(writes≤1 liq_cashout : $ = 0 ) ; this needs to either be initialized to 0, or else changed to an Optional and some of the code rewritten a bit.
 	(writes≤1 company_cash : $) ; maybe this should be an input.
 	(writes≤1 investor_liq_hypothetical_shares : ShareCnt)

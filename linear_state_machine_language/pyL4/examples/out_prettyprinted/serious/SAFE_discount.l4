@@ -15,9 +15,9 @@ state vars:
     writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt := START_INVESTOR_SAFE_PREFERRED_STOCKS
     writes≤1 investor_cash : $ := START_INVESTOR_CASH
     cash_currently_unconverted : $ := PURCHASE_AMOUNT
+    writes≤1 conversion_price : SharePrice
     writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice
     writes≤1 discount_price : SharePrice
-    writes≤1 conversion_price : SharePrice
     writes≤1 liq_cashout : $ := 0
     writes≤1 company_cash : $
     writes≤1 investor_liq_hypothetical_shares : ShareCnt

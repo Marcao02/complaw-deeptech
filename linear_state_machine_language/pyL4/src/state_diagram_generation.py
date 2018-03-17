@@ -122,7 +122,7 @@ def contractToDotFile(l4file: L4Contract, rootpath, use_filename = True, verbose
     f = open(dot_path, 'w')
     f.write(dot_contents)
     f.close()
-    command = f'dot -Tpng -o {img_path} "{dot_path}"'
+    command = f'dot -Tpng -o "{img_path}" "{dot_path}"'
     if verbose:
         print('\nTrying to run graphviz with:\n\t' + command)
     import os
