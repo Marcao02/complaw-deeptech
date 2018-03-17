@@ -23,12 +23,16 @@
 
 (Macro RequestTerminationActionRuleMacro (RoleId SituationId)
 	(if (not lease_terminated)
-		(RoleId may (RequestTerminationFromSituationId) (when next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))) ))
+		(RoleId may (RequestTerminationFromSituationId) (when next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE))))
+	)
+)
 
 
 (Macro RequestTerminationActionMacro SituationId
 	(Action RequestTerminationFromSituationId (AllowedSubjects Landlord Tenant) (TransitionsTo SituationId)
-		(StateTransform (lease_terminated' = true))		))
+		(StateTransform (lease_terminated' = true))
+	)
+)
 
 (FormalContract
 	"Lease Hvitved"

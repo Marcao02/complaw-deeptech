@@ -42,3 +42,11 @@ def nested_list_replace_mult( lst_or_str:Union[str,Sequence[Any]],
     else:
         return tuple(nested_list_replace_mult(part, subst) for part in lst_or_str)
 
+def flatten( l:List[Union[K,List[K]]] ) -> List[K]:
+    rv : List[K] = []
+    for x in l:
+        if isinstance(x,list):
+            rv.extend(x)
+        else:
+            rv.append(x)
+    return rv

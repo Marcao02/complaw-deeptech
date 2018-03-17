@@ -14,7 +14,7 @@ from src.model.ContractClaim import ContractClaim, StateInvariant
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.StateVarDec import StateVarDec
-from src.model.L4Macro import L4Macro
+from src.model.L4Macro import L4Macro, L4BlockMacro
 from src.model.Situation import Situation
 from src.model.Sort import Sort
 
@@ -50,6 +50,7 @@ class L4Contract:
         self.ordered_declarations : List[Union[Action,Situation]] = list()
 
         self.macros : Dict[str, L4Macro] = dict()
+        self.blockmacros: Dict[str, L4BlockMacro] = dict()
 
         self.timeunit : str = "d" # default to days
 

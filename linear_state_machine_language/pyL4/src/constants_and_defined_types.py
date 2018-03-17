@@ -105,6 +105,7 @@ TIMEUNIT_DEC_LABEL = "TimeUnit"
 SUPPORTED_TIMEUNITS = ['w','d','h','m','s']
 LONGFORMS_OF_SUPPORTED_TIMEUNITS = {'weeks':'w','days':'d','hours':'h','minutes':'m','seconds':'s'}
 MACRO_DEC_LABEL = "Macro"
+BLOCKMACRO_DEC_LABEL = "BlockMacro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"
 TOPLEVEL_CLAIMS_AREA_LABEL = "Claims"
 TOPLEVEL_STATE_INVARIANTS_AREA_LABEL = "Invariants"

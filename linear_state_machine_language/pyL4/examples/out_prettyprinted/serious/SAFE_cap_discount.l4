@@ -56,12 +56,10 @@ action SignPRA()  transitions to AfterSignPRA
 
 action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
     transform:
-        if True:
-            undiscounted_price_per_share_standard_preferred_stock := (premoney_valuation / company_capitalization)
-            safe_price := (VALUATION_CAP / company_capitalization)
-            discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
-            conversion_price := (min safe_price' discount_price')
-
+        undiscounted_price_per_share_standard_preferred_stock := (premoney_valuation / company_capitalization)
+        safe_price := (VALUATION_CAP / company_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        conversion_price := (min safe_price' discount_price')
         investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))
     following situation:
         Company must DoEquityFinancing discretionary
@@ -70,12 +68,10 @@ action DoEquityFinancing()  transitions to Fulfilled
 
 action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterCommitToIPO:
     transform:
-        if True:
-            undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
-            safe_price := (VALUATION_CAP / liquidity_capitalization)
-            discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
-            conversion_price := (min safe_price' discount_price')
-
+        undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
+        safe_price := (VALUATION_CAP / liquidity_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        conversion_price := (min safe_price' discount_price')
         investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ conversion_price')
         investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization)
         cash_currently_unconverted := PURCHASE_AMOUNT
@@ -88,12 +84,10 @@ action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization:
 
 action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToChangeOfControl:
     transform:
-        if True:
-            undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
-            safe_price := (VALUATION_CAP / liquidity_capitalization)
-            discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
-            conversion_price := (min safe_price' discount_price')
-
+        undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
+        safe_price := (VALUATION_CAP / liquidity_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        conversion_price := (min safe_price' discount_price')
         investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ conversion_price')
         investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization)
         purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)
@@ -152,12 +146,10 @@ action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_
 
 action TransferAssets(liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterTransferAssets:
     transform:
-        if True:
-            undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
-            safe_price := (VALUATION_CAP / liquidity_capitalization)
-            discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
-            conversion_price := (min safe_price' discount_price')
-
+        undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
+        safe_price := (VALUATION_CAP / liquidity_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        conversion_price := (min safe_price' discount_price')
         investor_Common_Stocks := (investor_Common_Stocks + ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
     following situation:
         Company must Dissolve discretionary

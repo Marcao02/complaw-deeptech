@@ -4,7 +4,7 @@ import dateutil.parser
 from mypy_extensions import NoReturn
 from copy import deepcopy
 
-
+from src.independent.util_for_sequences import flatten
 from src.independent.util_for_str import nonemptySortedSubsets
 from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import chcaststr, todo_once, castid, chcast
@@ -30,7 +30,7 @@ from src.model.Statement import Statement, FVRequirement, \
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_situation_id, derived_destination_id
-from src.model.L4Macro import L4Macro
+from src.model.L4Macro import L4Macro, L4BlockMacro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit, DateTimeLit
 from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
@@ -84,10 +84,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             results : List[SExprOrStr] = []
             children_to_recurse_on : List[SExprOrStr]
             if x[0] == "ifflag":
-                assert len(x) == 3 or len(x) == 5, f"ifflag expression has wrong form: {x}\nexpected\n"\
-                        "( ifflag ‹flag› (‹expr1> <expr2> ...) else (<expr1> <expr2> ...) )\n"\
-                        "or\n" \
-                        "( ifflag ‹flag› (‹expr1> <expr2> ...) )\n"
+                assert len(x) == 3 or len(x) == 5, f"ifflag expression has wrong form: {x}\nexpected\n" \
+                                                   "( ifflag ‹flag› (‹expr1> <expr2> ...) else (<expr1> <expr2> ...) )\n" \
+                                                   "or\n" \
+                                                   "( ifflag ‹flag› (‹expr1> <expr2> ...) )\n"
 
                 assert x[1] in flags
                 if flags[x[1]]:
@@ -143,19 +143,23 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             nonlocal x
             return streqci(x[0], constant)
 
-        if head(MACRO_DEC_LABEL):
-
-            # print(prettySExprStr(x))
-
-            assert isinstance(x[1],str) and len(x) == 4, "Macro should have the form (Macro ‹macroname› (‹param1› ‹param2› ...) ‹body sexpr›)"
+        if head(MACRO_DEC_LABEL) or head(BLOCKMACRO_DEC_LABEL):
+            assert isinstance(x[1],str) and len(x) >= 4, "Macro should have the form "\
+                "(Macro ‹macroname› (‹param1› ‹param2› ...) ‹sexpr1›) or " \
+                "(BlockMacro ‹macroname› (‹param1› ‹param2› ...) ‹sexpr1› <sexpr2> ...)"
             macroname = chcaststr(x[1])
             macroparams: List[str]
             if isinstance(x[2], str):
                 macroparams = [x[2]]
             else:
                 macroparams = cast(List[str], castse(x[2]).lst)
-            macrobody = chcast(SExpr, x[3])
-            self.top.macros[macroname] = L4Macro(macroparams, macrobody)
+
+            if head(MACRO_DEC_LABEL):
+                macrobody = chcast(SExpr, x[3])
+                self.top.macros[macroname] = L4Macro(macroparams, macrobody)
+            else:
+                self.top.blockmacros[macroname] = L4BlockMacro(macroparams, chcast(list, x[3:]))
+
 
         elif head(GLOBAL_VARS_AREA_LABEL) or head("GlobalStateVars"):
             self.top.state_var_decs = self._mk_statevar_decs(rem)
@@ -218,8 +222,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def mk_l4contract(self, l:List[SExpr]) -> L4Contract:
         if self.flags and len(self.flags) > 0:
             l = self._handle_flags(l)
-            for x in l:
-                print(prettySExprStr(x))
+            # for x in l:
+            #     print(prettySExprStr(x))
 
         for x in l:
             self._mk_toplevel(x)
@@ -380,8 +384,46 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             return macro.subst(args)
 
+    def handle_apply_blockmacro(self, x:SExpr) -> List[SExpr]:
+        macroname, args = (chcaststr(x[1]),x[2]) if x[0] == APPLY_MACRO_LABEL else (x[0],x[1])
+        macro : L4BlockMacro = self.top.blockmacros[macroname]
+        assert isinstance(macro, L4BlockMacro)
+        if isinstance(args,str):
+            return macro.subst([args])
+        else:
+            return macro.subst(args)
+
+    def _is_anymacro_app(self, s:SExprOrStr) -> bool:
+        return isinstance(s, SExpr) and isinstance(s[0], str) and \
+               (s[0] in self.top.macros or s[0] in self.top.blockmacros) or\
+               (s[0] == APPLY_MACRO_LABEL and (s[1] in self.top.macros or s[1] in self.top.blockmacros))
+
     def _is_macro_app(self, s:SExprOrStr):
-        return isinstance(s,str) and (s == APPLY_MACRO_LABEL or s in self.top.macros)
+        return isinstance(s, SExpr) and isinstance(s[0], str) and \
+               s[0] in self.top.macros or \
+               (s[0] == APPLY_MACRO_LABEL and s[1] in self.top.macros)
+
+    def _is_blockmacro_app(self, s:SExprOrStr):
+        return isinstance(s, SExpr) and isinstance(s[0], str) and \
+               s[0] in self.top.blockmacros or \
+               (s[0] == APPLY_MACRO_LABEL and s[1] in self.top.blockmacros)
+
+    def _with_macro_handling(self, e:Union[SExprOrStr, Sequence[SExprOrStr]],
+                             g:Callable[[SExprOrStr,Any],T], args:Any) -> Union[T,List[T]]:
+        if isinstance(e,list):
+            return flatten([self._with_macro_handling(x, g, args) for x in e])
+        elif isinstance(e,SExpr):
+            if self._is_macro_app(e):
+                return self._with_macro_handling(self.handle_apply_macro(e), g, args)
+            elif self._is_blockmacro_app(e):
+                return self._with_macro_handling(self.handle_apply_blockmacro(e), g, args)
+            return [g(e, *args)]
+        elif isinstance(e,str):
+            return [g(e, *args)]
+        else:
+            raise Exception
+
+
 
     def _mk_main_program_area(self, l:SExpr) -> None:
         self.assertOrSyntaxError(l[0][0] == STRING_LITERAL_MARKER, l[0], f"Immediately after the {FORMAL_CONTRACT_AREA_LABEL} keyword should be a string literal that gives the contract's name")
@@ -390,11 +432,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         for x in l[1:]:
             assert len(x) >= 2
+            if self._is_macro_app(x):
+                x = self.handle_apply_macro(x)
+            self._mk_main_program_area_part(x,l)
+
+    def _mk_main_program_area_part(self, x:SExpr, l:SExpr):
             def head(constant:str) -> bool:
                 nonlocal x
                 return streqci(x[0], constant)
 
-            if self._is_macro_app(x[0]):
+            if self._is_macro_app(x):
                 x = self.handle_apply_macro(x)
 
             if head(START_SITUATION_LABEL):
@@ -453,12 +500,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'timeConstraintsPartitionFuture'):
                     x = x[1]
                     todo_once("guardsDisjointExhaustive etc in situation()")
-                action_rule_exprs = castse(x.tillEnd(1))
-                for action_rule_expr in action_rule_exprs:
-                    if self._is_macro_app(action_rule_expr[0]):
-                        action_rule_expr = self.handle_apply_macro(action_rule_expr)
 
-                    self._mk_next_action_rule(action_rule_expr, situation, parent_action)
+                action_rule_exprs = x.tillEnd(1).lst
+                for action_rule_expr in action_rule_exprs:
+                    self._with_macro_handling(action_rule_expr, self._mk_next_action_rule, (situation, parent_action)) # type:ignore
 
             elif head(PROSE_REFS_LABEL):
                 situation.prose_refs = cast(List,x[1:]).copy()
@@ -553,10 +598,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_futures(self, rules:SExpr, src_action:Action) -> List[PartyFutureActionRule]:
         rv : List[PartyFutureActionRule] = []
         for action_rule_expr in rules:
-            if self._is_macro_app(action_rule_expr[0]):
-                action_rule_expr = self.handle_apply_macro(action_rule_expr)
-
-            rv.append( self._mk_future_action_rule(action_rule_expr, src_action) )
+            rv.extend(self._with_macro_handling(action_rule_expr, self._mk_future_action_rule, (src_action,))) # type:ignore
         return rv
 
     def _mk_action_params(self, parts:List[List[str]]) -> ParamsDec:
@@ -570,35 +612,45 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def _mk_state_transform(self, statement_exprs:List[SExpr], a:Action) -> StateTransform:
-        # statements : List[Statement] = []
-        # for x in statement_exprs:
-        #     if isinstance(x,StateVarAssign) and isprimed(x.varname):
-        #         statement1 = self._mk_statement(x,a)
-        #         statement2 = deepcopy(statement1)
-        #         statement2 = LocalVarDec
-        #
-        #     else:
-        #         statements.append(self._mk_statement(x, a))
-        #
-        # return StateTransform( for x in statements])
-        return StateTransform([self._mk_statement(x, a) for x in statement_exprs])
+        return StateTransform(self._mk_statements(statement_exprs, a))
 
+    def _mk_statements(self, statement_exprs:List[SExpr], parent_action:Action) -> List[Statement]:
+        """
+        call _mk_statement on each element x of state_exprs and return list of results, UNLESS x is a macro app, in which case:
+        if x is a seqmacro,
+            seqexpansion = expansion of x
+            extend return list with result of calling _mk_statements on seqexpansion
+        if x is a regular macro
+            seqexpansion = [expansion of x]
+            extend return list with result of calling _mk_statements on seqexpansion
+        """
+        rv = []
+        for statement_expr in statement_exprs:
+            assert not isinstance(statement_expr,list)
+            if self._is_blockmacro_app(statement_expr):
+                rv.extend(self._mk_statements(self.handle_apply_blockmacro(statement_expr), parent_action))
+            elif self._is_macro_app(statement_expr):
+                rv.extend(self._mk_statements([self.handle_apply_macro(statement_expr)], parent_action))
+            else:
+                it = self._mk_statement(statement_expr, parent_action)
+                rv.append(it)
+        return rv
 
     def _mk_statement(self, statement_expr:SExpr, parent_action:Action) -> Statement:
         assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None
         varname : str
         try:
-            if self._is_macro_app(statement_expr[0]):
-                statement_expr = self.handle_apply_macro(statement_expr)
+            assert not self._is_anymacro_app(statement_expr)
 
             if statement_expr[0] == 'conjecture' or statement_expr[0] == 'prove':
                 self.assertOrSyntaxError(len(statement_expr) == 2, statement_expr, "GlobalStateTransformConjecture expression should have length 2")
                 rhs = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
                 return FVRequirement(rhs)
+
             elif statement_expr[0] == 'local':
                 self.assertOrSyntaxError(len(statement_expr) == 6, statement_expr, 'Local var dec should have form (local name : type = term) or := instead of =')
                 self.assertOrSyntaxError(statement_expr[2] == ':' and (statement_expr[4] == ":=" or statement_expr[4] == "="), statement_expr,
-                                          'Local var dec should have form (local name : type = term)  or := instead of =')
+                                         'Local var dec should have form (local name : type = term)  or := instead of =')
                 sort = self._mk_sort(statement_expr[3])
                 rhs = self._mk_term(statement_expr[5], None, parent_action, None, statement_expr)
                 varname = castid(LocalVarId, statement_expr[1])
@@ -607,24 +659,21 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.syntaxError(statement_expr, "Redeclaration of local variable")
                 parent_action.local_vars[varname] = lvd
                 return lvd
+
             elif statement_expr[0] == 'if':
                 test = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
                 self.assertOrSyntaxError(isinstance(statement_expr[2], SExpr) and isinstance(statement_expr[4], SExpr), statement_expr), \
-                    f"Expected {statement_expr} to have the form `(if TEST (Block) else (BLOCK))`"
-                true_branch = [
-                    self._mk_statement(inner, parent_action) for inner in statement_expr[2]
-                ]
+                f"Expected {statement_expr} to have the form `(if TEST (BLOCK) else (BLOCK))`"
+                true_branch = self._mk_statements(statement_expr[2], parent_action)
                 self.assertOrSyntaxError(statement_expr[3] == 'else', statement_expr), \
-                    f"Expected {statement_expr} to have the form `(if TEST (Block) else (BLOCK))`"
-                false_branch = [
-                    self._mk_statement(inner, parent_action) for inner in statement_expr[4]
-                ]
+                f"Expected {statement_expr} to have the form `(if TEST (BLOCK) else (BLOCK))`"
+                false_branch = self._mk_statements(statement_expr[4], parent_action)
                 return IfElse(test, true_branch, false_branch)
 
             else:
                 self.assertOrSyntaxError(len(statement_expr) == 3, statement_expr,
-                    "As of 13 Aug 2017, every code block statement other than a conjecture or local var intro should be"
-                    "a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement_expr))
+                                         "As of 16 Mar 2018, every code block statement other than a conjecture or local var intro should be"
+                                         "a triple: a := (or =), +=, -=, *= specifically. See\n" + str(statement_expr))
                 assert statement_expr.coord() is not None
                 rhs = self._mk_term(statement_expr[2], None, parent_action, None, statement_expr)
                 # print(statement_expr.coord, rhs.coord, statement_expr[2])
@@ -700,7 +749,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif x == "event_td":
                     self.assertOrSyntaxError(self._building_action_id is not None, parent_SExpr, "Can't use event_td when not in the scope of an action.")
                     self.assertOrSyntaxError(not self._building_action_rule, parent_SExpr, ("event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
-                                                                      "Use situation_entrance_td instead."))
+                                                                                            "Use situation_entrance_td instead."))
                 elif x == "situation_entrance_td":
                     self.assertOrSyntaxError(self._building_situation_id is not None, parent_SExpr, "Can't use situation_entrance_td when not in the scope of a situation.")
 
@@ -751,7 +800,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return L4ContractConstructor.mk_literal(x, parent_SExpr, self.top)
 
         else: # SExpr
-            if self._is_macro_app(x[0]):
+            if self._is_macro_app(x):
                 x = self.handle_apply_macro(x)
 
             pair = try_parse_as_fn_app(x)
@@ -955,7 +1004,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
                     expanded = SExpr('(',['==','next_event_td',
-                                              SExpr('(',['+', rest, "1"+self.top.timeunit],x.line,x.col)],x.line,x.col)
+                                          SExpr('(',['+', rest, "1"+self.top.timeunit],x.line,x.col)],x.line,x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
 
             elif x in TIME_CONSTRAINT_KEYWORDS:
@@ -966,6 +1015,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             # self.syntaxError(rem, "No 'when' expression")
             ar.time_constraint = self._mk_time_constraint("no_time_constraint", src_situation, src_or_parent_act, ar, rem)
             assert ar.time_constraint is not None, f"Currently a time constraint is needed in the S-Expr syntax, but it can be 'no_time_constraint'. See {str(rem)}"
+
+
 
 
 def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:

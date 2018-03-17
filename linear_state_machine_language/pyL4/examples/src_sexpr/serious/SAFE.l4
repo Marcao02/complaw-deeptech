@@ -35,8 +35,9 @@
 ; 	HAS_DISCOUNT
 ; )
 
-(Macro set_conversion_price (company_capitalization company_valuation)
-	(if true (
+(BlockMacro set_conversion_price (company_capitalization company_valuation)
+	; (if true (
+	; (block (
 	(ifflag HAS_CAP (
 		(ifflag HAS_DISCOUNT (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
@@ -60,8 +61,8 @@
 			(conversion_price' = (company_valuation / company_capitalization))
 		))
 	))
-
-	) else () )
+	; ))
+	; ) else () )
 )
 
 (ContractParams
