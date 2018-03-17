@@ -41,15 +41,15 @@
 	(ifflag HAS_CAP (
 		(ifflag HAS_DISCOUNT (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
-			(safe_price' = (VALUATION_CAP / company_capitalization))
+			(cap_price' = (VALUATION_CAP / company_capitalization))
 			(discount_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
-			(conversion_price' = (min safe_price' discount_price'))
+			(conversion_price' = (min cap_price' discount_price'))
 
 		)
 		else (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
-			(safe_price' = (VALUATION_CAP / company_capitalization))
-			(conversion_price' = (min safe_price' undiscounted_price_per_share_standard_preferred_stock'))
+			(cap_price' = (VALUATION_CAP / company_capitalization))
+			(conversion_price' = (min cap_price' undiscounted_price_per_share_standard_preferred_stock'))
 		))
 	)
 	else (
@@ -87,7 +87,7 @@
 
 	; for Equity and Liquidity
 	(ifflag HAS_CAP (
-		(writes≤1 safe_price : SharePrice)
+		(writes≤1 cap_price : SharePrice)
 		(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
 		(ifflag HAS_DISCOUNT (
 			(writes≤1 discount_price : SharePrice)

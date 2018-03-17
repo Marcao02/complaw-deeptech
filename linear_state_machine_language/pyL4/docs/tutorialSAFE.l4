@@ -12,37 +12,29 @@
 	(PosSharePrice = (Ratio Pos$ PosShareCnt))
 )
 
-(Definitions
-	(VALCAP_STRICT_UPPERBOUND = 9e20)
-)
-
 (ContractParams
-	(PURCHASE_AMOUNT : Pos$ = 100000)
-	(VALUATION_CAP : Pos$ = VALCAP_STRICT_UPPERBOUND)
-	(DISCOUNT_RATE : "Fraction(0,1]" = 1)
+	(PURCHASE_AMOUNT : Pos$ = 1e5)
+	(VALUATION_CAP : Pos$ = 1e6)
+	(DISCOUNT_RATE : "Fraction(0,1]" = .95)
 	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_CASH : $ = 0)
 )
 
 (StateVars
-	(has_cap : Bool = (VALUATION_CAP < (Pos$ VALCAP_STRICT_UPPERBOUND)))
-	(has_discount : Bool = (DISCOUNT_RATE < 1))
-
 	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
 	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
 	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
 
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
-	; for Equity Financing
-	(writes≤1 safe_price : SharePrice)
-	(writes≤1 discount_price : SharePrice)
+	; for Equity and Liquidity
 	(writes≤1 conversion_price : SharePrice)
-	(writes≤1 initial_price_per_share_standard_preferred_stock : SharePrice)
+	(writes≤1 cap_price : SharePrice)
+	(writes≤1 discount_price : SharePrice)
+	(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
 
 	; for Liquidity
-	(writes≤1 liq_price : SharePrice )
 	(writes≤1 liq_cashout : $ = 0 )
 	(writes≤1 company_cash : $) ; maybe this should be an input.
 	(writes≤1 investor_liq_hypothetical_shares : ShareCnt)
@@ -112,10 +104,10 @@
 				(company_capitalization : PosShareCnt)
 				(premoney_valuation : Pos$) ) (AllowedSubjects Company)
 		(StateTransform
-			(safe_price' = (VALUATION_CAP / company_capitalization))
-			(initial_price_per_share_standard_preferred_stock' = (premoney_valuation / company_capitalization))
-			(discount_price' = (initial_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
-			(conversion_price' = (min safe_price' discount_price'))
+			(cap_price' = (VALUATION_CAP / company_capitalization))
+			(undiscounted_price_per_share_standard_preferred_stock' = (premoney_valuation / company_capitalization))
+			(discount_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
+			(conversion_price' = (min cap_price' discount_price'))
 			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSituation
@@ -131,8 +123,8 @@
 								    (liquidity_capitalization:PosShareCnt)
 			) (AllowedSubjects Company)
 		(StateTransform
-			(liq_price' = (VALUATION_CAP / liquidity_capitalization))
-			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ liq_price'))
+			(cap_price' = (VALUATION_CAP / liquidity_capitalization))
+			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ cap_price'))
 			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 			(cash_currently_unconverted' = PURCHASE_AMOUNT)
 			(company_cash' = company_cash_at_liquidity_event)
@@ -159,7 +151,7 @@
 
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(StateTransform
-			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ liq_price))
+			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ cap_price))
 		)
 		(FollowingSituation
 			(Next (Company must DoLiquidityEvent discretionary))
