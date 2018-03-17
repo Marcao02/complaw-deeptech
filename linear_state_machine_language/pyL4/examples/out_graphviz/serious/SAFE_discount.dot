@@ -1,0 +1,76 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph SAFE {    
+    Fulfilled[label=Fufilled];
+    InvestorInvests[label=InvestorInvests];
+	Breached_Investor[label=Breached_Investor];
+	Breached_Company[label=Breached_Company];
+	Breached_Company_Investor[label=Breached_Company_Investor]
+    
+     
+    CommitToEquityFinancing[label=CommitToEquityFinancing,shape=box];
+	DeliverDocsWithPRA[label=DeliverDocsWithPRA,shape=box];
+	DeliverDocsWithoutPRA[label=DeliverDocsWithoutPRA,shape=box];
+	SubmitProRataRightsAgreementForSigning[label=SubmitProRataRightsAgreementForSigning,shape=box];
+	SignPRA[label=SignPRA,shape=box];
+	IssueSAFEPreferredStock[label=IssueSAFEPreferredStock,shape=box];
+	DoEquityFinancing[label=DoEquityFinancing,shape=box];
+	CommitToIPO[label=CommitToIPO,shape=box];
+	CommitToChangeOfControl[label=CommitToChangeOfControl,shape=box];
+	AutoChooseStockPayment[label=AutoChooseStockPayment,shape=box];
+	ChooseStockPayment[label=ChooseStockPayment,shape=box];
+	TransferCommonStock[label=TransferCommonStock,shape=box];
+	ChooseCashPayment[label=ChooseCashPayment,shape=box];
+	TransferCash_L[label=TransferCash_L,shape=box];
+	DoLiquidityEvent[label=DoLiquidityEvent,shape=box];
+	CommitToDissolution[label=CommitToDissolution,shape=box];
+	TransferCash_D[label=TransferCash_D,shape=box];
+	TransferAssets[label=TransferAssets,shape=box];
+	Dissolve[label=Dissolve,shape=box];
+	Breach_Investor[label=Breach_Investor,shape=box];
+	Breach_Company[label=Breach_Company,shape=box];
+	Breach_Company_Investor[label=Breach_Company_Investor,shape=box]    
+    
+    
+    
+    InvestorInvests -> CommitToEquityFinancing;
+	InvestorInvests -> CommitToIPO;
+	InvestorInvests -> CommitToChangeOfControl;
+	InvestorInvests -> CommitToDissolution;
+	CommitToEquityFinancing -> DeliverDocsWithPRA;
+	CommitToEquityFinancing -> DeliverDocsWithoutPRA;
+	CommitToEquityFinancing -> Breach_Company [style=dashed];
+	DeliverDocsWithPRA -> IssueSAFEPreferredStock;
+	DeliverDocsWithoutPRA -> SubmitProRataRightsAgreementForSigning;
+	SubmitProRataRightsAgreementForSigning -> SignPRA;
+	SignPRA -> IssueSAFEPreferredStock;
+	IssueSAFEPreferredStock -> DoEquityFinancing;
+	CommitToIPO -> ChooseCashPayment;
+	CommitToIPO -> ChooseStockPayment;
+	CommitToIPO -> AutoChooseStockPayment;
+	CommitToIPO -> Breach_Company [style=dashed];
+	CommitToChangeOfControl -> ChooseCashPayment;
+	CommitToChangeOfControl -> ChooseStockPayment;
+	CommitToChangeOfControl -> AutoChooseStockPayment;
+	CommitToChangeOfControl -> Breach_Company [style=dashed];
+	AutoChooseStockPayment -> TransferCommonStock;
+	ChooseStockPayment -> TransferCommonStock;
+	TransferCommonStock -> DoLiquidityEvent;
+	ChooseCashPayment -> TransferCash_L;
+	TransferCash_L -> TransferCommonStock;
+	TransferCash_L -> DoLiquidityEvent;
+	CommitToDissolution -> TransferCash_D;
+	TransferCash_D -> TransferAssets;
+	TransferCash_D -> Dissolve;
+	TransferAssets -> Dissolve
+    
+    DoEquityFinancing -> Fulfilled [style=dashed];
+	DoLiquidityEvent -> Fulfilled [style=dashed];
+	Dissolve -> Fulfilled [style=dashed];
+	Breach_Investor -> Breached_Investor [style=dashed];
+	Breach_Company -> Breached_Company [style=dashed];
+	Breach_Company_Investor -> Breached_Company_Investor [style=dashed];
+	     
+    
+       
+}

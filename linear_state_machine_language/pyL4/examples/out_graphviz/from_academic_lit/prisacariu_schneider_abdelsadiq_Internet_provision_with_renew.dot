@@ -3,7 +3,10 @@
 digraph PS_Internet_Provision {    
     Fulfilled[label=Fufilled];
     NoInfraction[label=NoInfraction];
-	UnsettledInfraction[label=UnsettledInfraction]
+	UnsettledInfraction[label=UnsettledInfraction];
+	Breached_ISP[label=Breached_ISP];
+	Breached_Client[label=Breached_Client];
+	Breached_Client_ISP[label=Breached_Client_ISP]
     
     EnterFulfilled[label=EnterFufilled,shape=box]; 
     SendCancelNoticeByPost[label=SendCancelNoticeByPost,shape=box];
@@ -14,7 +17,10 @@ digraph PS_Internet_Provision {
 	SendDelayEmail[label=SendDelayEmail,shape=box];
 	Pay[label=Pay,shape=box];
 	ClientBreaches[label=ClientBreaches,shape=box];
-	EnterFulfilled[label=EnterFulfilled,shape=box]    
+	EnterFulfilled[label=EnterFulfilled,shape=box];
+	Breach_ISP[label=Breach_ISP,shape=box];
+	Breach_Client[label=Breach_Client,shape=box];
+	Breach_Client_ISP[label=Breach_Client_ISP,shape=box]    
     
     EnterFulfilled -> Fulfilled;
     
@@ -39,8 +45,11 @@ digraph PS_Internet_Provision {
 	RaiseTraffic -> UnsettledInfraction [style=dashed];
 	LowerTraffic -> UnsettledInfraction [style=dashed];
 	Pay -> UnsettledInfraction [style=dashed];
-	ClientBreaches -> Breach_Client [style=dashed];
+	ClientBreaches -> Breached_Client [style=dashed];
 	EnterFulfilled -> Fulfilled [style=dashed];
+	Breach_ISP -> Breached_ISP [style=dashed];
+	Breach_Client -> Breached_Client [style=dashed];
+	Breach_Client_ISP -> Breached_Client_ISP [style=dashed];
 	     
     
     SendCancelNoticeByPost -> NoInfraction [style=dashed];

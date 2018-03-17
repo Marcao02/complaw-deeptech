@@ -2,21 +2,29 @@
 
 digraph Master_Sales_Agreement {    
     Fulfilled[label=Fufilled];
-    VendorAcceptingOrders[label=VendorAcceptingOrders]
+    VendorAcceptingOrders[label=VendorAcceptingOrders];
+	Breached_Vendor[label=Breached_Vendor];
+	Breached_Customer[label=Breached_Customer];
+	Breached_Customer_Vendor[label=Breached_Customer_Vendor]
     
     EnterFulfilled[label=EnterFufilled,shape=box]; 
     EnterFulfilled[label=EnterFulfilled,shape=box];
 	SubmitNewOrder[label=SubmitNewOrder,shape=box];
 	Deliver[label=Deliver,shape=box];
 	EmailInvoice[label=EmailInvoice,shape=box];
-	PayBill[label=PayBill,shape=box]    
+	PayBill[label=PayBill,shape=box];
+	Breach_Vendor[label=Breach_Vendor,shape=box];
+	Breach_Customer[label=Breach_Customer,shape=box];
+	Breach_Customer_Vendor[label=Breach_Customer_Vendor,shape=box]    
     
     EnterFulfilled -> Fulfilled;
     
     VendorAcceptingOrders -> SubmitNewOrder;
 	VendorAcceptingOrders -> Deliver;
+	VendorAcceptingOrders -> Breach_Vendor [style=dashed];
 	VendorAcceptingOrders -> EmailInvoice;
 	VendorAcceptingOrders -> PayBill;
+	VendorAcceptingOrders -> Breach_Customer [style=dashed];
 	VendorAcceptingOrders -> EnterFulfilled [style=dashed];
 	VendorAcceptingOrders -> EnterFulfilled [style=dashed]
     
@@ -25,6 +33,9 @@ digraph Master_Sales_Agreement {
 	Deliver -> VendorAcceptingOrders [style=dashed];
 	EmailInvoice -> VendorAcceptingOrders [style=dashed];
 	PayBill -> VendorAcceptingOrders [style=dashed];
+	Breach_Vendor -> Breached_Vendor [style=dashed];
+	Breach_Customer -> Breached_Customer [style=dashed];
+	Breach_Customer_Vendor -> Breached_Customer_Vendor [style=dashed];
 	     
     
        

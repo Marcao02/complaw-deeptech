@@ -2,12 +2,14 @@
 
 digraph test_contract_2_for_must_later {    
     Fulfilled[label=Fufilled];
-    Ongoing[label=Ongoing]
+    Ongoing[label=Ongoing];
+	Breached_I[label=Breached_I]
     
     EnterFulfilled[label=EnterFufilled,shape=box]; 
     Throw[label=Throw,shape=box];
 	Catch[label=Catch,shape=box];
-	EnterFulfilled[label=EnterFulfilled,shape=box]    
+	EnterFulfilled[label=EnterFulfilled,shape=box];
+	Breach_I[label=Breach_I,shape=box]    
     
     EnterFulfilled -> Fulfilled;
     
@@ -18,6 +20,7 @@ digraph test_contract_2_for_must_later {
     Throw -> Ongoing [style=dashed];
 	Catch -> Ongoing [style=dashed];
 	EnterFulfilled -> Fulfilled [style=dashed];
+	Breach_I -> Breached_I [style=dashed];
 	     
     
        

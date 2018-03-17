@@ -3,7 +3,10 @@
 digraph KISS {    
     Fulfilled[label=Fufilled];
     InvestorInvests[label=InvestorInvests];
-	After_NotifyInvestorOfNextEquityFinancingTerms[label=After_NotifyInvestorOfNextEquityFinancingTerms]
+	After_NotifyInvestorOfNextEquityFinancingTerms[label=After_NotifyInvestorOfNextEquityFinancingTerms];
+	Breached_Investor[label=Breached_Investor];
+	Breached_Company[label=Breached_Company];
+	Breached_Company_Investor[label=Breached_Company_Investor]
     
      
     CommitToFinancing[label=CommitToFinancing,shape=box];
@@ -15,7 +18,10 @@ digraph KISS {
 	ChooseConvertToCommonStock[label=ChooseConvertToCommonStock,shape=box];
 	ReachMaturity[label=ReachMaturity,shape=box];
 	ChooseMaturityRepayment[label=ChooseMaturityRepayment,shape=box];
-	ChooseConversionToSeriesSeedPreferredStock[label=ChooseConversionToSeriesSeedPreferredStock,shape=box]    
+	ChooseConversionToSeriesSeedPreferredStock[label=ChooseConversionToSeriesSeedPreferredStock,shape=box];
+	Breach_Investor[label=Breach_Investor,shape=box];
+	Breach_Company[label=Breach_Company,shape=box];
+	Breach_Company_Investor[label=Breach_Company_Investor,shape=box]    
     
     
     
@@ -27,8 +33,10 @@ digraph KISS {
 	After_NotifyInvestorOfNextEquityFinancingTerms -> CloseEquityFinancingSale;
 	CommitToAcquisition -> ChooseMultipleRepayment;
 	CommitToAcquisition -> ChooseConvertToCommonStock;
+	CommitToAcquisition -> Breach_Investor [style=dashed];
 	ReachMaturity -> ChooseConversionToSeriesSeedPreferredStock;
-	ReachMaturity -> ChooseMaturityRepayment
+	ReachMaturity -> ChooseMaturityRepayment;
+	ReachMaturity -> Breach_Investor [style=dashed]
     
     NotifyInvestorOfNextEquityFinancingTerms -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed];
 	CloseEquityFinancingSale -> Fulfilled [style=dashed];
@@ -36,6 +44,9 @@ digraph KISS {
 	ChooseConvertToCommonStock -> Fulfilled [style=dashed];
 	ChooseMaturityRepayment -> Fulfilled [style=dashed];
 	ChooseConversionToSeriesSeedPreferredStock -> Fulfilled [style=dashed];
+	Breach_Investor -> Breached_Investor [style=dashed];
+	Breach_Company -> Breached_Company [style=dashed];
+	Breach_Company_Investor -> Breached_Company_Investor [style=dashed];
 	     
     
     choose_cash_interest_repayment -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed];

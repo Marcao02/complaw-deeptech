@@ -2,16 +2,25 @@
 
 digraph Hvitved_prohibitions_NDA {    
     Fulfilled[label=Fufilled];
-    Employed[label=Employed]
+    Employed[label=Employed];
+	Breached_Employer[label=Breached_Employer];
+	Breached_Employee[label=Breached_Employee];
+	Breached_Employee_Employer[label=Breached_Employee_Employer]
     
      
-    Disclose[label=Disclose,shape=box]    
+    Disclose[label=Disclose,shape=box];
+	Breach_Employer[label=Breach_Employer,shape=box];
+	Breach_Employee[label=Breach_Employee,shape=box];
+	Breach_Employee_Employer[label=Breach_Employee_Employer,shape=box]    
     
     
     
     Employed -> Disclose
     
-    Disclose -> Breach_Employee [style=dashed];
+    Disclose -> Breached_Employee [style=dashed];
+	Breach_Employer -> Breached_Employer [style=dashed];
+	Breach_Employee -> Breached_Employee [style=dashed];
+	Breach_Employee_Employer -> Breached_Employee_Employer [style=dashed];
 	     
     
        

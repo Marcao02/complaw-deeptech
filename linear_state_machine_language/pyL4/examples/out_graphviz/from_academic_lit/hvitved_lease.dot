@@ -4,7 +4,10 @@ digraph Lease_Hvitved {
     Fulfilled[label=Fufilled];
     Start[label=Start];
 	AfterEnsureApartmentReady[label=AfterEnsureApartmentReady];
-	MonthStarted[label=MonthStarted]
+	MonthStarted[label=MonthStarted];
+	Breached_Tenant[label=Breached_Tenant];
+	Breached_Landlord[label=Breached_Landlord];
+	Breached_Landlord_Tenant[label=Breached_Landlord_Tenant]
     
      
     RequestTerminationFromMonthStarted[label=RequestTerminationFromMonthStarted,shape=box];
@@ -16,7 +19,10 @@ digraph Lease_Hvitved {
 	PayRent[label=PayRent,shape=box];
 	EnterMonthEnded[label=EnterMonthEnded,shape=box];
 	EnterLeaseTermEnded[label=EnterLeaseTermEnded,shape=box];
-	MoveOut[label=MoveOut,shape=box]    
+	MoveOut[label=MoveOut,shape=box];
+	Breach_Tenant[label=Breach_Tenant,shape=box];
+	Breach_Landlord[label=Breach_Landlord,shape=box];
+	Breach_Landlord_Tenant[label=Breach_Landlord_Tenant,shape=box]    
     
     
     
@@ -42,6 +48,9 @@ digraph Lease_Hvitved {
 	StartLeaseTerm -> MonthStarted [style=dashed];
 	EnterMonthStarted -> MonthStarted [style=dashed];
 	MoveOut -> Fulfilled [style=dashed];
+	Breach_Tenant -> Breached_Tenant [style=dashed];
+	Breach_Landlord -> Breached_Landlord [style=dashed];
+	Breach_Landlord_Tenant -> Breached_Landlord_Tenant [style=dashed];
 	     
     
        

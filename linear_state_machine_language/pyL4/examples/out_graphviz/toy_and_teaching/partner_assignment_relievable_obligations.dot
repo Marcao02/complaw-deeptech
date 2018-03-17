@@ -2,12 +2,18 @@
 
 digraph partner_assignment_demonstrating_relievable_obligations {    
     Fulfilled[label=Fufilled];
-    WorkingOnAssignment[label=WorkingOnAssignment]
+    WorkingOnAssignment[label=WorkingOnAssignment];
+	Breached_Bob[label=Breached_Bob];
+	Breached_Alice[label=Breached_Alice];
+	Breached_Alice_Bob[label=Breached_Alice_Bob]
     
      
     SolveProbA[label=SolveProbA,shape=box];
 	SolveProbB[label=SolveProbB,shape=box];
-	Submit[label=Submit,shape=box]    
+	Submit[label=Submit,shape=box];
+	Breach_Bob[label=Breach_Bob,shape=box];
+	Breach_Alice[label=Breach_Alice,shape=box];
+	Breach_Alice_Bob[label=Breach_Alice_Bob,shape=box]    
     
     
     
@@ -21,6 +27,9 @@ digraph partner_assignment_demonstrating_relievable_obligations {
     SolveProbA -> WorkingOnAssignment [style=dashed];
 	SolveProbB -> WorkingOnAssignment [style=dashed];
 	Submit -> Fulfilled [style=dashed];
+	Breach_Bob -> Breached_Bob [style=dashed];
+	Breach_Alice -> Breached_Alice [style=dashed];
+	Breach_Alice_Bob -> Breached_Alice_Bob [style=dashed];
 	     
     
        

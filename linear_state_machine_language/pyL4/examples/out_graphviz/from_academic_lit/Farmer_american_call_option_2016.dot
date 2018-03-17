@@ -2,12 +2,18 @@
 
 digraph Farmer_American_call_option_from_A_Formal_Language_for_Writing_Contracts_2016 {    
     Fulfilled[label=Fufilled];
-    BeforeOptionPurchase[label=BeforeOptionPurchase]
+    BeforeOptionPurchase[label=BeforeOptionPurchase];
+	Breached_Seller[label=Breached_Seller];
+	Breached_Buyer[label=Breached_Buyer];
+	Breached_Buyer_Seller[label=Breached_Buyer_Seller]
     
      
     PaySellerForOption[label=PaySellerForOption,shape=box];
 	ExerciseOption[label=ExerciseOption,shape=box];
-	TransferShare[label=TransferShare,shape=box]    
+	TransferShare[label=TransferShare,shape=box];
+	Breach_Seller[label=Breach_Seller,shape=box];
+	Breach_Buyer[label=Breach_Buyer,shape=box];
+	Breach_Buyer_Seller[label=Breach_Buyer_Seller,shape=box]    
     
     
     
@@ -16,6 +22,9 @@ digraph Farmer_American_call_option_from_A_Formal_Language_for_Writing_Contracts
 	ExerciseOption -> TransferShare
     
     TransferShare -> Fulfilled [style=dashed];
+	Breach_Seller -> Breached_Seller [style=dashed];
+	Breach_Buyer -> Breached_Buyer [style=dashed];
+	Breach_Buyer_Seller -> Breached_Buyer_Seller [style=dashed];
 	     
     
        

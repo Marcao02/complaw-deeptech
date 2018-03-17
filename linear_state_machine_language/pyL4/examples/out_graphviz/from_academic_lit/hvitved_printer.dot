@@ -2,7 +2,10 @@
 
 digraph Two_part_sale_Hvitved_Laser_Printer {    
     Fulfilled[label=Fufilled];
-    Awaiting_Delivery[label=Awaiting_Delivery]
+    Awaiting_Delivery[label=Awaiting_Delivery];
+	Breached_Seller[label=Breached_Seller];
+	Breached_Buyer[label=Breached_Buyer];
+	Breached_Buyer_Seller[label=Breached_Buyer_Seller]
     
      
     Deliver[label=Deliver,shape=box];
@@ -12,7 +15,10 @@ digraph Two_part_sale_Hvitved_Laser_Printer {
 	ReturnOnTime[label=ReturnOnTime,shape=box];
 	PayLateFee[label=PayLateFee,shape=box];
 	CompleteNormalSale[label=CompleteNormalSale,shape=box];
-	DeliverRefund[label=DeliverRefund,shape=box]    
+	DeliverRefund[label=DeliverRefund,shape=box];
+	Breach_Seller[label=Breach_Seller,shape=box];
+	Breach_Buyer[label=Breach_Buyer,shape=box];
+	Breach_Buyer_Seller[label=Breach_Buyer_Seller,shape=box]    
     
     
     
@@ -29,6 +35,9 @@ digraph Two_part_sale_Hvitved_Laser_Printer {
     PayLateFee -> Fulfilled [style=dashed];
 	CompleteNormalSale -> Fulfilled [style=dashed];
 	DeliverRefund -> Fulfilled [style=dashed];
+	Breach_Seller -> Breached_Seller [style=dashed];
+	Breach_Buyer -> Breached_Buyer [style=dashed];
+	Breach_Buyer_Seller -> Breached_Buyer_Seller [style=dashed];
 	     
     
        
