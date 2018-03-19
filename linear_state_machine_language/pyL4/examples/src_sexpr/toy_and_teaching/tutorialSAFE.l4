@@ -13,7 +13,7 @@
 )
 
 (ContractParams
-	(PURCHASE_AMOUNT : Pos$ = 1e5)
+	(PURCHASE_AMOUNT : Pos$ = 1e4)
 	(VALUATION_CAP : Pos$ = 1e6)
 	(DISCOUNT_RATE : "Fraction(0,1]" = .95)
 	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
@@ -22,81 +22,65 @@
 )
 
 (StateVars
-	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
-	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
-	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
+	(investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
+	(investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+	(investor_cash : $ = START_INVESTOR_CASH )
 
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 
 	; for Equity and Liquidity
-	(writes≤1 conversion_price : SharePrice)
-	(writes≤1 cap_price : SharePrice)
-	(writes≤1 discount_price : SharePrice)
-	(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
+	(conversion_price : SharePrice)
+	(cap_price : SharePrice)
+	(discount_price : SharePrice)
+	(undiscounted_price_per_share_standard_preferred_stock : SharePrice)
 
 	; for Liquidity
-	(writes≤1 liq_cashout : $ = 0 )
-	(writes≤1 company_cash : $) ; maybe this should be an input.
-	(writes≤1 investor_liq_hypothetical_shares : ShareCnt)
-	(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
+	(liq_cashout : $ = 0 )
+	(investor_liq_hypothetical_shares : ShareCnt)
+	(investor_percent_of_cashout_investor_investments : "Fraction[0,1)")
 )
 
 (Invariants
 	(liq_cashout ≤ cash_currently_unconverted)
-	(dis_cashout ≤ PURCHASE_AMOUNT)
 )
 
-(FormalContract "SAFE"
-	; apply to all actions and states:
-	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 
+(Situations&Actions
 	(StartSituation InvestorInvests)
 
 	(Situation InvestorInvests
 		(Next
 			(Company may CommitToEquityFinancing)
-			(Company may (CommitToIPO ?1 ?2)) ; IPO
-			; (Breach_Company discretionary) ; actually, company can remain in current state forever.
+			(Company may (CommitToIPO ?1)) ; IPO
+			; should Company breach after a while? no; company can actually remain in this state forever,
+			; though they won't be able to raise any new money or sell.
 		)
 	)
 
 	; ----------------- Equity Financing Event -------------------
-	; NOTE: PRA abbreviates pro rata agreement
+	; NOTE: PRRA abbreviates pro rata rights agreement
 
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(FollowingSituation
 			(Next
-				(Company may DeliverDocsWithPRA discretionary)
-				(Company may DeliverDocsWithoutPRA discretionary)
-				(Breach_Company discretionary)
+				(Company must SendEquityFinancingTransactionDocsWithPRRAForSigning (within 14))
 			)
 		)
 	)
 
-	(Action DeliverDocsWithPRA (AllowedSubjects Company)
+	(Action SendEquityFinancingTransactionDocsWithPRRAForSigning (AllowedSubjects Company)
 		(FollowingSituation
-			(Next (Company must (IssueSAFEPreferredStock ?1 ?2) discretionary))
+			(Next
+				(Investor must ExecuteAndDeliverTransactionDocs (within 14))
+			)
 		)
 	)
 
-	(Action DeliverDocsWithoutPRA (AllowedSubjects Company)
+	(Action ExecuteAndDeliverTransactionDocs (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next (Company must SubmitProRataRightsAgreementForSigning discretionary))
-		)
-	)
-
-	(Action SubmitProRataRightsAgreementForSigning  (AllowedSubjects Company)
-		(FollowingSituation
-			; TODO: I think this shouldn't be a *must*, since presumably they can
-			; send it back with proposed amendments/corrections.
-			; That seems like something we should have a reusable module for.
-			(Next (Investor must SignPRA discretionary))
-		)
-	)
-
-	(Action SignPRA (AllowedSubjects Investor)
-		(FollowingSituation
-			(Next (Company must (IssueSAFEPreferredStock ?1 ?2) discretionary))
+			(Next
+				(Company must (IssueSAFEPreferredStock ?1 ?2) (within 14))
+			)
 		)
 	)
 
@@ -111,7 +95,8 @@
 			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSituation
-			(Next (Company must DoEquityFinancing discretionary))  )
+			(Next (Company must DoEquityFinancing (within 1)))
+		)
 	)
 
 	(Action DoEquityFinancing (AllowedSubjects Company) (TransitionsTo Fulfilled))
@@ -119,15 +104,13 @@
 
 	; ----------------- Liquidity Event -------------------
 
-	(Action (CommitToIPO (company_cash_at_liquidity_event:$)
-								    (liquidity_capitalization:PosShareCnt)
+	(Action (CommitToIPO (liquidity_capitalization:PosShareCnt)
 			) (AllowedSubjects Company)
 		(StateTransform
 			(cap_price' = (VALUATION_CAP / liquidity_capitalization))
 			(investor_liq_hypothetical_shares' = (PURCHASE_AMOUNT round/ cap_price'))
 			(investor_percent_of_cashout_investor_investments' = (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization))
 			(cash_currently_unconverted' = PURCHASE_AMOUNT)
-			(company_cash' = company_cash_at_liquidity_event)
 		)
 
 		(FollowingSituation
@@ -142,11 +125,11 @@
 	)
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
-		(FollowingSituation (Next (Company must TransferCommonStock discretionary)))
+		(FollowingSituation (Next (Company must TransferCommonStock (within 14))))
 	)
 
 	(Action ChooseStockPayment (AllowedSubjects Investor)
-		(FollowingSituation (Next (Company must TransferCommonStock discretionary)))
+		(FollowingSituation (Next (Company must TransferCommonStock (within 14))))
 	)
 
 	(Action TransferCommonStock (AllowedSubjects Company)
@@ -154,21 +137,21 @@
 			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ cap_price))
 		)
 		(FollowingSituation
-			(Next (Company must DoLiquidityEvent discretionary))
+			(Next (Company must DoLiquidityEvent (within 14)))
 		)
 	)
 
 	(Action ChooseCashPayment (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next (Company must TransferCash_L discretionary))
+			(Next (Company must (TransferCash_L ?1) (within 14)))
 		)
 	)
 
-	(Action TransferCash_L (AllowedSubjects Company)
+	(Action (TransferCash_L (company_cash_at_liquidity_event : Pos$)) (AllowedSubjects Company)
 		(StateTransform
 			(liq_cashout' = (min
 				cash_currently_unconverted
-				(company_cash * investor_percent_of_cashout_investor_investments)
+				(company_cash_at_liquidity_event * investor_percent_of_cashout_investor_investments)
 			))
 			(investor_cash' += liq_cashout')
 		)
@@ -176,10 +159,10 @@
 		(FollowingSituation
 			(Next
 				(if (liq_cashout < cash_currently_unconverted)
-					(Company must TransferCommonStock discretionary) )
+					(Company must TransferCommonStock (within 14)) )
 
 				(if (liq_cashout == cash_currently_unconverted)
-					(Company must DoLiquidityEvent discretionary)
+					(Company must DoLiquidityEvent (within 14))
 				)
 			)
 		)

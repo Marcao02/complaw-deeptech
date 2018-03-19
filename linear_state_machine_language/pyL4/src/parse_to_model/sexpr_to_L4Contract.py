@@ -139,9 +139,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_toplevel(self, x:SExpr):
         rem = x.tillEnd(1)
 
-        def head(constant: str) -> bool:
+        # def head(constant: str) -> bool:
+        #     nonlocal x
+        #     return streqci(x[0], constant)
+        def head(*constants: str) -> bool:
             nonlocal x
-            return streqci(x[0], constant)
+            return not all( not streqci(x[0], constant) for constant in constants )
 
         if head(MACRO_DEC_LABEL) or head(BLOCKMACRO_DEC_LABEL):
             assert isinstance(x[1],str) and len(x) >= 4, "Macro should have the form "\
@@ -173,7 +176,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         elif head(PROSE_CONTRACT_AREA_LABEL):
             self.top.prose_contract = self._mk_prose_contract(cast(List[List[str]], rem))
 
-        elif head(FORMAL_CONTRACT_AREA_LABEL):
+        elif head(FORMAL_CONTRACT_AREA_LABEL, "Actions&Situations", "Situations&Actions"):
             self._mk_main_program_area(rem)
 
         elif head(TIMEUNIT_DEC_LABEL):

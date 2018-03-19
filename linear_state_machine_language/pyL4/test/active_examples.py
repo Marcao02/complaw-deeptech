@@ -28,7 +28,9 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
     ('serious/SAFE.l4', 'serious/SAFE_cap.l4', {"HAS_CAP":True, "HAS_DISCOUNT":False}, ),
     ('serious/SAFE.l4', 'serious/SAFE_discount.l4', {"HAS_CAP":False, "HAS_DISCOUNT":True}, ),
     ('serious/SAFE.l4', 'serious/SAFE_cap_discount.l4', {"HAS_CAP":True, "HAS_DISCOUNT":True}, ),
-    'serious/KISS.l4'
+    'serious/KISS.l4',
+
+    'toy_and_teaching/tutorialSAFE.l4'
 ]
-EXAMPLES_FULL_SIZE = 22
+EXAMPLES_FULL_SIZE = 23
 # EXAMPLES_FULL_SIZE = 1

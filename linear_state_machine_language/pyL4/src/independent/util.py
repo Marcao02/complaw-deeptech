@@ -1,7 +1,12 @@
-from typing import Any, Callable, cast, Set, TypeVar, Type
+from typing import Any, Callable, cast, Set, TypeVar, Type, Sized
 import logging
 
 import time
+
+
+
+def nonempty(col:Sized) -> bool:
+    return ((col is not None) and len(col) > 0)
 
 
 def mytimeit(f:Callable[[],Any]) -> Any:
