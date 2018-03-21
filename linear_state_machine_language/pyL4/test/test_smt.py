@@ -1,8 +1,9 @@
 import test.test_parser
+from src.independent.util import nonempty
 from src.independent.util_for_str import strwbar
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse
 from src.independent.typing_imports import *
-from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand, smt_lines_to_str, ToSMTLIB
+from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand, smt_lines_to_str, ToSMTLIB, assertexpr
 from src.model.L4Contract import L4Contract
 
 EXAMPLES_TO_USE = [
@@ -14,8 +15,10 @@ EXAMPLES_TO_USE = [
     # 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
     'from_academic_lit/hvitved_printer.l4',
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
-    'serious/SAFE.l4',
-    'serious/SAFE_2_liq_eventtypes.l4',
+    'serious/SAFE_cap.l4',
+    'serious/SAFE_cap_discount.l4',
+    'serious/SAFE_discount.l4',
+    'serious/SAFE_mfn.l4',
     'serious/KISS.l4',
     'toy_and_teaching/minimal_future_actions.l4',
     'toy_and_teaching/minimal_future_actions2.l4',
@@ -65,8 +68,13 @@ def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
     heading("Contract param definitions")
     extend(toz3.contractParamDefns.values())
 
-    heading("Invariants")
-    extend(toz3.invariant_assertions)
+    heading("Invariants hold in start state")
+    lines.append(f'(echo "Invariant proof obligs:")')
+    toz3.queueInvariantProofObligs()
+    extend(toz3.commands_top)
+
+    for inv in toz3.invariant_expressions:
+        toz3.appendProofOblig(inv)
 
     for action in prog.actions_iter():
         heading(action.action_id)

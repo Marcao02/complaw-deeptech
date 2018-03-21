@@ -30,23 +30,13 @@ situation InvestorInvests:
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
-        Company may DeliverDocsWithPRA no_time_constraint
-        Company may DeliverDocsWithoutPRA no_time_constraint
-        Breach_Company no_time_constraint
+        Company must SendEquityFinancingTransactionDocsWithPRRAForSigning no_time_constraint
 
-action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
+action SendEquityFinancingTransactionDocsWithPRRAForSigning()  transitions to AfterSendEquityFinancingTransactionDocsWithPRRAForSigning
     following situation:
-        Company must IssueSAFEPreferredStock(?1, ?2) no_time_constraint
+        Investor must ExecuteAndDeliverTransactionDocs no_time_constraint
 
-action DeliverDocsWithoutPRA()  transitions to AfterDeliverDocsWithoutPRA
-    following situation:
-        Company must SubmitProRataRightsAgreementForSigning no_time_constraint
-
-action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRataRightsAgreementForSigning
-    following situation:
-        Investor must SignPRA no_time_constraint
-
-action SignPRA()  transitions to AfterSignPRA
+action ExecuteAndDeliverTransactionDocs()  transitions to AfterExecuteAndDeliverTransactionDocs
     following situation:
         Company must IssueSAFEPreferredStock(?1, ?2) no_time_constraint
 

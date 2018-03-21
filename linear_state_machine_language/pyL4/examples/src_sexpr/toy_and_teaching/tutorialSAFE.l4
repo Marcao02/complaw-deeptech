@@ -45,7 +45,7 @@
 )
 
 
-(Situations&Actions
+(Situations&Actions "safe_tutorial"
 	(StartSituation InvestorInvests)
 
 	(Situation InvestorInvests

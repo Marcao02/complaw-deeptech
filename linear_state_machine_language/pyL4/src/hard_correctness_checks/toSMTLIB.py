@@ -1,3 +1,4 @@
+from src.independent.util import castid
 from src.model.ActionRule import NextActionRule, PartyNextActionRule, EnvNextActionRule
 from src.model.Situation import Situation
 from src.hard_correctness_checks.SMTLIB import *
@@ -13,6 +14,27 @@ from src.model.StateTransform import StateTransform
 from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement, Block
 
 
+# def appendSMTLine(self, s: SMTLine, tolines:List[SMTLine]):
+#     tolines.append(s)
+
+# def push(self, tolst: List[SMTCommand_]):
+#     tolst.append("(push)")
+#     self.state_vars_updated_stack.append([])
+
+# def initial_vals_imply_invariants(prog:L4Contract, lst:List[SMTLine]):
+#
+#     for (vname, vdec) in prog.state_var_decs.items():
+#         if vdec.initval:
+#             lst.append(equals(vname, ))
+
+# class GeneratedSMTLibData:
+
+
+def statevar_initialisations_ok(prog:L4Contract) -> List[SMTCommand_]:
+    """This is basically ToSMTLib.term2smtlibdef"""
+    pass
+
+
 class ToSMTLIB:
     def __init__(self, prog:L4Contract, verbose:bool) -> None:
         self.verbose = verbose
@@ -20,8 +42,9 @@ class ToSMTLIB:
 
         self.cast_const_ind = 0
 
-        self.cast_const_decs : Dict[str, SMTCommand_] = dict()
-        self.cast_const_defs: Dict[str, SMTCommand_] = dict()
+        # didn't use?
+        # self.cast_const_decs : Dict[str, SMTCommand_] = dict()
+        # self.cast_const_defs: Dict[str, SMTCommand_] = dict()
         self.cast_const_to_enclosing_action : Dict[str,str] = dict()
 
         self.cast_const_negated_type_asserts: Dict[str, SMTCommand_] = dict()
@@ -47,8 +70,9 @@ class ToSMTLIB:
         self.stateVarDecs : Dict[str, SMTCommand_] = dict()
         self.stateVarExtraTypeAssertions: Dict[str, SMTCommand_] = dict()
 
-        self.invariant_assertions : List[SMTCommand_] = []
-        self.invariant_conjectures: List[SMTExprNonatom_] = []
+        self.invariant_expressions: List[SMTExprNonatom_] = []
+        self.invariant_true_assertions : List[SMTCommand_] = []
+        self.invariant_maintained_conjectures: List[SMTExprNonatom_] = []
         # self.claims : List[Z3Statement] = []
 
         self.actionParamDecs : Dict[ActionId, Dict[str, SMTCommand_]] = dict()
@@ -66,10 +90,9 @@ class ToSMTLIB:
             # self.stateTransforms[self.curaid].append((s,self.curindent))
             self.commands_for_actions[self.curaid].append(s)
     def push(self):
-        # self.append(("(push)",self.curindent))
         self.append("(push)")
         self.state_vars_updated_stack.append([])
-        # self.curindent += 1
+
     def pop(self):
         # self.append(("(pop)",self.curindent))
         self.append("(pop)")
@@ -82,11 +105,11 @@ class ToSMTLIB:
 
     def appendProofOblig(self, expr:SMTExpr, msg:str = ""):
         self.push()
-        self.append(f'(echo "Should be sat:") (check-sat)')
+        # self.append(f'(echo "Should be sat:") (check-sat)')
         if msg:
-            self.append(f'(echo "{msg}")')
+            self.append(f'\t(echo "{msg}")')
         else:
-            self.append(f'(echo "Try to prove {smtlib_expr_to_str(expr)}")')
+            self.append(f'\t(echo "Try to prove {smtlib_expr_to_str(expr)}")')
         self.appendAssert(neg(expr))
         self.append("(check-sat)")
         self.pop()
@@ -151,7 +174,8 @@ class ToSMTLIB:
             "(declare-const next_event_td Int)",
             "(assert (>= next_event_td event_td))",
 
-            "(declare-fun mapSet (TDMapNatNat NatNat Real) TDMapNatNat)"
+            # "(declare-sort TDMapNatNat)",
+            # "(declare-fun mapSet (TDMapNatNat NatNat Real) TDMapNatNat)"
         )
 
         # 'mapSet': tdmapSet,
@@ -178,30 +202,44 @@ class ToSMTLIB:
     def invariant2smtlib(self):
         for invariant in self.prog.state_invariants:
             inv = self.term2smtlibdef(invariant.prop)
-            self.invariant_assertions.append(assertexpr(inv))
-            self.invariant_conjectures.append(
+            self.invariant_expressions.append(inv)
+            self.invariant_true_assertions.append(assertexpr(inv))
+            self.invariant_maintained_conjectures.append(
                 implies(
                     inv,
                     self.invariantPrimed(inv)
                 )
             )
+    def queueInvariantProofObligs(self):
+        for invariant in self.prog.state_invariants:
+            inv = self.term2smtlibdef(invariant.prop)
+            self.appendProofOblig(inv, f"Invariant {str(inv)} holds in start state.")
 
     def action2smtlib(self, a:Action):
         self.curaid = a.action_id
         self.commands_for_actions[a.action_id] = []
         self.push()
         self.actionParams2smtlib(a)
+
+        # preconditions hold upon entering
         if len(a.preconditions) > 0:
             self.append("; PRE begin")
             for pre in a.preconditions:
                 self.appendAssert(self.term2smtlibdef(pre))
             self.append("; PRE end")
+
+        # assert that invariants hold when entering the state transform:
+        for inv_assert in self.invariant_true_assertions:
+            self.append(inv_assert)
+
         self.stateTransform2smtlib(a.state_transform)
-        for invcheck in self.invariant_conjectures:
+
+        for invcheck in self.invariant_maintained_conjectures:
             # invcheck has the form ('=>', e1, e2)
             hypoth_for_printing = invcheck.args[1]
             self.appendProofOblig(invcheck, f"{self.curaid} INV CHECK:" + smtlib_expr_to_str(hypoth_for_printing))
         self.pop()
+        self.curaid = castid(ActionId, "")
 
     def situation2smtlib(self, sit:Situation):
         # print(sit.situation_id)

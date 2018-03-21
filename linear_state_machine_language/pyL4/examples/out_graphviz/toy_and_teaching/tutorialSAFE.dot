@@ -1,6 +1,6 @@
 // THIS IS A GENERATED FILE. DO NOT EDIT.
 
-digraph SAFE {    
+digraph safe_tutorial {    
     Fulfilled[label=Fufilled];
     InvestorInvests[label=InvestorInvests];
 	Breached_Investor[label=Breached_Investor];
@@ -9,10 +9,8 @@ digraph SAFE {
     
      
     CommitToEquityFinancing[label=CommitToEquityFinancing,shape=box];
-	DeliverDocsWithPRA[label=DeliverDocsWithPRA,shape=box];
-	DeliverDocsWithoutPRA[label=DeliverDocsWithoutPRA,shape=box];
-	SubmitProRataRightsAgreementForSigning[label=SubmitProRataRightsAgreementForSigning,shape=box];
-	SignPRA[label=SignPRA,shape=box];
+	SendEquityFinancingTransactionDocsWithPRRAForSigning[label=SendEquityFinancingTransactionDocsWithPRRAForSigning,shape=box];
+	ExecuteAndDeliverTransactionDocs[label=ExecuteAndDeliverTransactionDocs,shape=box];
 	IssueSAFEPreferredStock[label=IssueSAFEPreferredStock,shape=box];
 	DoEquityFinancing[label=DoEquityFinancing,shape=box];
 	CommitToIPO[label=CommitToIPO,shape=box];
@@ -30,13 +28,9 @@ digraph SAFE {
     
     InvestorInvests -> CommitToEquityFinancing;
 	InvestorInvests -> CommitToIPO;
-	CommitToEquityFinancing -> DeliverDocsWithPRA;
-	CommitToEquityFinancing -> DeliverDocsWithoutPRA;
-	CommitToEquityFinancing -> Breach_Company [style=dashed];
-	DeliverDocsWithPRA -> IssueSAFEPreferredStock;
-	DeliverDocsWithoutPRA -> SubmitProRataRightsAgreementForSigning;
-	SubmitProRataRightsAgreementForSigning -> SignPRA;
-	SignPRA -> IssueSAFEPreferredStock;
+	CommitToEquityFinancing -> SendEquityFinancingTransactionDocsWithPRRAForSigning;
+	SendEquityFinancingTransactionDocsWithPRRAForSigning -> ExecuteAndDeliverTransactionDocs;
+	ExecuteAndDeliverTransactionDocs -> IssueSAFEPreferredStock;
 	IssueSAFEPreferredStock -> DoEquityFinancing;
 	CommitToIPO -> ChooseCashPayment;
 	CommitToIPO -> ChooseStockPayment;

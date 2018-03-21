@@ -13,6 +13,8 @@ class SMTExprNonatom_(NamedTuple):
     args_: Tuple[Any,...]
     @property # typed accessor
     def args(self) -> Tuple[SMTExpr,...]: return cast(Tuple[SMTExpr,...], self.args_)
+    def __str__(self) -> str:
+        return f"({self.symb} {' '.join((str(x) for x in self.args))})"
 def SMTExprNonatom(symb:str, args:Iterable[SMTExpr]) -> SMTExprNonatom_: return SMTExprNonatom_(symb,tuple(args))
 
 SMTCommand_ = NewType('SMTCommand_', SMTExprNonatom_)
