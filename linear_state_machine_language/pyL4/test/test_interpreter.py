@@ -313,7 +313,6 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
     ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 5 * M,
-         # "DISCOUNT_RATE": 1
          },
         (event('CommitToEquityFinancing', 'Company', 0),
          event('DeliverDocsWithPRA', 'Company', 0),
@@ -329,7 +328,6 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
     ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 4 * M,
-         # "DISCOUNT_RATE": 1
          },
         (event('CommitToEquityFinancing', 'Company', 0),
          event('DeliverDocsWithPRA', 'Company', 0),
@@ -345,7 +343,6 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
     ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 8 * M,
-         # "DISCOUNT_RATE": 1
          },
         (event('CommitToEquityFinancing', 'Company', 0),
          event('DeliverDocsWithPRA', 'Company', 0),
@@ -361,21 +358,20 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
     ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 10 * M,
-         # "DISCOUNT_RATE": 1
          },
         (event('CommitToIPO', 'Company', 0, {
             'company_cash_at_liquidity_event': 50 * M,
             'company_capitalization': 11.5 * M,
-            "company_valuation": 11 * M
+            'company_valuation': 11 * M
         }),
 
          event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0),
+         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 11 * M}),
          # event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
         FULFILLED_SITUATION_LABEL,
-        {"investor_liq_hypothetical_shares": 115000,
+        {
          "investor_Common_Stocks": 0,
          "investor_SAFE_Preferred_Stocks": 0,
          "investor_cash": 100000}),
@@ -385,12 +381,59 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
     ('serious/SAFE_cap.l4', CompleteTrace(
         {"PURCHASE_AMOUNT": 100 * K,
          "VALUATION_CAP": 10 * M,
-         # "DISCOUNT_RATE": 1
+         },
+        (event('CommitToIPO', 'Company', 0, {
+            'company_cash_at_liquidity_event': 9 * M,
+            'company_capitalization': 11.5 * M,
+            'company_valuation': 11 * M, # note greater than CAP
+        }),
+
+         event('ChooseCashPayment', 'Investor', 0),
+         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 11 * M}),
+         event('TransferCommonStock', 'Company', 0),
+         event('DoLiquidityEvent', 'Company', 0)
+         ),
+        FULFILLED_SITUATION_LABEL,
+        {
+         "investor_Common_Stocks": 20909,
+         "investor_SAFE_Preferred_Stocks": 0,
+         "liq_cashout": 81818.18181818181,
+         "investor_cash": 81818.18181818181}),
+         "Example where company can't fully pay out the investors"
+    ),
+
+    ('serious/SAFE_cap.l4', CompleteTrace(
+        {"PURCHASE_AMOUNT": 100 * K,
+         "VALUATION_CAP": 10 * M,
+         },
+        (event('CommitToIPO', 'Company', 0, {
+            'company_cash_at_liquidity_event': 9 * M,
+            'company_capitalization': 11.5 * M,
+            'company_valuation': 11 * M,
+        }),
+
+         event('ChooseCashPayment', 'Investor', 0),
+         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 10 * M}),
+         event('TransferCommonStock', 'Company', 0),
+         event('DoLiquidityEvent', 'Company', 0)
+         ),
+        FULFILLED_SITUATION_LABEL,
+        {
+         "investor_Common_Stocks": 11500,
+         "investor_SAFE_Preferred_Stocks": 0,
+         "investor_cash": 90000}),
+        "Example where company can't fully pay out the investors, AND not all investments are from SAFE investors"
+    ),
+
+    ('serious/SAFE_cap.l4', CompleteTrace(
+        {"PURCHASE_AMOUNT": 100 * K,
+         "VALUATION_CAP": 10 * M,
          },
         (event('CommitToIPO', 'Company', 0, {
             'company_cash_at_liquidity_event': 50 * M,
             'company_capitalization': 11.5 * M,
-            "company_valuation": 11 * M
+            "company_valuation": 11 * M,
+
         }),
 
          event('ChooseStockPayment', 'Investor', 0),

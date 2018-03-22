@@ -418,43 +418,49 @@ class ExecEnv:
         assert term is not None
         # assert self.cur_event is not None  # nope! it can be None when evaluating terms in contract param dec and state var decs
 
+        rv : Any = None
+
         # next_event_timestamp will be None when evaluating an entrance-guard
         try:
             if isinstance(term, FnApp):
-                return self.evalFnApp(term)
+                rv = self.evalFnApp(term)
 
             elif isinstance(term, Literal):
-                return self.evalLit(term)
+                rv = self.evalLit(term)
 
             elif isinstance(term, StateVar):
-                return self.gvarvals[term.name]
+                assert term.name in self.gvarvals and self.gvarvals[term.name] is not None, f"We don't know the current-var-value {term.name}."
+                rv = self.gvarvals[term.name]
 
             elif isinstance(term, PrimedStateVar):
-                return self.gvarvals[term.name]
+                assert term.name in self.gvarvals and self.gvarvals[term.name] is not None, f"We don't know the next-var-value {term.name}."
+                rv = self.gvarvals[term.name]
 
             elif isinstance(term, ContractParam):
                 assert hasNotNone(self.contract_param_vals, term.name), term.name
-                return self.contract_param_vals[term.name]
+                rv = self.contract_param_vals[term.name]
 
             elif isinstance(term, ActionBoundActionParam):
                 assert (self.last_appliedaction_params is not None) and term.ind < len(self.last_appliedaction_params), \
-                    f"Action-bound action parameter {term} (index {term.ind}) occurrence but only have {len(cast(ABAPSubst,self.last_appliedaction_params))} values supplied."
-                return self.last_appliedaction_params[term.ind]
+                    f"Action-bound action parameter {term} (index {term.ind}) occurrence but only have " \
+                        f"{len(cast(ABAPSubst,self.last_appliedaction_params)) if self.last_appliedaction_params else 0} values supplied."
+                rv = self.last_appliedaction_params[term.ind]
 
             elif isinstance(term, RuleBoundActionParam):
                 assert self.cur_event and self.cur_event.params is not None, f"Expected current event {self.cur_event} to have an action parameter named {term}"
-                return self.cur_event.params[term.ind]
+                rv = self.cur_event.params[term.ind]
 
             elif isinstance(term, SimpleTimeDeltaLit):
-                return term.lit
+                rv = term.lit
 
             elif isinstance(term, LocalVar):
-                return self.localvar_vals[term.name]
+                rv = self.localvar_vals[term.name]
 
             else:
                 contract_bug(f"evalTerm unhandled case for: {str(term)} of type {type(term)}")
-                return term
-
+                rv = term
+            assert rv is not None, f"{term} evaluated to None"
+            return rv
         except Exception as e:
             contract_bug("Exception while evaluating " + str(term) + ". The exception: \n" + str(e) )
 

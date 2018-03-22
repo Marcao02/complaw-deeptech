@@ -16,13 +16,12 @@ state vars:
     cash_currently_unconverted : $ := PURCHASE_AMOUNT
     writes≤1 conversion_price : SharePrice
     writes≤1 liq_cashout : $ := 0
-    writes≤1 company_cash : $
-    writes≤1 investor_liq_hypothetical_shares : ShareCnt
-    writes≤1 investor_percent_of_cashout_investor_investments : Fraction[0,1)
+    company_cash : $
+    writes≤1 investor_percent_of_cashout_investor_investments : Fraction(0,1]
     writes≤1 dis_cashout : $
 
 situation InvestorInvests:
-    Company may CommitToChangeOfControl(?1, ?2, ?3, ?4) no_time_constraint
+    Company may CommitToChangeOfControl(?1, ?2, ?3, ?4, ?5) no_time_constraint
     Company may CommitToDissolution no_time_constraint
     Company may CommitToEquityFinancing no_time_constraint
     Company may CommitToIPO(?1, ?2, ?3) no_time_constraint
@@ -61,8 +60,6 @@ action DoEquityFinancing()  transitions to Fulfilled
 action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterCommitToIPO:
     transform:
         conversion_price := (company_valuation / liquidity_capitalization)
-        investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ conversion_price')
-        investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization)
         cash_currently_unconverted := PURCHASE_AMOUNT
         company_cash := company_cash_at_liquidity_event
     following situation:
@@ -71,11 +68,10 @@ action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization:
         Investor may ChooseCashPayment (next_event_td < (situation_entrance_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (situation_entrance_td + 1w))
 
-action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToChangeOfControl:
+action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$, total_investments_of_cashout_investors: Pos$, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToChangeOfControl:
     transform:
         conversion_price := (company_valuation / liquidity_capitalization)
-        investor_liq_hypothetical_shares := (PURCHASE_AMOUNT round/ conversion_price')
-        investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization)
+        investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
         investor_Common_Stocks := (investor_Common_Stocks + ((investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg) round/ conversion_price'))
         cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
         company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
@@ -101,11 +97,12 @@ action TransferCommonStock()  transitions to AfterTransferCommonStock:
 
 action ChooseCashPayment()  transitions to AfterChooseCashPayment
     following situation:
-        Company must TransferCash_L discretionary
+        Company must TransferCash_L(?1) discretionary
 
-action TransferCash_L()  transitions to AfterTransferCash_L:
+action TransferCash_L(total_investments_of_cashout_investors: Pos$) transitions to AfterTransferCash_L:
     transform:
-        liq_cashout := (min cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments))
+        investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
+        liq_cashout := (min cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments'))
         investor_cash := (investor_cash + liq_cashout')
     following situation:
         if (liq_cashout == cash_currently_unconverted):

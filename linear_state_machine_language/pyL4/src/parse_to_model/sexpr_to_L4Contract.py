@@ -687,7 +687,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 unprimed_name = unprimed(varname)
 
                 # self.assertOrSyntaxError(isprimed(varname), statement, f"To assign to a state variable {varname}, you must assign to {primed(varname)}, which indicates \"the next value of X\".")
-                self.assertOrSyntaxError(unprimed_name in self.top.state_var_decs, statement_expr, f"{unprimed_name} not recognized as a state variable.")
+                self.assertOrSyntaxError(unprimed_name in self.top.state_var_decs, statement_expr, f"{unprimed_name} not recognized as a state variable. State variables are: " + str(self.top.state_var_decs.keys()))
                 vardec = self.top.state_var_decs[unprimed_name]
                 orig : Statement
                 reduced : Statement

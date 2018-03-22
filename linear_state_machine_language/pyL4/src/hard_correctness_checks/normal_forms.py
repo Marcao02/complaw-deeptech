@@ -1,7 +1,7 @@
 from typing import FrozenSet
 
 from src.constants_and_defined_types import LocalVarId
-from src.independent.util import chcast
+from src.independent.util import chcast, warn_once
 from src.model.Term import Term, FnApp
 from src.model.BoundVar import LocalVar, StateVar
 from src.independent.typing_imports import *
@@ -127,7 +127,7 @@ def eliminate_ifthenelse(p:L4Contract):
 
 
 def eliminate_local_vars(p:L4Contract):
-    print("WARNING I PLAYED FAST AND LOOSE WITH MUTABLE DATA STRUCTURES")
+    warn_once("WARNING I PLAYED FAST AND LOOSE WITH MUTABLE DATA STRUCTURES")
     """Currently unchecked conditions: 
 	You can't reassign local variables. Use a new one. Try adding a ' or a 2 or a _.
 	

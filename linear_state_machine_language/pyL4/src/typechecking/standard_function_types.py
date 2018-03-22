@@ -366,6 +366,7 @@ overloaded_types_data : FnTypesData = [
     (('fraction-of-sum',), (
         sfntype(PosInt,Nat,"Fraction(0,1]"),
         sfntype(PosInt,PosInt,"Fraction(0,1)"),
+        sfntype(PosReal2,PosReal2,"Fraction[0,1)"),
         sfntype(Nat,PosInt,"Fraction[0,1)"),
         sfntype(PosInt1,Nat1,"Fraction(0,1]"),
         sfntype(PosInt1,PosInt1,"Fraction(0,1)"),

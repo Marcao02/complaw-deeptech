@@ -50,7 +50,7 @@ def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
         args_required = len(c.arg_vars_bound_by_rule) if c.arg_vars_bound_by_rule else (len(c.fixed_args) if c.fixed_args else 0)
         args_given = len(action.param_sorts_by_name) if action.param_sorts_by_name else 0
         if args_given != args_required:
-            it.syntaxError('', f"Wrong number of action parameters for {action.action_id}")
+            it.syntaxError('', f"Wrong number of action parameters for {action.action_id}. See rule:\n{c}")
             return False
     return True
 
