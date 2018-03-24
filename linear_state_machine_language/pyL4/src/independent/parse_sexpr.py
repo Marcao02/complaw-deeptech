@@ -193,9 +193,13 @@ def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
         return s
 
 def parse_file(path):
-    fil = open(path,encoding='utf8')
-    parsed = parse(fil.read())
-    fil.close()
+    try:
+        fil = open(path,encoding='utf8')
+        parsed = parse(fil.read())
+        fil.close()
+    except Exception as e:
+        print(f"Problem parsing file: {path}")
+        raise e
     return parsed
 
 if __name__ == '__main__':

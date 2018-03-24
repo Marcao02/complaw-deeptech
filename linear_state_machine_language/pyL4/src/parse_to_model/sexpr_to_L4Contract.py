@@ -509,15 +509,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head(SITUATION_DESCRIPTION_LABEL):
                 situation.description = chcaststr(x[1][1]) # extract from STRLIT expression
 
-            elif head(OUT_CONNECTIONS_LABEL):
-                if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'timeConstraintsPartitionFuture'):
-                    x = x[1]
-                    todo_once("guardsDisjointExhaustive etc in situation()")
-
-                action_rule_exprs = x.tillEnd(1).lst
-                for action_rule_expr in action_rule_exprs:
-                    self._with_macro_handling(action_rule_expr, self._mk_next_action_rule, (situation, parent_action)) # type:ignore
-
             elif head(PROSE_REFS_LABEL):
                 situation.prose_refs = cast(List,x[1:]).copy()
 
@@ -531,9 +522,19 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 situation.possible_floating_rule_types.add(floating_rule_type)
                 self.top.possible_floating_rule_types.add(floating_rule_type)
 
+            elif head(OUT_CONNECTIONS_LABEL):
+                if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'timeConstraintsPartitionFuture'):
+                    x = x[1]
+                    todo_once("guardsDisjointExhaustive etc in situation()")
+
+                action_rule_exprs = x.tillEnd(1).lst
+                for action_rule_expr in action_rule_exprs:
+                    self._with_macro_handling(action_rule_expr, self._mk_next_action_rule, (situation, parent_action)) # type:ignore
+
             else:
-                self.syntaxError(x, f"Unsupported declaration type {x[0]} in situation {situation_id}")
-                todo_once(f"Handle {x[0]} in situation dec")
+                self._with_macro_handling(x, self._mk_next_action_rule, (situation, parent_action)) # type:ignore
+                # self.syntaxError(x, f"Unsupported declaration type {x[0]} in situation {situation_id}")
+                # todo_once(f"Handle {x[0]} in situation dec")
 
         self._building_situation_id = None
         return situation
@@ -1093,9 +1094,6 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
             child = sexpr2.lst[i]
 
             if isinstance(child, SExpr) and len(child.lst) >= 1 and (child.lst[0] in ("at","within")):
-                # if len(child.lst) > 2:
-                #     child.lst[1] = SExpr("(", child.lst[1:], child.line, child.col)
-                # if isinstance(child.lst[1], SExpr) and child.lst
                 other = SExpr("(", [breachActionId(role)] + list(sexpr2[3:i]) +
                               [SExpr("(", [cast(SExprOrStr,"after")] + child.lst[1:], sexpr2.line, sexpr2.col)] + sexpr2[i+1:], sexpr2.line,
                               sexpr2.col)
@@ -1114,7 +1112,6 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
             elif child == "immediately":
                 pastdeadline = SExpr('(', ['==', 'next_event_td',
                             SExpr('(', ['+', "situation_entrance_td", "1" + timeunit], sexpr2.line, sexpr2.col)], sexpr2.line, sexpr2.col)
-                # other = SExpr("(", [ARBITER_ROLE, "may", interveneOnDelayId(role)] + sexpr2[3:i] + sexpr2[i+1:], sexpr2.line, sexpr2.col)
                 other = SExpr("(", [breachActionId(role), SExpr("(", ["when", pastdeadline], sexpr2.line, sexpr2.col)],
                               sexpr2.line, sexpr2.col)
                 break
@@ -1126,10 +1123,8 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
         if len(sexpr2) == 3:
             other = SExpr("(", [ARBITER_ROLE, "may", interveneOnDelayId(role)], sexpr2.line, sexpr2.col)
 
-        print(f"Replacing\n{sexpr2}\nwith\n{may} and \n{other}\n")
+        # print(f"Replacing\n{sexpr2}\nwith\n{may} and \n{other}\n")
 
-        # if not other:
-        #     print(sexpr2)
         if other:
             return [may,other]
         else:

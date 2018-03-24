@@ -110,13 +110,11 @@
 	(StartSituation InvestorInvests)
 
 	(Situation InvestorInvests
-		(Next
-			(Company may CommitToEquityFinancing)
-			(Company may (CommitToIPO ?1 ?2 ?3)) ; IPO
-			(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?4 ?5))
-			(Company may CommitToDissolution)
-			; (Breach_Company discretionary) ; actually company can remain in current state forever.
-		)
+		(Company may CommitToEquityFinancing)
+		(Company may (CommitToIPO ?1 ?2 ?3)) ; IPO
+		(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?4 ?5))
+		(Company may CommitToDissolution)
+		; (Breach_Company discretionary) ; actually company can remain in current state forever.
 	)
 
 	; ----------------- Equity Financing Event -------------------
@@ -125,31 +123,21 @@
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(nlg "Initiate an Equity Financing Event")
 		(FollowingSituation
-			(Next
-				(Company may DeliverTransactionDocsWithPRA)
-				(Company may DeliverTransactionDocsWithoutPRA)
-				(Arbiter may InterveneOnDelay_Company)
-			)
+			(Company may DeliverTransactionDocsWithPRA)
+			(Company may DeliverTransactionDocsWithoutPRA)
+			(Arbiter may InterveneOnDelay_Company)
 		)
 	)
 
 	(Action DeliverTransactionDocsWithPRA (AllowedSubjects Company)
 		(FollowingSituation
-			(Next
-				(Company may (IssueSAFEPreferredStock ?1 ?2))
-				(Arbiter may InterveneOnDelay_Company)
-				; prev is short for:
-				; (Arbiter may (InterveneOnDelayBy Company))
-			)
+			(Company must (IssueSAFEPreferredStock ?1 ?2))
 		)
 	)
 
 	(Action DeliverTransactionDocsWithoutPRA (AllowedSubjects Company)
 		(FollowingSituation
-			(Next
-				(Company may SubmitProRataRightsAgreementForSigning)
-				(Arbiter may InterveneOnDelay_Company)
-			)
+			(Company must SubmitProRataRightsAgreementForSigning)
 		)
 	)
 
@@ -158,20 +146,13 @@
 			; TODO: Obviously this shouldn't be a *must*, since they ought to be
 			; able to send it back with proposed amendments/corrections.
 			; That seems like something we should have a reusable module for.
-			(Next
-				(Investor may SignPRA)
-				(Arbiter may InterveneOnDelay_Company)
-			)
+			(Investor must SignPRA)
 		)
 	)
 
 	(Action SignPRA (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next
-				(Company may (IssueSAFEPreferredStock ?1 ?2))
-				(Arbiter may InterveneOnDelay_Investor)
-			)
-
+			(Company must (IssueSAFEPreferredStock ?1 ?2))
 		)
 	)
 
@@ -183,10 +164,7 @@
 			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSituation
-			(Next
-				(Company may DoEquityFinancing)
-				(Arbiter may InterveneOnDelay_Company)
-			)
+			(Company must DoEquityFinancing)
 		)
 	)
 
@@ -207,13 +185,11 @@
 		)
 
 		(FollowingSituation
-			(Next
-				; 1W is totally made up by Dustin!
-				(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
-				(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
-				(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
-				(Breach_Company [after situation_entrance_td + 1W])
-			)
+			; 1W is totally made up by Dustin!
+			(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
+			(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
+			(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
+			(Breach_Company [after situation_entrance_td + 1W])
 		)
 	)
 
@@ -237,32 +213,26 @@
 		)
 
 		(FollowingSituation
-			(Next
-				; 1W is totally made up by Dustin!
-				(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
-				(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
-				(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
-				(Breach_Company [after (situation_entrance_td + 1W)])
-			)
+			; 1W is totally made up by Dustin!
+			(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
+			(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
+			(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
+			(Breach_Company [after (situation_entrance_td + 1W)])
 		)
 	)
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
 		(FollowingSituation
-			(Next
-				(Company may TransferCommonStock)
-				(Arbiter may InterveneOnDelay_Company)
-			)
+			(Company must TransferCommonStock)
+			; translates to:
+			; (Company may TransferCommonStock)
+			; (Arbiter may InterveneOnDelay_Company)
 		)
 	)
 
 	(Action ChooseStockPayment (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next
-				; (Company must TransferCommonStock) translates to:
-				(Company may TransferCommonStock)
-				(Arbiter may InterveneOnDelay_Company)
-			)
+			(Company must TransferCommonStock)
 		)
 	)
 
@@ -271,17 +241,13 @@
 			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ conversion_price))
 		)
 		(FollowingSituation
-			(Next
-				(Company must DoLiquidityEvent)
-			)
+			(Company must DoLiquidityEvent)
 		)
 	)
 
 	(Action ChooseCashPayment (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next
-				(Company must (TransferCash_L ?1))
-			)
+			(Company must (TransferCash_L ?1))
 		)
 	)
 
@@ -297,14 +263,12 @@
 		)
 
 		(FollowingSituation
-			(Next
-				(if (liq_cashout < cash_currently_unconverted)
-					(Company must TransferCommonStock)
-				)
+			(if (liq_cashout < cash_currently_unconverted)
+				(Company must TransferCommonStock)
+			)
 
-				(if (liq_cashout == cash_currently_unconverted)
-					(Company must DoLiquidityEvent)
-				)
+			(if (liq_cashout == cash_currently_unconverted)
+				(Company must DoLiquidityEvent)
 			)
 		)
 	)
@@ -317,11 +281,9 @@
 	(Action CommitToDissolution (AllowedSubjects Company)
 		(nlg "Initiate a Dissolution Event")
 		(FollowingSituation
-			(Next
-				(Company must
-					(TransferCash_D ?company_cash_at_dissolution_event
-									?investor_percent_of_dissolving_investor_investments)
-				)
+			(Company must
+				(TransferCash_D ?company_cash_at_dissolution_event
+								?investor_percent_of_dissolving_investor_investments)
 			)
 		)
 	)
@@ -339,14 +301,10 @@
 		)
 
 		(FollowingSituation
-			; Don't need to specify that following two `must`s are verified disjoint exhaustive,
-			; because that's a requirement of the semantics, and thus will be checked automatically.
-			(Next
-				(if (dis_cashout < PURCHASE_AMOUNT)
-					(Company must (TransferAssets ?1 ?2))  )
-				(if (dis_cashout == PURCHASE_AMOUNT)
-					(Company must Dissolve)     )
-			)
+			(if (dis_cashout < PURCHASE_AMOUNT)
+				(Company must (TransferAssets ?1 ?2))  )
+			(if (dis_cashout == PURCHASE_AMOUNT)
+				(Company must Dissolve)     )
 		)
 	)
 
@@ -358,9 +316,7 @@
 			(investor_Common_Stocks' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
 		)
 		(FollowingSituation
-			(Next
-				(Company must Dissolve)
-			)
+			(Company must Dissolve)
 		)
 	)
 

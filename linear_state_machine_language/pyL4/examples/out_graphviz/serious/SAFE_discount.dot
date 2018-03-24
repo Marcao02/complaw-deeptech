@@ -47,9 +47,9 @@ digraph SAFE {
 	DeliverTransactionDocsWithoutPRA -> SubmitProRataRightsAgreementForSigning;
 	DeliverTransactionDocsWithoutPRA -> InterveneOnDelay_Company;
 	SubmitProRataRightsAgreementForSigning -> SignPRA;
-	SubmitProRataRightsAgreementForSigning -> InterveneOnDelay_Company;
+	SubmitProRataRightsAgreementForSigning -> InterveneOnDelay_Investor;
 	SignPRA -> IssueSAFEPreferredStock;
-	SignPRA -> InterveneOnDelay_Investor;
+	SignPRA -> InterveneOnDelay_Company;
 	IssueSAFEPreferredStock -> DoEquityFinancing;
 	IssueSAFEPreferredStock -> InterveneOnDelay_Company;
 	CommitToIPO -> ChooseCashPayment;

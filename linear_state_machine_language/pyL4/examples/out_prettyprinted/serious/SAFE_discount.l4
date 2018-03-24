@@ -47,12 +47,12 @@ action DeliverTransactionDocsWithoutPRA()  transitions to AfterDeliverTransactio
 
 action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRataRightsAgreementForSigning
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Arbiter may InterveneOnDelay_Investor no_time_constraint
         Investor may SignPRA no_time_constraint
 
 action SignPRA()  transitions to AfterSignPRA
     following situation:
-        Arbiter may InterveneOnDelay_Investor no_time_constraint
+        Arbiter may InterveneOnDelay_Company no_time_constraint
         Company may IssueSAFEPreferredStock(?1, ?2) no_time_constraint
 
 action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:

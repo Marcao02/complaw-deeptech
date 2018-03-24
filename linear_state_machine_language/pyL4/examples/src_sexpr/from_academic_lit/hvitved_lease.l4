@@ -56,12 +56,12 @@
 	(Action EnterMonthStarted (TransitionsTo MonthStarted))
 
 	(Situation MonthStarted
-		(Next
+		; (Next
 			(Tenant may (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
 			(Breach_Tenant (after ((monthStartDay_td) + MAX_RENT_DELAY)))
 			(RequestTerminationActionRuleMacro (Tenant MonthStarted))
 			(RequestTerminationActionRuleMacro (Landlord MonthStarted))
-		)
+		; )
 	)
 
 	(Action PayRent (StateTransform (total_rent_paid' += 1000))
