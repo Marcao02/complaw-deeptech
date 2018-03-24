@@ -16,7 +16,8 @@ state vars:
     amount_paid : $ := 0
 
 situation MonsterBurgerUncooked:
-    Challenger must RequestCookMB (next_event_td ≤ (situation_entrance_td + 30m))
+    Challenger may RequestCookMB no_time_constraint
+    Breach_Challenger (next_event_td == ((situation_entrance_td + 30m) + 1m))
 
 action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
@@ -58,7 +59,9 @@ action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
 action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
     following situation:
         if (situation_entrance_td > challenge_endlimit_timestamp):
-            Challenger must PayForMB immediately
+            Challenger may PayForMB immediately
+        if (situation_entrance_td > challenge_endlimit_timestamp):
+            Breach_Challenger (next_event_td == (situation_entrance_td + 1d))
         if (situation_entrance_td ≤ challenge_endlimit_timestamp):
             EnterEatingMB
 

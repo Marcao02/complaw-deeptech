@@ -34,7 +34,7 @@
 
 	(Situation BeforeOptionPurchase
 		(Next
-			(Buyer must PaySellerForOption (when next_event_dt == (str2datetime "June 30, 2015")))
+			(Buyer must PaySellerForOption (on (str2datetime "June 30, 2015")))
 		)
 	)
 
@@ -59,7 +59,7 @@
 
 		(FollowingSituation
 			(Next
-				(Buyer must TransferShare (when next_event_td ≤ (situation_entrance_td + 30D)))
+				(Buyer must TransferShare (within (situation_entrance_td + 30D)))
 			)
 		)
 	)

@@ -25,14 +25,18 @@ digraph Two_part_sale_Hvitved_Laser_Printer {
     
     
     Awaiting_Delivery -> Deliver;
+	Awaiting_Delivery -> Breach_Seller [style=dashed];
 	Deliver -> Pay1stInstallment;
+	Deliver -> Breach_Buyer [style=dashed];
 	Pay1stInstallment -> Pay2ndInstallment;
 	Pay1stInstallment -> ReturnOnTime;
 	Pay1stInstallment -> EnterLate2ndInstallment [style=dashed];
 	EnterLate2ndInstallment -> PayLateFee;
+	EnterLate2ndInstallment -> Breach_Buyer [style=dashed];
 	Pay2ndInstallment -> ReturnOnTime;
 	Pay2ndInstallment -> CompleteNormalSale [style=dashed];
-	ReturnOnTime -> DeliverRefund
+	ReturnOnTime -> DeliverRefund;
+	ReturnOnTime -> Breach_Seller [style=dashed]
     
     PayLateFee -> Fulfilled [style=dashed];
 	CompleteNormalSale -> Fulfilled [style=dashed];

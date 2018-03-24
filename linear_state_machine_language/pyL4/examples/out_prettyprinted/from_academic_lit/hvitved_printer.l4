@@ -10,45 +10,49 @@ contract params:
 state vars:
     nonoperative buyer_paid : Nat := 0
     nonoperative seller_refunded : Nat := 0
-    writes1 delivery_date : TimeDelta
+    writes1 delivery_td : TimeDelta
 
 claims:
     ["MAX_TIME'", '=', '44D']
     ["MAX_SITUATION_VISITS'", '=', '6']
 
 situation Awaiting_Delivery:
-    Seller must Deliver (next_event_td ≤ DELIVERY_DEADLINE)
+    Breach_Seller (next_event_td == (DELIVERY_DEADLINE + 1d))
+    Seller may Deliver no_time_constraint
 
 action Deliver()  transitions to AfterDeliver:
     transform:
-        delivery_date := event_td
+        delivery_td := event_td
     following situation:
-        Buyer must Pay1stInstallment immediately
+        Buyer may Pay1stInstallment immediately
+        Breach_Buyer (next_event_td == (situation_entrance_td + 1d))
 
 action Pay1stInstallment()  transitions to AfterPay1stInstallment:
     transform:
         prove (buyer_paid == 0)
         buyer_paid := 100
     following situation:
-        Buyer may Pay2ndInstallment (next_event_td ≤ (30d + delivery_date))
-        Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date))
-        EnterLate2ndInstallment (next_event_td > (30d + delivery_date))
+        Buyer may Pay2ndInstallment (next_event_td ≤ (30d + delivery_td))
+        Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_td))
+        EnterLate2ndInstallment (next_event_td > (30d + delivery_td))
 
 action EnterLate2ndInstallment()  transitions to Late2ndInstallment
     following situation:
-        Buyer must PayLateFee (next_event_td ≤ (44d + delivery_date))
+        Buyer may PayLateFee no_time_constraint
+        Breach_Buyer (next_event_td == ((44d + delivery_td) + 1d))
 
 action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
     transform:
         prove (buyer_paid == 100)
         buyer_paid := 200
     following situation:
-        Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date))
-        CompleteNormalSale (next_event_td > (14d + delivery_date))
+        Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_td))
+        CompleteNormalSale (next_event_td > (14d + delivery_td))
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following situation:
-        Seller must DeliverRefund (next_event_td ≤ (7d + situation_entrance_td))
+        Breach_Seller (next_event_td == ((7d + situation_entrance_td) + 1d))
+        Seller may DeliverRefund no_time_constraint
 
 action PayLateFee()  transitions to Fulfilled:
     transform:

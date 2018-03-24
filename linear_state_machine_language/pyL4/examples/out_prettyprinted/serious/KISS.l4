@@ -32,7 +32,8 @@ situation InvestorInvests:
 action CommitToFinancing(qualifying_round_new_money: $) transitions to AfterCommitToFinancing:
     pre: (qualifying_round_new_money ≥ (units $ 1000000))
     following situation:
-        Company must NotifyInvestorOfNextEquityFinancingTerms no_time_constraint
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Company may NotifyInvestorOfNextEquityFinancingTerms no_time_constraint
 
 action NotifyInvestorOfNextEquityFinancingTerms()  transitions to After_NotifyInvestorOfNextEquityFinancingTerms
 

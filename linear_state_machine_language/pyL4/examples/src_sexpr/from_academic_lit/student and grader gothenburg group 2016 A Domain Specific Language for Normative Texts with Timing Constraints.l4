@@ -31,7 +31,7 @@
 	(Action Reject (AllowedRoles Grader)
 		(FollowingSituation
 			(Next
-				(Student must Resubmit (before 26))
+				(Student must Resubmit (by 27))
 			)
 		)
 	)

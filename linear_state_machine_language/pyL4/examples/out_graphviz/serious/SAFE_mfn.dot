@@ -65,13 +65,21 @@ digraph SAFE {
 	ChooseStockPayment -> TransferCommonStock;
 	ChooseStockPayment -> InterveneOnDelay_Company;
 	TransferCommonStock -> DoLiquidityEvent;
+	TransferCommonStock -> InterveneOnDelay_Company;
 	ChooseCashPayment -> TransferCash_L;
+	ChooseCashPayment -> InterveneOnDelay_Company;
 	TransferCash_L -> TransferCommonStock;
+	TransferCash_L -> InterveneOnDelay_Company;
 	TransferCash_L -> DoLiquidityEvent;
+	TransferCash_L -> InterveneOnDelay_Company;
 	CommitToDissolution -> TransferCash_D;
+	CommitToDissolution -> InterveneOnDelay_Company;
 	TransferCash_D -> TransferAssets;
+	TransferCash_D -> InterveneOnDelay_Company;
 	TransferCash_D -> Dissolve;
-	TransferAssets -> Dissolve
+	TransferCash_D -> InterveneOnDelay_Company;
+	TransferAssets -> Dissolve;
+	TransferAssets -> InterveneOnDelay_Company
     
     DoEquityFinancing -> Fulfilled [style=dashed];
 	DoLiquidityEvent -> Fulfilled [style=dashed];

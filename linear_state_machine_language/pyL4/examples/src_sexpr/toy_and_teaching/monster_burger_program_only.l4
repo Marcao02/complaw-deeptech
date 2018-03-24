@@ -38,7 +38,7 @@
 
 	(Situation MonsterBurgerUncooked
 		(Next
-			(Challenger must (RequestCookMB) (when next_event_td ≤ (situation_entrance_td + 30m)))
+			(Challenger must (RequestCookMB) (within (situation_entrance_td + 30m)))
 		)
 	)
 

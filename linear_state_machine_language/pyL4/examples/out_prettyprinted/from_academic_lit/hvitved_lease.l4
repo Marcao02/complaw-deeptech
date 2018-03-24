@@ -16,7 +16,8 @@ state vars:
     branchunaffecting inconly total_rent_paid : Nat := 0
 
 situation Start:
-    Landlord must EnsureApartmentReady immediately
+    Breach_Landlord (next_event_td == (situation_entrance_td + 1d))
+    Landlord may EnsureApartmentReady immediately
 
 action RequestTerminationFromMonthStarted()  transitions to MonthStarted:
     transform:
@@ -74,9 +75,11 @@ action EnterMonthEnded()  transitions to MonthEnded
 
 action EnterLeaseTermEnded()  transitions to LeaseTermEnded
     following situation:
+        if lease_terminated:
+            Breach_Tenant (next_event_td == (situation_entrance_td + 1d))
         if ¬lease_terminated:
             StartLeaseTerm
         if lease_terminated:
-            Tenant must MoveOut immediately
+            Tenant may MoveOut immediately
 
 action MoveOut()  transitions to Fulfilled

@@ -20,8 +20,10 @@ digraph Farmer_American_call_option_from_A_Formal_Language_for_Writing_Contracts
     
     
     BeforeOptionPurchase -> PaySellerForOption;
+	BeforeOptionPurchase -> Breach_Buyer [style=dashed];
 	PaySellerForOption -> ExerciseOption;
-	ExerciseOption -> TransferShare
+	ExerciseOption -> TransferShare;
+	ExerciseOption -> Breach_Buyer [style=dashed]
     
     TransferShare -> Fulfilled [style=dashed];
 	Breach_Seller -> Breached_Seller [style=dashed];

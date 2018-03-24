@@ -31,6 +31,7 @@ digraph KISS {
 	InvestorInvests -> CommitToFinancing;
 	InvestorInvests -> ReachMaturity [style=dashed];
 	CommitToFinancing -> NotifyInvestorOfNextEquityFinancingTerms;
+	CommitToFinancing -> InterveneOnDelay_Company;
 	After_NotifyInvestorOfNextEquityFinancingTerms -> choose_cash_interest_repayment;
 	After_NotifyInvestorOfNextEquityFinancingTerms -> CloseEquityFinancingSale;
 	CommitToAcquisition -> ChooseMultipleRepayment;

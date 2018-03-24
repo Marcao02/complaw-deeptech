@@ -16,7 +16,8 @@ state vars:
     writes≤1 seller_final_shares : ShareCnt
 
 situation BeforeOptionPurchase:
-    Buyer must PaySellerForOption (next_event_dt == 2015-06-30 00:00:00)
+    Buyer may PaySellerForOption (next_event_dt == 2015-06-30 00:00:00)
+    Breach_Buyer (next_event_dt > 2015-06-30 00:00:00)
 
 action PaySellerForOption()  transitions to AfterPaySellerForOption:
     transform:
@@ -30,7 +31,8 @@ action ExerciseOption()  transitions to AfterExerciseOption:
         buyer_funds := (check $ (BUYER_START_FUNDS - (units $ 80)))
         seller_funds := (SELLER_START_FUNDS + (units $ 80))
     following situation:
-        Buyer must TransferShare (next_event_td ≤ (situation_entrance_td + 30d))
+        Buyer may TransferShare no_time_constraint
+        Breach_Buyer (next_event_td == ((situation_entrance_td + 30d) + 1d))
 
 action TransferShare()  transitions to Fulfilled:
     transform:

@@ -273,7 +273,9 @@ overloaded_types_data : FnTypesData = [
         sfntype(PosInt1, Nat1, PosInt1),
         sfntype(Nat1, PosInt1, PosInt1),
         sfntype(PosReal2, NonnegReal2, PosReal2),
-        sfntype(NonnegReal2, PosReal2, PosReal2)
+        sfntype(NonnegReal2, PosReal2, PosReal2),
+
+        sfntype(DateTime, TimeDelta, DateTime)
     )
     ),
     (('*',), (  # scaling things

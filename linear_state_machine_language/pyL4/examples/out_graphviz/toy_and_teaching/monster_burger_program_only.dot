@@ -28,6 +28,7 @@ digraph Monster_Burger {
     
     
     MonsterBurgerUncooked -> RequestCookMB;
+	MonsterBurgerUncooked -> Breach_Challenger [style=dashed];
 	RequestCookMB -> ServeMB;
 	RequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
 	EatingMB -> AnnounceMBFinished;
@@ -39,7 +40,8 @@ digraph Monster_Burger {
 	CheckCompletionClaim -> RejectCompletionClaim;
 	CheckCompletionClaim -> Breach_Restaurant [style=dashed];
 	RejectCompletionClaim -> EnterEatingMB [style=dashed];
-	RejectCompletionClaim -> PayForMB
+	RejectCompletionClaim -> PayForMB;
+	RejectCompletionClaim -> Breach_Challenger [style=dashed]
     
     ServeMB -> EatingMB [style=dashed];
 	EnterPromptServeGuaranteeViolated -> Fulfilled [style=dashed];

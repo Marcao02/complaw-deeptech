@@ -1,6 +1,6 @@
 # v 2.0.0
 
-from typing import Union, List, Any, cast, Sized, Iterable, Sequence
+from typing import Union, List, Any, cast, Sized, Iterable, Sequence, Callable
 
 from src.independent.FileCoord import FileCoord
 from src.independent.util import chcaststr
@@ -109,3 +109,21 @@ def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: Sequence[
             line = sexpr_or_str.line,
             col = sexpr_or_str.col
         )
+
+# inefficient
+def sexpr_rewrite(sexpr:SExpr,
+                  should_rewrite: Callable[[SExpr],bool],
+                  rewrite:Callable[[SExpr],List[SExpr]]):
+    changed = True
+    while changed:
+        changed = False
+        for i in range(len(sexpr.lst)-1,0,-1):
+            arg = sexpr.lst[i]
+            if isinstance(arg,SExpr) and should_rewrite(arg):
+                changed = True
+                del sexpr.lst[i]
+                for newarg in reversed(rewrite(arg)):
+                    sexpr.lst.insert(i,newarg)
+    for arg in sexpr:
+        if isinstance(arg,SExpr):
+            sexpr_rewrite(arg,should_rewrite,rewrite)

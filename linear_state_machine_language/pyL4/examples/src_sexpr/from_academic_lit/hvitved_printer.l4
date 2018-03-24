@@ -19,7 +19,7 @@
 (StateVars
 	(nonoperative buyer_paid : Nat := 0)
 	(nonoperative seller_refunded : Nat := 0)
-	(writes1 delivery_date : TimeDelta)
+	(writes1 delivery_td : TimeDelta)
 )
 
 (ProseContract
@@ -36,12 +36,12 @@
 
 	(Situation Awaiting_Delivery
 		[ProseRefs P1]
-		(Next (Seller must Deliver (when next_event_td ≤ DELIVERY_DEADLINE) ))
+		(Next (Seller must Deliver (within DELIVERY_DEADLINE) ))
 	)
 
 	(Action Deliver [ProseRefs P1]
 		(StateTransform
-			(delivery_date' = event_td)
+			(delivery_td' = event_td)
 		)
 		(FollowingSituation
 			(Next (Buyer must Pay1stInstallment immediately))
@@ -55,16 +55,16 @@
 		)
 		(FollowingSituation
 			(Next
-				(Buyer may Pay2ndInstallment (when next_event_td ≤ (30d + delivery_date)))
-				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_date)))
-				(EnterLate2ndInstallment (when next_event_td > (30d + delivery_date)))
+				(Buyer may Pay2ndInstallment (when next_event_td ≤ (30d + delivery_td)))
+				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
+				(EnterLate2ndInstallment (when next_event_td > (30d + delivery_td)))
 			)
 		)
 	)
 
 	(Action EnterLate2ndInstallment [ProseRefs P4]
 		(FollowingSituation
-			(Next (Buyer must PayLateFee (when next_event_td ≤ (44d + delivery_date))))
+			(Next (Buyer must PayLateFee (within (44d + delivery_td))))
 		)
 	)
 
@@ -75,15 +75,15 @@
 		)
 		(FollowingSituation
 			(Next
-				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_date)))
-				(CompleteNormalSale (when next_event_td > (14d + delivery_date)))
+				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
+				(CompleteNormalSale (when next_event_td > (14d + delivery_td)))
 			)
 		)
 	)
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSituation
-			(Next (Seller must DeliverRefund (when next_event_td ≤ (7d + situation_entrance_td))))
+			(Next (Seller must DeliverRefund (within (7d + situation_entrance_td))))
 		)
 	)
 

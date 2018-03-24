@@ -31,19 +31,29 @@ digraph safe_tutorial {
     InvestorInvests -> CommitToEquityFinancing;
 	InvestorInvests -> CommitToIPO;
 	CommitToEquityFinancing -> SendEquityFinancingTransactionDocsWithPRRAForSigning;
+	CommitToEquityFinancing -> Breach_Company [style=dashed];
 	SendEquityFinancingTransactionDocsWithPRRAForSigning -> ExecuteAndDeliverTransactionDocs;
+	SendEquityFinancingTransactionDocsWithPRRAForSigning -> Breach_Investor [style=dashed];
 	ExecuteAndDeliverTransactionDocs -> IssueSAFEPreferredStock;
+	ExecuteAndDeliverTransactionDocs -> Breach_Company [style=dashed];
 	IssueSAFEPreferredStock -> DoEquityFinancing;
+	IssueSAFEPreferredStock -> Breach_Company [style=dashed];
 	CommitToIPO -> ChooseCashPayment;
 	CommitToIPO -> ChooseStockPayment;
 	CommitToIPO -> AutoChooseStockPayment;
 	CommitToIPO -> Breach_Company [style=dashed];
 	AutoChooseStockPayment -> TransferCommonStock;
+	AutoChooseStockPayment -> Breach_Company [style=dashed];
 	ChooseStockPayment -> TransferCommonStock;
+	ChooseStockPayment -> Breach_Company [style=dashed];
 	TransferCommonStock -> DoLiquidityEvent;
+	TransferCommonStock -> Breach_Company [style=dashed];
 	ChooseCashPayment -> TransferCash_L;
+	ChooseCashPayment -> Breach_Company [style=dashed];
 	TransferCash_L -> TransferCommonStock;
-	TransferCash_L -> DoLiquidityEvent
+	TransferCash_L -> Breach_Company [style=dashed];
+	TransferCash_L -> DoLiquidityEvent;
+	TransferCash_L -> Breach_Company [style=dashed]
     
     DoEquityFinancing -> Fulfilled [style=dashed];
 	DoLiquidityEvent -> Fulfilled [style=dashed];

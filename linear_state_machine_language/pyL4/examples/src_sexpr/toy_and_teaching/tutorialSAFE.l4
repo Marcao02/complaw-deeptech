@@ -63,7 +63,7 @@
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(FollowingSituation
 			(Next
-				(Company must SendEquityFinancingTransactionDocsWithPRRAForSigning (within 14))
+				(Company must SendEquityFinancingTransactionDocsWithPRRAForSigning (within 14d))
 			)
 		)
 	)
@@ -71,7 +71,7 @@
 	(Action SendEquityFinancingTransactionDocsWithPRRAForSigning (AllowedSubjects Company)
 		(FollowingSituation
 			(Next
-				(Investor must ExecuteAndDeliverTransactionDocs (within 14))
+				(Investor must ExecuteAndDeliverTransactionDocs (within 14d))
 			)
 		)
 	)
@@ -79,7 +79,7 @@
 	(Action ExecuteAndDeliverTransactionDocs (AllowedSubjects Investor)
 		(FollowingSituation
 			(Next
-				(Company must (IssueSAFEPreferredStock ?1 ?2) (within 14))
+				(Company must (IssueSAFEPreferredStock ?1 ?2) (within 14d))
 			)
 		)
 	)
@@ -95,7 +95,7 @@
 			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSituation
-			(Next (Company must DoEquityFinancing (within 1)))
+			(Next (Company must DoEquityFinancing (within 1d)))
 		)
 	)
 
@@ -125,11 +125,11 @@
 	)
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
-		(FollowingSituation (Next (Company must TransferCommonStock (within 14))))
+		(FollowingSituation (Next (Company must TransferCommonStock (within 14d))))
 	)
 
 	(Action ChooseStockPayment (AllowedSubjects Investor)
-		(FollowingSituation (Next (Company must TransferCommonStock (within 14))))
+		(FollowingSituation (Next (Company must TransferCommonStock (within 14d))))
 	)
 
 	(Action TransferCommonStock (AllowedSubjects Company)
@@ -137,13 +137,13 @@
 			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ cap_price))
 		)
 		(FollowingSituation
-			(Next (Company must DoLiquidityEvent (within 14)))
+			(Next (Company must DoLiquidityEvent (within 14d)))
 		)
 	)
 
 	(Action ChooseCashPayment (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next (Company must (TransferCash_L ?1) (within 14)))
+			(Next (Company must (TransferCash_L ?1) (within 14d)))
 		)
 	)
 
@@ -159,10 +159,10 @@
 		(FollowingSituation
 			(Next
 				(if (liq_cashout < cash_currently_unconverted)
-					(Company must TransferCommonStock (within 14)) )
+					(Company must TransferCommonStock (within 14d)) )
 
 				(if (liq_cashout == cash_currently_unconverted)
-					(Company must DoLiquidityEvent (within 14))
+					(Company must DoLiquidityEvent (within 14d))
 				)
 			)
 		)
