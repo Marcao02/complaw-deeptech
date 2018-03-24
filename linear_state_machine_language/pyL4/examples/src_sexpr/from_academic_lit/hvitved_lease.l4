@@ -57,7 +57,8 @@
 
 	(Situation MonthStarted
 		(Next
-			(Tenant quasi-responsibility (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
+			(Tenant may (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
+			(Breach_Tenant (after ((monthStartDay_td) + MAX_RENT_DELAY)))
 			(RequestTerminationActionRuleMacro (Tenant MonthStarted))
 			(RequestTerminationActionRuleMacro (Landlord MonthStarted))
 		)

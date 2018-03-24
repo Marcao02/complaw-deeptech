@@ -43,9 +43,10 @@ action StartLeaseTerm()  transitions to MonthStarted:
 action EnterMonthStarted()  transitions to MonthStarted
 
 situation MonthStarted:
+    Breach_Tenant (next_event_td == (((monthStartDay_td ) + MAX_RENT_DELAY) + 1d))
     if ¬lease_terminated:
         Landlord may RequestTerminationFromMonthStarted (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
-    Tenant quasi-responsibility PayRent (next_event_td ≤ ((monthStartDay_td ) + MAX_RENT_DELAY))
+    Tenant may PayRent (next_event_td ≤ ((monthStartDay_td ) + MAX_RENT_DELAY))
     if ¬lease_terminated:
         Tenant may RequestTerminationFromMonthStarted (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
 

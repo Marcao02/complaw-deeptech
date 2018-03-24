@@ -91,7 +91,7 @@ INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
 
 POSTFIX_FN_SYMBOLS : Set[str] = set()
 
-DEONTIC_KEYWORDS = {'must','may','quasi-responsibility','may-later','must-later'}
+DEONTIC_KEYWORDS = {'must','may','may-later','must-later'}
 DeonticKeyword = NewType('DeonticKeyword',str)
 
 # Aside form "Misc" group, the following are not actually case sensitive

@@ -10,7 +10,6 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
     'toy_and_teaching/collatz.l4',
     'toy_and_teaching/collatz2.l4',
     'toy_and_teaching/monster_burger_program_only.l4',
-    'toy_and_teaching/partner_assignment_relievable_obligations.l4',
     'toy_and_teaching/partner_assignment_permissions_only.l4',
     'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
 
@@ -32,5 +31,5 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
 
     'toy_and_teaching/tutorialSAFE.l4'
 ]
-EXAMPLES_FULL_SIZE = 23
+EXAMPLES_FULL_SIZE = 22
 # EXAMPLES_FULL_SIZE = 1
