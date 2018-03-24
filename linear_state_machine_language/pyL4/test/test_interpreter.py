@@ -315,7 +315,7 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
          "VALUATION_CAP": 5 * M,
          },
         (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverDocsWithPRA', 'Company', 0),
+         event('DeliverTransactionDocsWithPRA', 'Company', 0),
          event('IssueSAFEPreferredStock', 'Company', 0,
                {'company_capitalization': 11 * M, 'premoney_valuation': 10 * M}),
          event('DoEquityFinancing', 'Company', 0)
@@ -330,7 +330,7 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
          "VALUATION_CAP": 4 * M,
          },
         (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverDocsWithPRA', 'Company', 0),
+         event('DeliverTransactionDocsWithPRA', 'Company', 0),
          event('IssueSAFEPreferredStock', 'Company', 0,
                {'company_capitalization': 12.5 * M, 'premoney_valuation': 3 * M}),
          event('DoEquityFinancing', 'Company', 0)
@@ -345,7 +345,7 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
          "VALUATION_CAP": 8 * M,
          },
         (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverDocsWithPRA', 'Company', 0),
+         event('DeliverTransactionDocsWithPRA', 'Company', 0),
          event('IssueSAFEPreferredStock', 'Company', 0,
                {'company_capitalization': 11.5 * M, 'premoney_valuation': 8 * M}),
          event('DoEquityFinancing', 'Company', 0)
@@ -451,7 +451,7 @@ traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[s
          "DISCOUNT_RATE": .8
          },
         (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverDocsWithPRA', 'Company', 0),
+         event('DeliverTransactionDocsWithPRA', 'Company', 0),
          event('IssueSAFEPreferredStock', 'Company', 0,
                {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
          event('DoEquityFinancing', 'Company', 0)

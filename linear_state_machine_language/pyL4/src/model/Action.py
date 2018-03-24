@@ -1,6 +1,6 @@
 from itertools import chain
 
-from src.model.EventsAndTraces import breachActionId, breachSituationId
+from src.model.EventsAndTraces import breachActionId, breachSituationId, interveneOnDelayId
 from src.independent.util import indent, castid
 from src.constants_and_defined_types import ActionBoundActionParamId, SituationId, ActionId, LOOP_KEYWORD, \
     LocalVarId
@@ -119,4 +119,10 @@ class Action:
     def breachAction(*role_ids:str) -> 'Action':
         rv = Action(breachActionId(*role_ids))
         rv.dest_situation_id = breachSituationId(*role_ids)
+        return rv
+
+    @staticmethod
+    def interveneOnDelayAction(role_id:str) -> 'Action':
+        rv = Action(interveneOnDelayId(role_id))
+        rv.dest_situation_id = breachSituationId(role_id)
         return rv

@@ -31,7 +31,8 @@ from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_situation_id, derived_destination_id
 from src.model.L4Macro import L4Macro, L4BlockMacro
-from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit, DateTimeLit
+from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit, DateTimeLit, \
+    RoleIdLit
 from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
@@ -237,12 +238,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         roles_without_Env = self.top.roles.copy()
         roles_without_Env.remove(ENV_ROLE)
+        roles_without_Env.remove(ARBITER_ROLE)
         for role_lst in nonemptySortedSubsets(roles_without_Env):
             sit = Situation.breachSituation(*role_lst)
             self.top.situations_by_id[sit.situation_id] = sit
             act = Action.breachAction(*role_lst)
             self.top.actions_by_id[act.action_id] = act
-
+        for roleid in roles_without_Env:
+            if roleid != ARBITER_ROLE:
+                act = Action.interveneOnDelayAction(roleid)
+                self.top.actions_by_id[act.action_id] = act
 
         floating_rules_transpile_away(self.top, self.verbose)
         return self.top
@@ -729,6 +734,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower(), coord)
             # print('STD', rv)
             return rv
+        if prog and x in prog.roles:
+            return RoleIdLit(x)
 
         syntaxErrorX(parent_SExpr, f"Don't recognize name {x}")
 
@@ -964,6 +971,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             role_id = castid(RoleId, expr[0])
             deontic_keyword = castid(DeonticKeyword, expr[1])
+            self.assertOrSyntaxError(deontic_keyword in DEONTIC_KEYWORDS, expr, deontic_keyword)
             if isinstance(expr[2],str):
                 action_id = castid(ActionId,expr[2])
                 args = []
@@ -1013,6 +1021,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif x in TIME_CONSTRAINT_KEYWORDS:
                 found_labeled_time_constraint = True
                 ar.time_constraint = self._mk_time_constraint(x, src_situation, src_or_parent_act, ar, rem)
+
+            else:
+                self.syntaxError(rem, "wtf is this? " + str(x))
 
         if not found_labeled_time_constraint:
             # self.syntaxError(rem, "No 'when' expression")

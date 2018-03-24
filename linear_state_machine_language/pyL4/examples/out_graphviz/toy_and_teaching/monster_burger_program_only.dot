@@ -21,7 +21,9 @@ digraph Monster_Burger {
 	VerifyCompletionClaim[label=VerifyCompletionClaim,shape=box];
 	Breach_Restaurant[label=Breach_Restaurant,shape=box];
 	Breach_Challenger[label=Breach_Challenger,shape=box];
-	Breach_Challenger_Restaurant[label=Breach_Challenger_Restaurant,shape=box]    
+	Breach_Challenger_Restaurant[label=Breach_Challenger_Restaurant,shape=box];
+	InterveneOnDelay_Challenger[label=InterveneOnDelay_Challenger,shape=box];
+	InterveneOnDelay_Restaurant[label=InterveneOnDelay_Restaurant,shape=box]    
     
     
     
@@ -48,6 +50,8 @@ digraph Monster_Burger {
 	Breach_Restaurant -> Breached_Restaurant [style=dashed];
 	Breach_Challenger -> Breached_Challenger [style=dashed];
 	Breach_Challenger_Restaurant -> Breached_Challenger_Restaurant [style=dashed];
+	InterveneOnDelay_Challenger -> Breached_Challenger [style=dashed];
+	InterveneOnDelay_Restaurant -> Breached_Restaurant [style=dashed];
 	     
     
        

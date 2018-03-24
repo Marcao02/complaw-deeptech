@@ -1,7 +1,7 @@
 -----------------------------------------
 file: toy_and_teaching/test_local_vars.l4
 
-roles: Env
+roles: Env, Arbiter
 
 state vars:
     n : Nat := 3

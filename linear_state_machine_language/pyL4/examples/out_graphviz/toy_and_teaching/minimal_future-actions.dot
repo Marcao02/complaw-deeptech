@@ -10,7 +10,8 @@ digraph test_contract_for_must_later {
 	Stand[label=Stand,shape=box];
 	Catch[label=Catch,shape=box];
 	EnterFulfilled[label=EnterFulfilled,shape=box];
-	Breach_I[label=Breach_I,shape=box]    
+	Breach_I[label=Breach_I,shape=box];
+	InterveneOnDelay_I[label=InterveneOnDelay_I,shape=box]    
     
     EnterFulfilled -> Fulfilled;
     
@@ -24,6 +25,7 @@ digraph test_contract_for_must_later {
 	Catch -> Ongoing [style=dashed];
 	EnterFulfilled -> Fulfilled [style=dashed];
 	Breach_I -> Breached_I [style=dashed];
+	InterveneOnDelay_I -> Breached_I [style=dashed];
 	     
     
        

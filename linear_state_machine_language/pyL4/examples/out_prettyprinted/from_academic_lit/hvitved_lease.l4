@@ -1,7 +1,7 @@
 ----------------------------------------
 file: from_academic_lit/hvitved_lease.l4
 
-roles: Env, Landlord, Tenant
+roles: Env, Arbiter, Landlord, Tenant
 
 contract params:
     LEASE_DURATION : TimeDelta := (days (4 * 29))
@@ -45,7 +45,7 @@ action EnterMonthStarted()  transitions to MonthStarted
 situation MonthStarted:
     if ¬lease_terminated:
         Landlord may RequestTerminationFromMonthStarted (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
-    Tenant responsibility PayRent (next_event_td ≤ ((monthStartDay_td ) + MAX_RENT_DELAY))
+    Tenant quasi-responsibility PayRent (next_event_td ≤ ((monthStartDay_td ) + MAX_RENT_DELAY))
     if ¬lease_terminated:
         Tenant may RequestTerminationFromMonthStarted (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
 

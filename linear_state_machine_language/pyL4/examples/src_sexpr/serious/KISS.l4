@@ -214,10 +214,10 @@
 
 		(FollowingSituation
 			(Next
-				(Investor may ChooseMultipleRepayment discretionary)
-				(Investor may (ChooseConvertToCommonStock company_capitalization) discretionary)
+				(Investor may ChooseMultipleRepayment)
+				(Investor may (ChooseConvertToCommonStock company_capitalization) )
 				; KISS doesn't say there's a default, so...
-				(Breach_Investor (after 520W))
+				(Arbiter may InterveneOnDelay_Investor)
 			)
 		)
 	)
@@ -251,11 +251,11 @@
 		(FollowingSituation
 			(Next
 				(if DEBT_VERSION
-					(Investor may (ChooseConversionToSeriesSeedPreferredStock ?1) discretionary)
+					(Investor may (ChooseConversionToSeriesSeedPreferredStock ?1))
 				)
-				(Investor may ChooseMaturityRepayment discretionary)
+				(Investor may ChooseMaturityRepayment)
 				; KISS doesn't say there's a default, so...
-				(Breach_Investor (after 520W))
+				(Arbiter may InterveneOnDelay_Investor)
 			)
 		)
 	)

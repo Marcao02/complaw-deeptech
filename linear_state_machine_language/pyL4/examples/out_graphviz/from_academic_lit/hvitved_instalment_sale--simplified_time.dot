@@ -12,7 +12,9 @@ digraph Instalment_Sale_Hvitved {
 	PayLastInstallment[label=PayLastInstallment,shape=box];
 	Breach_Seller[label=Breach_Seller,shape=box];
 	Breach_Buyer[label=Breach_Buyer,shape=box];
-	Breach_Buyer_Seller[label=Breach_Buyer_Seller,shape=box]    
+	Breach_Buyer_Seller[label=Breach_Buyer_Seller,shape=box];
+	InterveneOnDelay_Buyer[label=InterveneOnDelay_Buyer,shape=box];
+	InterveneOnDelay_Seller[label=InterveneOnDelay_Seller,shape=box]    
     
     
     
@@ -25,6 +27,8 @@ digraph Instalment_Sale_Hvitved {
 	Breach_Seller -> Breached_Seller [style=dashed];
 	Breach_Buyer -> Breached_Buyer [style=dashed];
 	Breach_Buyer_Seller -> Breached_Buyer_Seller [style=dashed];
+	InterveneOnDelay_Buyer -> Breached_Buyer [style=dashed];
+	InterveneOnDelay_Seller -> Breached_Seller [style=dashed];
 	     
     
        

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------
 file: toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4
 
-roles: Env, Employee, Employer
+roles: Env, Arbiter, Employee, Employer
 
 state vars:
 

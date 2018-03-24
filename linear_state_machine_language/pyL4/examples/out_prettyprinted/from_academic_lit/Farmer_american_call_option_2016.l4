@@ -1,7 +1,7 @@
 -----------------------------------------------------------
 file: from_academic_lit/Farmer_american_call_option_2016.l4
 
-roles: Env, Buyer, Seller
+roles: Env, Arbiter, Buyer, Seller
 
 contract params:
     SELLER_START_FUNDS : $ := 0

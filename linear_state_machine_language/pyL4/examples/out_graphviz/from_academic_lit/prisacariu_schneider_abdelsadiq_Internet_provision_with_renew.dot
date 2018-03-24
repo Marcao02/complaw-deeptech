@@ -20,7 +20,9 @@ digraph PS_Internet_Provision {
 	EnterFulfilled[label=EnterFulfilled,shape=box];
 	Breach_ISP[label=Breach_ISP,shape=box];
 	Breach_Client[label=Breach_Client,shape=box];
-	Breach_Client_ISP[label=Breach_Client_ISP,shape=box]    
+	Breach_Client_ISP[label=Breach_Client_ISP,shape=box];
+	InterveneOnDelay_ISP[label=InterveneOnDelay_ISP,shape=box];
+	InterveneOnDelay_Client[label=InterveneOnDelay_Client,shape=box]    
     
     EnterFulfilled -> Fulfilled;
     
@@ -50,6 +52,8 @@ digraph PS_Internet_Provision {
 	Breach_ISP -> Breached_ISP [style=dashed];
 	Breach_Client -> Breached_Client [style=dashed];
 	Breach_Client_ISP -> Breached_Client_ISP [style=dashed];
+	InterveneOnDelay_ISP -> Breached_ISP [style=dashed];
+	InterveneOnDelay_Client -> Breached_Client [style=dashed];
 	     
     
     SendCancelNoticeByPost -> NoInfraction [style=dashed];

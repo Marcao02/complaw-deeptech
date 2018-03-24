@@ -9,8 +9,8 @@ digraph SAFE {
     
      
     CommitToEquityFinancing[label=CommitToEquityFinancing,shape=box];
-	DeliverDocsWithPRA[label=DeliverDocsWithPRA,shape=box];
-	DeliverDocsWithoutPRA[label=DeliverDocsWithoutPRA,shape=box];
+	DeliverTransactionDocsWithPRA[label=DeliverTransactionDocsWithPRA,shape=box];
+	DeliverTransactionDocsWithoutPRA[label=DeliverTransactionDocsWithoutPRA,shape=box];
 	SubmitProRataRightsAgreementForSigning[label=SubmitProRataRightsAgreementForSigning,shape=box];
 	SignPRA[label=SignPRA,shape=box];
 	IssueSAFEPreferredStock[label=IssueSAFEPreferredStock,shape=box];
@@ -29,7 +29,9 @@ digraph SAFE {
 	Dissolve[label=Dissolve,shape=box];
 	Breach_Investor[label=Breach_Investor,shape=box];
 	Breach_Company[label=Breach_Company,shape=box];
-	Breach_Company_Investor[label=Breach_Company_Investor,shape=box]    
+	Breach_Company_Investor[label=Breach_Company_Investor,shape=box];
+	InterveneOnDelay_Investor[label=InterveneOnDelay_Investor,shape=box];
+	InterveneOnDelay_Company[label=InterveneOnDelay_Company,shape=box]    
     
     
     
@@ -37,14 +39,19 @@ digraph SAFE {
 	InvestorInvests -> CommitToIPO;
 	InvestorInvests -> CommitToChangeOfControl;
 	InvestorInvests -> CommitToDissolution;
-	CommitToEquityFinancing -> DeliverDocsWithPRA;
-	CommitToEquityFinancing -> DeliverDocsWithoutPRA;
-	CommitToEquityFinancing -> Breach_Company [style=dashed];
-	DeliverDocsWithPRA -> IssueSAFEPreferredStock;
-	DeliverDocsWithoutPRA -> SubmitProRataRightsAgreementForSigning;
+	CommitToEquityFinancing -> DeliverTransactionDocsWithPRA;
+	CommitToEquityFinancing -> DeliverTransactionDocsWithoutPRA;
+	CommitToEquityFinancing -> InterveneOnDelay_Company;
+	DeliverTransactionDocsWithPRA -> IssueSAFEPreferredStock;
+	DeliverTransactionDocsWithPRA -> InterveneOnDelay_Company;
+	DeliverTransactionDocsWithoutPRA -> SubmitProRataRightsAgreementForSigning;
+	DeliverTransactionDocsWithoutPRA -> InterveneOnDelay_Company;
 	SubmitProRataRightsAgreementForSigning -> SignPRA;
+	SubmitProRataRightsAgreementForSigning -> InterveneOnDelay_Company;
 	SignPRA -> IssueSAFEPreferredStock;
+	SignPRA -> InterveneOnDelay_Investor;
 	IssueSAFEPreferredStock -> DoEquityFinancing;
+	IssueSAFEPreferredStock -> InterveneOnDelay_Company;
 	CommitToIPO -> ChooseCashPayment;
 	CommitToIPO -> ChooseStockPayment;
 	CommitToIPO -> AutoChooseStockPayment;
@@ -54,7 +61,9 @@ digraph SAFE {
 	CommitToChangeOfControl -> AutoChooseStockPayment;
 	CommitToChangeOfControl -> Breach_Company [style=dashed];
 	AutoChooseStockPayment -> TransferCommonStock;
+	AutoChooseStockPayment -> InterveneOnDelay_Company;
 	ChooseStockPayment -> TransferCommonStock;
+	ChooseStockPayment -> InterveneOnDelay_Company;
 	TransferCommonStock -> DoLiquidityEvent;
 	ChooseCashPayment -> TransferCash_L;
 	TransferCash_L -> TransferCommonStock;
@@ -70,6 +79,8 @@ digraph SAFE {
 	Breach_Investor -> Breached_Investor [style=dashed];
 	Breach_Company -> Breached_Company [style=dashed];
 	Breach_Company_Investor -> Breached_Company_Investor [style=dashed];
+	InterveneOnDelay_Investor -> Breached_Investor [style=dashed];
+	InterveneOnDelay_Company -> Breached_Company [style=dashed];
 	     
     
        

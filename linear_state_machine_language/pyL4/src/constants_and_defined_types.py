@@ -47,7 +47,7 @@ TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex',
                         'monthStartDay_td', 'monthEndDay_td'}
 
-TIME_CONSTRAINT_KEYWORDS = {'immediately', 'no_time_constraint','discretionary'}
+TIME_CONSTRAINT_KEYWORDS = {'immediately', 'no_time_constraint'}
 # PRACTICALLY_FOREVER = timedelta(weeks=99999)
 
 CONTRACT_VALUE_PROPERTIES = {'MAX_TIME', 'MAX_SITUATION_VISITS'}
@@ -91,7 +91,7 @@ INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
 
 POSTFIX_FN_SYMBOLS : Set[str] = set()
 
-DEONTIC_KEYWORDS = {'must','may','should','quasi-responsibility','may-later','must-later'}
+DEONTIC_KEYWORDS = {'must','may','quasi-responsibility','may-later','must-later'}
 DeonticKeyword = NewType('DeonticKeyword',str)
 
 # Aside form "Misc" group, the following are not actually case sensitive
@@ -141,3 +141,4 @@ FOLLOWING_SITUATION_DEC_LABEL = "FollowingSituation"
 FULFILLED_SITUATION_LABEL = cast(SituationId, "Fulfilled")
 # CONTINGENT_FULFILLED_SITUATION_LABEL = cast(SituationId, "ContingentFulfilled")
 ENV_ROLE = cast(RoleId,"Env")
+ARBITER_ROLE = cast(RoleId,"Arbiter")

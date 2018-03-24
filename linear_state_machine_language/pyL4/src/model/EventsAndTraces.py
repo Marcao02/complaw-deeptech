@@ -26,6 +26,8 @@ def breachSituationId(*role_ids:str):
     return "Breached_" + "_".join(role_ids)
 def breachActionId(*role_ids:str):
     return "Breach_" + "_".join(role_ids)
+def interveneOnDelayId(role_id:str):
+    return "InterveneOnDelay_" + role_id
 
 Trace = Sequence[Event]
 class CompleteTrace(NamedTuple):

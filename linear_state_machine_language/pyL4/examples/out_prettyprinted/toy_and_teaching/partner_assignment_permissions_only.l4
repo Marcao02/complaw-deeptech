@@ -1,7 +1,7 @@
 -------------------------------------------------------------
 file: toy_and_teaching/partner_assignment_permissions_only.l4
 
-roles: Env, Alice, Bob
+roles: Env, Arbiter, Alice, Bob
 
 contract params:
     DUE_TD : TimeDelta := 40d

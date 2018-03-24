@@ -22,7 +22,9 @@ digraph safe_tutorial {
 	DoLiquidityEvent[label=DoLiquidityEvent,shape=box];
 	Breach_Investor[label=Breach_Investor,shape=box];
 	Breach_Company[label=Breach_Company,shape=box];
-	Breach_Company_Investor[label=Breach_Company_Investor,shape=box]    
+	Breach_Company_Investor[label=Breach_Company_Investor,shape=box];
+	InterveneOnDelay_Investor[label=InterveneOnDelay_Investor,shape=box];
+	InterveneOnDelay_Company[label=InterveneOnDelay_Company,shape=box]    
     
     
     
@@ -48,6 +50,8 @@ digraph safe_tutorial {
 	Breach_Investor -> Breached_Investor [style=dashed];
 	Breach_Company -> Breached_Company [style=dashed];
 	Breach_Company_Investor -> Breached_Company_Investor [style=dashed];
+	InterveneOnDelay_Investor -> Breached_Investor [style=dashed];
+	InterveneOnDelay_Company -> Breached_Company [style=dashed];
 	     
     
        

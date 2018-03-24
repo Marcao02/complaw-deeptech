@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------------------------------------------------------------------
 file: from_academic_lit/student and grader gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints.l4
 
-roles: Env, Student, Grader
+roles: Env, Arbiter, Student, Grader
 
 state vars:
 

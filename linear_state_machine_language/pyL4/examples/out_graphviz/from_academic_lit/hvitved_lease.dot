@@ -22,7 +22,9 @@ digraph Lease_Hvitved {
 	MoveOut[label=MoveOut,shape=box];
 	Breach_Tenant[label=Breach_Tenant,shape=box];
 	Breach_Landlord[label=Breach_Landlord,shape=box];
-	Breach_Landlord_Tenant[label=Breach_Landlord_Tenant,shape=box]    
+	Breach_Landlord_Tenant[label=Breach_Landlord_Tenant,shape=box];
+	InterveneOnDelay_Landlord[label=InterveneOnDelay_Landlord,shape=box];
+	InterveneOnDelay_Tenant[label=InterveneOnDelay_Tenant,shape=box]    
     
     
     
@@ -51,6 +53,8 @@ digraph Lease_Hvitved {
 	Breach_Tenant -> Breached_Tenant [style=dashed];
 	Breach_Landlord -> Breached_Landlord [style=dashed];
 	Breach_Landlord_Tenant -> Breached_Landlord_Tenant [style=dashed];
+	InterveneOnDelay_Landlord -> Breached_Landlord [style=dashed];
+	InterveneOnDelay_Tenant -> Breached_Tenant [style=dashed];
 	     
     
        

@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------------------
 file: from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4
 
-roles: Env, Customer, Vendor
+roles: Env, Arbiter, Customer, Vendor
 
 contract params:
     MAX_UNITS : Nat := 1000

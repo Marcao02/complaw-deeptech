@@ -1,7 +1,7 @@
 ---------------------------------
 file: toy_and_teaching/collatz.l4
 
-roles: Env
+roles: Env, Arbiter
 
 contract params:
     START : Nat := 12

@@ -1,7 +1,7 @@
 --------------------------------------
 file: toy_and_teaching/tutorialSAFE.l4
 
-roles: Env, Investor, Company
+roles: Env, Arbiter, Investor, Company
 
 contract params:
     PURCHASE_AMOUNT : Pos$ := 10000.0

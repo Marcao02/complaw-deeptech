@@ -38,7 +38,7 @@ class L4Contract:
         self.sort_definitions: Dict[str, Sort] = dict()
         self.expanded_sort_definitions: Dict[str, Sort] = dict()
 
-        self.roles : List[RoleId] = [ENV_ROLE]
+        self.roles : List[RoleId] = [ENV_ROLE, ARBITER_ROLE]
         self.sorts : Set[Sort] = set()
         self.fnsymb_names : Set[str] = set()
 
@@ -217,4 +217,4 @@ def derived_trigger_id_to_situation_id(action_id:ActionId) -> SituationId:
 def is_derived_destination_id(situation_id:SituationId) -> bool:
     return situation_id.startswith("After") or situation_id.startswith("Breached_")
 def is_derived_trigger_id(action_id:ActionId) -> bool:
-    return action_id.startswith("Enter") or action_id.startswith("Breach_")
+    return action_id.startswith("Enter") or action_id.startswith("Breach_") or action_id.startswith("InterveneOnDelay_")

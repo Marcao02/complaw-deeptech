@@ -1,7 +1,7 @@
 -----------------------------------------------------
 file: toy_and_teaching/monster_burger_program_only.l4
 
-roles: Env, Challenger, Restaurant
+roles: Env, Arbiter, Challenger, Restaurant
 
 contract params:
     MB_PRICE : $ := 50
@@ -23,7 +23,7 @@ action RequestCookMB()  transitions to AfterRequestCookMB:
         amount_owing := MB_PRICE
     following situation:
         EnterPromptServeGuaranteeViolated (next_event_td ≥ (MAX_SERVE_DELAY + situation_entrance_td))
-        Restaurant should ServeMB (next_event_td < (MAX_SERVE_DELAY + situation_entrance_td))
+        Restaurant may ServeMB (next_event_td < (MAX_SERVE_DELAY + situation_entrance_td))
 
 action ServeMB()  transitions to EatingMB:
     transform:
@@ -38,12 +38,12 @@ action EnterEatingMB()  transitions to EatingMB
 situation EatingMB:
     Challenger may AnnounceMBFinished (next_event_td < challenge_endlimit_timestamp)
     TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
-    Restaurant should CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situation_entrance_td)))
+    Restaurant may CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situation_entrance_td)))
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following situation:
         TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + situation_entrance_td))
-        Restaurant should CheckCompletionClaim (next_event_td ≤ (situation_entrance_td + MAX_CLAIM_VERIFICATION_DELAY))
+        Restaurant may CheckCompletionClaim (next_event_td ≤ (situation_entrance_td + MAX_CLAIM_VERIFICATION_DELAY))
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:

@@ -1,7 +1,7 @@
 ---------------------
 file: serious/KISS.l4
 
-roles: Env, Investor, Company
+roles: Env, Arbiter, Investor, Company
 
 contract params:
     PURCHASE_AMOUNT : Pos$ := 100000
@@ -68,9 +68,9 @@ action CloseEquityFinancingSale(qualifying_round_price: SharePrice, company_capi
 
 action CommitToAcquisition(company_capitalization: PosShareCnt) transitions to AfterCommitToAcquisition
     following situation:
-        Breach_Investor (next_event_td == (520w + 1d))
-        Investor may ChooseConvertToCommonStock(company_capitalization) discretionary
-        Investor may ChooseMultipleRepayment discretionary
+        Arbiter may InterveneOnDelay_Investor no_time_constraint
+        Investor may ChooseConvertToCommonStock(company_capitalization) no_time_constraint
+        Investor may ChooseMultipleRepayment no_time_constraint
 
 action ChooseMultipleRepayment()  transitions to Fulfilled:
     transform:
@@ -91,10 +91,10 @@ action ChooseConvertToCommonStock(company_capitalization: PosShareCnt) transitio
 
 action ReachMaturity()  transitions to AfterReachMaturity
     following situation:
-        Breach_Investor (next_event_td == (520w + 1d))
+        Arbiter may InterveneOnDelay_Investor no_time_constraint
         if DEBT_VERSION:
-            Investor may ChooseConversionToSeriesSeedPreferredStock(?1) discretionary
-        Investor may ChooseMaturityRepayment discretionary
+            Investor may ChooseConversionToSeriesSeedPreferredStock(?1) no_time_constraint
+        Investor may ChooseMaturityRepayment no_time_constraint
 
 action ChooseMaturityRepayment()  transitions to Fulfilled:
     transform:

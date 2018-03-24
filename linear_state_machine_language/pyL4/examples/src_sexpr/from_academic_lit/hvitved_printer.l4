@@ -55,7 +55,7 @@
 		)
 		(FollowingSituation
 			(Next
-				(Buyer should Pay2ndInstallment (when next_event_td ≤ (30d + delivery_date)))
+				(Buyer may Pay2ndInstallment (when next_event_td ≤ (30d + delivery_date)))
 				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_date)))
 				(EnterLate2ndInstallment (when next_event_td > (30d + delivery_date)))
 			)

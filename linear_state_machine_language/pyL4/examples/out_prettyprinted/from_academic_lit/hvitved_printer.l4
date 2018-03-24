@@ -1,7 +1,7 @@
 ------------------------------------------
 file: from_academic_lit/hvitved_printer.l4
 
-roles: Env, Buyer, Seller
+roles: Env, Arbiter, Buyer, Seller
 
 contract params:
     CONTRACT_START : TimeDelta := 0d
@@ -30,7 +30,7 @@ action Pay1stInstallment()  transitions to AfterPay1stInstallment:
         prove (buyer_paid == 0)
         buyer_paid := 100
     following situation:
-        Buyer should Pay2ndInstallment (next_event_td ≤ (30d + delivery_date))
+        Buyer may Pay2ndInstallment (next_event_td ≤ (30d + delivery_date))
         Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_date))
         EnterLate2ndInstallment (next_event_td > (30d + delivery_date))
 

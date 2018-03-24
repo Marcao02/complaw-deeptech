@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------------
 file: from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4
 
-roles: Env, ISP, Client
+roles: Env, Arbiter, ISP, Client
 
 contract params:
     HIGH_USAGE_FEE : $ := 10

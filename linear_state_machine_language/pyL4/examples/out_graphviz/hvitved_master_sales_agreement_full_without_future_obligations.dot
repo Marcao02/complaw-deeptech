@@ -15,7 +15,9 @@ digraph Master_Sales_Agreement {
 	PayBill[label=PayBill,shape=box];
 	Breach_Vendor[label=Breach_Vendor,shape=box];
 	Breach_Customer[label=Breach_Customer,shape=box];
-	Breach_Customer_Vendor[label=Breach_Customer_Vendor,shape=box]    
+	Breach_Customer_Vendor[label=Breach_Customer_Vendor,shape=box];
+	InterveneOnDelay_Customer[label=InterveneOnDelay_Customer,shape=box];
+	InterveneOnDelay_Vendor[label=InterveneOnDelay_Vendor,shape=box]    
     
     EnterFulfilled -> Fulfilled;
     
@@ -36,6 +38,8 @@ digraph Master_Sales_Agreement {
 	Breach_Vendor -> Breached_Vendor [style=dashed];
 	Breach_Customer -> Breached_Customer [style=dashed];
 	Breach_Customer_Vendor -> Breached_Customer_Vendor [style=dashed];
+	InterveneOnDelay_Customer -> Breached_Customer [style=dashed];
+	InterveneOnDelay_Vendor -> Breached_Vendor [style=dashed];
 	     
     
        

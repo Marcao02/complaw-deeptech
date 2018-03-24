@@ -1,7 +1,7 @@
 ------------------------------------------------
 file: toy_and_teaching/minimal_future-actions.l4
 
-roles: Env, I
+roles: Env, Arbiter, I
 
 state vars:
     n : Nat := 0

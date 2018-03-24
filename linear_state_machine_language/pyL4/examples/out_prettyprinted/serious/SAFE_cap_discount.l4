@@ -1,7 +1,7 @@
 ----------------------------------
 file: serious/SAFE_cap_discount.l4
 
-roles: Env, Investor, Company
+roles: Env, Arbiter, Investor, Company
 
 contract params:
     PURCHASE_AMOUNT : Pos$ := 100000
@@ -33,25 +33,29 @@ situation InvestorInvests:
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
-        Company may DeliverDocsWithPRA discretionary
-        Company may DeliverDocsWithoutPRA discretionary
-        Breach_Company discretionary
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Company may DeliverTransactionDocsWithPRA no_time_constraint
+        Company may DeliverTransactionDocsWithoutPRA no_time_constraint
 
-action DeliverDocsWithPRA()  transitions to AfterDeliverDocsWithPRA
+action DeliverTransactionDocsWithPRA()  transitions to AfterDeliverTransactionDocsWithPRA
     following situation:
-        Company must IssueSAFEPreferredStock(?1, ?2) discretionary
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Company may IssueSAFEPreferredStock(?1, ?2) no_time_constraint
 
-action DeliverDocsWithoutPRA()  transitions to AfterDeliverDocsWithoutPRA
+action DeliverTransactionDocsWithoutPRA()  transitions to AfterDeliverTransactionDocsWithoutPRA
     following situation:
-        Company must SubmitProRataRightsAgreementForSigning discretionary
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Company may SubmitProRataRightsAgreementForSigning no_time_constraint
 
 action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRataRightsAgreementForSigning
     following situation:
-        Investor must SignPRA discretionary
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Investor may SignPRA no_time_constraint
 
 action SignPRA()  transitions to AfterSignPRA
     following situation:
-        Company must IssueSAFEPreferredStock(?1, ?2) discretionary
+        Arbiter may InterveneOnDelay_Investor no_time_constraint
+        Company may IssueSAFEPreferredStock(?1, ?2) no_time_constraint
 
 action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
     transform:
@@ -61,7 +65,8 @@ action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_val
         conversion_price := (min cap_price' discount_price')
         investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))
     following situation:
-        Company must DoEquityFinancing discretionary
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Company may DoEquityFinancing no_time_constraint
 
 action DoEquityFinancing()  transitions to Fulfilled
 
@@ -97,21 +102,23 @@ action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_cap
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:
-        Company must TransferCommonStock discretionary
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Company may TransferCommonStock no_time_constraint
 
 action ChooseStockPayment()  transitions to AfterChooseStockPayment
     following situation:
-        Company must TransferCommonStock discretionary
+        Arbiter may InterveneOnDelay_Company no_time_constraint
+        Company may TransferCommonStock no_time_constraint
 
 action TransferCommonStock()  transitions to AfterTransferCommonStock:
     transform:
         investor_Common_Stocks := (investor_Common_Stocks + ((check $ (cash_currently_unconverted - liq_cashout)) round/ conversion_price))
     following situation:
-        Company must DoLiquidityEvent discretionary
+        Company must DoLiquidityEvent no_time_constraint
 
 action ChooseCashPayment()  transitions to AfterChooseCashPayment
     following situation:
-        Company must TransferCash_L(?1) discretionary
+        Company must TransferCash_L(?1) no_time_constraint
 
 action TransferCash_L(total_investments_of_cashout_investors: Pos$) transitions to AfterTransferCash_L:
     transform:
@@ -120,15 +127,15 @@ action TransferCash_L(total_investments_of_cashout_investors: Pos$) transitions 
         investor_cash := (investor_cash + liq_cashout')
     following situation:
         if (liq_cashout == cash_currently_unconverted):
-            Company must DoLiquidityEvent discretionary
+            Company must DoLiquidityEvent no_time_constraint
         if (liq_cashout < cash_currently_unconverted):
-            Company must TransferCommonStock discretionary
+            Company must TransferCommonStock no_time_constraint
 
 action DoLiquidityEvent()  transitions to Fulfilled
 
 action CommitToDissolution()  transitions to AfterCommitToDissolution
     following situation:
-        Company must TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) discretionary
+        Company must TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) no_time_constraint
 
 action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: Fraction(0,1]) transitions to AfterTransferCash_D:
     transform:
@@ -136,9 +143,9 @@ action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_
         investor_cash := dis_cashout'
     following situation:
         if (dis_cashout == PURCHASE_AMOUNT):
-            Company must Dissolve discretionary
+            Company must Dissolve no_time_constraint
         if (dis_cashout < PURCHASE_AMOUNT):
-            Company must TransferAssets(?1, ?2) discretionary
+            Company must TransferAssets(?1, ?2) no_time_constraint
 
 action TransferAssets(liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterTransferAssets:
     transform:
@@ -148,6 +155,6 @@ action TransferAssets(liquidity_capitalization: PosShareCnt, company_valuation: 
         conversion_price := (min cap_price' discount_price')
         investor_Common_Stocks := (investor_Common_Stocks + ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
     following situation:
-        Company must Dissolve discretionary
+        Company must Dissolve no_time_constraint
 
 action Dissolve()  transitions to Fulfilled
