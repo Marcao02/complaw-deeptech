@@ -9,11 +9,10 @@ ALLOW_PRIMED_NAMES = True
 class SExprBuilder:
     def __init__(self) -> None:
         # stack of growing S-Expressions
-        # self.stack: List[SExpr] = [castse([])] # TODO not actually an SExpr...
-        self.stack: List[SExpr] = [SExpr('(',[],1,1)]  # TODO not actually an SExpr...
+        self.stack: List[SExpr] = [SExpr([], 1, 1)]  
 
     def openParenSeq(self,symb,line:int,col:int):
-        self.stack.append(SExpr(symb, [], line, col))
+        self.stack.append(SExpr([], line, col, symb))
 
     def appendTokenInCurScope(self,token): 
         self.curScope.append(token)

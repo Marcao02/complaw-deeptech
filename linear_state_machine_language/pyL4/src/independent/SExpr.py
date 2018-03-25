@@ -25,13 +25,8 @@ Formerly was a subtype of List[Union['SExpr', str]], but that exposed too many L
 Now a wrapper around a list of SExpr's and strings.
 """
 class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
-    def __init__(self,
-                 symb:str, # member of left_groupers
-                 lst: List[Union['SExpr', str]],
-                 line: int,
-                 col: int) -> None:
-        # super().__init__(lst if lst else [])
-        self.symb = symb
+    def __init__(self, lst: List[Union['SExpr', str]], line: int, col: int, symb: str = "(") -> None:
+        self.symb = symb # member of left_groupers... always?
         self.lst = lst if lst else []
         self.line = line
         self.col = col
@@ -41,13 +36,13 @@ class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
         return FileCoord(self.line, self.col)
 
     def tillEnd(self,i:int) -> 'SExpr':
-        return SExpr(self.symb, self.lst[i:], self.line, self.col)
+        return SExpr(self.lst[i:], self.line, self.col, self.symb)
 
     def fromStartToExclusive(self,i:int) -> 'SExpr':
-        return SExpr(self.symb, self.lst[:i], self.line, self.col)
+        return SExpr(self.lst[:i], self.line, self.col, self.symb)
 
     def withElementDropped(self,i:int) -> 'SExpr':
-        return SExpr(self.symb, self.lst[:i] + self.lst[i+1:], self.line, self.col)
+        return SExpr(self.lst[:i] + self.lst[i + 1:], self.line, self.col, self.symb)
 
     def __getitem__(self, item):
         return self.lst.__getitem__(item)
@@ -103,12 +98,9 @@ def sexpr_subst_mult_string(sexpr_or_str: SExprOrStr, strs_to_replace: Sequence[
     if isinstance(sexpr_or_str, str):
         return mult_replace(sexpr_or_str, strs_to_replace, replacements)
     else:
-        return SExpr(
-            symb = sexpr_or_str.symb,
-            lst = list(map(lambda child: sexpr_subst_mult_string(child, strs_to_replace, replacements), sexpr_or_str.lst)),
-            line = sexpr_or_str.line,
-            col = sexpr_or_str.col
-        )
+        return SExpr(lst=list(
+            map(lambda child: sexpr_subst_mult_string(child, strs_to_replace, replacements), sexpr_or_str.lst)),
+                     line=sexpr_or_str.line, col=sexpr_or_str.col, symb=sexpr_or_str.symb)
 
 # inefficient
 def sexpr_rewrite(sexpr:SExpr,

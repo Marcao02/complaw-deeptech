@@ -108,7 +108,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 children_to_recurse_on = x.lst
                 for c in children_to_recurse_on:
                     results.extend(helper(c))
-                return [SExpr(x.symb, results, x.line, x.col)]
+                return [SExpr(results, x.line, x.col, x.symb)]
 
         rv = []
         for x in l:
@@ -648,6 +648,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 it = self._mk_statement(statement_expr, parent_action)
                 rv.append(it)
+
+            if isinstance(rv[-1],IfElse):
+                print(rv[-1])
+                assert statement_expr == statement_exprs[-1], "(if Term Block else Block) can only appear as the last " \
+                                                              "statement in a Block."
         return rv
 
     def _mk_statement(self, statement_expr:SExpr, parent_action:Action) -> Statement:
@@ -947,7 +952,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             else:
                 # multiple rules sharing an enabled-guard
                 for unguarded_rule in expr[2:]:
-                    self._mk_next_action_rule( SExpr(expr.symb, [expr[0],expr[1],unguarded_rule], expr.line, expr.col), src_situation, parent_action )
+                    self._mk_next_action_rule(SExpr([expr[0], expr[1], unguarded_rule], expr.line, expr.col, expr.symb), src_situation, parent_action)
                 return
 
         deontic_keyword : Optional[str] = None
@@ -1025,18 +1030,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif x[0] == "after":
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr('(',['==','next_event_td',
-                                          SExpr('(',['+', rest, "1"+self.top.timeunit],x.line,x.col)],x.line,x.col)
+                    expanded = SExpr(['==', 'next_event_td',
+                                      SExpr(['+', rest, "1" + self.top.timeunit], x.line, x.col)], x.line, x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
                 elif x[0] == "on":
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr('(',['==','next_event_dt',rest],x.line,x.col)
+                    expanded = SExpr(['==', 'next_event_dt', rest], x.line, x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
                 elif x[0] == "after_dt":
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr('(',['>','next_event_dt',rest],x.line,x.col)
+                    expanded = SExpr(['>', 'next_event_dt', rest], x.line, x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
 
             elif x in TIME_CONSTRAINT_KEYWORDS:
@@ -1087,33 +1092,35 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
     def eliminate_must(sexpr2:SExpr) -> List[SExpr]:
         if len(sexpr2) < 3:
             return []
-        may = SExpr("(",[sexpr2[0], "may"] + sexpr2[2:], sexpr2.line, sexpr2.col)
+        may = SExpr([sexpr2[0], "may"] + sexpr2[2:], sexpr2.line, sexpr2.col, "(")
         role = sexpr2[0]
         other : Optional[SExpr] = None
         for i in range(3,len(sexpr2.lst)):
             child = sexpr2.lst[i]
 
             if isinstance(child, SExpr) and len(child.lst) >= 1 and (child.lst[0] in ("at","within")):
-                other = SExpr("(", [breachActionId(role)] + list(sexpr2[3:i]) +
-                              [SExpr("(", [cast(SExprOrStr,"after")] + child.lst[1:], sexpr2.line, sexpr2.col)] + sexpr2[i+1:], sexpr2.line,
-                              sexpr2.col)
+                other = SExpr([breachActionId(role)] + list(sexpr2[3:i]) +
+                              [SExpr([cast(SExprOrStr, "after")] + child.lst[1:], sexpr2.line,
+                                     sexpr2.col)] + sexpr2[i + 1:], sexpr2.line, sexpr2.col, "(")
                 break
 
             elif isinstance(child, SExpr) and len(child.lst) >= 1 and (child.lst[0] in ("on","by")):
-                other = SExpr("(", [breachActionId(role)] + list(sexpr2[3:i]) +
-                              [SExpr("(", [cast(SExprOrStr,"after_dt")] + child.lst[1:], sexpr2.line, sexpr2.col)] + sexpr2[i+1:], sexpr2.line,
-                              sexpr2.col)
+                other = SExpr([breachActionId(role)] + list(sexpr2[3:i]) +
+                              [SExpr([cast(SExprOrStr, "after_dt")] + child.lst[1:], sexpr2.line,
+                                     sexpr2.col)] + sexpr2[i + 1:], sexpr2.line, sexpr2.col, "(")
                 break
 
             elif child == "no_time_constraint":
-                other = SExpr("(", [ARBITER_ROLE, "may", interveneOnDelayId(role)] + sexpr2[3:], sexpr2.line, sexpr2.col)
+                other = SExpr([ARBITER_ROLE, "may", interveneOnDelayId(role)] + sexpr2[3:], sexpr2.line, sexpr2.col,
+                              "(")
                 break
 
             elif child == "immediately":
-                pastdeadline = SExpr('(', ['==', 'next_event_td',
-                            SExpr('(', ['+', "situation_entrance_td", "1" + timeunit], sexpr2.line, sexpr2.col)], sexpr2.line, sexpr2.col)
-                other = SExpr("(", [breachActionId(role), SExpr("(", ["when", pastdeadline], sexpr2.line, sexpr2.col)],
-                              sexpr2.line, sexpr2.col)
+                pastdeadline = SExpr(['==', 'next_event_td',
+                                      SExpr(['+', "situation_entrance_td", "1" + timeunit], sexpr2.line,
+                                            sexpr2.col)], sexpr2.line, sexpr2.col)
+                other = SExpr([breachActionId(role), SExpr(["when", pastdeadline], sexpr2.line, sexpr2.col)],
+                              sexpr2.line, sexpr2.col, "(")
                 break
 
             elif isinstance(child, SExpr) and len(child.lst) >= 1 and child.lst[0] == "when":
@@ -1121,7 +1128,7 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
                 break
 
         if len(sexpr2) == 3:
-            other = SExpr("(", [ARBITER_ROLE, "may", interveneOnDelayId(role)], sexpr2.line, sexpr2.col)
+            other = SExpr([ARBITER_ROLE, "may", interveneOnDelayId(role)], sexpr2.line, sexpr2.col, "(")
 
         # print(f"Replacing\n{sexpr2}\nwith\n{may} and \n{other}\n")
 
