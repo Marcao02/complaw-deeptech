@@ -25,6 +25,7 @@ def SMTCommand(symb:str, args:Iterable[SMTExpr]) -> SMTCommand_: return SMTExprN
 SMTLine = Union[SMTCommand_, str]
 
 SMT_BUILDIN_FNS = frozenset({'and', 'or', 'not', '=>', '=', '*', '+', '>', '<', '<=', '>=', '/', '-'})
+INTERP_AS_2PROJECTION = frozenset({"cast", "check", "units", "trust"})
 
 SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
     "$":"Real",

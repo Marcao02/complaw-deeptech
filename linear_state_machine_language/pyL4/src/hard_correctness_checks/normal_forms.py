@@ -30,6 +30,11 @@ FrozenDict = Dict
 def frozendict(d:Dict[T1,T2]) -> FrozenDict[T1,T2]:
     return d
 
+def fdset(d:FrozenDict[T1,T2],k:T1,v:T2) -> FrozenDict[T1,T2]:
+    dcopy = d.copy()
+    dcopy[k] = v
+    return dcopy
+
 def eliminate_ifthenelse(p:L4Contract):
     progress_made = False
 
