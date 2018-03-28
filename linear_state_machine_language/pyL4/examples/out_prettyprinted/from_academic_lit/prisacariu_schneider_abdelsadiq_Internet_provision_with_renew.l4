@@ -72,11 +72,11 @@ action EnterFulfilled()  transitions to Fulfilled
 
 situation NoInfraction:
     if ¬contract_canceled:
-        Client may RaiseTraffic no_time_constraint
+        Client may RaiseTraffic
     if contract_canceled:
-        EnterFulfilled
-    ISP may SendCancelNoticeByEmail no_time_constraint
-    ISP may SendCancelNoticeByPost no_time_constraint
+        EnterFulfilled (next_event_td == situation_entrance_td)
+    ISP may SendCancelNoticeByEmail
+    ISP may SendCancelNoticeByPost
 
 situation UnsettledInfraction:
     if ¬usage_level_normal:
@@ -87,7 +87,7 @@ situation UnsettledInfraction:
         ClientBreaches (next_event_td > (infraction_time + 24h))
     ClientBreaches (next_event_td > (infraction_time + 48h))
     if contract_canceled:
-        EnterFulfilled
+        EnterFulfilled (next_event_td == situation_entrance_td)
     if (and ¬sent_delay_email usage_level_normal (paid ≥ (units $ 1))):
         Reset (next_event_td ≤ (infraction_time + 24h))
     if (and sent_delay_email usage_level_normal (paid ≥ (units $ 2))):
@@ -96,5 +96,5 @@ situation UnsettledInfraction:
         Reset (next_event_td ≤ (infraction_time + 48h))
     if (and sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ (units $ 3))):
         Reset (next_event_td ≤ (infraction_time + 48h))
-    ISP may SendCancelNoticeByEmail no_time_constraint
-    ISP may SendCancelNoticeByPost no_time_constraint
+    ISP may SendCancelNoticeByEmail
+    ISP may SendCancelNoticeByPost

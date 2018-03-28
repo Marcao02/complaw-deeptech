@@ -22,7 +22,7 @@ class ActionRule:
         self.role_id = role_id
         self.action_id = action_id
         self.entrance_enabled_guard = entrance_enabled_guard
-        self.time_constraint: Term
+        self.time_constraint: Optional[Term] = None
         self.where_clause: Optional[Term] = None
 
         self.arg_vars_bound_by_rule = args
@@ -133,7 +133,7 @@ class NextActionRule(ActionRule):
                  args: Optional[List[RuleBoundActionParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
         super().__init__(role_id, action_id, args, entrance_enabled_guard)
-        self.time_constraint : Term
+        self.time_constraint : Optional[Term]
         self.src_id = src_id
 
 class PartyNextActionRule(NextActionRule):

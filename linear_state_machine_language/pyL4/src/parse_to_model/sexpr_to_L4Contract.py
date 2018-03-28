@@ -650,8 +650,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 rv.append(it)
 
             if isinstance(rv[-1],IfElse):
-                print(rv[-1])
-                assert statement_expr == statement_exprs[-1], "(if Term Block else Block) can only appear as the last " \
+                # print(rv[-1])
+                assert statement_expr == statement_exprs[-1], "For now (not too much work to lift this), " \
+                                                              "(if Term Block else Block) can only appear as the last " \
                                                               "statement in a Block."
         return rv
 
@@ -777,6 +778,22 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return FnApp(x,[], parent_SExpr.coord() if parent_SExpr else None)
 
             if x in TIME_CONSTRAINT_KEYWORDS:
+                if x == "immediately":
+                    #  SExpr(['==', 'next_event_td',
+                    #                   SExpr(['+', "situation_entrance_td", "1" + timeunit], sexpr2.line,
+                    #                         sexpr2.col)], sexpr2.line, sexpr2.col)
+                    coord = parent_SExpr.coord()
+                    return FnApp('==', [
+                                FnApp('next_event_td',[],coord),
+                                FnApp('situation_entrance_td', [], coord)
+                                # FnApp('+', [
+                                #     FnApp('situation_entrance_td',[],coord),
+                                #     SimpleTimeDeltaLit(1, self.top.timeunit, coord)
+                                # ], coord)
+                            ], coord)
+                elif x == "no_time_constraint":
+                    return None
+                raise Exception
                 return DeadlineLit(x)
 
             if x in self.top.state_var_decs:
@@ -871,13 +888,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 assert False # this is just to get mypy to not complain about missing return statement
 
     def _mk_time_constraint(self, expr:SExprOrStr, src_situation:Optional[Situation], src_action:Optional[Action],
-                            parent_action_rule:Optional[ActionRule], parent_sexpr:SExpr) -> Term:
+                            parent_action_rule:Optional[ActionRule], parent_sexpr:SExpr) -> Optional[Term]:
         rv : Term
         # if expr in TIME_CONSTRAINT_KEYWORDS:
         #     return self._mk_term(expr, src_situation, src_action)
         # elif isinstance(expr,str):
         #     self.syntaxError(expr, f"Unrecognized token {expr} in time constraint keyword position.")
         if isinstance(expr,str):
+            if expr == "no_time_constraint":
+                return None
             rv = self._mk_term(expr, src_situation, src_action, parent_action_rule, parent_sexpr)
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
@@ -896,7 +915,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in situation {src_situation.situation_id}")
                 elif src_action:
                     self.syntaxError(expr, f"Unhandled time constraint predicate {expr} in action {src_action.action_id}")
-                raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
+
+                # raise Exception("Must have time constraint. You can use `immediately` or `no_time_constraint` or `discretionary`")
+                return None
+
         if not (isinstance(rv,FnApp) and rv.fnsymb_name in ["≤","<=","<"] and isinstance(rv.args[0],FnApp) and rv.args[0].fnsymb_name == "next_event_td"):   # type:ignore
             if not isinstance(rv,DeadlineLit):
                 if self.verbose:
@@ -1052,9 +1074,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             #     self.syntaxError(rem, "wtf is this? " + str(x))
 
         if not found_labeled_time_constraint:
-            # self.syntaxError(rem, "No 'when' expression")
-            ar.time_constraint = self._mk_time_constraint("no_time_constraint", src_situation, src_or_parent_act, ar, rem)
-            assert ar.time_constraint is not None, f"Currently a time constraint is needed in the S-Expr syntax, but it can be 'no_time_constraint'. See {str(rem)}"
+            assert ar.time_constraint is None
+            # ar.time_constraint = self._mk_time_constraint("no_time_constraint", src_situation, src_or_parent_act, ar, rem)
+            # assert ar.time_constraint is not None, f"Currently a time constraint is needed in the S-Expr syntax, but it can be 'no_time_constraint'. See {str(rem)}"
 
 
 
@@ -1085,10 +1107,10 @@ def maybe_as_postfix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     return None
 
 
-
 def eliminate_must(sexpr:SExpr, timeunit:str):
     def is_must(sexpr2:SExpr) -> bool:
         return len(sexpr2) >= 2 and sexpr2[1] == "must"
+
     def eliminate_must(sexpr2:SExpr) -> List[SExpr]:
         if len(sexpr2) < 3:
             return []

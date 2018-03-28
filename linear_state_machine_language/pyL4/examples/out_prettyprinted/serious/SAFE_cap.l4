@@ -24,36 +24,36 @@ state vars:
     writes≤1 dis_cashout : $
 
 situation InvestorInvests:
-    Company may CommitToChangeOfControl(?1, ?2, ?3, ?4, ?5) no_time_constraint
-    Company may CommitToDissolution no_time_constraint
-    Company may CommitToEquityFinancing no_time_constraint
-    Company may CommitToIPO(?1, ?2, ?3) no_time_constraint
+    Company may CommitToChangeOfControl(?1, ?2, ?3, ?4, ?5)
+    Company may CommitToDissolution
+    Company may CommitToEquityFinancing
+    Company may CommitToIPO(?1, ?2, ?3)
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may DeliverTransactionDocsWithPRA no_time_constraint
-        Company may DeliverTransactionDocsWithoutPRA no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may DeliverTransactionDocsWithPRA
+        Company may DeliverTransactionDocsWithoutPRA
 
 action DeliverTransactionDocsWithPRA()  transitions to AfterDeliverTransactionDocsWithPRA
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may IssueSAFEPreferredStock(?1, ?2) no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may IssueSAFEPreferredStock(?1, ?2)
 
 action DeliverTransactionDocsWithoutPRA()  transitions to AfterDeliverTransactionDocsWithoutPRA
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may SubmitProRataRightsAgreementForSigning no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may SubmitProRataRightsAgreementForSigning
 
 action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRataRightsAgreementForSigning
     following situation:
-        Arbiter may InterveneOnDelay_Investor no_time_constraint
-        Investor may SignPRA no_time_constraint
+        Arbiter may InterveneOnDelay_Investor
+        Investor may SignPRA
 
 action SignPRA()  transitions to AfterSignPRA
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may IssueSAFEPreferredStock(?1, ?2) no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may IssueSAFEPreferredStock(?1, ?2)
 
 action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
     transform:
@@ -62,8 +62,8 @@ action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_val
         conversion_price := (min cap_price' undiscounted_price_per_share_standard_preferred_stock')
         investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may DoEquityFinancing no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may DoEquityFinancing
 
 action DoEquityFinancing()  transitions to Fulfilled
 
@@ -97,25 +97,25 @@ action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_cap
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may TransferCommonStock no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCommonStock
 
 action ChooseStockPayment()  transitions to AfterChooseStockPayment
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may TransferCommonStock no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCommonStock
 
 action TransferCommonStock()  transitions to AfterTransferCommonStock:
     transform:
         investor_Common_Stocks := (investor_Common_Stocks + ((check $ (cash_currently_unconverted - liq_cashout)) round/ conversion_price))
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may DoLiquidityEvent no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may DoLiquidityEvent
 
 action ChooseCashPayment()  transitions to AfterChooseCashPayment
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may TransferCash_L(?1) no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCash_L(?1)
 
 action TransferCash_L(total_investments_of_cashout_investors: Pos$) transitions to AfterTransferCash_L:
     transform:
@@ -124,20 +124,20 @@ action TransferCash_L(total_investments_of_cashout_investors: Pos$) transitions 
         investor_cash := (investor_cash + liq_cashout')
     following situation:
         if (liq_cashout < cash_currently_unconverted):
-            Arbiter may InterveneOnDelay_Company no_time_constraint
+            Arbiter may InterveneOnDelay_Company
         if (liq_cashout == cash_currently_unconverted):
-            Arbiter may InterveneOnDelay_Company no_time_constraint
+            Arbiter may InterveneOnDelay_Company
         if (liq_cashout == cash_currently_unconverted):
-            Company may DoLiquidityEvent no_time_constraint
+            Company may DoLiquidityEvent
         if (liq_cashout < cash_currently_unconverted):
-            Company may TransferCommonStock no_time_constraint
+            Company may TransferCommonStock
 
 action DoLiquidityEvent()  transitions to Fulfilled
 
 action CommitToDissolution()  transitions to AfterCommitToDissolution
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments)
 
 action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: Fraction(0,1]) transitions to AfterTransferCash_D:
     transform:
@@ -145,13 +145,13 @@ action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_
         investor_cash := dis_cashout'
     following situation:
         if (dis_cashout < PURCHASE_AMOUNT):
-            Arbiter may InterveneOnDelay_Company no_time_constraint
+            Arbiter may InterveneOnDelay_Company
         if (dis_cashout == PURCHASE_AMOUNT):
-            Arbiter may InterveneOnDelay_Company no_time_constraint
+            Arbiter may InterveneOnDelay_Company
         if (dis_cashout == PURCHASE_AMOUNT):
-            Company may Dissolve no_time_constraint
+            Company may Dissolve
         if (dis_cashout < PURCHASE_AMOUNT):
-            Company may TransferAssets(?1, ?2) no_time_constraint
+            Company may TransferAssets(?1, ?2)
 
 action TransferAssets(liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterTransferAssets:
     transform:
@@ -160,7 +160,7 @@ action TransferAssets(liquidity_capitalization: PosShareCnt, company_valuation: 
         conversion_price := (min cap_price' undiscounted_price_per_share_standard_preferred_stock')
         investor_Common_Stocks := (investor_Common_Stocks + ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
     following situation:
-        Arbiter may InterveneOnDelay_Company no_time_constraint
-        Company may Dissolve no_time_constraint
+        Arbiter may InterveneOnDelay_Company
+        Company may Dissolve
 
 action Dissolve()  transitions to Fulfilled

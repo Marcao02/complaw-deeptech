@@ -50,8 +50,8 @@ def nextTSEvent(action_id:str,
                 params:Optional[Dict[str, Data]] = None,
                 eventType: Optional[EventType] = None) -> Event:
     global inc_timestamp
-    newevent = event(action_id, role_id, inc_timestamp, params, eventType)
     inc_timestamp = inc_timestamp + 1
+    newevent = event(action_id, role_id, inc_timestamp, params, eventType)
     return newevent
 
 def sameTSEvent(action_id:str,
@@ -182,7 +182,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             event('Pay','Client',21, {'x':1}),
             event('SendCancelNoticeByPost','ISP',50),
             event('SendCancelNoticeByEmail','ISP',50),
-            event('EnterFulfilled','Env',51)
+            event('EnterFulfilled','Env',50)
         ),
         FULFILLED_SITUATION_LABEL
     )),
@@ -194,7 +194,7 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
             event('Pay','Client',48, {'x':2}),
             event('SendCancelNoticeByPost','ISP',50),
             event('SendCancelNoticeByEmail','ISP',50),
-            event('EnterFulfilled','Env',51)
+            event('EnterFulfilled','Env',50)
         ),
         FULFILLED_SITUATION_LABEL
     )),

@@ -11,11 +11,11 @@ state vars:
 
 situation Ongoing:
     if (and (x > 1) (even x)):
-        DivideBy2
+        DivideBy2 (next_event_td == situation_entrance_td)
     if (or (x == 0) (x == 1)):
-        EnterFulfilled
+        EnterFulfilled (next_event_td == situation_entrance_td)
     if (and (x > 1) (odd x)):
-        TripplePlus1
+        TripplePlus1 (next_event_td == situation_entrance_td)
 
 action DivideBy2()  transitions to Ongoing:
     transform:

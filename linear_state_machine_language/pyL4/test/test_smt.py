@@ -1,4 +1,5 @@
 import test.test_parser
+from hard_correctness_checks.symbolic_execution.symbolic_execution import symbolic_execution
 from src.independent.util import nonempty
 from src.independent.util_for_str import strwbar
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse
@@ -94,6 +95,11 @@ def main(examples:Dict[str,L4Contract], verbose=True):
             prog = examples[examplekey]
             outfilepath = "examples/out_smt/" + prog.filename[:-2] + "z3"
             smt_test(prog, outfilepath, verbose=verbose)
+
+    # prog = examples['toy_and_teaching/monster_burger_program_only.l4']
+    # prog = examples['toy_and_teaching/test_local_vars.l4']
+    prog = examples['toy_and_teaching/test_symbolic_exec_halting.l4']
+    symbolic_execution(prog)
 
 def cli(sys_argv:List[str]):
     main(test.test_parser.main(keep=True, verbose=False), verbose=True)

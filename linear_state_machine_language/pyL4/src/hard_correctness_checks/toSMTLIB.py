@@ -29,6 +29,40 @@ from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequireme
 
 # class GeneratedSMTLibData:
 
+def term2smtterm(t: Term) -> SMTExpr:
+    if isinstance(t, FnApp):
+        if t.fnsymb_name in SMT_BUILDIN_FNS:
+            return fnapp(t.fnsymb_name, *(term2smtterm(arg) for arg in t.args))
+        elif t.fnsymb_name in INTERP_AS_2PROJECTION:
+            assert isinstance(t.args[0], SortLit)
+            return term2smtterm(t.args[1])
+        elif t.fnsymb_name in FN_NAME_SUBST:
+            return fnapp(FN_NAME_SUBST[t.fnsymb_name], *(term2smtterm(arg) for arg in t.args))
+        elif t.fnsymb_name in ENV_VAR_SUBST:
+            return t.fnsymb_name
+        else:
+            assert t.fnsymb_name in MACRO_DEFINED_FNS, t.fnsymb_name + " unhandled"
+            return cast(SMTExpr, MACRO_DEFINED_FNS[t.fnsymb_name](*(term2smtterm(arg) for arg in t.args)))
+
+    elif isinstance(t, BoundVar):
+        assert not isinstance(t, LocalVarDec)
+        if isprimed(t.name):
+            return to_smt_primed_token(unprimed(t.name))
+        elif isinstance(t, ActionBoundActionParam):
+            return rename_with_action_scope(t.name, t.action.action_id)
+        else:
+            return t.name
+    elif isinstance(t, Literal):
+        if isinstance(t, SimpleTimeDeltaLit):
+            return t.num
+        elif isinstance(t, BoolLit):
+            return str(t.lit).lower()
+        else:
+            assert isinstance(t.lit, (str, int, float)), t
+            return cast(SMTExpr, t.lit)
+    else:
+        raise NotImplementedError(f"term2smtterm({str(t)}), arg type {type(t)}, {isinstance(t, Literal)}")
+
 
 def statevar_initialisations_ok(prog:L4Contract) -> List[SMTCommand_]:
     """This is basically ToSMTLib.term2smtlibdef"""

@@ -7,7 +7,7 @@ state vars:
 
 situation AssignmentOut:
     Breach_Student (next_event_td == (11 + 1d))
-    Student may Submit no_time_constraint
+    Student may Submit
 
 action Accept()  transitions to Fulfilled
 
@@ -20,9 +20,9 @@ action Submit()  transitions to AfterSubmit
 action Reject()  transitions to AfterReject
     following situation:
         Breach_Student (next_event_dt > 27)
-        Student may Resubmit no_time_constraint
+        Student may Resubmit
 
 action Resubmit()  transitions to AfterResubmit
     following situation:
         Breach_Grader (next_event_td == (7 + 1d))
-        Grader may Accept no_time_constraint
+        Grader may Accept

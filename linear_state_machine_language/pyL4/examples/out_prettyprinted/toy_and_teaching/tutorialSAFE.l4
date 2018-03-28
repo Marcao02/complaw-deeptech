@@ -25,22 +25,22 @@ state vars:
     investor_percent_of_cashout_investor_investments : Fraction[0,1)
 
 situation InvestorInvests:
-    Company may CommitToEquityFinancing no_time_constraint
-    Company may CommitToIPO(?1) no_time_constraint
+    Company may CommitToEquityFinancing
+    Company may CommitToIPO(?1)
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
-        Company may SendEquityFinancingTransactionDocsWithPRRAForSigning no_time_constraint
+        Company may SendEquityFinancingTransactionDocsWithPRRAForSigning
         Breach_Company (next_event_td == (14d + 1d))
 
 action SendEquityFinancingTransactionDocsWithPRRAForSigning()  transitions to AfterSendEquityFinancingTransactionDocsWithPRRAForSigning
     following situation:
         Breach_Investor (next_event_td == (14d + 1d))
-        Investor may ExecuteAndDeliverTransactionDocs no_time_constraint
+        Investor may ExecuteAndDeliverTransactionDocs
 
 action ExecuteAndDeliverTransactionDocs()  transitions to AfterExecuteAndDeliverTransactionDocs
     following situation:
-        Company may IssueSAFEPreferredStock(?1, ?2) no_time_constraint
+        Company may IssueSAFEPreferredStock(?1, ?2)
         Breach_Company (next_event_td == (14d + 1d))
 
 action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
@@ -51,7 +51,7 @@ action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_val
         conversion_price := (min cap_price' discount_price')
         investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))
     following situation:
-        Company may DoEquityFinancing no_time_constraint
+        Company may DoEquityFinancing
         Breach_Company (next_event_td == (1d + 1d))
 
 action DoEquityFinancing()  transitions to Fulfilled
@@ -70,24 +70,24 @@ action CommitToIPO(liquidity_capitalization: PosShareCnt) transitions to AfterCo
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:
-        Company may TransferCommonStock no_time_constraint
+        Company may TransferCommonStock
         Breach_Company (next_event_td == (14d + 1d))
 
 action ChooseStockPayment()  transitions to AfterChooseStockPayment
     following situation:
-        Company may TransferCommonStock no_time_constraint
+        Company may TransferCommonStock
         Breach_Company (next_event_td == (14d + 1d))
 
 action TransferCommonStock()  transitions to AfterTransferCommonStock:
     transform:
         investor_Common_Stocks := (investor_Common_Stocks + ((check $ (cash_currently_unconverted - liq_cashout)) round/ cap_price))
     following situation:
-        Company may DoLiquidityEvent no_time_constraint
+        Company may DoLiquidityEvent
         Breach_Company (next_event_td == (14d + 1d))
 
 action ChooseCashPayment()  transitions to AfterChooseCashPayment
     following situation:
-        Company may TransferCash_L(?1) no_time_constraint
+        Company may TransferCash_L(?1)
         Breach_Company (next_event_td == (14d + 1d))
 
 action TransferCash_L(company_cash_at_liquidity_event: Pos$) transitions to AfterTransferCash_L:
@@ -96,9 +96,9 @@ action TransferCash_L(company_cash_at_liquidity_event: Pos$) transitions to Afte
         investor_cash := (investor_cash + liq_cashout')
     following situation:
         if (liq_cashout == cash_currently_unconverted):
-            Company may DoLiquidityEvent no_time_constraint
+            Company may DoLiquidityEvent
         if (liq_cashout < cash_currently_unconverted):
-            Company may TransferCommonStock no_time_constraint
+            Company may TransferCommonStock
         if (liq_cashout < cash_currently_unconverted):
             Breach_Company (next_event_td == (14d + 1d))
         if (liq_cashout == cash_currently_unconverted):

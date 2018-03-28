@@ -4,6 +4,7 @@ EXAMPLES_SEXPR_ROOT = "./examples/src_sexpr/"
 EXAMPLES_UNPARSED_ROOT = "./examples/out_prettyprinted/"
 
 EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
+    'toy_and_teaching/test_symbolic_exec_halting.l4',
     'toy_and_teaching/test_local_vars.l4',
     'toy_and_teaching/minimal_future-actions.l4',
     'toy_and_teaching/minimal_future-actions2.l4',
@@ -31,5 +32,5 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
 
     'toy_and_teaching/tutorialSAFE.l4'
 ]
-EXAMPLES_FULL_SIZE = 22
+EXAMPLES_FULL_SIZE = 23
 # EXAMPLES_FULL_SIZE = 1

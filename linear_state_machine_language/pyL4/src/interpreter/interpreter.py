@@ -477,10 +477,15 @@ class ExecEnv:
         else:
             return litterm.lit
 
-    def evalTimeConstraint(self, time_constraint:Term) -> bool:
-        assert time_constraint is not None
-        rv = chcast(bool, self.evalTerm(time_constraint))
-        return rv
+    def evalTimeConstraint(self, time_constraint:Optional[Term]) -> bool:
+        # print(f"evalTimeConstraint({time_constraint})",
+        #       "cur event td", self.cur_event_delta(),
+        #       "next event td", self.evalFnApp(FnApp("next_event_td",[],None)),
+        #       "sit entrance td", self.evalFnApp(FnApp("situation_entrance_td", [], None)))
+        if time_constraint is None:
+            return True
+        else:
+            return chcast(bool, self.evalTerm(time_constraint))
 
     def evalFnApp(self,
                   fnapp:FnApp) -> Any:

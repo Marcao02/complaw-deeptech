@@ -9,13 +9,13 @@ state vars:
 
 situation Ongoing:
     if (n == 5):
-        EnterFulfilled
+        EnterFulfilled (next_event_td == situation_entrance_td)
     if (nonempty I_must_Catch_by):
         I quasi-responsibility Catch(?0) (tdGEQ I_must_Catch_by ?0 next_event_td) where (mapHas I_must_Catch_by ?0)
     if (n < 5):
-        I may Stand immediately
+        I may Stand (next_event_td == situation_entrance_td)
     if (n < 5):
-        I may Throw immediately
+        I may Throw (next_event_td == situation_entrance_td)
 
 action Throw()  transitions to Ongoing:
     transform:

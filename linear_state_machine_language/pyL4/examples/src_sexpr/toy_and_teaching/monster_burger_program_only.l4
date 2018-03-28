@@ -7,6 +7,7 @@
 
 (SortDefinitions
 	($ := (Dimensioned NonnegReal "$"))
+	(Pos$ := (Dimensioned PosReal "$"))
 )
 
 (StateVars
@@ -16,11 +17,11 @@
 )
 
 (ContractParams
-	(MB_PRICE                     : $    = 50)
-	(TIME_TO_EAT_BURGER           : TimeDelta = 1h)
-	(MAX_SERVE_DELAY              : TimeDelta = 20m)
-	(MAX_CLAIM_VERIFICATION_DELAY : TimeDelta = 10m)
-	(MAX_REFUND_DELAY             : TimeDelta = 10m)
+	(MB_PRICE                     : Pos$    = 50)
+	(TIME_TO_EAT_BURGER           : PosTimeDelta = 1h)
+	(MAX_SERVE_DELAY              : PosTimeDelta = 20m)
+	(MAX_CLAIM_VERIFICATION_DELAY : PosTimeDelta = 10m)
+	(MAX_REFUND_DELAY             : PosTimeDelta = 10m)
 )
 
 (ProseContract
@@ -92,7 +93,9 @@
 
         (Next
             (timeConstraintsPartitionFuture ; LANG note: `timeConstraintsPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
-	            (Challenger may (AnnounceMBFinished) (when next_event_td < challenge_endlimit_timestamp))
+	            (Challenger may (AnnounceMBFinished) (when
+	            	and (situation_entrance_td < next_event_td)
+	            		(next_event_td < challenge_endlimit_timestamp)))
 	            ;(Restaurant should (CheckCompletionClaim) (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
 	            (Restaurant may (CheckCompletionClaim) (when (challenge_endlimit_timestamp ≤ next_event_td) and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + situation_entrance_td))))
 	            (TimeToCheckCompletionExpires (when next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
@@ -108,7 +111,7 @@
 			(0 ≤ visits ≤ nonconstant)
 			(Next
 	            (timeConstraintsPartitionFuture
-		            (Restaurant may (CheckCompletionClaim) (when next_event_td ≤ (situation_entrance_td + MAX_CLAIM_VERIFICATION_DELAY)))
+		            (Restaurant may (CheckCompletionClaim) (when next_event_td < (situation_entrance_td + MAX_CLAIM_VERIFICATION_DELAY)))
 		            (TimeToCheckCompletionExpires (when next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + situation_entrance_td)))
 	            )
 	        )

@@ -36,6 +36,7 @@ SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
     "Fraction[0,1]":"Real",
     "PosReal":"Real",
     "TimeDelta":"Real",
+    "PosTimeDelta":"Real",
 
     "ShareCnt": "Int",
     "PosShareCnt": "Int",
@@ -64,7 +65,9 @@ SORT_TO_PRED : Dict[str,Callable[[str], SMTExpr]]= {
 
 ENV_VAR_SUBST : Dict[str,str] = {
     "event_td":"event_td",
-    "event_role":"event_role"
+    "event_role":"event_role",
+    "next_event_td":"next_event_td",
+    "situation_entrance_td":"situation_entrance_td"
 }
 
 FN_NAME_SUBST : Dict[str,str] = {

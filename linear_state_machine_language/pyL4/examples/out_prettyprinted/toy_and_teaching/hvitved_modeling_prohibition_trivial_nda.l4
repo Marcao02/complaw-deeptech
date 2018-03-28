@@ -6,6 +6,6 @@ roles: Env, Arbiter, Employee, Employer
 state vars:
 
 situation Employed:
-    Employee may Disclose no_time_constraint
+    Employee may Disclose
 
 action Disclose()  transitions to Breached_Employee

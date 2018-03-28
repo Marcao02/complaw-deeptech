@@ -17,7 +17,7 @@ state vars:
 
 situation Start:
     Breach_Landlord (next_event_td == (situation_entrance_td + 1d))
-    Landlord may EnsureApartmentReady immediately
+    Landlord may EnsureApartmentReady (next_event_td == situation_entrance_td)
 
 action RequestTerminationFromMonthStarted()  transitions to MonthStarted:
     transform:
@@ -34,7 +34,7 @@ action RequestTerminationFromMonthEnded()  transitions to MonthEnded:
 action EnsureApartmentReady()  transitions to AfterEnsureApartmentReady
 
 situation AfterEnsureApartmentReady:
-    StartLeaseTerm
+    StartLeaseTerm (next_event_td == situation_entrance_td)
 
 action StartLeaseTerm()  transitions to MonthStarted:
     transform:
@@ -65,7 +65,7 @@ action EnterMonthEnded()  transitions to MonthEnded
     following situation:
         pre: (situation_entrance_td ≤ lease_term_end)
         if (lease_term_end ≤ (situation_entrance_td + 1d)):
-            EnterLeaseTermEnded
+            EnterLeaseTermEnded (next_event_td == situation_entrance_td)
         if (lease_term_end > (situation_entrance_td + 1d)):
             EnterMonthStarted (next_event_td == (situation_entrance_td + 1d))
         if ¬lease_terminated:
@@ -78,8 +78,8 @@ action EnterLeaseTermEnded()  transitions to LeaseTermEnded
         if lease_terminated:
             Breach_Tenant (next_event_td == (situation_entrance_td + 1d))
         if ¬lease_terminated:
-            StartLeaseTerm
+            StartLeaseTerm (next_event_td == situation_entrance_td)
         if lease_terminated:
-            Tenant may MoveOut immediately
+            Tenant may MoveOut (next_event_td == situation_entrance_td)
 
 action MoveOut()  transitions to Fulfilled

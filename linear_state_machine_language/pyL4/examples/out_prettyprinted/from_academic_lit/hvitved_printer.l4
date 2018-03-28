@@ -18,13 +18,13 @@ claims:
 
 situation Awaiting_Delivery:
     Breach_Seller (next_event_td == (DELIVERY_DEADLINE + 1d))
-    Seller may Deliver no_time_constraint
+    Seller may Deliver
 
 action Deliver()  transitions to AfterDeliver:
     transform:
         delivery_td := event_td
     following situation:
-        Buyer may Pay1stInstallment immediately
+        Buyer may Pay1stInstallment (next_event_td == situation_entrance_td)
         Breach_Buyer (next_event_td == (situation_entrance_td + 1d))
 
 action Pay1stInstallment()  transitions to AfterPay1stInstallment:
@@ -38,7 +38,7 @@ action Pay1stInstallment()  transitions to AfterPay1stInstallment:
 
 action EnterLate2ndInstallment()  transitions to Late2ndInstallment
     following situation:
-        Buyer may PayLateFee no_time_constraint
+        Buyer may PayLateFee
         Breach_Buyer (next_event_td == ((44d + delivery_td) + 1d))
 
 action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
@@ -52,7 +52,7 @@ action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following situation:
         Breach_Seller (next_event_td == ((7d + situation_entrance_td) + 1d))
-        Seller may DeliverRefund no_time_constraint
+        Seller may DeliverRefund
 
 action PayLateFee()  transitions to Fulfilled:
     transform:

@@ -7,12 +7,12 @@ state vars:
     n : Nat := 3
 
 situation Ongoing:
-    DoIt
+    DoIt (next_event_td == situation_entrance_td)
 
 action DoIt()  transitions to AfterDoIt:
     transform:
     following situation:
-        FinishIt(((n * n) * (n * n)))
+        FinishIt(((n * n) * (n * n))) (next_event_td == situation_entrance_td)
 
 action FinishIt(z: Nat) transitions to Fulfilled:
     transform:
