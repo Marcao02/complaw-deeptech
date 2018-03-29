@@ -98,10 +98,15 @@ def main(examples:Dict[str,L4Contract], verbose=True):
 
     # prog = examples['toy_and_teaching/monster_burger_program_only.l4']
     # prog = examples['toy_and_teaching/test_local_vars.l4']
-    # prog = examples['toy_and_teaching/test_symbolic_exec_halting_easiest.l4']
-    prog = examples['toy_and_teaching/test_symbolic_exec_halting.l4']
-    # prog = examples['toy_and_teaching/test_symbolic_exec_ifelse_halting_split.l4']
-    symbolic_execution(prog)
+    se_tests = [
+        examples['toy_and_teaching/test_symbolic_exec_halting_easiest.l4'],
+        examples['toy_and_teaching/test_symbolic_exec_halting.l4'],
+        examples['toy_and_teaching/test_symbolic_exec_ifelse_halting_split.l4'],
+        examples['toy_and_teaching/test_symbolic_exec_ifelse_halting.l4'],
+        examples['toy_and_teaching/test_symbolic_exec_halting_harder.l4']
+    ]
+    for prog in se_tests:
+        symbolic_execution(prog)
 
 def cli(sys_argv:List[str]):
     main(test.test_parser.main(keep=True, verbose=False), verbose=True)

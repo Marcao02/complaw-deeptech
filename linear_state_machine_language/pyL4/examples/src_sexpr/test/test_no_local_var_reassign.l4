@@ -1,0 +1,22 @@
+; No `Roles` declaration means only the always-present Env role, equivalent to:
+; (Roles)
+; This is the default:
+; (TimeUnit d)
+
+(FormalContract "test no local var reassign"
+	(StartSituation Ongoing)
+
+	(Situation Ongoing
+		(Next
+			(DoIt immediately)
+		)
+	)
+
+	(Action DoIt
+		(StateTransform
+			(local x : Nat = (n * n))
+			(x := 3)
+		)
+		(TransitionsTo Fulfilled)
+	)
+)

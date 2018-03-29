@@ -1,0 +1,38 @@
+(ContractParams
+	(START : Int)
+)
+
+(StateVars
+	(n : Int = START)
+)
+
+(FormalContract "test symbolic exec halting"
+	(StartSituation Ongoing)
+
+	(Situation Ongoing
+		(Next
+			(DoIt immediately)
+		)
+	)
+
+	(Action DoIt
+		(StateTransform
+			(if (even n) (
+				(n' = (n - 1))
+			) else (
+				(n' = (n + 3))
+			))
+
+		)
+		(FollowingSituation
+			(if (n < (START + 100))
+				(DoIt immediately)
+			)
+			(if (n ≥ (START + 100))
+				(Done immediately)
+			)
+		)
+	)
+
+	(Action Done (TransitionsTo Fulfilled) )
+)

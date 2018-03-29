@@ -41,6 +41,7 @@ SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
     "ShareCnt": "Int",
     "PosShareCnt": "Int",
     "Nat": "Int",
+    "Int": "Int",
 
     "Bool": "Bool",
 

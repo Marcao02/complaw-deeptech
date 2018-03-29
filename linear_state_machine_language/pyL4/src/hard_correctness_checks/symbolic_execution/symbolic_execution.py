@@ -1,6 +1,6 @@
 from model.StateVarDec import StateVarDec
 
-TRACE = True
+TRACE = False
 
 from datetime import timedelta
 from enum import Enum
@@ -127,16 +127,13 @@ class SEvalRVBug(NamedTuple):
 class SEvalRVInconsistent(NamedTuple):
     msg: str
 
-class SEvalRVPassedControlToChooser(NamedTuple):
+class SEvalRVStopThread(NamedTuple):
     msg: str
 
 class SEvalRVTimeout(NamedTuple):
     msg: str
 
-class SEvalRVStopThread(NamedTuple):
-    msg: str
-
-SEvalRV = Union[SEvalRVChange, SEvalRVBug, SEvalRVInconsistent, SEvalRVPassedControlToChooser, SEvalRVTimeout, SEvalRVStopThread]
+SEvalRV = Union[SEvalRVChange, SEvalRVBug, SEvalRVInconsistent, SEvalRVStopThread, SEvalRVTimeout]
 
 pathconstr:Z3Term
 state:Store
@@ -186,11 +183,11 @@ def symbolic_execution(prog:L4Contract):
                     return envvar_store[term]
                 elif term in state:
                     assert not isprimed(term), "Seem to have acidentally added a primed var to state."
-                    print(f"in helper({term}) in term2z3({topterm}), looking at state[{term}]:", state[term])
+                    # print(f"in helper({term}) in term2z3({topterm}), looking at state[{term}]:", state[term])
                     return state[term]
                 elif next_state and isprimed(term) and unprimed(term) in next_state:
                     assert not term in next_state, "Seem to have acidentally added a primed var to next_state."
-                    print(f"in helper({term}) in term2z3({topterm}), looking at next_state[{unprimed(term)}]:", next_state[unprimed(term)])
+                    # print(f"in helper({term}) in term2z3({topterm}), looking at next_state[{unprimed(term)}]:", next_state[unprimed(term)])
                     # print("next_state[halt]:", next_state['halt'])
                     return next_state[unprimed(term)]
                 elif actparam_store and term in actparam_store:
@@ -210,33 +207,19 @@ def symbolic_execution(prog:L4Contract):
                 #
                 # return z3.parse_smt2_string(smttermstr)
                 args = [helper(x) for x in term.args]
-                if term.fnsymb_name == "<":
-                    return args[0] < args[1]
-                if term.fnsymb_name == ">":
-                    return args[0] > args[1]
-                if term.fnsymb_name == "≥":
-                    return args[0] >= args[1]
-                if term.fnsymb_name == "≤":
-                    return args[0] <= args[1]
-                if term.fnsymb_name == "+":
-                    # print("z3 +...", type(args[0]), type(args[1]))
-                    attempt = args[0] + args[1]
-                    # print(attempt)
-                    # if str(attempt) == "START + 1":
-                    #     raise Exception
-                    return attempt
-                if term.fnsymb_name == "even":
-                    return ((args[0] % 2) == 0)
-                if term.fnsymb_name == "*":
-                    return args[0] * args[1]
+                if term.fnsymb_name == "<":  return args[0] < args[1]
+                if term.fnsymb_name == ">":  return args[0] > args[1]
+                if term.fnsymb_name == "≥":  return args[0] >= args[1]
+                if term.fnsymb_name == "≤":  return args[0] <= args[1]
+                if term.fnsymb_name == "+":  return args[0] + args[1]
+                if term.fnsymb_name == "-":  return args[0] - args[1]
+                if term.fnsymb_name == "*":  return args[0] * args[1]
+                if term.fnsymb_name == "==": return args[0] == args[1]
+                if term.fnsymb_name == "not": return z3.Not(args[0])
+                if term.fnsymb_name == "and": return z3.And(args[0], args[1])
+                if term.fnsymb_name == "even":  return ((args[0] % 2) == 0)
                 if term.fnsymb_name in {"last_event_td","next_event_td","last_situation_td"}:
                     return helper(term.fnsymb_name)
-                if term.fnsymb_name == "==":
-                    return args[0] == args[1]
-                if term.fnsymb_name == "not":
-                    return z3.Not(args[0])
-                if term.fnsymb_name == "and":
-                    return z3.And(args[0], args[1])
                 raise NotImplementedError(f"Unhandled {term.fnsymb_name}")
             elif isinstance(term,bool):
                 return z3.BoolVal(term)
@@ -253,7 +236,7 @@ def symbolic_execution(prog:L4Contract):
 
         rv : Z3Term = helper(topterm)
         assert rv is not None, topterm
-        print(f"tern2z3({topterm}) == {rv}. type of input ", type(topterm))
+        # print(f"tern2z3({topterm}) == {rv}. type of input ", type(topterm))
         return rv
 
 
@@ -284,16 +267,15 @@ def symbolic_execution(prog:L4Contract):
                 elif isinstance(res, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout, SEvalRVStopThread)):
                     return res
                 else:
-                    # return res
-                    # pass
-                    raise Exception("temporary")
+                    raise NotImplementedError
 
         if a.following_anon_situation:
             assert isinstance(state, LedgerDict), type(state)
             return sevalSituation(a.following_anon_situation, CoreSymbExecState(pathconstr,state,t+1,envvars) )
         elif a.dest_situation_id == FULFILLED_SITUATION_LABEL:
-            print("fulfilled")
-            return SEvalRVPassedControlToChooser("trans to Fulfilled from sevalAction")
+            if TRACE:
+                print("fulfilled")
+            return SEvalRVStopThread("trans to Fulfilled from sevalAction")
         else:
             return sevalSituation(prog.situation(a.dest_situation_id), CoreSymbExecState(pathconstr,state,t+1,envvars) )
 
@@ -314,22 +296,15 @@ def symbolic_execution(prog:L4Contract):
                     # print(state)
                     if v not in next_state:
                         next_state = next_state.set(v, state[v])
-            # print("here?")
             return SEvalRVChange(next_state=next_state,path_constraint=pathconstr)
         else:
             rv1 = sevalStatement(block[0], next_state, a, actparam_store, core)
-            if isinstance(rv1, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout)):
-                return rv1
-            elif isinstance(rv1,SEvalRVStopThread):
+            if isinstance(rv1, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout, SEvalRVStopThread)):
                 return rv1
             elif isinstance(rv1, SEvalRVChange):
                 return sevalBlock(block[1:], rv1.next_state,a, actparam_store, CoreSymbExecState(rv1.path_constraint, state, t, envvars ))
-            elif isinstance(rv1, SEvalRVPassedControlToChooser):
-                return rv1
             else:
                 raise Exception(rv1)
-            # else:
-            #     return rv1
 
     def sevalStatement(stmt: Statement,
                        next_state:Store,
@@ -342,9 +317,7 @@ def symbolic_execution(prog:L4Contract):
             print(f"sevalStatement({stmt},{state},{next_state},...,{t})")
         if isinstance(stmt, StateVarAssign):
             z3term = term2z3(stmt.value_expr, next_state, actparam_store, core)
-            # print("z3term", z3term)
             next_state = next_state.set(stmt.varname, z3term)
-            # print("here?")
 
             return SEvalRVChange(next_state, pathconstr)
 
@@ -359,7 +332,7 @@ def symbolic_execution(prog:L4Contract):
                 GuardedBlockPath(stmt.false_branch, next_state, a, actparam_store,
                                  CoreSymbExecState(z3and(z3not(test), pathconstr), state, t, envvars)) )
 
-            return SEvalRVPassedControlToChooser("from sevalStatement")
+            return SEvalRVStopThread("from sevalStatement")
 
         elif isinstance(stmt, FVRequirement):
             raise NotImplementedError
@@ -402,7 +375,7 @@ def symbolic_execution(prog:L4Contract):
                 if isinstance(res,SEvalRVBug):
                     return res
 
-        return SEvalRVPassedControlToChooser("from sevalSituation")
+        return SEvalRVStopThread("from sevalSituation")
 
     def sevalRuleIgnoreGuard(rule:NextActionRule, core:CoreSymbExecState) -> SEvalRV:
         pathconstr, state, t, envvars = core
@@ -430,7 +403,7 @@ def symbolic_execution(prog:L4Contract):
             addQueryPath( ActionRuleParamsConstraintPath(
                 rule, actparam_store, CoreSymbExecState( z3and(tc, wc, pathconstr), state, t, envvars)
             ))
-            return SEvalRVPassedControlToChooser("from sevalRuleIgnoreGuard")
+            return SEvalRVStopThread("from sevalRuleIgnoreGuard")
 
 
     def sevalRuleIgnoreGuardAndParamConstraints(
@@ -449,17 +422,13 @@ def symbolic_execution(prog:L4Contract):
         return rv
 
     def query(qp:QueryPath) -> SEvalRV:
-        # print(f"query({qp})")
-
         if isinstance(qp, GuardedBlockPath):
             qp = cast(GuardedBlockPath,qp)
             checkres = check(qp.core.path_constraint)
-            print(f"check({qp.core.path_constraint})\nis {checkres}")
+            # print(f"check({qp.core.path_constraint})\nis {checkres}")
             if checkres == z3.sat:
                 res = sevalBlock(qp.block, qp.next_state, qp.action, qp.action_params, qp.core)
                 if isinstance(res, SEvalRVChange):
-                    print("qp.next_state", qp.next_state)
-                    print("res.next_state", res.next_state)
                     # the following is only sound under the constraint that IfElse Statements only occur as the last
                     # Statement in a Block.
                     return sevalAction(qp.action, qp.action_params, True,
@@ -494,7 +463,8 @@ def symbolic_execution(prog:L4Contract):
             raise NotImplementedError(qp)
 
         if checkres == z3.unknown:
-            print(f"UNKNOWN: {qp}")
+            if TRACE:
+                print(f"UNKNOWN: {qp}")
             addTimeoutQueryPath(qp)
             raise NotImplementedError("don't want to be dealing with timeouts till working with easy examples")
 

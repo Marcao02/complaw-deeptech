@@ -1,0 +1,39 @@
+
+(StateVars
+	(halt : Bool = false)
+)
+
+(FormalContract "test symbolic exec halting"
+	(StartSituation Ongoing)
+
+	(Situation Ongoing
+		(Next
+			(DoIt immediately)
+		)
+	)
+
+	(Action DoIt
+		(StateTransform
+			(if false (
+				(halt' = true)
+			) else (
+				(halt' = true)
+			))
+		)
+		(TransitionsTo AfterDoIt)
+	)
+
+	(Situation AfterDoIt
+		(if (not halt)
+			(DoIt immediately)
+		)
+		(if halt
+			(Done immediately)
+		)
+	)
+
+	(Action Done
+		(TransitionsTo Fulfilled)
+	)
+
+)

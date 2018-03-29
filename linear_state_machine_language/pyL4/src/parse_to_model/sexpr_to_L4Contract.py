@@ -68,7 +68,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         self._building_situation_id : Optional[SituationId] = None
         self._building_action_id: Optional[ActionId] = None
-        self._building_action_rule: bool = False
+        self._building_next_action_rule: bool = False
+        self._building_future_action_rule: bool = False
 
         self.flags = flags
 
@@ -284,9 +285,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return SortLit(x[1])
 
     def _mk_contract_param(self, expr:SExpr) -> ContractParamDec:
-        self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : sort := term)" )
+        # self.assertOrSyntaxError( len(expr) == 5, expr, "Contract parameter dec should have form (name : sort := term)" )
         sort = self._mk_sort(expr[2])
-        return ContractParamDec(expr[0], sort, self._mk_term(expr[4], None, None, None, expr))
+        if len(expr) == 5:
+            return ContractParamDec(expr[0], sort, self._mk_term(expr[4], None, None, None, expr))
+        else:
+            return ContractParamDec(expr[0], sort, None)
 
     # def _handle_ifflag(self, x:SExprOrStr) -> Optional[SExprOrStr]:
     #     assert len(x) == 3 or len(x) == 5
@@ -767,7 +771,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             # if isprimed(x):
             if x in EXEC_ENV_VARIABLES:
                 if x == "next_event_td":
-                    self.assertOrSyntaxError(self._building_action_rule, parent_SExpr, "Can't use next_event_td when not in the scope of an action rule.")
+                    self.assertOrSyntaxError(self._building_next_action_rule, parent_SExpr, "Can't use next_event_td when not in the scope of an action rule.")
 
                 # elif x == "last_event_td":
                 #     self.assertOrSyntaxError(self._building_action_id is not None, parent_SExpr, "Can't use last_event_td when not in the scope of an action.")
@@ -801,6 +805,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return StateVar(self.top.state_var_decs[cast(StateVarId, x)], parent_SExpr.coord() if parent_SExpr else None)
 
             if isprimed(x):
+                if not self._building_future_action_rule:
+                    self.assertOrSyntaxError(self._building_situation_id is None and not self._building_next_action_rule,
+                                             parent_SExpr,
+                                             f"Can't use primed variables outside of a StateTransform or Future section.")# {self._building_situation_id} {self._building_next_action_rule}")
                 self.assertOrSyntaxError(unprimed(x) in self.top.state_var_decs, parent_SExpr, f"Primed variable {x} does not appear to be a state variable.")
                 return PrimedStateVar(self.top.state_var_decs[unprimed(x)], parent_SExpr.coord() if parent_SExpr else None)
 
@@ -929,6 +937,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> PartyFutureActionRule:
+        self._building_future_action_rule = True
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self._mk_term(expr[1], None, src_action)
@@ -962,11 +971,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self._handle_optional_action_rule_parts(rem, rv, None, src_action)
 
         src_action.add_action_rule(rv)
+        self._building_future_action_rule = False
         return rv
 
 
     def _mk_next_action_rule(self, expr:SExpr, src_situation:Situation, parent_action:Optional[Action]) -> None:
-        self._building_action_rule = True
+        self._building_next_action_rule = True
         entrance_enabled_guard: Optional[Term] = None
         if expr[0] == 'if':
             entrance_enabled_guard = self._mk_term(expr[1], src_situation, parent_action, None, expr)
@@ -1036,7 +1046,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         assert not nar.fixed_args or not nar.where_clause
         src_situation.add_action_rule(nar)
-        self._building_action_rule = False
+        self._building_next_action_rule = False
 
     def _handle_optional_action_rule_parts(self, rem:SExpr, ar:ActionRule, src_situation:Optional[Situation], src_or_parent_act: Optional[Action]):
         found_labeled_time_constraint = False
