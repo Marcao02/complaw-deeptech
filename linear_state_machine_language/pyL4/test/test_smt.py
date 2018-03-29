@@ -98,8 +98,8 @@ def main(examples:Dict[str,L4Contract], verbose=True):
 
     # prog = examples['toy_and_teaching/monster_burger_program_only.l4']
     # prog = examples['toy_and_teaching/test_local_vars.l4']
-    prog = examples['toy_and_teaching/test_symbolic_exec_halting_easiest.l4']
-    # prog = examples['toy_and_teaching/test_symbolic_exec_halting.l4']
+    # prog = examples['toy_and_teaching/test_symbolic_exec_halting_easiest.l4']
+    prog = examples['toy_and_teaching/test_symbolic_exec_halting.l4']
     # prog = examples['toy_and_teaching/test_symbolic_exec_ifelse_halting_split.l4']
     symbolic_execution(prog)
 
