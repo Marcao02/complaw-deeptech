@@ -97,12 +97,6 @@ def eliminate_ifthenelse(p:L4Contract):
 
         return cast(Block, [snew]) + eliminate_ifthenelse_block(rest)
 
-    def eliminate_ifthenelse_term(term:Term) -> Term:
-        if isinstance(term, FnApp):
-            return FnApp(term.fnsymb_name, [eliminate_ifthenelse_term(x) for x in term.args], term.coord)
-        else:
-            return term
-
     for act in p.actions_iter():
         if act.state_transform:
             # but how do I know a change has been made..? can't rely on immutability since Statement and Term aren't immutable.

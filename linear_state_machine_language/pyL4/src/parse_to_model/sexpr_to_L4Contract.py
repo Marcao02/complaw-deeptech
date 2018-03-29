@@ -761,6 +761,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                  parent_action_rule : Optional[ActionRule] = None,
                  parent_SExpr : Optional[SExpr] = None ) -> Term:
         assert parent_SExpr is not None, x # todo clean this up
+        assert x != "no_time_constraint"
 
         if isinstance(x,str):
             # if isprimed(x):
@@ -791,10 +792,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                                 #     SimpleTimeDeltaLit(1, self.top.timeunit, coord)
                                 # ], coord)
                             ], coord)
-                elif x == "no_time_constraint":
-                    return None
+                # elif x == "no_time_constraint":
+                #     return None
                 raise Exception
-                return DeadlineLit(x)
+                # return DeadlineLit(x)
 
             if x in self.top.state_var_decs:
                 return StateVar(self.top.state_var_decs[cast(StateVarId, x)], parent_SExpr.coord() if parent_SExpr else None)
