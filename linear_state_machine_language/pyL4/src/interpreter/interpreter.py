@@ -481,7 +481,7 @@ class ExecEnv:
         # print(f"evalTimeConstraint({time_constraint})",
         #       "cur event td", self.cur_event_delta(),
         #       "next event td", self.evalFnApp(FnApp("next_event_td",[],None)),
-        #       "sit entrance td", self.evalFnApp(FnApp("situation_entrance_td", [], None)))
+        #       "sit entrance td", self.evalFnApp(FnApp("last_situation_td", [], None)))
         if time_constraint is None:
             return True
         else:
@@ -518,12 +518,12 @@ class ExecEnv:
                 if fn == "next_event_td":
                     assert self.evaluation_is_in_next_action_rule, "Can't use next_event_td when not in the scope of an action rule."
 
-                elif fn == "event_td":
-                    assert self.evaluation_is_in_action, "Can't use event_td when not in the scope of an action."
-                    assert not self.evaluation_is_in_next_action_rule, ("event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
-                                                                      "Use situation_entrance_td instead.")
-                elif fn == "situation_entrance_td":
-                    assert self.evaluation_is_in_situation, "Can't use situation_entrance_td when not in the scope of a situation."
+                # elif fn == "last_event_td":
+                #     assert self.evaluation_is_in_action, "Can't use last_event_td when not in the scope of an action."
+                #     assert not self.evaluation_is_in_next_action_rule, ("last_event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
+                #                                                       "Use last_situation_td instead.")
+                # elif fn == "last_situation_td":
+                #     assert self.evaluation_is_in_situation, "Can't use last_situation_td when not in the scope of a situation."
 
                 return ENV_VAR_INTERP[fn](self)
             else:

@@ -31,11 +31,11 @@ ENV_VAR_INTERP = {
     'contractStart_dt': lambda execenv: execenv.start_datetime(),
     'contractStart_td': lambda execenv: execenv.datetime2delta(execenv.start_datetime),
 
-    'event_td':  lambda execenv: execenv.cur_event_delta(),
+    'last_event_td':  lambda execenv: execenv.cur_event_delta(),
     'next_event_td':  lambda execenv: execenv.cur_event_delta(),
     'future_event_td':  lambda execenv: execenv.cur_event_delta(),
 
-    'situation_entrance_td': lambda execenv: execenv.last_situation_entrance_delta
+    'last_situation_td': lambda execenv: execenv.last_situation_entrance_delta
 }
 
 def and_eval(*args:Any) -> bool:

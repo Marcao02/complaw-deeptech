@@ -203,10 +203,10 @@ class ToSMTLIB:
 
     def boilerplate_smtlib(self) -> Tuple[str,...]:
         rv = (
-            "(declare-const event_td Int)",
-            "(assert (> event_td 0))"
+            "(declare-const last_event_td Int)",
+            "(assert (> last_event_td 0))"
             "(declare-const next_event_td Int)",
-            "(assert (>= next_event_td event_td))",
+            "(assert (>= next_event_td last_event_td))",
 
             # "(declare-sort TDMapNatNat)",
             # "(declare-fun mapSet (TDMapNatNat NatNat Real) TDMapNatNat)"

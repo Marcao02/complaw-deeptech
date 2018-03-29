@@ -64,10 +64,10 @@ SORT_TO_PRED : Dict[str,Callable[[str], SMTExpr]]= {
 }
 
 ENV_VAR_SUBST : Dict[str,str] = {
-    "event_td":"event_td",
+    "last_event_td":"last_event_td",
     "event_role":"event_role",
     "next_event_td":"next_event_td",
-    "situation_entrance_td":"situation_entrance_td"
+    "last_situation_td":"last_situation_td"
 }
 
 FN_NAME_SUBST : Dict[str,str] = {

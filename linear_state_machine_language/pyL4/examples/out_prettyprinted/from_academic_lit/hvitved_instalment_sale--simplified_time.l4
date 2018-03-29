@@ -15,9 +15,9 @@ state vars:
 
 situation WaitingForFirstDayOfNextMonth:
     if (and (MIN_PAYMENT ≤ balance_remaining) (next_payment_month < 23)):
-        Buyer may PayInstallment(?amount) (next_event_td == (situation_entrance_td + 30d)) where (MIN_PAYMENT ≤ ?amount)
-    Buyer may PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (situation_entrance_td + 30d))
-    Breach_Buyer (next_event_td == ((situation_entrance_td + 30d) + 1d))
+        Buyer may PayInstallment(?amount) (next_event_td == (last_situation_td + 30d)) where (MIN_PAYMENT ≤ ?amount)
+    Buyer may PayLastInstallment((balance_remaining + DUE_AT_CLOSING)) (next_event_td == (last_situation_td + 30d))
+    Breach_Buyer (next_event_td == ((last_situation_td + 30d) + 1d))
 
 action PayInstallment(amount: Pos$) transitions to WaitingForFirstDayOfNextMonth:
     pre: (amount ≤ balance_remaining)

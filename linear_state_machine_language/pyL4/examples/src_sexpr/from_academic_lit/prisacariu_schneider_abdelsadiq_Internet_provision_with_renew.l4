@@ -101,10 +101,10 @@
 
 	(Action RaiseTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
 		(StateTransform
-			(traffic_low_since' = event_td)
+			(traffic_low_since' = last_event_td)
 			(usage_level_normal' = false)
 			(if (not unsettled_infraction) (
-				(infraction_time' = event_td)
+				(infraction_time' = last_event_td)
 				(unsettled_infraction' = true)
 			) else () )
 		)
@@ -113,7 +113,7 @@
 	(Action LowerTraffic (TransitionsTo UnsettledInfraction) (AllowedSubjects Client)
 		(StateTransform
 			(usage_level_normal' = true)
-			(traffic_low_since' = event_td)
+			(traffic_low_since' = last_event_td)
 		)
 	)
 
@@ -124,7 +124,7 @@
 	(Action (Pay (x : $)) (AllowedSubjects Client) (TransitionsTo UnsettledInfraction)
 		(StateTransform
 			(paid' += (HIGH_USAGE_FEE * x))
-			(if (event_td ≤ (infraction_time + 24H)) (
+			(if (last_event_td ≤ (infraction_time + 24H)) (
 				(paidBefore24' = true)
 			) else ())
 		)

@@ -186,10 +186,10 @@
 
 		(FollowingSituation
 			; 1W is totally made up by Dustin!
-			(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
-			(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
-			(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
-			(Breach_Company [after situation_entrance_td + 1W])
+			(Investor may ChooseCashPayment [when next_event_td < (last_situation_td + 1W)])
+			(Investor may ChooseStockPayment [when next_event_td < (last_situation_td + 1W)])
+			(Company may AutoChooseStockPayment [when next_event_td == (last_situation_td + 1W)])
+			(Breach_Company [after last_situation_td + 1W])
 		)
 	)
 
@@ -214,10 +214,10 @@
 
 		(FollowingSituation
 			; 1W is totally made up by Dustin!
-			(Investor may ChooseCashPayment [when next_event_td < (situation_entrance_td + 1W)])
-			(Investor may ChooseStockPayment [when next_event_td < (situation_entrance_td + 1W)])
-			(Company may AutoChooseStockPayment [when next_event_td == (situation_entrance_td + 1W)])
-			(Breach_Company [after (situation_entrance_td + 1W)])
+			(Investor may ChooseCashPayment [when next_event_td < (last_situation_td + 1W)])
+			(Investor may ChooseStockPayment [when next_event_td < (last_situation_td + 1W)])
+			(Company may AutoChooseStockPayment [when next_event_td == (last_situation_td + 1W)])
+			(Breach_Company [after (last_situation_td + 1W)])
 		)
 	)
 

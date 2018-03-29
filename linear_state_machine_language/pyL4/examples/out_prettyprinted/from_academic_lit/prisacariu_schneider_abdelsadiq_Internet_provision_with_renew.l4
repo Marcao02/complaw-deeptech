@@ -43,17 +43,17 @@ action Reset()  transitions to NoInfraction:
 
 action RaiseTraffic()  transitions to UnsettledInfraction:
     transform:
-        traffic_low_since := event_td
+        traffic_low_since := last_event_td
         usage_level_normal := False
         if ¬unsettled_infraction:
-            infraction_time := event_td
+            infraction_time := last_event_td
             unsettled_infraction := True
 
 
 action LowerTraffic()  transitions to UnsettledInfraction:
     transform:
         usage_level_normal := True
-        traffic_low_since := event_td
+        traffic_low_since := last_event_td
 
 action SendDelayEmail()  non-transitioning:
     transform:
@@ -62,7 +62,7 @@ action SendDelayEmail()  non-transitioning:
 action Pay(x: $) transitions to UnsettledInfraction:
     transform:
         paid := (paid + (HIGH_USAGE_FEE * x))
-        if (event_td ≤ (infraction_time + 24h)):
+        if (last_event_td ≤ (infraction_time + 24h)):
             paidBefore24 := True
 
 
@@ -74,7 +74,7 @@ situation NoInfraction:
     if ¬contract_canceled:
         Client may RaiseTraffic
     if contract_canceled:
-        EnterFulfilled (next_event_td == situation_entrance_td)
+        EnterFulfilled (next_event_td == last_situation_td)
     ISP may SendCancelNoticeByEmail
     ISP may SendCancelNoticeByPost
 
@@ -87,7 +87,7 @@ situation UnsettledInfraction:
         ClientBreaches (next_event_td > (infraction_time + 24h))
     ClientBreaches (next_event_td > (infraction_time + 48h))
     if contract_canceled:
-        EnterFulfilled (next_event_td == situation_entrance_td)
+        EnterFulfilled (next_event_td == last_situation_td)
     if (and ¬sent_delay_email usage_level_normal (paid ≥ (units $ 1))):
         Reset (next_event_td ≤ (infraction_time + 24h))
     if (and sent_delay_email usage_level_normal (paid ≥ (units $ 2))):

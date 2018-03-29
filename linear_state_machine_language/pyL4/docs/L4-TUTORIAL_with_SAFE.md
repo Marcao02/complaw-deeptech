@@ -145,8 +145,8 @@ The above `must` action rule is *exactly* equivalent to the following pair of a 
 
 `(within T)` and `(after T)` are also abbreviations for commonly used patterns:
 
-- `(within T)` = `(when (next_event_td ≤ (event_td + T))`
-- `(after T)` = `(when (next_event_td = (event_td + T + 1))`
+- `(within T)` = `(when (next_event_td ≤ (last_event_td + T))`
+- `(after T)` = `(when (next_event_td = (last_event_td + T + 1))`
 
 Whenever the `must` abbreviation is used, the `when` clause should have such a simple "deadline" form. This is because of the nature of how simple deterministic transition rules "fire"; they fire immediately when the `when` clause becomes true. Generally, `may` action rules can have more complex `when` clauses, for example saying that an action is permitted on any Monday in the future.
 

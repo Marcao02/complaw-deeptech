@@ -41,7 +41,7 @@
 
 	(Action Deliver [ProseRefs P1]
 		(StateTransform
-			(delivery_td' = event_td)
+			(delivery_td' = last_event_td)
 		)
 		(FollowingSituation
 			(Next (Buyer must Pay1stInstallment immediately))
@@ -83,7 +83,7 @@
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSituation
-			(Next (Seller must DeliverRefund (within (7d + situation_entrance_td))))
+			(Next (Seller must DeliverRefund (within (7d + last_situation_td))))
 		)
 	)
 

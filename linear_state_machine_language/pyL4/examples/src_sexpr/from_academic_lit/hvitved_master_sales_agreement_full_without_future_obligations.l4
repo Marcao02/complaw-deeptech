@@ -136,7 +136,7 @@
 		(StateTransform
 			(local test : PosInt := (ceil/ quantity 10))
 			(local test2 : PosInt := (max 14 (ceil/ quantity 10)))
-			(local delivery_deadline : TimeDelta := (event_td + (days (max 14 (ceil/ quantity 10)))) )
+			(local delivery_deadline : TimeDelta := (last_event_td + (days (max 14 (ceil/ quantity 10)))) )
 			(units_ordered' += quantity)
 			(2Bdelivered' := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline))
 			(next_order_id' += 1)
@@ -152,7 +152,7 @@
 			( local quantity : Nat := (tupleGet order 0) )
 			( units_delivered' += quantity )
 			( 2Bdelivered' := (mapDelete 2Bdelivered order) )
-			( local invoice_deadline : TimeDelta := (event_td + 30D) )
+			( local invoice_deadline : TimeDelta := (last_event_td + 30D) )
 			( furthest_invoice_deadline' = (max furthest_invoice_deadline invoice_deadline) )
 			( 2Binvoiced' := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline ) )
 		)
@@ -167,7 +167,7 @@
 			( local quantity : Nat := (tupleGet order 0) )
 			( units_invoiced' += quantity )
 			( 2Binvoiced' :=  (mapDelete 2Binvoiced order) )
-			( 2Bpaid' :=  (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (event_td + 14D) ) )
+			( 2Bpaid' :=  (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (last_event_td + 14D) ) )
 		)
 
 		(TransitionsTo VendorAcceptingOrders)

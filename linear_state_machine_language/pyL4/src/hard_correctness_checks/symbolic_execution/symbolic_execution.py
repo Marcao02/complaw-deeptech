@@ -214,7 +214,7 @@ def symbolic_execution(prog:L4Contract):
                     return ((args[0] % 2) == 0)
                 if term.fnsymb_name == "*":
                     return args[0] * args[1]
-                if term.fnsymb_name in {"event_td","next_event_td","situation_entrance_td"}:
+                if term.fnsymb_name in {"last_event_td","next_event_td","last_situation_td"}:
                     return helper(term.fnsymb_name)
                 if term.fnsymb_name == "==":
                     return args[0] == args[1]
@@ -500,8 +500,8 @@ def symbolic_execution(prog:L4Contract):
     contractParams = OneUseStore(for_contractParams)
 
     startstate: Store = Store({
-        "event_td" : 0,
-        "situation_entrance_td": 0
+        "last_event_td" : 0,
+        "last_situation_td": 0
     })
     for dec in prog.state_var_decs.values():
         if dec.initval:

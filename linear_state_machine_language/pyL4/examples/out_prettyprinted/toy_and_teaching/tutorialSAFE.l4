@@ -63,10 +63,10 @@ action CommitToIPO(liquidity_capitalization: PosShareCnt) transitions to AfterCo
         investor_percent_of_cashout_investor_investments := (fraction-of-sum investor_liq_hypothetical_shares' liquidity_capitalization)
         cash_currently_unconverted := PURCHASE_AMOUNT
     following situation:
-        Company may AutoChooseStockPayment (next_event_td == (situation_entrance_td + 1w))
-        Breach_Company (next_event_td == ((situation_entrance_td + 1w) + 1d))
-        Investor may ChooseCashPayment (next_event_td < (situation_entrance_td + 1w))
-        Investor may ChooseStockPayment (next_event_td < (situation_entrance_td + 1w))
+        Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
+        Breach_Company (next_event_td == ((last_situation_td + 1w) + 1d))
+        Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
+        Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:

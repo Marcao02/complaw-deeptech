@@ -18,4 +18,4 @@ action NextInSeq()  transitions to AfterNextInSeq:
 
     following situation:
         if (x > 1):
-            NextInSeq (next_event_td == situation_entrance_td)
+            NextInSeq (next_event_td == last_situation_td)

@@ -21,9 +21,9 @@
 	(Action Submit (AllowedRoles Student)
 		(FollowingSituation
 			(Next
-				(Grader may Accept (when next_event_td ≤ (situation_entrance_td + 7d)))
-				(Grader may Reject (when next_event_td ≤ (situation_entrance_td + 7d)))
-				(Breach_Grader (after situation_entrance_td + 7d))
+				(Grader may Accept (when next_event_td ≤ (last_situation_td + 7d)))
+				(Grader may Reject (when next_event_td ≤ (last_situation_td + 7d)))
+				(Breach_Grader (after last_situation_td + 7d))
 			)
 		)
 	)

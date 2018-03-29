@@ -59,7 +59,7 @@
 
 		(FollowingSituation
 			(Next
-				(Buyer must TransferShare (within (situation_entrance_td + 30D)))
+				(Buyer must TransferShare (within (last_situation_td + 30D)))
 			)
 		)
 	)

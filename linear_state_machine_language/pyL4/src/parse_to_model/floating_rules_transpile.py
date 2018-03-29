@@ -162,7 +162,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                 # rule.time_constraint = FnApp("tdGEQ",
                 #                              [map_var,
                 #                               pack(params),
-                #                               FnApp('event_td', [])
+                #                               FnApp('last_event_td', [])
                 #                               ])
                 # rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
                 # rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))

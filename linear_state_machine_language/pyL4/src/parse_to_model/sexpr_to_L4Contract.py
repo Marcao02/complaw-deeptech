@@ -769,26 +769,26 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if x == "next_event_td":
                     self.assertOrSyntaxError(self._building_action_rule, parent_SExpr, "Can't use next_event_td when not in the scope of an action rule.")
 
-                elif x == "event_td":
-                    self.assertOrSyntaxError(self._building_action_id is not None, parent_SExpr, "Can't use event_td when not in the scope of an action.")
-                    self.assertOrSyntaxError(not self._building_action_rule, parent_SExpr, ("event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
-                                                                                            "Use situation_entrance_td instead."))
-                elif x == "situation_entrance_td":
-                    self.assertOrSyntaxError(self._building_situation_id is not None, parent_SExpr, "Can't use situation_entrance_td when not in the scope of a situation.")
+                # elif x == "last_event_td":
+                #     self.assertOrSyntaxError(self._building_action_id is not None, parent_SExpr, "Can't use last_event_td when not in the scope of an action.")
+                #     self.assertOrSyntaxError(not self._building_action_rule, parent_SExpr, ("last_event_td directly within the time constraint or `where` clause of a next-action rule is not supported, because it's confusing." +
+                #                                                                             "Use last_situation_td instead."))
+                # elif x == "last_situation_td":
+                #     self.assertOrSyntaxError(self._building_situation_id is not None, parent_SExpr, "Can't use last_situation_td when not in the scope of a situation.")
 
                 return FnApp(x,[], parent_SExpr.coord() if parent_SExpr else None)
 
             if x in TIME_CONSTRAINT_KEYWORDS:
                 if x == "immediately":
                     #  SExpr(['==', 'next_event_td',
-                    #                   SExpr(['+', "situation_entrance_td", "1" + timeunit], sexpr2.line,
+                    #                   SExpr(['+', "last_situation_td", "1" + timeunit], sexpr2.line,
                     #                         sexpr2.col)], sexpr2.line, sexpr2.col)
                     coord = parent_SExpr.coord()
                     return FnApp('==', [
                                 FnApp('next_event_td',[],coord),
-                                FnApp('situation_entrance_td', [], coord)
+                                FnApp('last_situation_td', [], coord)
                                 # FnApp('+', [
-                                #     FnApp('situation_entrance_td',[],coord),
+                                #     FnApp('last_situation_td',[],coord),
                                 #     SimpleTimeDeltaLit(1, self.top.timeunit, coord)
                                 # ], coord)
                             ], coord)
@@ -1140,7 +1140,7 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
 
             elif child == "immediately":
                 pastdeadline = SExpr(['==', 'next_event_td',
-                                      SExpr(['+', "situation_entrance_td", "1" + timeunit], sexpr2.line,
+                                      SExpr(['+', "last_situation_td", "1" + timeunit], sexpr2.line,
                                             sexpr2.col)], sexpr2.line, sexpr2.col)
                 other = SExpr([breachActionId(role), SExpr(["when", pastdeadline], sexpr2.line, sexpr2.col)],
                               sexpr2.line, sexpr2.col, "(")

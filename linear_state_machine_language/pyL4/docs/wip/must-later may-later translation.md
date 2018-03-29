@@ -32,7 +32,7 @@ See Jan 4 discussion on Slack dsl channel.
 If a rule of the following form occurs in the `Future` situation of an `Action` declaration:
 ```
 (if bool_term
-	(R must-later [A arg₁ arg₂] [event_td ≤ timedelta_term])
+	(R must-later [A arg₁ arg₂] [last_event_td ≤ timedelta_term])
 )
 ```
 it is removed and the following is appended to the `Transform` situation of the same `Action` declaration:
@@ -54,7 +54,7 @@ where `A` is an action with (say) 2 parameters. Then it is removed and the follo
 ```
 (R quasi-responsibility
 	(A ?1 ?2)
-	(tdGT must_R_A (tuple ?1 ?2) event_td)	
+	(tdGT must_R_A (tuple ?1 ?2) last_event_td)
 )
 ```
 The line `(tgGT ...)` compares (i) the deadline that `must_R_A` has stored for `(tuple ?1 ?2)`, and (ii) the current event's timedelta.

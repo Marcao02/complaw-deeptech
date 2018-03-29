@@ -32,7 +32,7 @@ action ExerciseOption()  transitions to AfterExerciseOption:
         seller_funds := (SELLER_START_FUNDS + (units $ 80))
     following situation:
         Buyer may TransferShare
-        Breach_Buyer (next_event_td == ((situation_entrance_td + 30d) + 1d))
+        Breach_Buyer (next_event_td == ((last_situation_td + 30d) + 1d))
 
 action TransferShare()  transitions to Fulfilled:
     transform:

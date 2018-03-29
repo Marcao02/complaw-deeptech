@@ -169,13 +169,13 @@
         [StateTransform
             ; 14 days later, or quantity/10 days later, whichever occurs last
             [local this_delivery_deadline : TimeDelta := [max
-                    [14d + event_td]
-                    [[days [ceil/ quantity 10]] + event_td]
+                    [14d + last_event_td]
+                    [[days [ceil/ quantity 10]] + last_event_td]
                 ]
             ]
             [units_ordered' += quantity]
             [next_order_id' = [next_order_id + 1]]
-            ; [local mytest_for_error : TimeDelta = situation_entrance_td]
+            ; [local mytest_for_error : TimeDelta = last_situation_td]
         ]
 
         [Future
@@ -194,7 +194,7 @@
         [AllowedSubjects Vendor]
         [StateTransform
             [ units_delivered' += quantity ]
-            [ local deadline : TimeDelta = (event_td + 30d) ]
+            [ local deadline : TimeDelta = (last_event_td + 30d) ]
         ]
 
         [Future
@@ -211,7 +211,7 @@
         [AllowedSubjects Vendor]
         [StateTransform
             [ units_invoiced' += quantity ]
-            [ local deadline : TimeDelta = (event_td + 14d) ]
+            [ local deadline : TimeDelta = (last_event_td + 14d) ]
         ]
         [Future
             [Customer must-later [PayBill quantity orderid] [future_event_td ≤ deadline] ]

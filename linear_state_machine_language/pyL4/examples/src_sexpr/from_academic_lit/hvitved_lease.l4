@@ -50,8 +50,8 @@
 	(Action StartLeaseTerm (TransitionsTo MonthStarted)
 		(StateTransform
 			; (conjecture ((eventTimestamp) == (monthStartDay_td)))
-			(lease_term_start' = event_td)
-			(lease_term_end' = (event_td + LEASE_DURATION))   ))
+			(lease_term_start' = last_event_td)
+			(lease_term_end' = (last_event_td + LEASE_DURATION))   ))
 
 	(Action EnterMonthStarted (TransitionsTo MonthStarted))
 
@@ -74,12 +74,12 @@
 	(Action EnterMonthEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
 		(FollowingSituation
-			(Pre (situation_entrance_td ≤ lease_term_end))
+			(Pre (last_situation_td ≤ lease_term_end))
 			(Next
-				(if (lease_term_end ≤ (situation_entrance_td + 1D))
+				(if (lease_term_end ≤ (last_situation_td + 1D))
 					(EnterLeaseTermEnded immediately)   )
-				(if (lease_term_end > (situation_entrance_td + 1D))
-					(EnterMonthStarted (when next_event_td == (situation_entrance_td + 1d)))   )
+				(if (lease_term_end > (last_situation_td + 1D))
+					(EnterMonthStarted (when next_event_td == (last_situation_td + 1d)))   )
 				(RequestTerminationActionRuleMacro (Tenant MonthEnded))
 				(RequestTerminationActionRuleMacro (Landlord MonthEnded))   )))
 

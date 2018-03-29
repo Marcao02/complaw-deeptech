@@ -73,10 +73,10 @@ action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization:
         cash_currently_unconverted := PURCHASE_AMOUNT
         company_cash := company_cash_at_liquidity_event
     following situation:
-        Company may AutoChooseStockPayment (next_event_td == (situation_entrance_td + 1w))
-        Breach_Company (next_event_td == ((situation_entrance_td + 1w) + 1d))
-        Investor may ChooseCashPayment (next_event_td < (situation_entrance_td + 1w))
-        Investor may ChooseStockPayment (next_event_td < (situation_entrance_td + 1w))
+        Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
+        Breach_Company (next_event_td == ((last_situation_td + 1w) + 1d))
+        Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
+        Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
 
 action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$, total_investments_of_cashout_investors: Pos$, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToChangeOfControl:
     transform:
@@ -87,10 +87,10 @@ action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_cap
         cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
         company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
     following situation:
-        Company may AutoChooseStockPayment (next_event_td == (situation_entrance_td + 1w))
-        Breach_Company (next_event_td == ((situation_entrance_td + 1w) + 1d))
-        Investor may ChooseCashPayment (next_event_td < (situation_entrance_td + 1w))
-        Investor may ChooseStockPayment (next_event_td < (situation_entrance_td + 1w))
+        Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
+        Breach_Company (next_event_td == ((last_situation_td + 1w) + 1d))
+        Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
+        Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:

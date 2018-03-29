@@ -40,16 +40,16 @@
 			; and it's before the final month of the contract.
 			(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
 				(Buyer may (PayInstallment ?amount)
-					(when next_event_td == (situation_entrance_td + 30d))
+					(when next_event_td == (last_situation_td + 30d))
 					(where (MIN_PAYMENT ≤ ?amount ) and (?amount ≤ balance_remaining))
 				)
 			)
 
 			(Buyer may (PayLastInstallment (balance_remaining + DUE_AT_CLOSING))
-				(when next_event_td == (situation_entrance_td + 30d))
+				(when next_event_td == (last_situation_td + 30d))
 			)
 
-			(Breach_Buyer (after situation_entrance_td + 30d))
+			(Breach_Buyer (after last_situation_td + 30d))
 		))
 
 	(Action (PayInstallment(amount:Pos$)) (TransitionsTo WaitingForFirstDayOfNextMonth)

@@ -22,10 +22,10 @@ situation Awaiting_Delivery:
 
 action Deliver()  transitions to AfterDeliver:
     transform:
-        delivery_td := event_td
+        delivery_td := last_event_td
     following situation:
-        Buyer may Pay1stInstallment (next_event_td == situation_entrance_td)
-        Breach_Buyer (next_event_td == (situation_entrance_td + 1d))
+        Buyer may Pay1stInstallment (next_event_td == last_situation_td)
+        Breach_Buyer (next_event_td == (last_situation_td + 1d))
 
 action Pay1stInstallment()  transitions to AfterPay1stInstallment:
     transform:
@@ -51,7 +51,7 @@ action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following situation:
-        Breach_Seller (next_event_td == ((7d + situation_entrance_td) + 1d))
+        Breach_Seller (next_event_td == ((7d + last_situation_td) + 1d))
         Seller may DeliverRefund
 
 action PayLateFee()  transitions to Fulfilled:
