@@ -475,6 +475,8 @@ def symbolic_execution(prog:L4Contract):
             if TRACE:
                 print(f"UNKNOWN: {qp}")
             addTimeoutQueryPath(qp)
+            print("Theorem prover gave up on this query:\n\n", qp.core.path_constraint)
+            print("reason:", sz3.reason_unknown())
             raise NotImplementedError("don't want to be dealing with timeouts till working with easy examples")
 
     def pathChooser():

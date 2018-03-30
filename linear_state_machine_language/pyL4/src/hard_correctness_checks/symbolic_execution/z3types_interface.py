@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import NewType
 from z3 import z3, z3num # type:ignore
 
+from src.independent.util import todo_once
 from src.hard_correctness_checks.SMTLIB import SORT_TO_SMTLIB_PRIM_TYPE
 from src.independent.typing_imports import *
 from src.model.Sort import Sort as L4Sort
@@ -23,10 +24,18 @@ z3interp["≤"] = lambda x,y: x <= y
 z3interp["+"] = lambda x,y: x + y
 z3interp["-"] = lambda x,y: x - y
 z3interp["*"] = lambda x,y: x * y
+z3interp["/"] = lambda x,y: x / y
 z3interp["=="] = lambda x,y: x == y
 z3interp["not"] = lambda x: z3not(x)
 z3interp["and"] = lambda *x: z3and(x)
 z3interp["even"] = lambda x: (x % 2) == 0
+z3interp["min"] = lambda x,y: z3.If(x < y, x, y)
+
+todo_once("INTERP OF ROUND/ IS A LIE!")
+z3interp["round/"] = lambda x,y: x / y
+z3interp["floor/"] = lambda x,y: x / y
+
+todo_once("replace unicode symbols with ascii in AST")
 
 def primValToZ3(val:Union[bool, int, float]) -> Z3Term:
     if isinstance(val, bool):
