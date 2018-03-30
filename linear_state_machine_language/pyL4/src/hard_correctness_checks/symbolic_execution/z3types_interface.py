@@ -39,11 +39,13 @@ def primValToZ3(val:Union[bool, int, float]) -> Z3Term:
 
 def timedeltaToZ3(val:timedelta, prog_timeunit:str) -> Z3Term:
     if prog_timeunit == "m":
-        return z3.RealVal( val.seconds / 60 ) # type:ignore
+        return z3.RealVal( val.total_seconds / 60 ) # type:ignore
     elif prog_timeunit == "h":
-        return z3.RealVal( val.seconds / (60*60) )
+        return z3.RealVal( val.total_seconds / (60*60) )
+    elif prog_timeunit == "d":
+        return z3.RealVal( val.days )
     elif prog_timeunit == "s":
-        return z3.RealVal( val.seconds )
+        return z3.RealVal( val.total_seconds )
     else:
         raise ValueError
 
