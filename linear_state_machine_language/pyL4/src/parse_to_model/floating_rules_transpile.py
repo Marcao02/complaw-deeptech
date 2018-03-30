@@ -57,13 +57,14 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             # the action params matchTerm. this requires a role environment variable.
             params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.param_names[i]), action, i) for i in
                       range(len(action.param_names))]
-            statement = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
+            statement : IfElse = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
                                [StateVarAssign(
                                    map_dec,
                                    FnApp("mapDelete", [map_var,
                                                        pack(params) ])
                                )]
                                )
+            statement.true_branch[0].grandparent_ifelse = statement
 
             if not action.state_transform:
                 action.state_transform = StateTransform([])
@@ -102,7 +103,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
         map_dec = prog.state_var_decs[map_name]
         map_var = prog.new_state_var_ref(map_name)
         if far.entrance_enabled_guard:
-            statement = IfElse(far.entrance_enabled_guard,
+            statement : IfElse = IfElse(far.entrance_enabled_guard,
                           [StateVarAssign(
                               map_dec,
                               FnApp("mapSet",[map_var,
@@ -110,6 +111,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               timedelta_term])
                           )]
                         )
+            statement.true_branch[0].grandparent_ifelse = statement
         else:
             statement = StateVarAssign(
                                map_dec,
@@ -121,7 +123,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
         if not parent_action.state_transform:
             parent_action.state_transform = StateTransform([])
         parent_action.state_transform.statements.append(statement)
-        statement.parent_block = action.state_transform.statements
+        statement.parent_block = parent_action.state_transform.statements
 
     # ----------------------------------------------
     # Removing from situation declarations

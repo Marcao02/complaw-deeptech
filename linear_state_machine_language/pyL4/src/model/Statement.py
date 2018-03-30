@@ -21,6 +21,17 @@ class Statement:
     def __init__(self):
         self.orig : Optional[Statement]
         self.parent_block : Optional[Block] = None
+        self.grandparent_ifelse: Optional[IfElse] = None
+
+    def next_sibling(self) -> Optional['Statement']:
+        if not self.parent_block:
+            return None
+        i = self.parent_block.index(self)
+        if i < len(self.parent_block) - 1:
+            return self.parent_block[i-1]
+        assert self.grandparent_ifelse is not None
+        return self.grandparent_ifelse.next_sibling()
+
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         raise NotImplementedError

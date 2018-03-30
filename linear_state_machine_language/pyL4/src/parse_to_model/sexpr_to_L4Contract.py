@@ -632,11 +632,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def _mk_state_transform(self, statement_exprs:List[SExpr], a:Action) -> StateTransform:
-        return StateTransform(self._mk_statements(statement_exprs, a))
+        return StateTransform(self._mk_statements(statement_exprs, a, None))
 
-    def _mk_statements(self, statement_exprs:List[SExpr], parent_action:Action) -> List[Statement]:
+    def _mk_statements(self, statement_exprs:List[SExpr], parent_action:Action, parent_ifelse:Optional[IfElse]) -> List[Statement]:
         """
-        call _mk_statement on each element x of state_exprs and return list of results, UNLESS x is a macro app, in which case:
+        call _mk_statement on each element x of statement_exprs and return list of results, UNLESS x is a macro app, in which case:
         if x is a seqmacro,
             seqexpansion = expansion of x
             extend return list with result of calling _mk_statements on seqexpansion
@@ -648,22 +648,23 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         for statement_expr in statement_exprs:
             assert not isinstance(statement_expr,list)
             if self._is_blockmacro_app(statement_expr):
-                rv.extend(self._mk_statements(self.handle_apply_blockmacro(statement_expr), parent_action))
+                rv.extend(self._mk_statements(self.handle_apply_blockmacro(statement_expr), parent_action, parent_ifelse))
             elif self._is_macro_app(statement_expr):
-                rv.extend(self._mk_statements([self.handle_apply_macro(statement_expr)], parent_action))
+                rv.extend(self._mk_statements([self.handle_apply_macro(statement_expr)], parent_action, parent_ifelse))
             else:
-                it = self._mk_statement(statement_expr, parent_action, rv)
+                it = self._mk_statement(statement_expr, parent_action, rv, parent_ifelse)
                 rv.append(it)
 
-            if isinstance(rv[-1],IfElse):
-                # print(rv[-1])
-                assert statement_expr == statement_exprs[-1], "For now (not too much work to lift this), " \
-                                                              "(if Term Block else Block) can only appear as the last " \
-                                                              "statement in a Block." \
-                                                              "I don't remember if there's a reason for that besides for symbolic execution."
+            # if isinstance(rv[-1],IfElse):
+            #     print(rv[-1].next_sibling())
+            #     # print(rv[-1])
+            #     assert statement_expr == statement_exprs[-1], "For now (not too much work to lift this), " \
+            #                                                   "(if Term Block else Block) can only appear as the last " \
+            #                                                   "statement in a Block." \
+            #                                                   "I don't remember if there's a reason for that besides for symbolic execution."
         return rv
 
-    def _mk_statement(self, statement_expr:SExpr, parent_action:Action, parent_block:Block) -> Statement:
+    def _mk_statement(self, statement_expr:SExpr, parent_action:Action, parent_block:Block, parent_ifelse:Optional[IfElse]) -> Statement:
         assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None, statement_expr
         varname : str
         try:
@@ -689,13 +690,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif statement_expr[0] == 'if':
                 test = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
-                self.assertOrSyntaxError(isinstance(statement_expr[2], SExpr) and isinstance(statement_expr[4], SExpr), statement_expr), \
+                self.assertOrSyntaxError(isinstance(statement_expr[2], SExpr) and isinstance(statement_expr[4], SExpr), statement_expr)
+                rv = IfElse(test,[],[])
                 f"Expected {statement_expr} to have the form `(if TEST (BLOCK) else (BLOCK))`"
-                true_branch = self._mk_statements(statement_expr[2], parent_action)
+                rv.true_branch = self._mk_statements(statement_expr[2], parent_action, rv)
                 self.assertOrSyntaxError(statement_expr[3] == 'else', statement_expr), \
                 f"Expected {statement_expr} to have the form `(if TEST (BLOCK) else (BLOCK))`"
-                false_branch = self._mk_statements(statement_expr[4], parent_action)
-                rv = IfElse(test, true_branch, false_branch)
+                rv.false_branch = self._mk_statements(statement_expr[4], parent_action, rv)
+                return rv
 
             else:
                 self.assertOrSyntaxError(len(statement_expr) == 3, statement_expr,
@@ -734,6 +736,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     rv = reduced
 
             rv.parent_block = parent_block
+            rv.grandparent_ifelse = parent_ifelse
             return rv
 
         except Exception as e:
