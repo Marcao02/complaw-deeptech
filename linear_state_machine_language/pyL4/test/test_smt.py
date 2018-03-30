@@ -104,8 +104,8 @@ def main(examples:Dict[str,L4Contract], verbose=True):
         # examples['test/test_symbolic_exec_ifelse_halting_split.l4'],
         # examples['test/test_symbolic_exec_ifelse_halting.l4'],
         # examples['test/test_symbolic_exec_halting_harder.l4'],
-        examples['test/test_symbolic_exec_time.l4']
-        # examples['toy_and_teaching/monster_burger_program_only.l4']
+        # examples['test/test_symbolic_exec_time.l4']
+        examples['toy_and_teaching/monster_burger_program_only.l4']
     ]
     for prog in se_tests:
         print("symbolic eval for " + prog.filename)

@@ -1,5 +1,5 @@
-TRACE = True
-
+# TRACE = True
+TRACE = False
 from datetime import timedelta
 from enum import Enum
 import random
@@ -215,10 +215,10 @@ def symbolic_execution(prog:L4Contract):
                     maxind = max(maxind,ind)
                 helper(rest)
         helper(assignments)
-        return seq
+        # return seq
         rv = (maxind+1)*[None]
         for i in range(1,maxind+1):
-            rv[i] = seq[i]
+            rv[i-1] = seq[i]
         return rv
 
 
@@ -234,16 +234,10 @@ def symbolic_execution(prog:L4Contract):
         if TRACE:
             state = state.set(f"action_{t}", a.action_id)
             # print(f"sevalAction {a.action_id} ; {state} ; {t}; {envvars} ; {skip_statetransform}")
-            print("Action seq:", getActionSeq(state.changes))
-        # if t >= 1:
-        #     raise Exception("too far")
-
-        # SETTING last_event_td
+            print("Action seq (reversed):", reversed(getActionSeq(state.changes)))
 
         envvars = envvars.set("last_event_td", envvars["next_event_td"])
-        # pathconstr = z3and(envvars["last_event_td"] == envvars["next_event_td"])
         envvars = envvars.set("next_event_td", None)
-
 
         assert isinstance(state, LedgerDict), type(state)
         if not skip_statetransform:
@@ -289,7 +283,7 @@ def symbolic_execution(prog:L4Contract):
                         next_state = next_state.set(v, state[v])
             return SEvalRVChange(next_state=next_state,path_constraint=pathconstr)
         else:
-            rv1 = sevalStatement(block[0], next_state, a, actparam_store, CoreSymbExecState(rv1.path_constraint, state, t, envvars ))
+            rv1 = sevalStatement(block[0], next_state, a, actparam_store, CoreSymbExecState(pathconstr, state, t, envvars ))
             if isinstance(rv1, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout, SEvalRVStopThread)):
                 return rv1
             elif isinstance(rv1, SEvalRVChange):
@@ -459,10 +453,12 @@ def symbolic_execution(prog:L4Contract):
             # syntax( < string >, line
             # 1)
             if checkres == z3.sat:
-                print("sat:", qp.core.path_constraint)
+                if TRACE:
+                    print("sat:", z3termPrettyPrint(qp.core.path_constraint))
                 return sevalRuleIgnoreGuardAndParamConstraints(qp.rule, qp.action_params, qp.core)
             elif checkres == z3.unsat:
-                print("unsat:", qp.core.path_constraint)
+                if TRACE:
+                    print("unsat:", qp.core.path_constraint)
                 return SEvalRVInconsistent("ActionRuleParamsConstraintPath query unsat")
 
         elif isinstance(qp, AssertionPath):

@@ -50,7 +50,6 @@ def timedeltaToZ3(val:timedelta, prog_timeunit:str) -> Z3Term:
 
 
 def name2symbolicvar(name:str,sort:L4Sort) -> Z3Term:
-    print(f"name2symbolicvar({name},{sort})")
     smtsort = SORT_TO_SMTLIB_PRIM_TYPE[sort]
     if smtsort == "Int":
         return z3.Int(name)  # type:ignore
@@ -59,3 +58,27 @@ def name2symbolicvar(name:str,sort:L4Sort) -> Z3Term:
     elif smtsort == "Bool":
         return z3.Bool(name)  # type:ignore
     raise NotImplementedError(f"SMT sort {smtsort} unsupported")
+
+
+def z3termPrettyPrint(_term:Z3Term) -> str:
+    lst = []
+
+    def helper(term:Z3Term):
+        if term.decl().name() == "and":
+            for x in term.children():
+                helper(x)
+        elif str(term) != "True":
+            lst.append(str(term))
+
+    helper(_term)
+    return f"And\n\t" + '\n\t'.join(lst)
+
+def flatten(lst:list):
+    rv = []
+    def helper(y:any):
+        if isinstance(y, list) or isinstance(y, tuple):
+            for x in y:
+                helper(x)
+        else:
+            rv.append(y)
+    return rv
