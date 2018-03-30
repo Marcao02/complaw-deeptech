@@ -176,6 +176,9 @@ def symbolic_execution(prog:L4Contract):
             elif isinstance(term,Literal):
                 return helper(term.lit)
             elif isinstance(term, FnApp):
+                if term.fnsymb_name in {"trust","check"}:
+                    todo_once("not checking `(check Sort Term)` expressions")
+                    return helper(term.args[1])
                 # smttermstr = str(term2smtterm(term))
                 # print("type(term):", type(term))
                 # print("smttermstr:", smttermstr)
