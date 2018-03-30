@@ -6,6 +6,7 @@ from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
 from src.model.Term import Term
 
+T = TypeVar('T')
 
 class FutureActionRuleType(NamedTuple):
     rid: RoleId

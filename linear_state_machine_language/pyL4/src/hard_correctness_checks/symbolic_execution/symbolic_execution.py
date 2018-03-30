@@ -1,20 +1,17 @@
-from model.StateVarDec import StateVarDec
-
-TRACE = False
+TRACE = True
 
 from datetime import timedelta
 from enum import Enum
 import random
 
+from src.model.StateVarDec import StateVarDec
 from src.constants_and_defined_types import FULFILLED_SITUATION_LABEL
-
-from src.independent.LedgerDict import LedgerDict
+from src.independent.LedgerDict import LedgerDict, LazyRecTuple
 from src.independent.OneUseFrozenDict import OneUseFrozenDict
 from src.parse_to_model.sexpr_to_L4Contract import unprimed, isprimed
 from src.model.BoundVar import BoundVar
 from src.hard_correctness_checks.toSMTLIB import term2smtterm
 from src.model.Literal import Literal
-from src.hard_correctness_checks.SMTLIB import SORT_TO_SMTLIB_PRIM_TYPE
 from src.independent.util import todo_once
 from src.model.Action import Action
 from src.model.ActionRule import NextActionRule
@@ -22,11 +19,12 @@ from src.model.L4Contract import L4Contract
 from src.model.Situation import Situation
 from src.model.Statement import Block, Statement, StateVarAssign, IfElse, FVRequirement, LocalVarDec
 from src.model.Term import Term, FnApp
-from src.independent.typing_imports import *
 from src.model.Sort import Sort as L4Sort
+from src.independent.typing_imports import *
+from src.hard_correctness_checks.symbolic_execution.z3types_interface import *
 
-from z3 import z3, z3num  # type:ignore
-# from z3.z3util import myAnd
+
+# raise Exception("need to distinguish the two kinds of contract 'params' now")
 
 # z3path /Users/dustin/lib/z3-4.6.0-x64-osx-10.11.6/bin/python/z3
 # but don't need to be there. just run the following command.
@@ -38,34 +36,10 @@ class MyTypeError(TypeError):
             f"Found {found_object}, a {type(found_object)} where only {wanted_class} should be possible.\n"
             "Did you forget to run mypy? Or could be the result of an unsound cast.")
 
-# I think?
-Z3Term = z3.ExprRef # type:ignore
-def z3and(*forms:Z3Term) -> Z3Term:
-    # return myAnd(*forms)
-    # print("?",list(map(type,forms)))
-    return z3.And(*forms)
-def z3not(form:Z3Term) -> Z3Term:
-    return z3.Not(form)
-Z3TRUE = True
-Z3FALSE = False
-
-
 # Intended to be "expanded" (copied with sharing). A minor extension of nested tuples.
 Store = LedgerDict[str,Z3Term]
 # Intended to be created once, used for reading, and then discarded. A python dict with write ops disabled.
 OneUseStore = OneUseFrozenDict[str, Z3Term]
-
-def name2symbolicvar(name:str,sort:L4Sort) -> Z3Term:
-    smtsort = SORT_TO_SMTLIB_PRIM_TYPE[sort]
-    if smtsort == "Int":
-        return z3.Int(name)
-    elif smtsort == "Real":
-        return z3.Real(name)
-    elif smtsort == "Bool":
-        return z3.Bool(name)
-    elif smtsort == "TimeDelta":
-        return z3.Int(name)
-    raise NotImplementedError(f"SMT sort {smtsort} unsupported")
 
 def name2actparam_symbolic_var(name:str,t:int,sort:L4Sort) -> Z3Term:
     return name2symbolicvar(name + "_" + str(t), sort)
@@ -102,8 +76,6 @@ class ActionRuleParamsConstraintPath(NamedTuple):
     action_params: OneUseStore  # newly introduced
     core: CoreSymbExecState
 
-class CompletePath:
-    pass
 
 class AssertionPath(NamedTuple):
     assertion: Z3Term
@@ -147,6 +119,8 @@ def symbolic_execution(prog:L4Contract):
     queryPaths : List[QueryPath] = []
     timedoutQueryPaths : List[QueryPath] = []
 
+    path2actionseq : Dict[Any,list] = dict()
+
     sz3 = z3.Solver()
 
     def addQueryPath(qpath:QueryPath):
@@ -156,9 +130,10 @@ def symbolic_execution(prog:L4Contract):
         timedoutQueryPaths.append(qpath)
 
     def takeQueryPath() -> QueryPath:
-        ind =  random.randint(0,len(queryPaths)-1)
-        qp = queryPaths[ind]
-        del queryPaths[ind]
+        # ind =  random.randint(0,len(queryPaths)-1)
+        # qp = queryPaths[ind]
+        # del queryPaths[ind]
+        qp = queryPaths.pop()
         return qp
 
 
@@ -166,7 +141,7 @@ def symbolic_execution(prog:L4Contract):
                 next_state:Optional[Store],
                 actparam_store:Optional[OneUseStore],
                 core: CoreSymbExecState) -> Z3Term:
-        _, state, _, envvar_store = core
+        pathconstr, state, t, envvar_store = core
         assert isinstance(state, LedgerDict), type(state)
         assert actparam_store is None or isinstance(actparam_store,OneUseFrozenDict)
         assert state is not None
@@ -201,43 +176,51 @@ def symbolic_execution(prog:L4Contract):
             elif isinstance(term,Literal):
                 return helper(term.lit)
             elif isinstance(term, FnApp):
-                smttermstr = str(term2smtterm(term))
+                # smttermstr = str(term2smtterm(term))
                 # print("type(term):", type(term))
                 # print("smttermstr:", smttermstr)
                 #
                 # return z3.parse_smt2_string(smttermstr)
                 args = [helper(x) for x in term.args]
-                if term.fnsymb_name == "<":  return args[0] < args[1]
-                if term.fnsymb_name == ">":  return args[0] > args[1]
-                if term.fnsymb_name == "≥":  return args[0] >= args[1]
-                if term.fnsymb_name == "≤":  return args[0] <= args[1]
-                if term.fnsymb_name == "+":  return args[0] + args[1]
-                if term.fnsymb_name == "-":  return args[0] - args[1]
-                if term.fnsymb_name == "*":  return args[0] * args[1]
-                if term.fnsymb_name == "==": return args[0] == args[1]
-                if term.fnsymb_name == "not": return z3.Not(args[0])
-                if term.fnsymb_name == "and": return z3.And(args[0], args[1])
-                if term.fnsymb_name == "even":  return ((args[0] % 2) == 0)
-                if term.fnsymb_name in {"last_event_td","next_event_td","last_situation_td"}:
+                if term.fnsymb_name in z3interp:
+                    return z3interp[term.fnsymb_name](*args)
+                elif term.fnsymb_name in {"last_event_td","next_event_td","last_situation_td"}:
                     return helper(term.fnsymb_name)
                 raise NotImplementedError(f"Unhandled {term.fnsymb_name}")
-            elif isinstance(term,bool):
-                return z3.BoolVal(term)
-            elif isinstance(term,int):
-                return z3.IntVal(term)
-            elif isinstance(term,float):
-                return z3.RealVal(term)
+            elif isinstance(term,(bool,int,float)):
+                return primValToZ3(term)
             elif isinstance(term,timedelta):
-                assert prog.timeunit == "m"
-                return cast(timedelta,term).seconds / 60
+                return timedeltaToZ3(term, prog.timeunit)
             else:
-                print("????????")
                 raise Exception(type(term),term)
 
         rv : Z3Term = helper(topterm)
         assert rv is not None, topterm
         # print(f"tern2z3({topterm}) == {rv}. type of input ", type(topterm))
         return rv
+
+    def getActionSeq(assignments:LazyRecTuple) -> List[str]:
+        seq = dict()
+        maxind = 0
+        def helper(ll):
+            nonlocal maxind
+            if ll is None:
+                return []
+            else:
+                pair, rest = ll
+                key = pair[0]
+                if cast(str,pair[0]).startswith("action"):
+                    ind = int(key[7:])
+                    seq[ind] = pair[1]
+                    maxind = max(maxind,ind)
+                helper(rest)
+        helper(assignments)
+        return seq
+        rv = (maxind+1)*[None]
+        for i in range(1,maxind+1):
+            rv[i] = seq[i]
+        return rv
+
 
 
     def sevalAction(a: Action,
@@ -247,19 +230,27 @@ def symbolic_execution(prog:L4Contract):
                     core: CoreSymbExecState
                    ) -> SEvalRV:
         pathconstr, state, t, envvars = core
+
         if TRACE:
-            print(f"sevalAction({a.action_id},{state},...,{t},skip_statetransform={skip_statetransform}")
+            state = state.set(f"action_{t}", a.action_id)
+            # print(f"sevalAction {a.action_id} ; {state} ; {t}; {envvars} ; {skip_statetransform}")
+            print("Action seq:", getActionSeq(state.changes))
         # if t >= 1:
         #     raise Exception("too far")
 
         # SETTING last_event_td
-        envvars = envvars.set("last_event_td", envvars["last_situation_td"])
+
+        envvars = envvars.set("last_event_td", envvars["next_event_td"])
+        # pathconstr = z3and(envvars["last_event_td"] == envvars["next_event_td"])
+        envvars = envvars.set("next_event_td", None)
+
 
         assert isinstance(state, LedgerDict), type(state)
         if not skip_statetransform:
             # print(f"{t} {a.action_id}")
             if a.state_transform:
-                res = sevalBlock(a.state_transform.statements, Store({}), a, actparam_store, core)
+                res = sevalBlock(a.state_transform.statements, Store({}), a, actparam_store,
+                                 CoreSymbExecState(pathconstr, state, t, envvars))
                 if isinstance(res, SEvalRVChange):
                     assert isinstance(res.next_state, LedgerDict), type(res.next_state)
                     state = res.next_state
@@ -298,7 +289,7 @@ def symbolic_execution(prog:L4Contract):
                         next_state = next_state.set(v, state[v])
             return SEvalRVChange(next_state=next_state,path_constraint=pathconstr)
         else:
-            rv1 = sevalStatement(block[0], next_state, a, actparam_store, core)
+            rv1 = sevalStatement(block[0], next_state, a, actparam_store, CoreSymbExecState(rv1.path_constraint, state, t, envvars ))
             if isinstance(rv1, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout, SEvalRVStopThread)):
                 return rv1
             elif isinstance(rv1, SEvalRVChange):
@@ -355,8 +346,11 @@ def symbolic_execution(prog:L4Contract):
                       ) -> SEvalRV:
 
         pathconstr, state, t, envvars = core
+
         # SETTING last_situation_td
         envvars = envvars.set("last_situation_td", envvars["last_event_td"])
+        # pathconstr = z3and(envvars["last_situation_td"] == envvars["last_event_td"])
+
         if TRACE:
             print(f"sevalSituation({s.situation_id},{state},...,{t})")
         assert isinstance(state, LedgerDict), type(state)
@@ -374,6 +368,12 @@ def symbolic_execution(prog:L4Contract):
                 res = sevalRuleIgnoreGuard(rule, CoreSymbExecState(pathconstr, state, t, envvars))
                 if isinstance(res,SEvalRVBug):
                     return res
+                elif isinstance(res, (SEvalRVStopThread, SEvalRVInconsistent)):
+                    continue
+                elif isinstance(res,SEvalRVChange):
+                    raise NotImplementedError
+                else:
+                    raise NotImplementedError
 
         return SEvalRVStopThread("from sevalSituation")
 
@@ -386,20 +386,22 @@ def symbolic_execution(prog:L4Contract):
         if rule.fixed_args:
             d = {actparam_name: rule.fixed_args[
                 action.param_name_to_ind[actparam_name]] for actparam_name in action.param_names}
-            actparam_store = OneUseStore({actparam_name: term2z3(d[actparam_name], state, None, None) for actparam_name in d})
+            actparam_store = OneUseStore({actparam_name: term2z3(d[actparam_name], state, None, core) for actparam_name in d})
         else:
             actparam_store = OneUseStore({actparam_name: name2actparam_symbolic_var(actparam_name,t,action.param_sorts_by_name[actparam_name]) for actparam_name in action.param_names})
 
         # SETTING next_event_td
-        envvars = envvars.set("next_event_td", name2symbolicvar("td_"+str(t),'TimeDelta'))
+        envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t}",'TimeDelta'))
+        if t > 0:
+            pathconstr = z3and(name2symbolicvar(f"td_{t-1}",'TimeDelta') <= name2symbolicvar(f"td_{t}",'TimeDelta'), pathconstr)
 
         if rule.time_constraint is None and rule.where_clause is None:
             return sevalRuleIgnoreGuardAndParamConstraints(rule, actparam_store, CoreSymbExecState(pathconstr, state, t, envvars))
         else:
             newcore = CoreSymbExecState(pathconstr, state, t, envvars)
-            tc = term2z3(rule.time_constraint, None, actparam_store, newcore) \
+            tc : Z3Term = term2z3(rule.time_constraint, None, actparam_store, newcore) \
                 if (rule.time_constraint and rule.time_constraint != "no_time_constraint") else  Z3TRUE
-            wc = term2z3(rule.where_clause, None, actparam_store, newcore) if rule.where_clause else Z3TRUE
+            wc : Z3Term = term2z3(rule.where_clause, None, actparam_store, newcore) if rule.where_clause else Z3TRUE
             addQueryPath( ActionRuleParamsConstraintPath(
                 rule, actparam_store, CoreSymbExecState( z3and(tc, wc, pathconstr), state, t, envvars)
             ))
@@ -410,6 +412,8 @@ def symbolic_execution(prog:L4Contract):
                              rule:NextActionRule,
                              actparam_store: OneUseStore,
                              core: CoreSymbExecState) -> SEvalRV:
+        if TRACE:
+            print(f"sevalRuleIgnoreGuardAndParamConstraints({rule} ; {core.state})")
         assert isinstance(core.state, LedgerDict)
         action = prog.action(rule.action_id)
         return sevalAction(action, actparam_store, False, core)
@@ -449,10 +453,16 @@ def symbolic_execution(prog:L4Contract):
 
         elif isinstance(qp, ActionRuleParamsConstraintPath):
             assert isinstance(qp.core.state, LedgerDict)
+            # print("z3 query", qp.core.path_constraint)
             checkres = check(qp.core.path_constraint)
+            # invalid
+            # syntax( < string >, line
+            # 1)
             if checkres == z3.sat:
+                print("sat:", qp.core.path_constraint)
                 return sevalRuleIgnoreGuardAndParamConstraints(qp.rule, qp.action_params, qp.core)
             elif checkres == z3.unsat:
+                print("unsat:", qp.core.path_constraint)
                 return SEvalRVInconsistent("ActionRuleParamsConstraintPath query unsat")
 
         elif isinstance(qp, AssertionPath):
@@ -488,15 +498,21 @@ def symbolic_execution(prog:L4Contract):
     contractParams = OneUseFrozenDict[str,str](for_contractParams)
 
     envvars: Store = Store({
-        "last_event_td" : 0,
-        "last_situation_td": 0
+        # "last_event_td" : 'td_0',
+        # "last_situation_td": 'td_0'
+        "last_event_td": name2symbolicvar('td_0',"TimeDelta"),
+        "last_situation_td": name2symbolicvar('td_0',"TimeDelta")
     })
+    pathconstr = (name2symbolicvar('td_0','TimeDelta') == 0)
+
     startstate : Store = Store({})
     dec : StateVarDec
     for dec in prog.state_var_decs.values():
         if dec.initval:
-            startstate = startstate.set(dec.name, term2z3(dec.initval, None, None, CoreSymbExecState(z3.BoolVal(True), startstate, 0, envvars)))
-    startcore = CoreSymbExecState(z3.BoolVal(True), startstate, 0, envvars)
+            startstate = startstate.set(dec.name, term2z3(dec.initval, None, None, CoreSymbExecState(pathconstr, startstate, 0, envvars)))
+    startcore = CoreSymbExecState(pathconstr, startstate, 0, envvars)
 
     sevalSituation(prog.situation(prog.start_situation_id), startcore)
     pathChooser()
+
+todo_once("Keep time and other constraints separate, for debugging")

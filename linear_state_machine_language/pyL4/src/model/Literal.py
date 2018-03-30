@@ -8,6 +8,7 @@ from src.independent.typing_imports import *
 from src.model.Sort import Sort
 from src.model.Term import Term
 
+T = TypeVar('T')
 
 class Literal(Term):
     def __init__(self, lit:Any, coord:Optional[FileCoord] = None) -> None:

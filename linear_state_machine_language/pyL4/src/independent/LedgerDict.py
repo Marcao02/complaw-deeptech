@@ -32,20 +32,47 @@ class LedgerDict(Generic[K, V]):
         newchanges = ((k,v),self.changes)
         return LedgerDict._newLedgerDict(newchanges, newkeys)
 
+    @staticmethod
+    def _prunehelper(changes:LazyRecTuple, seen:Set[K]) -> LazyRecTuple:
+        if changes is None:
+            return None
+        else:
+            (key,val), rest = changes[0], changes[1]
+            if key not in seen:
+                seen.add(key)
+                return ((key,val), LedgerDict._prunehelper(rest,seen))
+            else:
+                return LedgerDict._prunehelper(rest,seen)
+
+    def prune(self):
+        pruned = LedgerDict._prunehelper(self.changes, set())
+        self.changes = pruned
+
     def __str__(self) -> str:
         if self.changes:
-            return str(self.changes)
+            # self.prune()
+            return str(self._prunehelper(self.changes,set()))
         else:
             return "empty LedgerDict"
 
     def __contains__(self, item) -> bool:
         return item in self.keys
 
-    def __getitem__(self,k:K) -> Optional[V]:
+    def __getitem__(self,k:K) -> V:
+        if not k in self.keys:
+            raise KeyError
+        else:
+            return get_no_key_test(self.changes,k)
+
+    def getmaybe(self,k:K) -> Optional[V]:
         if not k in self.keys:
             return None
         else:
             return get_no_key_test(self.changes,k)
+
+    def getmust(self,k:K) -> V:
+        assert k in self.keys
+        return cast(V,get_no_key_test(self.changes,k))
 
     def __iter__(self):
         return self.keys.__iter__()

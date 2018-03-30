@@ -58,6 +58,8 @@ def syntaxErrorX(expr: Optional[SExprOrStr], msg:Optional[str] = None) -> NoRetu
     else:
         raise SyntaxError((msg if msg else ""))
 
+T = TypeVar('T')
+
 class L4ContractConstructor(L4ContractConstructorInterface):
     def __init__(self, filename:str, verbose=True, flags:Optional[Dict[str,bool]] = None) -> None:
         self.top : L4Contract = L4Contract(filename)

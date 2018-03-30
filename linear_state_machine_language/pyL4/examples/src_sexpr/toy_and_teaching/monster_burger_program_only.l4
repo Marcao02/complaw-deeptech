@@ -2,7 +2,6 @@
 
 
 (Roles Challenger Restaurant)
-
 (TimeUnit m)
 
 (SortDefinitions
@@ -18,10 +17,17 @@
 
 (ContractParams
 	(MB_PRICE                     : Pos$    = 50)
-	(TIME_TO_EAT_BURGER           : PosTimeDelta = 1h)
-	(MAX_SERVE_DELAY              : PosTimeDelta = 20m)
-	(MAX_CLAIM_VERIFICATION_DELAY : PosTimeDelta = 10m)
-	(MAX_REFUND_DELAY             : PosTimeDelta = 10m)
+	; (TIME_TO_EAT_BURGER           : PosTimeDelta = 30m)
+	; (MAX_SERVE_DELAY              : PosTimeDelta = 20m)
+	; (MAX_CLAIM_VERIFICATION_DELAY : PosTimeDelta = 10m)
+	; (MAX_REFUND_DELAY             : PosTimeDelta = 10m)
+)
+
+(Definitions
+	(TIME_TO_EAT_BURGER           = 30m)
+	(MAX_SERVE_DELAY              = 20m)
+	(MAX_CLAIM_VERIFICATION_DELAY = 10m)
+	(MAX_REFUND_DELAY             = 10m)
 )
 
 (ProseContract
@@ -94,11 +100,11 @@
         (Next
             (timeConstraintsPartitionFuture ; LANG note: `timeConstraintsPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
 	            (Challenger may (AnnounceMBFinished) (when
-	            	and (last_situation_td < next_event_td)
+	            	and (last_situation_td < (next_event_td + 20m))
 	            		(next_event_td < challenge_endlimit_timestamp)))
 	            ;(Restaurant should (CheckCompletionClaim) (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
 	            (Restaurant may (CheckCompletionClaim) (when (challenge_endlimit_timestamp ≤ next_event_td) and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td))))
-	            (TimeToCheckCompletionExpires (when next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
+	            (TimeToCheckCompletionExpires (when next_event_td ≥ (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
             )
         )
 	)
@@ -112,7 +118,7 @@
 			(Next
 	            (timeConstraintsPartitionFuture
 		            (Restaurant may (CheckCompletionClaim) (when next_event_td < (last_situation_td + MAX_CLAIM_VERIFICATION_DELAY)))
-		            (TimeToCheckCompletionExpires (when next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td)))
+		            (TimeToCheckCompletionExpires (when next_event_td ≥ (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td)))
 	            )
 	        )
 		)
@@ -136,7 +142,7 @@
 			(Next
 			    (Restaurant may (VerifyCompletionClaim) immediately)
 			    (Restaurant may (RejectCompletionClaim) immediately)
-			    (Breach_Restaurant (when next_event_td == (last_situation_td + 1m) ))
+			    (Breach_Restaurant (when next_event_td ≥ (last_situation_td + 1m) ))
 			)
 		)
 	)

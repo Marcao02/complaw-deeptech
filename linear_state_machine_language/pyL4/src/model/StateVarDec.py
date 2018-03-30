@@ -6,6 +6,7 @@ from src.constants_and_defined_types import StateVarId
 from src.model.Term import Term
 from src.model.Sort import Sort
 
+T = TypeVar('T')
 
 class StateVarDec(NamedTuple):
     name: StateVarId

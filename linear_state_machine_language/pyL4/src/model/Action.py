@@ -13,6 +13,8 @@ from src.model.Sort import Sort
 from src.model.Term import Term
 
 
+T = TypeVar('T')
+
 class Action:
     def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id

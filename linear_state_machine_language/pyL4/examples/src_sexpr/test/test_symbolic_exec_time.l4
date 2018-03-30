@@ -1,0 +1,27 @@
+(TimeUnit m)
+
+(FormalContract "test symbolic exec time"
+	(StartSituation Ongoing)
+
+	(Situation Ongoing
+		(Next
+			(DoIt immediately)
+			; which is short for:
+			; (DoIt (when next_event_td == last_situation_td))
+
+		)
+	)
+
+	(Action DoIt
+		(FollowingSituation
+			(DoIt (when (and
+				(next_event_td > last_situation_td)
+				(next_event_td < 5m) )
+			))
+
+			(Done (when next_event_td ≥ 5m))
+		)
+	)
+
+	(Action Done (TransitionsTo Fulfilled) )
+)

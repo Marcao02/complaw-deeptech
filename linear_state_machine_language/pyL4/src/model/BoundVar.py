@@ -17,6 +17,8 @@ def primed(s:StateVarId) -> StateVarId:
     return s + "'" # type:ignore
 
 
+T = TypeVar('T')
+
 class BoundVar(Term):
     def __init__(self, coord: Optional[FileCoord] = None) -> None:
         super().__init__(coord)

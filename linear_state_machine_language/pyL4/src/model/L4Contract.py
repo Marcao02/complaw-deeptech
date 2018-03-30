@@ -19,6 +19,7 @@ from src.model.Situation import Situation
 from src.model.Sort import Sort
 
 S = TypeVar('S')
+T = TypeVar('T')
 
 class L4Contract:
     def __init__(self, filename:str) -> None:

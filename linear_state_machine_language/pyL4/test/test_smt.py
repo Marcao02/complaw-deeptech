@@ -90,22 +90,27 @@ def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
 
 # so can run it as a library too, which respects exceptions
 def main(examples:Dict[str,L4Contract], verbose=True):
-    for examplekey in examples:
-        if examplekey in EXAMPLES_TO_USE:
-            prog = examples[examplekey]
-            outfilepath = "examples/out_smt/" + prog.filename[:-2] + "z3"
-            smt_test(prog, outfilepath, verbose=verbose)
+    # for examplekey in examples:
+    #     if examplekey in EXAMPLES_TO_USE:
+    #         prog = examples[examplekey]
+    #         outfilepath = "examples/out_smt/" + prog.filename[:-2] + "z3"
+    #         smt_test(prog, outfilepath, verbose=verbose)
 
-    # prog = examples['toy_and_teaching/monster_burger_program_only.l4']
-    # prog = examples['toy_and_teaching/test_local_vars.l4']
+
     se_tests = [
-        examples['toy_and_teaching/test_symbolic_exec_halting_easiest.l4'],
-        examples['toy_and_teaching/test_symbolic_exec_halting.l4'],
-        examples['toy_and_teaching/test_symbolic_exec_ifelse_halting_split.l4'],
-        examples['toy_and_teaching/test_symbolic_exec_ifelse_halting.l4'],
-        examples['toy_and_teaching/test_symbolic_exec_halting_harder.l4']
+        # examples['test/test_local_vars.l4'],
+        # examples['test/test_symbolic_exec_halting_easiest.l4'],
+        # examples['test/test_symbolic_exec_halting.l4'],
+        # examples['test/test_symbolic_exec_ifelse_halting_split.l4'],
+        # examples['test/test_symbolic_exec_ifelse_halting.l4'],
+        # examples['test/test_symbolic_exec_halting_harder.l4'],
+        examples['test/test_symbolic_exec_time.l4']
+        # examples['toy_and_teaching/monster_burger_program_only.l4']
     ]
     for prog in se_tests:
+        print("symbolic eval for " + prog.filename)
+        eliminate_local_vars(prog)
+        eliminate_ifthenelse(prog)
         symbolic_execution(prog)
 
 def cli(sys_argv:List[str]):

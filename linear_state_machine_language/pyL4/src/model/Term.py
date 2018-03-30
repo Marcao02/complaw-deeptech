@@ -6,6 +6,7 @@ from src.independent.FileCoord import FileCoord
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
     EXEC_ENV_VARIABLES
 
+T = TypeVar('T')
 
 class Term:
     def __init__(self, coord: Optional[FileCoord] = None) -> None:

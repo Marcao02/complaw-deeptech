@@ -27,6 +27,8 @@ def assert_assume(e1:OutType,e2:OutType) -> OutType:
 
 # place holder for if we introduce an immutable dictionary type later
 FrozenDict = Dict
+T1 = TypeVar('T1')
+T2 = TypeVar('T2')
 def frozendict(d:Dict[T1,T2]) -> FrozenDict[T1,T2]:
     return d
 

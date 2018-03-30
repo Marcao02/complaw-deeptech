@@ -35,8 +35,9 @@ SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
     "Fraction(0,1]":"Real",
     "Fraction[0,1]":"Real",
     "PosReal":"Real",
-    "TimeDelta":"Real",
-    "PosTimeDelta":"Real",
+
+    "TimeDelta":"Int",
+    "PosTimeDelta":"Int",
 
     "ShareCnt": "Int",
     "PosShareCnt": "Int",

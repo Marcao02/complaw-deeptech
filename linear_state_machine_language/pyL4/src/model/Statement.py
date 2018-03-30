@@ -8,6 +8,7 @@ from src.model.Sort import Sort
 from src.model.Term import Term
 
 Block = List['Statement']
+T = TypeVar('T')
 
 def blocksubstForVar(b:Block, var:str, term:Term) -> Block:
     return [s.substForVar(var, term) for s in b]
