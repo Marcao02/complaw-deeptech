@@ -68,6 +68,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             if not action.state_transform:
                 action.state_transform = StateTransform([])
             action.state_transform.statements.append(statement)
+            statement.parent_block = action.state_transform.statements
 
     # ---------------------------------
     # Removing from action declarations
@@ -120,6 +121,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
         if not parent_action.state_transform:
             parent_action.state_transform = StateTransform([])
         parent_action.state_transform.statements.append(statement)
+        statement.parent_block = action.state_transform.statements
 
     # ----------------------------------------------
     # Removing from situation declarations

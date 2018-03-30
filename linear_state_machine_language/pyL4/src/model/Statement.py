@@ -20,6 +20,7 @@ def blocksubstForTerm(b:Block, toremove:Term, term:Term) -> Block:
 class Statement:
     def __init__(self):
         self.orig : Optional[Statement]
+        self.parent_block : Optional[Block] = None
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         raise NotImplementedError

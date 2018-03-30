@@ -27,7 +27,7 @@ from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.StateTransform import StateTransform
 from src.model.Statement import Statement, FVRequirement, \
-    LocalVarDec, IfElse, StateVarAssign
+    LocalVarDec, IfElse, StateVarAssign, Block
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_situation_id, derived_destination_id
@@ -652,18 +652,19 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif self._is_macro_app(statement_expr):
                 rv.extend(self._mk_statements([self.handle_apply_macro(statement_expr)], parent_action))
             else:
-                it = self._mk_statement(statement_expr, parent_action)
+                it = self._mk_statement(statement_expr, parent_action, rv)
                 rv.append(it)
 
             if isinstance(rv[-1],IfElse):
                 # print(rv[-1])
                 assert statement_expr == statement_exprs[-1], "For now (not too much work to lift this), " \
                                                               "(if Term Block else Block) can only appear as the last " \
-                                                              "statement in a Block."
+                                                              "statement in a Block." \
+                                                              "I don't remember if there's a reason for that besides for symbolic execution."
         return rv
 
-    def _mk_statement(self, statement_expr:SExpr, parent_action:Action) -> Statement:
-        assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None
+    def _mk_statement(self, statement_expr:SExpr, parent_action:Action, parent_block:Block) -> Statement:
+        assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None, statement_expr
         varname : str
         try:
             assert not self._is_anymacro_app(statement_expr)
@@ -671,7 +672,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if statement_expr[0] == 'conjecture' or statement_expr[0] == 'prove':
                 self.assertOrSyntaxError(len(statement_expr) == 2, statement_expr, "GlobalStateTransformConjecture expression should have length 2")
                 rhs = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
-                return FVRequirement(rhs)
+                rv = FVRequirement(rhs)
 
             elif statement_expr[0] == 'local':
                 self.assertOrSyntaxError(len(statement_expr) == 6, statement_expr, 'Local var dec should have form (local name : type = term) or := instead of =')
@@ -684,7 +685,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if varname in parent_action.local_vars:
                     self.syntaxError(statement_expr, "Redeclaration of local variable")
                 parent_action.local_vars[varname] = lvd
-                return lvd
+                rv = lvd
 
             elif statement_expr[0] == 'if':
                 test = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
@@ -694,7 +695,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError(statement_expr[3] == 'else', statement_expr), \
                 f"Expected {statement_expr} to have the form `(if TEST (BLOCK) else (BLOCK))`"
                 false_branch = self._mk_statements(statement_expr[4], parent_action)
-                return IfElse(test, true_branch, false_branch)
+                rv = IfElse(test, true_branch, false_branch)
 
             else:
                 self.assertOrSyntaxError(len(statement_expr) == 3, statement_expr,
@@ -716,7 +717,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 reduced : Statement
 
                 if statement_expr[1] == ':=' or statement_expr[1] == "=":
-                    return StateVarAssign(vardec, rhs)
+                    rv = StateVarAssign(vardec, rhs)
                 else:
                     assert statement_expr.coord is not None
                     var = self.top.new_state_var_ref(unprimed_name, statement_expr.coord())
@@ -730,7 +731,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     else:
                         raise Exception
                     reduced.orig = orig
-                    return reduced
+                    rv = reduced
+
+            rv.parent_block = parent_block
+            return rv
+
         except Exception as e:
             logging.error(f"Problem with {statement_expr}")
             raise e
