@@ -162,15 +162,16 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
 
     ('toy_and_teaching/monster_burger_program_only.l4', CompleteTrace({},(
         # start situation implicit
-        firstTSEvent('RequestCookMB', 'Challenger'),
-        nextTSEvent('ServeMB', 'Restaurant'),
-        nextTSEvent('AnnounceMBFinished', 'Challenger'),
-        nextTSEvent('CheckCompletionClaim', 'Restaurant'),
-        sameTSEvent('RejectCompletionClaim', 'Restaurant'),
-        sameTSEvent('EnterEatingMB', 'Env'),
-        nextTSEvent('AnnounceMBFinished','Challenger'),
-        nextTSEvent('CheckCompletionClaim', 'Restaurant'),
-        sameTSEvent('VerifyCompletionClaim', 'Restaurant')
+        event('RequestCookMB', 'Challenger',1),
+        event('ServeMB', 'Restaurant', 2),
+        # nextTSEvent('AnnounceMBFinished', 'Challenger'),
+        event('AnnounceMBFinished', 'Challenger', 8),
+        event('CheckCompletionClaim', 'Restaurant', 9),
+        event('RejectCompletionClaim', 'Restaurant', 9),
+        event('EnterEatingMB', 'Env', 9),
+        event('AnnounceMBFinished','Challenger',15),
+        event('CheckCompletionClaim', 'Restaurant',15),
+        event('VerifyCompletionClaim', 'Restaurant',15)
         ), FULFILLED_SITUATION_LABEL)
      ),
 )

@@ -794,6 +794,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return FnApp(x,[], parent_SExpr.coord() if parent_SExpr else None)
 
             if x in TIME_CONSTRAINT_KEYWORDS:
+                assert x != "no_time_constraint"
                 if x == "immediately":
                     #  SExpr(['==', 'next_event_td',
                     #                   SExpr(['+', "last_situation_td", "1" + timeunit], sexpr2.line,

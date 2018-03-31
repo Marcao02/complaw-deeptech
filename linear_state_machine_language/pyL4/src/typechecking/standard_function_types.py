@@ -218,6 +218,7 @@ overloaded_types_data : FnTypesData = [
 
         aafntype(NonnegReal2, Bool),
         aafntype(Nat1, Bool),
+        aafntype(Ratio(NonnegReal2, PosInt1), Bool),
 
         )
      ),
