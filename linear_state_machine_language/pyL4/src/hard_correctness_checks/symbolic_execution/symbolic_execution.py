@@ -41,12 +41,6 @@ Store = LedgerDict[str,Z3Term]
 # Intended to be created once, used for reading, and then discarded. A python dict with write ops disabled.
 OneUseStore = OneUseFrozenDict[str, Z3Term]
 
-def name2actparam_symbolic_var(name:str,t:int,sort:L4Sort) -> Z3Term:
-    return name2symbolicvar(name + "_" + str(t), sort)
-
-def name2initstateval_symbolic_var(name:str,sort:L4Sort) -> Z3Term:
-    return name2symbolicvar(name,sort)
-
 class CoreSymbExecState(NamedTuple):
     # these things are always defined
     path_constraint: Z3Term
@@ -237,7 +231,7 @@ def symbolic_execution(prog:L4Contract):
         if TRACE:
             state = state.set(f"action_{t}", a.action_id)
             # print(f"sevalAction {a.action_id} ; {state} ; {t}; {envvars} ; {skip_statetransform}")
-            print("Action seq (reversed):", reversed(getActionSeq(state.changes)))
+            print("Action seq (reversed):", list(reversed(getActionSeq(state.changes))))
 
         envvars = envvars.set("last_event_td", envvars["next_event_td"])
         envvars = envvars.set("next_event_td", None)
@@ -385,10 +379,11 @@ def symbolic_execution(prog:L4Contract):
                 action.param_name_to_ind[actparam_name]] for actparam_name in action.param_names}
             actparam_store = OneUseStore({actparam_name: term2z3(d[actparam_name], state, None, core) for actparam_name in d})
         else:
-            actparam_store = OneUseStore({actparam_name: name2actparam_symbolic_var(actparam_name,t,action.param_sorts_by_name[actparam_name]) for actparam_name in action.param_names})
+            actparam_store = OneUseStore({actparam_name:
+                name2actparam_symbolic_var(actparam_name,t,action.param_sorts_by_name[actparam_name],sz3) for actparam_name in action.param_names})
 
         # SETTING next_event_td
-        envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t}",'TimeDelta'))
+        envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t}",'TimeDelta',sz3))
         if t > 0:
             pathconstr = z3and(name2symbolicvar(f"td_{t-1}",'TimeDelta') <= name2symbolicvar(f"td_{t}",'TimeDelta'), pathconstr)
 
@@ -419,6 +414,8 @@ def symbolic_execution(prog:L4Contract):
         sz3.push()
         sz3.add(formula)
         rv = sz3.check()
+        if rv == z3.unknown:
+            print("Reason unknown:", sz3.reason_unknown())
         sz3.pop()
         return rv
 
@@ -475,16 +472,22 @@ def symbolic_execution(prog:L4Contract):
             if TRACE:
                 print(f"UNKNOWN: {qp}")
             addTimeoutQueryPath(qp)
-            print("Theorem prover gave up on this query:\n\n", qp.core.path_constraint)
-            print("reason:", sz3.reason_unknown())
-            raise NotImplementedError("don't want to be dealing with timeouts till working with easy examples")
+            simplified = z3.simplify(qp.core.path_constraint)
+            print("Theorem prover gave up on this (now simplified) query:\n\n", simplified)
+            # sz3.push()
+            # sz3.add(simplified)
+            # print("Try again:",sz3.check(simplified), sz3.reason_unknown())
+            # sz3.pop()
+
+            return SEvalRVTimeout(str(qp.core.path_constraint))
+            # raise NotImplementedError("don't want to be dealing with timeouts till working with easy examples")
 
     def pathChooser():
 
         while len(queryPaths) > 0:
             qpath = takeQueryPath()
             # print("paths: ", len(queryPaths), qpath)
-            print("#paths: ", len(queryPaths))
+            print("#paths: ", len(queryPaths), len(timedoutQueryPaths))
             # this call will add paths to queryPaths:
             res = query(qpath)
             if isinstance(res, SEvalRVTimeout):
@@ -495,13 +498,13 @@ def symbolic_execution(prog:L4Contract):
 
     for_contractParams : Dict[str,str] = dict()
     for paramname,dec in prog.contract_params.items():
-        for_contractParams[paramname] = name2initstateval_symbolic_var(paramname, dec.sort)
+        for_contractParams[paramname] = name2initstateval_symbolic_var(paramname, dec.sort, sz3)
     contractParams = OneUseFrozenDict[str,str](for_contractParams)
 
     envvars: Store = Store({
         # "last_event_td" : 'td_0',
         # "last_situation_td": 'td_0'
-        "last_event_td": name2symbolicvar('td_0',"TimeDelta"),
+        "last_event_td": name2symbolicvar('td_0',"TimeDelta",sz3),
         "last_situation_td": name2symbolicvar('td_0',"TimeDelta")
     })
     pathconstr = (name2symbolicvar('td_0','TimeDelta') == 0)

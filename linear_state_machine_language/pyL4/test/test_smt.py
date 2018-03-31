@@ -99,14 +99,17 @@ def main(examples:Dict[str,L4Contract], verbose=True):
 
     se_tests = [
         examples['serious/SAFE_mfn.l4'],
-        examples['test/test_local_vars.l4'],
-        examples['test/test_symbolic_exec_halting_easiest.l4'],
-        examples['test/test_symbolic_exec_halting.l4'],
-        examples['test/test_symbolic_exec_ifelse_halting_split.l4'],
-        examples['test/test_symbolic_exec_ifelse_halting.l4'],
-        examples['test/test_symbolic_exec_halting_harder.l4'],
-        examples['test/test_symbolic_exec_time.l4'],
-        examples['toy_and_teaching/monster_burger_program_only.l4']
+        # examples['serious/SAFE_cap.l4'],
+        # examples['serious/SAFE_discount.l4'],
+        # examples['serious/SAFE_cap_discount.l4'],
+        # examples['test/test_local_vars.l4'],
+        # examples['test/test_symbolic_exec_halting_easiest.l4'],
+        # examples['test/test_symbolic_exec_halting.l4'],
+        # examples['test/test_symbolic_exec_ifelse_halting_split.l4'],
+        # examples['test/test_symbolic_exec_ifelse_halting.l4'],
+        # examples['test/test_symbolic_exec_halting_harder.l4'],
+        # examples['test/test_symbolic_exec_time.l4'],
+        # examples['toy_and_teaching/monster_burger_program_only.l4']
 
     ]
     for prog in se_tests:

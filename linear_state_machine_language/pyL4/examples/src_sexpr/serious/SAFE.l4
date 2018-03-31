@@ -24,19 +24,31 @@
 ; 	HAS_DISCOUNT
 ; )
 
+(Macro setmin (thevar term1 term2)
+	(if (term1 < term2)
+		(
+			(thevar = term1)
+		)
+	else (
+			(thevar = term2)
+		)
+	)
+)
+
 (BlockMacro set_conversion_price (company_capitalization company_valuation)
 	(ifflag HAS_CAP (
 		(ifflag HAS_DISCOUNT (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
 			(cap_price' = (VALUATION_CAP / company_capitalization))
 			(discount_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
-			(conversion_price' = (min cap_price' discount_price'))
+			(setmin (conversion_price' cap_price' discount_price'))
+			; (conversion_price' = (min cap_price' discount_price'))
 
 		)
 		else (
 			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
 			(cap_price' = (VALUATION_CAP / company_capitalization))
-			(conversion_price' = (min cap_price' undiscounted_price_per_share_standard_preferred_stock'))
+			(setmin (conversion_price' cap_price' undiscounted_price_per_share_standard_preferred_stock'))
 		))
 	)
 	else (
@@ -254,10 +266,9 @@
 	(Action (TransferCash_L (total_investments_of_cashout_investors : Pos$)) (AllowedSubjects Company)
 		(StateTransform
 			(investor_percent_of_cashout_investor_investments' = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
-			(liq_cashout' = (min
-				cash_currently_unconverted
-				(company_cash * investor_percent_of_cashout_investor_investments')
-			))
+			(setmin (liq_cashout' cash_currently_unconverted
+							(company_cash * investor_percent_of_cashout_investor_investments'))
+			)
 			(investor_cash' += liq_cashout')
 			; (company_cash' = (check $ (company_cash - liq_cashout')))
 		)
@@ -293,10 +304,10 @@
 						    (investor_percent_of_dissolving_investor_investments : "Fraction(0,1]"))
 		(AllowedSubjects Company)
 		(StateTransform
-			(dis_cashout' = (min
-				PURCHASE_AMOUNT
-				(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
-			))
+			(setmin (dis_cashout'
+							PURCHASE_AMOUNT
+							(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
+			)
 			(investor_cash' = dis_cashout')
 		)
 

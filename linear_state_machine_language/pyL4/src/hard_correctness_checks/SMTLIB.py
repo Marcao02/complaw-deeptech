@@ -1,5 +1,6 @@
 from typing import NewType
 
+from independent.util import todo_once
 from src.independent.util_for_str import mapjoin
 from src.constants_and_defined_types import ActionId
 from src.model.Sort import Sort, SortOpApp
@@ -50,9 +51,9 @@ SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
     SortOpApp("Tuple",("Nat","Nat")) : "NatNat"
 
 }
-
+todo_once("changed TimeDelta sort pred to ≥ 0 from > 0. Did it break anything?")
 SORT_TO_PRED : Dict[str,Callable[[str], SMTExpr]]= {
-    "TimeDelta": lambda x: fnapp(">", x, 0),
+    "TimeDelta": lambda x: fnapp(">=", x, 0),
     "$": lambda x: fnapp(">=", x, 0),
     "Pos$": lambda x: fnapp(">", x, 0),
     "PosReal": lambda x: fnapp(">", x, 0),

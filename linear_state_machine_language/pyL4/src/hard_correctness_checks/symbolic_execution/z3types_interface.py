@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import NewType
-from z3 import z3, z3num # type:ignore
+from z3 import z3, z3num, Solver  # type:ignore
 
 from src.independent.util import todo_once
 from src.hard_correctness_checks.SMTLIB import SORT_TO_SMTLIB_PRIM_TYPE
@@ -35,6 +35,21 @@ todo_once("INTERP OF ROUND/ IS A LIE!")
 z3interp["round/"] = lambda x,y: x / y
 z3interp["floor/"] = lambda x,y: x / y
 
+SORT_TO_PRED : Dict[str,Callable[[any], Z3Term]]= {
+    "TimeDelta": lambda x: x >= 0,
+    "$": lambda x: x >= 0,
+    "Pos$": lambda x: x > 0,
+    "PosReal": lambda x: x > 0,
+    "ShareCnt": lambda x: x >= 0,
+    "Nat": lambda x: x >= 0,
+    "PosShareCnt": lambda x: x > 0,
+    "SharePrice": lambda x: x >= 0,
+    "Fraction[0,1)": lambda x: z3and( x >= 0, x < 1 ),
+    "Fraction[0,1]": lambda x: z3and( x >= 0, x <= 1 ),
+    "Fraction(0,1]": lambda x: z3and( x > 0, x <= 1 ),
+    "Fraction(0,1)": lambda x: z3and( x > 0, x < 1 )
+}
+
 todo_once("replace unicode symbols with ascii in AST")
 
 def primValToZ3(val:Union[bool, int, float]) -> Z3Term:
@@ -48,27 +63,41 @@ def primValToZ3(val:Union[bool, int, float]) -> Z3Term:
 
 def timedeltaToZ3(val:timedelta, prog_timeunit:str) -> Z3Term:
     if prog_timeunit == "m":
-        return z3.RealVal( val.total_seconds / 60 ) # type:ignore
+        return z3.RealVal( val.total_seconds() / 60 ) # type:ignore
     elif prog_timeunit == "h":
-        return z3.RealVal( val.total_seconds / (60*60) )
+        return z3.RealVal( val.total_seconds() / (60*60) )
     elif prog_timeunit == "d":
         return z3.RealVal( val.days )
     elif prog_timeunit == "s":
-        return z3.RealVal( val.total_seconds )
+        return z3.RealVal( val.total_seconds() )
     else:
         raise ValueError
 
 
 
-def name2symbolicvar(name:str,sort:L4Sort) -> Z3Term:
+def name2symbolicvar(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
     smtsort = SORT_TO_SMTLIB_PRIM_TYPE[sort]
     if smtsort == "Int":
-        return z3.Int(name)  # type:ignore
+        rv = z3.Int(name)  # type:ignore
     elif smtsort == "Real":
-        return z3.Real(name)  # type:ignore
+        rv = z3.Real(name)  # type:ignore
     elif smtsort == "Bool":
-        return z3.Bool(name)  # type:ignore
-    raise NotImplementedError(f"SMT sort {smtsort} unsupported")
+        rv = z3.Bool(name)  # type:ignore
+    else:
+        raise NotImplementedError(f"SMT sort {smtsort} unsupported")
+    if sz3:
+        if sort in SORT_TO_PRED:
+            sz3.add(SORT_TO_PRED[sort](rv))
+        else:
+            print(f"Sort {sort} not in SORT_TO_PRED")
+    return rv
+
+def name2actparam_symbolic_var(name:str,t:int,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
+    return name2symbolicvar(name + "_" + str(t), sort,sz3)
+
+def name2initstateval_symbolic_var(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
+    return name2symbolicvar(name,sort,sz3)
+
 
 
 def z3termPrettyPrint(_term:Z3Term) -> str:
