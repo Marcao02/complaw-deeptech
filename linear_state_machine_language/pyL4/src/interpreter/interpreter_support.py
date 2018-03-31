@@ -103,8 +103,8 @@ FN_SYMB_INTERP = {
 }
 
 def event_to_action_str(event:Event):
-    if event.params_by_abap_name:
-        params_str = ", ".join([f"{key}: {event.params_by_abap_name[key]}" for key in event.params_by_abap_name.keys()])
+    if event.actionparam_subst:
+        params_str = ", ".join([f"{key}: {event.actionparam_subst[key]}" for key in event.actionparam_subst.keys()])
         return f"{event.action_id}({params_str})"
     else:
         return f"{event.action_id}"

@@ -18,7 +18,7 @@ class ActionRule:
     def __init__(self,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[RuleBoundActionParamId]],
+                 ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
         self.role_id = role_id
         self.action_id = action_id
@@ -26,10 +26,10 @@ class ActionRule:
         self.time_constraint: Optional[Term] = None
         self.where_clause: Optional[Term] = None
 
-        self.arg_vars_bound_by_rule = args
-        self.arg_vars_name_to_ind : Optional[Dict[str,int]] = \
-            {self.arg_vars_bound_by_rule[i]:i for i in range(len(self.arg_vars_bound_by_rule))} \
-            if self.arg_vars_bound_by_rule else None
+        self.ruleparam_names = ruleparam_names
+        self.ruleparam_to_ind : Optional[Dict[str, int]] = \
+            {self.ruleparam_names[i]:i for i in range(len(self.ruleparam_names))} \
+            if self.ruleparam_names else None
         self.fixed_args: Optional[List[Term]] = None
 
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
@@ -73,7 +73,7 @@ class ActionRule:
         return prog.action(self.action_id) # type:ignore
 
     def rule_varname_to_sort(self, prog:'L4Contract', name) -> 'Sort': #type:ignore
-        return self.action_object(prog).param_sort(self.arg_vars_name_to_ind[name]) #type:ignore
+        return self.action_object(prog).param_sort(self.ruleparam_to_ind[name]) #type:ignore
 
     def __str__(self) -> str:
         return self.toStr(0)
@@ -98,11 +98,11 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv += indent(indent_level) + f"{ar.role_id} {ar.deontic_keyword} {ar.action_id}"
 
     if fixed_param_vals:
-        assert not ar.arg_vars_bound_by_rule
+        assert not ar.ruleparam_names
         rv += f"({mapjoin(str , fixed_param_vals, ', ')})"
-    elif ar.arg_vars_bound_by_rule:
+    elif ar.ruleparam_names:
         assert not ar.fixed_args
-        rv += f"({mapjoin(str , ar.arg_vars_bound_by_rule, ', ')})"
+        rv += f"({mapjoin(str , ar.ruleparam_names, ', ')})"
     elif ar.fixed_args:
         rv += f"({mapjoin(str , ar.fixed_args, ', ')})"
 
@@ -122,10 +122,10 @@ class PartyFutureActionRule(ActionRule):
                  src_action_id: ActionId,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[RuleBoundActionParamId]],
+                 ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term],
                  deontic_keyword: DeonticKeyword) -> None:
-        super().__init__(role_id, action_id, args, entrance_enabled_guard)
+        super().__init__(role_id, action_id, ruleparam_names, entrance_enabled_guard)
         self.src_action_id = src_action_id
         self.deontic_keyword = deontic_keyword
 
@@ -139,9 +139,9 @@ class NextActionRule(ActionRule):
                  src_id: SituationId,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[RuleBoundActionParamId]],
+                 ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
-        super().__init__(role_id, action_id, args, entrance_enabled_guard)
+        super().__init__(role_id, action_id, ruleparam_names, entrance_enabled_guard)
         self.time_constraint : Optional[Term]
         self.src_id = src_id
 
@@ -150,10 +150,10 @@ class PartyNextActionRule(NextActionRule):
                  src_id: SituationId,
                  role_id: RoleId,
                  action_id: ActionId,
-                 args: Optional[List[RuleBoundActionParamId]],
+                 ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term],
                  deontic_keyword: DeonticKeyword) -> None:
-        super().__init__(src_id, role_id, action_id, args, entrance_enabled_guard)
+        super().__init__(src_id, role_id, action_id, ruleparam_names, entrance_enabled_guard)
 
         self.deontic_keyword = deontic_keyword
 
@@ -165,9 +165,9 @@ class EnvNextActionRule(NextActionRule):
     def __init__(self,
                  src_id: SituationId,
                  action_id: ActionId,
-                 args: Optional[List[RuleBoundActionParamId]],
+                 ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
-        super().__init__(src_id, ENV_ROLE, action_id, args, entrance_enabled_guard)
+        super().__init__(src_id, ENV_ROLE, action_id, ruleparam_names, entrance_enabled_guard)
 
     def toStr(self, i:int) -> str:
         rv : str = ""
@@ -179,9 +179,9 @@ class EnvNextActionRule(NextActionRule):
         assert self.role_id == ENV_ROLE
         rv += indent(indent_level) + self.action_id
 
-        if self.arg_vars_bound_by_rule:
+        if self.ruleparam_names:
             assert not self.fixed_args
-            rv += f"({mapjoin(str , self.arg_vars_bound_by_rule, ', ')})"
+            rv += f"({mapjoin(str , self.ruleparam_names, ', ')})"
         elif self.fixed_args:
             rv += f"({mapjoin(str , self.fixed_args, ', ')})"
 

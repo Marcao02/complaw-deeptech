@@ -405,11 +405,11 @@ def symbolic_execution(prog:L4Contract):
             newcore = CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra)
             wc : Z3Term = Z3TRUE
             ruleparam_store : Optional[OneUseFrozenDict] = None
-            if rule.where_clause and rule.arg_vars_name_to_ind:
+            if rule.where_clause and rule.ruleparam_to_ind:
                 ruleparam_store = OneUseStore({ruleparam_name:
                                                name2actparam_symbolic_var(ruleparam_name, t,
                                                                           action.param_sort(ruleparam_ind), sz3) \
-                                           for (ruleparam_name, ruleparam_ind) in rule.arg_vars_name_to_ind.items()})
+                                               for (ruleparam_name, ruleparam_ind) in rule.ruleparam_to_ind.items()})
                 wc = term2z3(rule.where_clause, None, ruleparam_store, newcore)
             tc : Z3Term = Z3TRUE
             if rule.time_constraint and rule.time_constraint != "no_time_constraint":
@@ -554,5 +554,3 @@ def symbolic_execution(prog:L4Contract):
 
     sevalSituation(prog.situation(prog.start_situation_id), startcore)
     pathChooser()
-
-todo_once("Keep time and other constraints separate, for debugging")

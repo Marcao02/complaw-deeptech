@@ -2,8 +2,8 @@ from typing import List, Union, cast
 
 from src.model.Sort import SortOpApp, Sort
 from src.independent.util import todo_once, castid
-from src.constants_and_defined_types import DeonticKeyword, RoleId, ActionId, StateVarId, RuleBoundActionParamId, \
-    ENV_ROLE, ActionBoundActionParamId
+from src.constants_and_defined_types import DeonticKeyword, RoleId, ActionId, StateVarId, RuleParamId, \
+    ENV_ROLE, ActionParamId
 from src.model.ActionRule import PartyNextActionRule
 from src.model.BoundVar import RuleBoundActionParam, ActionBoundActionParam
 from src.model.StateTransform import StateTransform
@@ -56,7 +56,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
 
             # now the statetransform will need to check that both the role and
             # the action params matchTerm. this requires a role environment variable.
-            params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.param_names[i]), action, i) for i in
+            params = [ActionBoundActionParam(castid(ActionParamId, action.param_names[i]), action, i) for i in
                       range(len(action.param_names))]
             ifelse = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
                                [StateVarAssign(
@@ -152,19 +152,19 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             rule : PartyNextActionRule
             if kw == 'may-later':
                 rule = PartyNextActionRule(sit.situation_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'may'))
-                params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in range(len(action.param_names))]
+                params = [RuleBoundActionParam(castid(RuleParamId, "?" + str(i)), rule, i) for i in range(len(action.param_names))]
                 rule.time_constraint =  FnApp("tdGEQ",
                                              [map_var,
                                               pack(params),
                                               FnApp('next_event_td',[])
                                              ])
                 rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
-                rule.arg_vars_bound_by_rule = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
+                rule.ruleparam_names = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sit.add_action_rule(rule)
             else:
                 assert kw == 'must-later'
                 # rule = PartyNextActionRule(sit.situation_id, rid, aid, [], None, 'may')
-                # params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
+                # params = [RuleBoundActionParam(castid(RuleParamId, "?" + str(i)), rule, i) for i in
                 #           range(len(action.params))]
                 # rule.time_constraint = FnApp("tdGEQ",
                 #                              [map_var,
@@ -176,7 +176,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                 # sit.add_future_action_rule(rule)
 
                 rule = PartyNextActionRule(sit.situation_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'quasi-responsibility'))
-                params = [RuleBoundActionParam(castid(RuleBoundActionParamId, "?" + str(i)), rule, i) for i in
+                params = [RuleBoundActionParam(castid(RuleParamId, "?" + str(i)), rule, i) for i in
                           range(len(action.param_names))]
                 rule.time_constraint = FnApp("tdGEQ",
                                              [map_var,
@@ -184,6 +184,6 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               FnApp('next_event_td', [])
                                               ])
                 rule.where_clause = FnApp('mapHas', [map_var, pack(params)])
-                rule.arg_vars_bound_by_rule = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
+                rule.ruleparam_names = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sit.add_action_rule(rule)
 

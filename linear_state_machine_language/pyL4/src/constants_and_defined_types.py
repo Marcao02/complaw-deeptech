@@ -18,21 +18,20 @@ SortId = NewType('SortId', str)
 SituationId = NewType('SituationId',str)
 DefinitionId = NewType('DefinitionId', str)
 ContractParamId = NewType('ContractParamId',str)
-ActionBoundActionParamId = NewType('ActionBoundActionParamId',str)
-RuleBoundActionParamId = NewType('RuleBoundActionParamId',str)
+ActionParamId = NewType('ActionParamId',str)
+RuleParamId = NewType('RuleParamId',str)
 
 ProseContract = Dict[ProseClauseId,str]
-ParamsDec = Dict[ActionBoundActionParamId, 'Sort']
+ParamsDec = Dict[ActionParamId, 'Sort']
 
 ContractParamSubst = Dict[ContractParamId,Data]
 GVarSubst = Dict[StateVarId, Data]
 LocalVarSubst = Dict[LocalVarId, Data]
 # ABAP = Action Bound Action Param
-ABAPNamedSubst = Dict[ActionBoundActionParamId, Data]
-RBAPNamedSubst = Dict[RuleBoundActionParamId, Data]
-AParamsSubst = List[Data]
-ABAPSubst = List[Data]
-RBAPSubst = List[Data]
+ActionParamSubst = Dict[ActionParamId, Data]
+RuleParamSubst = Dict[RuleParamId, Data]
+ActionParamSubstList = List[Data]
+RuleParamSubstList = List[Data]
 
 VARIABLE_MODIFIERS = {'writeonce', 'writes1', 'writeonly', 'writeatmostonce', 'writes≤1',
                       'writeoncemore', 'inconly', 'deconly',

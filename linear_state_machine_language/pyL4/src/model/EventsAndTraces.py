@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import NamedTuple, Optional, Any, Dict, Sequence
 
-from src.constants_and_defined_types import ActionId, RoleId, ABAPNamedSubst, \
-    AParamsSubst
+from src.constants_and_defined_types import ActionId, RoleId, ActionParamSubst, \
+    ActionParamSubstList
 
 
 class EventType(Enum):
@@ -18,8 +18,8 @@ class Event(NamedTuple):
     action_id: ActionId
     role_id: RoleId
     timestamp: int
-    params_by_abap_name: Optional[ABAPNamedSubst]
-    params: Optional[AParamsSubst]
+    actionparam_subst: Optional[ActionParamSubst]
+    actionparam_subst_list: Optional[ActionParamSubstList]
     type: EventType
 
 def breachSituationId(*role_ids:str):

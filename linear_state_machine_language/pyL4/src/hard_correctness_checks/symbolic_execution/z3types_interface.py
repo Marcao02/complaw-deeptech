@@ -72,7 +72,6 @@ SORT_TO_PRED = cast(Dict[str,Callable[[Any], Z3Term]], {
     "Fraction(0,1)": lambda x: conj(x > 0, x < 1)
 })
 
-todo_once("replace unicode symbols with ascii in AST")
 
 def primValToZ3(val:Union[bool, int, float]) -> Z3Term:
     if isinstance(val, bool):

@@ -564,7 +564,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             a.param_sorts_by_name = self._mk_action_params(params_sexpr)
             for name,sort in a.param_sorts_by_name.items():
                 self.top.register_sorted_name(name,sort)
-            a.param_names = [castid(ActionBoundActionParamId, y[0]) for y in params_sexpr]
+            a.param_names = [castid(ActionParamId, y[0]) for y in params_sexpr]
             a.param_name_to_ind = {a.param_names[i]: i for i in range(len(a.param_names))}
         for x in rest:
             def head(constant:str) -> bool:
@@ -639,7 +639,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         for pdec in parts:
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
             sort = self._mk_sort(pdec[2])
-            rv[castid(ActionBoundActionParamId,pdec[0])] = sort
+            rv[castid(ActionParamId,pdec[0])] = sort
             self.top.register_sorted_name(pdec[0],sort)
 
         return rv
@@ -847,18 +847,18 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             # print("parent_action_rule", parent_action_rule)
             # if x == 'order' and parent_action_rule:
             #     print("args", parent_action_rule.args)
-            if parent_action_rule and parent_action_rule.arg_vars_bound_by_rule and x in parent_action_rule.arg_vars_bound_by_rule:
+            if parent_action_rule and parent_action_rule.ruleparam_names and x in parent_action_rule.ruleparam_names:
                 assert parent_SExpr is not None and parent_SExpr.coord() is not None
-                assert parent_action_rule.arg_vars_name_to_ind is not None
-                return RuleBoundActionParam(cast(RuleBoundActionParamId, x), parent_action_rule,
-                                            parent_action_rule.arg_vars_name_to_ind[castid(RuleBoundActionParamId, x)],
+                assert parent_action_rule.ruleparam_to_ind is not None
+                return RuleBoundActionParam(cast(RuleParamId, x), parent_action_rule,
+                                            parent_action_rule.ruleparam_to_ind[castid(RuleParamId, x)],
                                             parent_SExpr.coord())
 
             if parent_action and x in parent_action.param_sorts_by_name:
                 assert parent_SExpr is not None and parent_SExpr.coord() is not None
                 assert parent_action.param_name_to_ind is not None
-                return ActionBoundActionParam(cast(ActionBoundActionParamId, x), parent_action,
-                                              parent_action.param_name_to_ind[castid(ActionBoundActionParamId,x)],
+                return ActionBoundActionParam(cast(ActionParamId, x), parent_action,
+                                              parent_action.param_name_to_ind[castid(ActionParamId,x)],
                                               parent_SExpr.coord())
 
             if x in self.top.definitions:
@@ -971,7 +971,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         role_id = castid(RoleId, expr[0])
         deontic_keyword = castid(DeonticKeyword, expr[1])
-        args: Optional[List[RuleBoundActionParamId]] = None
+        args: Optional[List[RuleParamId]] = None
         if isinstance(expr[2],str):
             action_id = castid(ActionId,expr[2])
             args = []
@@ -984,7 +984,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif args_part[0][0] == "?":
                 assert all([args_part[i][0] == "?" for i in range(len(args_part))]), \
                     "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
-                args = cast(List[RuleBoundActionParamId], args_part)
+                args = cast(List[RuleParamId], args_part)
 
         if not is_derived_trigger_id(action_id):
             self.referenced_nonderived_action_ids.add(action_id)
@@ -1017,26 +1017,26 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         deontic_keyword : Optional[str] = None
         role_id : RoleId
         action_id : ActionId
-        args : Optional[List[RuleBoundActionParamId]] = None
+        ruleparams : Optional[List[RuleParamId]] = None
         nar : NextActionRule
         if len(expr) == 2:
             if isinstance(expr[0],str):
                 action_id = castid(ActionId,expr[0])
-                args = []
+                ruleparams = []
             else:
                 action_id = castid(ActionId, (expr[0][0]))
-                args_part = expr[0].tillEnd(1)
-                if len(args_part) == 0:
-                    args = []
-                elif args_part[0][0] == "?":
-                    assert all([args_part[i][0] == "?" for i in range(len(args_part))]), \
+                ruleparams_part = expr[0].tillEnd(1)
+                if len(ruleparams_part) == 0:
+                    ruleparams = []
+                elif ruleparams_part[0][0] == "?":
+                    assert all([ruleparams_part[i][0] == "?" for i in range(len(ruleparams_part))]), \
                         "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
-                    args = cast(List[RuleBoundActionParamId], args_part)
+                    ruleparams = cast(List[RuleParamId], ruleparams_part)
 
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            nar = EnvNextActionRule(src_situation.situation_id, action_id, args, entrance_enabled_guard)
+            nar = EnvNextActionRule(src_situation.situation_id, action_id, ruleparams, entrance_enabled_guard)
             rem = expr.tillEnd(1)
 
         else:
@@ -1045,25 +1045,25 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             self.assertOrSyntaxError(deontic_keyword in DEONTIC_KEYWORDS, expr, deontic_keyword)
             if isinstance(expr[2],str):
                 action_id = castid(ActionId,expr[2])
-                args = []
+                ruleparams = []
             else:
                 action_id = castid(ActionId, (expr[2][0]))
-                args_part = expr[2].tillEnd(1)
-                if len(args_part) == 0:
-                    args = []
-                elif args_part[0][0] == "?":
-                    assert all([args_part[i][0] == "?" for i in range(len(args_part))]), \
+                ruleparams_part = expr[2].tillEnd(1)
+                if len(ruleparams_part) == 0:
+                    ruleparams = []
+                elif ruleparams_part[0][0] == "?":
+                    assert all([ruleparams_part[i][0] == "?" for i in range(len(ruleparams_part))]), \
                         "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
-                    args = cast(List[RuleBoundActionParamId], args_part)
+                    ruleparams = cast(List[RuleParamId], ruleparams_part)
 
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            nar = PartyNextActionRule(src_situation.situation_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+            nar = PartyNextActionRule(src_situation.situation_id, role_id, action_id, ruleparams, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 
-        if args is None:
-            nar.fixed_args = [self._mk_term(arg, src_situation, parent_action, nar, args_part) for arg in args_part]
+        if ruleparams is None:
+            nar.fixed_args = [self._mk_term(arg, src_situation, parent_action, nar, ruleparams_part) for arg in ruleparams_part]
 
         self._handle_optional_action_rule_parts(rem, nar, src_situation, parent_action)
         if deontic_keyword == "must" and nar.time_constraint:

@@ -7,7 +7,7 @@ from src.independent.util_for_dicts import hasNotNone
 from src.independent.util_for_dicts import dictInc
 from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
 from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
-    ContractParamId, SituationId, ABAPSubst, \
+    ContractParamId, SituationId, ActionParamSubstList, \
     Data, GVarSubst, ContractParamSubst
 from src.interpreter.interpreter_support import *
 from src.model.Action import Action
@@ -45,7 +45,7 @@ class ExecEnv:
 
         # following 2 change only in apply_action:
         self.last_or_current_situation_id: SituationId = prog.start_situation_id
-        self.last_appliedaction_params : Optional[ABAPSubst] = None
+        self.last_appliedaction_params : Optional[ActionParamSubstList] = None
         # following changes only in evalTrace
         self.cur_event : Optional[Event] = None
 
@@ -263,7 +263,7 @@ class ExecEnv:
         # so we blame the subject of the current event.
         if len(enabled_weak_obligs) == 0:
             return BreachResult([event.role_id],
-                                f"Role {event.role_id} attempted an unpermitted action {event.action_id}({event.params})")
+                                f"Role {event.role_id} attempted an unpermitted action {event.action_id}({event.actionparam_subst_list})")
             # contract_bug(f"No rules apply to the current event\n{event}.\n"
             #              "This is a contract bug that eventually will be ruled out statically.")
 
@@ -303,9 +303,9 @@ class ExecEnv:
         elif action_rule.where_clause:
             rv = chcast(bool,self.evalTerm(action_rule.where_clause))
         elif action_rule.fixed_args:
-            if self.cur_event.params:
+            if self.cur_event.actionparam_subst_list:
                 argvals = [self.evalTerm(arg) for arg in action_rule.fixed_args]
-                rv = all(argvals[i] == self.cur_event.params[i] for i in range(len(self.cur_event.params)))
+                rv = all(argvals[i] == self.cur_event.actionparam_subst_list[i] for i in range(len(self.cur_event.actionparam_subst_list)))
             else:
                 rv = len(action_rule.fixed_args) == 0
         else:
@@ -323,7 +323,7 @@ class ExecEnv:
             self.last_or_current_situation_id = to_breach_situation_id
             self.last_situation_entrance_delta = self.cur_event_delta()
             return
-        self.last_appliedaction_params = self.cur_event.params
+        self.last_appliedaction_params = self.cur_event.actionparam_subst_list
 
         if action.state_transform:
             self.evalCodeBlock(action.state_transform,verbose)
@@ -443,12 +443,12 @@ class ExecEnv:
             elif isinstance(term, ActionBoundActionParam):
                 assert (self.last_appliedaction_params is not None) and term.ind < len(self.last_appliedaction_params), \
                     f"Action-bound action parameter {term} (index {term.ind}) occurrence but only have " \
-                        f"{len(cast(ABAPSubst,self.last_appliedaction_params)) if self.last_appliedaction_params else 0} values supplied."
+                    f"{len(cast(ActionParamSubstList,self.last_appliedaction_params)) if self.last_appliedaction_params else 0} values supplied."
                 rv = self.last_appliedaction_params[term.ind]
 
             elif isinstance(term, RuleBoundActionParam):
-                assert self.cur_event and self.cur_event.params is not None, f"Expected current event {self.cur_event} to have an action parameter named {term}"
-                rv = self.cur_event.params[term.ind]
+                assert self.cur_event and self.cur_event.actionparam_subst_list is not None, f"Expected current event {self.cur_event} to have an action parameter named {term}"
+                rv = self.cur_event.actionparam_subst_list[term.ind]
 
             elif isinstance(term, SimpleTimeDeltaLit):
                 rv = term.lit

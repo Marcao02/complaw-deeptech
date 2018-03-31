@@ -2,7 +2,7 @@ from itertools import chain
 
 from src.model.EventsAndTraces import breachActionId, breachSituationId, interveneOnDelayId
 from src.independent.util import indent, castid
-from src.constants_and_defined_types import ActionBoundActionParamId, SituationId, ActionId, LOOP_KEYWORD, \
+from src.constants_and_defined_types import ActionParamId, SituationId, ActionId, LOOP_KEYWORD, \
     LocalVarId
 from src.independent.typing_imports import *
 from src.model.ActionRule import PartyFutureActionRule, ActionRule
@@ -35,12 +35,12 @@ class Action:
         self.futures : List[PartyFutureActionRule] = []
 
         self.param_sorts_by_name: ParamsDec = dict()  # str param id -> str sort id
-        self.param_names : List[ActionBoundActionParamId] = []
-        self.param_name_to_ind : Dict[ActionBoundActionParamId,int] = dict()
+        self.param_names : List[ActionParamId] = []
+        self.param_name_to_ind : Dict[ActionParamId,int] = dict()
 
     def param_sort(self, ind_or_name:Union[str,int]) -> Sort:
         if isinstance(ind_or_name,str):
-            return self.param_sorts_by_name[castid(ActionBoundActionParamId,ind_or_name)]
+            return self.param_sorts_by_name[castid(ActionParamId,ind_or_name)]
         if isinstance(ind_or_name,int):
             return self.param_sorts_by_name[self.param_names[ind_or_name]]
 
