@@ -778,7 +778,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         assert x != "no_time_constraint"
 
         if isinstance(x,str):
-            # if isprimed(x):
+            if x in UNICODE_TO_ASCII:
+                x = UNICODE_TO_ASCII[x]
             if x in EXEC_ENV_VARIABLES:
                 if x == "next_event_td":
                     self.assertOrSyntaxError(self._building_next_action_rule, parent_SExpr, "Can't use next_event_td when not in the scope of an action rule.")

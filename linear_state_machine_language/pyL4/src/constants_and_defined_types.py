@@ -41,6 +41,11 @@ VARIABLE_MODIFIERS = {'writeonce', 'writes1', 'writeonly', 'writeatmostonce', 'w
 # branchUnaffecting can be readable and writeable, but the variable cannot affect, directly or indirectly,
 # the sequence of event-states. We might later change this keyword to "validationOnly".
 
+UNICODE_TO_ASCII = {
+    '≤':'<=',
+    '≥':'>='
+}
+
 TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','tdGEQ', 'tdLT', 'tdmapHasItemExpiredBefore'}
 
 TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
