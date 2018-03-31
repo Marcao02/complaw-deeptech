@@ -196,7 +196,8 @@ def typecheck_prog(prog:L4Contract, verbose=True):
         msg2 = f"Typechecking contract param declarations"
         print(msg2 + "\n" + "-" * len(msg2))
     for contract_param_dec in prog.contract_params.values():
-        tc.typecheck_term(contract_param_dec.value_expr, contract_param_dec.sort)
+        if contract_param_dec.value_expr:
+            tc.typecheck_term(contract_param_dec.value_expr, contract_param_dec.sort)
 
     if verbose:
         msg2 = f"Typechecking state var declarations"

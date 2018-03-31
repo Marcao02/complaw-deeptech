@@ -27,7 +27,9 @@ class ActionRule:
         self.where_clause: Optional[Term] = None
 
         self.arg_vars_bound_by_rule = args
-        self.arg_vars_name_to_ind = {self.arg_vars_bound_by_rule[i]:i for i in range(len(self.arg_vars_bound_by_rule))} if self.arg_vars_bound_by_rule else None
+        self.arg_vars_name_to_ind : Optional[Dict[str,int]] = \
+            {self.arg_vars_bound_by_rule[i]:i for i in range(len(self.arg_vars_bound_by_rule))} \
+            if self.arg_vars_bound_by_rule else None
         self.fixed_args: Optional[List[Term]] = None
 
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:

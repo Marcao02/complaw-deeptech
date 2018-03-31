@@ -60,6 +60,15 @@ class L4Contract:
         self.dot_file_name: Optional[str] = None  # for input file to graphviz
         self.img_file_name: Optional[str] = None  # for graphviz output
 
+        self.all_sorted_names : Dict[str,Sort] = dict()
+
+    def register_sorted_name(self,name:str,sort:Sort):
+        if name in self.all_sorted_names:
+            assert sort == self.all_sorted_names[name], f"Every occurrence of the name {name} must have the same sort."\
+                                                        f"This makes it easier for you interact with the system, and " \
+                                                        f"easier for us to ensure correctness."
+        else:
+            self.all_sorted_names[name] = sort
 
 
     def nextaction_rules(self) -> Iterator[NextActionRule]:
@@ -134,7 +143,8 @@ class L4Contract:
         for situation in self.situations_iter():
             rviter = chain(rviter, situation.forEachTerm(f,rviter))
         for contract_param_dec in self.contract_params.values():
-            rviter = contract_param_dec.value_expr.forEachTerm(f, rviter)
+            if contract_param_dec.value_expr:
+                rviter = contract_param_dec.value_expr.forEachTerm(f, rviter)
         for gvardec in self.state_var_decs.values():
             if gvardec.initval:
                 rviter = gvardec.initval.forEachTerm(f,rviter)

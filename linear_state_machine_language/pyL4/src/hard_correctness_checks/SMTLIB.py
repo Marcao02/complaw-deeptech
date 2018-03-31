@@ -1,6 +1,6 @@
 from typing import NewType
 
-from independent.util import todo_once
+from src.independent.util import todo_once
 from src.independent.util_for_str import mapjoin
 from src.constants_and_defined_types import ActionId
 from src.model.Sort import Sort, SortOpApp

@@ -1,5 +1,5 @@
-import logging
 from datetime import datetime
+import logging
 
 from src.parse_to_model.sexpr_to_L4Contract import primed, isprimed, unprimed
 from src.independent.util import todo_once, chcast, contract_bug, castid

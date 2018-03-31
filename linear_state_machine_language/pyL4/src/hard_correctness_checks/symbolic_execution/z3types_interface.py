@@ -7,7 +7,11 @@ from src.hard_correctness_checks.SMTLIB import SORT_TO_SMTLIB_PRIM_TYPE
 from src.independent.typing_imports import *
 from src.model.Sort import Sort as L4Sort
 
-Z3Term = NewType('Z3Term',object)
+class Z3Term:
+    def decl(self,*args:Any) -> Any:
+        pass
+    def children(self,*args:Any) -> Any:
+        pass
 Z3TRUE = z3.BoolVal(True)
 Z3FALSE = z3.BoolVal(False)
 
@@ -24,14 +28,14 @@ def equals(arg1:Z3Term, arg2:Z3Term) -> Z3Term:
 def ite(a1:Z3Term, a2:Z3Term, a3:Z3Term) -> Z3Term:
     return z3.If(a1, a2, a3) # type:ignore
 def div(a1:Z3Term,a2:Z3Term) -> Z3Term:
-    return z3.ToInt(a1 / a2)
+    return z3.ToInt(a1 / a2) # type:ignore
 
 
 # def fnapp(symb:str, *args:SMTExpr) -> SMTExprNonatom_:
 #     return SMTExprNonatom(symb, args)
 
 
-z3interp : Any = dict()
+z3interp : Dict[str,Any] = dict()
 z3interp["<"] = lambda x,y: x < y
 z3interp[">"] = lambda x,y: x > y
 z3interp["≥"] = lambda x,y: x >= y
@@ -48,12 +52,12 @@ z3interp["even"] = lambda x: (x % 2) == 0
 z3interp["min"] = lambda x,y: ite(x < y, x, y)
 
 # a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0   (and floor(a/b) is integer division)
-z3interp["ceil/"] = lambda a,b: ite(z3.IsInt(a / b), div(a,b), div(a,b) + 1)
+z3interp["ceil/"] = lambda a,b: ite(z3.IsInt(a / b), div(a,b), div(a,b) + 1) # type:ignore
 z3interp["floor/"] = div
-z3interp["round/"] = lambda a,b: ite((a / b) - div(a,b) < 1/2, div(a,b), div(a,b) + 1)
+z3interp["round/"] = lambda a,b: ite((a / b) - div(a,b) < 1/2, div(a,b), div(a,b) + 1) # type:ignore
 
 
-SORT_TO_PRED = cast(Dict[str,Callable[[any], Z3Term]], {
+SORT_TO_PRED = cast(Dict[str,Callable[[Any], Z3Term]], {
     "TimeDelta": lambda x: x >= 0,
     "$": lambda x: x >= 0,
     "Pos$": lambda x: x > 0,
@@ -83,11 +87,11 @@ def timedeltaToZ3(val:timedelta, prog_timeunit:str) -> Z3Term:
     if prog_timeunit == "m":
         return z3.RealVal( val.total_seconds() / 60 ) # type:ignore
     elif prog_timeunit == "h":
-        return z3.RealVal( val.total_seconds() / (60*60) )
+        return z3.RealVal( val.total_seconds() / (60*60) ) # type:ignore
     elif prog_timeunit == "d":
-        return z3.RealVal( val.days )
+        return z3.RealVal( val.days )  # type:ignore
     elif prog_timeunit == "s":
-        return z3.RealVal( val.total_seconds() )
+        return z3.RealVal( val.total_seconds() )  # type:ignore
     else:
         raise ValueError
 
@@ -95,6 +99,7 @@ def timedeltaToZ3(val:timedelta, prog_timeunit:str) -> Z3Term:
 
 def name2symbolicvar(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
     smtsort = SORT_TO_SMTLIB_PRIM_TYPE[sort]
+    rv : Z3Term
     if smtsort == "Int":
         rv = z3.Int(name)  # type:ignore
     elif smtsort == "Real":
@@ -105,7 +110,7 @@ def name2symbolicvar(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Ter
         raise NotImplementedError(f"SMT sort {smtsort} unsupported")
     if sz3:
         if sort in SORT_TO_PRED:
-            sz3.add(SORT_TO_PRED[sort](rv))
+            sz3.add(SORT_TO_PRED[cast(str,sort)](rv))
         else:
             print(f"Sort {sort} not in SORT_TO_PRED")
     return rv
@@ -117,7 +122,7 @@ def name2actparam_symbolic_var(name:str,t:int,sort:L4Sort, sz3:Optional[Solver] 
 
 
 def z3termPrettyPrint(_term:Z3Term) -> str:
-    lst = []
+    lst : List[str] = []
 
     def helper(term:Z3Term):
         if term.decl().name() == "and":
@@ -129,12 +134,13 @@ def z3termPrettyPrint(_term:Z3Term) -> str:
     helper(_term)
     return f"And\n\t" + '\n\t'.join(lst)
 
-def flatten(lst:list):
-    rv = []
-    def helper(y:any):
+def flatten(lst:list) -> list:
+    rv : list = []
+    def helper(y:Any):
         if isinstance(y, list) or isinstance(y, tuple):
             for x in y:
                 helper(x)
         else:
             rv.append(y)
+    helper(lst)
     return rv

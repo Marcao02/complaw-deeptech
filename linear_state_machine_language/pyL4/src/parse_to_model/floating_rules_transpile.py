@@ -30,6 +30,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                                         FnApp('emptyTDMap', []), [])
     statement: Statement
     params: List[Term]
+    ifelse: IfElse
 
     def pack(_params:List[Term]):
         return FnApp('tuple',_params) if len(_params) > 1 else _params[0]
@@ -57,19 +58,19 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             # the action params matchTerm. this requires a role environment variable.
             params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.param_names[i]), action, i) for i in
                       range(len(action.param_names))]
-            statement2 : IfElse = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
+            ifelse = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
                                [StateVarAssign(
                                    map_dec,
                                    FnApp("mapDelete", [map_var,
                                                        pack(params) ])
                                )]
                                )
-            statement2.true_branch[0].grandparent_ifelse = statement2
+            ifelse.true_branch[0].grandparent_ifelse = ifelse
 
             if not action.state_transform:
                 action.state_transform = StateTransform([])
-            action.state_transform.statements.append(statement2)
-            statement2.parent_block = action.state_transform.statements
+            action.state_transform.statements.append(ifelse)
+            ifelse.parent_block = action.state_transform.statements
 
     # ---------------------------------
     # Removing from action declarations
@@ -102,8 +103,9 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                               )
         map_dec = prog.state_var_decs[map_name]
         map_var = prog.new_state_var_ref(map_name)
+        statement2 : Statement
         if far.entrance_enabled_guard:
-            statement : IfElse = IfElse(far.entrance_enabled_guard,
+            ifelse = IfElse(far.entrance_enabled_guard,
                           [StateVarAssign(
                               map_dec,
                               FnApp("mapSet",[map_var,
@@ -111,9 +113,10 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               timedelta_term])
                           )]
                         )
-            statement.true_branch[0].grandparent_ifelse = statement
+            ifelse.true_branch[0].grandparent_ifelse = ifelse
+            statement = statement2
         else:
-            statement = StateVarAssign(
+            statement2 = StateVarAssign(
                                map_dec,
                                FnApp("mapSet", [map_var,
                                                 pack(far.fixed_args),
@@ -122,8 +125,8 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
 
         if not parent_action.state_transform:
             parent_action.state_transform = StateTransform([])
-        parent_action.state_transform.statements.append(statement)
-        statement.parent_block = parent_action.state_transform.statements
+        parent_action.state_transform.statements.append(statement2)
+        statement2.parent_block = parent_action.state_transform.statements
 
     # ----------------------------------------------
     # Removing from situation declarations

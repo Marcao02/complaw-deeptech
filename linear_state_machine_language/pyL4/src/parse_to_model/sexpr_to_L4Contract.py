@@ -330,6 +330,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 rv[name] = StateVarDec(name, sort, initval, modifiers)
                 # TODO: for requiring primed variables.
                 # rv[primed(name)] = rv[name]
+
+                self.top.register_sorted_name(name, sort)
+
             except Exception as e:
                 logging.error("Problem processing " + str(dec))
                 raise e
@@ -667,6 +670,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_statement(self, statement_expr:SExpr, parent_action:Action, parent_block:Block, parent_ifelse:Optional[IfElse]) -> Statement:
         assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None, statement_expr
         varname : str
+        rv : Statement
         try:
             assert not self._is_anymacro_app(statement_expr)
 
@@ -697,7 +701,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.assertOrSyntaxError(statement_expr[3] == 'else', statement_expr), \
                 f"Expected {statement_expr} to have the form `(if TEST (BLOCK) else (BLOCK))`"
                 rv.false_branch = self._mk_statements(statement_expr[4], parent_action, rv)
-                return rv
 
             else:
                 self.assertOrSyntaxError(len(statement_expr) == 3, statement_expr,
