@@ -47,24 +47,17 @@ action choose_cash_interest_repayment()  non-transitioning:
 
 action CloseEquityFinancingSale(qualifying_round_price: SharePrice, company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
+        cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
+        discount_price : SharePrice := (qualifying_round_price * DISCOUNT_RATE)
+        conversion_price : SharePrice := (min discount_price cap_price)
         if pay_interest_in_cash:
-            if (last_event_td ≤ 365d):
-                company_cash := (check $ (company_cash - (min (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) company_cash)))
-            else:
-                company_cash := (check $ (company_cash - (min (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) company_cash)))
-
-            if (last_event_td ≤ 365d):
-                investor_cash := (investor_cash + (min (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) company_cash))
-            else:
-                investor_cash := (investor_cash + (min (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) company_cash))
-
-            investor_PreferredStock := (investor_PreferredStock + (PURCHASE_AMOUNT round/ (min (qualifying_round_price * DISCOUNT_RATE) (VALUATION_CAP / company_capitalization))))
+            change : $ := (min (ifthenelse (last_event_td ≤ 365d) (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) company_cash)
+            company_cash := (check $ (company_cash - change))
+            investor_cash := (investor_cash + change)
+            investor_PreferredStock := (investor_PreferredStock + (PURCHASE_AMOUNT round/ conversion_price))
         else:
-            if (last_event_td ≤ 365d):
-                investor_PreferredStock := (investor_PreferredStock + ((PURCHASE_AMOUNT + (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT))) round/ (min (qualifying_round_price * DISCOUNT_RATE) (VALUATION_CAP / company_capitalization))))
-            else:
-                investor_PreferredStock := (investor_PreferredStock + ((PURCHASE_AMOUNT + (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) round/ (min (qualifying_round_price * DISCOUNT_RATE) (VALUATION_CAP / company_capitalization))))
-
+            accrued_interest : $ := (ifthenelse (last_event_td ≤ 365d) (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
+            investor_PreferredStock := (investor_PreferredStock + ((PURCHASE_AMOUNT + accrued_interest) round/ conversion_price))
 
 
 action CommitToAcquisition(company_capitalization: PosShareCnt) transitions to AfterCommitToAcquisition
@@ -75,20 +68,14 @@ action CommitToAcquisition(company_capitalization: PosShareCnt) transitions to A
 
 action ChooseMultipleRepayment()  transitions to Fulfilled:
     transform:
-        if (last_event_td ≤ 365d):
-            company_cash := (check $ (company_cash - (min ((check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT)) company_cash)))
-        else:
-            company_cash := (check $ (company_cash - (min ((check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT)) company_cash)))
-
-        if (last_event_td ≤ 365d):
-            investor_cash := (investor_cash + (min ((check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT)) company_cash))
-        else:
-            investor_cash := (investor_cash + (min ((check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT)) company_cash))
-
+        change : $ := (min ((ifthenelse (last_event_td ≤ 365d) (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) + (2 * PURCHASE_AMOUNT)) company_cash)
+        company_cash := (check $ (company_cash - change))
+        investor_cash := (investor_cash + change)
 
 action ChooseConvertToCommonStock(company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
-        investor_Common_Stock := (investor_Common_Stock + (PURCHASE_AMOUNT round/ (VALUATION_CAP / company_capitalization)))
+        cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
+        investor_Common_Stock := (investor_Common_Stock + (PURCHASE_AMOUNT round/ cap_price))
 
 action ReachMaturity()  transitions to AfterReachMaturity
     following situation:
@@ -99,17 +86,11 @@ action ReachMaturity()  transitions to AfterReachMaturity
 
 action ChooseMaturityRepayment()  transitions to Fulfilled:
     transform:
-        if (last_event_td ≤ 365d):
-            company_cash := (check $ (company_cash - (min ((check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) + PURCHASE_AMOUNT) company_cash)))
-        else:
-            company_cash := (check $ (company_cash - (min ((check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + PURCHASE_AMOUNT) company_cash)))
-
-        if (last_event_td ≤ 365d):
-            investor_cash := (investor_cash + (min ((check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) + PURCHASE_AMOUNT) company_cash))
-        else:
-            investor_cash := (investor_cash + (min ((check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + PURCHASE_AMOUNT) company_cash))
-
+        change : $ := (min ((ifthenelse (last_event_td ≤ 365d) (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) + PURCHASE_AMOUNT) company_cash)
+        company_cash := (check $ (company_cash - change))
+        investor_cash := (investor_cash + change)
 
 action ChooseConversionToSeriesSeedPreferredStock(company_capitalization: PosShareCnt) transitions to Fulfilled:
     transform:
-        investor_SeriesSeedPreferredStock := (investor_SeriesSeedPreferredStock + (PURCHASE_AMOUNT round/ (VALUATION_CAP / company_capitalization)))
+        cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
+        investor_SeriesSeedPreferredStock := (investor_SeriesSeedPreferredStock + (PURCHASE_AMOUNT round/ cap_price))

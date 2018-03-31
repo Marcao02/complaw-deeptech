@@ -5,10 +5,6 @@ roles: Env, Arbiter, Challenger, Restaurant
 
 contract params:
     MB_PRICE : Pos$ := 50
-    TIME_TO_EAT_BURGER : PosTimeDelta := 1h
-    MAX_SERVE_DELAY : PosTimeDelta := 20m
-    MAX_CLAIM_VERIFICATION_DELAY : PosTimeDelta := 10m
-    MAX_REFUND_DELAY : PosTimeDelta := 10m
 
 state vars:
     writeonce challenge_endlimit_timestamp : TimeDelta
@@ -17,18 +13,18 @@ state vars:
 
 situation MonsterBurgerUncooked:
     Challenger may RequestCookMB
-    Breach_Challenger (next_event_td == ((last_situation_td + 30m) + 1m))
+    Breach_Challenger (next_event_td == ((last_situation_td + 60m) + 1m))
 
 action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
         amount_owing := MB_PRICE
     following situation:
-        EnterPromptServeGuaranteeViolated (next_event_td ≥ (MAX_SERVE_DELAY + last_situation_td))
-        Restaurant may ServeMB (next_event_td < (MAX_SERVE_DELAY + last_situation_td))
+        EnterPromptServeGuaranteeViolated (next_event_td ≥ (15m + last_situation_td))
+        Restaurant may ServeMB (next_event_td < (15m + last_situation_td))
 
 action ServeMB()  transitions to EatingMB:
     transform:
-        challenge_endlimit_timestamp := (TIME_TO_EAT_BURGER + last_event_td)
+        challenge_endlimit_timestamp := (60m + last_event_td)
 
 action EnterPromptServeGuaranteeViolated()  transitions to Fulfilled:
     transform:
@@ -37,14 +33,14 @@ action EnterPromptServeGuaranteeViolated()  transitions to Fulfilled:
 action EnterEatingMB()  transitions to EatingMB
 
 situation EatingMB:
-    Challenger may AnnounceMBFinished (and (last_situation_td < next_event_td) (next_event_td < challenge_endlimit_timestamp))
-    TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
-    Restaurant may CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td)))
+    Challenger may AnnounceMBFinished (and ((last_situation_td + 5m) < next_event_td) (next_event_td < challenge_endlimit_timestamp))
+    TimeToCheckCompletionExpires (next_event_td > (10m + challenge_endlimit_timestamp))
+    Restaurant may CheckCompletionClaim (and (challenge_endlimit_timestamp ≤ next_event_td) (next_event_td ≤ (10m + challenge_endlimit_timestamp)))
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following situation:
-        TimeToCheckCompletionExpires (next_event_td == (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td))
-        Restaurant may CheckCompletionClaim (next_event_td < (last_situation_td + MAX_CLAIM_VERIFICATION_DELAY))
+        TimeToCheckCompletionExpires (next_event_td ≥ (10m + last_situation_td))
+        Restaurant may CheckCompletionClaim (next_event_td < (last_situation_td + 10m))
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:
     transform:
@@ -52,17 +48,17 @@ action TimeToCheckCompletionExpires()  transitions to Fulfilled:
 
 action CheckCompletionClaim()  transitions to AfterCheckCompletionClaim
     following situation:
-        Breach_Restaurant (next_event_td == (last_situation_td + 1m))
+        Breach_Restaurant (next_event_td ≥ (last_situation_td + 1m))
         Restaurant may RejectCompletionClaim (next_event_td == last_situation_td)
         Restaurant may VerifyCompletionClaim (next_event_td == last_situation_td)
 
 action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
     following situation:
-        if (last_situation_td > challenge_endlimit_timestamp):
+        if (last_situation_td ≥ challenge_endlimit_timestamp):
             Challenger may PayForMB (next_event_td == last_situation_td)
-        if (last_situation_td > challenge_endlimit_timestamp):
+        if (last_situation_td ≥ challenge_endlimit_timestamp):
             Breach_Challenger (next_event_td == (last_situation_td + 1d))
-        if (last_situation_td ≤ challenge_endlimit_timestamp):
+        if (last_situation_td < challenge_endlimit_timestamp):
             EnterEatingMB (next_event_td == last_situation_td)
 
 action PayForMB()  transitions to Fulfilled:

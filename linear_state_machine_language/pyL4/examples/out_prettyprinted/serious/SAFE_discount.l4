@@ -24,7 +24,7 @@ state vars:
     writes≤1 dis_cashout : $
 
 situation InvestorInvests:
-    Company may CommitToChangeOfControl(?1, ?2, ?3, ?4, ?5)
+    Company may CommitToChangeOfControl(?1, ?2, ?3, ?4, ?5) where (?4 ≥ PURCHASE_AMOUNT)
     Company may CommitToDissolution
     Company may CommitToEquityFinancing
     Company may CommitToIPO(?1, ?2, ?3)
@@ -117,7 +117,11 @@ action ChooseCashPayment()  transitions to AfterChooseCashPayment
 action TransferCash_L(total_investments_of_cashout_investors: Pos$) transitions to AfterTransferCash_L:
     transform:
         investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
-        liq_cashout := (min cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments'))
+        if (cash_currently_unconverted < (company_cash * investor_percent_of_cashout_investor_investments')):
+            liq_cashout := cash_currently_unconverted
+        else:
+            liq_cashout := (company_cash * investor_percent_of_cashout_investor_investments')
+
         investor_cash := (investor_cash + liq_cashout')
     following situation:
         if (liq_cashout < cash_currently_unconverted):
@@ -138,7 +142,11 @@ action CommitToDissolution()  transitions to AfterCommitToDissolution
 
 action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: Fraction(0,1]) transitions to AfterTransferCash_D:
     transform:
-        dis_cashout := (min PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
+        if (PURCHASE_AMOUNT < (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)):
+            dis_cashout := PURCHASE_AMOUNT
+        else:
+            dis_cashout := (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
+
         investor_cash := dis_cashout'
     following situation:
         if (dis_cashout < PURCHASE_AMOUNT):
