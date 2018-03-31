@@ -124,7 +124,7 @@
 	(Situation InvestorInvests
 		(Company may CommitToEquityFinancing)
 		(Company may (CommitToIPO ?1 ?2 ?3)) ; IPO
-		(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?4 ?5))
+		(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?4 ?5) (where (?4 ≥ PURCHASE_AMOUNT)))
 		(Company may CommitToDissolution)
 		; (Breach_Company discretionary) ; actually company can remain in current state forever.
 	)
