@@ -8,13 +8,28 @@ from src.independent.typing_imports import *
 from src.model.Sort import Sort as L4Sort
 
 Z3Term = NewType('Z3Term',object)
-Z3TRUE = True
-Z3FALSE = False
+Z3TRUE = z3.BoolVal(True)
+Z3FALSE = z3.BoolVal(False)
 
-def z3and(*forms:Z3Term) -> Z3Term:
+def conj(*forms:Z3Term) -> Z3Term:
     return z3.And(*forms) # type:ignore
-def z3not(form:Z3Term) -> Z3Term:
+def neg(form:Z3Term) -> Z3Term:
     return z3.Not(form) # type:ignore
+def disj(*forms:Z3Term) -> Z3Term:
+    return z3.Or(forms) # type:ignore
+def implies(arg1:Z3Term, arg2:Z3Term) -> Z3Term:
+    return z3.Implies(arg1,arg2)   # type:ignore
+def equals(arg1:Z3Term, arg2:Z3Term) -> Z3Term:
+    return arg1 == arg2 # type:ignore
+def ite(a1:Z3Term, a2:Z3Term, a3:Z3Term) -> Z3Term:
+    return z3.If(a1, a2, a3) # type:ignore
+def div(a1:Z3Term,a2:Z3Term) -> Z3Term:
+    return z3.ToInt(a1 / a2)
+
+
+# def fnapp(symb:str, *args:SMTExpr) -> SMTExprNonatom_:
+#     return SMTExprNonatom(symb, args)
+
 
 z3interp : Any = dict()
 z3interp["<"] = lambda x,y: x < y
@@ -26,16 +41,19 @@ z3interp["-"] = lambda x,y: x - y
 z3interp["*"] = lambda x,y: x * y
 z3interp["/"] = lambda x,y: x / y
 z3interp["=="] = lambda x,y: x == y
-z3interp["not"] = lambda x: z3not(x)
-z3interp["and"] = lambda *x: z3and(x)
+z3interp["not"] = neg
+z3interp["and"] = conj
+z3interp["or"] = disj
 z3interp["even"] = lambda x: (x % 2) == 0
-z3interp["min"] = lambda x,y: z3.If(x < y, x, y)
+z3interp["min"] = lambda x,y: ite(x < y, x, y)
 
-todo_once("INTERP OF ROUND/ IS A LIE!")
-z3interp["round/"] = lambda x,y: x / y
-z3interp["floor/"] = lambda x,y: x / y
+# a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0   (and floor(a/b) is integer division)
+z3interp["ceil/"] = lambda a,b: ite(z3.IsInt(a / b), div(a,b), div(a,b) + 1)
+z3interp["floor/"] = div
+z3interp["round/"] = lambda a,b: ite((a / b) - div(a,b) < 1/2, div(a,b), div(a,b) + 1)
 
-SORT_TO_PRED : Dict[str,Callable[[any], Z3Term]]= {
+
+SORT_TO_PRED = cast(Dict[str,Callable[[any], Z3Term]], {
     "TimeDelta": lambda x: x >= 0,
     "$": lambda x: x >= 0,
     "Pos$": lambda x: x > 0,
@@ -44,11 +62,11 @@ SORT_TO_PRED : Dict[str,Callable[[any], Z3Term]]= {
     "Nat": lambda x: x >= 0,
     "PosShareCnt": lambda x: x > 0,
     "SharePrice": lambda x: x >= 0,
-    "Fraction[0,1)": lambda x: z3and( x >= 0, x < 1 ),
-    "Fraction[0,1]": lambda x: z3and( x >= 0, x <= 1 ),
-    "Fraction(0,1]": lambda x: z3and( x > 0, x <= 1 ),
-    "Fraction(0,1)": lambda x: z3and( x > 0, x < 1 )
-}
+    "Fraction[0,1)": lambda x: conj(x >= 0, x < 1),
+    "Fraction[0,1]": lambda x: conj(x >= 0, x <= 1),
+    "Fraction(0,1]": lambda x: conj(x > 0, x <= 1),
+    "Fraction(0,1)": lambda x: conj(x > 0, x < 1)
+})
 
 todo_once("replace unicode symbols with ascii in AST")
 
@@ -95,8 +113,6 @@ def name2symbolicvar(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Ter
 def name2actparam_symbolic_var(name:str,t:int,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
     return name2symbolicvar(name + "_" + str(t), sort,sz3)
 
-def name2initstateval_symbolic_var(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
-    return name2symbolicvar(name,sort,sz3)
 
 
 

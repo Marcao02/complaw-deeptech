@@ -57,19 +57,19 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             # the action params matchTerm. this requires a role environment variable.
             params = [ActionBoundActionParam(castid(ActionBoundActionParamId, action.param_names[i]), action, i) for i in
                       range(len(action.param_names))]
-            statement : IfElse = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
+            statement2 : IfElse = IfElse(FnApp("==", [FnApp("event_role",[]), RoleIdLit(fut_rule_type.rid)]),
                                [StateVarAssign(
                                    map_dec,
                                    FnApp("mapDelete", [map_var,
                                                        pack(params) ])
                                )]
                                )
-            statement.true_branch[0].grandparent_ifelse = statement
+            statement2.true_branch[0].grandparent_ifelse = statement2
 
             if not action.state_transform:
                 action.state_transform = StateTransform([])
-            action.state_transform.statements.append(statement)
-            statement.parent_block = action.state_transform.statements
+            action.state_transform.statements.append(statement2)
+            statement2.parent_block = action.state_transform.statements
 
     # ---------------------------------
     # Removing from action declarations
