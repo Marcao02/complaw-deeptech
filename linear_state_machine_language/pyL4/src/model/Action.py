@@ -49,7 +49,7 @@ class Action:
             for s in self.state_transform.statements:
                 yield s
 
-    def add_action_rule(self, far:PartyFutureActionRule) -> None:
+    def add_future_action_rule(self, far:PartyFutureActionRule) -> None:
         self.futures.append(far)
 
     def future_action_rules(self) -> Iterator[PartyFutureActionRule]:

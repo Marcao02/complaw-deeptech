@@ -257,6 +257,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 act = Action.interveneOnDelayAction(roleid)
                 self.top.actions_by_id[act.action_id] = act
 
+        # don't impose this for rule vars.
+        # for rule in self.top.action_rules():
+        #     if rule.arg_vars_bound_by_rule:
+        #         for rule_varname in rule.arg_vars_bound_by_rule:
+        #             sort = rule.rule_varname_to_sort(self.top,rule_varname)
+        #             self.top.register_sorted_name(rule_varname, sort)
+
         floating_rules_transpile_away(self.top, self.verbose)
         return self.top
 
@@ -555,6 +562,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         x: SExpr
         if params_sexpr is not None: #isinstance(params_sexpr, SExpr):
             a.param_sorts_by_name = self._mk_action_params(params_sexpr)
+            for name,sort in a.param_sorts_by_name.items():
+                self.top.register_sorted_name(name,sort)
             a.param_names = [castid(ActionBoundActionParamId, y[0]) for y in params_sexpr]
             a.param_name_to_ind = {a.param_names[i]: i for i in range(len(a.param_names))}
         for x in rest:
@@ -631,6 +640,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             assert len(pdec) == 3, f"Expected [<param name str>, ':', SORTstr] but got {pdec}"
             sort = self._mk_sort(pdec[2])
             rv[castid(ActionBoundActionParamId,pdec[0])] = sort
+            self.top.register_sorted_name(pdec[0],sort)
 
         return rv
 
@@ -686,6 +696,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 sort = self._mk_sort(statement_expr[3])
                 rhs = self._mk_term(statement_expr[5], None, parent_action, None, statement_expr)
                 varname = castid(LocalVarId, statement_expr[1])
+                self.top.register_sorted_name(varname,sort)
                 lvd = LocalVarDec(varname, rhs, sort)
                 if varname in parent_action.local_vars:
                     self.syntaxError(statement_expr, "Redeclaration of local variable")
@@ -985,7 +996,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         rem = expr.tillEnd(3)
         self._handle_optional_action_rule_parts(rem, rv, None, src_action)
 
-        src_action.add_action_rule(rv)
+        src_action.add_future_action_rule(rv)
         self._building_future_action_rule = False
         return rv
 

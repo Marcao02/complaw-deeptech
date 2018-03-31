@@ -441,13 +441,11 @@ def symbolic_execution(prog:L4Contract):
         return rv
 
     def query(qp:QueryPath) -> SEvalRV:
-        resolved = False
 
         if isinstance(qp, GuardedBlockPath):
             checkres = check(qp.core.full_constraint())
 
             if checkres == z3.sat:
-                resolved = True
                 res = sevalBlock(qp.block, qp.next_state, qp.action, qp.action_params, qp.core)
                 if isinstance(res, SEvalRVChange):
                     # the following is only sound under the constraint that IfElse Statements only occur as the last
@@ -464,16 +462,13 @@ def symbolic_execution(prog:L4Contract):
                     return res
 
             elif checkres == z3.unsat:
-                resolved = True
                 return SEvalRVInconsistent("GuardedBlockPath query unsat")
 
         elif isinstance(qp, ActionRuleEnabledPath):
             checkres = check(qp.core.full_constraint())
             if checkres == z3.sat:
-                resolved = True
-                sevalRuleIgnoreGuard(qp.rule, qp.core)
+                return sevalRuleIgnoreGuard(qp.rule, qp.core)
             elif checkres == z3.unsat:
-                resolved = True
                 return SEvalRVInconsistent("ActionRuleEnabledPath query unsat")
 
         elif isinstance(qp, ActionRuleParamsConstraintPath):
@@ -484,12 +479,10 @@ def symbolic_execution(prog:L4Contract):
             # syntax( < string >, line
             # 1)
             if checkres == z3.sat:
-                resolved = True
                 if TRACE:
                     print("sat:", z3termPrettyPrint(qp.core.path_constraint))
                 return sevalRuleIgnoreGuardAndParamConstraints(qp.rule, qp.action_params, qp.core)
             elif checkres == z3.unsat:
-                resolved = True
                 if TRACE:
                     print("unsat:", qp.core.path_constraint)
                 return SEvalRVInconsistent("ActionRuleParamsConstraintPath query unsat")
@@ -501,24 +494,24 @@ def symbolic_execution(prog:L4Contract):
         else:
             raise NotImplementedError(qp)
 
-        if not resolved:
-            if TRACE:
-                if checkres == z3.unknown:
-                    print(f"UNKNOWN: {qp.core.full_constraint()}")
-                # if checkres_time == z3.unknown:
-                #     print(f"UNKNOWN (time): {qp.core.full_constraint()}")
-            addTimeoutQueryPath(qp)
-            simplified = z3.simplify(qp.core.full_constraint())
-            print("Theorem prover gave up on this (now simplified) query:\n\n", simplified)
-            # sz3.push()
-            # sz3.add(simplified)
-            # print("Try again:",sz3.check(simplified), sz3.reason_unknown())
-            # sz3.pop()
 
-            return SEvalRVTimeout(str(qp.core.path_constraint))
-            # raise NotImplementedError("don't want to be dealing with timeouts till working with easy examples")
+        if TRACE:
+            if checkres == z3.unknown:
+                print(f"UNKNOWN: {qp.core.full_constraint()}")
+            # if checkres_time == z3.unknown:
+            #     print(f"UNKNOWN (time): {qp.core.full_constraint()}")
+        addTimeoutQueryPath(qp)
+        simplified = z3.simplify(qp.core.full_constraint())
+        print("Z3 gave up on this (now simplified) query:\n\n", simplified)
+        # sz3.push()
+        # sz3.add(simplified)
+        # print("Try again:",sz3.check(simplified), sz3.reason_unknown())
+        # sz3.pop()
 
-        raise Exception("can't get here")
+        return SEvalRVTimeout(str(qp.core.path_constraint))
+        # raise NotImplementedError("don't want to be dealing with timeouts till working with easy examples")
+
+        # raise Exception("can't get here?", qp)
 
     def pathChooser():
 

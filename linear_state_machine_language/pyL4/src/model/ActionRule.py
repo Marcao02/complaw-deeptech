@@ -69,6 +69,12 @@ class ActionRule:
     def toStr(self, i:int) -> str:
         raise NotImplemented
 
+    def action_object(self, prog:'L4Contract') -> 'Action': #type:ignore
+        return prog.action(self.action_id) # type:ignore
+
+    def rule_varname_to_sort(self, prog:'L4Contract', name) -> 'Sort': #type:ignore
+        return self.action_object(prog).param_sort(self.arg_vars_name_to_ind[name]) #type:ignore
+
     def __str__(self) -> str:
         return self.toStr(0)
 

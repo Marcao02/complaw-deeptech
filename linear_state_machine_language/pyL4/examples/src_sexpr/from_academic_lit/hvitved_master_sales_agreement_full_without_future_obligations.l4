@@ -35,7 +35,7 @@
 
 	; either ids (approach taken here) or ordering are necessary to correctly handle the case when there are two orders on the same day for the same quantity.
 	(Id = Nat)
-	(Order = [Tuple Nat Id])
+	(Order = [Tuple PosInt Id])
 
 )
 
@@ -149,7 +149,7 @@
 	(Action [Deliver (order : Order)]
 		(StateTransform
 			( conjecture (mapHas 2Bdelivered order) )
-			( local quantity : Nat := (tupleGet order 0) )
+			( local quantity : PosInt := (tupleGet order 0) )
 			( units_delivered' += quantity )
 			( 2Bdelivered' := (mapDelete 2Bdelivered order) )
 			( local invoice_deadline : TimeDelta := (last_event_td + 30D) )
@@ -164,7 +164,7 @@
 	(Action [EmailInvoice (order : Order)]
 		(StateTransform
 			( conjecture (mapHas 2Binvoiced order) )
-			( local quantity : Nat := (tupleGet order 0) )
+			( local quantity : PosInt := (tupleGet order 0) )
 			( units_invoiced' += quantity )
 			( 2Binvoiced' :=  (mapDelete 2Binvoiced order) )
 			( 2Bpaid' :=  (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (last_event_td + 14D) ) )
@@ -177,7 +177,7 @@
 	(Action [PayBill (order : Order)]
 		(StateTransform
 			( conjecture (mapHas 2Bpaid order) )
-			( local quantity : Nat := (tupleGet order 0) )
+			( local quantity : PosInt := (tupleGet order 0) )
 			( total_paid' += (quantity * PRICE_PER_UNIT) )
 			( 2Bpaid' :=  (mapDelete 2Bpaid order) )
 		)
