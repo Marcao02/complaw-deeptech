@@ -11,12 +11,16 @@ state vars:
     probBsolved : Bool := False
 
 situation WorkingOnAssignment:
-    Alice may SolveProbA (next_event_td ≤ DUE_TD)
-    Alice may SolveProbB (next_event_td ≤ DUE_TD)
+    if ¬probAsolved:
+        Alice may SolveProbA (next_event_td ≤ DUE_TD)
+    if ¬probBsolved:
+        Alice may SolveProbB (next_event_td ≤ DUE_TD)
     if (and probAsolved probBsolved):
         Alice may Submit (next_event_td ≤ DUE_TD)
-    Bob may SolveProbA (next_event_td ≤ DUE_TD)
-    Bob may SolveProbB (next_event_td ≤ DUE_TD)
+    if ¬probAsolved:
+        Bob may SolveProbA (next_event_td ≤ DUE_TD)
+    if ¬probBsolved:
+        Bob may SolveProbB (next_event_td ≤ DUE_TD)
     if (and probAsolved probBsolved):
         Bob may Submit (next_event_td ≤ DUE_TD)
     if (and ¬probAsolved probBsolved):

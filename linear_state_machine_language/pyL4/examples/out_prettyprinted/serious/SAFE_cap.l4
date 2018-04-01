@@ -19,7 +19,7 @@ state vars:
     writes≤1 cap_price : SharePrice
     writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice
     writes≤1 liq_cashout : $ := 0
-    company_cash : $
+    company_cash : $ := 0
     writes≤1 investor_percent_of_cashout_investor_investments : Fraction(0,1]
     writes≤1 dis_cashout : $
 

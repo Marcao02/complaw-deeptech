@@ -2,9 +2,10 @@
 from src.model.ContractParamDec import ContractParamDec
 from src.independent.util import chcast
 
+# TRACE = True
 TRACE = False
-# USE_CONTRACT_PARAM_VALS = True
-USE_CONTRACT_PARAM_VALS = False
+USE_CONTRACT_PARAM_VALS = True
+# USE_CONTRACT_PARAM_VALS = False
 
 from src.model.StateVarDec import StateVarDec
 from src.constants_and_defined_types import FULFILLED_SITUATION_LABEL
@@ -12,7 +13,7 @@ from src.independent.LedgerDict import LedgerDict, LazyRecTuple
 from src.independent.OneUseFrozenDict import OneUseFrozenDict
 from src.parse_to_model.sexpr_to_L4Contract import unprimed, isprimed
 from src.model.BoundVar import BoundVar
-from src.model.Literal import Literal
+from src.model.Literal import Literal, SortLit
 from src.model.Action import Action
 from src.model.ActionRule import NextActionRule
 from src.model.L4Contract import L4Contract
@@ -75,9 +76,10 @@ class ActionRuleParamsConstraintPath(NamedTuple):
 
 class AssertionPath(NamedTuple):
     assertion: Z3Term
-    statement: Statement
-    next_state: Store
-    action_params: OneUseStore
+    next_statement: Optional[Statement] # if this is an in-code assertion, as opposed to one we create on the fly, we need to know where to go next.
+    next_state: Optional[Store]
+    action: Action
+    action_params: Optional[OneUseStore]
     core: CoreSymbExecState
 
 QueryPath = Union[GuardedBlockPath, ActionRuleEnabledPath, ActionRuleParamsConstraintPath, AssertionPath]
@@ -108,22 +110,30 @@ state:Store
 t:int
 envvars:Store
 
+
+min_writes : Dict[str,int] = dict()
+max_writes : Dict[str,int] = dict()
+
 def symbolic_execution(prog:L4Contract):
 
     contractParams : OneUseStore
 
     queryPaths : List[QueryPath] = []
     timedoutQueryPaths : List[QueryPath] = []
-
-    path2actionseq : Dict[Any,list] = dict()
+    unprovedAssertions: List[AssertionPath] = []
 
     sz3 = z3.Solver()
+    for opt,val in OPTIONS.items():
+        sz3.set(opt,val)
 
     def addQueryPath(qpath:QueryPath):
         queryPaths.append(qpath)
 
     def addTimeoutQueryPath(qpath:QueryPath):
         timedoutQueryPaths.append(qpath)
+
+    def addUnprovedAssertion(qpath:AssertionPath):
+        unprovedAssertions.append(qpath)
 
     def takeQueryPath() -> QueryPath:
         # ind =  random.randint(0,len(queryPaths)-1)
@@ -173,7 +183,14 @@ def symbolic_execution(prog:L4Contract):
                 return helper(term.lit)
             elif isinstance(term, FnApp):
                 if term.fnsymb_name in {"trust","check"}:
-                    todo_once("not checking `(check Sort Term)` expressions")
+                    todo_once("NOTE assuming all types are correct, even those using 'trust' or 'check', because"
+                              " at the moment symbolic exec is failing to prove them, but previous use of SMT worked.")
+                              # " so, not checking `(check Sort Term)` expressions")
+                    # sortlit = chcast(SortLit,term.args[0])
+                    # addQueryPath( AssertionPath(
+                    #     SORT_TO_PRED[cast(str,sortlit.lit)](helper(term.args[1])),
+                    #     None, None, core
+                    # ))
                     return helper(term.args[1])
                 # smttermstr = str(term2smtterm(term))
                 # print("type(term):", type(term))
@@ -182,7 +199,14 @@ def symbolic_execution(prog:L4Contract):
                 # return z3.parse_smt2_string(smttermstr)
                 args = [helper(x) for x in term.args]
                 if term.fnsymb_name in z3interp:
-                    return z3interp[term.fnsymb_name](*args) # type:ignore
+                    try:
+                        return z3interp[term.fnsymb_name](*args) # type:ignore
+                    except Exception as e:
+                        print(f"problem evaluating {term} at {term.coord} ({prog.filename}). specifically {term.fnsymb_name} on {args}")
+                        print(f"envvars: ", envvars)
+                        print(f"state: ", state)
+                        raise e
+
                 elif term.fnsymb_name in {"last_event_td","next_event_td","last_situation_td"}:
                     return helper(term.fnsymb_name)
                 raise NotImplementedError(f"Unhandled {term.fnsymb_name}")
@@ -235,7 +259,9 @@ def symbolic_execution(prog:L4Contract):
             # print("Action seq (reversed):", list(reversed(getActionSeq(extra.changes))))
             print("Action seq:", getActionSeq(extra.changes))
 
-        envvars = envvars.set("last_event_td", envvars["next_event_td"])
+        # SETTING last_event_td, and "deleting" next_event_td
+        # envvars = envvars.set("last_event_td", envvars["next_event_td"])
+        envvars = envvars.set("last_event_td", name2symbolicvar(f"td_{core.time}", 'TimeDelta'))
         envvars = envvars.set("next_event_td", None)
 
         assert isinstance(state, LedgerDict), type(state)
@@ -324,14 +350,12 @@ def symbolic_execution(prog:L4Contract):
             return SEvalRVStopThread("from sevalStatement")
 
         elif isinstance(stmt, FVRequirement):
-            raise NotImplementedError
-
+            # raise NotImplementedError
             assertion = term2z3(stmt.value_expr, next_state, actparam_store, core)
-            # froz_next_state = frozendict(next_state)
-            copied_next_state = next_state.copy()
             addQueryPath(
-                AssertionPath(assertion, copied_next_state, actparam_store,
+                AssertionPath(assertion, stmt.next_sibling(), next_state, a, actparam_store,
                               CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra)))
+            return SEvalRVStopThread("from sevalStatement")
 
         elif isinstance(stmt, LocalVarDec):
             raise Exception("You need to use eliminate_local_vars before doing symbolic execution")
@@ -346,8 +370,8 @@ def symbolic_execution(prog:L4Contract):
         pathconstr, time_pathconstr, state, t, envvars, extra = core
 
         # SETTING last_situation_td
-        envvars = envvars.set("last_situation_td", envvars["last_event_td"])
-        # pathconstr = conj(envvars["last_situation_td"] == envvars["last_event_td"])
+        # envvars = envvars.set("last_situation_td", envvars["last_event_td"])
+        envvars = envvars.set("last_situation_td", name2symbolicvar(f"td_{core.time}", 'TimeDelta'))
 
         if TRACE:
             print(f"sevalSituation({s.situation_id},{state},...,{t})")
@@ -389,11 +413,11 @@ def symbolic_execution(prog:L4Contract):
             actparam_store = OneUseStore({actparam_name: term2z3(d[actparam_name], state, None, core) for actparam_name in d})
         else:
             actparam_store = OneUseStore({actparam_name:
-                name2actparam_symbolic_var(actparam_name,t,action.param_sorts_by_name[actparam_name],sz3)\
+                name2actparam_symbolic_var(actparam_name,t,action.param_sorts_by_name[actparam_name])\
                                           for actparam_name in action.param_names})
 
         # SETTING next_event_td
-        envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t}",'TimeDelta',sz3))
+        envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t}",'TimeDelta'))
         if t > 0:
             time_pathconstr = conj(
                 name2symbolicvar(f"td_{t-1}", 'TimeDelta') <= name2symbolicvar(f"td_{t}", 'TimeDelta'), # type:ignore
@@ -408,7 +432,7 @@ def symbolic_execution(prog:L4Contract):
             if rule.where_clause and rule.ruleparam_to_ind:
                 ruleparam_store = OneUseStore({ruleparam_name:
                                                name2actparam_symbolic_var(ruleparam_name, t,
-                                                                          action.param_sort(ruleparam_ind), sz3) \
+                                                                          action.param_sort(ruleparam_ind)) \
                                                for (ruleparam_name, ruleparam_ind) in rule.ruleparam_to_ind.items()})
                 wc = term2z3(rule.where_clause, None, ruleparam_store, newcore)
             tc : Z3Term = Z3TRUE
@@ -437,6 +461,18 @@ def symbolic_execution(prog:L4Contract):
         rv = sz3.check()
         if rv == z3.unknown:
             print("Reason unknown:", sz3.reason_unknown())
+            print("Z3 gave up on this query:\n\n", sz3.to_smt2())
+            # sz3.pop()
+            # sz3.push()
+            # simplified = z3.simplify(chcast(z3.ExprRef,formula))
+            # sz3.add(simplified)
+            # rv2 = sz3.check()
+            #
+            # if rv2 == z3.unknown:
+            #     # print("Z3 gave up (twice, once post-simplify) on this query:\n\n", sz3.to_smt2())
+            #     print("Z3 gave up (twice, once post-simplify) on this query:\n\n", formula)
+            # sz3.pop()
+            # return rv2
         sz3.pop()
         return rv
 
@@ -445,7 +481,7 @@ def symbolic_execution(prog:L4Contract):
         if isinstance(qp, GuardedBlockPath):
             checkres = check(qp.core.full_constraint())
 
-            if checkres == z3.sat:
+            if checkres == z3.sat:# or checkres == z3.unknown:
                 res = sevalBlock(qp.block, qp.next_state, qp.action, qp.action_params, qp.core)
                 if isinstance(res, SEvalRVChange):
                     # the following is only sound under the constraint that IfElse Statements only occur as the last
@@ -466,7 +502,7 @@ def symbolic_execution(prog:L4Contract):
 
         elif isinstance(qp, ActionRuleEnabledPath):
             checkres = check(qp.core.full_constraint())
-            if checkres == z3.sat:
+            if checkres == z3.sat:# or checkres == z3.unknown:
                 return sevalRuleIgnoreGuard(qp.rule, qp.core)
             elif checkres == z3.unsat:
                 return SEvalRVInconsistent("ActionRuleEnabledPath query unsat")
@@ -478,7 +514,7 @@ def symbolic_execution(prog:L4Contract):
             # invalid
             # syntax( < string >, line
             # 1)
-            if checkres == z3.sat:
+            if checkres == z3.sat:# or checkres == z3.unknown:
                 if TRACE:
                     print("sat:", z3termPrettyPrint(qp.core.path_constraint))
                 return sevalRuleIgnoreGuardAndParamConstraints(qp.rule, qp.action_params, qp.core)
@@ -489,7 +525,15 @@ def symbolic_execution(prog:L4Contract):
 
         elif isinstance(qp, AssertionPath):
             checkres = check(z3.And(z3.Not(qp.assertion), qp.core.full_constraint()))
-            raise NotImplementedError("no assertions till working without them")
+            if checkres == z3.sat:
+                raise Exception(f"Negation of assertion is satisfiable!:\n{qp}")
+            if checkres == z3.unknown:
+                print(f"Failed to prove assertion:\n{qp}\nReason unknown:{sz3.reason_unknown()}")
+                addUnprovedAssertion(qp)
+                # return SEvalRVStopThread('')
+            return sevalStatement(chcast(Statement,qp.next_statement),chcast(LedgerDict,qp.next_state),qp.action,qp.action_params,qp.core)
+
+            # raise NotImplementedError("no assertions till working without them")
 
         else:
             raise NotImplementedError(qp)
@@ -500,9 +544,7 @@ def symbolic_execution(prog:L4Contract):
                 print(f"UNKNOWN: {qp.core.full_constraint()}")
             # if checkres_time == z3.unknown:
             #     print(f"UNKNOWN (time): {qp.core.full_constraint()}")
-        addTimeoutQueryPath(qp)
-        simplified = z3.simplify(qp.core.full_constraint())
-        print("Z3 gave up on this (now simplified) query:\n\n", simplified)
+        # addTimeoutQueryPath(qp) # done in query()
         # sz3.push()
         # sz3.add(simplified)
         # print("Try again:",sz3.check(simplified), sz3.reason_unknown())
@@ -518,7 +560,7 @@ def symbolic_execution(prog:L4Contract):
         while len(queryPaths) > 0:
             qpath = takeQueryPath()
             # print("paths: ", len(queryPaths), qpath)
-            print("#paths: ", len(queryPaths), len(timedoutQueryPaths))
+            print("#paths: ", len(queryPaths), len(timedoutQueryPaths), len(unprovedAssertions))
             # this call will add paths to queryPaths:
             res = query(qpath)
             if isinstance(res, SEvalRVTimeout):
@@ -527,17 +569,19 @@ def symbolic_execution(prog:L4Contract):
                 raise Exception(res.msg)
             # we don't need to do anything in the other two SEvalRV cases?
 
+    # raise Exception("Before I do anything else, assert the types of all the contract params")
+
     for_contractParams : Dict[str,Z3Term] = dict()
     cdec : ContractParamDec
     for paramname,cdec in prog.contract_params.items():
         if USE_CONTRACT_PARAM_VALS:
             assert isinstance(cdec.value_expr, Literal), "This shouldn't be a constraint. Ask Dustin to fix it. Sorry."
-            for_contractParams[paramname] = primValToZ3(cdec.value_expr.lit)
+            for_contractParams[paramname] = somewhatPrimValToZ3(cdec.value_expr.lit, prog.timeunit)
         else:
             for_contractParams[paramname] = name2symbolicvar(paramname, cdec.sort, sz3)
     contractParams = OneUseFrozenDict[str,Z3Term](for_contractParams)
     envvars: Store = Store({
-        "last_event_td": name2symbolicvar('td_0',"TimeDelta",sz3),
+        "last_event_td": name2symbolicvar('td_0',"TimeDelta"),
         "last_situation_td": name2symbolicvar('td_0',"TimeDelta")
     })
     time_pathconstr = cast(Z3Term, name2symbolicvar('td_0','TimeDelta') == z3.IntVal(0))

@@ -16,7 +16,7 @@ state vars:
     cash_currently_unconverted : $ := PURCHASE_AMOUNT
     writes≤1 conversion_price : SharePrice
     writes≤1 liq_cashout : $ := 0
-    company_cash : $
+    company_cash : $ := 0
     writes≤1 investor_percent_of_cashout_investor_investments : Fraction(0,1]
     writes≤1 dis_cashout : $
 

@@ -75,6 +75,27 @@
 	(START_INVESTOR_CASH : $ = 0)
 )
 
+
+; maybe later
+; (ifflag HAS_CAP (
+; 		(ifflag HAS_DISCOUNT (
+; 			MAX_ACTIONS =
+; 			)
+; 		else (
+; 			)
+; 		)
+; 	)
+; 	else (
+; 		(ifflag HAS_DISCOUNT (
+
+; 			)
+; 		else (
+
+; 			)
+; 		)
+; 	)
+; )
+
 (StateVars
 	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
 	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
@@ -102,7 +123,7 @@
 
 	; for Liquidity
 	(writes≤1 liq_cashout : $ = 0 ) ; this needs to either be initialized to 0, or else changed to an Optional and some of the code rewritten a bit.
-	(company_cash : $) ; maybe this should be an input.
+	(company_cash : $ = 0) ; maybe this should be an input.
 	(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction(0,1]")
 
 	; for Dissolution

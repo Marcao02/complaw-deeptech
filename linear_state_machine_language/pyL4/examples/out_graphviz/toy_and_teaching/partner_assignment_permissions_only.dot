@@ -20,9 +20,9 @@ digraph partner_assignment_demonstrating_relievable_obligations_via_permissions 
     
     
     WorkingOnAssignment -> SolveProbA;
-	WorkingOnAssignment -> SolveProbB;
-	WorkingOnAssignment -> SolveProbB;
 	WorkingOnAssignment -> SolveProbA;
+	WorkingOnAssignment -> SolveProbB;
+	WorkingOnAssignment -> SolveProbB;
 	WorkingOnAssignment -> Submit;
 	WorkingOnAssignment -> Submit;
 	WorkingOnAssignment -> Breach_Alice_Bob [style=dashed];
