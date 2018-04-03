@@ -46,7 +46,7 @@
 
 	(Situation MonsterBurgerUncooked
 		(Next
-			(Challenger must (RequestCookMB) (within (last_situation_td + TIME_TO_EAT_BURGER)))
+			(Challenger may RequestCookMB)
 		)
 	)
 
