@@ -1,0 +1,35 @@
+(TimeUnit m)
+
+(ContractParams
+	(N : Nat)
+)
+
+(StateVars
+	(n : Nat = N)
+	(v : Nat = 0)
+	(z : Nat = 0)
+)
+
+(FormalContract "double write OK"
+	(StartSituation Ongoing)
+
+	(Situation Ongoing
+		(Next
+			(DoIt immediately)
+		)
+	)
+
+	(Action DoIt
+		(StateTransform
+			(z' = 5)
+			(if (n < 1000) (
+				(v' = n)
+
+			) else ())
+			(if (n > 1100) (
+				(v' = (2 * n))
+			) else ())
+		)
+		(TransitionsTo Fulfilled)
+	)
+)

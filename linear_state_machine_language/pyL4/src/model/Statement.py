@@ -23,17 +23,24 @@ class Statement:
         self.parent_block : Optional[Block] = None
         self.grandparent_ifelse: Optional[IfElse] = None
 
-    def next_sibling(self) -> Optional['Statement']:
+    def next_statement(self) -> Optional['Statement']:
         if not self.parent_block:
-            return None
-        i = self.parent_block.index(self)
-        if i < len(self.parent_block) - 1:
-            return self.parent_block[i-1]
-
-        # assert self.grandparent_ifelse is not None, self.toStr(0)
-        if self.grandparent_ifelse is None:
-            return None
-        return self.grandparent_ifelse.next_sibling()
+            rv = None
+        else:
+            i = self.parent_block.index(self)
+            if i < len(self.parent_block) - 1:
+                rv = self.parent_block[i+1]
+            else:
+                # assert self.grandparent_ifelse is not None, self.toStr(0)
+                if self.grandparent_ifelse is None:
+                    rv = None
+                else:
+                    rv = self.grandparent_ifelse.next_statement()
+        if rv:
+            print(f"statement at block index {i}" + "\n" + self.toStr(1) + "\nnext statement is\n" + rv.toStr(1))
+        else:
+            print(f"statement at block index {i}" + "\n" + self.toStr(1) + "\nhas no next statement")
+        return rv
 
 
     def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
@@ -56,6 +63,11 @@ class Statement:
     def toStr(self, i:int):
         return indent(i) + str(self)
 
+    def __str__(self) -> str:
+        return self.toStr(0)
+
+    def __repr__(self) -> str:
+        return str(self)
 
 class IfElse(Statement):
     def __init__(self, test:Term,
@@ -116,9 +128,9 @@ class IfElse(Statement):
     def toStr(self,i:int):
         rv = indent(i) + f"if {self.test}:\n"
         for x in self.true_branch:
-            rv += x.toStr(i+1) + "\n"
+            rv += x.toStr(i+1)
         if self.false_branch:
-            rv += indent(i) + "else:\n"
+            rv += "\n" + indent(i) + "else:\n"
             for x in self.false_branch:
                 rv += x.toStr(i+1) + "\n"
         return rv

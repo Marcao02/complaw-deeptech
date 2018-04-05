@@ -54,6 +54,11 @@ class LedgerDict(Generic[K, V], Iterable):
         else:
             return "empty LedgerDict"
 
+    def __repr__(self) -> str:
+        return str(self)
+
+
+
     def __contains__(self, item) -> bool:
         return item in self.keys
 

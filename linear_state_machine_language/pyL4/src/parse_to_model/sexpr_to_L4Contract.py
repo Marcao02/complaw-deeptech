@@ -686,7 +686,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 rv.append(it)
 
             # if isinstance(rv[-1],IfElse):
-            #     print(rv[-1].next_sibling())
+            #     print(rv[-1].next_statement())
             #     # print(rv[-1])
             #     assert statement_expr == statement_exprs[-1], "For now (not too much work to lift this), " \
             #                                                   "(if Term Block else Block) can only appear as the last " \

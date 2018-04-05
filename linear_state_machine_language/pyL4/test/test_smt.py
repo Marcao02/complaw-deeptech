@@ -118,16 +118,17 @@ def main(examples:Dict[str,L4Contract], verbose=True):
         # # 'from_academic_lit/Farmer_american_call_option_2016.l4', # need to implement next_event_dt first
         # 'toy_and_teaching/partner_assignment_permissions_only.l4',
         'test/test_symbexec_multiwrite.l4',
-        'test/test_symbexec_multiwrite_error.l4',
+        # 'test/test_symbexec_multiwrite_error.l4',
 
     ])
     for prog in se_tests:
-        print("symbolic eval for " + prog.filename)
+        print("\n\n\nsymbolic eval for " + prog.filename)
         eliminate_local_vars(prog)
         eliminate_ifthenelse(prog)
         if prog.filename == "test/test_symbexec_multiwrite_error.l4":
             try:
                 symbolic_execution(prog)
+                raise Exception("Expected exception not thrown")
             except AssertionError as e:
                 assert e.args[0].startswith("Variable"), "Exception test case failed."
         else:

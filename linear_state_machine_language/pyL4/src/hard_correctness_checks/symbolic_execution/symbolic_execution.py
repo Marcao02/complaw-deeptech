@@ -3,7 +3,7 @@ from src.independent.util_for_tuple_linked_lists import TupleLinkedList
 from src.model.ContractParamDec import ContractParamDec
 from src.independent.util import chcast
 
-TRACE = False
+TRACE = True
 # TRACE = False
 # USE_CONTRACT_PARAM_VALS = True
 USE_CONTRACT_PARAM_VALS = False
@@ -60,6 +60,10 @@ class GuardedBlockPath(NamedTuple):
     action: Action
     action_params: Optional[OneUseStore]
     core: CoreSymbExecState
+
+    # differs from default __str__ just by not calling the action's __str__
+    def __str__(self) -> str:
+        return f"GuardedBlockPath(block={self.block}, next_state={self.next_state}, next_statement={self.next_statement}, action={self.action.action_id}, action_params={self.action_params}, core={self.core}"
 
 class ActionRuleEnabledPath(NamedTuple):
     # guard: Z3Term  # already conjoined with path_constraint, for now
@@ -130,6 +134,7 @@ def symbolic_execution(prog:L4Contract):
         sz3.set(opt,val)
 
     def addQueryPath(qpath:QueryPath):
+        print("Adding query path:", qpath)
         queryPaths.append(qpath)
 
     def addTimeoutQueryPath(qpath:QueryPath):
@@ -230,6 +235,7 @@ def symbolic_execution(prog:L4Contract):
         maxind = 0
         def helper(ll):
             nonlocal maxind
+            nonlocal seq
             if ll is None:
                 return []
             else:
@@ -244,8 +250,8 @@ def symbolic_execution(prog:L4Contract):
                 helper(rest)
         helper(assignments)
         rv = (maxind+1)*['']
-        for i in range(1,maxind+1):
-            rv[i-1] = seq[i]
+        for i in range(0,maxind+1):
+            rv[i] = seq[i]
         return rv
 
     def checkFinishedTrace(extra:PushOnlyStack):
@@ -282,21 +288,21 @@ def symbolic_execution(prog:L4Contract):
                    ) -> SEvalRV:
         pathconstr, time_pathconstr, state, t, envvars, extra = core
 
-
-        extra = extra.push((f"action_{t}", a.action_id))
-
-        if TRACE:
-            # print("Action seq (reversed):", list(reversed(getActionSeq(extra.changes))))
-            print("Action seq:", getActionSeqFromExtra(extra.items))
-
-        # SETTING last_event_td, and "deleting" next_event_td
-        # envvars = envvars.set("last_event_td", envvars["next_event_td"])
-        envvars = envvars.set("last_event_td", name2symbolicvar(f"td_{core.time}", 'TimeDelta'))
-        envvars = envvars.set("next_event_td", None)
-
-        assert isinstance(state, LedgerDict), type(state)
+        # recall we come through sevalAction twice for each action
         if not skip_statetransform:
-            # print(f"{t} {a.action_id}")
+            extra = extra.push((f"action_{t}", a.action_id))
+
+            if TRACE:
+                # print("Action seq (reversed):", list(reversed(getActionSeq(extra.changes))))
+                print("Action seq:", getActionSeqFromExtra(extra.items))
+
+            # SETTING last_event_td, and "deleting" next_event_td
+            # envvars = envvars.set("last_event_td", envvars["next_event_td"])
+            envvars = envvars.set("last_event_td", name2symbolicvar(f"td_{core.time}", 'TimeDelta'))
+            envvars = envvars.set("next_event_td", None)
+
+            assert isinstance(state, LedgerDict), type(state)
+
             if a.state_transform:
                 res = sevalBlock(a.state_transform.statements, Store({}), a, actparam_store,
                                  CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
@@ -365,33 +371,52 @@ def symbolic_execution(prog:L4Contract):
                       ) -> SEvalRV:
         pathconstr, time_pathconstr, state, t, envvars, extra = core
         if TRACE:
-            print(f"sevalStatement({stmt},{state},{next_state},...,{t})")
+            print(f"sevalStatement(\n{stmt.toStr(1)},{state},{next_state},...,{t})")
         if isinstance(stmt, StateVarAssign):
             z3term = term2z3(stmt.value_expr, next_state, actparam_store, core)
             next_state = next_state.set(stmt.varname, z3term)
             extra = extra.push(f"write_{stmt.varname}")
-            return SEvalRVChange(next_state, pathconstr, extra)
+
+            # thread continues immediately
+            todo_once("suspiciously duplicated logic")
+            next = stmt.next_statement()
+            if next:
+                return sevalStatement(next, next_state, a, actparam_store,
+                                      CoreSymbExecState(core.path_constraint, core.time_path_constraint, core.state, core.time, core.env_vars,
+                                                        extra))
+            else:
+                # when `stmt` is a terminal statement in the StateTransform section
+                return sevalAction(a, actparam_store, True,
+                                   CoreSymbExecState(core.path_constraint, core.time_path_constraint, core.state, core.time,
+                                                     core.env_vars,
+                                                     extra))
+
+            # return SEvalRVChange(next_state, pathconstr, extra)
 
         elif isinstance(stmt, IfElse):
             test = term2z3(stmt.test, next_state, actparam_store, core)
 
             addQueryPath(
-                GuardedBlockPath(stmt.true_branch, next_state, stmt.next_sibling(), a, actparam_store,
+                GuardedBlockPath(stmt.true_branch, next_state, stmt.next_statement(), a, actparam_store,
                                  CoreSymbExecState(conj(test, pathconstr), time_pathconstr, state, t, envvars, extra)) )
 
-            if stmt.false_branch:
-                addQueryPath(
-                    GuardedBlockPath(stmt.false_branch, next_state, stmt.next_sibling(), a, actparam_store,
-                                     CoreSymbExecState(conj(neg(test), pathconstr), time_pathconstr, state, t, envvars, extra)) )
+            # if stmt.false_branch:
+            #     print("have false branch")
+            addQueryPath(
+                GuardedBlockPath(stmt.false_branch, next_state, stmt.next_statement(), a, actparam_store,
+                                 CoreSymbExecState(conj(neg(test), pathconstr), time_pathconstr, state, t, envvars, extra)) )
 
+            # threads are continued via the GuardedBlockPath tasks
             return SEvalRVStopThread("from sevalStatement")
 
         elif isinstance(stmt, FVRequirement):
             # raise NotImplementedError
             assertion = term2z3(stmt.value_expr, next_state, actparam_store, core)
             addQueryPath(
-                AssertionPath(assertion, stmt.next_sibling(), next_state, a, actparam_store,
+                AssertionPath(assertion, stmt.next_statement(), next_state, a, actparam_store,
                               CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra)))
+
+            # thread is continued via the AssertionPath task
             return SEvalRVStopThread("from sevalStatement")
 
         elif isinstance(stmt, LocalVarDec):
@@ -530,8 +555,7 @@ def symbolic_execution(prog:L4Contract):
                                                              qp.core.env_vars,
                                                              res.extra))
                     else:
-                    # the following is only sound under the constraint that IfElse Statements only occur as the last
-                    # Statement in a Block.
+                        # case when the ifelse is the last statement in its block
                         return sevalAction(qp.action, qp.action_params, True,
                                 CoreSymbExecState(res.path_constraint,
                                                   qp.core.time_path_constraint,
@@ -540,8 +564,14 @@ def symbolic_execution(prog:L4Contract):
                                                   qp.core.env_vars,
                                                   res.extra))
 
-                if isinstance(res, SEvalRVBug):
+                elif isinstance(res, SEvalRVBug):
                     return res
+
+                elif isinstance(res, SEvalRVStopThread):
+                    return res
+
+                else:
+                    assert False, res
 
             elif checkres == z3.unsat:
                 return SEvalRVInconsistent("GuardedBlockPath query unsat")
@@ -584,7 +614,7 @@ def symbolic_execution(prog:L4Contract):
         else:
             raise NotImplementedError(qp)
 
-
+        assert checkres == z3.unknown, checkres
         if TRACE:
             if checkres == z3.unknown:
                 print(f"UNKNOWN: {qp.core.full_constraint()}")
@@ -604,15 +634,19 @@ def symbolic_execution(prog:L4Contract):
     def pathChooser():
 
         while len(queryPaths) > 0:
+            print("\n#paths: ", len(queryPaths), len(timedoutQueryPaths), len(unprovedAssertions))
             qpath = takeQueryPath()
+            print("popping query path ", str(qpath))
             # print("paths: ", len(queryPaths), qpath)
-            print("#paths: ", len(queryPaths), len(timedoutQueryPaths), len(unprovedAssertions))
+
             # this call will add paths to queryPaths:
             res = query(qpath)
             if isinstance(res, SEvalRVTimeout):
                 addTimeoutQueryPath(qpath)
             elif isinstance(res, SEvalRVBug):
                 raise Exception(res.msg)
+            else:
+                print("query result:", res)
             # we don't need to do anything in the other two SEvalRV cases?
 
     # raise Exception("Before I do anything else, assert the types of all the contract params")
