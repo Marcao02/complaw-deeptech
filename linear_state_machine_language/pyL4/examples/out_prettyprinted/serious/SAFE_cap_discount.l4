@@ -103,8 +103,9 @@ action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_cap
             conversion_price := discount_price'
 
         investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
-        investor_Common_Stocks := (investor_Common_Stocks + ((investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg) round/ conversion_price'))
-        cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+        purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)
+        investor_Common_Stocks := (investor_Common_Stocks + (purchase_amount_reduction round/ conversion_price'))
+        cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - purchase_amount_reduction))
         company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
     following situation:
         Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))

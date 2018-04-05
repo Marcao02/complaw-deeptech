@@ -10,7 +10,7 @@
 )
 
 (StateVars
-	(writeonce challenge_endlimit_timestamp : TimeDelta )
+	(writes≤1 challenge_endlimit_timestamp : TimeDelta )
 	(amount_owing                      		: $ = 0)
 	(amount_paid                       		: $ = 0)
 )

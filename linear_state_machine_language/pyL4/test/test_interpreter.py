@@ -67,6 +67,54 @@ K = 1000
 M = 1000000
 
 traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
+    ('test/test_symbexec_multiwrite.l4',  CompleteTrace(
+        {'N':1200},
+        (
+            event('DoIt', 'Env', 0),
+            # event('FinishIt', 'Env', 0, {'z':81})
+        ),
+        FULFILLED_SITUATION_LABEL,
+        {"v": 2400})
+     ),
+
+    ('test/test_symbexec_multiwrite.l4',  CompleteTrace(
+        {'N':1050},
+        (
+            event('DoIt', 'Env', 0),
+            # event('FinishIt', 'Env', 0, {'z':81})
+        ),
+        FULFILLED_SITUATION_LABEL,
+        {"v": 0})
+     ),
+    ('test/test_symbexec_multiwrite.l4',  CompleteTrace(
+        {'N':999},
+        ( event('DoIt', 'Env', 0), ),
+        FULFILLED_SITUATION_LABEL,
+        {"v": 999})
+     ),
+
+
+    ('test/test_symbexec_multiwrite_error.l4',  CompleteTrace(
+        {'N':950},
+        (
+            event('DoIt', 'Env', 0),
+            # event('FinishIt', 'Env', 0, {'z':81})
+        ),
+        FULFILLED_SITUATION_LABEL,
+        {"v": 1900})
+     ),
+
+    ('test/test_symbexec_multiwrite_error.l4',  CompleteTrace(
+        {'N':1050},
+        (
+            event('DoIt', 'Env', 0),
+            # event('FinishIt', 'Env', 0, {'z':81})
+        ),
+        FULFILLED_SITUATION_LABEL,
+        {"v": 2100})
+     ),
+
+
     ('toy_and_teaching/test_local_vars.l4', CompleteTrace(
         {},
         (
@@ -485,6 +533,9 @@ EXAMPLES_TO_RUN = [
         'toy_and_teaching/collatz.l4',
         'toy_and_teaching/collatz2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
+
+        'test/test_symbexec_multiwrite.l4',
+        'test/test_symbexec_multiwrite_error.l4',
 
         # 'serious/SAFE.l4',
         'serious/SAFE_cap.l4',

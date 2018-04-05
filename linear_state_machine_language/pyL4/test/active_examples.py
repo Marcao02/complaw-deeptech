@@ -10,7 +10,11 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
     'test/test_symbolic_exec_halting.l4',
     'test/test_symbolic_exec_halting_easiest.l4',
     'test/test_symbolic_exec_halting_harder.l4',
+    'test/test_symbexec_multiwrite.l4',
+    'test/test_symbexec_multiwrite_error.l4',
     'test/test_local_vars.l4',
+
+
     'toy_and_teaching/minimal_future-actions.l4',
     'toy_and_teaching/minimal_future-actions2.l4',
     'toy_and_teaching/collatz.l4',
@@ -37,5 +41,5 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
 
     'toy_and_teaching/tutorialSAFE.l4'
 ]
-EXAMPLES_FULL_SIZE = 28
+EXAMPLES_FULL_SIZE = 30
 # EXAMPLES_FULL_SIZE = 1

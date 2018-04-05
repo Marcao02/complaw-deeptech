@@ -61,6 +61,7 @@ class L4Contract:
         self.img_file_name: Optional[str] = None  # for graphviz output
 
         self.all_sorted_names : Dict[str,Sort] = dict()
+        self.write_bounds : Dict[str,Tuple[int,Optional[int]]] = dict()
 
     def register_sorted_name(self,name:str,sort:Sort):
         if name in self.all_sorted_names:

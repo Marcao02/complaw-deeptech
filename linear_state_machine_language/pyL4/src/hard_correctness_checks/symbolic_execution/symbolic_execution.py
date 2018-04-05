@@ -1,11 +1,12 @@
-# TRACE = True
+from src.independent.PushOnlyStack import PushOnlyStack
+from src.independent.util_for_tuple_linked_lists import TupleLinkedList
 from src.model.ContractParamDec import ContractParamDec
 from src.independent.util import chcast
 
-# TRACE = True
 TRACE = False
-USE_CONTRACT_PARAM_VALS = True
-# USE_CONTRACT_PARAM_VALS = False
+# TRACE = False
+# USE_CONTRACT_PARAM_VALS = True
+USE_CONTRACT_PARAM_VALS = False
 
 from src.model.StateVarDec import StateVarDec
 from src.constants_and_defined_types import FULFILLED_SITUATION_LABEL
@@ -49,12 +50,13 @@ class CoreSymbExecState(NamedTuple):
     state: Store
     time: int
     env_vars: Store
-    extra: LedgerDict[str,Any]
+    extra: PushOnlyStack[Any]
 
 class GuardedBlockPath(NamedTuple):
     # guard: Z3Term  # already conjoined with path_constraint, for now
     block: Block
     next_state: Store # for Alg2, always frozen. For Alg1, sometimes mutable.
+    next_statement: Optional[Statement]
     action: Action
     action_params: Optional[OneUseStore]
     core: CoreSymbExecState
@@ -90,6 +92,7 @@ class SEvalRVChange(NamedTuple):
     # but for version 1, let's just use all immutable types. then can see how efficiency improves later!
     next_state: Store
     path_constraint: Z3Term
+    extra: PushOnlyStack[Any]
 
 class SEvalRVBug(NamedTuple):
     msg: str
@@ -176,7 +179,7 @@ def symbolic_execution(prog:L4Contract):
                 elif term in contractParams:
                     return contractParams[term]
                 else:
-                    raise Exception(f"Problem at term2z3({term}, {state}, {next_state}, {actparam_store})")
+                    raise Exception(f"Problem at term2z3({term}, {state}, {next_state}, {actparam_store}). See {topterm.coord if isinstance(topterm,Term) else '?'}")
             elif isinstance(term,BoundVar):
                 return helper(term.name)
             elif isinstance(term,Literal):
@@ -222,7 +225,7 @@ def symbolic_execution(prog:L4Contract):
         # print(f"tern2z3({topterm}) == {rv}. type of input ", type(topterm))
         return rv
 
-    def getActionSeq(assignments:LazyRecTuple) -> List[str]:
+    def getActionSeqFromExtra(assignments:TupleLinkedList) -> List[str]:
         seq = dict()
         maxind = 0
         def helper(ll):
@@ -230,19 +233,44 @@ def symbolic_execution(prog:L4Contract):
             if ll is None:
                 return []
             else:
-                pair, rest = ll
-                key = pair[0]
-                if cast(str,pair[0]).startswith("action"):
-                    ind = int(key[7:])
-                    seq[ind] = pair[1]
-                    maxind = max(maxind,ind)
+                x, rest = ll
+                if isinstance(x,tuple):
+                    key,val = x
+
+                    if cast(str,key).startswith("action"):
+                        ind = int(key[7:])
+                        seq[ind] = val
+                        maxind = max(maxind,ind)
                 helper(rest)
         helper(assignments)
-        # return seq
         rv = (maxind+1)*['']
         for i in range(1,maxind+1):
             rv[i-1] = seq[i]
         return rv
+
+    def checkFinishedTrace(extra:PushOnlyStack):
+        assert extra is not None
+
+        # Check write count bounds
+        for v,(low,high) in prog.write_bounds.items():
+            cnt = extra.count("write_{v}")
+            assert low <= cnt and (high is None or cnt <= high), f"State var {v} write counts not in the range [{low},{high}]"
+
+
+        # Check that no state variable is changed more than once in any StateTransform section
+        written : Set[str] = set()
+        print("extra...", extra)
+        def f(x:Any):
+            nonlocal written
+            if isinstance(x,str):
+                if x.startswith("write_"):
+                    varname = x[6:]
+                    assert varname not in written, f"Variable {varname} written to more than once in a path through a StateTransform section"
+                    written.add(varname)
+            elif isinstance(x,tuple) and len(x) >= 2 and x[0].startswith("action_"):
+                written = set()
+
+        extra.forEach(f)
 
 
 
@@ -254,10 +282,12 @@ def symbolic_execution(prog:L4Contract):
                    ) -> SEvalRV:
         pathconstr, time_pathconstr, state, t, envvars, extra = core
 
+
+        extra = extra.push((f"action_{t}", a.action_id))
+
         if TRACE:
-            extra = extra.set(f"action_{t}", a.action_id)
             # print("Action seq (reversed):", list(reversed(getActionSeq(extra.changes))))
-            print("Action seq:", getActionSeq(extra.changes))
+            print("Action seq:", getActionSeqFromExtra(extra.items))
 
         # SETTING last_event_td, and "deleting" next_event_td
         # envvars = envvars.set("last_event_td", envvars["next_event_td"])
@@ -274,6 +304,7 @@ def symbolic_execution(prog:L4Contract):
                     assert isinstance(res.next_state, LedgerDict), type(res.next_state)
                     state = res.next_state
                     pathconstr = res.path_constraint
+                    extra = res.extra
                 elif isinstance(res, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout, SEvalRVStopThread)):
                     return res
                 else:
@@ -285,8 +316,14 @@ def symbolic_execution(prog:L4Contract):
                                   CoreSymbExecState(pathconstr, time_pathconstr, state,t+1,envvars,extra) )
         elif a.dest_situation_id == FULFILLED_SITUATION_LABEL:
             if TRACE:
-                print("fulfilled")
+                print("Fulfilled")
+            checkFinishedTrace(extra)
             return SEvalRVStopThread("trans to Fulfilled from sevalAction")
+        elif a.dest_situation_id.startswith("Breached_"):
+            if TRACE:
+                print(a.dest_situation_id)
+            checkFinishedTrace(extra)
+            return SEvalRVStopThread("trans to a Breached_* situation from sevalAction")
         else:
             return sevalSituation(prog.situation(a.dest_situation_id),
                                   CoreSymbExecState(pathconstr, time_pathconstr, state,t+1,envvars,extra) )
@@ -308,7 +345,7 @@ def symbolic_execution(prog:L4Contract):
                     # print(state)
                     if v not in next_state:
                         next_state = next_state.set(v, state[v])
-            return SEvalRVChange(next_state=next_state,path_constraint=pathconstr)
+            return SEvalRVChange(next_state=next_state,path_constraint=pathconstr,extra=extra)
         else:
             rv1 = sevalStatement(block[0], next_state, a, actparam_store,
                                  CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
@@ -316,7 +353,7 @@ def symbolic_execution(prog:L4Contract):
                 return rv1
             elif isinstance(rv1, SEvalRVChange):
                 return sevalBlock(block[1:], rv1.next_state,a, actparam_store,
-                                  CoreSymbExecState(rv1.path_constraint, time_pathconstr, state, t, envvars, extra ))
+                                  CoreSymbExecState(rv1.path_constraint, time_pathconstr, state, t, envvars, rv1.extra ))
             else:
                 raise Exception(rv1)
 
@@ -332,19 +369,19 @@ def symbolic_execution(prog:L4Contract):
         if isinstance(stmt, StateVarAssign):
             z3term = term2z3(stmt.value_expr, next_state, actparam_store, core)
             next_state = next_state.set(stmt.varname, z3term)
-
-            return SEvalRVChange(next_state, pathconstr)
+            extra = extra.push(f"write_{stmt.varname}")
+            return SEvalRVChange(next_state, pathconstr, extra)
 
         elif isinstance(stmt, IfElse):
             test = term2z3(stmt.test, next_state, actparam_store, core)
 
             addQueryPath(
-                GuardedBlockPath(stmt.true_branch, next_state, a, actparam_store,
+                GuardedBlockPath(stmt.true_branch, next_state, stmt.next_sibling(), a, actparam_store,
                                  CoreSymbExecState(conj(test, pathconstr), time_pathconstr, state, t, envvars, extra)) )
 
             if stmt.false_branch:
                 addQueryPath(
-                    GuardedBlockPath(stmt.false_branch, next_state, a, actparam_store,
+                    GuardedBlockPath(stmt.false_branch, next_state, stmt.next_sibling(), a, actparam_store,
                                      CoreSymbExecState(conj(neg(test), pathconstr), time_pathconstr, state, t, envvars, extra)) )
 
             return SEvalRVStopThread("from sevalStatement")
@@ -484,15 +521,24 @@ def symbolic_execution(prog:L4Contract):
             if checkres == z3.sat:# or checkres == z3.unknown:
                 res = sevalBlock(qp.block, qp.next_state, qp.action, qp.action_params, qp.core)
                 if isinstance(res, SEvalRVChange):
+                    if qp.next_statement:
+                        return sevalStatement(qp.next_statement, res.next_state, qp.action, qp.action_params,
+                                           CoreSymbExecState(res.path_constraint,
+                                                             qp.core.time_path_constraint,
+                                                             res.next_state,
+                                                             qp.core.time,
+                                                             qp.core.env_vars,
+                                                             res.extra))
+                    else:
                     # the following is only sound under the constraint that IfElse Statements only occur as the last
                     # Statement in a Block.
-                    return sevalAction(qp.action, qp.action_params, True,
-                            CoreSymbExecState(res.path_constraint,
-                                              qp.core.time_path_constraint,
-                                              res.next_state,
-                                              qp.core.time,
-                                              qp.core.env_vars,
-                                              qp.core.extra))
+                        return sevalAction(qp.action, qp.action_params, True,
+                                CoreSymbExecState(res.path_constraint,
+                                                  qp.core.time_path_constraint,
+                                                  res.next_state,
+                                                  qp.core.time,
+                                                  qp.core.env_vars,
+                                                  res.extra))
 
                 if isinstance(res, SEvalRVBug):
                     return res
@@ -516,11 +562,11 @@ def symbolic_execution(prog:L4Contract):
             # 1)
             if checkres == z3.sat:# or checkres == z3.unknown:
                 if TRACE:
-                    print("sat:", z3termPrettyPrint(qp.core.path_constraint))
+                    print("path constraint sat:", z3termPrettyPrint(qp.core.path_constraint))
                 return sevalRuleIgnoreGuardAndParamConstraints(qp.rule, qp.action_params, qp.core)
             elif checkres == z3.unsat:
                 if TRACE:
-                    print("unsat:", qp.core.path_constraint)
+                    print("path constraint unsat:", qp.core.path_constraint)
                 return SEvalRVInconsistent("ActionRuleParamsConstraintPath query unsat")
 
         elif isinstance(qp, AssertionPath):
@@ -586,7 +632,7 @@ def symbolic_execution(prog:L4Contract):
     })
     time_pathconstr = cast(Z3Term, name2symbolicvar('td_0','TimeDelta') == z3.IntVal(0))
     pathconstr = z3.BoolVal(True)
-    extra = LedgerDict[str,Any]({})
+    extra = PushOnlyStack[Any]()
     startstate : Store = Store({})
     dec : StateVarDec
     for dec in prog.state_var_decs.values():

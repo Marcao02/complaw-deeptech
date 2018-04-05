@@ -8,6 +8,8 @@ from src.independent.typing_imports import *
 from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement
 from src.model.L4Contract import L4Contract
 
+INCOMPLETE_ILLEGAL_MULTIWRITE_CHECK = False
+
 Block = List[Statement]
 OutType = Union[str,Tuple[Any,...]]
 
@@ -214,7 +216,9 @@ def eliminate_local_vars(p:L4Contract):
 
 
         elif isinstance(s, StateVarAssign):
-            assert s.varname not in forbidden_write, f"state var {s.varname} can't be written at (TODO: s.coord)"
+            if INCOMPLETE_ILLEGAL_MULTIWRITE_CHECK:
+                assert s.varname not in forbidden_write, f"state var {s.varname} can't be written at (TODO: s.coord)"
+
             # forbid writing a second time to this variable in the same forward-scope, because it's potentially confusing
             # and not needed in good code.
             # I was actually doing this... but could easily switch to ifthenelse

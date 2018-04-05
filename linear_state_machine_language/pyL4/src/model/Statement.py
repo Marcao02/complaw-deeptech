@@ -29,7 +29,10 @@ class Statement:
         i = self.parent_block.index(self)
         if i < len(self.parent_block) - 1:
             return self.parent_block[i-1]
-        assert self.grandparent_ifelse is not None
+
+        # assert self.grandparent_ifelse is not None, self.toStr(0)
+        if self.grandparent_ifelse is None:
+            return None
         return self.grandparent_ifelse.next_sibling()
 
 

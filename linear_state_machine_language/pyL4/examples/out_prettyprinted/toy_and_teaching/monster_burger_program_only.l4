@@ -7,13 +7,12 @@ contract params:
     MB_PRICE : Pos$ := 50
 
 state vars:
-    writeonce challenge_endlimit_timestamp : TimeDelta
+    writes≤1 challenge_endlimit_timestamp : TimeDelta
     amount_owing : $ := 0
     amount_paid : $ := 0
 
 situation MonsterBurgerUncooked:
     Challenger may RequestCookMB
-    Breach_Challenger (next_event_td == ((last_situation_td + 60m) + 1m))
 
 action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:

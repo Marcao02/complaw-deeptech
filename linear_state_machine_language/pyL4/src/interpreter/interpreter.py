@@ -370,6 +370,7 @@ class ExecEnv:
             gvardec = stmt.vardec
             assert gvardec is not None, f"Global variable declaration for {stmt.varname} not found."
 
+            todo_once("kill writeOnceMore")
             if gvardec.isWriteOnceMore() and self.gvar_write_cnt[stmt.varname] >= 2:
                 raise Exception(f"Attempt to write twice more (after init) to writeOnceMore variable `{stmt.varname}`")
             dictInc(self.gvar_write_cnt, stmt.varname, init=1)

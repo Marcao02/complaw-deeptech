@@ -90,7 +90,7 @@ However, if notices need to go to different shareholdes, then each edge is a sep
 
 ## Signatures
 
-Each piece of Paperwork may have zero or more signatories. You can think of these signatories as a special kind of children to each node -- each party has to sign, before the paperwork can be considered executed. The specific mode of execution depends on the (sub)type of paperwork. If it's a notice, then the notice has to be signed and sent. If it's a deed, it has to be witnessed. And so on.
+Each piece of Paperwork may have zero or more signatories. You can think of these signatories as a special kind of children to each edge -- each party has to sign, before the paperwork can be considered executed. The specific mode of execution depends on the (sub)type of paperwork. If it's a notice, then the notice has to be signed and sent. If it's a deed, it has to be witnessed. And so on.
 
 ## Blowing Minds with Graph Theory
 

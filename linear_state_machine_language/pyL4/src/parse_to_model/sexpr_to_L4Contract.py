@@ -60,6 +60,8 @@ def syntaxErrorX(expr: Optional[SExprOrStr], msg:Optional[str] = None) -> NoRetu
 
 T = TypeVar('T')
 
+IntBounds = Tuple[int,Optional[int]]
+
 class L4ContractConstructor(L4ContractConstructorInterface):
     def __init__(self, filename:str, verbose=True, flags:Optional[Dict[str,bool]] = None) -> None:
         self.top : L4Contract = L4Contract(filename)
@@ -332,12 +334,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if i+3 < len(dec) and (dec[i+3] == ':=' or dec[i+3] == '='):
                     initval = self._mk_term(dec[i + 4],None,None,None,dec)
 
-                # print("sort: ", str(sort))
-                # print("initval: ", str(initval), type(initval))
                 rv[name] = StateVarDec(name, sort, initval, modifiers)
-                # TODO: for requiring primed variables.
+                # I had written: TO DO: for requiring primed variables.
                 # rv[primed(name)] = rv[name]
 
+                self.top.write_bounds[name] = self._modifiers_to_write_bounds(modifiers, l)
                 self.top.register_sorted_name(name, sort)
 
             except Exception as e:
@@ -346,6 +347,22 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         # logging.info(str(rv))
         return rv
+
+    def _modifiers_to_write_bounds(self, modifiers:Iterable[str], parent_expr:SExpr) -> IntBounds:
+        low,high = 0, None
+        low2:int
+        high2:Optional[int]
+        for s in modifiers:
+            if s == "writeonce" or s == "writes1":
+                low2,high2 = 1,1
+            elif s == "writeatmostonce" or s == "writes≤1":
+                low2,high2 = low,1
+            else:
+                low2,high2 = low,high
+
+            self.assertOrSyntaxError( low2 >= low and (high is None or high2 <= high), parent_expr )
+            low,high = low2,high2
+        return low,high
 
     def _mk_claims(self, l:SExpr) -> List[ContractClaim]:
         rv = [ContractClaim(x) for x in l]

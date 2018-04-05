@@ -47,7 +47,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     if 'interpreter' in tests_to_run:
         timetask_start('interpreter')
         import test_interpreter
-        assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), "Some entries of test_interpreter.EXAMPLES_TO_RUN are probably commented out"
+        assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), f"Some entries of test_interpreter.EXAMPLES_TO_RUN are probably commented out... {test_interpreter.EXAMPLES_FULL_SIZE} {len(test_interpreter.EXAMPLES_TO_RUN)}"
         test_interpreter.main(progs, VERBOSE)
         timetask_stop()
 
