@@ -111,13 +111,13 @@ def main(examples:Dict[str,L4Contract], verbose=True):
         # 'test/test_symbolic_exec_time.l4',
         # 'toy_and_teaching/monster_burger_program_only.l4',
         # # 'from_academic_lit/hvitved_lease.l4', # uses `monthStartDay_td`
-        # 'from_academic_lit/hvitved_printer.l4',
+        'from_academic_lit/hvitved_printer.l4',
         # 'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
         # # 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4', # uses currently-unsupported data structure
         # # 'from_academic_lit/hvitved_instalment_sale--simplified_time.l4' # goes forever because of 0 duration actions
         # # 'from_academic_lit/Farmer_american_call_option_2016.l4', # need to implement next_event_dt first
-        # 'toy_and_teaching/partner_assignment_permissions_only.l4',
-        'test/test_symbexec_multiwrite.l4',
+        # # 'toy_and_teaching/partner_assignment_permissions_only.l4', # infinite...
+        # 'test/test_symbexec_multiwrite.l4',
         # 'test/test_symbexec_multiwrite_error.l4',
 
     ])
@@ -131,6 +131,7 @@ def main(examples:Dict[str,L4Contract], verbose=True):
                 raise Exception("Expected exception not thrown")
             except AssertionError as e:
                 assert e.args[0].startswith("Variable"), "Exception test case failed."
+                print("Test case ended in exception, as expected")
         else:
             symbolic_execution(prog)
 

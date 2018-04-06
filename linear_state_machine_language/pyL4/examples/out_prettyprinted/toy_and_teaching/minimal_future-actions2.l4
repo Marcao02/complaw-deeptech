@@ -21,5 +21,4 @@ action Catch(n: Nat) transitions to Ongoing:
         if (event_role == I):
             I_must_Catch_by := (mapDelete I_must_Catch_by n)
 
-
 action EnterFulfilled()  transitions to Fulfilled

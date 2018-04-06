@@ -31,8 +31,8 @@ action ExerciseOption()  transitions to AfterExerciseOption:
         buyer_funds := (check $ (BUYER_START_FUNDS - (units $ 80)))
         seller_funds := (SELLER_START_FUNDS + (units $ 80))
     following situation:
-        Buyer may TransferShare
-        Breach_Buyer (next_event_td == ((last_situation_td + 30d) + 1d))
+        Buyer may TransferShare (next_event_td ≤ (last_situation_td + 30d))
+        Breach_Buyer (next_event_td > (last_situation_td + 30d))
 
 action TransferShare()  transitions to Fulfilled:
     transform:

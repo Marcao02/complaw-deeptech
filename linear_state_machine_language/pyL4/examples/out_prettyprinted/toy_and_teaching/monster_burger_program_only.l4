@@ -56,7 +56,7 @@ action RejectCompletionClaim()  transitions to AfterRejectCompletionClaim
         if (last_situation_td ≥ challenge_endlimit_timestamp):
             Challenger may PayForMB (next_event_td == last_situation_td)
         if (last_situation_td ≥ challenge_endlimit_timestamp):
-            Breach_Challenger (next_event_td == (last_situation_td + 1d))
+            Breach_Challenger (next_event_td > last_situation_td)
         if (last_situation_td < challenge_endlimit_timestamp):
             EnterEatingMB (next_event_td == last_situation_td)
 

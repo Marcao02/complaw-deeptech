@@ -30,18 +30,18 @@ situation InvestorInvests:
 
 action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
     following situation:
-        Company may SendEquityFinancingTransactionDocsWithPRRAForSigning
-        Breach_Company (next_event_td == (14d + 1d))
+        Company may SendEquityFinancingTransactionDocsWithPRRAForSigning (next_event_td ≤ 14d)
+        Breach_Company (next_event_td > 14d)
 
 action SendEquityFinancingTransactionDocsWithPRRAForSigning()  transitions to AfterSendEquityFinancingTransactionDocsWithPRRAForSigning
     following situation:
-        Breach_Investor (next_event_td == (14d + 1d))
-        Investor may ExecuteAndDeliverTransactionDocs
+        Breach_Investor (next_event_td > 14d)
+        Investor may ExecuteAndDeliverTransactionDocs (next_event_td ≤ 14d)
 
 action ExecuteAndDeliverTransactionDocs()  transitions to AfterExecuteAndDeliverTransactionDocs
     following situation:
-        Company may IssueSAFEPreferredStock(?1, ?2)
-        Breach_Company (next_event_td == (14d + 1d))
+        Company may IssueSAFEPreferredStock(?1, ?2) (next_event_td ≤ 14d)
+        Breach_Company (next_event_td > 14d)
 
 action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
     transform:
@@ -51,8 +51,8 @@ action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_val
         conversion_price := (min cap_price' discount_price')
         investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))
     following situation:
-        Company may DoEquityFinancing
-        Breach_Company (next_event_td == (1d + 1d))
+        Company may DoEquityFinancing (next_event_td ≤ 1d)
+        Breach_Company (next_event_td > 1d)
 
 action DoEquityFinancing()  transitions to Fulfilled
 
@@ -64,31 +64,31 @@ action CommitToIPO(liquidity_capitalization: PosShareCnt) transitions to AfterCo
         cash_currently_unconverted := PURCHASE_AMOUNT
     following situation:
         Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
-        Breach_Company (next_event_td == ((last_situation_td + 1w) + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1w))
         Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:
-        Company may TransferCommonStock
-        Breach_Company (next_event_td == (14d + 1d))
+        Company may TransferCommonStock (next_event_td ≤ 14d)
+        Breach_Company (next_event_td > 14d)
 
 action ChooseStockPayment()  transitions to AfterChooseStockPayment
     following situation:
-        Company may TransferCommonStock
-        Breach_Company (next_event_td == (14d + 1d))
+        Company may TransferCommonStock (next_event_td ≤ 14d)
+        Breach_Company (next_event_td > 14d)
 
 action TransferCommonStock()  transitions to AfterTransferCommonStock:
     transform:
         investor_Common_Stocks := (investor_Common_Stocks + ((check $ (cash_currently_unconverted - liq_cashout)) round/ cap_price))
     following situation:
-        Company may DoLiquidityEvent
-        Breach_Company (next_event_td == (14d + 1d))
+        Company may DoLiquidityEvent (next_event_td ≤ 14d)
+        Breach_Company (next_event_td > 14d)
 
 action ChooseCashPayment()  transitions to AfterChooseCashPayment
     following situation:
-        Company may TransferCash_L(?1)
-        Breach_Company (next_event_td == (14d + 1d))
+        Company may TransferCash_L(?1) (next_event_td ≤ 14d)
+        Breach_Company (next_event_td > 14d)
 
 action TransferCash_L(company_cash_at_liquidity_event: Pos$) transitions to AfterTransferCash_L:
     transform:
@@ -96,12 +96,12 @@ action TransferCash_L(company_cash_at_liquidity_event: Pos$) transitions to Afte
         investor_cash := (investor_cash + liq_cashout')
     following situation:
         if (liq_cashout == cash_currently_unconverted):
-            Company may DoLiquidityEvent
+            Company may DoLiquidityEvent (next_event_td ≤ 14d)
         if (liq_cashout < cash_currently_unconverted):
-            Company may TransferCommonStock
+            Company may TransferCommonStock (next_event_td ≤ 14d)
         if (liq_cashout < cash_currently_unconverted):
-            Breach_Company (next_event_td == (14d + 1d))
+            Breach_Company (next_event_td > 14d)
         if (liq_cashout == cash_currently_unconverted):
-            Breach_Company (next_event_td == (14d + 1d))
+            Breach_Company (next_event_td > 14d)
 
 action DoLiquidityEvent()  transitions to Fulfilled

@@ -179,7 +179,7 @@
         ]
 
         [Future
-            [ Vendor must-later [Deliver quantity next_order_id] [future_event_td ≤ this_delivery_deadline]]
+            [ Vendor must-later [Deliver quantity next_order_id] [when future_event_td ≤ this_delivery_deadline]]
         ]
 
     ]
@@ -198,7 +198,7 @@
         ]
 
         [Future
-            [Vendor may-later [EmailInvoice quantity orderid] [future_event_td ≤ deadline] ]
+            [Vendor may-later [EmailInvoice quantity orderid] [when future_event_td ≤ deadline] ]
         ]
     ]
 
@@ -214,7 +214,7 @@
             [ local deadline : TimeDelta = (last_event_td + 14d) ]
         ]
         [Future
-            [Customer must-later [PayBill quantity orderid] [future_event_td ≤ deadline] ]
+            [Customer must-later [PayBill quantity orderid] [when future_event_td ≤ deadline] ]
         ]
 
     ]

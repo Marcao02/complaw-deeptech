@@ -36,10 +36,10 @@ class Statement:
                     rv = None
                 else:
                     rv = self.grandparent_ifelse.next_statement()
-        if rv:
-            print(f"statement at block index {i}" + "\n" + self.toStr(1) + "\nnext statement is\n" + rv.toStr(1))
-        else:
-            print(f"statement at block index {i}" + "\n" + self.toStr(1) + "\nhas no next statement")
+        # if rv:
+        #     print(f"statement at block index {i}" + "\n" + self.toStr(1) + "\nnext statement is\n" + rv.toStr(1))
+        # else:
+        #     print(f"statement at block index {i}" + "\n" + self.toStr(1) + "\nhas no next statement")
         return rv
 
 

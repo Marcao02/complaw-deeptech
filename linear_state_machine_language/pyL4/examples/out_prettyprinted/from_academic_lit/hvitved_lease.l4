@@ -16,7 +16,7 @@ state vars:
     branchunaffecting inconly total_rent_paid : Nat := 0
 
 situation Start:
-    Breach_Landlord (next_event_td == (last_situation_td + 1d))
+    Breach_Landlord (next_event_td > last_situation_td)
     Landlord may EnsureApartmentReady (next_event_td == last_situation_td)
 
 action RequestTerminationFromMonthStarted()  transitions to MonthStarted:
@@ -44,7 +44,7 @@ action StartLeaseTerm()  transitions to MonthStarted:
 action EnterMonthStarted()  transitions to MonthStarted
 
 situation MonthStarted:
-    Breach_Tenant (next_event_td == (((monthStartDay_td ) + MAX_RENT_DELAY) + 1d))
+    Breach_Tenant (next_event_td > ((monthStartDay_td ) + MAX_RENT_DELAY))
     if ¬lease_terminated:
         Landlord may RequestTerminationFromMonthStarted (next_event_td ≤ (min ((monthStartDay_td ) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE)))
     Tenant may PayRent (next_event_td ≤ ((monthStartDay_td ) + MAX_RENT_DELAY))
@@ -76,7 +76,7 @@ action EnterMonthEnded()  transitions to MonthEnded
 action EnterLeaseTermEnded()  transitions to LeaseTermEnded
     following situation:
         if lease_terminated:
-            Breach_Tenant (next_event_td == (last_situation_td + 1d))
+            Breach_Tenant (next_event_td > last_situation_td)
         if ¬lease_terminated:
             StartLeaseTerm (next_event_td == last_situation_td)
         if lease_terminated:

@@ -69,7 +69,7 @@ action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization:
         company_cash := company_cash_at_liquidity_event
     following situation:
         Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
-        Breach_Company (next_event_td == ((last_situation_td + 1w) + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1w))
         Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
 
@@ -83,7 +83,7 @@ action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_cap
         company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
     following situation:
         Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
-        Breach_Company (next_event_td == ((last_situation_td + 1w) + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1w))
         Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
 

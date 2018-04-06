@@ -88,6 +88,8 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv = indent(indent_level) + "if " + str(ar.entrance_enabled_guard) + ":\n"
         indent_level += 1
 
+    assert str(ar.time_constraint) != 'immediately'
+
     if ar.action_id == FULFILLED_SITUATION_LABEL and str(ar.time_constraint) == 'immediately':
         rv += indent(indent_level) + FULFILLED_SITUATION_LABEL
         return rv
@@ -106,9 +108,9 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
     elif ar.fixed_args:
         rv += f"({mapjoin(str , ar.fixed_args, ', ')})"
 
-    if ar.role_id == ENV_ROLE and str(ar.time_constraint) == 'immediately':
-        return rv
-
+    # if ar.role_id == ENV_ROLE and str(ar.time_constraint) == 'immediately':
+    #     return rv
+    #
     if ar.time_constraint:
         rv += " " + str(ar.time_constraint)
 
@@ -185,8 +187,8 @@ class EnvNextActionRule(NextActionRule):
         elif self.fixed_args:
             rv += f"({mapjoin(str , self.fixed_args, ', ')})"
 
-        if str(self.time_constraint) == 'immediately':
-            return rv
+        # if str(self.time_constraint) == 'immediately':
+        #     return rv
 
         if self.time_constraint:
             rv += " " + str(self.time_constraint)

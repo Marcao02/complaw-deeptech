@@ -98,8 +98,8 @@ class SEvalRVChange(NamedTuple):
     path_constraint: Z3Term
     extra: PushOnlyStack[Any]
 
-class SEvalRVBug(NamedTuple):
-    msg: str
+# class SEvalRVBug(NamedTuple):
+#     msg: str
 
 class SEvalRVInconsistent(NamedTuple):
     msg: str
@@ -107,10 +107,8 @@ class SEvalRVInconsistent(NamedTuple):
 class SEvalRVStopThread(NamedTuple):
     msg: str
 
-class SEvalRVTimeout(NamedTuple):
-    msg: str
-
-SEvalRV = Union[SEvalRVChange, SEvalRVBug, SEvalRVInconsistent, SEvalRVStopThread, SEvalRVTimeout]
+SEvalRV = Union[SEvalRVChange,
+          SEvalRVInconsistent, SEvalRVStopThread]
 
 pathconstr:Z3Term
 state:Store
@@ -123,6 +121,8 @@ max_writes : Dict[str,int] = dict()
 
 def symbolic_execution(prog:L4Contract):
 
+    fulfilled_cnt = 0
+
     contractParams : OneUseStore
 
     queryPaths : List[QueryPath] = []
@@ -134,7 +134,8 @@ def symbolic_execution(prog:L4Contract):
         sz3.set(opt,val)
 
     def addQueryPath(qpath:QueryPath):
-        print("Adding query path:", qpath)
+        if TRACE:
+            print("Adding query path:", qpath)
         queryPaths.append(qpath)
 
     def addTimeoutQueryPath(qpath:QueryPath):
@@ -184,7 +185,7 @@ def symbolic_execution(prog:L4Contract):
                 elif term in contractParams:
                     return contractParams[term]
                 else:
-                    raise Exception(f"Problem at term2z3({term}, {state}, {next_state}, {actparam_store}). See {topterm.coord if isinstance(topterm,Term) else '?'}")
+                    raise Exception(f"Don't recognize term {term} in" "\n" f"term2z3({term}, {state}, {next_state}, {actparam_store}). See {topterm.coord if isinstance(topterm,Term) else '?'}")
             elif isinstance(term,BoundVar):
                 return helper(term.name)
             elif isinstance(term,Literal):
@@ -265,7 +266,8 @@ def symbolic_execution(prog:L4Contract):
 
         # Check that no state variable is changed more than once in any StateTransform section
         written : Set[str] = set()
-        print("extra...", extra)
+        if TRACE:
+            print("extra...", extra)
         def f(x:Any):
             nonlocal written
             if isinstance(x,str):
@@ -278,49 +280,18 @@ def symbolic_execution(prog:L4Contract):
 
         extra.forEach(f)
 
-
-
-    def sevalAction(a: Action,
-                    actparam_store: Optional[OneUseStore], # if Action has params
-                    skip_statetransform: bool, # set this to True when calling from `query` after completing a
-                                              # state transform evaluation
-                    core: CoreSymbExecState
-                   ) -> SEvalRV:
+    def sevalActionAfterStateTransform(a: Action, next_state:Optional[Store], core: CoreSymbExecState) -> SEvalRV:
+        nonlocal fulfilled_cnt
         pathconstr, time_pathconstr, state, t, envvars, extra = core
 
-        # recall we come through sevalAction twice for each action
-        if not skip_statetransform:
-            extra = extra.push((f"action_{t}", a.action_id))
+        if state is not next_state:
+            for v in state:
+                # print(state)
+                if v not in next_state:
+                    next_state = next_state.set(v, state[v])
 
-            if TRACE:
-                # print("Action seq (reversed):", list(reversed(getActionSeq(extra.changes))))
-                print("Action seq:", getActionSeqFromExtra(extra.items))
-
-            # SETTING last_event_td, and "deleting" next_event_td
-            # envvars = envvars.set("last_event_td", envvars["next_event_td"])
-            envvars = envvars.set("last_event_td", name2symbolicvar(f"td_{core.time}", 'TimeDelta'))
-            envvars = envvars.set("next_event_td", None)
-
-            assert isinstance(state, LedgerDict), type(state)
-
-            if a.state_transform:
-                res = sevalBlock(a.state_transform.statements, Store({}), a, actparam_store,
-                                 CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
-                if isinstance(res, SEvalRVChange):
-                    assert isinstance(res.next_state, LedgerDict), type(res.next_state)
-                    state = res.next_state
-                    pathconstr = res.path_constraint
-                    extra = res.extra
-                elif isinstance(res, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout, SEvalRVStopThread)):
-                    return res
-                else:
-                    raise NotImplementedError
-
-        if a.following_anon_situation:
-            assert isinstance(state, LedgerDict), type(state)
-            return sevalSituation(a.following_anon_situation,
-                                  CoreSymbExecState(pathconstr, time_pathconstr, state,t+1,envvars,extra) )
-        elif a.dest_situation_id == FULFILLED_SITUATION_LABEL:
+        if a.dest_situation_id == FULFILLED_SITUATION_LABEL:
+            fulfilled_cnt += 1
             if TRACE:
                 print("Fulfilled")
             checkFinishedTrace(extra)
@@ -331,8 +302,59 @@ def symbolic_execution(prog:L4Contract):
             checkFinishedTrace(extra)
             return SEvalRVStopThread("trans to a Breached_* situation from sevalAction")
         else:
-            return sevalSituation(prog.situation(a.dest_situation_id),
-                                  CoreSymbExecState(pathconstr, time_pathconstr, state,t+1,envvars,extra) )
+            if a.following_anon_situation:
+                sit = a.following_anon_situation
+            else:
+                sit = prog.situation(a.dest_situation_id)
+
+            return sevalSituation(sit,
+                                  CoreSymbExecState(pathconstr, time_pathconstr,
+                                                    next_state,
+                                                    t+1,envvars,extra) )
+
+
+    def sevalAction(a: Action,
+                    actparam_store: Optional[OneUseStore], # if Action has params
+                    core: CoreSymbExecState
+                   ) -> SEvalRV:
+        nonlocal fulfilled_cnt
+        pathconstr, time_pathconstr, state, t, envvars, extra = core
+
+        extra = extra.push((f"action_{t}", a.action_id))
+
+        if TRACE:
+            # print("Action seq (reversed):", list(reversed(getActionSeq(extra.changes))))
+            print("Action seq:", getActionSeqFromExtra(extra.items))
+
+        # SETTING last_event_td, and "deleting" next_event_td
+        # envvars = envvars.set("last_event_td", envvars["next_event_td"])
+        envvars = envvars.set("last_event_td", name2symbolicvar(f"td_{core.time}", 'TimeDelta'))
+        envvars = envvars.set("next_event_td", None)
+
+        assert isinstance(state, LedgerDict), type(state)
+
+        if a.state_transform:
+            res = sevalBlock(a.state_transform.statements, Store({}), a, actparam_store,
+                             CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
+
+            # assert isinstance(res, SEvalRVStopThread), res
+            # return res
+            # assert isinstance(res, SEvalRVChange), res
+
+            if isinstance(res, SEvalRVChange):
+                # In this case, we will continue execution via the last return statement of this function
+                assert isinstance(res.next_state, LedgerDict), type(res.next_state)
+                state = res.next_state
+                pathconstr = res.path_constraint
+                extra = res.extra
+            elif isinstance(res, SEvalRVStopThread):
+                # this means all the threads got added to queryPaths, which will happen for example
+                # if the last statement in the StateTransform block is an IfElse.
+                return res
+            else:
+                raise NotImplementedError
+
+        return sevalActionAfterStateTransform(a, res.next_state, CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
 
     def sevalBlock(block: Block,
                    next_state: Store,
@@ -355,7 +377,7 @@ def symbolic_execution(prog:L4Contract):
         else:
             rv1 = sevalStatement(block[0], next_state, a, actparam_store,
                                  CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
-            if isinstance(rv1, (SEvalRVInconsistent, SEvalRVBug, SEvalRVTimeout, SEvalRVStopThread)):
+            if isinstance(rv1, (SEvalRVInconsistent, SEvalRVStopThread)):
                 return rv1
             elif isinstance(rv1, SEvalRVChange):
                 return sevalBlock(block[1:], rv1.next_state,a, actparam_store,
@@ -378,6 +400,7 @@ def symbolic_execution(prog:L4Contract):
             extra = extra.push(f"write_{stmt.varname}")
 
             # thread continues immediately
+            # return SEvalRVChange(next_state, pathconstr, extra)
             todo_once("suspiciously duplicated logic")
             next = stmt.next_statement()
             if next:
@@ -386,10 +409,20 @@ def symbolic_execution(prog:L4Contract):
                                                         extra))
             else:
                 # when `stmt` is a terminal statement in the StateTransform section
-                return sevalAction(a, actparam_store, True,
-                                   CoreSymbExecState(core.path_constraint, core.time_path_constraint, core.state, core.time,
+                return sevalBlock([], next_state, a, actparam_store,
+                                   CoreSymbExecState(core.path_constraint,
+                                                     core.time_path_constraint,
+                                                     state,
+                                                     core.time,
                                                      core.env_vars,
                                                      extra))
+                # return sevalAction(a, actparam_store, True,
+                #                    CoreSymbExecState(core.path_constraint,
+                #                                      core.time_path_constraint,
+                #                                      next_state,
+                #                                      core.time,
+                #                                      core.env_vars,
+                #                                      extra))
 
             # return SEvalRVChange(next_state, pathconstr, extra)
 
@@ -451,11 +484,9 @@ def symbolic_execution(prog:L4Contract):
                 ))
             else:
                 res = sevalRuleIgnoreGuard(rule, CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
-                if isinstance(res,SEvalRVBug):
-                    return res
-                elif isinstance(res, (SEvalRVStopThread, SEvalRVInconsistent)):
+                if isinstance(res, (SEvalRVStopThread, SEvalRVInconsistent)):
                     continue
-                elif isinstance(res,SEvalRVChange):
+                elif isinstance(res, SEvalRVChange):
                     raise NotImplementedError
                 else:
                     raise NotImplementedError
@@ -515,7 +546,7 @@ def symbolic_execution(prog:L4Contract):
             print(f"sevalRuleIgnoreGuardAndParamConstraints({rule} ; {core.state})")
         assert isinstance(core.state, LedgerDict)
         action = prog.action(rule.action_id)
-        return sevalAction(action, actparam_store, False, core)
+        return sevalAction(action, actparam_store, core)
 
     def check(formula:Z3Term) -> z3.CheckSatResult:
         sz3.push()
@@ -556,16 +587,13 @@ def symbolic_execution(prog:L4Contract):
                                                              res.extra))
                     else:
                         # case when the ifelse is the last statement in its block
-                        return sevalAction(qp.action, qp.action_params, True,
+                        return sevalActionAfterStateTransform(qp.action, res.next_state,
                                 CoreSymbExecState(res.path_constraint,
                                                   qp.core.time_path_constraint,
-                                                  res.next_state,
+                                                  qp.core.state,
                                                   qp.core.time,
                                                   qp.core.env_vars,
                                                   res.extra))
-
-                elif isinstance(res, SEvalRVBug):
-                    return res
 
                 elif isinstance(res, SEvalRVStopThread):
                     return res
@@ -592,11 +620,11 @@ def symbolic_execution(prog:L4Contract):
             # 1)
             if checkres == z3.sat:# or checkres == z3.unknown:
                 if TRACE:
-                    print("path constraint sat:", z3termPrettyPrint(qp.core.path_constraint))
+                    print("path constraint sat:", z3termPrettyPrint(qp.core.full_constraint()))
                 return sevalRuleIgnoreGuardAndParamConstraints(qp.rule, qp.action_params, qp.core)
             elif checkres == z3.unsat:
                 if TRACE:
-                    print("path constraint unsat:", qp.core.path_constraint)
+                    print("path constraint unsat:", qp.core.full_constraint())
                 return SEvalRVInconsistent("ActionRuleParamsConstraintPath query unsat")
 
         elif isinstance(qp, AssertionPath):
@@ -626,7 +654,9 @@ def symbolic_execution(prog:L4Contract):
         # print("Try again:",sz3.check(simplified), sz3.reason_unknown())
         # sz3.pop()
 
-        return SEvalRVTimeout(str(qp.core.path_constraint))
+        addTimeoutQueryPath(qp)
+        return SEvalRVStopThread("timeout on " + str(qp))
+        # return SEvalRVTimeout(str(qp.core.path_constraint))
         # raise NotImplementedError("don't want to be dealing with timeouts till working with easy examples")
 
         # raise Exception("can't get here?", qp)
@@ -634,18 +664,16 @@ def symbolic_execution(prog:L4Contract):
     def pathChooser():
 
         while len(queryPaths) > 0:
-            print("\n#paths: ", len(queryPaths), len(timedoutQueryPaths), len(unprovedAssertions))
+
+            print("#paths: ", len(queryPaths), len(timedoutQueryPaths), len(unprovedAssertions))
             qpath = takeQueryPath()
-            print("popping query path ", str(qpath))
+            if TRACE:
+                print("popping query path ", str(qpath))
             # print("paths: ", len(queryPaths), qpath)
 
             # this call will add paths to queryPaths:
             res = query(qpath)
-            if isinstance(res, SEvalRVTimeout):
-                addTimeoutQueryPath(qpath)
-            elif isinstance(res, SEvalRVBug):
-                raise Exception(res.msg)
-            else:
+            if TRACE:
                 print("query result:", res)
             # we don't need to do anything in the other two SEvalRV cases?
 
@@ -678,3 +706,5 @@ def symbolic_execution(prog:L4Contract):
 
     sevalSituation(prog.situation(prog.start_situation_id), startcore)
     pathChooser()
+
+    print(f"Paths ending in Fulfilled: {fulfilled_cnt}")

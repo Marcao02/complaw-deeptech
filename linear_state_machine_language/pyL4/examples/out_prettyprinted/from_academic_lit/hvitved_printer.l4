@@ -5,7 +5,7 @@ roles: Env, Arbiter, Buyer, Seller
 
 contract params:
     CONTRACT_START : TimeDelta := 0d
-    DELIVERY_DEADLINE : TimeDelta := 10d
+    DELIVERY_TIME_ALLOWANCE : TimeDelta := 10d
 
 state vars:
     nonoperative buyer_paid : Nat := 0
@@ -17,15 +17,15 @@ claims:
     ["MAX_SITUATION_VISITS'", '=', '6']
 
 situation Awaiting_Delivery:
-    Breach_Seller (next_event_td == (DELIVERY_DEADLINE + 1d))
-    Seller may Deliver
+    Breach_Seller (next_event_td > DELIVERY_TIME_ALLOWANCE)
+    Seller may Deliver (next_event_td ≤ DELIVERY_TIME_ALLOWANCE)
 
 action Deliver()  transitions to AfterDeliver:
     transform:
         delivery_td := last_event_td
     following situation:
         Buyer may Pay1stInstallment (next_event_td == last_situation_td)
-        Breach_Buyer (next_event_td == (last_situation_td + 1d))
+        Breach_Buyer (next_event_td > last_situation_td)
 
 action Pay1stInstallment()  transitions to AfterPay1stInstallment:
     transform:
@@ -38,8 +38,8 @@ action Pay1stInstallment()  transitions to AfterPay1stInstallment:
 
 action EnterLate2ndInstallment()  transitions to Late2ndInstallment
     following situation:
-        Buyer may PayLateFee
-        Breach_Buyer (next_event_td == ((44d + delivery_td) + 1d))
+        Buyer may PayLateFee (next_event_td ≤ (44d + delivery_td))
+        Breach_Buyer (next_event_td > (44d + delivery_td))
 
 action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
     transform:
@@ -51,8 +51,8 @@ action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following situation:
-        Breach_Seller (next_event_td == ((7d + last_situation_td) + 1d))
-        Seller may DeliverRefund
+        Breach_Seller (next_event_td > (7d + last_situation_td))
+        Seller may DeliverRefund (next_event_td ≤ (7d + last_situation_td))
 
 action PayLateFee()  transitions to Fulfilled:
     transform:

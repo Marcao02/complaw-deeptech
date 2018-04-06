@@ -10,7 +10,7 @@
 
 (ContractParams
 	(CONTRACT_START : TimeDelta := 0D)
-	(DELIVERY_DEADLINE : TimeDelta := 10D)
+	(DELIVERY_TIME_ALLOWANCE : TimeDelta := 10D)
 	; (CONTRACT_START : Date := "2010-12-30")
 	; (DELIVERY_DEADlINE : Date := "2011-01-01")
 )
@@ -23,7 +23,7 @@
 )
 
 (ProseContract
-	(P1 'Seller agrees to transfer and deliver to Buyer, on or before {DELIVERY_DEADLINE}, the goods: 1 laser printer.')
+	(P1 'Seller agrees to transfer and deliver to Buyer, on or before {DELIVERY_TIME_ALLOWANCE}, the goods: 1 laser printer.')
 	(P2 'Buyer agrees to accept the goods and to pay a total of €200 for them according to the terms further set out below.')
 	(P3 'Paragraph 3. Buyer agrees to pay for the goods half upon receipt, with the remainder due within 30 days of delivery.')
 	(P4 'If Buyer fails to pay the second half within 30 days, an additional fine of 10% has to be paid within 14 days.')
@@ -36,7 +36,10 @@
 
 	(Situation Awaiting_Delivery
 		[ProseRefs P1]
-		(Next (Seller must Deliver (within DELIVERY_DEADLINE) ))
+		(Seller must Deliver (within DELIVERY_TIME_ALLOWANCE) )
+		; SHOULD translate to:
+		; (Breach_Seller (next_event_td > DELIVERY_DEADLINE))
+    	; (Seller may Deliver (next_event_td ≤ DELIVERY_DEADLINE))
 	)
 
 	(Action Deliver [ProseRefs P1]
@@ -44,7 +47,7 @@
 			(delivery_td' = last_event_td)
 		)
 		(FollowingSituation
-			(Next (Buyer must Pay1stInstallment immediately))
+			(Buyer must Pay1stInstallment immediately)
 		)
 	)
 
@@ -54,17 +57,15 @@
 			(buyer_paid' = 100)
 		)
 		(FollowingSituation
-			(Next
-				(Buyer may Pay2ndInstallment (when next_event_td ≤ (30d + delivery_td)))
-				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
-				(EnterLate2ndInstallment (when next_event_td > (30d + delivery_td)))
-			)
+			(Buyer may Pay2ndInstallment (when next_event_td ≤ (30d + delivery_td)))
+			(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
+			(EnterLate2ndInstallment (when next_event_td > (30d + delivery_td)))
 		)
 	)
 
 	(Action EnterLate2ndInstallment [ProseRefs P4]
 		(FollowingSituation
-			(Next (Buyer must PayLateFee (within (44d + delivery_td))))
+			(Buyer must PayLateFee (within (44d + delivery_td)))
 		)
 	)
 
@@ -74,16 +75,14 @@
 			(buyer_paid' = 200)
 		)
 		(FollowingSituation
-			(Next
-				(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
-				(CompleteNormalSale (when next_event_td > (14d + delivery_td)))
-			)
+			(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
+			(CompleteNormalSale (when next_event_td > (14d + delivery_td)))
 		)
 	)
 
 	(Action ReturnOnTime [ProseRefs P5]
 		(FollowingSituation
-			(Next (Seller must DeliverRefund (within (7d + last_situation_td))))
+			(Seller must DeliverRefund (within (7d + last_situation_td)))
 		)
 	)
 

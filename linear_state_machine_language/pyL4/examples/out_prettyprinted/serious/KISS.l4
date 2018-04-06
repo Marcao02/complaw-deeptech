@@ -51,10 +51,7 @@ action CloseEquityFinancingSale(qualifying_round_price: SharePrice, company_capi
         discount_price : SharePrice := (qualifying_round_price * DISCOUNT_RATE)
         conversion_price : SharePrice := (min discount_price cap_price)
         if pay_interest_in_cash:
-            change : $ := (min (ifthenelse (last_event_td ≤ 365d) (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) company_cash)
-            company_cash := (check $ (company_cash - change))
-            investor_cash := (investor_cash + change)
-            investor_PreferredStock := (investor_PreferredStock + (PURCHASE_AMOUNT round/ conversion_price))
+            change : $ := (min (ifthenelse (last_event_td ≤ 365d) (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT))) company_cash)            company_cash := (check $ (company_cash - change))            investor_cash := (investor_cash + change)            investor_PreferredStock := (investor_PreferredStock + (PURCHASE_AMOUNT round/ conversion_price))
         else:
             accrued_interest : $ := (ifthenelse (last_event_td ≤ 365d) (check Pos$ ((PURCHASE_AMOUNT + ((PURCHASE_AMOUNT * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT)) (check Pos$ (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) + (((PURCHASE_AMOUNT * (1 + INTEREST_RATE)) * INTEREST_RATE) * ((trust PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)))
             investor_PreferredStock := (investor_PreferredStock + ((PURCHASE_AMOUNT + accrued_interest) round/ conversion_price))
