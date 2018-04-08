@@ -69,7 +69,7 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                       'units','trust',
 
                       'days',
-                      'str2datetime',
+                      'str2dt',
 
                      'ifthenelse',
                      'and', 'or', 'not',

@@ -38,6 +38,7 @@ SORT_TO_SMTLIB_PRIM_TYPE : Dict[str, str] = {
     "Fraction(0,1]":"Real",
     "Fraction[0,1]":"Real",
     "PosReal":"Real",
+    "(0,1)":"Real",
 
     "TimeDelta":"Real" if REALS_ONLY else "Int",
     "PosTimeDelta":"Real" if REALS_ONLY else "Int",
@@ -129,6 +130,7 @@ SORT_TO_PRED = cast(Dict[str,Callable[[Any], Z3Term]], {
     "PosReal": lambda x: x > z30,
     "ShareCnt": lambda x: x >= z30,
     "Nat": lambda x: x >= z30,
+    "(0,1)": lambda x: conj(x > z30, x < z31),
     "PosShareCnt": lambda x: x > z30,
     "SharePrice": lambda x: x >= z30,
     "Fraction[0,1)": lambda x: conj(x >= z30, x < z31),

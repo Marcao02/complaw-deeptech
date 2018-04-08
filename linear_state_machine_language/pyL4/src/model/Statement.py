@@ -60,7 +60,7 @@ class Statement:
         raise NotImplementedError
 
 
-    def toStr(self, i:int):
+    def toStr(self, i:int) -> str:
         return indent(i) + str(self)
 
     def __str__(self) -> str:

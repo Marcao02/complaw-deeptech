@@ -45,9 +45,7 @@
 	(StartSituation MonsterBurgerUncooked)
 
 	(Situation MonsterBurgerUncooked
-		(Next
-			(Challenger may RequestCookMB)
-		)
+		(Challenger may RequestCookMB)
 	)
 
 	(Action RequestCookMB
@@ -61,12 +59,10 @@
 
 		(FollowingSituation
 			(visits == 1) ; LANG note: Similar to (traversal == 1) but for Situations.
-			(Next
-	            (timeConstraintsPartitionFuture
-		            (Restaurant may (ServeMB) (when next_event_td < (MAX_SERVE_DELAY + last_situation_td)))
-		            (EnterPromptServeGuaranteeViolated (when next_event_td ≥ (MAX_SERVE_DELAY + last_situation_td)))
-	            )
-	        )
+            ; (timeConstraintsPartitionFuture
+	            (Restaurant may ServeMB (when next_event_td < (MAX_SERVE_DELAY + last_situation_td)))
+	            (EnterPromptServeGuaranteeViolated (when next_event_td ≥ (MAX_SERVE_DELAY + last_situation_td)))
+            ; )
 		)
 	)
 
@@ -92,25 +88,25 @@
 	)
 
 	(Action EnterEatingMB
-		(0 ≤ traversals ≤ nonconstant) ; LANG note: nonconstant means can't be bounded by any numeral
+		; (0 ≤ traversals ≤ nonconstant) ; LANG note: nonconstant means can't be bounded by any numeral
+		(0 ≤ traversals ≤ (2 * (TIME_TO_EAT_BURGER / CONSECUTIVE_FINISH_CLAIM_BUFFER))) ; LANG note: nonconstant means can't be bounded by any numeral
 		(AllowedSubjects Env)
 	)
 	(Situation EatingMB
-		(0 ≤ visits ≤ nonconstant)
+		(0 ≤ visits ≤ 20)
 
-        (Next
-            (timeConstraintsPartitionFuture ; LANG note: `timeConstraintsPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
-	            (Challenger may (AnnounceMBFinished) (when
-	            	and ((last_situation_td + CONSECUTIVE_FINISH_CLAIM_BUFFER) < next_event_td)
-	            		(next_event_td < challenge_endlimit_timestamp)))
-	            ;(Restaurant should (CheckCompletionClaim) (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
-	            (Restaurant may (CheckCompletionClaim) (when (
-	            	(challenge_endlimit_timestamp ≤ next_event_td)
-	            and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
-	            )))
-	            (TimeToCheckCompletionExpires (when next_event_td > (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
-            )
-        )
+
+        ; (timeConstraintsPartitionFuture ; LANG note: `timeConstraintsPartitionFuture` will tell the static checker to verify that the deadline expressions partition the future.
+            (Challenger may AnnounceMBFinished (when
+            	and ((last_situation_td + CONSECUTIVE_FINISH_CLAIM_BUFFER) < next_event_td)
+            		(next_event_td < challenge_endlimit_timestamp)))
+            ;(Restaurant should (CheckCompletionClaim) (nonstrictly-after-td-and-within challenge_endlimit_timestamp MAX_CLAIM_VERIFICATION_DELAY))
+            (Restaurant may CheckCompletionClaim (when (
+            	(challenge_endlimit_timestamp ≤ next_event_td)
+            and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
+            )))
+            (TimeToCheckCompletionExpires (when next_event_td > (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
+        ; )
 	)
 
 	(Action AnnounceMBFinished
@@ -119,12 +115,10 @@
 
 		(FollowingSituation
 			(0 ≤ visits ≤ nonconstant)
-			(Next
-	            (timeConstraintsPartitionFuture
-		            (Restaurant may (CheckCompletionClaim) (when next_event_td < (last_situation_td + MAX_CLAIM_VERIFICATION_DELAY)))
-		            (TimeToCheckCompletionExpires (when next_event_td ≥ (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td)))
-	            )
-	        )
+            ; (timeConstraintsPartitionFuture
+	            (Restaurant may CheckCompletionClaim (when next_event_td < (last_situation_td + MAX_CLAIM_VERIFICATION_DELAY)))
+	            (TimeToCheckCompletionExpires (when next_event_td ≥ (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td)))
+            ; )
 		)
 	)
 
@@ -143,11 +137,9 @@
 
 		(FollowingSituation
 			(0 ≤ visits ≤ nonconstant)
-			(Next
-			    (Restaurant may (VerifyCompletionClaim) immediately)
-			    (Restaurant may (RejectCompletionClaim) immediately)
-			    (Breach_Restaurant (when next_event_td ≥ (last_situation_td + 1m) ))
-			)
+		    (Restaurant may VerifyCompletionClaim immediately)
+		    (Restaurant may RejectCompletionClaim immediately)
+		    (Breach_Restaurant (when next_event_td ≥ (last_situation_td + 1m) ))
 		)
 	)
 
@@ -158,19 +150,18 @@
 
 		(FollowingSituation
 	        (0 ≤ visits ≤ nonconstant)
-	        (Next
-	        	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
-	            ; always the case that exactly one of the tests of the children conditionals is true.
-	            (guardsDisjointExhaustive
-	            	; I think we should encourage this style of order-insensitive conditionals.
-		            (if (last_situation_td < challenge_endlimit_timestamp)
-		                (EnterEatingMB immediately)
-		            )
-		            (if (last_situation_td ≥ challenge_endlimit_timestamp)
-		                (Challenger must (PayForMB) immediately)
-		            )
+
+        	; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
+            ; always the case that exactly one of the tests of the children conditionals is true.
+            ; (guardsDisjointExhaustive
+            	; I think we should encourage this style of order-insensitive conditionals.
+	            (if (last_situation_td < challenge_endlimit_timestamp)
+	                (EnterEatingMB immediately)
 	            )
-	        )
+	            (if (last_situation_td ≥ challenge_endlimit_timestamp)
+	                (Challenger must PayForMB immediately)
+	            )
+            ; )
 		)
 	)
 

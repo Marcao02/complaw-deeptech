@@ -1,0 +1,77 @@
+; (Title "Goodenough Flood Loan")
+(Actors Lender Borrower)
+(TimeUnit days)
+
+(SortDefinitions
+	($ := (Dimensioned NonnegReal "$"))
+	(Pos$ := (Dimensioned PosReal "$"))
+)
+
+(ContractParams
+	(LOAN_AMOUNT    : Pos$     = 1000)
+	(INTEREST_RATE	: "(0,1)"    = .05)
+	(PAYMENT1_AMOUNT	: Pos$ = 550)
+	(PAYMENT2_AMOUNT	: Pos$ = 525)
+)
+
+(Definitions
+	(REQUEST_DATE		= (str2dt "June 1, 2014"))
+	(ADVANCE_DUE_DATE	= (str2dt "June 2, 2014"))
+	(PAYMENT1_DUE_DATE	= (str2dt "June 1, 2015"))
+	(PAYMENT2_DUE_DATE	= (str2dt "June 1, 2016"))
+)
+
+(StateVars
+	(writeonly paid_to_lender : $ := 0)
+	(writeonly paid_to_borrower : $ := 0)
+)
+
+; (Rules "Goodenough Flood Loan"
+(FormalContract "Goodenough Flood Loan"
+	(StartSituation ActiveContract)
+
+	(Situation ActiveContract
+		(Borrower may RequestPrinciple (on REQUEST_DATE))
+		(Term (after REQUEST_DATE))
+	)
+	(Action RequestPrinciple (TransitionsTo PrincipleRequested))
+	(Situation PrincipleRequested
+        (Lender must AdvancePrinciple (on ADVANCE_DUE_DATE))
+	)
+
+	(Action AdvancePrinciple (TransitionsTo Pmt1Accruing)
+		(StateTransform (paid_to_borrower' = LOAN_AMOUNT))
+	)
+
+	(Situation Pmt1Accruing
+		(Pmt1Due (on PAYMENT1_DUE_DATE))
+	)
+
+	(Action Pmt1Due (FollowingSituation
+		; (Borrower must MakePmt1 today)
+		(Borrower must MakePmt1 (at last_situation_td))
+	))
+	(Action MakePmt1 (TransitionsTo Pmt2Accruing)
+		(StateTransform (paid_to_lender' = PAYMENT1_AMOUNT))
+	)
+
+	(Situation Pmt2Accruing
+		(Pmt2Due (on PAYMENT2_DUE_DATE))
+	)
+	(Action Pmt2Due (FollowingSituation
+		(Borrower must MakePmt2 (at last_situation_td))
+	))
+	(Action MakePmt2 (TransitionsTo Fulfilled)
+		(StateTransform
+			(paid_to_lender' += PAYMENT2_AMOUNT)
+			(prove (paid_to_borrower ==
+				((LOAN_AMOUNT * INTEREST_RATE) +
+				 ((LOAN_AMOUNT - PAYMENT1_AMOUNT) * INTEREST_RATE)
+				)
+			))
+		)
+	)
+
+	(Action Term (TransitionsTo Fulfilled))
+)
+

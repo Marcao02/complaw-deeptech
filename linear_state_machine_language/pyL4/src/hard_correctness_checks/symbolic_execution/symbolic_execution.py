@@ -280,7 +280,7 @@ def symbolic_execution(prog:L4Contract):
 
         extra.forEach(f)
 
-    def sevalActionAfterStateTransform(a: Action, next_state:Optional[Store], core: CoreSymbExecState) -> SEvalRV:
+    def sevalActionAfterStateTransform(a: Action, next_state:Store, core: CoreSymbExecState) -> SEvalRV:
         nonlocal fulfilled_cnt
         pathconstr, time_pathconstr, state, t, envvars, extra = core
 
@@ -333,26 +333,26 @@ def symbolic_execution(prog:L4Contract):
 
         assert isinstance(state, LedgerDict), type(state)
 
-        if a.state_transform:
-            res = sevalBlock(a.state_transform.statements, Store({}), a, actparam_store,
-                             CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
+        # if a.state_transform:
+        res = sevalBlock(a.state_transform.statements if a.state_transform else [], Store({}), a, actparam_store,
+                         CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
 
-            # assert isinstance(res, SEvalRVStopThread), res
-            # return res
-            # assert isinstance(res, SEvalRVChange), res
+        # assert isinstance(res, SEvalRVStopThread), res
+        # return res
+        # assert isinstance(res, SEvalRVChange), res
 
-            if isinstance(res, SEvalRVChange):
-                # In this case, we will continue execution via the last return statement of this function
-                assert isinstance(res.next_state, LedgerDict), type(res.next_state)
-                state = res.next_state
-                pathconstr = res.path_constraint
-                extra = res.extra
-            elif isinstance(res, SEvalRVStopThread):
-                # this means all the threads got added to queryPaths, which will happen for example
-                # if the last statement in the StateTransform block is an IfElse.
-                return res
-            else:
-                raise NotImplementedError
+        if isinstance(res, SEvalRVChange):
+            # In this case, we will continue execution via the last return statement of this function
+            assert isinstance(res.next_state, LedgerDict), type(res.next_state)
+            state = res.next_state
+            pathconstr = res.path_constraint
+            extra = res.extra
+        elif isinstance(res, SEvalRVStopThread):
+            # this means all the threads got added to queryPaths, which will happen for example
+            # if the last statement in the StateTransform block is an IfElse.
+            return res
+        else:
+            raise NotImplementedError
 
         return sevalActionAfterStateTransform(a, res.next_state, CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
 
@@ -436,7 +436,7 @@ def symbolic_execution(prog:L4Contract):
             # if stmt.false_branch:
             #     print("have false branch")
             addQueryPath(
-                GuardedBlockPath(stmt.false_branch, next_state, stmt.next_statement(), a, actparam_store,
+                GuardedBlockPath(stmt.false_branch or [], next_state, stmt.next_statement(), a, actparam_store,
                                  CoreSymbExecState(conj(neg(test), pathconstr), time_pathconstr, state, t, envvars, extra)) )
 
             # threads are continued via the GuardedBlockPath tasks
@@ -624,7 +624,7 @@ def symbolic_execution(prog:L4Contract):
                 return sevalRuleIgnoreGuardAndParamConstraints(qp.rule, qp.action_params, qp.core)
             elif checkres == z3.unsat:
                 if TRACE:
-                    print("path constraint unsat:", qp.core.full_constraint())
+                    print("path constraint unsat:", z3termPrettyPrint(qp.core.full_constraint()))
                 return SEvalRVInconsistent("ActionRuleParamsConstraintPath query unsat")
 
         elif isinstance(qp, AssertionPath):

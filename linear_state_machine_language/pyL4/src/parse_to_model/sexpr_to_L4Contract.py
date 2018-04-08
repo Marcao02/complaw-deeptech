@@ -565,6 +565,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     self._with_macro_handling(action_rule_expr, self._mk_next_action_rule, (situation, parent_action)) # type:ignore
 
             else:
+                if head('guardsDisjointExhaustive') or head('timeConstraintsPartitionFuture'):
+                    x = x.tillEnd(1)
+                    todo_once("guardsDisjointExhaustive etc in situation()")
+
                 self._with_macro_handling(x, self._mk_next_action_rule, (situation, parent_action)) # type:ignore
                 # self.syntaxError(x, f"Unsupported declaration type {x[0]} in situation {situation_id}")
                 # todo_once(f"Handle {x[0]} in situation dec")
@@ -904,7 +908,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if fnsymb_name in ('cast','check','trust','units'):
                     args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_situation, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
 
-                elif fnsymb_name == "str2datetime":
+                elif fnsymb_name == "str2dt":
                     assert isinstance(pair[1],SExpr) and isinstance(pair[1][0], SExpr) and pair[1][0][0] == STRING_LITERAL_MARKER, pair
                     try:
                         dt = dateutil.parser.parse(pair[1][0][1])
@@ -1243,6 +1247,6 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
         if other:
             return [may,other]
         else:
-            raise Exception(str(sexpr))
+            raise Exception(str(sexpr), sexpr.coord())
 
     sexpr_rewrite(sexpr, is_must, _eliminate_must)

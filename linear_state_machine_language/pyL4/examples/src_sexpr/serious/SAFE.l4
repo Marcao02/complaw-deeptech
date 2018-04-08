@@ -76,26 +76,6 @@
 )
 
 
-; maybe later
-; (ifflag HAS_CAP (
-; 		(ifflag HAS_DISCOUNT (
-; 			MAX_ACTIONS =
-; 			)
-; 		else (
-; 			)
-; 		)
-; 	)
-; 	else (
-; 		(ifflag HAS_DISCOUNT (
-
-; 			)
-; 		else (
-
-; 			)
-; 		)
-; 	)
-; )
-
 (StateVars
 	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
 	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
