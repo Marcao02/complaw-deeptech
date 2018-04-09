@@ -32,8 +32,8 @@ from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_situation_id, derived_destination_id
 from src.model.L4Macro import L4Macro, L4BlockMacro
-from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, DeadlineLit, SimpleTimeDeltaLit, DateTimeLit, \
-    RoleIdLit
+from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, SimpleTimeDeltaLit, DateTimeLit, \
+    RoleIdLit, Literal
 from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
@@ -789,8 +789,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             return BoolLit(False, coord)
         if x == 'true':
             return BoolLit(True, coord)
-        if x == 'never':
-            return DeadlineLit(x, coord)
+        # if x == 'never':
+        #     return DeadlineLit(x, coord)
         if x[-1].lower() in SUPPORTED_TIMEUNITS and isInt(x[:-1]):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower(), coord)
             # print('STD', rv)
@@ -977,9 +977,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 return None
 
         if not (isinstance(rv,FnApp) and rv.fnsymb_name in ["≤","<=","<"] and isinstance(rv.args[0],FnApp) and rv.args[0].fnsymb_name == "next_event_td"):   # type:ignore
-            if not isinstance(rv,DeadlineLit):
-                if self.verbose:
-                    print("Atypical time constraint:", rv)
+            if self.verbose:
+                print("Atypical time constraint:", rv)
         # else:
         #     print("Typical time constraint:", rv)
         return rv
@@ -1089,7 +1088,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         self._handle_optional_action_rule_parts(rem, nar, src_situation, parent_action)
         if deontic_keyword == "must" and nar.time_constraint:
-            if isinstance(nar.time_constraint, DeadlineLit) and nar.time_constraint.lit == "no_time_constraint":
+            if isinstance(nar.time_constraint, Literal) and nar.time_constraint.lit == "no_time_constraint":
                 assert False, nar
 
         assert not nar.fixed_args or not nar.where_clause

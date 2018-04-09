@@ -76,8 +76,6 @@ def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
                     yield "PosTimeDelta"
                 else:
                     yield "TimeDelta"
-            elif isinstance(t, DeadlineLit):
-                yield "Bool"
             elif isinstance(t, RoleIdLit):
                 yield "RoleId"
             elif isinstance(t, StringLit):
@@ -394,9 +392,6 @@ class TypeChecker:
                     return "TimeDelta"
             elif isinstance(t,DateTimeLit):
                 return "DateTime"
-            elif isinstance(t,DeadlineLit):
-                todo_once('type for deadline literals? or ensure this never comes up?')
-                return "Bool"
             elif isinstance(t,RoleIdLit):
                 return "RoleId"
             elif isinstance(t,StringLit):

@@ -20,7 +20,7 @@ from src.model.StateTransform import StateTransform
 from src.model.Statement import IfElse, StateVarAssign, LocalVarDec
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract
-from src.model.Literal import Literal, DeadlineLit, SimpleTimeDeltaLit, RoleIdLit
+from src.model.Literal import Literal, SimpleTimeDeltaLit, RoleIdLit
 from src.model.Situation import Situation
 from src.model.Term import FnApp
 
@@ -466,12 +466,7 @@ class ExecEnv:
             contract_bug("Exception while evaluating " + str(term) + ". The exception: \n" + str(e) )
 
     def evalLit(self, litterm:Literal) -> Data:
-        if isinstance(litterm, DeadlineLit):
-            todo_once("DeadlineLit not correctly handled yet")
-            # print("DeadlineLit: ", term, next_event_timestamp == self.last_situation_entrance_delta)
-            # return self.cur_event.timestamp == self.last_situation_entrance_delta
-            return True
-        elif isinstance(litterm, RoleIdLit):
+        if isinstance(litterm, RoleIdLit):
             return litterm.lit
         elif isinstance(litterm, SimpleTimeDeltaLit):
             return litterm.lit
