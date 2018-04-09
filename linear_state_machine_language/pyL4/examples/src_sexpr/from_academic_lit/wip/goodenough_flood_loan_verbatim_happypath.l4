@@ -9,10 +9,12 @@
 
 (ContractParams
 	(LOAN_AMOUNT    : Pos$     = 1000)
-	(INTEREST_RATE	: "(0,1)"    = .05)
+	(INTEREST_RATE	: "(0,1)"  = .05)
 	(PAYMENT1_AMOUNT	: Pos$ = 550)
 	(PAYMENT2_AMOUNT	: Pos$ = 525)
 )
+
+(StartDatetime "Jan 1, 2014")
 
 (Definitions
 	(REQUEST_DATE		= (str2dt "June 1, 2014"))
@@ -34,7 +36,13 @@
 		(Borrower may RequestPrinciple (on REQUEST_DATE))
 		(Term (after REQUEST_DATE))
 	)
-	(Action RequestPrinciple (TransitionsTo PrincipleRequested))
+
+	(Action RequestPrinciple (TransitionsTo PrincipleRequested)
+		(StateTransform
+			(prove (PAYMENT1_AMOUNT == ((LOAN_AMOUNT / 2) + (LOAN_AMOUNT * INTEREST_RATE))))
+			(prove (PAYMENT2_AMOUNT == ((LOAN_AMOUNT / 2) + ((LOAN_AMOUNT / 2) * INTEREST_RATE))))
+		)
+	)
 	(Situation PrincipleRequested
         (Lender must AdvancePrinciple (on ADVANCE_DUE_DATE))
 	)
@@ -48,7 +56,6 @@
 	)
 
 	(Action Pmt1Due (FollowingSituation
-		; (Borrower must MakePmt1 today)
 		(Borrower must MakePmt1 (at last_situation_td))
 	))
 	(Action MakePmt1 (TransitionsTo Pmt2Accruing)
@@ -63,12 +70,8 @@
 	))
 	(Action MakePmt2 (TransitionsTo Fulfilled)
 		(StateTransform
-			(paid_to_lender' += PAYMENT2_AMOUNT)
-			(prove (paid_to_borrower ==
-				((LOAN_AMOUNT * INTEREST_RATE) +
-				 ((LOAN_AMOUNT - PAYMENT1_AMOUNT) * INTEREST_RATE)
-				)
-			))
+			(paid_to_lender' = (paid_to_lender + PAYMENT2_AMOUNT))
+			(prove (paid_to_lender' == (PAYMENT1_AMOUNT + PAYMENT2_AMOUNT)))
 		)
 	)
 

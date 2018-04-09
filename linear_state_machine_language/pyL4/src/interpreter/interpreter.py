@@ -55,7 +55,7 @@ class ExecEnv:
 
         # self.start_datetime = datetime.now(timezone.utc)
         # self.start_datetime : datetime = datetime(2000,1,1,0,0,0,0,timezone.utc)
-        self.start_datetime: datetime = datetime(2000, 1, 1, 0, 0, 0, 0)
+        self.start_datetime: datetime = prog.start_datetime or datetime(2000, 1, 1, 0, 0, 0, 0)
         self.absolute_timeint2timedelta_converter = self.getIntToDeltaConverter()
         self.last_situation_entrance_delta : timedelta = timedelta(0) # = self.timeint2delta(0)
 

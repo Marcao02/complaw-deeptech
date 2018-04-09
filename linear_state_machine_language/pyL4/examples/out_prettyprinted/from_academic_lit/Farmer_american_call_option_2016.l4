@@ -16,15 +16,15 @@ state vars:
     writes≤1 seller_final_shares : ShareCnt
 
 situation BeforeOptionPurchase:
-    Buyer may PaySellerForOption (next_event_dt == 2015-06-30 00:00:00)
-    Breach_Buyer (next_event_dt > 2015-06-30 00:00:00)
+    Buyer may PaySellerForOption (next_event_dt == 180 days, 0:00:00)
+    Breach_Buyer (next_event_dt > 180 days, 0:00:00)
 
 action PaySellerForOption()  transitions to AfterPaySellerForOption:
     transform:
         buyer_funds := (check $ (BUYER_START_FUNDS - (units $ 5)))
         seller_funds := (SELLER_START_FUNDS + (units $ 5))
     following situation:
-        Buyer may ExerciseOption (next_event_dt ≤ 2015-12-17 00:00:00)
+        Buyer may ExerciseOption (next_event_dt ≤ 350 days, 0:00:00)
 
 action ExerciseOption()  transitions to AfterExerciseOption:
     transform:

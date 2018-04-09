@@ -18,12 +18,6 @@
 ; question: does  flags+macros better capture intent than making a bunch of
 ; parameters and write-once variables of Optional type, and then using partial eval?
 
-; didn't end up using this...
-; (Flags ; all boolean parameters
-; 	HAS_CAP
-; 	HAS_DISCOUNT
-; )
-
 (Macro setmin (thevar term1 term2)
 	(if (term1 < term2)
 		(

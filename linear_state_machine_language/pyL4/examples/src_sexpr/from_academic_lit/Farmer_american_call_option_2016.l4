@@ -1,5 +1,6 @@
 (Roles Buyer Seller)
 (TimeUnit d)
+(StartDatetime "Jan 1, 2015")
 (ProseContract
 	(Condition1 "The option {Buyer} gives the option {Seller} $5 on June 30, 2015 to buy an American call option consisting of a conditional agreement composed of the following two components.")
 	(Condition2 "The option {Buyer} chooses to exercise the option by paying $80 to option {Seller} on or before December 17, 2015.")

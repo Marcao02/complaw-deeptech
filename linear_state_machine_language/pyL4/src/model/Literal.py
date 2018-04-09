@@ -86,7 +86,14 @@ class DateTimeLit(Literal):
     def __str__(self):
         return str(self.lit)
 
-class SimpleTimeDeltaLit(Literal):
+class TimeDeltaLit(Literal):
+    def __init__(self, lit:timedelta, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(lit,coord)
+        self.lit = lit
+    def __str__(self):
+        return str(self.lit)
+
+class SimpleTimeDeltaLit(TimeDeltaLit):
     """
     REVERSED because this AST node is for literals like 1M or 4D --> Take an L4Contract instead of a string like 'd','h','w' etc to avoid the use of more than one unit in a contract (which is what `timestamp` is for)
 

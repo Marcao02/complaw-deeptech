@@ -33,7 +33,7 @@ from src.model.L4Contract import L4Contract, is_derived_destination_id, is_deriv
     derived_trigger_id_to_situation_id, derived_destination_id
 from src.model.L4Macro import L4Macro, L4BlockMacro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, SimpleTimeDeltaLit, DateTimeLit, \
-    RoleIdLit, Literal
+    RoleIdLit, Literal, TimeDeltaLit
 from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
@@ -195,6 +195,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.timeunit = given
             else:
                 self.top.timeunit = LONGFORMS_OF_SUPPORTED_TIMEUNITS[given]
+
+        elif head("StartDatetime","StartDT"):
+            print("start datetime?", rem)
+            try:
+                dt = dateutil.parser.parse(rem[0][1])
+                print("the dt", dt)
+                # return DateTimeLit(dt, rem.coord())
+                self.top.start_datetime = dt
+            except Exception as e:
+                print(rem,e)
+                raise e
 
         elif head(SORT_DEFINITIONS_AREA) or head("TypeDefinitions"):
             self._mk_sort_definitions(rem)
@@ -911,8 +922,14 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif fnsymb_name == "str2dt":
                     assert isinstance(pair[1],SExpr) and isinstance(pair[1][0], SExpr) and pair[1][0][0] == STRING_LITERAL_MARKER, pair
                     try:
+                        # pair[1] is the args tuple to str2dt, pair[1][0] is the first and only arg, and STRLIT expression, and
+                        # pair[1][0][1] is the date string itself
+                        print("the string?", pair[1][0][1])
                         dt = dateutil.parser.parse(pair[1][0][1])
-                        return DateTimeLit(dt, pair[1][0].coord())
+                        # return DateTimeLit(dt, pair[1][0].coord())
+                        self.assertOrSyntaxError(self.top.start_datetime is not None, x)
+                        if self.top.start_datetime: # redundant None check
+                            return TimeDeltaLit(dt - self.top.start_datetime, x.coord())
                     except Exception as e:
                         print(e)
                         raise e
@@ -1241,7 +1258,7 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
                     print(child)
                     break
 
-        print(f"Replacing\n{sexpr2}\nwith\n{may} and \n{other}\n")
+        # print(f"Replacing\n{sexpr2}\nwith\n{may} and \n{other}\n")
 
         if other:
             return [may,other]

@@ -1,12 +1,14 @@
+from datetime import datetime
+
 from src.independent.PushOnlyStack import PushOnlyStack
 from src.independent.util_for_tuple_linked_lists import TupleLinkedList
 from src.model.ContractParamDec import ContractParamDec
 from src.independent.util import chcast
 
-TRACE = True
-# TRACE = False
-# USE_CONTRACT_PARAM_VALS = True
-USE_CONTRACT_PARAM_VALS = False
+# TRACE = True
+TRACE = False
+USE_CONTRACT_PARAM_VALS = True
+# USE_CONTRACT_PARAM_VALS = False
 
 from src.model.StateVarDec import StateVarDec
 from src.constants_and_defined_types import FULFILLED_SITUATION_LABEL
@@ -83,7 +85,7 @@ class ActionRuleParamsConstraintPath(NamedTuple):
 class AssertionPath(NamedTuple):
     assertion: Z3Term
     next_statement: Optional[Statement] # if this is an in-code assertion, as opposed to one we create on the fly, we need to know where to go next.
-    next_state: Optional[Store]
+    next_state: Store
     action: Action
     action_params: Optional[OneUseStore]
     core: CoreSymbExecState
@@ -216,13 +218,21 @@ def symbolic_execution(prog:L4Contract):
                         print(f"state: ", state)
                         raise e
 
-                elif term.fnsymb_name in {"last_event_td","next_event_td","last_situation_td"}:
+                elif term.fnsymb_name in {"last_event_td","next_event_td","last_situation_td","next_event_dt"}:
                     return helper(term.fnsymb_name)
+
+                elif term.fnsymb_name == "dt2td":
+                    raise Exception("dt2td deprecated in favour of always converting DateTimes to TimeDeltas")
+                    # return chcast(args[0]) - name2symbolicvar("td_0",'TimeDelta')
+
                 raise NotImplementedError(f"Unhandled {term.fnsymb_name}")
             elif isinstance(term,(bool,int,float)):
                 return primValToZ3(term)
             elif isinstance(term,timedelta):
                 return timedeltaToZ3(term, prog.timeunit)
+            elif isinstance(term,datetime):
+
+                return timedeltaToZ3(term - name2symbolicvar("dt_0","DateTime"), prog.timeunit)
             else:
                 raise Exception(type(term),term)
 
@@ -330,6 +340,7 @@ def symbolic_execution(prog:L4Contract):
         # envvars = envvars.set("last_event_td", envvars["next_event_td"])
         envvars = envvars.set("last_event_td", name2symbolicvar(f"td_{core.time}", 'TimeDelta'))
         envvars = envvars.set("next_event_td", None)
+        envvars = envvars.set("next_event_dt", None)
 
         assert isinstance(state, LedgerDict), type(state)
 
@@ -510,7 +521,8 @@ def symbolic_execution(prog:L4Contract):
                                           for actparam_name in action.param_names})
 
         # SETTING next_event_td
-        envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t}",'TimeDelta'))
+        envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t+1}",'TimeDelta'))
+        envvars = envvars.set("next_event_dt", name2symbolicvar(f"td_{t+1}", 'TimeDelta') - name2symbolicvar("td_0", 'TimeDelta')) # type:ignore
         if t > 0:
             time_pathconstr = conj(
                 name2symbolicvar(f"td_{t-1}", 'TimeDelta') <= name2symbolicvar(f"td_{t}", 'TimeDelta'), # type:ignore
@@ -635,7 +647,10 @@ def symbolic_execution(prog:L4Contract):
                 print(f"Failed to prove assertion:\n{qp}\nReason unknown:{sz3.reason_unknown()}")
                 addUnprovedAssertion(qp)
                 # return SEvalRVStopThread('')
-            return sevalStatement(chcast(Statement,qp.next_statement),chcast(LedgerDict,qp.next_state),qp.action,qp.action_params,qp.core)
+            if qp.next_statement:
+                return sevalStatement(chcast(Statement,qp.next_statement),chcast(LedgerDict,qp.next_state),qp.action,qp.action_params,qp.core)
+            else:
+                return sevalActionAfterStateTransform(qp.action, qp.next_state, qp.core)
 
             # raise NotImplementedError("no assertions till working without them")
 

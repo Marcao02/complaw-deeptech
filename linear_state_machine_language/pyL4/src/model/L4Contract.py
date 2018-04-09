@@ -1,4 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple
+from datetime import datetime
 from itertools import chain
 from typing import Type
 
@@ -54,6 +55,7 @@ class L4Contract:
         self.blockmacros: Dict[str, L4BlockMacro] = dict()
 
         self.timeunit : str = "d" # default to days
+        self.start_datetime: Optional[datetime] = None
 
         # self.flags : Optional[Set[str]] = None
 

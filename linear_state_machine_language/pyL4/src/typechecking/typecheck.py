@@ -76,6 +76,11 @@ def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
                     yield "PosTimeDelta"
                 else:
                     yield "TimeDelta"
+            elif isinstance(t, TimeDeltaLit):
+                if t.lit.total_seconds() > 0:
+                    yield "PosTimeDelta"
+                else:
+                    yield "TimeDelta"
             elif isinstance(t, RoleIdLit):
                 yield "RoleId"
             elif isinstance(t, StringLit):
@@ -387,6 +392,11 @@ class TypeChecker:
                 return "Bool"
             elif isinstance(t,SimpleTimeDeltaLit):
                 if t.num > 0:
+                    return "PosTimeDelta"
+                else:
+                    return "TimeDelta"
+            elif isinstance(t, TimeDeltaLit):
+                if t.lit.total_seconds() > 0:
                     return "PosTimeDelta"
                 else:
                     return "TimeDelta"
