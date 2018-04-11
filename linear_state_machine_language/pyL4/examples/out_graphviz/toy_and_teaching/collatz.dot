@@ -3,22 +3,17 @@
 digraph Collatz {    
     Fulfilled[label=Fufilled];
     Ongoing[label=Ongoing]
+        
     
-    EnterFulfilled[label=EnterFufilled,shape=box]; 
-    DivideBy2[label=DivideBy2,shape=box];
-	TripplePlus1[label=TripplePlus1,shape=box];
-	EnterFulfilled[label=EnterFulfilled,shape=box]    
+         
     
-    EnterFulfilled -> Fulfilled;
     
-    Ongoing -> EnterFulfilled [style=dashed];
-	Ongoing -> DivideBy2 [style=dashed];
-	Ongoing -> TripplePlus1 [style=dashed]
     
-    DivideBy2 -> Ongoing [style=dashed];
-	TripplePlus1 -> Ongoing [style=dashed];
-	EnterFulfilled -> Fulfilled [style=dashed];
+    
+    Ongoing -> Fulfilled [style=dashed,label=EnterFulfilled];
 	     
     
-       
+    Ongoing -> Ongoing [style=dashed,label=DivideBy2];
+	Ongoing -> Ongoing [style=dashed,label=TripplePlus1];
+	   
 }

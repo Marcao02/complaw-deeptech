@@ -2,45 +2,23 @@
 
 digraph Master_Sales_Agreement {    
     Fulfilled[label=Fufilled];
-    VendorAcceptingOrders[label=VendorAcceptingOrders];
-	Breached_Vendor[label=Breached_Vendor];
-	Breached_Customer[label=Breached_Customer];
-	Breached_Customer_Vendor[label=Breached_Customer_Vendor]
+    VendorAcceptingOrders[label=VendorAcceptingOrders]
+        
     
-    EnterFulfilled[label=EnterFufilled,shape=box]; 
-    EnterFulfilled[label=EnterFulfilled,shape=box];
-	SubmitNewOrder[label=SubmitNewOrder,shape=box];
-	Deliver[label=Deliver,shape=box];
-	EmailInvoice[label=EmailInvoice,shape=box];
-	PayBill[label=PayBill,shape=box];
-	Breach_Vendor[label=Breach_Vendor,shape=box];
-	Breach_Customer[label=Breach_Customer,shape=box];
-	Breach_Customer_Vendor[label=Breach_Customer_Vendor,shape=box];
-	InterveneOnDelay_Customer[label=InterveneOnDelay_Customer,shape=box];
-	InterveneOnDelay_Vendor[label=InterveneOnDelay_Vendor,shape=box]    
+         
     
-    EnterFulfilled -> Fulfilled;
     
-    VendorAcceptingOrders -> SubmitNewOrder;
-	VendorAcceptingOrders -> Deliver;
-	VendorAcceptingOrders -> Breach_Vendor [style=dashed];
-	VendorAcceptingOrders -> EmailInvoice;
-	VendorAcceptingOrders -> PayBill;
-	VendorAcceptingOrders -> Breach_Customer [style=dashed];
-	VendorAcceptingOrders -> EnterFulfilled [style=dashed];
-	VendorAcceptingOrders -> EnterFulfilled [style=dashed]
     
-    EnterFulfilled -> Fulfilled [style=dashed];
-	SubmitNewOrder -> VendorAcceptingOrders [style=dashed];
-	Deliver -> VendorAcceptingOrders [style=dashed];
-	EmailInvoice -> VendorAcceptingOrders [style=dashed];
-	PayBill -> VendorAcceptingOrders [style=dashed];
-	Breach_Vendor -> Breached_Vendor [style=dashed];
-	Breach_Customer -> Breached_Customer [style=dashed];
-	Breach_Customer_Vendor -> Breached_Customer_Vendor [style=dashed];
-	InterveneOnDelay_Customer -> Breached_Customer [style=dashed];
-	InterveneOnDelay_Vendor -> Breached_Vendor [style=dashed];
+    
+    VendorAcceptingOrders -> Breached_Vendor [style=dashed,label=Breach_Vendor];
+	VendorAcceptingOrders -> Breached_Customer [style=dashed,label=Breach_Customer];
+	VendorAcceptingOrders -> Fulfilled [style=dashed,label=EnterFulfilled];
+	VendorAcceptingOrders -> Fulfilled [style=dashed,label=EnterFulfilled];
 	     
     
-       
+    VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=SubmitNewOrder];
+	VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=Deliver];
+	VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=EmailInvoice];
+	VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=PayBill];
+	   
 }

@@ -3,56 +3,28 @@
 digraph Monster_Burger {    
     Fulfilled[label=Fufilled];
     MonsterBurgerUncooked[label=MonsterBurgerUncooked];
-	EatingMB[label=EatingMB];
-	Breached_Restaurant[label=Breached_Restaurant];
-	Breached_Challenger[label=Breached_Challenger];
-	Breached_Challenger_Restaurant[label=Breached_Challenger_Restaurant]
+	EatingMB[label=EatingMB]
+        
     
-     
-    RequestCookMB[label=RequestCookMB,shape=box];
-	ServeMB[label=ServeMB,shape=box];
-	EnterPromptServeGuaranteeViolated[label=EnterPromptServeGuaranteeViolated,shape=box];
-	EnterEatingMB[label=EnterEatingMB,shape=box];
-	AnnounceMBFinished[label=AnnounceMBFinished,shape=box];
-	TimeToCheckCompletionExpires[label=TimeToCheckCompletionExpires,shape=box];
-	CheckCompletionClaim[label=CheckCompletionClaim,shape=box];
-	RejectCompletionClaim[label=RejectCompletionClaim,shape=box];
-	PayForMB[label=PayForMB,shape=box];
-	VerifyCompletionClaim[label=VerifyCompletionClaim,shape=box];
-	Breach_Restaurant[label=Breach_Restaurant,shape=box];
-	Breach_Challenger[label=Breach_Challenger,shape=box];
-	Breach_Challenger_Restaurant[label=Breach_Challenger_Restaurant,shape=box];
-	InterveneOnDelay_Challenger[label=InterveneOnDelay_Challenger,shape=box];
-	InterveneOnDelay_Restaurant[label=InterveneOnDelay_Restaurant,shape=box]    
+         
     
     
     
-    MonsterBurgerUncooked -> RequestCookMB;
-	RequestCookMB -> ServeMB;
-	RequestCookMB -> EnterPromptServeGuaranteeViolated [style=dashed];
-	EatingMB -> AnnounceMBFinished;
-	EatingMB -> CheckCompletionClaim;
-	EatingMB -> TimeToCheckCompletionExpires [style=dashed];
-	AnnounceMBFinished -> CheckCompletionClaim;
-	AnnounceMBFinished -> TimeToCheckCompletionExpires [style=dashed];
-	CheckCompletionClaim -> VerifyCompletionClaim;
-	CheckCompletionClaim -> RejectCompletionClaim;
-	CheckCompletionClaim -> Breach_Restaurant [style=dashed];
-	RejectCompletionClaim -> EnterEatingMB [style=dashed];
-	RejectCompletionClaim -> PayForMB;
-	RejectCompletionClaim -> Breach_Challenger [style=dashed]
     
-    ServeMB -> EatingMB [style=dashed];
-	EnterPromptServeGuaranteeViolated -> Fulfilled [style=dashed];
-	EnterEatingMB -> EatingMB [style=dashed];
-	TimeToCheckCompletionExpires -> Fulfilled [style=dashed];
-	PayForMB -> Fulfilled [style=dashed];
-	VerifyCompletionClaim -> Fulfilled [style=dashed];
-	Breach_Restaurant -> Breached_Restaurant [style=dashed];
-	Breach_Challenger -> Breached_Challenger [style=dashed];
-	Breach_Challenger_Restaurant -> Breached_Challenger_Restaurant [style=dashed];
-	InterveneOnDelay_Challenger -> Breached_Challenger [style=dashed];
-	InterveneOnDelay_Restaurant -> Breached_Restaurant [style=dashed];
+    MonsterBurgerUncooked -> AfterRequestCookMB [style=dashed,label=RequestCookMB];
+	AfterRequestCookMB -> EatingMB [style=dashed,label=ServeMB];
+	AfterRequestCookMB -> Fulfilled [style=dashed,label=EnterPromptServeGuaranteeViolated];
+	EatingMB -> AfterAnnounceMBFinished [style=dashed,label=AnnounceMBFinished];
+	EatingMB -> AfterCheckCompletionClaim [style=dashed,label=CheckCompletionClaim];
+	EatingMB -> Fulfilled [style=dashed,label=TimeToCheckCompletionExpires];
+	AfterAnnounceMBFinished -> AfterCheckCompletionClaim [style=dashed,label=CheckCompletionClaim];
+	AfterAnnounceMBFinished -> Fulfilled [style=dashed,label=TimeToCheckCompletionExpires];
+	AfterCheckCompletionClaim -> Fulfilled [style=dashed,label=VerifyCompletionClaim];
+	AfterCheckCompletionClaim -> AfterRejectCompletionClaim [style=dashed,label=RejectCompletionClaim];
+	AfterCheckCompletionClaim -> Breached_Restaurant [style=dashed,label=Breach_Restaurant];
+	AfterRejectCompletionClaim -> EatingMB [style=dashed,label=EnterEatingMB];
+	AfterRejectCompletionClaim -> Fulfilled [style=dashed,label=PayForMB];
+	AfterRejectCompletionClaim -> Breached_Challenger [style=dashed,label=Breach_Challenger];
 	     
     
        

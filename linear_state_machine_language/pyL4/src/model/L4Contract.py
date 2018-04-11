@@ -133,6 +133,10 @@ class L4Contract:
             raise SyntaxError(f"No Action found with id {anid}")
         return self.actions_by_id[anid]
         # return self.actions_by_id[anid] if anid in self.actions_by_id else None
+    def actions_with_destination(self, destid:str) -> Iterable[Action]:
+        return filter(lambda a: a.dest_situation_id == destid, self.actions_iter())
+    def actions_nonderived_with_destination(self, destid:str) -> Iterable[Action]:
+        return filter(lambda a: not a.dest_situation_id.startswith("Breach") and not a.dest_situation_id.startswith("InterveneOnDelay") and a.dest_situation_id == destid, self.actions_iter())
 
     def gvarDecObj(self, varname:str) -> Optional[StateVarDec]:
         if varname in self.state_var_decs:

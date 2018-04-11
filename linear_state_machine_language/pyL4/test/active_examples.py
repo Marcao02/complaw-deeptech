@@ -33,6 +33,7 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
     'from_academic_lit/student and grader gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints.l4',
 
     'from_academic_lit/wip/goodenough_flood_loan_verbatim_happypath.l4',
+    'from_academic_lit/wip/goodenough_flood_loan_verbatim.l4',
 
     # 'serious/SAFE_2_liq_eventtypes.l4',
     ('serious/SAFE.l4', 'serious/SAFE_mfn.l4', {"HAS_CAP":False, "HAS_DISCOUNT":False}, ),
@@ -43,5 +44,5 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
 
     'toy_and_teaching/tutorialSAFE.l4'
 ]
-EXAMPLES_FULL_SIZE = 31
+EXAMPLES_FULL_SIZE = 32
 # EXAMPLES_FULL_SIZE = 1

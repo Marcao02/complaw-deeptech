@@ -32,6 +32,9 @@ class SExpr(Sized,Iterable): #(List[Union['SExpr', str]]):
         self.col = col
         assert isinstance(symb,str) and symb in all_symb_tags
 
+    def newHere(self, lst: List[Union['SExpr', str]]) -> 'SExpr':
+        return SExpr(lst, self.line, self.col, self.symb)
+
     def coord(self) -> FileCoord:
         return FileCoord(self.line, self.col)
 

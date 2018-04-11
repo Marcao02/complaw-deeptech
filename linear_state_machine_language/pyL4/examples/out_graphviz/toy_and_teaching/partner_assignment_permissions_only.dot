@@ -2,42 +2,22 @@
 
 digraph partner_assignment_demonstrating_relievable_obligations_via_permissions {    
     Fulfilled[label=Fufilled];
-    WorkingOnAssignment[label=WorkingOnAssignment];
-	Breached_Bob[label=Breached_Bob];
-	Breached_Alice[label=Breached_Alice];
-	Breached_Alice_Bob[label=Breached_Alice_Bob]
+    WorkingOnAssignment[label=WorkingOnAssignment]
+        
     
-     
-    SolveProbA[label=SolveProbA,shape=box];
-	SolveProbB[label=SolveProbB,shape=box];
-	Submit[label=Submit,shape=box];
-	Breach_Bob[label=Breach_Bob,shape=box];
-	Breach_Alice[label=Breach_Alice,shape=box];
-	Breach_Alice_Bob[label=Breach_Alice_Bob,shape=box];
-	InterveneOnDelay_Alice[label=InterveneOnDelay_Alice,shape=box];
-	InterveneOnDelay_Bob[label=InterveneOnDelay_Bob,shape=box]    
+         
     
     
     
-    WorkingOnAssignment -> SolveProbA;
-	WorkingOnAssignment -> SolveProbA;
-	WorkingOnAssignment -> SolveProbB;
-	WorkingOnAssignment -> SolveProbB;
-	WorkingOnAssignment -> Submit;
-	WorkingOnAssignment -> Submit;
-	WorkingOnAssignment -> Breach_Alice_Bob [style=dashed];
-	WorkingOnAssignment -> Breach_Alice [style=dashed];
-	WorkingOnAssignment -> Breach_Bob [style=dashed]
     
-    SolveProbA -> WorkingOnAssignment [style=dashed];
-	SolveProbB -> WorkingOnAssignment [style=dashed];
-	Submit -> Fulfilled [style=dashed];
-	Breach_Bob -> Breached_Bob [style=dashed];
-	Breach_Alice -> Breached_Alice [style=dashed];
-	Breach_Alice_Bob -> Breached_Alice_Bob [style=dashed];
-	InterveneOnDelay_Alice -> Breached_Alice [style=dashed];
-	InterveneOnDelay_Bob -> Breached_Bob [style=dashed];
+    WorkingOnAssignment -> Fulfilled [style=dashed,label=Submit];
+	WorkingOnAssignment -> Fulfilled [style=dashed,label=Submit];
+	WorkingOnAssignment -> Breached_Alice_Bob [style=dashed,label=Breach_Alice_Bob];
+	WorkingOnAssignment -> Breached_Alice [style=dashed,label=Breach_Alice];
+	WorkingOnAssignment -> Breached_Bob [style=dashed,label=Breach_Bob];
 	     
     
-       
+    WorkingOnAssignment -> WorkingOnAssignment [style=dashed,label=SolveProbA];
+	WorkingOnAssignment -> WorkingOnAssignment [style=dashed,label=SolveProbB];
+	   
 }

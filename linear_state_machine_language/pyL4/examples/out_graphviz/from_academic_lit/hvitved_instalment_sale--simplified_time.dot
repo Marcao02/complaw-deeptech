@@ -2,34 +2,18 @@
 
 digraph Instalment_Sale_Hvitved {    
     Fulfilled[label=Fufilled];
-    WaitingForFirstDayOfNextMonth[label=WaitingForFirstDayOfNextMonth];
-	Breached_Seller[label=Breached_Seller];
-	Breached_Buyer[label=Breached_Buyer];
-	Breached_Buyer_Seller[label=Breached_Buyer_Seller]
+    WaitingForFirstDayOfNextMonth[label=WaitingForFirstDayOfNextMonth]
+        
     
-     
-    PayInstallment[label=PayInstallment,shape=box];
-	PayLastInstallment[label=PayLastInstallment,shape=box];
-	Breach_Seller[label=Breach_Seller,shape=box];
-	Breach_Buyer[label=Breach_Buyer,shape=box];
-	Breach_Buyer_Seller[label=Breach_Buyer_Seller,shape=box];
-	InterveneOnDelay_Buyer[label=InterveneOnDelay_Buyer,shape=box];
-	InterveneOnDelay_Seller[label=InterveneOnDelay_Seller,shape=box]    
+         
     
     
     
-    WaitingForFirstDayOfNextMonth -> PayInstallment;
-	WaitingForFirstDayOfNextMonth -> PayLastInstallment;
-	WaitingForFirstDayOfNextMonth -> Breach_Buyer [style=dashed]
     
-    PayInstallment -> WaitingForFirstDayOfNextMonth [style=dashed];
-	PayLastInstallment -> Fulfilled [style=dashed];
-	Breach_Seller -> Breached_Seller [style=dashed];
-	Breach_Buyer -> Breached_Buyer [style=dashed];
-	Breach_Buyer_Seller -> Breached_Buyer_Seller [style=dashed];
-	InterveneOnDelay_Buyer -> Breached_Buyer [style=dashed];
-	InterveneOnDelay_Seller -> Breached_Seller [style=dashed];
+    WaitingForFirstDayOfNextMonth -> Fulfilled [style=dashed,label=PayLastInstallment];
+	WaitingForFirstDayOfNextMonth -> Breached_Buyer [style=dashed,label=Breach_Buyer];
 	     
     
-       
+    WaitingForFirstDayOfNextMonth -> WaitingForFirstDayOfNextMonth [style=dashed,label=PayInstallment];
+	   
 }

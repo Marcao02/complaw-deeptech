@@ -2,28 +2,18 @@
 
 digraph test_contract_2_for_must_later {    
     Fulfilled[label=Fufilled];
-    Ongoing[label=Ongoing];
-	Breached_I[label=Breached_I]
+    Ongoing[label=Ongoing]
+        
     
-    EnterFulfilled[label=EnterFufilled,shape=box]; 
-    Throw[label=Throw,shape=box];
-	Catch[label=Catch,shape=box];
-	EnterFulfilled[label=EnterFulfilled,shape=box];
-	Breach_I[label=Breach_I,shape=box];
-	InterveneOnDelay_I[label=InterveneOnDelay_I,shape=box]    
+         
     
-    EnterFulfilled -> Fulfilled;
     
-    Ongoing -> Throw;
-	Ongoing -> EnterFulfilled;
-	Ongoing -> Catch
     
-    Throw -> Ongoing [style=dashed];
-	Catch -> Ongoing [style=dashed];
-	EnterFulfilled -> Fulfilled [style=dashed];
-	Breach_I -> Breached_I [style=dashed];
-	InterveneOnDelay_I -> Breached_I [style=dashed];
+    
+    Ongoing -> Fulfilled [style=dashed,label=EnterFulfilled];
 	     
     
-       
+    Ongoing -> Ongoing [style=dashed,label=Throw];
+	Ongoing -> Ongoing [style=dashed,label=Catch];
+	   
 }

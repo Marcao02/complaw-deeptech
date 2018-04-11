@@ -3,15 +3,15 @@
 digraph Collatz {    
     Fulfilled[label=Fufilled];
     
-    
-     
-    NextInSeq[label=NextInSeq,shape=box]    
-    
-    
-    
-    NextInSeq -> NextInSeq [style=dashed]
+        
     
          
     
-       
+    
+    
+    
+         
+    
+    AfterNextInSeq -> AfterNextInSeq [style=dashed,label=NextInSeq];
+	   
 }

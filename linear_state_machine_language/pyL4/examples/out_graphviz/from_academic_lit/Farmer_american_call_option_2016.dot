@@ -2,35 +2,19 @@
 
 digraph Farmer_American_call_option_from_A_Formal_Language_for_Writing_Contracts_2016 {    
     Fulfilled[label=Fufilled];
-    BeforeOptionPurchase[label=BeforeOptionPurchase];
-	Breached_Seller[label=Breached_Seller];
-	Breached_Buyer[label=Breached_Buyer];
-	Breached_Buyer_Seller[label=Breached_Buyer_Seller]
+    BeforeOptionPurchase[label=BeforeOptionPurchase]
+        
     
-     
-    PaySellerForOption[label=PaySellerForOption,shape=box];
-	ExerciseOption[label=ExerciseOption,shape=box];
-	TransferShare[label=TransferShare,shape=box];
-	Breach_Seller[label=Breach_Seller,shape=box];
-	Breach_Buyer[label=Breach_Buyer,shape=box];
-	Breach_Buyer_Seller[label=Breach_Buyer_Seller,shape=box];
-	InterveneOnDelay_Buyer[label=InterveneOnDelay_Buyer,shape=box];
-	InterveneOnDelay_Seller[label=InterveneOnDelay_Seller,shape=box]    
+         
     
     
     
-    BeforeOptionPurchase -> PaySellerForOption;
-	BeforeOptionPurchase -> Breach_Buyer [style=dashed];
-	PaySellerForOption -> ExerciseOption;
-	ExerciseOption -> TransferShare;
-	ExerciseOption -> Breach_Buyer [style=dashed]
     
-    TransferShare -> Fulfilled [style=dashed];
-	Breach_Seller -> Breached_Seller [style=dashed];
-	Breach_Buyer -> Breached_Buyer [style=dashed];
-	Breach_Buyer_Seller -> Breached_Buyer_Seller [style=dashed];
-	InterveneOnDelay_Buyer -> Breached_Buyer [style=dashed];
-	InterveneOnDelay_Seller -> Breached_Seller [style=dashed];
+    BeforeOptionPurchase -> AfterPaySellerForOption [style=dashed,label=PaySellerForOption];
+	BeforeOptionPurchase -> Breached_Buyer [style=dashed,label=Breach_Buyer];
+	AfterPaySellerForOption -> AfterExerciseOption [style=dashed,label=ExerciseOption];
+	AfterExerciseOption -> Fulfilled [style=dashed,label=TransferShare];
+	AfterExerciseOption -> Breached_Buyer [style=dashed,label=Breach_Buyer];
 	     
     
        

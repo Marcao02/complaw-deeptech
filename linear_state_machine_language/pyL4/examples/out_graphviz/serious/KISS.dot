@@ -3,57 +3,28 @@
 digraph KISS {    
     Fulfilled[label=Fufilled];
     InvestorInvests[label=InvestorInvests];
-	After_NotifyInvestorOfNextEquityFinancingTerms[label=After_NotifyInvestorOfNextEquityFinancingTerms];
-	Breached_Investor[label=Breached_Investor];
-	Breached_Company[label=Breached_Company];
-	Breached_Company_Investor[label=Breached_Company_Investor]
+	After_NotifyInvestorOfNextEquityFinancingTerms[label=After_NotifyInvestorOfNextEquityFinancingTerms]
+        
     
-     
-    CommitToFinancing[label=CommitToFinancing,shape=box];
-	NotifyInvestorOfNextEquityFinancingTerms[label=NotifyInvestorOfNextEquityFinancingTerms,shape=box];
-	choose_cash_interest_repayment[label=choose_cash_interest_repayment,shape=box];
-	CloseEquityFinancingSale[label=CloseEquityFinancingSale,shape=box];
-	CommitToAcquisition[label=CommitToAcquisition,shape=box];
-	ChooseMultipleRepayment[label=ChooseMultipleRepayment,shape=box];
-	ChooseConvertToCommonStock[label=ChooseConvertToCommonStock,shape=box];
-	ReachMaturity[label=ReachMaturity,shape=box];
-	ChooseMaturityRepayment[label=ChooseMaturityRepayment,shape=box];
-	ChooseConversionToSeriesSeedPreferredStock[label=ChooseConversionToSeriesSeedPreferredStock,shape=box];
-	Breach_Investor[label=Breach_Investor,shape=box];
-	Breach_Company[label=Breach_Company,shape=box];
-	Breach_Company_Investor[label=Breach_Company_Investor,shape=box];
-	InterveneOnDelay_Investor[label=InterveneOnDelay_Investor,shape=box];
-	InterveneOnDelay_Company[label=InterveneOnDelay_Company,shape=box]    
+         
     
     
     
-    InvestorInvests -> CommitToAcquisition;
-	InvestorInvests -> CommitToFinancing;
-	InvestorInvests -> ReachMaturity [style=dashed];
-	CommitToFinancing -> NotifyInvestorOfNextEquityFinancingTerms;
-	CommitToFinancing -> InterveneOnDelay_Company;
-	After_NotifyInvestorOfNextEquityFinancingTerms -> choose_cash_interest_repayment;
-	After_NotifyInvestorOfNextEquityFinancingTerms -> CloseEquityFinancingSale;
-	CommitToAcquisition -> ChooseMultipleRepayment;
-	CommitToAcquisition -> ChooseConvertToCommonStock;
-	CommitToAcquisition -> InterveneOnDelay_Investor;
-	ReachMaturity -> ChooseConversionToSeriesSeedPreferredStock;
-	ReachMaturity -> ChooseMaturityRepayment;
-	ReachMaturity -> InterveneOnDelay_Investor
     
-    NotifyInvestorOfNextEquityFinancingTerms -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed];
-	CloseEquityFinancingSale -> Fulfilled [style=dashed];
-	ChooseMultipleRepayment -> Fulfilled [style=dashed];
-	ChooseConvertToCommonStock -> Fulfilled [style=dashed];
-	ChooseMaturityRepayment -> Fulfilled [style=dashed];
-	ChooseConversionToSeriesSeedPreferredStock -> Fulfilled [style=dashed];
-	Breach_Investor -> Breached_Investor [style=dashed];
-	Breach_Company -> Breached_Company [style=dashed];
-	Breach_Company_Investor -> Breached_Company_Investor [style=dashed];
-	InterveneOnDelay_Investor -> Breached_Investor [style=dashed];
-	InterveneOnDelay_Company -> Breached_Company [style=dashed];
+    InvestorInvests -> AfterCommitToAcquisition [style=dashed,label=CommitToAcquisition];
+	InvestorInvests -> AfterCommitToFinancing [style=dashed,label=CommitToFinancing];
+	InvestorInvests -> AfterReachMaturity [style=dashed,label=ReachMaturity];
+	AfterCommitToFinancing -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed,label=NotifyInvestorOfNextEquityFinancingTerms];
+	AfterCommitToFinancing -> Breached_Company [style=dashed,label=InterveneOnDelay_Company];
+	After_NotifyInvestorOfNextEquityFinancingTerms -> Fulfilled [style=dashed,label=CloseEquityFinancingSale];
+	AfterCommitToAcquisition -> Fulfilled [style=dashed,label=ChooseMultipleRepayment];
+	AfterCommitToAcquisition -> Fulfilled [style=dashed,label=ChooseConvertToCommonStock];
+	AfterCommitToAcquisition -> Breached_Investor [style=dashed,label=InterveneOnDelay_Investor];
+	AfterReachMaturity -> Fulfilled [style=dashed,label=ChooseConversionToSeriesSeedPreferredStock];
+	AfterReachMaturity -> Fulfilled [style=dashed,label=ChooseMaturityRepayment];
+	AfterReachMaturity -> Breached_Investor [style=dashed,label=InterveneOnDelay_Investor];
 	     
     
-    choose_cash_interest_repayment -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed];
+    After_NotifyInvestorOfNextEquityFinancingTerms -> After_NotifyInvestorOfNextEquityFinancingTerms [style=dashed,label=choose_cash_interest_repayment];
 	   
 }

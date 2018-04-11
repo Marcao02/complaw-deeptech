@@ -7,7 +7,7 @@ from src.independent.util import print_all_todos
 
 tests_to_run = {
     'L4typechecker',
-    'smt',
+    # 'smt',
     'graphviz',
     'prettyprint',
     'interpreter',
@@ -34,7 +34,6 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         print()
         for label in splits:
             print(label, "time:", str(splits[label]*10)[0:4])
-
 
     timetask_start('total')
 

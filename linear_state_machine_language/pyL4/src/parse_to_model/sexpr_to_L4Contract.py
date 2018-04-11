@@ -128,8 +128,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                               "\nline " + str(expr.line) +
                               "\n" + str(self.top.filename))
         else:
+            print(expr, type(expr))
+            print(self.top.filename, type(self.top.filename))
             raise SyntaxError((msg if msg else "") +
-                              "\n" + expr +
+                              "\n" + str(expr) +
                               "\n" + str(self.top.filename))
 
     def assertOrSyntaxError(self, test:bool, expr:SExpr, msg:Optional[str] = None) -> Union[NoReturn,None]:
@@ -644,7 +646,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 a.following_anon_situation.parent_action_id = action_id
                 self.top.situations_by_id[a.following_anon_situation.situation_id] = a.following_anon_situation
 
+            elif head("AllowedRoles"):
+                todo_once("handle (AllowedRoles ...)")
+            elif head("nlg"):
+                todo_once("handle (nlg ...)")
             else:
+                self.syntaxError(f"Unhandled {x[0]}",str(x))
                 todo_once(f"Handle {x[0]} in action dec.")
 
         if dest_situation_id:
@@ -924,7 +931,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     try:
                         # pair[1] is the args tuple to str2dt, pair[1][0] is the first and only arg, and STRLIT expression, and
                         # pair[1][0][1] is the date string itself
-                        print("the string?", pair[1][0][1])
                         dt = dateutil.parser.parse(pair[1][0][1])
                         # return DateTimeLit(dt, pair[1][0].coord())
                         self.assertOrSyntaxError(self.top.start_datetime is not None, x)
@@ -1116,12 +1122,15 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         found_labeled_time_constraint = False
         for x in rem:
             if not isinstance(x, str):
-                if x[0] == "when":
+                if x[0] == "where":
+                    ar.where_clause = self._mk_term(x[1], src_situation, src_or_parent_act, ar, rem)
+                elif x[0] == "when":
                     found_labeled_time_constraint = True
                     if len(x) > 2:
                         ar.time_constraint = self._mk_time_constraint(x.tillEnd(1), src_situation, src_or_parent_act, ar, x)
                     else:
                         ar.time_constraint = self._mk_time_constraint(x[1], src_situation, src_or_parent_act, ar, x)
+
                 elif x[0] == "within":
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
@@ -1139,14 +1148,17 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
                     expanded = SExpr(['≤', 'next_event_dt', rest], x.line, x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
-                elif x[0] == "where":
-                    ar.where_clause = self._mk_term(x[1], src_situation, src_or_parent_act, ar, rem)
+
                 elif x[0] == "after":
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr(['>', 'next_event_td', rest], x.line, x.col)
-                    # expanded = SExpr(['==', 'next_event_td',
-                    #                   SExpr(['+', rest, "1" + self.top.timeunit], x.line, x.col)], x.line, x.col)
+                    expanded = x.newHere(['>', 'next_event_td', rest])
+                    # expanded = SExpr(['==', 'next_event_td', SExpr(['+', rest, "1" + self.top.timeunit], x.line, x.col)], x.line, x.col)
+                    ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
+                elif x[0] == "before":
+                    found_labeled_time_constraint = True
+                    rest = x[1] if len(x) == 2 else x.tillEnd(1)
+                    expanded = SExpr(['<', 'next_event_td', rest], x.line, x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
                 elif x[0] == "on":
                     found_labeled_time_constraint = True

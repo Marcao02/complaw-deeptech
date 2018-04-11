@@ -4,61 +4,29 @@ digraph Lease_Hvitved {
     Fulfilled[label=Fufilled];
     Start[label=Start];
 	AfterEnsureApartmentReady[label=AfterEnsureApartmentReady];
-	MonthStarted[label=MonthStarted];
-	Breached_Tenant[label=Breached_Tenant];
-	Breached_Landlord[label=Breached_Landlord];
-	Breached_Landlord_Tenant[label=Breached_Landlord_Tenant]
+	MonthStarted[label=MonthStarted]
+        
     
-     
-    RequestTerminationFromMonthStarted[label=RequestTerminationFromMonthStarted,shape=box];
-	RequestTerminationFromAfterPayRent[label=RequestTerminationFromAfterPayRent,shape=box];
-	RequestTerminationFromMonthEnded[label=RequestTerminationFromMonthEnded,shape=box];
-	EnsureApartmentReady[label=EnsureApartmentReady,shape=box];
-	StartLeaseTerm[label=StartLeaseTerm,shape=box];
-	EnterMonthStarted[label=EnterMonthStarted,shape=box];
-	PayRent[label=PayRent,shape=box];
-	EnterMonthEnded[label=EnterMonthEnded,shape=box];
-	EnterLeaseTermEnded[label=EnterLeaseTermEnded,shape=box];
-	MoveOut[label=MoveOut,shape=box];
-	Breach_Tenant[label=Breach_Tenant,shape=box];
-	Breach_Landlord[label=Breach_Landlord,shape=box];
-	Breach_Landlord_Tenant[label=Breach_Landlord_Tenant,shape=box];
-	InterveneOnDelay_Landlord[label=InterveneOnDelay_Landlord,shape=box];
-	InterveneOnDelay_Tenant[label=InterveneOnDelay_Tenant,shape=box]    
+         
     
     
     
-    Start -> EnsureApartmentReady;
-	Start -> Breach_Landlord [style=dashed];
-	AfterEnsureApartmentReady -> StartLeaseTerm [style=dashed];
-	MonthStarted -> PayRent;
-	MonthStarted -> Breach_Tenant [style=dashed];
-	MonthStarted -> RequestTerminationFromMonthStarted;
-	MonthStarted -> RequestTerminationFromMonthStarted;
-	PayRent -> EnterMonthEnded [style=dashed];
-	PayRent -> RequestTerminationFromAfterPayRent;
-	PayRent -> RequestTerminationFromAfterPayRent;
-	EnterMonthEnded -> EnterLeaseTermEnded [style=dashed];
-	EnterMonthEnded -> EnterMonthStarted [style=dashed];
-	EnterMonthEnded -> RequestTerminationFromMonthEnded;
-	EnterMonthEnded -> RequestTerminationFromMonthEnded;
-	EnterLeaseTermEnded -> MoveOut;
-	EnterLeaseTermEnded -> Breach_Tenant [style=dashed];
-	EnterLeaseTermEnded -> StartLeaseTerm [style=dashed]
     
-    RequestTerminationFromMonthStarted -> MonthStarted [style=dashed];
-	RequestTerminationFromAfterPayRent -> AfterPayRent [style=dashed];
-	RequestTerminationFromMonthEnded -> MonthEnded [style=dashed];
-	EnsureApartmentReady -> AfterEnsureApartmentReady [style=dashed];
-	StartLeaseTerm -> MonthStarted [style=dashed];
-	EnterMonthStarted -> MonthStarted [style=dashed];
-	MoveOut -> Fulfilled [style=dashed];
-	Breach_Tenant -> Breached_Tenant [style=dashed];
-	Breach_Landlord -> Breached_Landlord [style=dashed];
-	Breach_Landlord_Tenant -> Breached_Landlord_Tenant [style=dashed];
-	InterveneOnDelay_Landlord -> Breached_Landlord [style=dashed];
-	InterveneOnDelay_Tenant -> Breached_Tenant [style=dashed];
+    Start -> AfterEnsureApartmentReady [style=dashed,label=EnsureApartmentReady];
+	Start -> Breached_Landlord [style=dashed,label=Breach_Landlord];
+	AfterEnsureApartmentReady -> MonthStarted [style=dashed,label=StartLeaseTerm];
+	MonthStarted -> AfterPayRent [style=dashed,label=PayRent];
+	MonthStarted -> Breached_Tenant [style=dashed,label=Breach_Tenant];
+	AfterPayRent -> MonthEnded [style=dashed,label=EnterMonthEnded];
+	MonthEnded -> LeaseTermEnded [style=dashed,label=EnterLeaseTermEnded];
+	MonthEnded -> MonthStarted [style=dashed,label=EnterMonthStarted];
+	LeaseTermEnded -> Fulfilled [style=dashed,label=MoveOut];
+	LeaseTermEnded -> Breached_Tenant [style=dashed,label=Breach_Tenant];
+	LeaseTermEnded -> MonthStarted [style=dashed,label=StartLeaseTerm];
 	     
     
-       
+    MonthStarted -> MonthStarted [style=dashed,label=RequestTerminationFromMonthStarted];
+	AfterPayRent -> AfterPayRent [style=dashed,label=RequestTerminationFromAfterPayRent];
+	MonthEnded -> MonthEnded [style=dashed,label=RequestTerminationFromMonthEnded];
+	   
 }
