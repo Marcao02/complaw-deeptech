@@ -3,7 +3,7 @@ from typing import List, Union, Tuple, Dict
 EXAMPLES_SEXPR_ROOT = "./examples/src_sexpr/"
 EXAMPLES_UNPARSED_ROOT = "./examples/out_prettyprinted/"
 
-EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
+EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool],Dict[str,bool]]]] = [
     'test/test_symbolic_exec_time.l4',
     'test/test_symbolic_exec_ifelse_halting_split.l4',
     'test/test_symbolic_exec_ifelse_halting.l4',
@@ -32,15 +32,21 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool]]]] = [
     'from_academic_lit/Farmer_american_call_option_2016.l4',
     'from_academic_lit/student and grader gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints.l4',
 
-    'from_academic_lit/goodenough_flood_loan_verbatim.l4',
+    ('from_academic_lit/goodenough_flood_loan_verbatim.l4',
+     'from_academic_lit/goodenough_flood_loan_verbatim_noBreach.l4',
+     None, {'~must':'may'} ),
 
-    ('serious/SAFE.l4', 'serious/SAFE_mfn.l4', {"HAS_CAP":False, "HAS_DISCOUNT":False}, ),
-    ('serious/SAFE.l4', 'serious/SAFE_cap.l4', {"HAS_CAP":True, "HAS_DISCOUNT":False}, ),
-    ('serious/SAFE.l4', 'serious/SAFE_discount.l4', {"HAS_CAP":False, "HAS_DISCOUNT":True}, ),
-    ('serious/SAFE.l4', 'serious/SAFE_cap_discount.l4', {"HAS_CAP":True, "HAS_DISCOUNT":True}, ),
+    ('from_academic_lit/goodenough_flood_loan_verbatim.l4',
+     'from_academic_lit/goodenough_flood_loan_verbatim_withBreach.l4',
+     None, {'~must':'must'} ),
+
+    ('serious/SAFE.l4', 'serious/SAFE_mfn.l4', {"HAS_CAP":False, "HAS_DISCOUNT":False}, None),
+    ('serious/SAFE.l4', 'serious/SAFE_cap.l4', {"HAS_CAP":True, "HAS_DISCOUNT":False}, None),
+    ('serious/SAFE.l4', 'serious/SAFE_discount.l4', {"HAS_CAP":False, "HAS_DISCOUNT":True}, None),
+    ('serious/SAFE.l4', 'serious/SAFE_cap_discount.l4', {"HAS_CAP":True, "HAS_DISCOUNT":True}, None),
     'serious/KISS.l4',
 
     'toy_and_teaching/tutorialSAFE.l4'
 ]
-EXAMPLES_FULL_SIZE = 31
+EXAMPLES_FULL_SIZE = 32
 # EXAMPLES_FULL_SIZE = 1

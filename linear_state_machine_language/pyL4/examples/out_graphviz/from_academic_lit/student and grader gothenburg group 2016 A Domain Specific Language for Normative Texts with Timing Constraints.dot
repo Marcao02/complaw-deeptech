@@ -1,0 +1,25 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph student_and_grader_from_gothenburg_group_2016_A_Domain_Specific_Language_for_Normative_Texts_with_Timing_Constraints {    
+    Fulfilled[label=Fufilled];
+    AssignmentOut[label=AssignmentOut]
+        
+    
+         
+    
+    
+    
+    
+    AssignmentOut -> AfterSubmit [label=Submit];
+	AssignmentOut -> Breached_Student [label=Breach_Student];
+	AfterSubmit -> Fulfilled [label=Accept];
+	AfterSubmit -> AfterReject [label=Reject];
+	AfterSubmit -> Breached_Grader [label=Breach_Grader];
+	AfterReject -> AfterResubmit [label=Resubmit];
+	AfterReject -> Breached_Student [label=Breach_Student];
+	AfterResubmit -> Fulfilled [label=Accept];
+	AfterResubmit -> Breached_Grader [label=Breach_Grader];
+	     
+    
+       
+}

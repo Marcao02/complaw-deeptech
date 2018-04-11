@@ -63,7 +63,9 @@ T = TypeVar('T')
 IntBounds = Tuple[int,Optional[int]]
 
 class L4ContractConstructor(L4ContractConstructorInterface):
-    def __init__(self, filename:str, verbose=True, flags:Optional[Dict[str,bool]] = None) -> None:
+    def __init__(self, filename:str, verbose=True,
+                 flags:Optional[Dict[str,bool]] = None,
+                 raw_substitutions: Optional[Dict[str, Any]] = None) -> None:
         self.top : L4Contract = L4Contract(filename)
         self.referenced_nonderived_situation_ids: Set[SituationId] = set()
         self.referenced_nonderived_action_ids: Set[ActionId] = set()
@@ -76,16 +78,23 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self._building_future_action_rule: bool = False
 
         self.flags = flags
+        self.raw_substitutions = raw_substitutions
 
     def addAfterBuildAssertion(self, f:Callable[[],bool], errmsg:str):
         self.after_model_build_requirements.append((f,errmsg))
 
     def _handle_flags(self, l:List[SExpr]) -> List[SExpr]:
+        assert self._needs_preprocessing()
+        print("_handle_flags")
         flags = cast(Dict[str, bool], self.flags)
-        assert flags and len(flags) > 0
+        rs = cast(Dict[str, bool], self.raw_substitutions)
+
         def helper(x:SExprOrStr) -> List[SExprOrStr]:
             if isinstance(x,str):
-                return [x]
+                if rs and x in rs:
+                    return [rs[x]]
+                else:
+                    return [x]
             if len(x) == 0:
                 return [x]
             results : List[SExprOrStr] = []
@@ -241,9 +250,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             raise Exception("Unsupported: ", x[0])
 
+    def _needs_preprocessing(self) -> bool:
+        return (self.flags and len(self.flags) > 0) or (self.raw_substitutions and len(self.raw_substitutions) > 0)
 
     def mk_l4contract(self, l:List[SExpr]) -> L4Contract:
-        if self.flags and len(self.flags) > 0:
+        if self._needs_preprocessing():
             l = self._handle_flags(l)
             # for x in l:
             #     print(prettySExprStr(x))

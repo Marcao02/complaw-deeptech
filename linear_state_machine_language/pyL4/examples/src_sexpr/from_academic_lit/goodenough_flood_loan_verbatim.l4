@@ -71,17 +71,17 @@
 
 	(Action RepsWarr1 (TransitionsTo BorrowerDefaultRepsWarr1) )
 	(Situation BorrowerDefaultRepsWarr1
-		(Lender may GiveNoticeOfGeneralDefault1 immediately)
+		(Lender ~must GiveNoticeOfGeneralDefault1 immediately)
 	)
 
 	(Action Convenant1 (TransitionsTo BorrowerDefaultConvenant1) )
 	(Situation BorrowerDefaultConvenant1
-		(Lender may GiveNoticeOfGeneralDefault1 immediately)
+		(Lender ~must GiveNoticeOfGeneralDefault1 immediately)
 	)
 
 	(Action Bankruptcy1 (TransitionsTo BorrowerDefaultBankruptcy1) )
 	(Situation BorrowerDefaultBankruptcy1
-		(Lender may GiveNoticeOfGeneralDefault1 immediately)
+		(Lender ~must GiveNoticeOfGeneralDefault1 immediately)
 	)
 
 	(Action GiveNoticeOfGeneralDefault1 (TransitionsTo BorrowerNotifiedOfGeneralDefault1))
@@ -89,7 +89,7 @@
 		(if (cures < MAX_CURES)
 			(Borrower may CureDefault1 (within (last_situation_td + 2d)))
 		)
-		(Borrower may AcceleratePayments12 (after (last_situation_td + 2d)))
+		(AcceleratePayments12 (after (last_situation_td + 2d)))
 	)
 	(Action CureDefault1 (TransitionsTo Pmt1Accruing)
 		(StateTransform
@@ -99,13 +99,13 @@
 
 	(Action Pmt1DuedateArrives (TransitionsTo Pmt1Due))
 	(Situation Pmt1Due
-			(Borrower may MakePmt1 (at last_situation_td))
-			(MissPmt1 (when (next_event_td ≥ (last_situation_td + 1d) )))
+		(Borrower may MakePmt1 (at last_situation_td))
+		(MissPmt1 (when (next_event_td ≥ (last_situation_td + 1d) )))
 	)
 
 	(Action MissPmt1 (TransitionsTo BorrowerDefaultMissedPmt1))
 	(Situation BorrowerDefaultMissedPmt1
-		(GiveBorrowerNotice1 (at last_situation_td))
+		(Lender ~must GiveBorrowerNotice1 (at last_situation_td))
 	)
 
 	(Action GiveBorrowerNotice1 (TransitionsTo BorrowerNotifiedOfPmt1Default))
@@ -149,17 +149,17 @@
 
 	(Action RepsWarr2 (TransitionsTo BorrowerDefaultRepsWarr2) )
 	(Situation BorrowerDefaultRepsWarr2
-		(Lender may GiveNoticeOfGeneralDefault2 immediately)
+		(Lender ~must GiveNoticeOfGeneralDefault2 immediately)
 	)
 
 	(Action Convenant2 (TransitionsTo BorrowerDefaultConvenant2) )
 	(Situation BorrowerDefaultConvenant2
-		(Lender may GiveNoticeOfGeneralDefault2 immediately)
+		(Lender ~must GiveNoticeOfGeneralDefault2 immediately)
 	)
 
 	(Action Bankruptcy2 (TransitionsTo BorrowerDefaultBankruptcy2) )
 	(Situation BorrowerDefaultBankruptcy2
-		(Lender may GiveNoticeOfGeneralDefault2 immediately)
+		(Lender ~must GiveNoticeOfGeneralDefault2 immediately)
 	)
 
 	(Action GiveNoticeOfGeneralDefault2
@@ -184,7 +184,7 @@
 	)
 	(Action MissPmt2 (TransitionsTo BorrowerDefaultMissedPmt2))
 	(Situation BorrowerDefaultMissedPmt2
-		(GiveBorrowerNotice2 (at last_situation_td))
+		(Lender ~must GiveBorrowerNotice2 (at last_situation_td))
 	)
 	(Action GiveBorrowerNotice2 (TransitionsTo BorrowerNotifiedOfPmt2Default))
 	(Situation BorrowerNotifiedOfPmt2Default

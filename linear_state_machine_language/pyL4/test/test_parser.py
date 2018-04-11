@@ -14,17 +14,18 @@ from test.active_examples import *
 def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
     rv : Dict[str,L4Contract] = {}
     for example in EXAMPLES:
-        fileinsubpath, fileoutsubpath, flags = (example, example, None) if isinstance(example,str) else (example[0], example[1], example[2])
+        fileinsubpath, fileoutsubpath, flags, rawsubst = (example, example, None, None) if isinstance(example,str) else (example[0], example[1], example[2], example[3])
         flags_str = "" if flags else f"({flags})"
+        rawsubst_str = "" if rawsubst else f"({rawsubst})"
 
         # print(f"\n---------------------------------\nExample {filesubpath}:")
         in_path = EXAMPLES_SEXPR_ROOT + fileinsubpath
         if verbose:
-            print("\nLooking at file " + fileinsubpath + flags_str + ":\n")
+            print("\nLooking at file " + fileinsubpath + flags_str + rawsubst_str + ":\n")
         parsed = parse_file(in_path)
         if verbose:
             print(prettySExprStr(parsed))
-        assembler = L4ContractConstructor(fileoutsubpath, verbose, flags)
+        assembler = L4ContractConstructor(fileoutsubpath, verbose, flags, rawsubst)
         prog = assembler.mk_l4contract(parsed)
         # eliminate_local_vars(prog)
         # eliminate_ifthenelse(prog)

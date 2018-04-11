@@ -1,0 +1,96 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Goodenough_Flood_Loan {    
+    Fulfilled[label=Fufilled];
+    ActiveContract[label=ActiveContract];
+	PrincipleRequested[label=PrincipleRequested];
+	DefaultLender[label=DefaultLender];
+	Pmt1Accruing[label=Pmt1Accruing];
+	BorrowerDefaultRepsWarr1[label=BorrowerDefaultRepsWarr1];
+	BorrowerDefaultConvenant1[label=BorrowerDefaultConvenant1];
+	BorrowerDefaultBankruptcy1[label=BorrowerDefaultBankruptcy1];
+	BorrowerNotifiedOfGeneralDefault1[label=BorrowerNotifiedOfGeneralDefault1];
+	Pmt1Due[label=Pmt1Due];
+	BorrowerDefaultMissedPmt1[label=BorrowerDefaultMissedPmt1];
+	BorrowerNotifiedOfPmt1Default[label=BorrowerNotifiedOfPmt1Default];
+	Payments1and2Accelerating[label=Payments1and2Accelerating];
+	Crisis1[label=Crisis1];
+	Pmt2Accruing[label=Pmt2Accruing];
+	BorrowerDefaultRepsWarr2[label=BorrowerDefaultRepsWarr2];
+	BorrowerDefaultConvenant2[label=BorrowerDefaultConvenant2];
+	BorrowerDefaultBankruptcy2[label=BorrowerDefaultBankruptcy2];
+	BorrowerNotifiedOfGeneralDefault2[label=BorrowerNotifiedOfGeneralDefault2];
+	Pmt2Due[label=Pmt2Due];
+	BorrowerDefaultMissedPmt2[label=BorrowerDefaultMissedPmt2];
+	BorrowerNotifiedOfPmt2Default[label=BorrowerNotifiedOfPmt2Default];
+	Payment2Accelerating[label=Payment2Accelerating];
+	Crisis2[label=Crisis2];
+	Term[label=Term];
+	Canc[label=Canc];
+	Lit[label=Lit]
+        
+    
+         
+    
+    
+    
+    
+    ActiveContract -> PrincipleRequested [label=RequestPrinciple];
+	ActiveContract -> Term [label=RequestDeadlinePasses];
+	PrincipleRequested -> Pmt1Accruing [label=AdvancePrinciple];
+	PrincipleRequested -> DefaultLender [label=AdvanceDeadlinePasses];
+	DefaultLender -> Lit [label=FileLawsuit];
+	DefaultLender -> Canc [label=StatuteOfLimitations];
+	Pmt1Accruing -> Pmt1Due [label=Pmt1DuedateArrives];
+	Pmt1Accruing -> BorrowerDefaultRepsWarr1 [label=RepsWarr1];
+	Pmt1Accruing -> BorrowerDefaultConvenant1 [label=Convenant1];
+	Pmt1Accruing -> BorrowerDefaultBankruptcy1 [label=Bankruptcy1];
+	BorrowerDefaultRepsWarr1 -> BorrowerNotifiedOfGeneralDefault1 [label=GiveNoticeOfGeneralDefault1];
+	BorrowerDefaultRepsWarr1 -> Breached_Lender [label=Breach_Lender];
+	BorrowerDefaultConvenant1 -> BorrowerNotifiedOfGeneralDefault1 [label=GiveNoticeOfGeneralDefault1];
+	BorrowerDefaultConvenant1 -> Breached_Lender [label=Breach_Lender];
+	BorrowerDefaultBankruptcy1 -> BorrowerNotifiedOfGeneralDefault1 [label=GiveNoticeOfGeneralDefault1];
+	BorrowerDefaultBankruptcy1 -> Breached_Lender [label=Breach_Lender];
+	BorrowerNotifiedOfGeneralDefault1 -> Pmt1Accruing [label=CureDefault1];
+	BorrowerNotifiedOfGeneralDefault1 -> Payments1and2Accelerating [label=AcceleratePayments12];
+	Pmt1Due -> Pmt2Accruing [label=MakePmt1];
+	Pmt1Due -> BorrowerDefaultMissedPmt1 [label=MissPmt1];
+	BorrowerDefaultMissedPmt1 -> BorrowerNotifiedOfPmt1Default [label=GiveBorrowerNotice1];
+	BorrowerDefaultMissedPmt1 -> Breached_Lender [label=Breach_Lender];
+	BorrowerNotifiedOfPmt1Default -> Pmt2Accruing [label=MakePmt1];
+	BorrowerNotifiedOfPmt1Default -> Payments1and2Accelerating [label=AcceleratePayments12];
+	Payments1and2Accelerating -> Term [label=MakePmt12];
+	Payments1and2Accelerating -> Crisis1 [label=AcceleratedPaymentFailure1];
+	Crisis1 -> Term [label=MakePmt12];
+	Crisis1 -> Lit [label=FileLawsuit];
+	Crisis1 -> Canc [label=StatuteOfLimitations];
+	Pmt2Accruing -> Pmt2Due [label=Pmt2DueDateArrives];
+	Pmt2Accruing -> BorrowerDefaultRepsWarr2 [label=RepsWarr2];
+	Pmt2Accruing -> BorrowerDefaultConvenant2 [label=Convenant2];
+	Pmt2Accruing -> BorrowerDefaultBankruptcy2 [label=Bankruptcy2];
+	BorrowerDefaultRepsWarr2 -> BorrowerNotifiedOfGeneralDefault2 [label=GiveNoticeOfGeneralDefault2];
+	BorrowerDefaultRepsWarr2 -> Breached_Lender [label=Breach_Lender];
+	BorrowerDefaultConvenant2 -> BorrowerNotifiedOfGeneralDefault2 [label=GiveNoticeOfGeneralDefault2];
+	BorrowerDefaultConvenant2 -> Breached_Lender [label=Breach_Lender];
+	BorrowerDefaultBankruptcy2 -> BorrowerNotifiedOfGeneralDefault2 [label=GiveNoticeOfGeneralDefault2];
+	BorrowerDefaultBankruptcy2 -> Breached_Lender [label=Breach_Lender];
+	BorrowerNotifiedOfGeneralDefault2 -> Pmt2Accruing [label=CureDefault2];
+	BorrowerNotifiedOfGeneralDefault2 -> Payment2Accelerating [label=AcceleratePayment2];
+	Pmt2Due -> Term [label=MakePmt2];
+	Pmt2Due -> BorrowerDefaultMissedPmt2 [label=MissPmt2];
+	BorrowerDefaultMissedPmt2 -> BorrowerNotifiedOfPmt2Default [label=GiveBorrowerNotice2];
+	BorrowerDefaultMissedPmt2 -> Breached_Lender [label=Breach_Lender];
+	BorrowerNotifiedOfPmt2Default -> Term [label=MakePmt2];
+	BorrowerNotifiedOfPmt2Default -> Payment2Accelerating [label=AcceleratePayment2];
+	Payment2Accelerating -> Term [label=MakePmt2];
+	Payment2Accelerating -> Crisis2 [label=AcceleratedPaymentFailure2];
+	Crisis2 -> Term [label=MakePmt2];
+	Crisis2 -> Lit [label=FileLawsuit];
+	Crisis2 -> Canc [label=StatuteOfLimitations];
+	Term -> Fulfilled [label=EnterFulfilled];
+	Canc -> Fulfilled [label=EnterFulfilled];
+	Lit -> Fulfilled [label=EnterFulfilled];
+	     
+    
+       
+}
