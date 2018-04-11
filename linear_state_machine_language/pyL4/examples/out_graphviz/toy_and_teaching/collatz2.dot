@@ -12,6 +12,6 @@ digraph Collatz {
     
          
     
-    AfterNextInSeq -> AfterNextInSeq [style=dashed,label=NextInSeq];
+    AfterNextInSeq -> AfterNextInSeq [label=NextInSeq];
 	   
 }

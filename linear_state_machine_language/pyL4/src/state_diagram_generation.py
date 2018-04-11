@@ -96,7 +96,7 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
             for action_rule in situation.action_rules():
                 action = l4file.action(action_rule.action_id)
                 if action.dest_situation_id != LOOP_KEYWORD and action.dest_situation_id != situation.situation_id:
-                    nonmultiloop_actions_to_situations_str += f"{situation.situation_id} -> {action.dest_situation_id} [style=dashed,label={action.action_id}];\n\t"
+                    nonmultiloop_actions_to_situations_str += f"{situation.situation_id} -> {action.dest_situation_id} [label={action.action_id}];\n\t"
 
         multiloop_actions_to_situations_str = ""
         for situation in l4file.situations_iter():
@@ -105,7 +105,7 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
             for action_rule in situation.action_rules():
                 action = l4file.action(action_rule.action_id)
                 if action.dest_situation_id == LOOP_KEYWORD or action.dest_situation_id == situation.situation_id:
-                    x = f"{situation.situation_id} -> {situation.situation_id} [style=dashed,label={action.action_id}];\n\t"
+                    x = f"{situation.situation_id} -> {situation.situation_id} [label={action.action_id}];\n\t"
                     if not (x in loops_included):
                         multiloop_actions_to_situations_str += x
                         loops_included.add(x)

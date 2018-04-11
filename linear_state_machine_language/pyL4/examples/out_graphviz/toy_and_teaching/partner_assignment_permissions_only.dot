@@ -10,14 +10,14 @@ digraph partner_assignment_demonstrating_relievable_obligations_via_permissions 
     
     
     
-    WorkingOnAssignment -> Fulfilled [style=dashed,label=Submit];
-	WorkingOnAssignment -> Fulfilled [style=dashed,label=Submit];
-	WorkingOnAssignment -> Breached_Alice_Bob [style=dashed,label=Breach_Alice_Bob];
-	WorkingOnAssignment -> Breached_Alice [style=dashed,label=Breach_Alice];
-	WorkingOnAssignment -> Breached_Bob [style=dashed,label=Breach_Bob];
+    WorkingOnAssignment -> Fulfilled [label=Submit];
+	WorkingOnAssignment -> Fulfilled [label=Submit];
+	WorkingOnAssignment -> Breached_Alice_Bob [label=Breach_Alice_Bob];
+	WorkingOnAssignment -> Breached_Alice [label=Breach_Alice];
+	WorkingOnAssignment -> Breached_Bob [label=Breach_Bob];
 	     
     
-    WorkingOnAssignment -> WorkingOnAssignment [style=dashed,label=SolveProbA];
-	WorkingOnAssignment -> WorkingOnAssignment [style=dashed,label=SolveProbB];
+    WorkingOnAssignment -> WorkingOnAssignment [label=SolveProbA];
+	WorkingOnAssignment -> WorkingOnAssignment [label=SolveProbB];
 	   
 }

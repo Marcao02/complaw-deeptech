@@ -10,10 +10,10 @@ digraph Collatz {
     
     
     
-    Ongoing -> Fulfilled [style=dashed,label=EnterFulfilled];
+    Ongoing -> Fulfilled [label=EnterFulfilled];
 	     
     
-    Ongoing -> Ongoing [style=dashed,label=DivideBy2];
-	Ongoing -> Ongoing [style=dashed,label=TripplePlus1];
+    Ongoing -> Ongoing [label=DivideBy2];
+	Ongoing -> Ongoing [label=TripplePlus1];
 	   
 }

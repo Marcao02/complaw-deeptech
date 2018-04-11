@@ -10,11 +10,11 @@ digraph test_contract_for_must_later {
     
     
     
-    Ongoing -> Fulfilled [style=dashed,label=EnterFulfilled];
+    Ongoing -> Fulfilled [label=EnterFulfilled];
 	     
     
-    Ongoing -> Ongoing [style=dashed,label=Throw];
-	Ongoing -> Ongoing [style=dashed,label=Stand];
-	Ongoing -> Ongoing [style=dashed,label=Catch];
+    Ongoing -> Ongoing [label=Throw];
+	Ongoing -> Ongoing [label=Stand];
+	Ongoing -> Ongoing [label=Catch];
 	   
 }

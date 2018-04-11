@@ -10,10 +10,10 @@ digraph Instalment_Sale_Hvitved {
     
     
     
-    WaitingForFirstDayOfNextMonth -> Fulfilled [style=dashed,label=PayLastInstallment];
-	WaitingForFirstDayOfNextMonth -> Breached_Buyer [style=dashed,label=Breach_Buyer];
+    WaitingForFirstDayOfNextMonth -> Fulfilled [label=PayLastInstallment];
+	WaitingForFirstDayOfNextMonth -> Breached_Buyer [label=Breach_Buyer];
 	     
     
-    WaitingForFirstDayOfNextMonth -> WaitingForFirstDayOfNextMonth [style=dashed,label=PayInstallment];
+    WaitingForFirstDayOfNextMonth -> WaitingForFirstDayOfNextMonth [label=PayInstallment];
 	   
 }

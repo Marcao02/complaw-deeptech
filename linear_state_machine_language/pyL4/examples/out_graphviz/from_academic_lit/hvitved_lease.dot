@@ -12,21 +12,21 @@ digraph Lease_Hvitved {
     
     
     
-    Start -> AfterEnsureApartmentReady [style=dashed,label=EnsureApartmentReady];
-	Start -> Breached_Landlord [style=dashed,label=Breach_Landlord];
-	AfterEnsureApartmentReady -> MonthStarted [style=dashed,label=StartLeaseTerm];
-	MonthStarted -> AfterPayRent [style=dashed,label=PayRent];
-	MonthStarted -> Breached_Tenant [style=dashed,label=Breach_Tenant];
-	AfterPayRent -> MonthEnded [style=dashed,label=EnterMonthEnded];
-	MonthEnded -> LeaseTermEnded [style=dashed,label=EnterLeaseTermEnded];
-	MonthEnded -> MonthStarted [style=dashed,label=EnterMonthStarted];
-	LeaseTermEnded -> Fulfilled [style=dashed,label=MoveOut];
-	LeaseTermEnded -> Breached_Tenant [style=dashed,label=Breach_Tenant];
-	LeaseTermEnded -> MonthStarted [style=dashed,label=StartLeaseTerm];
+    Start -> AfterEnsureApartmentReady [label=EnsureApartmentReady];
+	Start -> Breached_Landlord [label=Breach_Landlord];
+	AfterEnsureApartmentReady -> MonthStarted [label=StartLeaseTerm];
+	MonthStarted -> AfterPayRent [label=PayRent];
+	MonthStarted -> Breached_Tenant [label=Breach_Tenant];
+	AfterPayRent -> MonthEnded [label=EnterMonthEnded];
+	MonthEnded -> LeaseTermEnded [label=EnterLeaseTermEnded];
+	MonthEnded -> MonthStarted [label=EnterMonthStarted];
+	LeaseTermEnded -> Fulfilled [label=MoveOut];
+	LeaseTermEnded -> Breached_Tenant [label=Breach_Tenant];
+	LeaseTermEnded -> MonthStarted [label=StartLeaseTerm];
 	     
     
-    MonthStarted -> MonthStarted [style=dashed,label=RequestTerminationFromMonthStarted];
-	AfterPayRent -> AfterPayRent [style=dashed,label=RequestTerminationFromAfterPayRent];
-	MonthEnded -> MonthEnded [style=dashed,label=RequestTerminationFromMonthEnded];
+    MonthStarted -> MonthStarted [label=RequestTerminationFromMonthStarted];
+	AfterPayRent -> AfterPayRent [label=RequestTerminationFromAfterPayRent];
+	MonthEnded -> MonthEnded [label=RequestTerminationFromMonthEnded];
 	   
 }

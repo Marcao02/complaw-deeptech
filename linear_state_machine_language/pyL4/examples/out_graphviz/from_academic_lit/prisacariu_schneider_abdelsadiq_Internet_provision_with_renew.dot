@@ -11,23 +11,23 @@ digraph PS_Internet_Provision {
     
     
     
-    NoInfraction -> UnsettledInfraction [style=dashed,label=RaiseTraffic];
-	NoInfraction -> Fulfilled [style=dashed,label=EnterFulfilled];
-	UnsettledInfraction -> NoInfraction [style=dashed,label=Reset];
-	UnsettledInfraction -> Breached_Client [style=dashed,label=ClientBreaches];
-	UnsettledInfraction -> NoInfraction [style=dashed,label=Reset];
-	UnsettledInfraction -> NoInfraction [style=dashed,label=Reset];
-	UnsettledInfraction -> NoInfraction [style=dashed,label=Reset];
-	UnsettledInfraction -> Breached_Client [style=dashed,label=ClientBreaches];
-	UnsettledInfraction -> Fulfilled [style=dashed,label=EnterFulfilled];
+    NoInfraction -> UnsettledInfraction [label=RaiseTraffic];
+	NoInfraction -> Fulfilled [label=EnterFulfilled];
+	UnsettledInfraction -> NoInfraction [label=Reset];
+	UnsettledInfraction -> Breached_Client [label=ClientBreaches];
+	UnsettledInfraction -> NoInfraction [label=Reset];
+	UnsettledInfraction -> NoInfraction [label=Reset];
+	UnsettledInfraction -> NoInfraction [label=Reset];
+	UnsettledInfraction -> Breached_Client [label=ClientBreaches];
+	UnsettledInfraction -> Fulfilled [label=EnterFulfilled];
 	     
     
-    NoInfraction -> NoInfraction [style=dashed,label=SendCancelNoticeByPost];
-	NoInfraction -> NoInfraction [style=dashed,label=SendCancelNoticeByEmail];
-	UnsettledInfraction -> UnsettledInfraction [style=dashed,label=SendCancelNoticeByPost];
-	UnsettledInfraction -> UnsettledInfraction [style=dashed,label=SendCancelNoticeByEmail];
-	UnsettledInfraction -> UnsettledInfraction [style=dashed,label=LowerTraffic];
-	UnsettledInfraction -> UnsettledInfraction [style=dashed,label=SendDelayEmail];
-	UnsettledInfraction -> UnsettledInfraction [style=dashed,label=Pay];
+    NoInfraction -> NoInfraction [label=SendCancelNoticeByPost];
+	NoInfraction -> NoInfraction [label=SendCancelNoticeByEmail];
+	UnsettledInfraction -> UnsettledInfraction [label=SendCancelNoticeByPost];
+	UnsettledInfraction -> UnsettledInfraction [label=SendCancelNoticeByEmail];
+	UnsettledInfraction -> UnsettledInfraction [label=LowerTraffic];
+	UnsettledInfraction -> UnsettledInfraction [label=SendDelayEmail];
+	UnsettledInfraction -> UnsettledInfraction [label=Pay];
 	   
 }

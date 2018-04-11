@@ -10,15 +10,15 @@ digraph Master_Sales_Agreement {
     
     
     
-    VendorAcceptingOrders -> Breached_Vendor [style=dashed,label=Breach_Vendor];
-	VendorAcceptingOrders -> Breached_Customer [style=dashed,label=Breach_Customer];
-	VendorAcceptingOrders -> Fulfilled [style=dashed,label=EnterFulfilled];
-	VendorAcceptingOrders -> Fulfilled [style=dashed,label=EnterFulfilled];
+    VendorAcceptingOrders -> Breached_Vendor [label=Breach_Vendor];
+	VendorAcceptingOrders -> Breached_Customer [label=Breach_Customer];
+	VendorAcceptingOrders -> Fulfilled [label=EnterFulfilled];
+	VendorAcceptingOrders -> Fulfilled [label=EnterFulfilled];
 	     
     
-    VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=SubmitNewOrder];
-	VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=Deliver];
-	VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=EmailInvoice];
-	VendorAcceptingOrders -> VendorAcceptingOrders [style=dashed,label=PayBill];
+    VendorAcceptingOrders -> VendorAcceptingOrders [label=SubmitNewOrder];
+	VendorAcceptingOrders -> VendorAcceptingOrders [label=Deliver];
+	VendorAcceptingOrders -> VendorAcceptingOrders [label=EmailInvoice];
+	VendorAcceptingOrders -> VendorAcceptingOrders [label=PayBill];
 	   
 }

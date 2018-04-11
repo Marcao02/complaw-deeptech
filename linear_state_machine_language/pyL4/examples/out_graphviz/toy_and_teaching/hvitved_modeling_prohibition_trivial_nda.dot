@@ -10,7 +10,7 @@ digraph Hvitved_prohibitions_NDA {
     
     
     
-    Employed -> Breached_Employee [style=dashed,label=Disclose];
+    Employed -> Breached_Employee [label=Disclose];
 	     
     
        

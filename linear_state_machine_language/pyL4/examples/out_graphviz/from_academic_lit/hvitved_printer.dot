@@ -10,19 +10,19 @@ digraph Two_part_sale_Hvitved_Laser_Printer {
     
     
     
-    Awaiting_Delivery -> AfterDeliver [style=dashed,label=Deliver];
-	Awaiting_Delivery -> Breached_Seller [style=dashed,label=Breach_Seller];
-	AfterDeliver -> AfterPay1stInstallment [style=dashed,label=Pay1stInstallment];
-	AfterDeliver -> Breached_Buyer [style=dashed,label=Breach_Buyer];
-	AfterPay1stInstallment -> AfterPay2ndInstallment [style=dashed,label=Pay2ndInstallment];
-	AfterPay1stInstallment -> AfterReturnOnTime [style=dashed,label=ReturnOnTime];
-	AfterPay1stInstallment -> Late2ndInstallment [style=dashed,label=EnterLate2ndInstallment];
-	Late2ndInstallment -> Fulfilled [style=dashed,label=PayLateFee];
-	Late2ndInstallment -> Breached_Buyer [style=dashed,label=Breach_Buyer];
-	AfterPay2ndInstallment -> AfterReturnOnTime [style=dashed,label=ReturnOnTime];
-	AfterPay2ndInstallment -> Fulfilled [style=dashed,label=CompleteNormalSale];
-	AfterReturnOnTime -> Fulfilled [style=dashed,label=DeliverRefund];
-	AfterReturnOnTime -> Breached_Seller [style=dashed,label=Breach_Seller];
+    Awaiting_Delivery -> AfterDeliver [label=Deliver];
+	Awaiting_Delivery -> Breached_Seller [label=Breach_Seller];
+	AfterDeliver -> AfterPay1stInstallment [label=Pay1stInstallment];
+	AfterDeliver -> Breached_Buyer [label=Breach_Buyer];
+	AfterPay1stInstallment -> AfterPay2ndInstallment [label=Pay2ndInstallment];
+	AfterPay1stInstallment -> AfterReturnOnTime [label=ReturnOnTime];
+	AfterPay1stInstallment -> Late2ndInstallment [label=EnterLate2ndInstallment];
+	Late2ndInstallment -> Fulfilled [label=PayLateFee];
+	Late2ndInstallment -> Breached_Buyer [label=Breach_Buyer];
+	AfterPay2ndInstallment -> AfterReturnOnTime [label=ReturnOnTime];
+	AfterPay2ndInstallment -> Fulfilled [label=CompleteNormalSale];
+	AfterReturnOnTime -> Fulfilled [label=DeliverRefund];
+	AfterReturnOnTime -> Breached_Seller [label=Breach_Seller];
 	     
     
        

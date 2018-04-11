@@ -11,20 +11,20 @@ digraph Monster_Burger {
     
     
     
-    MonsterBurgerUncooked -> AfterRequestCookMB [style=dashed,label=RequestCookMB];
-	AfterRequestCookMB -> EatingMB [style=dashed,label=ServeMB];
-	AfterRequestCookMB -> Fulfilled [style=dashed,label=EnterPromptServeGuaranteeViolated];
-	EatingMB -> AfterAnnounceMBFinished [style=dashed,label=AnnounceMBFinished];
-	EatingMB -> AfterCheckCompletionClaim [style=dashed,label=CheckCompletionClaim];
-	EatingMB -> Fulfilled [style=dashed,label=TimeToCheckCompletionExpires];
-	AfterAnnounceMBFinished -> AfterCheckCompletionClaim [style=dashed,label=CheckCompletionClaim];
-	AfterAnnounceMBFinished -> Fulfilled [style=dashed,label=TimeToCheckCompletionExpires];
-	AfterCheckCompletionClaim -> Fulfilled [style=dashed,label=VerifyCompletionClaim];
-	AfterCheckCompletionClaim -> AfterRejectCompletionClaim [style=dashed,label=RejectCompletionClaim];
-	AfterCheckCompletionClaim -> Breached_Restaurant [style=dashed,label=Breach_Restaurant];
-	AfterRejectCompletionClaim -> EatingMB [style=dashed,label=EnterEatingMB];
-	AfterRejectCompletionClaim -> Fulfilled [style=dashed,label=PayForMB];
-	AfterRejectCompletionClaim -> Breached_Challenger [style=dashed,label=Breach_Challenger];
+    MonsterBurgerUncooked -> AfterRequestCookMB [label=RequestCookMB];
+	AfterRequestCookMB -> EatingMB [label=ServeMB];
+	AfterRequestCookMB -> Fulfilled [label=EnterPromptServeGuaranteeViolated];
+	EatingMB -> AfterAnnounceMBFinished [label=AnnounceMBFinished];
+	EatingMB -> AfterCheckCompletionClaim [label=CheckCompletionClaim];
+	EatingMB -> Fulfilled [label=TimeToCheckCompletionExpires];
+	AfterAnnounceMBFinished -> AfterCheckCompletionClaim [label=CheckCompletionClaim];
+	AfterAnnounceMBFinished -> Fulfilled [label=TimeToCheckCompletionExpires];
+	AfterCheckCompletionClaim -> Fulfilled [label=VerifyCompletionClaim];
+	AfterCheckCompletionClaim -> AfterRejectCompletionClaim [label=RejectCompletionClaim];
+	AfterCheckCompletionClaim -> Breached_Restaurant [label=Breach_Restaurant];
+	AfterRejectCompletionClaim -> EatingMB [label=EnterEatingMB];
+	AfterRejectCompletionClaim -> Fulfilled [label=PayForMB];
+	AfterRejectCompletionClaim -> Breached_Challenger [label=Breach_Challenger];
 	     
     
        

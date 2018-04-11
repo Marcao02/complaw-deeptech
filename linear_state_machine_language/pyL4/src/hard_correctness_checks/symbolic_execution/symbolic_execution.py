@@ -680,7 +680,7 @@ def symbolic_execution(prog:L4Contract):
 
         while len(queryPaths) > 0:
 
-            print("#paths: ", len(queryPaths), len(timedoutQueryPaths), len(unprovedAssertions))
+            # print("#paths: ", len(queryPaths), len(timedoutQueryPaths), len(unprovedAssertions))
             qpath = takeQueryPath()
             if TRACE:
                 print("popping query path ", str(qpath))

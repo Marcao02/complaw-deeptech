@@ -10,32 +10,32 @@ digraph safe_tutorial {
     
     
     
-    InvestorInvests -> AfterCommitToEquityFinancing [style=dashed,label=CommitToEquityFinancing];
-	InvestorInvests -> AfterCommitToIPO [style=dashed,label=CommitToIPO];
-	AfterCommitToEquityFinancing -> AfterSendEquityFinancingTransactionDocsWithPRRAForSigning [style=dashed,label=SendEquityFinancingTransactionDocsWithPRRAForSigning];
-	AfterCommitToEquityFinancing -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterSendEquityFinancingTransactionDocsWithPRRAForSigning -> AfterExecuteAndDeliverTransactionDocs [style=dashed,label=ExecuteAndDeliverTransactionDocs];
-	AfterSendEquityFinancingTransactionDocsWithPRRAForSigning -> Breached_Investor [style=dashed,label=Breach_Investor];
-	AfterExecuteAndDeliverTransactionDocs -> AfterIssueSAFEPreferredStock [style=dashed,label=IssueSAFEPreferredStock];
-	AfterExecuteAndDeliverTransactionDocs -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterIssueSAFEPreferredStock -> Fulfilled [style=dashed,label=DoEquityFinancing];
-	AfterIssueSAFEPreferredStock -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterCommitToIPO -> AfterChooseCashPayment [style=dashed,label=ChooseCashPayment];
-	AfterCommitToIPO -> AfterChooseStockPayment [style=dashed,label=ChooseStockPayment];
-	AfterCommitToIPO -> AfterAutoChooseStockPayment [style=dashed,label=AutoChooseStockPayment];
-	AfterCommitToIPO -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterAutoChooseStockPayment -> AfterTransferCommonStock [style=dashed,label=TransferCommonStock];
-	AfterAutoChooseStockPayment -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterChooseStockPayment -> AfterTransferCommonStock [style=dashed,label=TransferCommonStock];
-	AfterChooseStockPayment -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterTransferCommonStock -> Fulfilled [style=dashed,label=DoLiquidityEvent];
-	AfterTransferCommonStock -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterChooseCashPayment -> AfterTransferCash_L [style=dashed,label=TransferCash_L];
-	AfterChooseCashPayment -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterTransferCash_L -> AfterTransferCommonStock [style=dashed,label=TransferCommonStock];
-	AfterTransferCash_L -> Breached_Company [style=dashed,label=Breach_Company];
-	AfterTransferCash_L -> Fulfilled [style=dashed,label=DoLiquidityEvent];
-	AfterTransferCash_L -> Breached_Company [style=dashed,label=Breach_Company];
+    InvestorInvests -> AfterCommitToEquityFinancing [label=CommitToEquityFinancing];
+	InvestorInvests -> AfterCommitToIPO [label=CommitToIPO];
+	AfterCommitToEquityFinancing -> AfterSendEquityFinancingTransactionDocsWithPRRAForSigning [label=SendEquityFinancingTransactionDocsWithPRRAForSigning];
+	AfterCommitToEquityFinancing -> Breached_Company [label=Breach_Company];
+	AfterSendEquityFinancingTransactionDocsWithPRRAForSigning -> AfterExecuteAndDeliverTransactionDocs [label=ExecuteAndDeliverTransactionDocs];
+	AfterSendEquityFinancingTransactionDocsWithPRRAForSigning -> Breached_Investor [label=Breach_Investor];
+	AfterExecuteAndDeliverTransactionDocs -> AfterIssueSAFEPreferredStock [label=IssueSAFEPreferredStock];
+	AfterExecuteAndDeliverTransactionDocs -> Breached_Company [label=Breach_Company];
+	AfterIssueSAFEPreferredStock -> Fulfilled [label=DoEquityFinancing];
+	AfterIssueSAFEPreferredStock -> Breached_Company [label=Breach_Company];
+	AfterCommitToIPO -> AfterChooseCashPayment [label=ChooseCashPayment];
+	AfterCommitToIPO -> AfterChooseStockPayment [label=ChooseStockPayment];
+	AfterCommitToIPO -> AfterAutoChooseStockPayment [label=AutoChooseStockPayment];
+	AfterCommitToIPO -> Breached_Company [label=Breach_Company];
+	AfterAutoChooseStockPayment -> AfterTransferCommonStock [label=TransferCommonStock];
+	AfterAutoChooseStockPayment -> Breached_Company [label=Breach_Company];
+	AfterChooseStockPayment -> AfterTransferCommonStock [label=TransferCommonStock];
+	AfterChooseStockPayment -> Breached_Company [label=Breach_Company];
+	AfterTransferCommonStock -> Fulfilled [label=DoLiquidityEvent];
+	AfterTransferCommonStock -> Breached_Company [label=Breach_Company];
+	AfterChooseCashPayment -> AfterTransferCash_L [label=TransferCash_L];
+	AfterChooseCashPayment -> Breached_Company [label=Breach_Company];
+	AfterTransferCash_L -> AfterTransferCommonStock [label=TransferCommonStock];
+	AfterTransferCash_L -> Breached_Company [label=Breach_Company];
+	AfterTransferCash_L -> Fulfilled [label=DoLiquidityEvent];
+	AfterTransferCash_L -> Breached_Company [label=Breach_Company];
 	     
     
        
