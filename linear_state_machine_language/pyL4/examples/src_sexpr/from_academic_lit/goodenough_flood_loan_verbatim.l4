@@ -1,0 +1,233 @@
+; (Title "Goodenough Flood Loan")
+(Actors Lender Borrower)
+(TimeUnit days)
+
+(SortDefinitions
+	($ := (Dimensioned NonnegReal "$"))
+	(Pos$ := (Dimensioned PosReal "$"))
+	; (PaymentNum := "{0,1}")
+	; (BorrowerDefault := (Enum "RepsWarr" "Convenant" "Bankruptcy"))
+)
+
+(ContractParams
+	(LOAN_AMOUNT    : Pos$     = 1000)
+	(INTEREST_RATE	: "(0,1)"  = .05)
+	(PAYMENT1_AMOUNT	: Pos$ = 550)
+	(PAYMENT2_AMOUNT	: Pos$ = 525)
+)
+
+(StartDatetime "Jan 1, 2014")
+
+(Definitions
+	(REQUEST_DATE		= (str2dt "June 1, 2014"))
+	(ADVANCE_DUE_DATE	= (str2dt "June 2, 2014"))
+	(PAYMENT1_DUE_DATE	= (str2dt "June 1, 2015"))
+	(PAYMENT2_DUE_DATE	= (str2dt "June 1, 2016"))
+	(STATUTE_OF_LIM_DATE = (str2dt "June 1, 2020"))
+	(MAX_CURES = 2)
+)
+
+(StateVars
+	(writeonly paid_to_lender : $ := 0)
+	(writeonly paid_to_borrower : $ := 0)
+	(cures : Nat := 0)
+)
+
+; (Rules "Goodenough Flood Loan"
+(FormalContract "Goodenough Flood Loan"
+	(StartSituation ActiveContract)
+
+	(Situation ActiveContract
+		(Borrower may RequestPrinciple (on REQUEST_DATE))
+		(EnterTerm (after REQUEST_DATE))
+	)
+
+	(Action RequestPrinciple (TransitionsTo PrincipleRequested)
+		(StateTransform
+			(prove (PAYMENT1_AMOUNT == ((LOAN_AMOUNT / 2) + (LOAN_AMOUNT * INTEREST_RATE))))
+			(prove (PAYMENT2_AMOUNT == ((LOAN_AMOUNT / 2) + ((LOAN_AMOUNT / 2) * INTEREST_RATE))))
+		)
+	)
+	(Situation PrincipleRequested
+        (Lender may AdvancePrinciple (on ADVANCE_DUE_DATE))
+        (LenderFailsToAdvancePrinciple (after ADVANCE_DUE_DATE))
+	)
+
+	(Action AdvancePrinciple (TransitionsTo Pmt1Accruing)
+		(StateTransform (paid_to_borrower' = LOAN_AMOUNT))
+	)
+
+	(Action LenderFailsToAdvancePrinciple (TransitionsTo DefaultLender))
+	(Situation DefaultLender
+		(Borrower may FileLawsuit (before STATUTE_OF_LIM_DATE))
+		(StatuteOfLimitations (on STATUTE_OF_LIM_DATE))
+	)
+
+	(Situation Pmt1Accruing
+		(EnterPmt1Due (on PAYMENT1_DUE_DATE))
+		(Borrower may RepsWarr1 (before PAYMENT1_DUE_DATE))
+		(Borrower may Convenant1 (before PAYMENT1_DUE_DATE))
+		(Borrower may Bankruptcy1 (before PAYMENT1_DUE_DATE))
+	)
+
+	(Action RepsWarr1 (TransitionsTo BorrowerDefaultRepsWarr1) )
+	(Situation BorrowerDefaultRepsWarr1
+		(Lender may GiveNoticeOfGeneralDefault1 immediately)
+	)
+
+	(Action Convenant1 (TransitionsTo BorrowerDefaultConvenant1) )
+	(Situation BorrowerDefaultConvenant1
+		(Lender may GiveNoticeOfGeneralDefault1 immediately)
+	)
+
+	(Action Bankruptcy1
+		(TransitionsTo BorrowerDefaultBankruptcy1)
+	)
+	(Situation BorrowerDefaultBankruptcy1
+		(Lender may GiveNoticeOfGeneralDefault1 immediately)
+	)
+
+
+	(Action GiveNoticeOfGeneralDefault1
+		(TransitionsTo BorrowerNotifiedOfGeneralDefault1)
+	)
+	(Situation BorrowerNotifiedOfGeneralDefault1
+		(if (cures < MAX_CURES)
+			(Borrower may CureDefault1 (within (last_situation_td + 2d)))
+		)
+		(Borrower may AcceleratePayments12 (after (last_situation_td + 2d)))
+	)
+	(Action CureDefault1 (TransitionsTo Pmt1Accruing)
+		(StateTransform
+			(cures' = (cures + 1))
+		)
+	)
+
+
+	(Action EnterPmt1Due (TransitionsTo Pmt1Due))
+	(Situation Pmt1Due
+			(Borrower may MakePmt1 (at last_situation_td))
+			(MissPmt1 (when (next_event_td ≥ (last_situation_td + 1d) )))
+	)
+
+
+	(Action MissPmt1 (TransitionsTo BorrowerDefaultMissedPmt1))
+	(Situation BorrowerDefaultMissedPmt1
+		(GiveBorrowerNotice1 (at last_situation_td))
+	)
+
+	(Action GiveBorrowerNotice1 (TransitionsTo BorrowerNotifiedOfPmt1Default))
+
+
+	(Situation BorrowerNotifiedOfPmt1Default
+		(Borrower may MakePmt1 (within (last_situation_td + 1d)))
+		(AcceleratePayments12 (after (last_situation_td + 1d)))
+	)
+	(Action MakePmt1 (TransitionsTo Pmt2Accruing)
+		(StateTransform (paid_to_lender' = PAYMENT1_AMOUNT))
+	)
+	(Action AcceleratePayments12 (TransitionsTo Payments1and2Accelerating))
+	(Situation Payments1and2Accelerating
+		(Borrower may MakePmt12 immediately)
+		(EnterCrisis1 (after (last_situation_td + 1d)))
+	)
+
+	(Action MakePmt12 (TransitionsTo Term)
+		(StateTransform
+			(paid_to_lender' = (PAYMENT2_AMOUNT + PAYMENT1_AMOUNT))
+		)
+	)
+
+	(Action EnterCrisis1 (TransitionsTo Crisis1))
+	(Situation Crisis1
+		(Borrower may MakePmt12 immediately) ; immediately?
+		(Lender may FileLawsuit (before STATUTE_OF_LIM_DATE))
+		(StatuteOfLimitations (on STATUTE_OF_LIM_DATE))
+	)
+
+	(Action StatuteOfLimitations (TransitionsTo Canc))
+	(Action FileLawsuit (TransitionsTo Lit))
+
+	(Situation Pmt2Accruing
+		(Pmt2DueDateArrives (on PAYMENT2_DUE_DATE))
+		(Borrower may RepsWarr2 (before PAYMENT2_DUE_DATE))
+		(Borrower may Convenant2 (before PAYMENT2_DUE_DATE))
+		(Borrower may Bankruptcy2 (before PAYMENT2_DUE_DATE))
+	)
+
+	(Action RepsWarr2 (TransitionsTo BorrowerDefaultRepsWarr2) )
+	(Situation BorrowerDefaultRepsWarr2
+		(Lender may GiveNoticeOfGeneralDefault2 immediately)
+	)
+
+	(Action Convenant2 (TransitionsTo BorrowerDefaultConvenant2) )
+	(Situation BorrowerDefaultConvenant2
+		(Lender may GiveNoticeOfGeneralDefault2 immediately)
+	)
+
+	(Action Bankruptcy2 (TransitionsTo BorrowerDefaultBankruptcy2) )
+	(Situation BorrowerDefaultBankruptcy2
+		(Lender may GiveNoticeOfGeneralDefault2 immediately)
+	)
+
+
+	(Action GiveNoticeOfGeneralDefault2
+		(TransitionsTo BorrowerNotifiedOfGeneralDefault2)
+	)
+	(Situation BorrowerNotifiedOfGeneralDefault2
+		(if (cures < MAX_CURES)
+			(Borrower may CureDefault2 (within (last_situation_td + 2d)))
+		)
+		(Borrower may AcceleratePayment2 (after (last_situation_td + 2d)))
+	)
+	(Action CureDefault2 (TransitionsTo Pmt2Accruing)
+		(StateTransform
+			(cures' = (cures + 1))
+		)
+	)
+
+	(Action Pmt2DueDateArrives (TransitionsTo Pmt2Due))
+	(Situation Pmt2Due
+		(Borrower may MakePmt2 (at last_situation_td))
+		(MissPmt2 (when (next_event_td ≥ (last_situation_td + 1d) )))
+	)
+	(Action MissPmt2 (TransitionsTo BorrowerDefaultMissedPmt2))
+	(Situation BorrowerDefaultMissedPmt2
+		(GiveBorrowerNotice2 (at last_situation_td))
+	)
+	(Action GiveBorrowerNotice2 (TransitionsTo BorrowerNotifiedOfPmt2Default))
+	(Situation BorrowerNotifiedOfPmt2Default
+		(Borrower may MakePmt2 (within (last_situation_td + 2d)))
+		(AcceleratePayment2 (after (last_situation_td + 2d)))
+	)
+
+	(Action AcceleratePayment2 (TransitionsTo Payment2Accelerating))
+	(Situation Payment2Accelerating
+		(Borrower may MakePmt2 immediately)
+		(EnterCrisis2 (after (last_situation_td + 1d)))
+	)
+
+	(Action EnterCrisis2 (TransitionsTo Crisis2))
+	(Situation Crisis2
+		(Borrower may MakePmt2 immediately) ; immediately?
+		(Lender may FileLawsuit (before STATUTE_OF_LIM_DATE))
+		(StatuteOfLimitations (on STATUTE_OF_LIM_DATE))
+	)
+
+
+
+	(Action MakePmt2 (TransitionsTo Term)
+		(StateTransform
+			(paid_to_lender' = (paid_to_lender + PAYMENT2_AMOUNT))
+			(prove (paid_to_lender' == (PAYMENT1_AMOUNT + PAYMENT2_AMOUNT)))
+		)
+	)
+
+
+	(Action EnterTerm (TransitionsTo Term))
+	(Situation Term (EnterFulfilled immediately))
+	(Situation Canc (EnterFulfilled immediately))
+	(Situation Lit (EnterFulfilled immediately))
+	(Action EnterFulfilled (TransitionsTo Fulfilled))
+)
+

@@ -14,8 +14,8 @@ digraph Master_Sales_Agreement {
 	     
     
     VendorAcceptingOrders -> VendorAcceptingOrders [label=SubmitNewOrder];
-	VendorAcceptingOrders -> VendorAcceptingOrders [label=EmailInvoice];
-	VendorAcceptingOrders -> VendorAcceptingOrders [label=Deliver];
 	VendorAcceptingOrders -> VendorAcceptingOrders [label=PayBill];
+	VendorAcceptingOrders -> VendorAcceptingOrders [label=Deliver];
+	VendorAcceptingOrders -> VendorAcceptingOrders [label=EmailInvoice];
 	   
 }
