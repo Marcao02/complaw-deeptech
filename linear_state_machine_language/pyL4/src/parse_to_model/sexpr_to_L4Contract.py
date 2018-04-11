@@ -934,7 +934,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         dt = dateutil.parser.parse(pair[1][0][1])
                         # return DateTimeLit(dt, pair[1][0].coord())
                         self.assertOrSyntaxError(self.top.start_datetime is not None, x)
-                        if self.top.start_datetime: # redundant None check
+                        if self.top.start_datetime: # redundant None check for mypy
                             return TimeDeltaLit(dt - self.top.start_datetime, x.coord())
                     except Exception as e:
                         print(e)

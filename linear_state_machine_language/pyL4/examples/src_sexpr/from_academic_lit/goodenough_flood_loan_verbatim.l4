@@ -1,12 +1,9 @@
-; (Title "Goodenough Flood Loan")
 (Actors Lender Borrower)
 (TimeUnit days)
 
 (SortDefinitions
 	($ := (Dimensioned NonnegReal "$"))
 	(Pos$ := (Dimensioned PosReal "$"))
-	; (PaymentNum := "{0,1}")
-	; (BorrowerDefault := (Enum "RepsWarr" "Convenant" "Bankruptcy"))
 )
 
 (ContractParams
@@ -33,13 +30,12 @@
 	(cures : Nat := 0)
 )
 
-; (Rules "Goodenough Flood Loan"
 (FormalContract "Goodenough Flood Loan"
 	(StartSituation ActiveContract)
 
 	(Situation ActiveContract
 		(Borrower may RequestPrinciple (on REQUEST_DATE))
-		(EnterTerm (after REQUEST_DATE))
+		(RequestDeadlinePasses (after REQUEST_DATE))
 	)
 
 	(Action RequestPrinciple (TransitionsTo PrincipleRequested)
@@ -50,21 +46,24 @@
 	)
 	(Situation PrincipleRequested
         (Lender may AdvancePrinciple (on ADVANCE_DUE_DATE))
-        (LenderFailsToAdvancePrinciple (after ADVANCE_DUE_DATE))
+        (AdvanceDeadlinePasses (after ADVANCE_DUE_DATE))
 	)
 
 	(Action AdvancePrinciple (TransitionsTo Pmt1Accruing)
 		(StateTransform (paid_to_borrower' = LOAN_AMOUNT))
 	)
 
-	(Action LenderFailsToAdvancePrinciple (TransitionsTo DefaultLender))
+	(Action AdvanceDeadlinePasses (TransitionsTo DefaultLender))
 	(Situation DefaultLender
 		(Borrower may FileLawsuit (before STATUTE_OF_LIM_DATE))
 		(StatuteOfLimitations (on STATUTE_OF_LIM_DATE))
 	)
 
+
+	; ============Payment 1============
+
 	(Situation Pmt1Accruing
-		(EnterPmt1Due (on PAYMENT1_DUE_DATE))
+		(Pmt1DuedateArrives (on PAYMENT1_DUE_DATE))
 		(Borrower may RepsWarr1 (before PAYMENT1_DUE_DATE))
 		(Borrower may Convenant1 (before PAYMENT1_DUE_DATE))
 		(Borrower may Bankruptcy1 (before PAYMENT1_DUE_DATE))
@@ -80,17 +79,12 @@
 		(Lender may GiveNoticeOfGeneralDefault1 immediately)
 	)
 
-	(Action Bankruptcy1
-		(TransitionsTo BorrowerDefaultBankruptcy1)
-	)
+	(Action Bankruptcy1 (TransitionsTo BorrowerDefaultBankruptcy1) )
 	(Situation BorrowerDefaultBankruptcy1
 		(Lender may GiveNoticeOfGeneralDefault1 immediately)
 	)
 
-
-	(Action GiveNoticeOfGeneralDefault1
-		(TransitionsTo BorrowerNotifiedOfGeneralDefault1)
-	)
+	(Action GiveNoticeOfGeneralDefault1 (TransitionsTo BorrowerNotifiedOfGeneralDefault1))
 	(Situation BorrowerNotifiedOfGeneralDefault1
 		(if (cures < MAX_CURES)
 			(Borrower may CureDefault1 (within (last_situation_td + 2d)))
@@ -103,13 +97,11 @@
 		)
 	)
 
-
-	(Action EnterPmt1Due (TransitionsTo Pmt1Due))
+	(Action Pmt1DuedateArrives (TransitionsTo Pmt1Due))
 	(Situation Pmt1Due
 			(Borrower may MakePmt1 (at last_situation_td))
 			(MissPmt1 (when (next_event_td ≥ (last_situation_td + 1d) )))
 	)
-
 
 	(Action MissPmt1 (TransitionsTo BorrowerDefaultMissedPmt1))
 	(Situation BorrowerDefaultMissedPmt1
@@ -129,7 +121,7 @@
 	(Action AcceleratePayments12 (TransitionsTo Payments1and2Accelerating))
 	(Situation Payments1and2Accelerating
 		(Borrower may MakePmt12 immediately)
-		(EnterCrisis1 (after (last_situation_td + 1d)))
+		(AcceleratedPaymentFailure1 (after (last_situation_td + 1d)))
 	)
 
 	(Action MakePmt12 (TransitionsTo Term)
@@ -138,15 +130,15 @@
 		)
 	)
 
-	(Action EnterCrisis1 (TransitionsTo Crisis1))
+	(Action AcceleratedPaymentFailure1 (TransitionsTo Crisis1))
 	(Situation Crisis1
 		(Borrower may MakePmt12 immediately) ; immediately?
 		(Lender may FileLawsuit (before STATUTE_OF_LIM_DATE))
 		(StatuteOfLimitations (on STATUTE_OF_LIM_DATE))
 	)
 
-	(Action StatuteOfLimitations (TransitionsTo Canc))
-	(Action FileLawsuit (TransitionsTo Lit))
+
+	; ============Payment 2============
 
 	(Situation Pmt2Accruing
 		(Pmt2DueDateArrives (on PAYMENT2_DUE_DATE))
@@ -169,7 +161,6 @@
 	(Situation BorrowerDefaultBankruptcy2
 		(Lender may GiveNoticeOfGeneralDefault2 immediately)
 	)
-
 
 	(Action GiveNoticeOfGeneralDefault2
 		(TransitionsTo BorrowerNotifiedOfGeneralDefault2)
@@ -204,17 +195,15 @@
 	(Action AcceleratePayment2 (TransitionsTo Payment2Accelerating))
 	(Situation Payment2Accelerating
 		(Borrower may MakePmt2 immediately)
-		(EnterCrisis2 (after (last_situation_td + 1d)))
+		(AcceleratedPaymentFailure2 (after (last_situation_td + 1d)))
 	)
 
-	(Action EnterCrisis2 (TransitionsTo Crisis2))
+	(Action AcceleratedPaymentFailure2 (TransitionsTo Crisis2))
 	(Situation Crisis2
 		(Borrower may MakePmt2 immediately) ; immediately?
 		(Lender may FileLawsuit (before STATUTE_OF_LIM_DATE))
 		(StatuteOfLimitations (on STATUTE_OF_LIM_DATE))
 	)
-
-
 
 	(Action MakePmt2 (TransitionsTo Term)
 		(StateTransform
@@ -224,7 +213,12 @@
 	)
 
 
-	(Action EnterTerm (TransitionsTo Term))
+	; ============Termination============
+
+	(Action StatuteOfLimitations (TransitionsTo Canc))
+	(Action FileLawsuit (TransitionsTo Lit))
+
+	(Action RequestDeadlinePasses (TransitionsTo Term))
 	(Situation Term (EnterFulfilled immediately))
 	(Situation Canc (EnterFulfilled immediately))
 	(Situation Lit (EnterFulfilled immediately))

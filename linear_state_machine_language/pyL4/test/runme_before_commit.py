@@ -56,12 +56,6 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         test_typechecker.main(progs, VERBOSE)
         timetask_stop()
 
-    if 'smt' in tests_to_run:
-        timetask_start('smt')
-        import test_smt
-        test_smt.main(progs)
-        timetask_stop()
-
     if 'graphviz' in tests_to_run:
         timetask_start('graphviz')
         import test_graphviz
@@ -72,6 +66,12 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         timetask_start('prettyprint')
         import test_prettyprint
         test_prettyprint.main(progs)
+        timetask_stop()
+
+    if 'smt' in tests_to_run:
+        timetask_start('smt')
+        import test_smt
+        test_smt.main(progs)
         timetask_stop()
 
     timetask_stop('total')
