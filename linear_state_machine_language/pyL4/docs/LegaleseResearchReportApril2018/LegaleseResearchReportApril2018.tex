@@ -13,69 +13,73 @@
 \SetWatermarkScale{2}
 \SetWatermarkLightness{.85}
 
+\newcommand{\term}[1]{\EM{\textsf{\hyperref[#1]{#1}}}\xspace}
+\newcommand{\termz}[2]{\EM{\textsf{\hyperref[#1]{#2}}}\xspace}
 
-\newcommand{\lasm}{{\sf LASM}\xspace}
-\newcommand{\lasms}{{\sf LASM}s\xspace}
+\newcommand{\lasm}{\term{LASM}}
+\newcommand{\lasms}{{\sf \hyperref[LASM]{LASMs}}\xspace}
 
-\newcommand{\actor}{{\sf actor}\xspace}
-\newcommand{\codeactor}{\EM{\textsf{Code}}\xspace}
+\newcommand{\actor}{\term{actor}}
+\newcommand{\codeactor}{\termz{codeactor}{Code}}
 
-\newcommand{\timeunit}{{\sf timeunit}\xspace}
-\newcommand{\timestamp}{{\sf timestamp}\xspace}
-\newcommand{\timestamps}{{\sf timestamps}\xspace}
+\newcommand{\timeunit}{\term{timeunit}}
+\newcommand{\timestamp}{\term{timestamp}}
+\newcommand{\timestamps}{\termz{timestamp}{timestamps}}
 
-\newcommand{\statevars}{\textsf{statevars}\xspace}
-\newcommand{\statevartypes}{\textsf{statevar-domains}\xspace}
-\newcommand{\initvals}{\textsf{initvals}\xspace}
+\newcommand{\statevars}{\term{statevars}}
+\newcommand{\statevartypes}{\termz{statevartypes}{statevar-domains}}
+\newcommand{\initvals}{\term{initvals}}
 
-\newcommand{\ename}{{\sf event}\xspace}
-\newcommand{\einst}{{\sf event-instance}\xspace}
-\newcommand{\einsts}{{\sf event-instances}\xspace}
+\newcommand{\ename}{\termz{ename}{event}}
+\newcommand{\einst}{\termz{einst}{event-instance}}
+\newcommand{\einsts}{\termz{einst}{event-instances}}
 
-\newcommand{\eparamtypes}[1]{\textsf{param-types}_{#1}}
-\newcommand{\params}[1]{\textsf{params}_{#1}} % for deadline event rules
+\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{param-types}}_{#1}}
+\newcommand{\params}[1]{\textsf{\hyperref[params]{params}}_{#1}} %for deadline event rules
 
-\newcommand{\erule}{\textsf{event-rule}\xspace}
-\newcommand{\enabled}{\textsf{enabled}\xspace}
-\newcommand{\compatible}{\textsf{compatible}\xspace}
-\newcommand{\enabledguard}{{\sf enabled-guard}\xspace}
+\newcommand{\erule}{\termz{erule}{event-rule}}
+\newcommand{\enabled}{\term{enabled}}
+\newcommand{\compatible}{\term{compatible}}
+\newcommand{\compatiblewith}{\termz{compatiblewith}{compatible with}}
+\newcommand{\enabledguard}{\termz{enabledguard}{enabled-guard}}
 % re for 'rule enabled'
-\newcommand{\reguard}[1]{\EM{\textsf{enabled-guard}_{#1}}}
-\newcommand{\deadfn}[1]{\EM{\textsf{deadline}_{#1}}}
+\newcommand{\reguard}[1]{\EM{\textsf{\hyperref[reguard]{enabled-guard}}_{#1}}}
+\newcommand{\deadfn}[1]{\EM{\textsf{\hyperref[deadfn]{deadline}}_{#1}}}
 % ep for 'event parameters'
-\newcommand{\epconstr}[1]{\EM{\textsf{param-constraint}_{#1}}}
+\newcommand{\epconstr}[1]{\EM{\textsf{\hyperref[epconstr]{param-constraint}}_{#1}}}
 
-\newcommand{\sname}{\textsf{situation}\xspace}
-\newcommand{\startsname}{\textsf{start-situation}\xspace}
-\newcommand{\fulfilled}{\textsf{fulfilled}\xspace}
-\newcommand{\breached}[1]{\EM{\textsf{breached}_{#1}}\xspace}
+\newcommand{\sname}{\termz{sname}{situation}}
+\newcommand{\startsname}{\termz{startsname}{start-situation}}
+\newcommand{\fulfilled}{\term{fulfilled}}
+\newcommand{\breached}[1]{\EM{\textsf{\hyperref[breached]{breached}}_{#1}}\xspace}
 
+\newcommand{\statetransform}[1]{\EM{\textsf{\hyperref[statetransform]{statetransform}}_{#1}}}
 
-\newcommand{\statetransform}[1]{\EM{\textsf{statetransform}_{#1}}}
+\newcommand{\DT}{\EM{\mathbb{\hyperref[DT]{D}}}}
+\newcommand{\TS}{\EM{\mathbb{\hyperref[TS]{T}}}}
 
-\newcommand{\DT}{\EM{\mathbb{D}}}
-\newcommand{\TS}{\EM{\mathbb{T}}}
+\newcommand{\state}{\term{state}}
 
-\newcommand{\state}{\EM{\textsf{state}}\xspace}
+\newcommand{\shandler}{\termz{shandler}{situation-handler}}
+\newcommand{\ehandler}{\termz{ehandler}{event-handler}}
 
-\newcommand{\shandler}{\textsf{situation-handler}\xspace}
-\newcommand{\ehandler}{\textsf{event-handler}\xspace}
+\newcommand{\trace}{\term{trace}}
+\newcommand{\wfeseq}{\termz{wfeseq}{well-formed event sequence}}
 
-\newcommand{\trace}{\EM{\textsf{trace}}\xspace}
-
-
-\newcommand{\todo}[1]{({\color{red} todo: #1})}
+%\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
+%\author{dustin.wehr@gmail.com}
 
 \title{Legal Abstract State Machines, \\
 L4, and Formal Verification of Contracts \\
-\smaller \smaller Report on Computational Law Research \larger \larger }
+\smaller \smaller Report on Computational Law Research by \href{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This report is intended for industry and academics in Computational Law. It should, however, be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \href{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel}\footnote{https://legalese.slack.com/messages/C0SB9HZ1S/} on \href{https://legalese.slack.com}{our Slack workspace}\footnote{https://legalese.slack.com} and introducing yourself if you're planning on spending more than a half hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
+This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \href{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel}\footnote{https://legalese.slack.com/messages/C0SB9HZ1S/} on \href{https://legalese.slack.com}{our Slack workspace}\footnote{https://legalese.slack.com} and introducing yourself if you're planning on spending more than half and hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
 
-The primary focus of this report is the definition of the programming language-independent mathematical model for legal contracts that we've settled on after a comprehensive review of the literature and many months of research. The model, tentatively called \textit{Legal Abstract State Machines} (\lasms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes). In programming language theory jargon, \lasms are a denotational semantics.
+The primary focus of this report is the definition of the programming language-independent mathematical model for computational legal contracts that we've settled on after a comprehensive review of the literature and many months of research. The model, tentatively called \textit{Legal Abstract State Machines} (\lasms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that L4 does not have,  makes its inclusion unjustified.
+In fact, it would be hard to add L4's typesystem to the definition of \lasms, as \lasms do not even have a term language!} In programming language theory jargon, \lasms are a denotational semantics.
 \end{abstract}
 
 \pagebreak
@@ -86,69 +90,79 @@ The primary focus of this report is the definition of the programming language-i
 %\section{Who this is for and how to read it}
 \section{Introduction}
 
-We expect the Computational Law community will develop a number of independent, open source, user-facing DSLs to suit different tastes and focuses, but we hope that the community will be able to share the bulk of our work, particularly in statute and contract libraries, formal verification, and visualization. For this reason, not only is Legalese's DSL L4 completely free and open source, but also none of Legalese's work on formal verification of contracts depends strongly on L4 - only on the much simpler mathematical \lasm models that one can use L4 (or your own DSL!) to construct.
+We expect the Computational Law community will develop a number of independent, open source, computational contract DSLs, to suit different tastes and focuses, but we hope that the bulk of the work done by the community will be effectively reusable, particularly in statute and contract libraries, formal verification, and visualization. For this reason, not only have we made our DSL L4 completely free and open source, we have also ensured that none of our work on formal verification of contracts depends strongly on L4 - only on the much simpler mathematical model of Legal Abstract State Machines that one can use L4 (or your own DSL!) to construct.
 
 Sections \ref{basics} and \ref{lasmdef} define Legal Abstract State Machines. Section \ref{static} documents our progress on static analysis for \lasms.
 
+Hovering over (resp. clicking on) most terms in \textsf{{sf font}} should show you a popup of (resp. take you to)  where the term is defined, where the term is styled like \defstyle{this}. This might not work in all PDF viewers.
+
+
 \section{Time, Actors, and Events} \label{basics}
-We will always be working with a fixed minimal \defstyle{timeunit}, which will be one of days, hours, minutes, seconds, etc. It is a parameter of Legal Abstract State Machines (\lasms), and should be set to the smallest unit of time that one writes constraints about, or does arithmetic with, in the text of the legal contract one is modelling.  A \defstyle{timestamp} is \text{just} a nonnegative real number\footnote{See a few paragraph below for why it is \RR\, and not \NN.} that we \textit{think of} as being in units timeunit, which marks the time since the designated start of the \lasm execution, which is always 0 by definition.
+We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, which will be one of days, hours, minutes, seconds, etc. It is a parameter of Legal Abstract State Machines (\lasms), and should be set to the smallest unit of time that one writes constraints about, or does arithmetic with, in the text of the legal contract one is modelling.  A \firstuse{timestamp}{timestamp} is \text{just} a nonnegative real number\footnote{See a few paragraph below for why it is \RR\, and not \NN.} that we \textit{think of} as being in units timeunit, which marks the time since the designated start of the \lasm execution, which is always 0 by definition.
 %Let $\TS$ denote the nonnegative reals when used for this purpose.
 It is worth emphasizing that timestamps are distinct from both DateTimes (some standard for calendar dates with optional within-day times) and TimeDeltas (i.e. durations), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
 
-Fix a set \defstyle{$\DT$} of basic datatypes, which includes at least Bool, $\ZZ$, and $\RR$. 
-Fix a finite set of labels \defstyle{actor}, which includes: 
+Fix a set \firstuse{$\DT$}{DT} of basic datatypes, which includes at least Bool, $\ZZ$, and $\RR$. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
+
+Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \begin{PPI}
 \item The parties to the contract.
 \item Any ``oracles'' that send information to the contract from the environment.
 \item The special symbol \codeactor, for events that are initiated by the code of the contract.
-\end{PPI} 
-Before publication of this document, we will likely replace the finite set of party-actors with a finite set of {\it roles}, and allow for an unbounded number of party-actors in each role; that seems to be necessary to model many blockchain smart contracts in a natural way.
+\end{PPI}
+Before publication of this document, we will likely replace the finite set of party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of party-actors in each role; that seems to be necessary to model many blockchain smart contracts in a natural way.
 
-Fix a finite set of labels \defstyle{\ename}, and for each such $e$ a parameter type assignment $\eparamtypes{e} \in \DT^*$. Furthermore partition \ename into three kinds of events: 
+Fix a finite set of symbols \firstuse{event}{ename}, and for each such $e$ a parameter type assignment $\eparamtypes{e} \in \DT^*$. Furthermore, partition \ename into three kinds of events:
 \begin{PPI}
 \item party-events, which are actions done by a party-to-the-contract,
-\item oracle events, which provide information from the environment. 
-\item deadline events, which are transitions mandated by the contract, and  
+\item oracle events, which provide information from the environment, and
+\item deadline events, which are transitions mandated by the contract.
 \end{PPI}
-An \defstyle{\einst} is a tuple $\tup{e,a,t,\sigma}$ where $e$ is an \ename, $a$ is an \actor, $t$ is a \timestamp, and $\sigma \in \eparamtypes{e}$. The \actor for a deadline event always \codeactor.
+An \firstuse{event instance}{einst} is a tuple $\tup{e,a,t,\sigma}$ where $e$ is an \ename, $a$ is an \actor, $t$ is a \timestamp, and $\sigma \in \eparamtypes{e}$. The \actor for a deadline \ename is always \codeactor.
 %\todo{Alternatively, that's only for party and oracle events. A deadline event only needs the first and fourth components.}
 
 %The  include ``oracle'' or environmental actions ``performed'' by the special \Actor \introx{Env}{Env}. We also use the special \Actor \introx{ContractActor}{Contract} for the \Actor component of \devents.
 
-Event instances are instantaneous,\footnote{We may relax this before publication.} occurring at a particular \timestamp; a real world event with duration is modelled by two such instantaneous \einsts, for the start and end of the real world event. That convention is quite flexible; it easily allows modelling overlapping real-world events, for example. We will see that a sequence of \einsts that constitutes a valid execution of a contract requires strictly increasing time stamps. When we need to model two real-world events as truly-simultaneous, we use one event instance to model their cooccurrence \todo{example}. If the \timeunit is days, then three real-world events that happen in some sequence on the second day would happen at \timestamps $1, 1 + \epsilon_1,  1 + \epsilon_1 + \epsilon_2$, for some $\epsilon_1,\epsilon_2 > 0$.
+Event instances are instantaneous,\footnote{We might relax this before publication, after discussion with others in the Computational Law community.} occurring at a particular \timestamp; a real world event with duration is modelled by two such instantaneous \einsts, for the start and end of the real world event. That convention is quite flexible; it easily allows modelling overlapping real-world events, for example. We will see in the next section that a sequence of \einsts that constitutes a valid execution of an \lasm requires strictly increasing time stamps. For example, if the \timeunit is days, then three real-world events that happen in some sequence on the second day would happen at \timestamps $1, 1 + \epsilon_1,  1 + \epsilon_1 + \epsilon_2$, for some $\epsilon_1,\epsilon_2 > 0$. When we need to model two real-world events as truly-simultaneous, we use one event instance to model their cooccurrence \todo{example}. 
 
-For our intended domain of legal contracts, we are not aware of any cogent criticism of requiring instantaneous event instances with strictly increasing timestamps; and \emph{\textbf{we welcome attempts}}. An earlier version of the model, in fact, did not require that timestamps are strictly increasing, and used discrete time, with what we believe was a very satisfying\footnote{Or ``elegant'', as unscrupulous researchers put it.} justification. However, the justification requires at least another paragraph, and probably several more to adequately defend it. Meanwhile, it offered no advantages in examples, and had one clear disadvantage for formal verification, where the use of integer variables is costly for SMT solvers.\footnote{The best explanation we have for this is not simple. It starts with noting that real arithmetic is decidable (real closed fields), but even quantifier free integer arithmetic is undecidable (diophantine equations). This does not necessarily mean that simple uses of integer variables will be costly, but in practice, as of April 2018, it seems to, at least to us outsiders. We are not aware of any particularly-useful decidable restriction of quantifier free combined real/integer arithmetic, and the currently-implemented heuristics, at least in Z3, are easily fooled.}
+For our intended domain of legal contracts, we are not aware of any cogent criticism of requiring instantaneous event instances with strictly increasing timestamps; and \emph{\textbf{we welcome attempts}}. An earlier version of the model, in fact, did not require that timestamps are {\it strictly} increasing, used discrete time, and had what we believe was a very satisfying\footnote{Or ``elegant'', as unscrupulous researchers put it.} justification. However, the justification requires at least another paragraph, and probably several more to adequately defend it. Meanwhile, it offered no advantages in examples, and had one clear disadvantage for formal verification, where the use of integer variables is costly for SMT solvers.\footnote{The best explanation we have for this is not simple. It starts with noting that real arithmetic is decidable (real closed fields), but even quantifier free integer arithmetic is undecidable (diophantine equations). This does not necessarily mean that simple uses of integer variables will be costly, but in practice, as of April 2018, it seems to, at least to us outsiders. We are not aware of any particularly-useful decidable restriction of quantifier free combined real/integer arithmetic, and the currently-implemented heuristics, at least in Z3, are easily fooled.}
 
 \section{Legal Abstract State Machines} \label{lasmdef}
 
-A Legal Abstract State Machine (\lasm) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \timeunit, $\DT$, \actor, and \ename. It also includes an initial setting \initvals of its \statevars, and a finite set of labels named \defstyle{\sname} which must contain the symbols
+A Legal Abstract State Machine (\lasm) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \timeunit, $\DT$, \actor, and \ename. It also includes a finite set of symbols \firstuse{situation}{sname} that must contain at least the symbols:
 \begin{PPI}
 \item \fulfilled
-\item $\breached{X}$ for each nonempty subset $X$ of \actor. %There is also an \etype \intro{$\breaches{X}$} for each such $X$, and $\intro{\breach{X}{t}}$ is defined as the \FSContract \Event $\tup{\breaches{X}, \Env, t}$
+\item $\breached{X}$ for each nonempty subset $X$ of $\actor \backslash \{\codeactor\}$.\footnote{These are breaches and oracle errors analogous to undifferentiated unhandled exceptions in software. Some well-drafted computational contracts might avoid using them completely.}
+%There is also an \etype \intro{$\breaches{X}$} for each such $X$, and $\intro{\breach{X}{t}}$ is defined as the \FSContract \Event $\tup{\breaches{X}, \Env, t}$
 \end{PPI}
 %, and partitions \ename into three subsets: party event names, oracle event names, and deadline event names.
-An \lasm $M$ also has an ordered finite set of \defstyle{\statevars}, and an assignment \defstyle{\statevartypes} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \statevartypes to be an element of $\DT^*$. The {\it state space} of $M$ is the product set 
-\[ \sname \times \statevartypes \times \timestamp\] %(element of $\TS$). 
-and a \defstyle{state} is an element of the state space.
+An \lasm $M$ also has an ordered finite set of symbols \firstuse{\statevars}{statevars}, and an assignment \firstuse{\statevartypes}{statevartypes} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \statevartypes to be an element of $\DT^*$. $M$ also includes an initial setting \initvals of its \statevars.
 
-The remainder and bulk of the definition of an \lasm, is a mapping from \sname to {\it situation handlers}, and a mapping from \ename to {\it event handlers}.
-An \defstyle{event handler} for \ename $e$ consists of: 
+The {\it state space} of $M$ is the product set
+\[ \sname \times \statevartypes \times \timestamp\] %(element of $\TS$).
+and a \firstuse{\state}{state} is an element of the state space.
+
+The remainder and bulk of the definition of an \lasm is a mapping from \sname to {\it situation handlers}, and a mapping from \ename to {\it event handlers}.
+An \firstuse{\ehandler}{ehandler} for \ename $e$ consists of:
 \begin{PPI}
 \item a destination \sname.
-\item a function \defstyle{\statetransform{e}} of type 
+\item a function \firstuse{\statetransform{e}}{statetransform} of type
 \[\timestamp^2 \times \statevartypes \times \eparamtypes{e} \rightarrow \statevartypes\]
 \end{PPI}
+where the two \timestamp arguments provided \statetransform{e} will always be the \timestamps of the previous and next \einsts.
 
-A \defstyle{\shandler} is a finite set of {\it event rules}, where an \defstyle{\erule} is one of three types: a {\it party rule}, {\it oracle rule}, or {\it deadline rule}. Every \erule $r$ has a relation \defstyle{\reguard{r}} on $\timestamp \times \statevartypes$, where the \timestamp argument is the \timestamp of the previous \einst. Frequently \reguard{r} is just  the trivial relation \textsf{true}. $r$ is \defstyle{\enabled} upon entering its parent situation at the \timestamp $t$ of the previous \einst iff \reguard{r} is true when evaluated at $t$ and the current statevar assignment. 
+A \firstuse{\shandler}{shandler} is a finite set of {\it event rules}, where an \firstuse{\erule}{erule} is one of three types: a {\it party rule}, {\it oracle rule}, or {\it deadline rule}. Every \erule governs the applicability of a unique \ename by a unique \actor.\footnote{In L4, we offer syntax for concisely expressing a set of such rules that apply to different elements of \ename and \actor.} Every \erule $r$ has a relation \firstuse{\reguard{r}}{reguard} on 
+\[\timestamp \times \statevartypes\]
+where the \timestamp argument is the \timestamp of the previous \einst. Frequently in our examples, \reguard{r} is just the trivial relation \textsf{true}. $r$ is \firstuse{\enabled}{enabled} upon entering its parent situation at the \timestamp $t$ of the previous \einst iff \reguard{r} is true when evaluated at $t$ and the current statevar assignment.
 
-A deadline event rule $r$ governing the applicability of a deadline \ename $e$ has an additional {\it deadline function} $\defstyle{\deadfn{r}}$ of type 
+A deadline event rule $r$ governing the applicability of a deadline \ename $e$ has an additional {\it deadline function} $\firstuse{\deadfn{r}}{deadfn}$ of type
 \[ \timestamp \times \statevartypes \rightarrow \timestamp\]
-where the \timestamp argument is the \timestamp of the previous \einst,
-and a {\it parameter setter} $\defstyle{\params{r}}$ of type
+where the \timestamp argument is the \timestamp of the previous \einst.
+$r$ also has a {\it parameter setter} $\firstuse{\params{r}}{params}$ of type
 \[ \timestamp^2 \times \statevartypes \rightarrow \eparamtypes{e}  \]
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 
-Each party and oracle event rule $r$ governing the applicability of a party or oracle \ename $e$ has an additional {\it parameter constraint relation} \defstyle{$\epconstr{r}$} on
+Each party and oracle event rule $r$ governing the applicability of a party or oracle \ename $e$ has an additional {\it parameter constraint relation} \firstuse{$\epconstr{r}$}{epconstr} on
 \[ \timestamp^2 \times \statevartypes \times \eparamtypes{e}\]
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 Note that a {\it parameter setter} is a special case of a {\it parameter constraint relation}. Because that special case is used fairly frequently, in L4 we allow party and oracle event rules to use the {\it parameter setter} syntax of deadline event rules instead of their own {\it parameter constraint relation} syntax.
@@ -157,11 +171,14 @@ That completes the definition of a Legal Abstract State Machine.
 \end{center}
 
 We now define the {\it well-formed event sequences} of an \lasm $M$, which are a superset of the {\it traces} of $M$ defined next.
-\begin{defn}[\defstyle{well-formed event sequence}]
-Fix an \lasm $M$. A well-formed event sequence of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ with strictly-increasing \timestamps such that, if $\tup{e_i, a_i, t_i, \sigma_i}$ is $E_i$, then
+\begin{defn}[\erule \firstuse{compatible with}{compatiblewith} \einst] 
+An \erule $r$ is \compatiblewith an \einst $\tup{e, a, t, \sigma}$ iff $e$ and $a$ are the \ename and \actor that $r$ governs the applicability of. 
+\end{defn}
+\begin{defn}[\firstuse{well-formed event sequence}{wfeseq}]
+Fix an \lasm $M$. A \wfeseq of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ with strictly-increasing \timestamps such that, if $\tup{e_i, a_i, t_i, \sigma_i}$ is $E_i$, then
 \begin{LPPI}
 \item The \startsname $s_0$ of $M$ has an \erule compatible with $E_0$
-\item Either the destination \sname $s_{i+1}$ of $e_i$ has an \erule governing $e_{i+1}$ and $a_{i+1}$ , or $E_i$ is the final element of the sequence and $s_i$ is a {\it breach} or {\it fulfilled} \sname. 
+\item Either the destination \sname $s_{i+1}$ of $e_i$ has an \erule \compatiblewith $E_{i+1}$, or else $E_i$ is the final element of the sequence and $s_i$ is \fulfilled or $\breached{X}$ for some $X \subseteq \actor$.
 \end{LPPI}
 \end{defn}
 
@@ -169,24 +186,21 @@ Fix an \lasm $M$. A well-formed event sequence of $M$ is a sequence of \einsts $
 
 \larger\noindent{\bf Execution of \lasms}\smaller \\
 
-Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) well-formed event sequence of $M$. The starting \state $G_0$ is always $\tup{\startsname, 0, \initvals}$. Let $i \geq 0$ be arbitrary. Assume the trace is valid up to entering $G_i = \tup{s,t,\pi}$. Let $E_i$ be $\tup{e, a, t', \sigma}$. We now define the valid values of $G_{i+1} = \tup{s', t', \pi'}$: 
+Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The starting \state $G_0$ is always $\tup{\startsname, 0, \initvals}$. Let $i \geq 0$ be arbitrary. Assume the sequence is a valid trace up to entering $G_i = \tup{s,t,\pi}$. Let $E_i$ be $\tup{e, a, t', \sigma}$. We now define the valid values of $G_{i+1} = \tup{s', t', \pi'}$:
 \begin{PPI}
 
-\item If $E_i$ is a party (resp. oracle) \ename, then it must be {\it compatible with} some party (resp. oracle) \erule $r$ of $s$ that is \enabled in $G_i$ such that $\epconstr{r}$ is true at $\tup{t, t', \pi, \sigma}$. 
+\item If $E_i$ is a party (resp. oracle) \ename, then it must be \compatiblewith some party (resp. oracle) \erule $r$ of $s$ that is \enabled in $G_i$ such that $\epconstr{r}$ is true at $\tup{t, t', \pi, \sigma}$.
 
-\item If $E_i$ is a deadline \ename, then it must be \compatible with the unique deadline \erule $r$ of $s$ that is enabled in $G_i$ such that $\deadfn{r}(t, \pi) = t'$.\footnote{Unique by the \todo{udt}} 
+\item If $E_i$ is a deadline \ename, then it must be \compatiblewith the unique deadline \erule $r$ of $s$ that is enabled in $G_i$ such that $\deadfn{r}(t, \pi) = t'$.\footnote{Unique by the \todo{udt}}
 
 \item $\pi' = \statetransform{e}(t, t', \pi, \sigma)$.
 
-\item If $s'$ is $fulfilled$ or $breached_{X}$ for some $X \subseteq \actor$, then $E_i$ must be the final event in the \trace.
 \end{PPI}
 Any \ename sequence where $G_i, E_i$ satisfy the above requirements for all $i$ is a valid \trace for $M$.
 
 \section{Formal Verification of \lasms} \label{static}
 
 \subsection{Satisfiability Modulo Theories (SMT) Technology}
-
-\subsection{Type Checking with Subtyping and Intersection Types}
 
 \subsection{Symbolic Execution}
 
@@ -196,6 +210,9 @@ Any \ename sequence where $G_i, E_i$ satisfy the above requirements for all $i$ 
 
 \section{A Prototype Computational Contracts DSL: L4}
 
- 
+\subsection{Type Checking with Subtyping and Intersection Types} \label{typechecking}
+
+
+\section{Related Work}
 
 \end{document}
