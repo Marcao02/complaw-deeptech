@@ -6,7 +6,12 @@
 \usepackage{LegaleseResearchReportApril2018_environments}
 \usepackage{LegaleseResearchReportApril2018_generic_macros}
 
-
+\usepackage{draftwatermark}
+\SetWatermarkText{DRAFT}
+\SetWatermarkAngle{360}
+\SetWatermarkVerCenter{80pt}
+\SetWatermarkScale{2}
+\SetWatermarkLightness{.85}
 
 
 \newcommand{\lasm}{{\sf LASM}\xspace}
@@ -175,7 +180,7 @@ Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) well-formed event sequenc
 
 \item If $s'$ is $fulfilled$ or $breached_{X}$ for some $X \subseteq \actor$, then $E_i$ must be the final event in the \trace.
 \end{PPI}
-Any \ename sequence where $G_i, E_i$ satisfy the above requirements for all $i$ is valid \trace for $M$.
+Any \ename sequence where $G_i, E_i$ satisfy the above requirements for all $i$ is a valid \trace for $M$.
 
 \section{Formal Verification of \lasms} \label{static}
 
@@ -185,9 +190,9 @@ Any \ename sequence where $G_i, E_i$ satisfy the above requirements for all $i$ 
 
 \subsection{Symbolic Execution}
 
-\subsection{Full Formal Verification with Pre/Postconditions and Invariants}
+\subsection{Unbounded Formal Verification with Pre/Postconditions and Invariants}
 
-\subsection{Unexplored: Full {\it Hard} Formal Verification with Interactive Theorem Proving}
+\subsection{Unexplored: Hard Unbounded Formal Verification with Interactive Theorem Proving}
 
 \section{A Prototype Computational Contracts DSL: L4}
 
