@@ -35,7 +35,7 @@
 \newcommand{\einsts}{\termz{einst}{event-instances}}
 
 \newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{param-types}}_{#1}}
-\newcommand{\params}[1]{\textsf{\hyperref[params]{params}}_{#1}} %for deadline event rules
+\newcommand{\params}[1]{{\sf \hyperref[params]{params}}_{#1}} %for deadline event rules
 
 \newcommand{\erule}{\termz{erule}{event-rule}}
 \newcommand{\enabled}{\term{enabled}}
@@ -59,6 +59,7 @@
 \newcommand{\TS}{\EM{\mathbb{\hyperref[TS]{T}}}}
 
 \newcommand{\state}{\term{state}}
+\newcommand{\statespace}{\termz{statespace}{state space}}
 
 \newcommand{\shandler}{\termz{shandler}{situation-handler}}
 \newcommand{\ehandler}{\termz{ehandler}{event-handler}}
@@ -108,7 +109,7 @@ Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \begin{PPI}
 \item The parties to the contract.
 \item Any ``oracles'' that send information to the contract from the environment.
-\item The special symbol \codeactor, for events that are initiated by the code of the contract.
+\item The special symbol \firstuse{\codeactor}{codeactor}, for events that are initiated by the code of the contract.
 \end{PPI}
 Before publication of this document, we will likely replace the finite set of party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of party-actors in each role; that seems to be necessary to model many blockchain smart contracts in a natural way.
 
@@ -138,9 +139,9 @@ A Legal Abstract State Machine (\lasm) first of all fixes the definitions of the
 %, and partitions \ename into three subsets: party event names, oracle event names, and deadline event names.
 An \lasm $M$ also has an ordered finite set of symbols \firstuse{\statevars}{statevars}, and an assignment \firstuse{\statevartypes}{statevartypes} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \statevartypes to be an element of $\DT^*$. $M$ also includes an initial setting \initvals of its \statevars.
 
-The {\it state space} of $M$ is the product set
+The \firstuse{state space}{statespace} of $M$ is the product set
 \[ \sname \times \statevartypes \times \timestamp\] %(element of $\TS$).
-and a \firstuse{\state}{state} is an element of the state space.
+and a \firstuse{\state}{state} is an element of the \statespace.
 
 The remainder and bulk of the definition of an \lasm is a mapping from \sname to {\it situation handlers}, and a mapping from \ename to {\it event handlers}.
 An \firstuse{\ehandler}{ehandler} for \ename $e$ consists of:
@@ -149,7 +150,7 @@ An \firstuse{\ehandler}{ehandler} for \ename $e$ consists of:
 \item a function \firstuse{\statetransform{e}}{statetransform} of type
 \[\timestamp^2 \times \statevartypes \times \eparamtypes{e} \rightarrow \statevartypes\]
 \end{PPI}
-where the two \timestamp arguments provided \statetransform{e} will always be the \timestamps of the previous and next \einsts.
+where the two \timestamp arguments provided to \statetransform{e} will always be the \timestamps of the previous and next \einsts.
 
 A \firstuse{\shandler}{shandler} is a finite set of {\it event rules}, where an \firstuse{\erule}{erule} is one of three types: a {\it party rule}, {\it oracle rule}, or {\it deadline rule}. Every \erule governs the applicability of a unique \ename by a unique \actor.\footnote{In L4, we offer syntax for concisely expressing a set of such rules that apply to different elements of \ename and \actor.} Every \erule $r$ has a relation \firstuse{\reguard{r}}{reguard} on 
 \[\timestamp \times \statevartypes\]
@@ -158,7 +159,7 @@ where the \timestamp argument is the \timestamp of the previous \einst. Frequent
 A deadline event rule $r$ governing the applicability of a deadline \ename $e$ has an additional {\it deadline function} $\firstuse{\deadfn{r}}{deadfn}$ of type
 \[ \timestamp \times \statevartypes \rightarrow \timestamp\]
 where the \timestamp argument is the \timestamp of the previous \einst.
-$r$ also has a {\it parameter setter} $\firstuse{\params{r}}{params}$ of type
+$r$ also has a {\it parameter setter} $\firstuse{\textcolor{blue}{\params{r}}}{params}$ of type
 \[ \timestamp^2 \times \statevartypes \rightarrow \eparamtypes{e}  \]
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 
@@ -203,10 +204,18 @@ Any \ename sequence where $G_i, E_i$ satisfy the above requirements for all $i$ 
 \subsection{Satisfiability Modulo Theories (SMT) Technology}
 
 \subsection{Symbolic Execution}
+Symbolic execution is model checking for languages with unbounded datatypes. 
 
-\subsection{Unbounded Formal Verification with Pre/Postconditions and Invariants}
+\subsection{Exhaustive Model Checking for bounded or nearly-bounded state spaces}
+Suppose the only \statevars in an \lasm $M$ are boolean, and suppose that for every \erule $r$ none of $\enabledguard{r}$, $\reguard{r}$, $\deadfn{r}$, or $\epconstr{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM). If there are no \statevars, then $M$ is equivalent for formal verification purposes to a normal FSM. Many important properties about FSMs are decidable. If the specification of such a model $M$ is given entirely in terms of a \statespace invariant, then full formal verification can be checked exhaustively by well-known methods.
 
-\subsection{Unexplored: Hard Unbounded Formal Verification with Interactive Theorem Proving}
+We may relax the constraint on the functions/predicates that take \timestamp arguments somewhat, which results in a computation model similar to \href{https://drum.lib.umd.edu/bitstream/handle/1903/15232/Fontana_umd_0117E_15027.pdf?sequence=1&isAllowed=y}{Timed Automata} with a single clock (but we have not yet mapped the correspondence carefully!).
+
+
+
+\subsection{Unbounded-Trace Formal Verification with Pre/Postconditions and Invariants}
+
+\subsection{Unexplored: Hard Unbounded-Trace Formal Verification with Interactive Theorem Proving}
 
 \section{A Prototype Computational Contracts DSL: L4}
 
