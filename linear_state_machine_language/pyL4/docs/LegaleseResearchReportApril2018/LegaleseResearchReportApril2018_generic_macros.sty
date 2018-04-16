@@ -1,0 +1,79 @@
+%!TEX root = LegaleseResearchReportApril2018-one-def.tex
+
+\newcommand{\legterm}[1]{{\sf #1}\xspace}
+\newcommand{\tup}[1]{\langle#1\rangle}
+\renewcommand{\u}[1]{\underline{#1}}
+\newcommand{\intro}[1]{\u{#1}}
+\newcommand{\EM}[1]{\ensuremath{#1}}
+
+%\newcommand{\EventSchema}{\legterm{event schema}}
+%\newcommand{\EventSchemas}{\legterm{event schemas}}
+%\newcommand{\ActionSchema}{\legterm{action schema}}
+%\newcommand{\ActionSchemas}{\legterm{action schemas}}
+%\newcommand{\GVars}{\legterm{global variables}}
+%\newcommand{\GVarTypes}{\legterm{GVarTypes}}
+
+
+\newcommand{\TT}{\EM{\mathbb{T}}}
+\newcommand{\BB}{\EM{\mathbb{B}}}
+\newcommand{\ZZ}{\EM{\mathbb{Z}}}
+\newcommand{\NN}{\EM{\mathbb{N}}}
+\newcommand{\RR}{\EM{\mathbb{R}}}
+\newcommand{\QQ}{\EM{\mathbb{Q}}}
+
+\newcommand{\defstyle}[1]{{\bf \u{{\sf \textcolor{blue}{#1}}}}}
+
+%\newcommand{\breach}{\legterm{breach}}
+
+% \introx{TimeStamp}{time stamp}
+\newcommand\introx[2]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\phantomsection%
+{\bf \u{{\sf \textcolor{blue}{#2}\label{#1}}}}%
+}
+% \introxx{TimeStamp}{time stamp}{TimeStamps}{time stamps}
+\newcommand\introxx[4]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\expandafter\newcommand\csname #3\endcsname{\hyperref[#1]{{\sf #4}}\xspace}%
+\phantomsection%
+{\bf \u{{\sf \textcolor{blue}{#2}\label{#1}}}}%
+}
+
+
+%\newcommand\introyy[3]{%
+%{\bf \u{{\sf \textcolor{blue}{#3}\label{#1}\label{#2}}}}%
+%}
+
+
+% \introxsubarg{itsAParamsDomain}{\EM{\textsf{paramtypes}_{#1}}}
+% not yet working
+%\newcommand\introxarg[2]{%
+%\expandafter\newcommand\csname #1\endcsname[1]{\hyperref[#1]{{\sf #2}_{#1}}\xspace}%
+%\phantomsection%
+%\u{{\sf #2\label{#1}}_{#1}}%
+%}
+
+% \introxoutside{TimeStamp}{time stamp}
+\newcommand\introxoutside[2]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\phantomsection%
+\label{#1}
+}
+% \introxinside{TimeStamp}
+\newcommand\introxinside[1]{%
+\u{{\sf #1}}%
+}
+
+% \introxxoutside{TimeStamp}{time stamp}{TimeStamps}{time stamps}
+\newcommand\introxxoutside[4]{%
+\expandafter\newcommand\csname #1\endcsname{\hyperref[#1]{{\sf #2}}\xspace}%
+\expandafter\newcommand\csname #3\endcsname{\hyperref[#1]{{\sf #4}}\xspace}%
+\phantomsection%
+\label{#1}
+}
+% \introxxinside{TimeStamp}
+\newcommand\introxxinside[1]{%
+\u{{\sf #1}}%
+}
+
+
