@@ -1,7 +1,7 @@
 from typing import List, Union, Tuple, Dict
 
 EXAMPLES_SEXPR_ROOT = "./examples/src_sexpr/"
-EXAMPLES_UNPARSED_ROOT = "./examples/out_prettyprinted/"
+EXAMPLES_UNPARSED_ROOT = "./examples/out_reduced/"
 
 EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool],Dict[str,bool]]]] = [
     'test/test_symbolic_exec_time.l4',

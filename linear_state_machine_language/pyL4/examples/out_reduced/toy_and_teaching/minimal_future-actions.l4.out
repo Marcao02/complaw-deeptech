@@ -1,0 +1,34 @@
+------------------------------------------------
+file: toy_and_teaching/minimal_future-actions.l4
+
+roles: Env, Arbiter, I
+
+state vars:
+    n : Nat := 0
+    I_must_Catch_by : TDMap[Nat] := (emptyTDMap )
+
+situation Ongoing:
+    if (n == 5):
+        EnterFulfilled (next_event_td == last_situation_td)
+    if (nonempty I_must_Catch_by):
+        I quasi-responsibility Catch(?0) (tdGEQ I_must_Catch_by ?0 next_event_td) where (mapHas I_must_Catch_by ?0)
+    if (n < 5):
+        I may Stand (next_event_td == last_situation_td)
+    if (n < 5):
+        I may Throw (next_event_td == last_situation_td)
+
+action Throw()  transitions to Ongoing:
+    transform:
+        n := (n + 1)
+        I_must_Catch_by := (mapSet I_must_Catch_by n' 51948w)
+
+action Stand()  transitions to Ongoing:
+    transform:
+        n := (n + 1)
+
+action Catch(m: Nat) transitions to Ongoing:
+    transform:
+        if (event_role == I):
+            I_must_Catch_by := (mapDelete I_must_Catch_by m)
+
+action EnterFulfilled()  transitions to Fulfilled

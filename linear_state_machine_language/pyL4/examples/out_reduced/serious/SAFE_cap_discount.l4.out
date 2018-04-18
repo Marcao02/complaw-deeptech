@@ -1,0 +1,197 @@
+----------------------------------
+file: serious/SAFE_cap_discount.l4
+
+roles: Env, Arbiter, Investor, Company
+
+contract params:
+    PURCHASE_AMOUNT : Pos$ := 100000
+    DISCOUNT_RATE : Fraction(0,1] := 0.9
+    VALUATION_CAP : Pos$ := 100000000
+    START_INVESTOR_COMMON_STOCKS : ShareCnt := 0
+    START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt := 0
+    START_INVESTOR_CASH : $ := 0
+
+state vars:
+    writes≤1 investor_Common_Stocks : ShareCnt := START_INVESTOR_COMMON_STOCKS
+    writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt := START_INVESTOR_SAFE_PREFERRED_STOCKS
+    writes≤1 investor_cash : $ := START_INVESTOR_CASH
+    cash_currently_unconverted : $ := PURCHASE_AMOUNT
+    writes≤1 conversion_price : SharePrice
+    writes≤1 cap_price : SharePrice
+    writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice
+    writes≤1 discount_price : SharePrice
+    writes≤1 liq_cashout : $ := 0
+    company_cash : $ := 0
+    writes≤1 investor_percent_of_cashout_investor_investments : Fraction(0,1]
+    writes≤1 dis_cashout : $
+
+situation InvestorInvests:
+    Company may CommitToChangeOfControl(?1, ?2, ?3, ?4, ?5) where (?4 ≥ PURCHASE_AMOUNT)
+    Company may CommitToDissolution
+    Company may CommitToEquityFinancing
+    Company may CommitToIPO(?1, ?2, ?3)
+
+action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may DeliverTransactionDocsWithPRA
+        Company may DeliverTransactionDocsWithoutPRA
+
+action DeliverTransactionDocsWithPRA()  transitions to AfterDeliverTransactionDocsWithPRA
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may IssueSAFEPreferredStock(?1, ?2)
+
+action DeliverTransactionDocsWithoutPRA()  transitions to AfterDeliverTransactionDocsWithoutPRA
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may SubmitProRataRightsAgreementForSigning
+
+action SubmitProRataRightsAgreementForSigning()  transitions to AfterSubmitProRataRightsAgreementForSigning
+    following situation:
+        Arbiter may InterveneOnDelay_Investor
+        Investor may SignPRA
+
+action SignPRA()  transitions to AfterSignPRA
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may IssueSAFEPreferredStock(?1, ?2)
+
+action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
+    transform:
+        undiscounted_price_per_share_standard_preferred_stock := (premoney_valuation / company_capitalization)
+        cap_price := (VALUATION_CAP / company_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        if (cap_price' < discount_price'):
+            conversion_price := cap_price'
+        else:
+            conversion_price := discount_price'
+
+        investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may DoEquityFinancing
+
+action DoEquityFinancing()  transitions to Fulfilled
+
+action CommitToIPO(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterCommitToIPO:
+    transform:
+        undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
+        cap_price := (VALUATION_CAP / liquidity_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        if (cap_price' < discount_price'):
+            conversion_price := cap_price'
+        else:
+            conversion_price := discount_price'
+
+        cash_currently_unconverted := PURCHASE_AMOUNT
+        company_cash := company_cash_at_liquidity_event
+    following situation:
+        Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
+        Breach_Company (next_event_td > (last_situation_td + 1w))
+        Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
+        Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
+
+action CommitToChangeOfControl(company_cash_at_liquidity_event: $, liquidity_capitalization: PosShareCnt, company_valuation: Pos$, total_investments_of_cashout_investors: Pos$, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to AfterCommitToChangeOfControl:
+    transform:
+        undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
+        cap_price := (VALUATION_CAP / liquidity_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        if (cap_price' < discount_price'):
+            conversion_price := cap_price'
+        else:
+            conversion_price := discount_price'
+
+        investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
+        purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)
+        investor_Common_Stocks := (investor_Common_Stocks + (purchase_amount_reduction round/ conversion_price'))
+        cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - purchase_amount_reduction))
+        company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))
+    following situation:
+        Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
+        Breach_Company (next_event_td > (last_situation_td + 1w))
+        Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
+        Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
+
+action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCommonStock
+
+action ChooseStockPayment()  transitions to AfterChooseStockPayment
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCommonStock
+
+action TransferCommonStock()  transitions to AfterTransferCommonStock:
+    transform:
+        investor_Common_Stocks := (investor_Common_Stocks + ((check $ (cash_currently_unconverted - liq_cashout)) round/ conversion_price))
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may DoLiquidityEvent
+
+action ChooseCashPayment()  transitions to AfterChooseCashPayment
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCash_L(?1)
+
+action TransferCash_L(total_investments_of_cashout_investors: Pos$) transitions to AfterTransferCash_L:
+    transform:
+        investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
+        if (cash_currently_unconverted < (company_cash * investor_percent_of_cashout_investor_investments')):
+            liq_cashout := cash_currently_unconverted
+        else:
+            liq_cashout := (company_cash * investor_percent_of_cashout_investor_investments')
+
+        investor_cash := (investor_cash + liq_cashout')
+    following situation:
+        if (liq_cashout < cash_currently_unconverted):
+            Arbiter may InterveneOnDelay_Company
+        if (liq_cashout == cash_currently_unconverted):
+            Arbiter may InterveneOnDelay_Company
+        if (liq_cashout == cash_currently_unconverted):
+            Company may DoLiquidityEvent
+        if (liq_cashout < cash_currently_unconverted):
+            Company may TransferCommonStock
+
+action DoLiquidityEvent()  transitions to Fulfilled
+
+action CommitToDissolution()  transitions to AfterCommitToDissolution
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments)
+
+action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: Fraction(0,1]) transitions to AfterTransferCash_D:
+    transform:
+        if (PURCHASE_AMOUNT < (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)):
+            dis_cashout := PURCHASE_AMOUNT
+        else:
+            dis_cashout := (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments)
+
+        investor_cash := dis_cashout'
+    following situation:
+        if (dis_cashout < PURCHASE_AMOUNT):
+            Arbiter may InterveneOnDelay_Company
+        if (dis_cashout == PURCHASE_AMOUNT):
+            Arbiter may InterveneOnDelay_Company
+        if (dis_cashout == PURCHASE_AMOUNT):
+            Company may Dissolve
+        if (dis_cashout < PURCHASE_AMOUNT):
+            Company may TransferAssets(?1, ?2)
+
+action TransferAssets(liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterTransferAssets:
+    transform:
+        undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)
+        cap_price := (VALUATION_CAP / liquidity_capitalization)
+        discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)
+        if (cap_price' < discount_price'):
+            conversion_price := cap_price'
+        else:
+            conversion_price := discount_price'
+
+        investor_Common_Stocks := (investor_Common_Stocks + ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
+    following situation:
+        Arbiter may InterveneOnDelay_Company
+        Company may Dissolve
+
+action Dissolve()  transitions to Fulfilled

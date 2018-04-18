@@ -1,6 +1,6 @@
 Let’s say, for concreteness, that the timeint unit is specified to be minutes (although I expect hours to be the most common for legal contracts). For blockchain contracts it would probably usually be milliseconds.
 
-Every contract that’s ready for execution has a datetime contract_start_datetime, which has minutes precision, which can be timezone aware.
+Every contract that’s ready for execution has a datetime contract\_start\_datetime, which has minutes precision, which can be timezone aware.
 
 Each `event` is instantaneous (an “event” with duration is modelled by two such instantaneous `event`s, for the start and end), and has an associated “timestamp” t such that we know the real-world “event” happened between t and t+1 minutes since the start of the contract. There can be multiple `event`s in a contract execution with timestamp t, and the formal model can’t assign more-precise time units to them, but the formal model does have a total order of all the `event`s with timestamp t. When we need to model two “events” as truly-simultaneous, we use one `event` to model their cooccurrence.
 

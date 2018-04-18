@@ -1,0 +1,60 @@
+----------------------------------------------------------------------------------------------
+file: from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4
+
+roles: Env, Arbiter, Customer, Vendor
+
+contract params:
+    MAX_UNITS : Nat := 1000
+    CONTRACT_LIFE : TimeDelta := 365d
+    PRICE_PER_UNIT : Nat := 100
+
+state vars:
+    inconly next_order_id : Nat := 0
+    inconly units_ordered : Nat := 0
+    writes1 order_period_ends : TimeDelta := (contractStart_td + CONTRACT_LIFE)
+    nonoperative inconly units_delivered : Nat := 0
+    nonoperative inconly units_invoiced : Nat := 0
+    nonoperative inconly total_paid : Nat := 0
+    Vendor_must_Deliver_by : TDMap[Nat×Nat] := (emptyTDMap )
+    Vendor_may_EmailInvoice_by : TDMap[Nat×Nat] := (emptyTDMap )
+    Customer_must_PayBill_by : TDMap[Nat×Nat] := (emptyTDMap )
+
+situation VendorAcceptingOrders:
+    if (nonempty Customer_must_PayBill_by):
+        Customer quasi-responsibility PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
+    if ((MAX_UNITS - units_ordered) > 0):
+        Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (0 < ?q) (?q ≤ (MAX_UNITS - units_ordered)))
+    if ((MAX_UNITS - units_ordered) == 0):
+        EnterFulfilled (next_event_td ≥ order_period_ends)
+    if (nonempty Vendor_must_Deliver_by):
+        Vendor quasi-responsibility Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
+    if (nonempty Vendor_may_EmailInvoice_by):
+        Vendor may EmailInvoice(?0, ?1) (tdGEQ Vendor_may_EmailInvoice_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_may_EmailInvoice_by (tuple ?0 ?1))
+
+action SubmitNewOrder(quantity: Nat) transitions to VendorAcceptingOrders:
+    transform:
+        units_ordered := (units_ordered + quantity)
+        next_order_id := (next_order_id + 1)
+        Vendor_must_Deliver_by := (mapSet Vendor_must_Deliver_by (tuple quantity next_order_id) (max (14d + last_event_td) ((days (quantity ceil/ 10)) + last_event_td)))
+
+action Deliver(quantity: Nat, orderid: Nat) transitions to VendorAcceptingOrders:
+    transform:
+        units_delivered := (units_delivered + quantity)
+        if (event_role == Vendor):
+            Vendor_must_Deliver_by := (mapDelete Vendor_must_Deliver_by (tuple quantity orderid))
+        Vendor_may_EmailInvoice_by := (mapSet Vendor_may_EmailInvoice_by (tuple quantity orderid) (last_event_td + 30d))
+
+action EmailInvoice(quantity: Nat, orderid: Nat) transitions to VendorAcceptingOrders:
+    transform:
+        units_invoiced := (units_invoiced + quantity)
+        if (event_role == Vendor):
+            Vendor_may_EmailInvoice_by := (mapDelete Vendor_may_EmailInvoice_by (tuple quantity orderid))
+        Customer_must_PayBill_by := (mapSet Customer_must_PayBill_by (tuple quantity orderid) (last_event_td + 14d))
+
+action PayBill(quantity: Nat, orderid: Nat) transitions to VendorAcceptingOrders:
+    transform:
+        total_paid := (total_paid + (quantity * PRICE_PER_UNIT))
+        if (event_role == Customer):
+            Customer_must_PayBill_by := (mapDelete Customer_must_PayBill_by (tuple quantity orderid))
+
+action EnterFulfilled()  transitions to Fulfilled

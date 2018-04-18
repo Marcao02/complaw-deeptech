@@ -1,0 +1,21 @@
+----------------------------------
+file: toy_and_teaching/collatz2.l4
+
+roles: Env, Arbiter
+
+contract params:
+    START : Nat := 12
+
+state vars:
+    x : Nat := START
+
+action NextInSeq()  transitions to AfterNextInSeq:
+    transform:
+        if (even x):
+            x := (x floor/ 2)
+        else:
+            x := ((3 * x) + 1)
+
+    following situation:
+        if (x > 1):
+            NextInSeq (next_event_td == last_situation_td)

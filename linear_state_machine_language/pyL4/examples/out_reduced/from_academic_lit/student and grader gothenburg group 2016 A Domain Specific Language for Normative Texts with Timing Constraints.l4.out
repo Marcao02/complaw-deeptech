@@ -1,0 +1,28 @@
+------------------------------------------------------------------------------------------------------------------------------------------
+file: from_academic_lit/student and grader gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints.l4
+
+roles: Env, Arbiter, Student, Grader
+
+state vars:
+
+situation AssignmentOut:
+    Breach_Student (next_event_td > 11)
+    Student may Submit (next_event_td == 11)
+
+action Accept()  transitions to Fulfilled
+
+action Submit()  transitions to AfterSubmit
+    following situation:
+        Breach_Grader (next_event_td > (last_situation_td + 7d))
+        Grader may Accept (next_event_td ≤ (last_situation_td + 7d))
+        Grader may Reject (next_event_td ≤ (last_situation_td + 7d))
+
+action Reject()  transitions to AfterReject
+    following situation:
+        Breach_Student (next_event_dt > 27)
+        Student may Resubmit (next_event_dt ≤ 27)
+
+action Resubmit()  transitions to AfterResubmit
+    following situation:
+        Breach_Grader (next_event_td > 7)
+        Grader may Accept (next_event_td ≤ 7)

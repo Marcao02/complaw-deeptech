@@ -9,7 +9,7 @@ def main(examples:Dict[str,L4Contract]):
     for examplekey in examples:
         prog = examples[examplekey]
         prettyprinted = str(prog)
-        writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + examplekey, prettyprinted)
+        writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + examplekey + ".out", prettyprinted)
 
 def cli(sys_argv:List[str]):
     main(test_parser.main(keep=True, verbose=False))

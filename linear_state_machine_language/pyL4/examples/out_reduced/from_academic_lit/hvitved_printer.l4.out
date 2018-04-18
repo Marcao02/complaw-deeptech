@@ -1,0 +1,68 @@
+------------------------------------------
+file: from_academic_lit/hvitved_printer.l4
+
+roles: Env, Arbiter, Buyer, Seller
+
+contract params:
+    CONTRACT_START : TimeDelta := 0d
+    DELIVERY_TIME_ALLOWANCE : TimeDelta := 10d
+
+state vars:
+    nonoperative buyer_paid : Nat := 0
+    nonoperative seller_refunded : Nat := 0
+    writes1 delivery_td : TimeDelta
+
+claims:
+    ["MAX_TIME'", '=', '44D']
+    ["MAX_SITUATION_VISITS'", '=', '6']
+
+situation Awaiting_Delivery:
+    Breach_Seller (next_event_td > DELIVERY_TIME_ALLOWANCE)
+    Seller may Deliver (next_event_td ≤ DELIVERY_TIME_ALLOWANCE)
+
+action Deliver()  transitions to AfterDeliver:
+    transform:
+        delivery_td := last_event_td
+    following situation:
+        Buyer may Pay1stInstallment (next_event_td == last_situation_td)
+        Breach_Buyer (next_event_td > last_situation_td)
+
+action Pay1stInstallment()  transitions to AfterPay1stInstallment:
+    transform:
+        prove (buyer_paid == 0)
+        buyer_paid := 100
+    following situation:
+        Buyer may Pay2ndInstallment (next_event_td ≤ (30d + delivery_td))
+        Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_td))
+        EnterLate2ndInstallment (next_event_td > (30d + delivery_td))
+
+action EnterLate2ndInstallment()  transitions to Late2ndInstallment
+    following situation:
+        Buyer may PayLateFee (next_event_td ≤ (44d + delivery_td))
+        Breach_Buyer (next_event_td > (44d + delivery_td))
+
+action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
+    transform:
+        prove (buyer_paid == 100)
+        buyer_paid := 200
+    following situation:
+        Buyer may ReturnOnTime (next_event_td ≤ (14d + delivery_td))
+        CompleteNormalSale (next_event_td > (14d + delivery_td))
+
+action ReturnOnTime()  transitions to AfterReturnOnTime
+    following situation:
+        Breach_Seller (next_event_td > (7d + last_situation_td))
+        Seller may DeliverRefund (next_event_td ≤ (7d + last_situation_td))
+
+action PayLateFee()  transitions to Fulfilled:
+    transform:
+        prove (buyer_paid == 100)
+        buyer_paid := 220
+
+action CompleteNormalSale()  transitions to Fulfilled
+
+action DeliverRefund()  transitions to Fulfilled:
+    transform:
+        prove (seller_refunded == 0)
+        prove (or (buyer_paid == 100) (buyer_paid == 200))
+        seller_refunded := buyer_paid

@@ -88,6 +88,7 @@
 	(Situation BorrowerNotifiedOfGeneralDefault1
 		(if (cures < MAX_CURES)
 			(Borrower may CureDefault1 (within (last_situation_td + 2d)))
+			; (Borrower may CureDefault1 (when ((next_event_td >= (last_situation_td + 1)) and (next_event_td <= (last_situation_td + 2d)))))
 		)
 		(AcceleratePayments12 (after (last_situation_td + 2d)))
 	)
@@ -168,6 +169,7 @@
 	(Situation BorrowerNotifiedOfGeneralDefault2
 		(if (cures < MAX_CURES)
 			(Borrower may CureDefault2 (within (last_situation_td + 2d)))
+			; (Borrower may CureDefault2 (when ((next_event_td >= (last_situation_td + 1)) and (next_event_td <= (last_situation_td + 2d)))))
 		)
 		(Borrower may AcceleratePayment2 (after (last_situation_td + 2d)))
 	)

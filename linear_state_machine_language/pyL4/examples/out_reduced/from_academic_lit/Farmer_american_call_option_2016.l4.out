@@ -1,0 +1,40 @@
+-----------------------------------------------------------
+file: from_academic_lit/Farmer_american_call_option_2016.l4
+
+roles: Env, Arbiter, Buyer, Seller
+
+contract params:
+    SELLER_START_FUNDS : $ := 0
+    BUYER_START_FUNDS : $ := 85
+    BUYER_START_SHARES : ShareCnt := 0
+    SELLER_START_SHARES : PosShareCnt := 1
+
+state vars:
+    writes1 seller_funds : $
+    writes1 buyer_funds : $
+    writes≤1 buyer_final_shares : ShareCnt
+    writes≤1 seller_final_shares : ShareCnt
+
+situation BeforeOptionPurchase:
+    Buyer may PaySellerForOption (next_event_dt == 180 days, 0:00:00)
+    Breach_Buyer (next_event_dt > 180 days, 0:00:00)
+
+action PaySellerForOption()  transitions to AfterPaySellerForOption:
+    transform:
+        buyer_funds := (check $ (BUYER_START_FUNDS - (units $ 5)))
+        seller_funds := (SELLER_START_FUNDS + (units $ 5))
+    following situation:
+        Buyer may ExerciseOption (next_event_dt ≤ 350 days, 0:00:00)
+
+action ExerciseOption()  transitions to AfterExerciseOption:
+    transform:
+        buyer_funds := (check $ (BUYER_START_FUNDS - (units $ 80)))
+        seller_funds := (SELLER_START_FUNDS + (units $ 80))
+    following situation:
+        Buyer may TransferShare (next_event_td ≤ (last_situation_td + 30d))
+        Breach_Buyer (next_event_td > (last_situation_td + 30d))
+
+action TransferShare()  transitions to Fulfilled:
+    transform:
+        buyer_final_shares := (BUYER_START_SHARES + (units ShareCnt 1))
+        seller_final_shares := (check ShareCnt (SELLER_START_SHARES - (units ShareCnt 1)))
