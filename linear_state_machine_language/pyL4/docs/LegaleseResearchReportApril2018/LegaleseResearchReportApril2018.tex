@@ -29,16 +29,16 @@
 \newcommand{\timestamps}{\termz{timestamp}{timestamps}}
 
 \newcommand{\statevars}{\term{statevars}}
-\newcommand{\statevartypes}{\termz{statevartypes}{statevar-domains}}
+%\newcommand{\statevartypes}{\termz{statevartypes}{statevar-domains}}
+\newcommand{\statevartypes}{\termz{statevartypes}{VDom}}
 \newcommand{\initvals}{\term{initvals}}
 
 \newcommand{\ename}{\termz{ename}{event}}
 \newcommand{\einst}{\termz{einst}{event-instance}}
 \newcommand{\einsts}{\termz{einst}{event-instances}}
 
-\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{param-types}}_{#1}}
-\newcommand{\params}[1]{{\sf \hyperref[params]{params}}_{#1}} %for deadline event rules
-
+%\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{param-types}}_{#1}}
+\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Dom}}_{#1}}
 \newcommand{\erule}{\termz{erule}{event-rule}}
 \newcommand{\erules}{\termz{erule}{event-rules}}
 \newcommand{\enabled}{\term{enabled}}
@@ -46,6 +46,8 @@
 \newcommand{\compatiblewith}{\termz{compatiblewith}{compatible with}}
 \newcommand{\enabledguard}{\termz{enabledguard}{enabled-guard}}
 \newcommand{\enabledguards}{\termz{enabledguard}{enabled-guards}}
+\newcommand{\params}[1]{{\sf \hyperref[params]{params}}_{#1}} %for deadline event rules
+\newcommand{\paramspart}[2]{{\sf \hyperref[paramspart]{params}}_{#1}^{#2}}
 % re for 'rule enabled'
 \newcommand{\reguard}[1]{\EM{\textsf{\hyperref[reguard]{enabled-guard}}_{#1}}}
 \newcommand{\deadfn}[1]{\EM{\textsf{\hyperref[deadfn]{deadline}}_{#1}}}
@@ -59,9 +61,9 @@
 \newcommand{\breached}[1]{\EM{\textsf{\hyperref[breached]{breached}}_{#1}}\xspace}
 
 \newcommand{\statetransform}[1]{\EM{\textsf{\hyperref[statetransform]{statetransform}}_{#1}}}
+\newcommand{\statetransforms}{\EM{\textsf{\hyperref[statetransform]{statetransforms}}}}
+\newcommand{\stranspart}[2]{\EM{\textsf{\hyperref[statetransform]{statetransform}}_{#1}^{#2}}}
 
-\newcommand{\DT}{\EM{\mathbb{\hyperref[DT]{D}}}}
-\newcommand{\TS}{\EM{\mathbb{\hyperref[TS]{T}}}}
 
 \newcommand{\state}{\term{state}}
 \newcommand{\statespace}{\termz{statespace}{state space}}
@@ -71,6 +73,11 @@
 
 \newcommand{\trace}{\term{trace}}
 \newcommand{\wfeseq}{\termz{wfeseq}{well-formed event sequence}}
+
+\newcommand{\Bool}{\textsf{bool}}
+\newcommand{\DT}{\EM{\mathbb{\hyperref[DT]{D}}}\xspace}
+\newcommand{\TS}{\EM{\mathbb{\hyperref[TS]{T}}}\xsapce}
+\newcommand{\cF}{\EM{\mathcal{F}}\xspace}
 
 %\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
 %\author{dustin.wehr@gmail.com}
@@ -108,7 +115,7 @@ We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, wh
 %Let $\TS$ denote the nonnegative reals when used for this purpose.
 It is worth emphasizing that timestamps are distinct from both DateTimes (some standard for calendar dates with optional within-day times) and TimeDeltas (i.e. durations), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
 
-Fix a set \firstuse{$\DT$}{DT} of basic datatypes, which includes at least Bool, $\ZZ$, and $\RR$. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
+Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lasm-compliant languages we use will usually include $\timestamp$, $\ZZ$, and $\RR$ as well. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
 
 Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \begin{PPI}
@@ -135,7 +142,7 @@ For our intended domain of legal contracts, we are not aware of any cogent criti
 
 \section{Legal Abstract State Machines} \label{lasmdef}
 
-A Legal Abstract State Machine (\lasm) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \timeunit, $\DT$, \actor, and \ename. It also includes a finite set of symbols \firstuse{situation}{sname} that must contain at least the symbols:
+A Legal Abstract State Machine (\lasm) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \DT, \timeunit, \actor, and \ename. It also includes a finite set of symbols \firstuse{situation}{sname} that must contain at least the symbols:
 \begin{PPI}
 \item \fulfilled
 \item $\breached{X}$ for each nonempty subset $X$ of $\actor \backslash \{\codeactor\}$.\footnote{These are breaches and oracle errors analogous to undifferentiated unhandled exceptions in software. Some well-drafted computational contracts might avoid using them completely.}
@@ -153,7 +160,7 @@ An \firstuse{\ehandler}{ehandler} for \ename $e$ consists of:
 \begin{PPI}
 \item a destination \sname.
 \item a function \firstuse{\statetransform{e}}{statetransform} of type
-\[\timestamp^2 \times \statevartypes \times \eparamtypes{e} \rightarrow \statevartypes\]
+\[\timestamp^2 \times \statevartypes \times \eparamtypes{e} \rarr \statevartypes\]
 \end{PPI}
 where the two \timestamp arguments provided to \statetransform{e} will always be the \timestamps of the previous and next \einsts.
 
@@ -162,10 +169,10 @@ A \firstuse{\shandler}{shandler} is a finite set of {\it event rules}, where an 
 where the \timestamp argument is the \timestamp of the previous \einst. Frequently in our examples, \reguard{r} is just the trivial relation \textsf{true}. $r$ is \firstuse{\enabled}{enabled} upon entering its parent situation at the \timestamp $t$ of the previous \einst iff \reguard{r} is true when evaluated at $t$ and the current statevar assignment. 
 
 A deadline event rule $r$ governing the applicability of a deadline \ename $e$ has an additional {\it deadline function} $\firstuse{\deadfn{r}}{deadfn}$ of type
-\[ \timestamp \times \statevartypes \rightarrow \timestamp\]
+\[ \timestamp \times \statevartypes \rarr \timestamp\]
 where the \timestamp argument is the \timestamp of the previous \einst.
 $r$ also has a {\it parameter setter} $\firstuse{\params{r}}{params}$ of type
-\[ \timestamp^2 \times \statevartypes \rightarrow \eparamtypes{e}  \]
+\[ \timestamp^2 \times \statevartypes \rarr \eparamtypes{e}  \]
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 
 Since deadline \erules cause an event to occur automatically when the rule activates, we would need to either specify what happens when two such rules activate at the same time, or else ensure that can't happen. We take the latter approach.\footnote{Because we see no natural way to pick one over the other. Note that the \erules are not ordered.} For now, we adopt a constraint that is stronger than necessary but especially simple:\footnote{A closer-to-minimal constraint is: when the \enabledguards of two deadline \erules are simultaneously true, their deadline functions cannot yield the same \timestamp (and then the earlier of the two deadlines is used). We have not yet experienced any desire for the extra leniency, but in case we do, it would be easy to allow it.} \\
@@ -209,6 +216,39 @@ Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The start
 \end{PPI}
 Any \wfeseq where $G_i, E_i$ satisfy the above requirements for all $i$ is a valid \trace for $M$.
 
+\subsection{Reducing the Abstraction One Level}
+So far, \lasm is not a complete language, in the sense that it does not have an abstract syntax tree. In particular, we specified that certain components are mathematical {\it functions} or {\it relations}, rather than expressions that define such functions or relations. To recap, those components are as follows, where now we adopt the common convention of writing the types of relations as functions to \Bool.
+\smallskip
+
+\noindent {\bf Initial abstract components of \lasm \label{initialabstract}}:
+\begin{LPPI}
+\item $\statetransform{e} : \timestamp^2 \times \statevartypes \times \eparamtypes{e} \rarr \statevartypes$ for each \ename $e$.
+\item $\reguard{r} : \timestamp \times \statevartypes \rarr \Bool$ for each \erule $r$.
+\item For each party or oracle \erule $r$ than governs an \ename $e$:
+	\begin{LPPI} 
+	\item $\epconstr{r} : \timestamp^2 \times \statevartypes \times \eparamtypes{e} \rarr \Bool$
+	\end{LPPI}
+\item For each deadline \erule $r$ than governs an \ename $e$.
+	 \begin{LPPI}
+	\item $\deadfn{r} : \timestamp \times \statevartypes \rarr \timestamp$
+	\item $\params{r} : \timestamp^2 \times \statevartypes \rarr \eparamtypes{e}$ 	
+	\end{LPPI}
+\end{LPPI}
+
+Despite the lack of concreteness, we saw that there is enough detail that execution can be defined precisely. We {\it could} stop there, but that would mean leaving out of the coming sections some useful details of formal verification routines that are very likely to be needed in any \lasm-compliant DSL. 
+
+In this section, we reduce the {\it description} of the abstraction level quite dramatically, while maintaining the flexibility of being able to define \lasm-compliant languages that range from finite state machines to Turing complete languages (and, technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!).
+
+Recall that that the set of basic datatypes or {\it sorts} \DT is a parameter to \lasm. After this section, we will have a notion of \firstuse{\it class of \lasm}{lasmclass} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $S_0,\ldots,S_k \in \DT$.
+
+Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.} Surprisingly little is needed in the way of additional definitions. Since $\statevartypes \in \DT^*$ already, the functions $\reguard{r}$, $\epconstr{r}$, and $\deadfn{r}$ are already of the required $\cF$-form. The remaining two categories of functions, $\params{r}$ and $\statetransform{e}$, in the bullet-list above simply get replaced by their components:
+
+\begin{LPPI}
+\item For each deadline \erule $r$ that governs an \ename $e$, and each sort $S_i \in \eparamtypes{e}$, a function $\paramspart{r}{i} :  \timestamp^2 \times \statevartypes \rarr S_i$
+\item For each \ename $e$, and each sort $S_i \in \statevartypes$, a function $\stranspart{e}{i} : \timestamp^2 \times \statevartypes \times \eparamtypes{e} \rarr S_i$.
+\end{LPPI}
+
+
 \section{Formal Verification for \lasm} \label{lasmstatic}
 
 \subsection{Satisfiability Modulo Theories (SMT) Technology}
@@ -222,20 +262,16 @@ Symbolic execution is a technique for avoiding some of the approximation, especi
 
 \bigskip
 
-When we symbolically execute an \lasm, we have a choice about whether to use some, all, or none of the machine's \initvals of its \statevars. Generally, the more of them used, the faster \statespace exploration will be. For example, in a loan agreement, we could treat an interest rate as an arbitrary element of $(0,1)$. We would then be proving correctness of the agreement for interests rates that we'll never use, which of course is perfectly fine if the analysis finishes in a reasonable amount of time. Alternatively, we could use fixed values of the interest rate only, and whenever we use a fixed interest rate for the first time, we simply rerun symbolic execution.
+When we symbolically execute an \lasm, we have a choice about whether to use some, all, or none of the machine's \initvals of its \statevars. Generally, the more of them used, the faster \statespace exploration will be. For example, in a loan agreement, we could treat an interest rate as an arbitrary element of $(0,1)$. We would then be proving correctness of the agreement for interests rates that we'll never use, which of course is perfectly fine if the analysis finishes in a reasonable amount of time. Alternatively, we could use fixed values of the interest rate only, and whenever we use a new fixed interest rate, we simply rerun symbolic execution.
 
-
+%For simplicity, we will give here a symbolic execution algorithm without some simple optimizations that we have implemented. Most notably, we will introduce new constants whenever it's convenient to do so. 
+%
 
 \section{\minil\, - A Minimal \lasm-Compatible DSL} \label{minil4}
 
 
-In Section \ref{lasmstatic}, we gave as much detail as we could about our formal verification progress for \lasms. To go further, we need a complete language, which \lasm is not. In particular, we specified that certain components are mathematical {\it functions} or {\it relations}, rather than expressions that define such functions or relations. Those components are:
-\begin{LPPI}
-\item $\statetransform{e} : \timestamp^2 \times \statevartypes \times \eparamtypes{e} \rightarrow \statevartypes$ for each \ename $e$.
-\item $\reguard{r} \subseteq \timestamp \times \statevartypes$ for each deadline \erule $r$.
-\item $\params{r} : \timestamp^2 \times \statevartypes \rightarrow \eparamtypes{e}$ for each deadline \erule $r$ than governs an \ename $e$.
-\item $\epconstr{r} \subseteq \timestamp^2 \times \statevartypes \times \eparamtypes{e}$ for each party or oracle \erule $r$ that governs  an \ename $e$.
-\end{LPPI}
+In Section \ref{lasmstatic}, we gave as much detail as we could about our formal verification progress for \lasms. To go further, we need a complete language, 
+
 
 
 \section{Formal Verification for \minil} \label{minil4static}
