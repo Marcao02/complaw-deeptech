@@ -115,7 +115,7 @@ We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, wh
 %Let $\TS$ denote the nonnegative reals when used for this purpose.
 It is worth emphasizing that timestamps are distinct from both DateTimes (some standard for calendar dates with optional within-day times) and TimeDeltas (i.e. durations), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
 
-Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lasm-compliant languages we use will usually include $\timestamp$, $\ZZ$, and $\RR$ as well. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
+Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lasm-compatible languages we use will usually include $\timestamp$, $\ZZ$, and $\RR$ as well. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
 
 Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \begin{PPI}
@@ -216,7 +216,7 @@ Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The start
 \end{PPI}
 Any \wfeseq where $G_i, E_i$ satisfy the above requirements for all $i$ is a valid \trace for $M$.
 
-\subsection{Reducing the Abstraction One Level}
+\subsection{Reducing the Abstraction By One Level}
 So far, \lasm is not a complete language, in the sense that it does not have an abstract syntax tree. In particular, we specified that certain components are mathematical {\it functions} or {\it relations}, rather than expressions that define such functions or relations. To recap, those components are as follows, where now we adopt the common convention of writing the types of relations as functions to \Bool.
 \smallskip
 
@@ -235,18 +235,21 @@ So far, \lasm is not a complete language, in the sense that it does not have an 
 	\end{LPPI}
 \end{LPPI}
 
-Despite the lack of concreteness, we saw that there is enough detail that execution can be defined precisely. We {\it could} stop there, but that would mean leaving out of the coming sections some useful details of formal verification routines that are very likely to be needed in any \lasm-compliant DSL. 
+Despite the lack of concreteness, we saw that there is enough detail that execution can be defined precisely. We {\it could} stop there, but that would mean leaving out of the coming sections some useful details of formal verification routines that are very likely to be needed in any \lasm-compatible DSL. 
 
-In this section, we reduce the {\it description} of the abstraction level quite dramatically, while maintaining the flexibility of being able to define \lasm-compliant languages that range from finite state machines to Turing complete languages (and, technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!).
+In this section, we reduce the {\it description} of the abstraction level significantly, while maintaining the flexibility of being able to define \lasm-compatible languages that range from finite state machines to Turing complete languages.\footnote{Technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!}
+Recall that that the set of basic datatypes or {\it sorts} \DT is a parameter to \lasm. After this section, we will have a notion of {\it class of \lasm} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $S_0,\ldots,S_k \in \DT$.
 
-Recall that that the set of basic datatypes or {\it sorts} \DT is a parameter to \lasm. After this section, we will have a notion of \firstuse{\it class of \lasm}{lasmclass} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $S_0,\ldots,S_k \in \DT$.
-
-Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.} Surprisingly little is needed in the way of additional definitions. Since $\statevartypes \in \DT^*$ already, the functions $\reguard{r}$, $\epconstr{r}$, and $\deadfn{r}$ are already of the required $\cF$-form. The remaining two categories of functions, $\params{r}$ and $\statetransform{e}$, in the bullet-list above simply get replaced by their components:
+Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.} Surprisingly little is needed in the way of additional definitions. Since $\statevartypes \in \DT^*$ already, the functions $\reguard{r}$, $\epconstr{r}$, and $\deadfn{r}$ are already of the required $\cF$-form. The remaining two categories of functions $\params{r}$ and $\statetransform{e}$ in the bullet-list above simply get replaced by their point-wise components
 
 \begin{LPPI}
 \item For each deadline \erule $r$ that governs an \ename $e$, and each sort $S_i \in \eparamtypes{e}$, a function $\paramspart{r}{i} :  \timestamp^2 \times \statevartypes \rarr S_i$
 \item For each \ename $e$, and each sort $S_i \in \statevartypes$, a function $\stranspart{e}{i} : \timestamp^2 \times \statevartypes \times \eparamtypes{e} \rarr S_i$.
 \end{LPPI}
+
+We go one step further by introducing some minimal structure into the $\statetransforms$, which has a role in \refstyle{\hyperref[symbexec]{symbolic execution}}. 
+
+WIP!
 
 
 \section{Formal Verification for \lasm} \label{lasmstatic}
@@ -255,7 +258,7 @@ Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra con
 %We use SMT solver tech extensively, but might help.
 Familiarity with SMT is not a prerequisite for this document, but if you are unfamiliar and interested, Microsoft's \extlink{https://rise4fun.com/z3/tutorial}{Z3 tutorial} is a fine place to start.
 
-\subsection{Symbolic Execution}
+\subsection{Symbolic Execution} \label{symbexec}
 In model checking for expressive models (say, with at least nonlinear integer arithmetic available), usually\footnote{The term ``model checking'' is used rather inconsistently.} an infinite-state model is approximated by a finite or tamely-infinite state model, and correctness properties of the approximation model are checked exhaustively, or exhaustively up to a certain maximum computation path length. In Section \ref{tamelyinfinite} we will consider some cases where approximation is not necessary.
 
 Symbolic execution is a technique for avoiding some of the approximation, especially for avoiding having to approximate unbounded datatypes with bounded ones (e.g. $\RR$ approximated by {\sf float}). We do not do this for the sake of more accurate/faithful correctness theorems. Indeed, most of the time software is executed with bounded numeric datatypes anyway, and even when not, no fixed computer can actually compute with arbitrarily large numbers. Rather, we use symbolic execution because, if there is not actually complex math going on (e.g. any cryptographic functions) in a program, but only the use of functions that puts us outside decidable theories, then we should be able to save a lot of time by analyzing computation paths in axiomatically-defined batches. 
