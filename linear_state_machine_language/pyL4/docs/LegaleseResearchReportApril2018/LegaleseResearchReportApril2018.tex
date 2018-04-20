@@ -6,6 +6,10 @@
 \usepackage{LegaleseResearchReportApril2018_environments}
 \usepackage{LegaleseResearchReportApril2018_generic_macros}
 
+\usepackage[top=1.5in]{geometry}
+%\usepackage{geometry}
+
+
 \usepackage{draftwatermark}
 \SetWatermarkText{DRAFT}
 \SetWatermarkAngle{360}
@@ -18,9 +22,9 @@
 \newcommand{\term}[1]{\EM{\textsf{\hyperref[#1]{#1}}}\xspace}
 \newcommand{\termz}[2]{\EM{\textsf{\hyperref[#1]{#2}}}\xspace}
 
-\newcommand{\lasm}{\term{LASM}}
-\newcommand{\lasms}{\termz{LASM}{LASMs}}
-\newcommand{\lasmclass}[1]{\textsf{\hyperref[lasmclass]{LASM}}(#1)}
+\newcommand{\lsm}{\term{LSM}}
+\newcommand{\lsms}{\termz{LSM}{LSMs}}
+\newcommand{\lsmclass}[1]{\textsf{\hyperref[lsmclass]{LSM}}(#1)}
 
 \newcommand{\actor}{\term{actor}}
 \newcommand{\codeactor}{\termz{codeactor}{Code}}
@@ -97,7 +101,7 @@
 %\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
 %\author{dustin.wehr@gmail.com}
 
-\title{Legal Abstract State Machines, \\
+\title{Legal State Machines, \\
 L4, and Formal Verification of Contracts \\
 \smaller \smaller Report on Computational Law Research by \extlink{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
 \begin{document}
@@ -106,11 +110,12 @@ L4, and Formal Verification of Contracts \\
 \begin{abstract}
 This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace}\footnote{https://legalese.slack.com} and introducing yourself if you're planning on spending more than half and hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
 
-The primary focus of this report is the definition of the programming language-independent mathematical model for computational legal contracts that we've settled on after a comprehensive review of the literature and many months of research. The model, tentatively called \textit{Legal Abstract State Machines} (\lasms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that L4 does not have,  makes its inclusion unjustified.
-In fact, it would be hard to add L4's typesystem to the definition of \lasms, as \lasms do not even have a term language!} In programming language theory jargon, \lasms are a denotational semantics.
-\end{abstract}
+The primary focus of this report is the definition of the unopinionated, unpretentious programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, called \textit{Legal State Machines} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
+% In fact, it would be hard to add L4's typesystem to the definition of \lsms, as \lsms do not even have a term language!}
+In programming language theory jargon, \lsms are a denotational semantics.
 
-\pagebreak
+Legalese is not advocating for the adoption of L4 at this time. We would strongly prefer to join forces with another open source computational contracts DSL project. Our main opinion on this matter is that whatever DSL we align ourselves with, it should have a fragment that fully supports \lsms.
+\end{abstract}
 
 \tableofcontents
 
@@ -118,19 +123,19 @@ In fact, it would be hard to add L4's typesystem to the definition of \lasms, as
 %\section{Who this is for and how to read it}
 \section{Introduction}
 
-We expect the Computational Law community will develop a number of independent, open source, computational contract DSLs, to suit different tastes and focuses, but we hope that the bulk of the work done by the community will be effectively reusable, particularly in statute and contract libraries, formal verification, and visualization. For this reason, not only have we made our DSL L4 completely free and open source, we have also ensured that none of our work on formal verification of contracts depends strongly on L4 - only on the much simpler mathematical model of Legal Abstract State Machines that one can use L4 (or your own DSL!) to construct.
+We expect the Computational Law community will develop a number of independent, open source, computational contract DSLs, to suit different tastes and focuses, but we hope that the bulk of the work done by the community will be effectively reusable, particularly in statute and contract libraries, formal verification, and visualization. For this reason, not only have we made our DSL L4 completely free and open source, we have also ensured that none of our work on formal verification of contracts is dependent on the fine details of L4 - only on the much simpler mathematical model of Legal State Machines that one can use L4 (or your own DSL!) to construct.
 
-Sections \ref{basics} and \ref{lasmdef} define Legal Abstract State Machines. Section \ref{lasmstatic} documents our progress on static analysis for \lasms.
+Sections \ref{basics} and \ref{lsmdef} define Legal State Machines. Section \ref{lsmstatic} documents our progress on static analysis for \lsms.
 
 Hovering over (resp. clicking on) most terms in \textsf{{sf font}} should show you a popup of (resp. take you to)  where the term is defined, where the term is styled like \defstyle{this}. This might not work in all PDF viewers.
 
 
 \section{Time, Actors, and Events} \label{basics}
-We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, which will be one of days, hours, minutes, seconds, etc. It is a parameter of Legal Abstract State Machines (\lasms), and should be set to the smallest unit of time that one writes constraints about, or does arithmetic with, in the text of the legal contract one is modelling.  A \firstuse{timestamp}{timestamp} is \text{just} a nonnegative real number\footnote{See a few paragraph below for why it is \RR\, and not \NN.} that we \textit{think of} as being in units timeunit, which marks the time since the designated start of the \lasm execution, which is always 0 by definition.
+We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, which will be one of days, hours, minutes, seconds, etc. It is a parameter of the Legal State Machine (\lsm), and should be set to the smallest unit of time that one writes constraints about, or does arithmetic with, in the text of the legal contract one is modelling.  A \firstuse{timestamp}{timestamp} is \text{just} a nonnegative real number\footnote{See a few paragraph below for why it is \RR\, and not \NN.} that we \textit{think of} as being in units timeunit, which marks the time since the designated start of the \lsm execution, which is always 0 by definition.
 %Let $\TS$ denote the nonnegative reals when used for this purpose.
 It is worth emphasizing that timestamps are distinct from both DateTimes (some standard for calendar dates with optional within-day times) and TimeDeltas (i.e. durations), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
 
-Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lasm-compatible languages we use will usually include $\timestamp$, $\ZZ$, and $\RR$ as well. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
+Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lsm-compatible languages we use will usually include $\timestamp$, $\ZZ$, and $\RR$ as well. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
 
 Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \begin{PPI}
@@ -151,26 +156,26 @@ An \firstuse{event instance}{einst} is a tuple $\tup{e,a,t,\sigma}$ where $e$ is
 
 %The  include ``oracle'' or environmental actions ``performed'' by the special \Actor \introx{Env}{Env}. We also use the special \Actor \introx{ContractActor}{Contract} for the \Actor component of \devents.
 
-Event instances are instantaneous,\footnote{We might relax this before publication, after discussion with others in the Computational Law community.} occurring at a particular \timestamp; a real world event with duration is modelled by two such instantaneous \einsts, for the start and end of the real world event. That convention is quite flexible; it easily allows modelling overlapping real-world events, for example. We will see in the next section that a sequence of \einsts that constitutes a valid execution of an \lasm requires strictly increasing time stamps. For example, if the \timeunit is days, then three real-world events that happen in some sequence on the second day would happen at \timestamps $1, 1 + \epsilon_1,  1 + \epsilon_1 + \epsilon_2$, for some $\epsilon_1,\epsilon_2 > 0$. When we need to model two real-world events as truly-simultaneous, we use one event instance to model their cooccurrence \todo{example}. 
+Event instances are instantaneous,\footnote{We might relax this before publication, after discussion with others in the Computational Law community.} occurring at a particular \timestamp; a real world event with duration is modelled by two such instantaneous \einsts, for the start and end of the real world event. That convention is quite flexible; it easily allows modelling overlapping real-world events, for example. We will see in the next section that a sequence of \einsts that constitutes a valid execution of an \lsm requires strictly increasing time stamps. For example, if the \timeunit is days, then three real-world events that happen in some sequence on the second day would happen at \timestamps $1, 1 + \epsilon_1,  1 + \epsilon_1 + \epsilon_2$, for some $\epsilon_1,\epsilon_2 > 0$. When we need to model two real-world events as truly-simultaneous, we use one event instance to model their cooccurrence \todo{example}. 
 
 For our intended domain of legal contracts, we are not aware of any cogent criticism of requiring instantaneous event instances with strictly increasing timestamps; and \emph{\textbf{we welcome attempts}}. An earlier version of the model, in fact, did not require that timestamps are {\it strictly} increasing, used discrete time, and had what we believe was a very satisfying\footnote{Or ``elegant'', as unscrupulous researchers put it.} justification. However, the justification requires at least another paragraph, and probably several more to adequately defend it. Meanwhile, it offered no advantages in examples, and had one clear disadvantage for formal verification, where the use of integer variables is costly for SMT solvers.\footnote{The best explanation we have for this is not simple. It starts with noting that real arithmetic is decidable (real closed fields), but even quantifier free integer arithmetic is undecidable (diophantine equations). This does not necessarily mean that simple uses of integer variables will be costly, but in practice, as of April 2018, it seems to, at least to us outsiders. We are not aware of any particularly-useful decidable restriction of quantifier free combined real/integer arithmetic, and the currently-implemented heuristics, at least in Z3, are easily fooled.}
 
-\section{Legal Abstract State Machines} \label{lasmdef}
+\section{Legal State Machines} \label{lsmdef}
 
-A Legal Abstract State Machine (\lasm) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \DT, \timeunit, \actor, and \ename. It also includes a finite set of symbols \firstuse{situation}{sname} that must contain at least the symbols:
+A Legal State Machine (\lsm) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \DT, \timeunit, \actor, and \ename. It also includes a finite set of symbols \firstuse{situation}{sname} that must contain at least the symbols:
 \begin{PPI}
 \item \fulfilled
 \item $\breached{X}$ for each nonempty subset $X$ of $\actor \backslash \{\codeactor\}$.\footnote{These are breaches and oracle errors analogous to undifferentiated unhandled exceptions in software. Some well-drafted computational contracts might avoid using them completely.}
 %There is also an \etype \intro{$\breaches{X}$} for each such $X$, and $\intro{\breach{X}{t}}$ is defined as the \FSContract \Event $\tup{\breaches{X}, \Env, t}$
 \end{PPI}
 %, and partitions \ename into three subsets: party event names, oracle event names, and deadline event names.
-An \lasm $M$ also has an ordered finite set of symbols \firstuse{\statevars}{statevars}, and an assignment \firstuse{\VDom}{statevartypes} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \VDom to be an element of $\DT^*$. $M$ also includes an initial setting \initvals of its \statevars.
+An \lsm $M$ also has an ordered finite set of symbols \firstuse{\statevars}{statevars}, and an assignment \firstuse{\VDom}{statevartypes} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \VDom to be an element of $\DT^*$. $M$ also includes an initial setting \initvals of its \statevars.
 
 The \firstuse{state space}{statespace} of $M$ is the product set
 \[ \sname \times \VDom \times \timestamp\] %(element of $\TS$).
 and a \firstuse{\state}{state} is an element of the \statespace.
 
-The remainder and bulk of the definition of an \lasm is a mapping from \sname to {\it situation handlers}, and a mapping from \ename to {\it event handlers}.
+The remainder and bulk of the definition of an \lsm is a mapping from \sname to {\it situation handlers}, and a mapping from \ename to {\it event handlers}.
 An \firstuse{\ehandler}{ehandler} for \ename $e$ consists of:
 \begin{PPI}
 \item a destination \sname.
@@ -200,15 +205,15 @@ Each party and oracle event rule $r$ governing the applicability of a party or o
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 Note that a {\it parameter setter} is a special case of a {\it parameter constraint relation}. Because that special case is used fairly frequently, in L4 we allow party and oracle event rules to use the {\it parameter setter} syntax of deadline event rules instead of their own {\it parameter constraint relation} syntax.
 \begin{center}
-That completes the definition of a Legal Abstract State Machine.
+That completes the definition of a Legal State Machine.
 \end{center}
 
-We now define the {\it well-formed event sequences} of an \lasm $M$, which are a superset of the {\it traces} of $M$ defined next.
+We now define the {\it well-formed event sequences} of an \lsm $M$, which are a superset of the {\it traces} of $M$ defined next.
 \begin{defn}[\erule \firstuse{compatible with}{compatiblewith} \einst] 
 An \erule $r$ is \compatiblewith an \einst $\tup{e, a, t, \sigma}$ iff $e$ and $a$ are the \ename and \actor that $r$ \governs the applicability of. 
 \end{defn}
 \begin{defn}[\firstuse{well-formed event sequence}{wfeseq}]
-Fix an \lasm $M$. \\ A \wfeseq of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ with strictly-increasing \timestamps such that, if $\tup{e_i, a_i, t_i, \sigma_i}$ is $E_i$, then
+Fix an \lsm $M$. \\ A \wfeseq of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ with strictly-increasing \timestamps such that, if $\tup{e_i, a_i, t_i, \sigma_i}$ is $E_i$, then
 \begin{LPPI}
 \item The \startsname $s_0$ of $M$ has an \erule \compatiblewith $E_0$
 \item Either the destination \sname $s_{i+1}$ of $e_i$ has an \erule \compatiblewith $E_{i+1}$, or else $E_i$ is the final element of the sequence and $s_i$ is \fulfilled or $\breached{X}$ for some $X \subseteq \actor$.
@@ -217,7 +222,7 @@ Fix an \lasm $M$. \\ A \wfeseq of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ 
 
 \bigskip
 
-\larger\noindent{\bf Execution of \lasms}\smaller \\
+\larger\noindent{\bf Execution of \lsms}\smaller \\
 
 Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The starting \state $G_0$ is always $\tup{\startsname, 0, \initvals}$. Let $i \geq 0$ be arbitrary. Assume the sequence is a valid trace up to entering $G_i = \tup{s,t,\pi}$. Let $E_i$ be $\tup{e, a, t', \sigma}$. We now define the valid values of $G_{i+1} = \tup{s', t', \pi'}$:
 \begin{PPI}
@@ -232,10 +237,10 @@ Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The start
 Any \wfeseq where $G_i, E_i$ satisfy the above requirements for all $i$ is a valid \trace for $M$.
 
 \subsection{Reducing the Abstraction By One Level}
-So far, \lasm is not a complete language, in the sense that it does not have an abstract syntax tree. In particular, we specified that certain components are mathematical {\it functions} or {\it relations}, rather than expressions that define such functions or relations. To recap, those components are as follows, where now we adopt the common convention of writing the types of relations as functions to \Bool.
+So far, \lsm is not a complete language, in the sense that it does not have an abstract syntax tree. In particular, we specified that certain components are mathematical {\it functions} or {\it relations}, rather than expressions that define such functions or relations. To recap, those components are as follows, where now we adopt the common convention of writing the types of relations as functions to \Bool.
 \smallskip
 
-\noindent {\bf Initial abstract components of \lasm \label{initialabstract}}:
+\noindent {\bf Initial abstract components of \lsm \label{initialabstract}}:
 \begin{LPPI}
 \item $\statetransform{e} : \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom$ for each \ename $e$.
 \item $\reguard{r} : \timestamp \times \VDom \rarr \Bool$ for each \erule $r$.
@@ -250,10 +255,10 @@ So far, \lasm is not a complete language, in the sense that it does not have an 
 	\end{LPPI}
 \end{LPPI}
 
-Despite the lack of concreteness, we saw that there is enough detail that execution can be defined precisely. We {\it could} stop there, but that would mean leaving out of the coming sections some useful details of formal verification routines that are very likely to be needed in any \lasm-compatible DSL. 
+Despite the lack of concreteness, we saw that there is enough detail that execution can be defined precisely. We {\it could} stop there, but that would mean leaving out of the coming sections some useful details of formal verification routines that are very likely to be needed in any \lsm-compatible DSL. 
 
-In this section, we reduce the {\it description} of the abstraction level significantly, while maintaining the flexibility of being able to define \lasm-compatible languages that range from finite state machines to Turing complete languages.\footnote{Technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!}
-Recall that that the set of basic datatypes or {\it sorts} \DT is a parameter to \lasm. After this section, we will have a notion of {\it class of \lasm} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some  $S_0,\ldots,S_k \in \DT$. Note that, for the sake of this report, we take individual elements of the sorts $\DT$ to be $0$-ary functions in $\cF$.
+In this section, we reduce the {\it description} of the abstraction level significantly, while maintaining the flexibility of being able to define \lsm-compatible languages that range from finite state machines to Turing complete languages.\footnote{Technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!}
+Recall that that the set of basic datatypes or {\it sorts} \DT is a parameter to \lsm. After this section, we will have a notion of {\it class of \lsm} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some  $S_0,\ldots,S_k \in \DT$. Note that, for the sake of this report, we take individual elements of the sorts $\DT$ to be $0$-ary functions in $\cF$.
 
 Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.} Surprisingly little is needed in the way of additional definitions. Since $\VDom \in \DT^*$ already, the functions $\reguard{r}$, $\epconstr{r}$, and $\deadfn{r}$ are already of the required $\cF$-form. The remaining two categories of functions $\params{r}$ and $\statetransform{e}$ in the bullet-list above simply get replaced by their point-wise components
 
@@ -272,20 +277,20 @@ For $\ename$ $e$, an \firstuse{\estatement{e}}{statement} is one of:
 A \firstuse{\stransimpl}{stransimpl} of $\statetransform{e}$ is a set of \estatements{e} that satisfies the \firstuse{\uuc}{uuc}, which says: Consider the rooted tree formed by a set of \estatements{e}\footnote{A set of \estatements{e}, including the top-level set, is an internal node whose children are the individual \statements. An assignment $\assign{x}{f}$ is a leaf node. And a conditional $\cond{f}{U_1}{U_2}$ is an internal node with two children $U_1$ and $U_2$.}. Any well-typed setting of the \statetransform{e} parameters yields a value of true or false in the ``test'' part $f$ of each conditional node $\cond{f}{U_1}{U_2}$. Consider the subtree formed by dropping the appropriate ``branch'' $U_1$ (if test is false) or $U_2$ (if test is true) of each such node, at every level. Then any \statevar may occur at most once in that subtree.
 \end{defn}
 
-We now officially modify the specification of \lasm to say that each \statetransform{e} is \stransimpl (instead of just being a set of functions of types $\{ \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom(x) \ | \ x \in \statevars \}$). 
+We now officially modify the specification of \lsm to say that each \statetransform{e} is \stransimpl (instead of just being a set of functions of types $\{ \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom(x) \ | \ x \in \statevars \}$). 
 
-\subsection{Final Specification of \lasm}
-Since the start of Section \ref{lasmdef}, we've elaborated some details of the initial definition of \lasm, to bring it closer to being a target for formal verification. Here we give just the concise final specification, without explanation of the semantics.
+\subsection{Final Specification of \lsm}
+Since the start of Section \ref{lsmdef}, we've elaborated some details of the initial definition of \lsm, to bring it closer to being a useful subject for formal verification. Here we give just the concise final specification, without explanation of the semantics.
 
 \medskip
 
-Let $\DT$ be a set of sorts (i.e. datatypes, i.e. sets). Let $\cF$ be a set of functions each of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some $S_0,\ldots,S_k \in \DT$. Then $\cF$ determines a class of \lasms that we denote $\lasmclass{\cF}$, which are defined as follows. For notational simplicity, and to reduce redundancy, we assume that every sort in $\DT$ is in the type of some function in $\cF$, so that we may uniquely determine $\DT$ from $\cF$. Let \firstuse{$\sortsof{\cF}$}{sortsof} be that unique determination.
+Let $\DT$ be a set of sorts (i.e. datatypes, i.e. sets). Let $\cF$ be a set of functions each of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some $S_0,\ldots,S_k \in \DT$. Then $\cF$ determines a class of \lsms that we denote $\lsmclass{\cF}$, which are defined as follows. For notational simplicity, and to reduce redundancy, we assume that every sort in $\DT$ is in the type of some function in $\cF$, so that we may uniquely determine $\DT$ from $\cF$. Let \firstuse{$\sortsof{\cF}$}{sortsof} be that unique determination.
 %
 %Definition is on
 %\pagebreak
 
-\begin{defn}[\firstuse{\lasmclass{\cF}}{lasmclass}]
-Let $\DT$ be $\sortsof{\cF}$. An $\lasmclass{\cF}$ model $M$ is given the following components. To reduce clutter, we omit the superscript $^M$ except at the component's introduction:
+\begin{defn}[\firstuse{\lsmclass{\cF}}{lsmclass}]
+Let $\DT$ be $\sortsof{\cF}$. An $\lsmclass{\cF}$ model $M$ is given the following components. To reduce clutter, we omit the superscript $^M$ except at the component's introduction:
 \begin{LPPI}
 \item $\timeunit^M$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$, which we write unsuperscripted in the remainder.
 \item Finite sets $\actor^M, \ename^M, \sname^M$, and $\statevar^M$, which we write unsuperscripted in the remainder.
@@ -311,7 +316,7 @@ Let $\DT$ be $\sortsof{\cF}$. An $\lasmclass{\cF}$ model $M$ is given the follow
 \end{defn}
 
 
-\section{Formal Verification for \lasm} \label{lasmstatic}
+\section{Formal Verification for \lsm} \label{lsmstatic}
 
 \subsection{Satisfiability Modulo Theories (SMT) Technology}
 %We use SMT solver tech extensively, but might help.
@@ -324,21 +329,21 @@ Symbolic execution is a technique for avoiding some of the approximation, especi
 
 \bigskip
 
-When we symbolically execute an \lasm, we have a choice about whether to use some, all, or none of the model's \initvals of its \statevars. Generally, the more of them used, the faster \statespace exploration will be. For example, in a loan agreement, we could treat an interest rate as an arbitrary element of $(0,1)$. We would then be proving correctness of the agreement for interests rates that we'll never use, which of course is perfectly fine if the analysis finishes in a reasonable amount of time. Alternatively, we could use fixed values of the interest rate only, and whenever we use a new fixed interest rate, we simply rerun symbolic execution.
+When we symbolically execute an \lsm, we have a choice about whether to use some, all, or none of the model's \initvals of its \statevars. Generally, the more of them used, the faster \statespace exploration will be. For example, in a loan agreement, we could treat an interest rate as an arbitrary element of $(0,1)$. We would then be proving correctness of the agreement for interests rates that we'll never use, which of course is perfectly fine if the analysis finishes in a reasonable amount of time. Alternatively, we could use fixed values of the interest rate only, and whenever we use a new fixed interest rate, we simply rerun symbolic execution.
 
 %For simplicity, we will give here a symbolic execution algorithm without some simple optimizations that we have implemented. Most notably, we will introduce new constants whenever it's convenient to do so. 
 %
 
 
 
-%\section{\minil\, - A Minimal \lasm-Compatible DSL} \label{minil4}
-%In Section \ref{lasmstatic}, we gave as much detail as we could about our formal verification progress for \lasms. To go further, we need a complete language, 
+%\section{\minil\, - A Minimal \lsm-Compatible DSL} \label{minil4}
+%In Section \ref{lsmstatic}, we gave as much detail as we could about our formal verification progress for \lsms. To go further, we need a complete language, 
 %\section{Formal Verification for \minil} \label{minil4static}
 %\subsection{Symbolic Execution}
 
 
 \subsection{Exhaustive Model Checking for finite or tamely-infinite state spaces} \label{tamelyinfinite}
-Suppose the only \statevars in an \lasm $M$ are boolean, and suppose that for every \erule $r$ none of $\enabledguard{r}$, $\reguard{r}$, $\deadfn{r}$, or $\epconstr{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM). If there are no \statevars, then $M$ is equivalent for formal verification purposes to a normal FSM. Many important properties about FSMs are decidable. If the specification of such a model $M$ is given entirely in terms of a \statespace invariant, then full formal verification can be checked exhaustively by well-known methods.
+Suppose the only \statevars in an \lsm $M$ are boolean, and suppose that for every \erule $r$ none of $\enabledguard{r}$, $\reguard{r}$, $\deadfn{r}$, or $\epconstr{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM). If there are no \statevars, then $M$ is equivalent for formal verification purposes to a normal FSM. Many important properties about FSMs are decidable. If the specification of such a model $M$ is given entirely in terms of a \statespace invariant, then full formal verification can be checked exhaustively by well-known methods.
 
 We may relax the constraint on the functions/predicates that take \timestamp arguments somewhat, which results in a computation model similar to \\ \extlink{https://drum.lib.umd.edu/bitstream/handle/1903/15232/Fontana_umd_0117E_15027.pdf?sequence=1&isAllowed=y}{Timed Automata} with a single clock (but we have not yet mapped the correspondence carefully!).
 
@@ -346,7 +351,7 @@ We may relax the constraint on the functions/predicates that take \timestamp arg
 
 \subsection{Unexplored: Hard Unbounded-Trace Formal Verification with Interactive Theorem Proving}
 
-\section{L4: Experimental-But-Practical \lasm DSL}
+\section{L4: An Experimental but Practical \lsm-compatible DSL}
 
 \subsection{Type Checking with Subtyping and Intersection Types} \label{typechecking}
 
