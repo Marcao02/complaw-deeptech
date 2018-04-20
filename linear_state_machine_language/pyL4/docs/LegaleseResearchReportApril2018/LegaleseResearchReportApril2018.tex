@@ -36,13 +36,15 @@
 \newcommand{\statevar}{\termz{statevars}{statevar}}
 \newcommand{\statevars}{\term{statevars}}
 %\newcommand{\VDom}{\termz{statevartypes}{statevar-domains}}
-\newcommand{\VDom}{\termz{statevartypes}{VDom}}
+%\newcommand{\VDom}{\termz{statevartypes}{VDom}}
+\newcommand{\VDom}{\termz{statevartypes}{Global}}
 \newcommand{\initvals}{\term{initvals}}
 
 \newcommand{\ename}{\termz{ename}{event}}
 \newcommand{\einst}{\termz{einst}{event-instance}}
 \newcommand{\einsts}{\termz{einst}{event-instances}}
-\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Dom}}_{#1}}
+%\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Dom}}_{#1}}
+\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Param}}_{#1}}
 
 %\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{param-types}}_{#1}}
 
@@ -284,7 +286,10 @@ Since the start of Section \ref{lsmdef}, we've elaborated some details of the in
 
 \medskip
 
-Let $\DT$ be a set of sorts (i.e. datatypes, i.e. sets). Let $\cF$ be a set of functions each of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some $S_0,\ldots,S_k \in \DT$. Then $\cF$ determines a class of \lsms that we denote $\lsmclass{\cF}$, which are defined as follows. For notational simplicity, and to reduce redundancy, we assume that every sort in $\DT$ is in the type of some function in $\cF$, so that we may uniquely determine $\DT$ from $\cF$. Let \firstuse{$\sortsof{\cF}$}{sortsof} be that unique determination.
+Let $\DT$ be a set of sorts (i.e. datatypes, i.e. sets). Let $\cF$ be a set of functions each of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some $S_0,\ldots,S_k \in \DT$. Then $\cF$ determines a class of \lsms that we denote $\lsmclass{\cF}$, which are defined as follows. For notational simplicity, and to reduce redundancy, we assume that every sort in $\DT$ is in the type of some function in $\cF$, so that we may uniquely determine $\DT$ from $\cF$. Let \firstuse{$\sortsof{\cF}$}{sortsof} be that unique determination. We also assume $\timestamp \in \DT$. 
+
+Backpeddling on ``without explanation of the semantics'' for a moment: Note/recall that when a function in the following definition has a type starting with $\timestamp^2$, that is the \timestamp of the most recent \einst and the \timestamp of a candidate next \einst. When the type starts with just $\timestamp$, it is of the most recent \einst. 
+
 %
 %Definition is on
 %\pagebreak
@@ -292,8 +297,8 @@ Let $\DT$ be a set of sorts (i.e. datatypes, i.e. sets). Let $\cF$ be a set of f
 \begin{defn}[\firstuse{\lsmclass{\cF}}{lsmclass}]
 Let $\DT$ be $\sortsof{\cF}$. An $\lsmclass{\cF}$ model $M$ is given the following components. To reduce clutter, we omit the superscript $^M$ except at the component's introduction:
 \begin{LPPI}
-\item $\timeunit^M$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$, which we write unsuperscripted in the remainder.
-\item Finite sets $\actor^M, \ename^M, \sname^M$, and $\statevar^M$, which we write unsuperscripted in the remainder.
+\item $\timeunit^M$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$.
+\item Finite sets $\actor^M, \ename^M, \sname^M$, and $\statevar^M$.
 \item A mapping $\VDom^M$ from $\statevar$ to \DT.
 \item For each $e \in \ename$, a type for its parameters $\eparamtypes{e}^M \in \DT^*$.
 \item For each $e \in \ename$, a \stransimpl $\statetransform{e}$, which is a set of $\estatements{e}^M$ that satisfies the \uuc. 
