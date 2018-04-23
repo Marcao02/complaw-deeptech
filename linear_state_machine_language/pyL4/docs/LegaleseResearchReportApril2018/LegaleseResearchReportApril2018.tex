@@ -27,6 +27,7 @@
 \newcommand{\lsmclass}[1]{\textsf{\hyperref[lsmclass]{LSM}}(#1)}
 
 \newcommand{\actor}{\term{actor}}
+\newcommand{\actors}{\termz{actor}{actors}}
 \newcommand{\codeactor}{\termz{codeactor}{Code}}
 
 \newcommand{\timeunit}{\term{timeunit}}
@@ -42,6 +43,9 @@
 
 \newcommand{\ename}{\termz{ename}{event}}
 \newcommand{\einst}{\termz{einst}{event-instance}}
+\newcommand{\penames}{\termz{penames}{\text{party-events}}}
+\newcommand{\oenames}{\termz{oenames}{\text{oracle-events}}}
+\newcommand{\denames}{\termz{denames}{\text{deadline-events}}}
 \newcommand{\einsts}{\termz{einst}{event-instances}}
 %\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Dom}}_{#1}}
 \newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Param}}_{#1}}
@@ -94,7 +98,7 @@
 \newcommand{\trace}{\term{trace}}
 \newcommand{\wfeseq}{\termz{wfeseq}{well-formed event sequence}}
 
-\newcommand{\Bool}{\textsf{bool}}
+\newcommand{\Bool}{\textsf{bool}\xspace}
 \newcommand{\DT}{\EM{\mathbb{\hyperref[DT]{D}}}\xspace}
 \newcommand{\TS}{\EM{\mathbb{\hyperref[TS]{T}}}\xsapce}
 \newcommand{\cF}{\EM{\mathcal{F}}\xspace}
@@ -110,7 +114,7 @@ L4, and Formal Verification of Contracts \\
 \maketitle
 
 \begin{abstract}
-This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace}\footnote{https://legalese.slack.com} and introducing yourself if you're planning on spending more than half and hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
+This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace}\footnote{https://legalese.slack.com} and introducing yourself if you're planning on spending more than half an hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
 
 The primary focus of this report is the definition of the unopinionated, unpretentious programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, called \textit{Legal State Machines} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
 % In fact, it would be hard to add L4's typesystem to the definition of \lsms, as \lsms do not even have a term language!}
@@ -129,29 +133,29 @@ We expect the Computational Law community will develop a number of independent, 
 
 Sections \ref{basics} and \ref{lsmdef} define Legal State Machines. Section \ref{lsmstatic} documents our progress on static analysis for \lsms.
 
-Hovering over (resp. clicking on) most terms in \textsf{{sf font}} should show you a popup of (resp. take you to)  where the term is defined, where the term is styled like \defstyle{this}. This might not work in all PDF viewers.
+Hovering over (resp. clicking on) most terms in \textsf{{sf font}} should show you a popup of (resp. take you to)  where the term is defined and styled like \defstyle{this}. This might not work in all PDF viewers.
 
 
 \section{Time, Actors, and Events} \label{basics}
-We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, which will be one of days, hours, minutes, seconds, etc. It is a parameter of the Legal State Machine (\lsm), and should be set to the smallest unit of time that one writes constraints about, or does arithmetic with, in the text of the legal contract one is modelling.  A \firstuse{timestamp}{timestamp} is \text{just} a nonnegative real number\footnote{See a few paragraph below for why it is \RR\, and not \NN.} that we \textit{think of} as being in units timeunit, which marks the time since the designated start of the \lsm execution, which is always 0 by definition.
+We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, which will be one of days, hours, minutes, seconds, etc. It is a parameter of the Legal State Machine (\lsm), and should be set to the smallest unit of time that one writes constraints about, or does arithmetic with, in the text of the legal contract one is modelling.  A \firstuse{timestamp}{timestamp} is \text{just} a nonnegative real number\footnote{See a few paragraph below for why it is \RR\, and not \NN.} that we \textit{think of} as being in units \timeunit. It denotes the time since the designated start of the \lsm execution, which is always 0 by definition.
 %Let $\TS$ denote the nonnegative reals when used for this purpose.
-It is worth emphasizing that timestamps are distinct from both DateTimes (some standard for calendar dates with optional within-day times) and TimeDeltas (i.e. durations), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
+It is worth emphasizing that \timestamps are distinct from both DateTimes (some standard for calendar dates, clock times, time zones) and TimeDeltas (i.e. durations, which are similar to \timeunit aside from coming in more than one unit), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
 
-Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lsm-compatible languages we use will usually include $\timestamp$, $\ZZ$, and $\RR$ as well. These datatypes should be definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
+Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lsm-compatible languages we almost always include $\timestamp$ as well, and will usually include $\ZZ$ and $\RR$. We require that these datatypes are definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes\footnote{Though then quantifier free validity is undecidable, so the solver is incomplete.}, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
 
 Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \begin{PPI}
 \item The parties to the contract.
-\item Any ``oracles'' that send information to the contract from the environment.
+\item Any ``oracles'' that send information to the contract from the environment. In our implementation of SAFE in L4, we have an oracle that decides whether a liquidation, equity, or dissolution event has occurred. Generally, we put an event's announcement in the hands of an oracle when every party has an incentive to lie about it.
 \item The special symbol \firstuse{\codeactor}{codeactor}, for events that are initiated by the code of the contract.
 \end{PPI}
-Before publication of this document, we will likely replace the finite set of party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of party-actors in each role; that seems to be necessary to model many blockchain smart contracts in a natural way.
+Before publication of this document, we will likely replace the finite set of party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of party-\actors in each role, since that seems to be necessary to model many blockchain smart contracts in a natural way.
 
 Fix a finite set of symbols \firstuse{event}{ename}, and for each such $e$ a parameter type assignment $\eparamtypes{e} \in \DT^*$. Furthermore, partition \ename into three kinds of events:
 \begin{PPI}
-\item party-events, which are actions done by a party-to-the-contract,
-\item oracle events, which provide information from the environment, and
-\item deadline events, which are transitions mandated by the contract.
+\item \penames, which are actions done by a party-to-the-contract,
+\item \oenames, which provide information from the environment, and
+\item \denames, which are transitions mandated by the contract.
 \end{PPI}
 An \firstuse{event instance}{einst} is a tuple $\tup{e,a,t,\sigma}$ where $e$ is an \ename, $a$ is an \actor, $t$ is a \timestamp, and $\sigma \in \eparamtypes{e}$. The \actor for a deadline \ename is always \codeactor.
 %\todo{Alternatively, that's only for party and oracle events. A deadline event only needs the first and fourth components.}
@@ -222,9 +226,7 @@ Fix an \lsm $M$. \\ A \wfeseq of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ w
 \end{LPPI}
 \end{defn}
 
-\bigskip
-
-\larger\noindent{\bf Execution of \lsms}\smaller \\
+\subsection{Execution of \lsms}
 
 Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The starting \state $G_0$ is always $\tup{\startsname, 0, \initvals}$. Let $i \geq 0$ be arbitrary. Assume the sequence is a valid trace up to entering $G_i = \tup{s,t,\pi}$. Let $E_i$ be $\tup{e, a, t', \sigma}$. We now define the valid values of $G_{i+1} = \tup{s', t', \pi'}$:
 \begin{PPI}
@@ -279,9 +281,9 @@ For $\ename$ $e$, an \firstuse{\estatement{e}}{statement} is one of:
 A \firstuse{\stransimpl}{stransimpl} of $\statetransform{e}$ is a set of \estatements{e} that satisfies the \firstuse{\uuc}{uuc}, which says: Consider the rooted tree formed by a set of \estatements{e}\footnote{A set of \estatements{e}, including the top-level set, is an internal node whose children are the individual \statements. An assignment $\assign{x}{f}$ is a leaf node. And a conditional $\cond{f}{U_1}{U_2}$ is an internal node with two children $U_1$ and $U_2$.}. Any well-typed setting of the \statetransform{e} parameters yields a value of true or false in the ``test'' part $f$ of each conditional node $\cond{f}{U_1}{U_2}$. Consider the subtree formed by dropping the appropriate ``branch'' $U_1$ (if test is false) or $U_2$ (if test is true) of each such node, at every level. Then any \statevar may occur at most once in that subtree.
 \end{defn}
 
-We now officially modify the specification of \lsm to say that each \statetransform{e} is \stransimpl (instead of just being a set of functions of types $\{ \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom(x) \ | \ x \in \statevars \}$). 
+We now officially modify the specification of \lsm to say that each \statetransform{e} is a \stransimpl (instead of just being a set of functions of types $\{ \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom(x) \ | \ x \in \statevars \}$). 
 
-\subsection{Final Specification of \lsm}
+\subsection{Final Specification: \lsmclass{\cF}}
 Since the start of Section \ref{lsmdef}, we've elaborated some details of the initial definition of \lsm, to bring it closer to being a useful subject for formal verification. Here we give just the concise final specification, without explanation of the semantics.
 
 \medskip
@@ -332,9 +334,15 @@ In model checking for expressive models (say, with at least nonlinear integer ar
 
 Symbolic execution is a technique for avoiding some of the approximation, especially for avoiding having to approximate unbounded datatypes with bounded ones (e.g. $\RR$ approximated by {\sf float}). We do not do this for the sake of more accurate/faithful correctness theorems. Indeed, most of the time software is executed with bounded numeric datatypes anyway, and even when not, no fixed computer can actually compute with arbitrarily large numbers. Rather, we use symbolic execution because, if there is not actually complex math going on (e.g. any cryptographic functions) in a program, but only the use of functions that puts us outside decidable theories, then we should be able to save a lot of time by analyzing computation paths in axiomatically-defined batches. 
 
-\bigskip
+\subsubsection{Initial values, fixed or abstract?}
 
 When we symbolically execute an \lsm, we have a choice about whether to use some, all, or none of the model's \initvals of its \statevars. Generally, the more of them used, the faster \statespace exploration will be. For example, in a loan agreement, we could treat an interest rate as an arbitrary element of $(0,1)$. We would then be proving correctness of the agreement for interests rates that we'll never use, which of course is perfectly fine if the analysis finishes in a reasonable amount of time. Alternatively, we could use fixed values of the interest rate only, and whenever we use a new fixed interest rate, we simply rerun symbolic execution.
+
+\subsubsection{Symbolic Execution for \lsmclass{\cF}}
+
+Because symbolic execution can be used both to search for bugs and to exhaustively check a (sometimes infinite) state space, and which task one is doing determines how one should resolve nondeterminism choices. On the other hand, there are parts of the algorithm that should always proceed deterministically. For this reason, we adopt two styles of defining the algorithm.
+
+
 
 %For simplicity, we will give here a symbolic execution algorithm without some simple optimizations that we have implemented. Most notably, we will introduce new constants whenever it's convenient to do so. 
 %
@@ -347,10 +355,10 @@ When we symbolically execute an \lsm, we have a choice about whether to use some
 %\subsection{Symbolic Execution}
 
 
-\subsection{Exhaustive Model Checking for finite or tamely-infinite state spaces} \label{tamelyinfinite}
-Suppose the only \statevars in an \lsm $M$ are boolean, and suppose that for every \erule $r$ none of $\enabledguard{r}$, $\reguard{r}$, $\deadfn{r}$, or $\epconstr{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM). If there are no \statevars, then $M$ is equivalent for formal verification purposes to a normal FSM. Many important properties about FSMs are decidable. If the specification of such a model $M$ is given entirely in terms of a \statespace invariant, then full formal verification can be checked exhaustively by well-known methods.
+\subsection{Exhaustive Model Checking for Finite and Tamely-Infinite State Spaces} \label{tamelyinfinite}
+Suppose the only \statevars in an \lsm $M$ are \Bool or enums, and suppose that for every \erule $r$ and \ename $e$ none of $ $\reguard{r}$, $\deadfn{r}$, $\epconstr{r}$, $\statetransform{e}$, or $\params{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM). If there are no \statevars, then $M$ is equivalent for formal verification purposes to a normal FSM. Many important properties about FSMs are decidable. For example, if the specification of such a model $M$ is given entirely in terms of a \statespace invariant, then full formal verification can be checked exhaustively by well-known methods.
 
-We may relax the constraint on the functions/predicates that take \timestamp arguments somewhat, which results in a computation model similar to \\ \extlink{https://drum.lib.umd.edu/bitstream/handle/1903/15232/Fontana_umd_0117E_15027.pdf?sequence=1&isAllowed=y}{Timed Automata} with a single clock (but we have not yet mapped the correspondence carefully!).
+We may relax the constraint on the functions/predicates that take \timestamp arguments somewhat, allowing constraints that are boolean combinations of atomic formulas of the form \[ \text{(linear fn of $t$,$t'$)} \ (\leq | < | =) \ \text{(linear fn of $t$,$t'$)} \] where $t$ is the current \timestamp and $t'$ is the next. DateTime and TimeDelta literals can be used also, in the higher-level DSL). This results in a computation model close or equivalent to \extlink{https://drum.lib.umd.edu/bitstream/handle/1903/15232/Fontana_umd_0117E_15027.pdf?sequence=1&isAllowed=y}{Timed Automata} with two clocks, one of which is never reset and the other that is  reset after each \einst. We have not yet proved such a reduction, so take it with a grain of salt.
 
 \subsection{Unbounded-Trace Formal Verification with Pre/Postconditions and Invariants}
 
