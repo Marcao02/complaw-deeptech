@@ -15,7 +15,7 @@
 	(Action DoIt
 		(FollowingSituation
 			(DoIt (when (and
-				(next_event_td > last_situation_td)
+				(next_event_td > (last_situation_td + 1))
 				(next_event_td < 5m) )
 			))
 

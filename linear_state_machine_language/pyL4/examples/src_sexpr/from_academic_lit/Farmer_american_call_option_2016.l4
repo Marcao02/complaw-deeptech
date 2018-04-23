@@ -22,8 +22,8 @@
 )
 
 (StateVars
-	(writes1 seller_funds : $)
-	(writes1 buyer_funds : $)
+	(writes≤1 seller_funds : $)
+	(writes≤1 buyer_funds : $)
 	(writes≤1 buyer_final_shares : ShareCnt)
 	(writes≤1 seller_final_shares : ShareCnt)
 )
@@ -48,6 +48,7 @@
 		(FollowingSituation
 			(Next
 				(Buyer may ExerciseOption (when next_event_dt ≤ (str2dt "December 17, 2015")))
+				(EnterFulfilled (when next_event_dt > (str2dt "December 17, 2015")))
 			)
 		)
 	)
@@ -72,4 +73,6 @@
 		)
 		(TransitionsTo Fulfilled)
 	)
+
+	(Action EnterFulfilled (TransitionsTo Fulfilled))
 )

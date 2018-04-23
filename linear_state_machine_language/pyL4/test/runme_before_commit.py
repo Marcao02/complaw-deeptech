@@ -9,7 +9,7 @@ tests_to_run = {
     'L4typechecker',
     'smt',
     'graphviz',
-    'prettyprint',
+    # 'prettyprint',
     'interpreter',
 }
 

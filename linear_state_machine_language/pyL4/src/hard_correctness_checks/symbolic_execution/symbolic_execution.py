@@ -187,13 +187,13 @@ def symbolic_execution(prog:L4Contract):
                 elif term in contractParams:
                     return contractParams[term]
                 else:
-                    raise Exception(f"Don't recognize term {term} in" "\n" f"term2z3({term}, {state}, {next_state}, {actparam_store}). See {topterm.coord if isinstance(topterm,Term) else '?'}")
+                    raise Exception(f"Don't recognize term {term} in" "\n" f"helper({term}) in term2z3({topterm}, {state}, {next_state}, {actparam_store}). See {topterm.coord if isinstance(topterm,Term) else '?'}")
             elif isinstance(term,BoundVar):
                 return helper(term.name)
             elif isinstance(term,Literal):
                 return helper(term.lit)
             elif isinstance(term, FnApp):
-                if term.fnsymb_name in {"trust","check"}:
+                if term.fnsymb_name in {"trust","check","units"}:
                     todo_once("NOTE assuming all types are correct, even those using 'trust' or 'check', because"
                               " at the moment symbolic exec is failing to prove them, but previous use of SMT worked.")
                               # " so, not checking `(check Sort Term)` expressions")
@@ -202,6 +202,7 @@ def symbolic_execution(prog:L4Contract):
                     #     SORT_TO_PRED[cast(str,sortlit.lit)](helper(term.args[1])),
                     #     None, None, core
                     # ))
+                    # for now, just skipping the sort argument
                     return helper(term.args[1])
                 # smttermstr = str(term2smtterm(term))
                 # print("type(term):", type(term))
@@ -283,7 +284,7 @@ def symbolic_execution(prog:L4Contract):
             if isinstance(x,str):
                 if x.startswith("write_"):
                     varname = x[6:]
-                    assert varname not in written, f"Variable {varname} written to more than once in a path through a StateTransform section"
+                    assert varname not in written, f"Variable {varname} written to more than once in a path through a StateTransform section. This is 'written': {written}. The whole 'extra' dump: {extra}"
                     written.add(varname)
             elif isinstance(x,tuple) and len(x) >= 2 and x[0].startswith("action_"):
                 written = set()
@@ -378,10 +379,12 @@ def symbolic_execution(prog:L4Contract):
             print(f"sevalBlock(...,{state},{next_state}...,{t}")
         assert isinstance(state, LedgerDict), type(state)
         assert isinstance(next_state, LedgerDict), type(next_state)
+
         if len(block) == 0:
+            # we're done evaluating statements. time to copy assignments that didn't change, from state to next_state.
+            # minor optimization: if the assignments are identical in memory, then there's certainly nothing to do.
             if state is not next_state:
                 for v in state:
-                    # print(state)
                     if v not in next_state:
                         next_state = next_state.set(v, state[v])
             return SEvalRVChange(next_state=next_state,path_constraint=pathconstr,extra=extra)
@@ -391,8 +394,10 @@ def symbolic_execution(prog:L4Contract):
             if isinstance(rv1, (SEvalRVInconsistent, SEvalRVStopThread)):
                 return rv1
             elif isinstance(rv1, SEvalRVChange):
-                return sevalBlock(block[1:], rv1.next_state,a, actparam_store,
-                                  CoreSymbExecState(rv1.path_constraint, time_pathconstr, state, t, envvars, rv1.extra ))
+                # now it is each statement's responsibility to execute the next statement
+                return rv1
+                # return sevalBlock(block[1:], rv1.next_state,a, actparam_store,
+                #                   CoreSymbExecState(rv1.path_constraint, time_pathconstr, state, t, envvars, rv1.extra ))
             else:
                 raise Exception(rv1)
 
@@ -414,6 +419,10 @@ def symbolic_execution(prog:L4Contract):
             # return SEvalRVChange(next_state, pathconstr, extra)
             todo_once("suspiciously duplicated logic")
             next = stmt.next_statement()
+            # if stmt.varname == "conversion_price":
+            #     print("write statement", stmt)
+            #     print("next is", next)
+
             if next:
                 return sevalStatement(next, next_state, a, actparam_store,
                                       CoreSymbExecState(core.path_constraint, core.time_path_constraint, core.state, core.time, core.env_vars,
@@ -607,14 +616,27 @@ def symbolic_execution(prog:L4Contract):
                                                   qp.core.env_vars,
                                                   res.extra))
 
+                # elif isinstance(res, (SEvalRVStopThread, SEvalRVInconsistent)):
+                #     return res
+
                 elif isinstance(res, SEvalRVStopThread):
                     return res
-
                 else:
                     assert False, res
+                # # making this case explicit even though doesn't need to be cuz doesn't hurt and makes it clearer
+                # elif isinstance(res, SEvalRVInconsistent):
+                #     raise res
+                # else:
+                #     raise NotImplementedError(str(res))
+
 
             elif checkres == z3.unsat:
-                return SEvalRVInconsistent("GuardedBlockPath query unsat")
+                if qp.next_statement:
+                    return sevalStatement(chcast(Statement, qp.next_statement), chcast(LedgerDict, qp.next_state),
+                                          qp.action, qp.action_params, qp.core)
+                else:
+                    return sevalActionAfterStateTransform(qp.action, qp.next_state, qp.core)
+                # return SEvalRVInconsistent("GuardedBlockPath query unsat")
 
         elif isinstance(qp, ActionRuleEnabledPath):
             checkres = check(qp.core.full_constraint())
@@ -697,11 +719,12 @@ def symbolic_execution(prog:L4Contract):
     for_contractParams : Dict[str,Z3Term] = dict()
     cdec : ContractParamDec
     for paramname,cdec in prog.contract_params.items():
-        if USE_CONTRACT_PARAM_VALS:
+        if cdec.value_expr is None or not USE_CONTRACT_PARAM_VALS:
+            for_contractParams[paramname] = name2symbolicvar(paramname, cdec.sort, sz3)
+        else:
             assert isinstance(cdec.value_expr, Literal), "This shouldn't be a constraint. Ask Dustin to fix it. Sorry."
             for_contractParams[paramname] = somewhatPrimValToZ3(cdec.value_expr.lit, prog.timeunit)
-        else:
-            for_contractParams[paramname] = name2symbolicvar(paramname, cdec.sort, sz3)
+
     contractParams = OneUseFrozenDict[str,Z3Term](for_contractParams)
     envvars: Store = Store({
         "last_event_td": name2symbolicvar('td_0',"TimeDelta"),
