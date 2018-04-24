@@ -61,6 +61,11 @@
 
 % ---------------------
 
+\newsavebox{\fmbox}
+\newenvironment{fmpage}[1]
+{\begin{lrbox}{\fmbox}\begin{minipage}{#1}}
+{\end{minipage}\end{lrbox}\fbox{\usebox{\fmbox}}}
+
 \newenvironment{indentedpar}
 { \parbox{\parindent}{}  \hfill \begin{minipage}{\linewidth - \parindent}}
 {\end{minipage} \vspace{.02cm}}
