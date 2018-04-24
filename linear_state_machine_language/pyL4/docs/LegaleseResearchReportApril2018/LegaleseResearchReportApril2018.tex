@@ -304,7 +304,7 @@ A \firstuse{\stransimpl}{stransimpl} of $\statetransform{e}$ is a set of \estate
 
 We now officially modify the specification of \lsm to say that each \statetransform{e} is a \stransimpl (instead of just being a set of functions of types $\{ \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom(x) \ | \ x \in \statevars \}$). 
 
-\subsection{Final Specification: \lsmclass{\cF}}
+\subsection{Basic Specification: \lsmclass{\cF}}
 Since the start of Section \ref{lsmdef}, we've elaborated some details of the initial definition of \lsm, to bring it closer to being a useful subject for formal verification. Here we give just the concise final specification, without explanation of the semantics.
 
 \medskip
@@ -355,6 +355,8 @@ Familiarity with SMT is not a prerequisite for this document, but if you are unf
 
 \subsection{Checking the Basic Correctness Conditions}
 We will define here how we use an SMT solver to verify the \udc, \nsc, and \uuc.
+
+\subsection{\lsmclass{\cF} Extension: Adding Pre/Postconditions and Invariants}
 
 \subsection{Symbolic Execution} \label{symbexec}
 In model checking for expressive models (say, with at least nonlinear integer arithmetic available), usually\footnote{The term ``model checking'' is used rather inconsistently.} an infinite-state model is approximated by a finite or tamely-infinite state model, and correctness properties of the approximation model are checked exhaustively, or exhaustively up to a certain maximum computation path length. In Section \ref{tamelyinfinite} we will consider some cases where approximation is not necessary.
@@ -412,6 +414,7 @@ Let $\DT$ be $\sortsof{\cF}$. $>_{ts} {:} \timestamp \times \timestamp \rarr \Bo
 
 
 
+
 %Because symbolic execution can be used both to search for bugs and to exhaustively check a (sometimes infinite) state space, and which task one is doing determines how one should resolve nondeterminism choices. On the other hand, there are parts of the algorithm that should always proceed deterministically. For this reason, we adopt two styles of defining the algorithm.
 
 
@@ -435,6 +438,14 @@ We may relax the constraint on the functions/predicates that take \timestamp arg
 \subsection{Unbounded-Trace Formal Verification with Pre/Postconditions and Invariants}
 
 \subsection{Unexplored: Hard Unbounded-Trace Formal Verification with Interactive Theorem Proving}
+
+\section{Extensions}
+\subsection{Unbounded \actor Set}
+This is to accommodate smart contracts (aka dapps). It is a \textbf{\underline{very}} tentative proposal.
+
+\newcommand{\unknown}{\term{unknown}}
+\newcommand{\role}{\term{role}}
+We introduce to the definition of \lsmclass{\cF} another finite set \role, which always include a special symbol \unknown. \unknown is the role of a party (i.e. ethereum address, in the ethereum dapp context) who has never interacted with the contract before, and who was not known to the parties who initiated the contract. It is thus used at most once by any one party. An \einst allowed by an \erule governing \unknown has the side effect of assigning a non-\unknown \role to the party that initiates the \einst.
 
 \section{L4: An Experimental but Practical \lsm-compatible DSL}
 
