@@ -6,9 +6,16 @@
 \usepackage{LegaleseResearchReportApril2018_environments}
 \usepackage{LegaleseResearchReportApril2018_generic_macros}
 
+\usepackage{proof}
+\newcommand{\stackone}[2]{\deduce{#1}{#2}}
+\newcommand{\stacktwo}[3]{\deduce{#1}{\deduce{#2}{#3}}}
+\newcommand{\stackthree}[4]{\deduce{#1}{\deduce{#2}{\deduce{#3}{#4}}}}
+
 \usepackage[top=1.5in]{geometry}
 %\usepackage{geometry}
 
+
+\newcommand*{\mybox}[1]{\centerline{\begin{fmpage}{5.5in}#1\end{fmpage}}}
 
 \usepackage{draftwatermark}
 \SetWatermarkText{DRAFT}
@@ -42,25 +49,34 @@
 %\ClockStyle1
 %\newcommand{\timestamp}{\clocktime}
 
+% ------------------
+% STATE VARS
+% ------------------
 \newcommand{\statevar}{\termz{statevars}{statevar}}
 \newcommand{\statevars}{\term{statevars}}
-%\newcommand{\VDom}{\termz{statevartypes}{statevar-domains}}
-%\newcommand{\VDom}{\termz{statevartypes}{VDom}}
-\newcommand{\VDom}{\termz{statevartypes}{Global}}
+%\newcommand{\svsorts}{\termz{svsorts}{statevar-domains}}
+%\newcommand{\svsorts}{\termz{svsorts}{VDom}}
+\newcommand{\svsorts}{\termz{svsorts}{\EM{\textsf{\hyperref[svsorts]{sorts}}_{\textsf{state}}}}}
 \newcommand{\initvals}{\term{initvals}}
 
+
+% --------------------------------------------------
+% EVENTS AND THEIR PARAMETERS
+% --------------------------------------------------
 \newcommand{\ename}{\termz{ename}{event}}
 \newcommand{\einst}{\termz{einst}{event-instance}}
 \newcommand{\penames}{\termz{penames}{\text{party-events}}}
 \newcommand{\oenames}{\termz{oenames}{\text{oracle-events}}}
 \newcommand{\denames}{\termz{denames}{\text{deadline-events}}}
 \newcommand{\einsts}{\termz{einst}{event-instances}}
-%\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Dom}}_{#1}}
-\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{Param}}_{#1}}
+\newcommand{\epsorts}[1]{\textsf{\hyperref[epsorts]{sorts}}_{#1}}
+\newcommand{\edest}[1]{\textsf{\hyperref[edest]{dest}}_{#1}}
 
-%\newcommand{\eparamtypes}[1]{\textsf{\hyperref[eparamtypes]{param-types}}_{#1}}
-
+% ---------------------
+% EVENT RULES
+% ---------------------
 \newcommand{\ehandler}{\termz{ehandler}{event-handler}}
+\newcommand{\ehandlerof}[1]{\EM{\textsf{\hyperref[ehandler]{handler}}_{#1}}\xspace}
 \newcommand{\erule}{\termz{erule}{event-rule}}
 \newcommand{\erules}{\termz{erule}{event-rules}}
 \newcommand{\enabled}{\term{enabled}}
@@ -68,18 +84,22 @@
 \newcommand{\compatiblewith}{\termz{compatiblewith}{compatible with}}
 \newcommand{\enabledguard}{\termz{enabledguard}{enabled-guard}}
 \newcommand{\enabledguards}{\termz{enabledguard}{enabled-guards}}
-\newcommand{\params}[1]{{\sf \hyperref[params]{params}}_{#1}} %for deadline event rules
-\newcommand{\paramspart}[2]{{\sf \hyperref[paramspart]{params}}_{#1}^{#2}}
-% re for 'rule enabled'
-\newcommand{\reguard}[1]{\EM{\textsf{\hyperref[reguard]{enabled-guard}}_{#1}}}
-\newcommand{\deadfn}[1]{\EM{\textsf{\hyperref[deadfn]{deadline}}_{#1}}}
-% ep for 'event parameters'
+\newcommand{\psetter}[1]{{\sf \hyperref[psetter]{psetter}}_{#1}} %for deadline event rules only
+\newcommand{\psetterpart}[2]{{\sf \hyperref[psetterpart]{psetter}}_{#1}^{#2}}
+\newcommand{\reguard}[1]{\EM{\textsf{\hyperref[reguard]{enabled-guard}}_{#1}}} % re for 'rule enabled'
+\newcommand{\deadfn}[1]{\EM{\textsf{\hyperref[deadfn]{deadline}}_{#1}}} % ep for 'event parameters'
 \newcommand{\epconstr}[1]{\EM{\textsf{\hyperref[epconstr]{param-constraint}}_{#1}}}
 \newcommand{\udc}{\termz{udc}{unambiguous deadline condition}}
 \newcommand{\nsc}{\termz{nsc}{never-stuck condition}}
 \newcommand{\governs}{\term{governs}}
+\newcommand{\prules}{\term{party-rules}}
+\newcommand{\orules}{\term{oracle-rules}}
+\newcommand{\drules}{\term{deadline-rules}}
 
 
+% ------------------
+% SITUATIONS
+% ------------------
 \newcommand{\sname}{\termz{sname}{situation}}
 \newcommand{\startsname}{\termz{startsname}{start-situation}}
 \newcommand{\fulfilled}{\term{fulfilled}}
@@ -87,6 +107,10 @@
 \newcommand{\shandler}{\termz{shandler}{situation-handler}}
 \newcommand{\shandlerof}[1]{\EM{\textsf{\hyperref[shandler]{handler}}_{#1}}\xspace}
 
+
+% -------------------------------
+% STATE TRANSFORMS
+% -------------------------------
 \newcommand{\statetransform}[1]{\EM{\textsf{\hyperref[statetransform]{statetransform}}_{#1}}}
 \newcommand{\statetransforms}{\EM{\textsf{\hyperref[statetransform]{statetransforms}}}}
 \newcommand{\stranspart}[2]{\EM{\textsf{\hyperref[statetransform]{statetransform}}_{#1}^{#2}}}
@@ -97,7 +121,7 @@
 \newcommand{\estatement}[1]{\EM{#1\text{-}\textsf{\hyperref[estatement]{statement}}}}
 \newcommand{\estatements}[1]{\EM{#1\text{-}\textsf{\hyperref[estatement]{statements}}}}
 %\newcommand{\estatements}[1]{#1-\termz{statement}{statements}}
-\newcommand{\stransimpl}{\termz{stransimpl}{statement-implementation}}
+\newcommand{\stransimpl}{\termz{stransimpl}{conditional-tree}}
 \newcommand{\uuc}{\termz{uusc}{unambiguous statevar-update condition}}
 
 
@@ -106,6 +130,7 @@
 
 \newcommand{\trace}{\term{trace}}
 \newcommand{\wfeseq}{\termz{wfeseq}{well-formed event sequence}}
+
 
 \newcommand{\Bool}{\textsf{bool}\xspace}
 \newcommand{\DT}{\EM{\mathbb{\hyperref[DT]{D}}}\xspace}
@@ -121,6 +146,12 @@ L4, and Formal Verification of Contracts \\
 \smaller \smaller Report on Computational Law Research by \extlink{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
 \begin{document}
 \maketitle
+
+\noindent
+\todo{Closure of $\cF$ under composition}\\
+\todo{Kill $\epsorts{e}$ in favour of the one-sort-per-name requirement}\\
+\todo{Maybe kill $\svsorts$ for the same reason}\\
+
 
 \begin{abstract}
 This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace}\footnote{https://legalese.slack.com} and introducing yourself if you're planning on spending more than half an hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
@@ -151,7 +182,16 @@ We will always be working with a fixed minimal \firstuse{timeunit}{timeunit}, wh
 It is worth emphasizing that \timestamps are distinct from both DateTimes (some standard for calendar dates, clock times, time zones) and TimeDeltas (i.e. durations, which are similar to \timeunit aside from coming in more than one unit), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
 
 Fix a set \firstuse{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lsm-compatible languages we almost always include $\timestamp$ as well, and will usually include $\ZZ$ and $\RR$. We require that these datatypes are definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes\footnote{Though then quantifier free validity is undecidable, so the solver is incomplete.}, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
+%
+\mybox{\begin{bnote}
+We will skip specifying that various symbol sets are disjoint. Any two symbol sets that you might expect to be disjoint, are required to be disjoint.
+\end{bnote}}
 
+\mybox{\begin{bnote}
+Every typed symbol is used with a unique sort (i.e. element of $\DT$), regardless of scope. 
+\end{bnote}}
+
+%
 Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \begin{PPI}
 \item The parties to the contract.
@@ -160,13 +200,13 @@ Fix a finite set of symbols \firstuse{actor}{actor}, which includes:
 \end{PPI}
 Before publication of this document, we will likely replace the finite set of party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of party-\actors in each role, since that seems to be necessary to model many blockchain smart contracts in a natural way.
 
-Fix a finite set of symbols \firstuse{event}{ename}, and for each such $e$ a parameter type assignment $\eparamtypes{e} \in \DT^*$. Furthermore, partition \ename into three kinds of events:
+Fix a finite set of symbols \firstuse{event}{ename}, and for each such $e$ a parameter type assignment $\epsorts{e} \in \DT^*$. Furthermore, partition \ename into three kinds of events:
 \begin{PPI}
 \item \penames, which are actions done by a party-to-the-contract,
 \item \oenames, which provide information from the environment, and
 \item \denames, which are transitions mandated by the contract.
 \end{PPI}
-An \firstuse{event instance}{einst} is a tuple $\tup{e,a,t,\sigma}$ where $e$ is an \ename, $a$ is an \actor, $t$ is a \timestamp, and $\sigma \in \eparamtypes{e}$. The \actor for a deadline \ename is always \codeactor.
+An \firstuse{event instance}{einst} is a tuple $\tup{e,a,t,\sigma}$ where $e$ is an \ename, $a$ is an \actor, $t$ is a \timestamp, and $\sigma \in \epsorts{e}$. The \actor for a deadline \ename is always \codeactor.
 %\todo{Alternatively, that's only for party and oracle events. A deadline event only needs the first and fourth components.}
 
 %The  include ``oracle'' or environmental actions ``performed'' by the special \Actor \introx{Env}{Env}. We also use the special \Actor \introx{ContractActor}{Contract} for the \Actor component of \devents.
@@ -184,41 +224,42 @@ A Legal State Machine (\lsm) first of all fixes the definitions of the terms int
 %There is also an \etype \intro{$\breaches{X}$} for each such $X$, and $\intro{\breach{X}{t}}$ is defined as the \FSContract \Event $\tup{\breaches{X}, \Env, t}$
 \end{PPI}
 %, and partitions \ename into three subsets: party event names, oracle event names, and deadline event names.
-An \lsm $M$ also has an ordered finite set of symbols \firstuse{\statevars}{statevars}, and an assignment \firstuse{\VDom}{statevartypes} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \VDom to be an element of $\DT^*$. $M$ also includes an initial setting \initvals of its \statevars.
+An \lsm $M$ also has an ordered finite set of symbols \firstuse{\statevars}{statevars}, and an assignment \firstuse{\svsorts}{svsorts} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \svsorts to be an element of $\DT^*$. $M$ also includes an initial setting \initvals of its \statevars.
 
 The \firstuse{state space}{statespace} of $M$ is the product set
-\[ \sname \times \VDom \times \timestamp\] %(element of $\TS$).
+\[ \sname \times \svsorts \times \timestamp\] %(element of $\TS$).
 and a \firstuse{\state}{state} is an element of the \statespace.
 
 The remainder and bulk of the definition of an \lsm is a mapping from \sname to {\it situation handlers}, and a mapping from \ename to {\it event handlers}.
 An \firstuse{\ehandler}{ehandler} for \ename $e$ consists of:
 \begin{PPI}
-\item a destination \sname.
+\item $\edest{e} \in \sname$.
 \item a function \firstuse{\statetransform{e}}{statetransform} of type
-\[\timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom\]
+\[\timestamp^2 \times \svsorts \times \epsorts{e} \rarr \svsorts\]
 \end{PPI}
 where the two \timestamp arguments provided to \statetransform{e} will always be the \timestamps of the previous and next \einsts.
 
-Each \sname gets a \firstuse{\shandler}{shandler}, which for now is just a finite set of \erules that satisfy the condition \udc given below. An \firstuse{\erule}{erule} is one of three types: a {\it party rule}, {\it oracle rule}, or {\it deadline rule}. Every \erule \firstuse{\governs}{governs} the applicability of a unique \ename by a unique \actor.\footnote{In L4, we offer syntax for concisely expressing a set of such rules that apply to different elements of \ename and \actor.} Every \erule $r$ has a relation \firstuse{\reguard{r}}{reguard} on 
-\[\timestamp \times \VDom\]
+Each \sname gets a \firstuse{\shandler}{shandler}, which for now is just a finite set of \erules that satisfy the condition \udc given below. The set \firstuse{\erule}{erule} is partitioned into: \prules, \orules, and \drules. Every \erule \firstuse{\governs}{governs} the applicability of a unique \ename by a unique \actor.\footnote{In L4, we offer syntax for concisely expressing a set of such rules that apply to different elements of \ename and \actor.} Every \erule $r$ has a relation \firstuse{\reguard{r}}{reguard} on 
+\[\timestamp \times \svsorts\]
 where the \timestamp argument is the \timestamp of the previous \einst. Frequently in our examples, \reguard{r} is just the trivial relation \textsf{true}. $r$ is \firstuse{\enabled}{enabled} upon entering its parent situation at the \timestamp $t$ of the previous \einst iff \reguard{r} is true when evaluated at $t$ and the current statevar assignment. 
-\centerline{\begin{fmpage}{5.5in}
-\begin{remark}[redundancy of $\reguard{r}$ for party/oracle rules] \label{guardredundancy}
+
+%\centerline{\begin{fmpage}{5.5in}
+\begin{bnote}[redundancy of $\reguard{r}$ for party/oracle rules] \label{guardredundancy}
 With respect to the execution semantics (Section \ref{execution}), it is easy to eliminate $\reguard{r}$ for party and oracle \erules $r$ (though not for deadline \erules), by conjoining $\reguard{r}$ to $\epconstr{r}$. We will do this for some formal verification purposes where the simplification of the model outweighs the cost (in development time) of interpreting errors and traces. From the practical software engineering perspective, on the other hand, we have found it is very natural to split the constraint on when an oracle/party \erule can apply into
 \begin{LPPI}
 \item The (usually-maximal) part that depends only on the current \state. This is $\reguard{r}$.
 \item The part that depends on the next \einst. This is $\epconstr{r}$.
 \end{LPPI}
-\end{remark}
-\end{fmpage}}
+\end{bnote}
+%\end{fmpage}}
 
 \medskip
 
 A deadline event rule $r$ governing the applicability of a deadline \ename $e$ has an additional {\it deadline function} $\firstuse{\deadfn{r}}{deadfn}$ of type
-\[ \timestamp \times \VDom \rarr \timestamp\]
+\[ \timestamp \times \svsorts \rarr \timestamp\]
 where the \timestamp argument is the \timestamp of the previous \einst.
-$r$ also has a {\it parameter setter} $\firstuse{\params{r}}{params}$ of type
-\[ \timestamp \times \VDom \rarr \eparamtypes{e}  \]
+$r$ also has a {\it parameter setter} $\firstuse{\psetter{r}}{psetter}$ of type
+\[ \timestamp \times \svsorts \rarr \epsorts{e}  \]
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 
 Since deadline \erules cause an event to occur automatically when the rule activates, we would need to either specify what happens when two such rules activate at the same time, or else ensure that can't happen. We take the latter approach.\footnote{Because we see no natural way to pick one over the other. Note that the \erules are not ordered.} For now, we adopt a constraint that is stronger than necessary but especially simple:\footnote{A closer-to-minimal constraint is: when the \enabledguards of two deadline \erules are simultaneously true, their deadline functions cannot yield the same \timestamp (and then the earlier of the two deadlines is used). We have not yet experienced any desire for the extra leniency, but in case we do, it would be easy to allow it.} \\
@@ -228,7 +269,7 @@ As a very basic liveness condition, we want that an \lsm can't get stuck in a \s
 
 
 Each party and oracle event rule $r$ governing the applicability of a party or oracle \ename $e$ has an additional {\it parameter constraint relation} \firstuse{$\epconstr{r}$}{epconstr} on
-\[ \timestamp^2 \times \VDom \times \eparamtypes{e}\]
+\[ \timestamp^2 \times \svsorts \times \epsorts{e}\]
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 Note that a {\it parameter setter} is a special case of a {\it parameter constraint relation}. Because that special case is used fairly frequently, in L4 we allow party and oracle event rules to use the {\it parameter setter} syntax of deadline event rules instead of their own {\it parameter constraint relation} syntax.
 \begin{center}
@@ -254,7 +295,7 @@ Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The start
 
 \item If $E_i$ is a party (resp. oracle) \einst, then it must be \compatiblewith some party (resp. oracle) \erule $r$ of $s$ that is \enabled in $G_i$ such that $\epconstr{r}$ is true at $\tup{t, t', \pi, \sigma}$.
 
-\item If $E_i$ is a deadline \einst, then it must be \compatiblewith the unique\footnote{by the \udc} deadline \erule $r$ of $s$ that is enabled in $G_i$ such that $\deadfn{r}(t, \pi) = t'$. Moreover, $\sigma$ must be $\params{r}(t,\pi)$. 
+\item If $E_i$ is a deadline \einst, then it must be \compatiblewith the unique\footnote{by the \udc} deadline \erule $r$ of $s$ that is enabled in $G_i$ such that $\deadfn{r}(t, \pi) = t'$. Moreover, $\sigma$ must be $\psetter{r}(t,\pi)$. 
 
 \item $\pi' = \statetransform{e}(t, t', \pi, \sigma)$.
 
@@ -267,16 +308,16 @@ So far, \lsm is not a complete language, in the sense that it does not have an a
 
 \noindent {\bf Initial abstract components of \lsm \label{initialabstract}}:
 \begin{LPPI}
-\item $\statetransform{e} : \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom$ for each \ename $e$.
-\item $\reguard{r} : \timestamp \times \VDom \rarr \Bool$ for each \erule $r$.
+\item $\statetransform{e} : \timestamp^2 \times \svsorts \times \epsorts{e} \rarr \svsorts$ for each \ename $e$.
+\item $\reguard{r} : \timestamp \times \svsorts \rarr \Bool$ for each \erule $r$.
 \item For each party or oracle \erule $r$ that \governs an \ename $e$:
 	\begin{LPPI} 
-	\item $\epconstr{r} : \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \Bool$
+	\item $\epconstr{r} : \timestamp^2 \times \svsorts \times \epsorts{e} \rarr \Bool$
 	\end{LPPI}
 \item For each deadline \erule $r$ that \governs an \ename $e$.
 	 \begin{LPPI}
-	\item $\deadfn{r} : \timestamp \times \VDom \rarr \timestamp$
-	\item $\params{r} : \timestamp \times \VDom \rarr \eparamtypes{e}$ 	
+	\item $\deadfn{r} : \timestamp \times \svsorts \rarr \timestamp$
+	\item $\psetter{r} : \timestamp \times \svsorts \rarr \epsorts{e}$ 	
 	\end{LPPI}
 \end{LPPI}
 
@@ -285,24 +326,24 @@ Despite the lack of concreteness, we saw that there is enough detail that execut
 In this section, we reduce the {\it description} of the abstraction level significantly, while maintaining the flexibility of being able to define \lsm-compatible languages that range from finite state machines to Turing complete languages.\footnote{Technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!}
 Recall that that the set of basic datatypes or {\it sorts} \DT is a parameter to \lsm. After this section, we will have a notion of {\it class of \lsm} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some  $S_0,\ldots,S_k \in \DT$. Note that, for the sake of this report, we take individual elements of the sorts $\DT$ to be $0$-ary functions in $\cF$.
 
-Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.} Surprisingly little is needed in the way of additional definitions. Since $\VDom \in \DT^*$ already, the functions $\reguard{r}$, $\epconstr{r}$, and $\deadfn{r}$ are already of the required $\cF$-form. The remaining two categories of functions $\params{r}$ and $\statetransform{e}$ in the bullet-list above simply get replaced by their point-wise components
+Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.} Surprisingly little is needed in the way of additional definitions. Since $\svsorts \in \DT^*$ already, the functions $\reguard{r}$, $\epconstr{r}$, and $\deadfn{r}$ are already of the required $\cF$-form. The remaining two categories of functions $\psetter{r}$ and $\statetransform{e}$ in the bullet-list above simply get replaced by their point-wise components
 
 \begin{LPPI}
-\item For each deadline \erule $r$ that \governs an \ename $e$, and each sort $S_i \in \eparamtypes{e}$, a function $\paramspart{r}{i} :  \timestamp \times \VDom \rarr S_i$
-\item For each \ename $e$, and each sort $S_i \in \VDom$, a function $\stranspart{e}{i} : \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr S_i$.
+\item For each deadline \erule $r$ that \governs an \ename $e$, and each \erule-parameter $x_i$ of sort $S_i \in \epsorts{e}$, a function $\psetterpart{r}{x_i} :  \timestamp \times \svsorts \rarr S_i$
+\item For each \ename $e$, and each sort $S_i \in \svsorts$, a function $\stranspart{e}{i} : \timestamp^2 \times \svsorts \times \epsorts{e} \rarr S_i$.
 \end{LPPI}
 
 We go one step further by introducing some minimal structure into the $\statetransforms$, which has a role in \textcolor{blue}{\hyperref[symbexec]{symbolic execution}}. 
 \begin{defn}[\statement, \stransimpl]
 For $\ename$ $e$, an \firstuse{\estatement{e}}{statement} is one of:
 \begin{PPI}
-\item $\assign{x}{f}$ for some $x \in \statevars$ of sort $S$\footnote{i.e. $\VDom(x) = S$} and some function $f$ of type $\timestamp^2 \times \VDom \times \eparamtypes{e} \rarr S$.
-\item $\cond{f}{U_1}{U_2}$ for some function $f$ of type $\timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \Bool$ and finite sets of \estatements{e} $U_1, U_2$. 
+\item $\assign{x}{f}$ for some $x \in \statevars$ of sort $S$\footnote{i.e. $\svsorts(x) = S$} and some function $f$ of type $\timestamp^2 \times \svsorts \times \epsorts{e} \rarr S$.
+\item $\cond{f}{U_1}{U_2}$ for some function $f$ of type $\timestamp^2 \times \svsorts \times \epsorts{e} \rarr \Bool$ and finite sets of \estatements{e} $U_1, U_2$. 
 \end{PPI}
 A \firstuse{\stransimpl}{stransimpl} of $\statetransform{e}$ is a set of \estatements{e} that satisfies the \firstuse{\uuc}{uuc}, which says: Consider the rooted tree formed by the set of \estatements{e} \statetransform{e}\footnote{The tree: A set of \estatements{e} is an internal node whose children are the individual \statements, with the top-level set $\statetransform{e}$ itself being the root of the tree. An assignment $\assign{x}{f}$ is a leaf node. A conditional $\cond{f}{U_1}{U_2}$ is a second kind of internal node with two children $U_1$ and $U_2$ (which, observe, are themselves internal nodes of the first kind).}. Any well-typed setting of the \statetransform{e} parameters yields a value of true or false in the ``test'' part $f$ of each conditional node $\cond{f}{U_1}{U_2}$. Consider the subtree formed by dropping the appropriate ``branch'' $U_1$ (if test is false) or $U_2$ (if test is true) of each such node, at every level. Then any \statevar may occur at most once in that subtree.
 \end{defn}
 
-We now officially modify the specification of \lsm to say that each \statetransform{e} is a \stransimpl (instead of just being a set of functions of types $\{ \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \VDom(x) \ | \ x \in \statevars \}$). 
+We now officially modify the specification of \lsm to say that each \statetransform{e} is a \stransimpl (instead of just being a set of functions of types $\{ \timestamp^2 \times \svsorts \times \epsorts{e} \rarr \svsorts(x) \ | \ x \in \statevars \}$). 
 
 \subsection{Basic Specification: \lsmclass{\cF}}
 Since the start of Section \ref{lsmdef}, we've elaborated some details of the initial definition of \lsm, to bring it closer to being a useful subject for formal verification. Here we give just the concise final specification, without explanation of the semantics.
@@ -322,8 +363,8 @@ Let $\DT$ be $\sortsof{\cF}$. An $\lsmclass{\cF}$ model $M$ is given by the foll
 \begin{LPPI}
 \item $\timeunit^M$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$.
 \item Finite sets $\actor^M, \ename^M, \sname^M$, and $\statevar^M$.
-\item A mapping $\VDom^M$ from $\statevar$ to \DT.
-\item For each $e \in \ename$, a type for its parameters $\eparamtypes{e}^M \in \DT^*$.
+\item A mapping $\svsorts^M$ from $\statevar$ to \DT.
+\item For each $e \in \ename$, a type for its parameters $\epsorts{e}^M \in \DT^*$.
 \item For each $e \in \ename$, a \stransimpl $\statetransform{e}$, which is a set of $\estatements{e}^M$ that satisfies the \uuc. 
 \item For each $s \in \sname$, a \shandler $\shandlerof{s}^M$, which is a finite subset of $\erule^M$ that satisfies the \udc.
 \item A finite set $\erule^M$, with two partitions: 
@@ -331,17 +372,17 @@ Let $\DT$ be $\sortsof{\cF}$. An $\lsmclass{\cF}$ model $M$ is given by the foll
 \item {\it party rules}, {\it oracle rules}, and {\it deadline rules}
 \item $\{ \shandlerof{s}^M \ | \ s \in \sname \}$
 \end{PPI}
-\item An $\cF$ function $\reguard{r}^M : \timestamp \times \VDom \rarr \Bool$ for each \erule $r$.
+\item An $\cF$ function $\reguard{r}^M : \timestamp \times \svsorts \rarr \Bool$ for each \erule $r$.
 \item For each party or oracle \erule $r$ that \governs an \ename $e$:
 \begin{PPI} 
-\item An $\cF$-function $\epconstr{r}^M : \timestamp^2 \times \VDom \times \eparamtypes{e} \rarr \Bool$
+\item An $\cF$-function $\epconstr{r}^M : \timestamp^2 \times \svsorts \times \epsorts{e} \rarr \Bool$
 \end{PPI}
 \item For each deadline \erule $r$ that \governs an \ename $e$.
 	 \begin{PPI}
-	\item An $\cF$-function $\deadfn{r}^M : \timestamp \times \VDom \rarr \timestamp$
-	\item For each sort $S_i \in \eparamtypes{e}$, an $\cF$-function $(\paramspart{r}{i})^M :  \timestamp \times \VDom \rarr S_i$
+	\item An $\cF$-function $\deadfn{r}^M : \timestamp \times \svsorts \rarr \timestamp$
+	\item For each $r$-parameter $x_i$ of sort $S_i \in \epsorts{e}$, an $\cF$-function $(\psetterpart{r}{i})^M :  \timestamp \times \svsorts \rarr S_i$
 	\end{PPI}
-%\item For each \ename $e$, and each sort $S_i \in \VDom$, a function $(\stranspart{e}{i})^M : \timestamp^2 \times \VDom^M \times \eparamtypes{e}^M \rarr S_i$.
+%\item For each \ename $e$, and each sort $S_i \in \svsorts$, a function $(\stranspart{e}{i})^M : \timestamp^2 \times \svsorts^M \times \epsorts{e}^M \rarr S_i$.
 \end{LPPI}
 
 \end{defn}
@@ -371,39 +412,39 @@ When we symbolically execute an \lsm, we have a choice about whether to use some
 \subsubsection{Timeless Normal Form for $\lsmclass{\cF}$}
 We define a normal form for $\lsmclass{\cF}$ which is not literally ``timeless'', but removes the special significance of \timestamp from the model. This is just to make the symbolic execution algorithm simpler.
 
-First, and unrelated to the following \timestamp-related transformations (but with the same goal of simplifying symbolic execution), eliminate $\reguard{r}$ for each party/oracle \erule $r$, as described in Remark \ref{guardredundancy}. 
+First, and unrelated to the following \timestamp-related transformations (but with the same goal of simplifying symbolic execution), eliminate $\reguard{r}$ for each party/oracle \erule $r$, as described in Note \ref{guardredundancy}. 
 \begin{LPPI}
-\item Introduce a new \statevar $\tlast$ of sort \timestamp with initial value $0$.\footnote{i.e. $\VDom(\tlast) = \timestamp$ and $\initvals(\tlast) = 0$.}
-\item Add a parameter $\tnext$ of sort \timestamp to every \ename.\footnote{i.e. $\eparamtypes{e}(\tnext) = \timestamp$ for every \ename $e$.} 
+\item Introduce a new \statevar $\tlast$ of sort \timestamp with initial value $0$.\footnote{i.e. $\svsorts(\tlast) = \timestamp$ and $\initvals(\tlast) = 0$.}
+\item Add a parameter $\tnext$ of sort \timestamp to every \ename \footnote{i.e. $\epsorts{e}(\tnext) = \timestamp$ for every \ename $e$.} 
 \item Add $\assign{\tlast}{\tnext}$ to $\statetransform{e}$ for each $e$.
-\item Move $\deadfn{r}$ into $\params{r}{\tnext}$ for each deadline \erule $r$.
-\item Add $>_{ts} {:} \timestamp^2 \rarr \Bool$ to $\cF$. 
+\item Replace $\psetterpart{r}{i}$ with $\psetterpart{r}{i}(\tlast,\cdot)$. Move $\deadfn{r}(\tnext, \cdot)$ into $\psetterpart{r}{\tnext}$ for each deadline \erule $r$.
+\item Add $>_{ts} {:} \timestamp \times \timestamp \rarr \Bool$ to $\cF$. 
 \item Conjoin ($\wedge$) $\tnext >_{ts} \tlast$ to $\epconstr{r}$ for each party/oracle \erule $r$.
 \end{LPPI}
 
 We obtain the following slightly simplified \lsm definition:
 \begin{defn}[\firstuse{\timelesslsmclass{\cF}}{timeless-lsmclass}]
-Let $\DT$ be $\sortsof{\cF}$. $>_{ts} {:} \timestamp \times \timestamp \rarr \Bool$ must be in $\cF$ (and so \timestamp must be in \DT). A $\timelesslsmclass{\cF}$ model $M$ is given by the following components. To reduce clutter, we omit the superscript $^M$ except at the component's introduction:
+Let $\DT$ be $\sortsof{\cF}$. The relation $>_{ts} {:} \timestamp \times \timestamp \rarr \Bool$ must be in $\cF$ (and so \timestamp must be in \DT). A $\timelesslsmclass{\cF}$ model $M$ is given by the following components. 
 \begin{LPPI}
-\item $\timeunit^M$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$.
-\item Finite sets $\actor^M, \ename^M, \sname^M$, and $\statevar^M$.
-\item A mapping $\VDom^M$ from $\statevar$ to \DT.
-\item For each $e \in \ename$, a type for its parameters $\eparamtypes{e}^M \in \DT^*$.
-\item For each $e \in \ename$, a \stransimpl $\statetransform{e}$, which is a set of $\estatements{e}^M$ that satisfies the \uuc. 
-\item For each $s \in \sname$, a \shandler $\shandlerof{s}^M$, which is a finite subset of $\erule^M$ that satisfies the \udc.
-\item A finite set $\erule^M$, with two partitions: 
+\item $\timeunit$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$.
+\item Finite sets $\actor, \ename, \sname$, and $\statevar$.
+\item A mapping $\svsorts$ from $\statevar$ to \DT.
+\item For each $e \in \ename$, types for its parameters $\epsorts{e} \in \DT^*$.
+\item For each $e \in \ename$, a \stransimpl $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. 
+\item For each $s \in \sname$, a \shandler $\shandlerof{s}$, which is a finite subset of $\erule$ that satisfies the \udc.
+\item A finite set $\erule$, with two partitions: 
 \begin{PPI}
-\item {\it party rules}, {\it oracle rules}, and {\it deadline rules}
-\item $\{ \shandlerof{s}^M \ | \ s \in \sname \}$
+\item \prules, \orules, and \drules
+\item $\{ \shandlerof{s} \ | \ s \in \sname \}$
 \end{PPI}
 \item For each party or oracle \erule $r$ that \governs an \ename $e$
     	\begin{PPI} 
-	\item An $\cF$-function $\epconstr{r}^M : \VDom \times \eparamtypes{e} \rarr \Bool$
+	\item An $\cF$-function $\epconstr{r} : \svsorts \times \epsorts{e} \rarr \Bool$
 	\end{PPI}
 \item For each deadline \erule $r$ that \governs an \ename $e$.
 	\begin{PPI}
-	\item An $\cF$ function $\reguard{r}^M :  \VDom \rarr \Bool$ for each \erule $r$.
-	\item For each sort $S_i \in \eparamtypes{e}$, an $\cF$-function $(\paramspart{r}{i})^M :  \VDom \rarr S_i$
+	\item An $\cF$ function $\reguard{r} :  \svsorts \rarr \Bool$ for each \erule $r$.
+	\item For each sort $S_i \in \epsorts{e}$, an $\cF$-function $\psetterpart{e}{i} :  \svsorts \rarr S_i$
 	\end{PPI}
 \end{LPPI}
 
@@ -413,6 +454,132 @@ Let $\DT$ be $\sortsof{\cF}$. $>_{ts} {:} \timestamp \times \timestamp \rarr \Bo
 \subsubsection{Symbolic Execution for \lsmclass{\cF}}
 
 
+
+\newcommand{\actorrule}[3]{#1 \text{ may } (#2 \text{ where } #3)}
+\newcommand{\deadrule}[3]{#1(#2) \text{ provided } #3}
+\newcommand{\yields}[2]{#1 \rightsquigarrow #2}
+\newcommand{\SV}{\Gamma}
+\newcommand{\vx}{\vec{x}}
+\newcommand{\vv}{\vec{v}}
+\newcommand{\rv}{\EM{\textsf{rv}}}
+%\newcommand{\full}[2]{\tup{#1,#2}}
+\newcommand{\full}[2]{#2}
+
+\newcommand{\sv}[1]{q_{#1}}
+\newcommand{\ep}[2]{x_{#1}^{#2}}
+\newcommand{\rp}[2]{x_{#1}^{#2}}
+
+%\newcommand{\fterms}{\EM{\cF-text{terms}}\xspace}
+\newcommand{\fterms}{\termz{fterms}{\cF-\text{terms}}}
+\newcommand{\fterm}{\termz{fterms}{\cF-\text{term}}}
+
+\newcommand{\sexecvars}{\termz{sexecvars}{sexec-variables}}
+
+\warn{This section is not ready for reading yet}
+
+$v$ ranges over \sexecvars. \\
+The set of \firstuse{\fterms}{fterms} is defined by:
+\begin{PPI}
+\item \sexecvars are \fterms. 
+\item If $t_1,\ldots,t_k$ are \fterms and $f$ is the function symbol for some $k$-ary function in $\cF$, then $f(t_1,\ldots,t_k)$ is a \fterm.
+\end{PPI}
+$\psi$ ranges over \fterms of sort \Bool.
+
+\noindent Introduce symbols
+\begin{PPI}
+\item $\sv{i}$ to stand for the $i$-th \statevar. 
+\item $\ep{i}{e}$ to stand for the $i$-th parameter of \ename $e$. 
+\item $\rp{i}{r}$ to stand for the $i$-th parameter of \erule $r$. 
+\end{PPI}
+
+Throughout, $\Gamma$ is a full mapping from $\statevar$ to \fterms of the correct type. Initially it is $\initvals$.
+
+$P$ is an \fterm of sort \Bool.
+
+
+\
+
+% situation handlers
+\[
+\infer{
+	\SV ;\ P \vdash \yields{ \shandlerof{s} }{\rv}
+}
+{	
+	s \in \sname
+&	\erule r \in \shandlerof{s}
+&	\SV; P  \vdash \yields{r[\SV]}{\rv}
+%&	\stacktwo
+%		{\full{\SV'}{P'} \text{ consistent}}
+%		{\SV' = \SV \cup \vx}
+%		{P' = P \wedge \psi(\vx)}
+%&	\SV';\ P'  \vdash \yields{r}{\rv}
+}
+\]
+
+% actor rule
+\[
+\infer{
+	\SV ;\ P \vdash \yields{ \actorrule{R}{e}{ \psi }} {\rv} 
+}
+{	\stackone
+		{P' = P \wedge \psi[\SV,x^e \mapsto \vv]}
+		{\vv \leftarrow fresh(x^e)}
+& 	\full{\SV}{P'} \text{ consistent}		
+&	\SV;\ P'  \vdash \yields{\ehandlerof{e}[\SV, x^e \mapsto \vv]}{\rv} 
+}
+\]
+
+% deadline rule
+\[
+\infer{
+	\SV ;\ P \vdash \yields{ \deadrule{e}{\psetterpart{e}{1},\ldots,\psetterpart{e}{k}}{\psi}}{\rv} 
+}
+{
+	\stackone{P' \text{ consistent}}
+		       {P' = P \wedge \psi[\SV]}
+&	\SV;\ P' \vdash \yields{e(\psetterpart{e}{1}[\SV],\ldots,\psetterpart{e}{k}[\SV]}{\rv} 
+}
+\]
+
+
+
+\[
+\infer{
+	\SV ;\ P \vdash \yields{ X }{\rv}
+}
+{
+	\stacktwo{(\cond{\psi}{X_1}{X_2}) \in X }{
+		X \text{ a set of } \estatements{e}}{
+		e \in \ename}
+&	\full{\SV}{P \wedge \psi} \text{ consistent}
+& 	\SV; P \wedge \psi \vdash \yields{X \cup X_1}{\rv} 
+}
+\]
+
+\[
+\infer{
+	\SV ;\ P \vdash \yields{ X }{\rv}
+}{
+	\stacktwo{
+		(\cond{\psi}{X_1}{X_2}) \in X }{
+		X \text{ a set of } \estatements{e}}{
+		e \in \ename
+	}	
+&	\full{\SV}{P \wedge \neg \psi} \text{ consistent}	
+& 	\SV; P \wedge \neg\psi \vdash \yields{X \cup X_2}{\rv} 
+}
+\]
+
+\[
+\infer{
+	\SV ;\ P \vdash \yields{X}{\rv}
+}{	\stacktwo
+	 	{\SV' ; P \vdash \yields{\edest{e}}{\rv} }
+		{\SV' \text{ is } \SV \text{ updated by } X[\Gamma]}
+		{X \text{ a set of (only) assignment } \estatement{e} \fterms \text{ from } \ehandlerof{e}} 
+%&	\full{\SV}{P \wedge \neg f} \text{ consistent}
+}
+\]
 
 
 %Because symbolic execution can be used both to search for bugs and to exhaustively check a (sometimes infinite) state space, and which task one is doing determines how one should resolve nondeterminism choices. On the other hand, there are parts of the algorithm that should always proceed deterministically. For this reason, we adopt two styles of defining the algorithm.
@@ -431,7 +598,7 @@ Let $\DT$ be $\sortsof{\cF}$. $>_{ts} {:} \timestamp \times \timestamp \rarr \Bo
 
 
 \subsection{Exhaustive Model Checking for Finite and Tamely-Infinite State Spaces} \label{tamelyinfinite}
-Suppose the only \statevars in an \lsm $M$ are \Bool or enums, and suppose that for every \erule $r$ and \ename $e$ none of $\reguard{r}$, $\deadfn{r}$, $\epconstr{r}$, $\statetransform{e}$, or $\params{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM). If there are no \statevars, then $M$ is equivalent for formal verification purposes to a normal FSM. Many important properties about FSMs are decidable. For example, if the specification of such a model $M$ is given entirely in terms of a \statespace invariant, then full formal verification can be checked exhaustively by well-known methods.
+Suppose the only \statevars in an \lsm $M$ are \Bool or enums, and suppose that for every \erule $r$ and \ename $e$ none of $\reguard{r}$, $\deadfn{r}$, $\epconstr{r}$, $\statetransform{e}$, or $\psetter{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM). If there are no \statevars, then $M$ is equivalent for formal verification purposes to a normal FSM. Many important properties about FSMs are decidable. For example, if the specification of such a model $M$ is given entirely in terms of a \statespace invariant, then full formal verification can be checked exhaustively by well-known methods.
 
 We may relax the constraint on the functions/predicates that take \timestamp arguments somewhat, allowing constraints that are boolean combinations of atomic formulas of the form \[ \text{(linear fn of $t$,$t'$)} \ (\leq | < | =) \ \text{(linear fn of $t$,$t'$)} \] where $t$ is the current \timestamp and $t'$ is the next. DateTime and TimeDelta literals can be used also, in the higher-level DSL). This results in a computation model close or equivalent to \extlink{https://drum.lib.umd.edu/bitstream/handle/1903/15232/Fontana_umd_0117E_15027.pdf?sequence=1&isAllowed=y}{Timed Automata} with two clocks, one of which is never reset and the other that is  reset after each \einst. We have not yet proved such a reduction, so take it with a grain of salt.
 
