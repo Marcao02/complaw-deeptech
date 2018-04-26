@@ -129,6 +129,7 @@
 %\newcommand{\estatements}[1]{#1-\termz{statement}{statements}}
 \newcommand{\stransimpl}{\termz{stransimpl}{conditional-tree}}
 \newcommand{\uuc}{\termz{uusc}{unambiguous statevar-update condition}}
+\newcommand{\statementsetexec}{\termz{statementsetexec}{exec}}
 
 
 \newcommand{\state}{\term{state}}
@@ -139,6 +140,8 @@
 
 
 \newcommand{\Bool}{\textsf{bool}\xspace}
+	\newcommand{\True}{\EM{\text{true}}\xspace}
+	\newcommand{\False}{\EM{\text{false}}\xspace}
 \newcommand{\DT}{\EM{\mathbb{\hyperref[DT]{D}}}\xspace}
 \newcommand{\TS}{\EM{\mathbb{\hyperref[TS]{T}}}\xsapce}
 \newcommand{\cF}{\EM{\mathcal{F}}\xspace}
@@ -156,6 +159,7 @@
 
 \newcommand{\ffnsymb}{\termz{ffnsymb}{\cF-\text{fn-symbol}}}
 \newcommand{\esubst}[1]{\EM{#1\textsf{\hyperref[esubst]{-subst}}}\xspace}
+\newcommand{\info}[1]{\EM{\textsf{\hyperref[info]{info}}(#1)}\xspace}
 
 %\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
 %\author{dustin.wehr@gmail.com}
@@ -259,7 +263,7 @@ where the two \timestamp arguments provided to \statetransform{e} will always be
 
 Each \sname gets a \firstuse{\shandler}{shandler}, which for now is just a finite set of \erules that satisfy the condition \udc given below. The set \firstuse{\erule}{erule} is partitioned into: \prules, \orules, and \drules. Every \erule \firstuse{\governs}{governs} the applicability of a unique \ename by a unique \actor.\footnote{In L4, we offer syntax for concisely expressing a set of such rules that apply to different elements of \ename and \actor.} Every \erule $r$ has a relation \firstuse{\reguard{r}}{reguard} on
 \[\timestamp \times \svsorts\]
-where the \timestamp argument is the \timestamp of the previous \einst. Frequently in our examples, \reguard{r} is just the trivial relation \textsf{true}. $r$ is \firstuse{\enabled}{enabled} upon entering its parent situation at the \timestamp $t$ of the previous \einst iff \reguard{r} is true when evaluated at $t$ and the current statevar assignment.
+where the \timestamp argument is the \timestamp of the previous \einst. Frequently in our examples, \reguard{r} is just the trivial relation \True. $r$ is \firstuse{\enabled}{enabled} upon entering its parent situation at the \timestamp $t$ of the previous \einst iff \reguard{r} is \True when evaluated at $t$ and the current statevar assignment.
 
 %\centerline{\begin{fmpage}{5.5in}
 \begin{bnote}[redundancy of $\reguard{r}$ for party/oracle rules] \label{guardredundancy}
@@ -280,7 +284,7 @@ $r$ also has a {\it parameter setter} $\firstuse{\psetter{r}}{psetter}$ of type
 \[ \timestamp \times \svsorts \rarr \eppartsorts{e}  \]
 where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
 
-Since deadline \erules cause an event to occur automatically when the rule activates, we would need to either specify what happens when two such rules activate at the same time, or else ensure that can't happen. We take the latter approach.\footnote{Because we see no natural way to pick one over the other. Note that the \erules are not ordered.} For now, we adopt a constraint that is stronger than necessary but especially simple:\footnote{A closer-to-minimal constraint is: when the \enabledguards of two deadline \erules are simultaneously true, their deadline functions cannot yield the same \timestamp (and then the earlier of the two deadlines is used). We have not yet experienced any desire for the extra leniency, but in case we do, it would be easy to allow it.} \\
+Since deadline \erules cause an event to occur automatically when the rule activates, we would need to either specify what happens when two such rules activate at the same time, or else ensure that can't happen. We take the latter approach.\footnote{Because we see no natural way to pick one over the other. Note that the \erules are not ordered.} For now, we adopt a constraint that is stronger than necessary but especially simple:\footnote{A closer-to-minimal constraint is: when the \enabledguards of two deadline \erules are simultaneously \True, their deadline functions cannot yield the same \timestamp (and then the earlier of the two deadlines is used). We have not yet experienced any desire for the extra leniency, but in case we do, it would be easy to allow it.} \\
 \noindent \firstuse{\udc}{udc}:  if a \shandler has multiple deadline \erules, then their \enabledguards must be disjoint relations.
 
 As a very basic liveness condition, we want that an \lsm can't get stuck in a \state where no party or oracle \erules will ever be in applicable again, and where there is no deadline \erule that will trigger. We call this the \firstuse{\nsc}{nsc}.
@@ -306,12 +310,12 @@ Fix an \lsm $M$. \\ A \wfeseq of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ w
 \end{LPPI}
 \end{defn}
 
-\subsection{Execution of \lsms} \label{execution}
+\subsection{\lsm Execution} \label{execution}
 
 Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The starting \state $G_0$ is always $\tup{\startsname, 0, \initvals}$. Let $i \geq 0$ be arbitrary. Assume the sequence is a valid trace up to entering $G_i = \tup{s,t,\pi}$. Let $E_i$ be $\tup{e, a, t', \sigma}$. We now define the valid values of $G_{i+1} = \tup{s', t', \pi'}$:
 \begin{PPI}
 
-\item If $E_i$ is a party (resp. oracle) \einst, then it must be \compatiblewith some party (resp. oracle) \erule $r$ of $s$ that is \enabled in $G_i$ such that $\eppartconstr{r}$ is true at $\tup{t, t', \pi, \sigma}$.
+\item If $E_i$ is a party (resp. oracle) \einst, then it must be \compatiblewith some party (resp. oracle) \erule $r$ of $s$ that is \enabled in $G_i$ such that $\eppartconstr{r}$ is \True at $\tup{t, t', \pi, \sigma}$.
 
 \item If $E_i$ is a deadline \einst, then it must be \compatiblewith the unique\footnote{by the \udc} deadline \erule $r$ of $s$ that is enabled in $G_i$ such that $\deadfn{r}(t, \pi) = t'$. Moreover, $\sigma$ must be $\psetter{r}(t,\pi)$.
 
@@ -321,7 +325,7 @@ Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The start
 Any \wfeseq where $G_i, E_i$ satisfy the above requirements for all $i$ is a valid \trace for $M$.
 
 \subsection{Reducing the Abstraction By One Level}
-So far, \lsm is far from a {\it formal language} in that it does not have anything like an abstract syntax tree with finitely-many node categories. Thus is \underline{intentional}. In particular, we specified that certain components are mathematical {\it functions} or {\it relations}, rather than expressions that define such functions or relations. To recap, those components are as follows, where now we turn to the common convention of writing the types of relations as functions to \Bool.
+So far, \lsm is far from a {\it formal language} in that it does not have anything like an abstract syntax tree with finitely-many node categories. This is \underline{intentional}. In particular, we specified that certain components are mathematical {\it functions} or {\it relations}, rather than expressions that define such functions or relations. To recap, those components are as follows, where now we turn to the common convention of writing the types of relations as functions to \Bool.
 \smallskip
 
 \noindent {\bf Initial abstract components of \lsm \label{initialabstract}}:
@@ -341,28 +345,39 @@ So far, \lsm is far from a {\it formal language} in that it does not have anythi
 
 Despite the lack of concreteness, we saw that there is enough detail that execution can be defined precisely. We {\it could} stop there, but that would mean leaving out of the coming sections some useful details of formal verification routines that are very likely to be needed in any \lsm-compatible DSL.
 
-In this section, we reduce the {\it description} of the abstraction level significantly, while maintaining the flexibility of being able to define \lsm-compatible languages that range from finite state machines to Turing complete languages.\footnote{Technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!}
+In this section, we reduce the {\it description} of the abstraction level significantly, while maintaining the flexibility of being able to define \lsm-compatible languages that range from finite state machines to Turing complete languages.\footnote{Technically, \extlink{https://en.wikipedia.org/wiki/Turing_degree}{beyond Turing complete languages}, but we don't know of any practical uses of such languages!} We do not go as far as to define a language; that will happen in Section \ref{minlang}.
 
-Recall that that the set of basic datatypes or {\it sorts} \DT is a parameter to \lsm. After this section, we will have a notion of {\it class of \lsm} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some  $S_0,\ldots,S_k \in \DT$. Note that, for the sake of this report, we take individual elements of the sorts $\DT$ to be $0$-ary functions in $\cF$; doing so simply reduces the description length of some definitions.
 
-Surprisingly little is needed in the way of additional definitions. Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.}  Since $\svsorts \in \DT^*$ already, the functions $\reguard{r}$, $\eppartconstr{r}$, and $\deadfn{r}$ are already of the required $\cF$-form. The remaining two categories of functions in the bullet-list above, $\psetter{r}$ and $\statetransform{e}$, simply get replaced by their point-wise components:
+Recall that the set of basic datatypes or {\it sorts} \DT is a parameter to \lsm. After this section, we will have a notion of {\it class of \lsm} that depends only on \DT and a set \cF of functions on the sorts in \DT; that is, each function in such a set \cF is of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some  $S_0,\ldots,S_k \in \DT$.
+\begin{defn}[\firstuse{\cFstar}{cFstar}]
+Take \cFstar to be the closure of \cF under well-typed composition, with the normal meaning. So, it is the superset of \cF that contains functions such as the following function of type $S_1 \times S_2 \rarr S_1$:
+\[a_1{\in}S_1, a_2{\in}S_2\ \mapsto f_1(a_1, f_2(a_2))\]
+where $f_1,f_2 \in \cF$ and $f_2$ has type $S_2 \rarr S_1$ and $f_1$ has type $S_1 \times S_1 \rarr S_1$.
+\end{defn}
+\noindent Note that, for the sake of this report, we take individual elements of the sorts $\DT$ to be $0$-ary functions in $\cFstar$; doing so simply reduces the description length of some definitions.
+
+Surprisingly little is needed in the way of additional definitions. Assume $\timestamp \in \DT$.\footnote{Technically this implies that an extra constraint will be needed to define finite-state machines: roughly, that no \statevars of type \timestamp are allowed, and the functions in \cF cannot depend on their \timestamp arguments, even if \timestamp appears in the function type.}  Since $\svsorts \in \DT^*$ already, the functions $\reguard{r}$, $\eppartconstr{r}$, and $\deadfn{r}$ are already elements of $\cFstar$ (which is what we want). The remaining two categories of functions in the bullet-list above, $\psetter{r}$ and $\statetransform{e}$, simply get replaced by their point-wise components:
 \begin{LPPI}
-\item For each deadline \erule $r$ that \governs an \ename $e$, and each \eparam{e} $x_i$ of sort $S_i \in \eppartsorts{e}$, a function $\psetterpart{r}{x_i} :  \timestamp \times \svsorts \rarr S_i$
-\item For each \ename $e$, and each sort $S_i \in \svsorts$, a function $\stranspart{e}{i} : \timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr S_i$.
+\item For each deadline \erule $r$ that \governs an \ename $e$, and each \eparam{e} $x_i$ of sort $S_i \in \eppartsorts{e}$, a function $\psetterpart{r}{x_i} :  \timestamp \times \svsorts \rarr S_i$ from $\cFstar$.
+\item For each \ename $e$, and each sort $S_i \in \svsorts$, a function $\stranspart{e}{i} : \timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr S_i$ from $\cFstar$.
 \end{LPPI}
 
 We go one step further by introducing some minimal structure into the $\statetransforms$, which has a role in \textcolor{blue}{\hyperref[symbexec]{symbolic execution}}.
 \begin{defn}[\statement, \stransimpl]
 For $\ename$ $e$, an \firstuse{\estatement{e}}{statement} is one of:
 \begin{PPI}
-\item $\assign{q}{f}$ for some $q \in \statevars$ of sort $S$\footnote{i.e. $\svsorts(x) = S$} and some function $f$ of type $\timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr S$.
-\item $\cond{f}{U_1}{U_2}$ for some function $f$ of type $\timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr \Bool$ and finite sets of \estatements{e} $U_1, U_2$.
+\item $\assign{q}{f}$ for some $q \in \statevars$ of sort $S$\footnote{i.e. $\svsorts(x) = S$} and some function $f$ of type $\timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr S$ in $\cFstar$.
+\item $\cond{f}{U_1}{U_2}$ for some function $f$ of type $\timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr \Bool$ in $\cFstar$ and finite sets of \estatements{e} $U_1, U_2$.
 \end{PPI}
 A \firstuse{\stransimpl}{stransimpl} of $\statetransform{e}$ is a set of \estatements{e} that satisfies the\\
- \firstuse{\uuc}{uuc}, which says: Consider the rooted tree formed by the set of \estatements{e} \statetransform{e}\footnote{The tree: A set of \estatements{e} is an internal node whose children are the individual \statements, with the top-level set $\statetransform{e}$ itself being the root of the tree. An assignment $\assign{x}{f}$ is a leaf node. A conditional $\cond{f}{U_1}{U_2}$ is a second kind of internal node with two children $U_1$ and $U_2$ (which, observe, are themselves internal nodes of the first kind).}. Any well-typed setting of the \statetransform{e} parameters yields a value of true or false in the ``test'' part $f$ of each conditional node $\cond{f}{U_1}{U_2}$. Consider the subtree formed by dropping the appropriate ``branch'' $U_1$ (if test is false) or $U_2$ (if test is true) of each such node, at every level. Then any \statevar may occur at most once in that subtree.
+ \firstuse{\uuc}{uuc}, which says: Consider the rooted tree formed by the set of \estatements{e} \statetransform{e}\footnote{The tree: A set of \estatements{e} is an internal node whose children are the individual \statements, with the top-level set $\statetransform{e}$ itself being the root of the tree. An assignment $\assign{x}{f}$ is a leaf node. A conditional $\cond{f}{U_1}{U_2}$ is a second kind of internal node with two children $U_1$ and $U_2$ (which, observe, are themselves internal nodes of the first kind).}. Any well-typed setting of the \statetransform{e} parameters yields a value of \True or \False in the ``test'' part $f$ of each conditional node $\cond{f}{U_1}{U_2}$. Consider the subtree formed by dropping the appropriate ``branch'' $U_1$ (if test is \False) or $U_2$ (if test is \True) of each such node, at every level. Then any \statevar may occur at most once in that subtree.
 \end{defn}
 
 We now officially modify the specification of \lsm to say that each \statetransform{e} is a \stransimpl, instead of being a set of functions of types $\{ \timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr \svsorts(q) \ | \ q \in \statevars \}$).
+
+\begin{bnote}
+We will give a specific elaboration of the definition of execution from Section \ref{execution} soon, but you can probably infer it already. Just note that our use of sets of \statements instead of lists of \statements is intentional; their order doesn't matter.
+\end{bnote}
 
 \subsection{Basic Specification: \lsmclass{\cF}}
 Since the start of Section \ref{lsmdef}, we've elaborated some details of the initial definition of \lsm, to bring it closer to being a useful subject for formal verification. Here we give just the concise final specification, without explanation of the semantics.
@@ -370,12 +385,6 @@ Since the start of Section \ref{lsmdef}, we've elaborated some details of the in
 \medskip
 
 Let $\DT$ be a set of sorts (i.e. datatypes, i.e. sets). Let $\cF$ be a set of functions each of type $S_1 \times \cdots \times S_k \rarr S_0$ for some $k \geq 0$ and some $S_0,\ldots,S_k \in \DT$. Then $\cF$ determines a class of \lsms that we denote $\lsmclass{\cF}$, which are defined below. For notational simplicity, and to reduce redundancy, we assume that every sort in $\DT$ is in the type of some function in $\cF$, so that we may uniquely determine $\DT$ from $\cF$. Let \firstuse{$\sortsof{\cF}$}{sortsof} be that unique determination. We also assume $\timestamp \in \DT$.
-
-\begin{defn}[\cFstar]
-Take \cFstar to be the closure of \cF under well-typed composition, with the normal meaning. So it is a superset of \cF that contains functions such as the following function of type $S_1 \times S_2 \rarr S_1$:
-\[a_1{\in}S_1, a_2{\in}S_2\ \mapsto f_1(a_1, f_2(a_2))\]
-where $f_1,f_2 \in \cF$ and $f_2$ has type $S_2 \rarr S_1$ and $f_1$ has type $S_1 \times S_1 \rarr S_1$.
-\end{defn}
 
 Backpeddling on ``without explanation of the semantics'' for a moment: Note/recall that when a function in the following definition has a type starting with $\timestamp^2$, it is ``expecting'' the \timestamp of the most recent \einst followed by the \timestamp of a candidate next \einst. When the type starts with just $\timestamp$, the function is expecting just the \timestamp of the most recent \einst.
 
@@ -409,8 +418,42 @@ Let $\DT$ be $\sortsof{\cF}$. An $\lsmclass{\cF}$ model is given by the followin
 	\end{PPI}
 %\item For each \ename $e$, and each sort $S_i \in \svsorts$, a function $(\stranspart{e}{i})^M : \timestamp^2 \times \svsorts^M \times \eppartsorts{e}^M \rarr S_i$.
 \end{LPPI}
-
 \end{defn}
+
+\subsection{\lsmclass{\cF} Execution}
+We only need to expand the line
+\[ \pi' = \statetransform{e}(t, t', \pi, \sigma) \]
+from Section \ref{execution}, but for the sake of a useful reference, we repeat the entire (short) definition here.
+
+Fix a $M$ in $\lsmclass{\cF}$. Let $\tau = E_1, E_2, \dots$ be a \wfeseq of $M$. The starting \state $G_0$ is always $\tup{\startsname, 0, \initvals}$. Let $i \geq 0$ be arbitrary. Assume the sequence is a valid trace up to entering $G_i = \tup{s,t,\pi}$. Let $E_i$ be $\tup{e, a, t', \sigma}$. We now define the valid values of $G_{i+1} = \tup{s', t', \pi'}$:
+\begin{PPI}
+
+\item If $E_i$ is a party (resp. oracle) \einst, then it must be \compatiblewith some party (resp. oracle) \erule $r$ of $s$ that is \enabled in $G_i$ such that $\eppartconstr{r}$ is \True at $\tup{t, t', \pi, \sigma}$.
+
+\item If $E_i$ is a deadline \einst, then it must be \compatiblewith the unique\footnote{by the \udc} deadline \erule $r$ of $s$ that is enabled in $G_i$ such that $\deadfn{r}(t, \pi) = t'$. Moreover, $\sigma$ must be $\psetter{r}(t,\pi)$.
+
+\item $\pi' = \statetransform{e}(t, t', \pi, \sigma)$. The evaluation of $\statetransform{e}$, and in general of any set of $\estatements{e}$ $U$, $\firstuse{\statementsetexec(U,t,t',\pi,\sigma)}{statementsetexec}$, works as follows.
+	\begin{PPI}
+	\item If $U$ contains a conditional $e$ of the form \statement $\cond{f}{U_1}{U_2}$, let $b$ be the truth value $f(t,t',\pi,\sigma)$. If $b$ is \True then
+	\[\statementsetexec(U,t,t',\pi,\sigma) = \statementsetexec(U - e \cup U_1,t,t',\pi,\sigma) \]
+	else if $b$ is \False then
+	\[\statementsetexec(U,t,t',\pi,\sigma) = \statementsetexec(U - e \cup U_2,t,t',\pi,\sigma) \]
+	\item if $U$ contains no conditional \statement, then let $q_1 \larr f_1, \ldots, q_k \larr f_k$ be its contents. So $\{q_1,\ldots,q_k\}$ is a subset of \statevar and $\{f_1,\ldots,f_k\}$ is a subset of $\cFstar$. Then $\pi'$ is identical to $\pi$ except at $q_i$, where
+	\[ \pi'(q_i) = f_i(t,t',\pi,\sigma) \]
+
+	\end{PPI}
+
+\end{PPI}
+Any \wfeseq where $G_i, E_i$ satisfy the above requirements for all $i$ is a valid \trace for $M$.
+
+
+
+
+
+
+
+
+
 
 
 
@@ -478,7 +521,7 @@ Let $\DT$ be $\sortsof{\cF}$. The relation $>_{ts} {:} \timestamp \times \timest
 
 
 
-\subsubsection{A Minimal \timelesslsmclass{\cF}-Compatible Language}
+\subsubsection{A Minimal \timelesslsmclass{\cF}-Compatible Language} \label{minlang}
 
 \newcommand{\actorrule}[3]{#1 \textit{ may } (#2 \textit{ where } #3)}
 \newcommand{\deadrule}[3]{\textit{if } #3 \textit{ then fire }#1(#2)}
@@ -500,6 +543,7 @@ Let $\DT$ be $\sortsof{\cF}$. The relation $>_{ts} {:} \timestamp \times \timest
 
 \newcommand{\bterm}[1]{\EM{\left< \text{#1} \right>}}
 
+\newcommand{\serv}{\termz{serv}{\II}}
 
 %\newcommand{\smtfterms}{\EM{\cF-text{terms}}\xspace}
 
@@ -567,18 +611,19 @@ $\eptosmt$ ranges over $\bigcup_{e \in \ename} \esubst{e} $
 %\begin{PPI}
 %\item A finite set of $\estatements{e}$.
 %\end{PPI}
-We define two ``judgements,'' both written with $\vdash$, but differing in the number of arguments they take. Together they define a many-output function, whose return values (\rv below) are whatever information about the symbolic path taken that you wish to collect. Let $\II$ be the type of that information.
+We define two ``judgements,'' both written with $\vdash$, but differing in the number of arguments they take. Together they define a many-output function, whose return values (\rv below) are whatever information about the symbolic path taken that you wish to collect. Let $\firstuse{\serv}{serv}$ be the type of that information.
 \begin{PPI}
 \item $\svtosmt; P \vdash \yields{\bterm{thing}}{\rv}$ is defined for \bterm{thing} a \sname, \shandler, or an \erule.
 \item $\eptosmt; \svtosmt; P \vdash \yields{\bterm{thing}}{\rv}$ is defined for \bterm{thing} a set of \statements. Recall that an $\ehandler$ is a set of \statements.
 \end{PPI}
-$\II$ should include:
+$\serv$ should include:
 \begin{PPI}
 \item The set of \snames visited, the set of \enames and \erules used, and the set of \statements evaluated, if you want to use symbolic execution to compute code coverage.
 \item The number of times each \statevar is ``written to'' in an assignment \statement, if you want to check write count bounds given in the source code (not a part of \lsm, but a feature in L4).
 \item The entire \trace, if you are using symbolic execution to debug your contract, or if you are using it to speed up the process of writing test cases.
 \item The \trace length, if you want to check bounds on that given in the source code.
 \end{PPI}
+Let \firstuse{$\info{\cdot,\cdot,\cdot}$}{info} be your function for extracting the $\serv$ from the data one has at the end of a consistent symbolic execution path (currently $\svtosmt, P, s$). We will generalize that later, most importantly for extracting information from consistent execution paths that contain errors.
 
 \begin{defn}[\cF-consistent]
 
@@ -593,7 +638,7 @@ $\II$ should include:
 
 \noindent Every \sname other than those in \termin has a non-empty \shandler:
 \[
-\infer{\svtosmt ; P \vdash \yields{ s }{\text{``term''}}}
+\infer{\svtosmt ; P \vdash \yields{ s }{\info{\svtosmt, P, s}}}
 {s \in \termin}
 %
 \qquad
@@ -713,20 +758,25 @@ This is thoroughly covered by \extlink{https://github.com/legalese/legalese-comp
 Before it's done, could make some section of the text unnecessarily hard to read.
 \begin{LPPI}
 \item \todomin{How to read} - this should be priority 1...
-\item \todomin{The ``return values'' of symbexec alg.}
 \item \todomin{A brief defn of substitution for Section \ref{sealg}.}
 \item \todomin{A note in Section \ref{sealg} that $P \text{ consistent}$ is the result of an SMT query.}
+\item \todomin{Different metavariable for \timeunit, since use $t$ for \srcfterm later.}
+\item \todomin{Unify metavariables for sets of statements. Use $U$ not $X$.}
 \end{LPPI}
 
 \subsection{Priority}
 Before it's done, leaves undocumented some significant progress we've made.
 \begin{LPPI}
 \item Add \todomin{assertions, invariants, preconditions, postconditions}. These are super useful when combined with symbolic execution.
+\item L4 section, obviously.
 \end{LPPI}
 
 \subsection{Low Priority / Questionable}
 \begin{LPPI}
-\item \todomin{Kill $\eppartsorts{e}$ and $\svsorts$ in favour of the one-sort-per-name requirement?}
+\item \todomin{Consider changing } $\timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr \svsorts$ to
+\[ (\timestamp \times \svsorts) \times (\timestamp \times \eppartsorts{e}) \rarr \svsorts \]
+since it better reflect the ``Timeless'' reduction.
+% NO, because they're needed for expressing the types of things: \item \todomin{Kill $\eppartsorts{e}$ and $\svsorts$ in favour of the one-sort-per-name requirement?}
 \item \todomin{Backlinks into ``Metavariables used in the algorithm''}
 \item \todomin{Eliminate the word ``sort'' and replace with ``atomic type''?}
 \end{LPPI}
