@@ -29,10 +29,11 @@
 \newcommand{\term}[1]{\EM{\textsf{\hyperref[#1]{#1}}}\xspace}
 \newcommand{\termz}[2]{\EM{\textsf{\hyperref[#1]{#2}}}\xspace}
 
-\newcommand{\lsm}{\term{LSM}}
-\newcommand{\lsms}{\termz{LSM}{LSMs}}
-\newcommand{\lsmclass}[1]{\textsf{\hyperref[lsmclass]{LSM}}(#1)}
-\newcommand{\timelesslsmclass}[1]{\textsf{\hyperref[timeless-lsmclass]{timeless-LSM}}(#1)}
+\newcommand{\lsmslong}{Contract State Machines\xspace}
+\newcommand{\lsm}{\term{CSM}}
+\newcommand{\lsms}{\termz{LSM}{CSMs}}
+\newcommand{\lsmclass}[1]{\textsf{\hyperref[lsmclass]{CSM}}(#1)}
+\newcommand{\timelesslsmclass}[1]{\textsf{\hyperref[timeless-lsmclass]{timeless-CSM}}(#1)}
 
 \newcommand{\actor}{\term{actor}}
 \newcommand{\actors}{\termz{actor}{actors}}
@@ -145,6 +146,7 @@
 \newcommand{\DT}{\EM{\mathbb{\hyperref[DT]{D}}}\xspace}
 \newcommand{\TS}{\EM{\mathbb{\hyperref[TS]{T}}}\xsapce}
 \newcommand{\cF}{\EM{\mathcal{F}}\xspace}
+\newcommand{\cLofF}{\EM{\mathcal{L}_{\mathcal{F}}}\xspace}
 \newcommand{\cFstar}{\EM{\mathcal{F}^*}\xspace}
 \newcommand{\sortsof}[1]{\EM{\textsf{\hyperref[sortsof]{sorts}}(#1)}}
 
@@ -164,8 +166,8 @@
 %\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
 %\author{dustin.wehr@gmail.com}
 
-\title{Legal State Machines, \\
-L4, and Formal Verification of Contracts \\
+\title{Contract State Machines, \\
+L4, and Formal Verification of Legal Contracts \\
 \smaller \smaller Report on Computational Law Research by \extlink{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
 \begin{document}
 \maketitle
@@ -173,11 +175,11 @@ L4, and Formal Verification of Contracts \\
 \begin{abstract}
 This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace}\footnote{https://legalese.slack.com} and introducing yourself if you're planning on spending more than half an hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
 
-The primary focus of this report is the definition of the unopinionated, unpretentious programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, called \textit{Legal State Machines} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
+The primary focus of this report is the definition of the unpretentious programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, called \textit{\lsmslong} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
 % In fact, it would be hard to add L4's typesystem to the definition of \lsms, as \lsms do not even have a term language!}
 In programming language theory jargon, \lsms are a denotational semantics.
 
-Legalese is not advocating for the adoption of L4 at this time. We would strongly prefer to join forces with another open source computational contracts DSL project. Our main opinion on this matter is that whatever DSL we align ourselves with, it should have a fragment that fully supports \lsms.
+Legalese is not advocating for the adoption of L4 at this time. We would prefer to join forces with another open source computational contracts DSL project, but we are also prepared not to. Our main opinion on this matter is that whatever DSL we align ourselves with, it should have a fragment that fully supports \lsms.
 \end{abstract}
 
 \tableofcontents
@@ -623,10 +625,10 @@ $\serv$ should include:
 \item The entire \trace, if you are using symbolic execution to debug your contract, or if you are using it to speed up the process of writing test cases.
 \item The \trace length, if you want to check bounds on that given in the source code.
 \end{PPI}
-Let \firstuse{$\info{\cdot,\cdot,\cdot}$}{info} be your function for extracting the $\serv$ from the data one has at the end of a consistent symbolic execution path (currently $\svtosmt, P, s$). We will generalize that later, most importantly for extracting information from consistent execution paths that contain errors.
+Let \firstuse{$\info{\cdot,\cdot,\cdot}$}{info} be your function for extracting the $\serv$ from the data you have at the end of a consistent symbolic execution path (currently $\svtosmt, P, s$). We will generalize that later, most importantly for extracting information from consistent (reachable) execution paths that contain errors (e.g. failed assertions, which we haven't added to the model yet).
 
-\begin{defn}[\cF-consistent]
-
+\begin{defn}[\cF-consistent, i.e. \cF-satisfiable]
+Let $\cLofF$ be the many-sorted first order language with a sort symbol for each set in $\sortsof{\cF}$ and a function symbol for each function in $\cF$. The types of the function symbols are of course the types of the corresponding functions. Let $T_\cF$ denote the first order theory of $\cLofF$ interpreted by $\cF$. We say that an $\cLofF$-formula $B$ is \cF-consistent (or \cF-satisfiable) if there is a well-typed assignment of objects from $\bigcup \DT$ to the free variables of $B$ that makes the formula true according to some model of $T_\cF$.\footnote{Some SMTLib theories have more than one standard model due to how undefinedness is handled, or due to the allowance of uninterpreted function symbols.}
 \end{defn}
 
 
