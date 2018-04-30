@@ -32,8 +32,10 @@
 \newcommand{\lsmslong}{Contract State Machines\xspace}
 \newcommand{\lsm}{\texorpdfstring{\termz{lsm}{CSM}}{CSM}}
 \newcommand{\lsms}{\texorpdfstring{\termz{lsm}{CSMs}}{CSMs}}
-\newcommand{\lsmclass}[1]{\texorpdfstring{\textsf{\hyperref[lsmclass]{CSM}}{CSM(F)}}(#1)}
-\newcommand{\timelesslsmclass}[1]{\texorpdfstring{\textsf{\hyperref[timeless-lsmclass]{timeless-CSM}}{timeless-CSM(F)}}(#1)}
+\newcommand{\lsmclass}[1]{\texorpdfstring{\textsf{\hyperref[lsmclass]{CSM}}(#1)}{CSM(F)}}
+\newcommand{\timelesslsmclass}[1]{\texorpdfstring{
+	\textsf{\hyperref[timeless-lsmclass]{timeless-CSM}}(#1)}
+	{timeless-CSM(F)}}
 
 \newcommand{\actor}{\term{actor}}
 \newcommand{\actors}{\termz{actor}{actors}}
@@ -97,7 +99,7 @@
 \newcommand{\reguard}[1]{\EM{\textsf{\hyperref[reguard]{enabled-guard}}_{#1}}} % re for 'rule enabled'
 \newcommand{\deadfn}[1]{\EM{\textsf{\hyperref[deadfn]{deadline}}_{#1}}} % ep for 'event parameters'
 \newcommand{\eppartconstr}[1]{\EM{\textsf{\hyperref[epconstr]{param-constraint}}_{#1}}}
-\newcommand{\udc}{\termz{udc}{unambiguous deadline condition}}
+\newcommand{\udc}{\termz{udc}{unambiguous deadline\- condition}}
 \newcommand{\nsc}{\termz{nsc}{never-stuck condition}}
 \newcommand{\governs}{\term{governs}}
 \newcommand{\prules}{\termz{prules}{party-rules}}
@@ -184,8 +186,9 @@
 \newcommand{\sv}[1]{\EM{\hyperref[sv]{\textsf{q}}_{#1}}\xspace}
 
 \newcommand{\bterm}[1]{\EM{\left< \text{#1} \right>}}
-
 \newcommand{\serv}{\termz{serv}{\II}}
+
+\newcommand{\isconsistent}[1]{\EM{#1 \textsf{ \hyperref[consistent]{consistent}}}\xspace}
 
 %\newcommand{\smtfterms}{\EM{\cF-text{terms}}\xspace}
 
@@ -194,8 +197,8 @@
 %\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
 %\author{dustin.wehr@gmail.com}
 
-\title{Contract State Machines, \\
-L4, and Formal Verification of Legal Contracts \\
+\title{Contract State Machines, the language L4,\\
+and Formal Verification of Legal Contracts \\
 \smaller \smaller Report on Computational Law Research by \extlink{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
 \begin{document}
 \maketitle
@@ -271,9 +274,9 @@ For our intended domain of legal contracts, we are not aware of any cogent criti
 A Legal State Machine (\anchorfor{\lsm}{lsm}) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \DT, \timeunit, \actor, and \ename. It also includes a finite set of symbols \anchorfor{situation}{sname} that must contain at least the symbols:
 \begin{PPI}
 \item \anchorfor{\fulfilled}{fulfilled}, for handled contract termination.
-\item $\anchorfor{\breached{A}}{breached}$ for each nonempty subset $A$ of $\actor \backslash \{\codeactor\}$.\footnote{These are breaches and oracle errors analogous to undifferentiated unhandled exceptions in software. Some well-drafted computational contracts might avoid using them completely.}
+\item $\anchorfor{\breached{A}}{breached}$ for each nonempty subset $A$ of $\actor \backslash \{\codeactor\}$.\footnote{These are breaches and oracle errors analogous to undifferentiated, unhandled exceptions in normal programming languages. Some well-drafted computational contracts might avoid using them completely.}
 \end{PPI}
-Let \anchorfor{\termin}{termin} be the union of those symbols, i.e. $\{\fulfilled\} \cup \{\breached{A} \ | \ \text{nonempty } A \subseteq \actor\}$.
+Let \anchorfor{\termin}{termin} be the union of those symbols.%, i.e.  $\{\fulfilled\} \cup \{\breached{A} \ | \ \text{nonempty } A \subseteq \actor\}$.
 
 %, and partitions \ename into three subsets: party event names, oracle event names, and deadline event names.
 An \lsm $M$ also has an ordered finite set of symbols \anchorfor{\statevars}{statevars}, and an assignment \anchorfor{\svsorts}{svsorts} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \svsorts to be an element of $\DT^*$. $M$ also includes an initial setting \anchorfor{\initvals}{initvals} of its \statevars, and designates one the \snames its \anchorfor{\startsname}{startsname}.
@@ -330,7 +333,7 @@ That completes the definition of a Legal State Machine.
 
 We now define the {\it well-formed event sequences} of an \lsm $M$, which are a superset of the \traces of $M$ defined next.
 \begin{defn}[\erule \anchorfor{compatible with}{compatiblewith} \einst]
-An \erule $r$ is \compatiblewith an \einst $\tup{e, a, t, \sigma}$ iff $e$ and $a$ are the \ename and \actor that $r$ \governs the applicability of.
+An \erule $r$ is \\ \compatiblewith an \einst $\tup{e, a, t, \sigma}$ iff $e$ and $a$ are the \ename and \actor that $r$ \governs the applicability of.
 \end{defn}
 \begin{defn}[\anchorfor{well-formed event sequence}{wfeseq}]
 Fix an \lsm $M$. \\ A \wfeseq of $M$ is a sequence of \einsts $E_0,E_1,\ldots$ with strictly-increasing \timestamps such that, if $\tup{e_i, a_i, \vts_i, \sigma_i}$ is $E_i$, then
@@ -392,7 +395,8 @@ Surprisingly little is needed in the way of additional definitions. Assume $\tim
 \item For each \ename $e$, and each sort $S_i \in \svsorts$, a function $\anchorfor{\stranspart{e}{i}}{stranspart} : \timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr S_i$ from $\cFstar$.
 \end{LPPI}
 
-We go one step further by introducing some minimal structure into the $\statetransforms$, which has a role in \textcolor{blue}{\hyperref[symbexec]{symbolic execution}}.
+We go one step further by introducing some minimal structure into the
+$\statetransforms$, which has a role in \textcolor{blue}{\hyperref[symbexec]{symbolic execution}}.
 \begin{defn}[\anchorfor{\statement}{statement}, \anchorfor{\stransimpl}{stransimpl}]
 For $\ename$ $e$, an \anchorfor{\estatement{e}}{estatement} is one of:
 \begin{PPI}
@@ -633,7 +637,7 @@ $\serv$ should include:
 \end{PPI}
 Let \anchorfor{$\info{\cdot,\cdot,\cdot}$}{info} be your function for extracting the $\serv$ from the data you have at the end of a consistent symbolic execution path (currently $\svtosmt, P, s$). We will generalize that later, most importantly for extracting information from consistent (reachable) execution paths that contain errors (e.g. failed assertions, which we haven't added to the model yet).
 
-\begin{defn}[\cF-consistent, i.e. \cF-satisfiable]
+\begin{defn}[\anchorfor{\cF-consistent}{consistent}, i.e. \anchorfor{\cF-satisfiable}{satisfiable}]
 Let $\cLofF$ be the many-sorted first order language with a sort symbol for each set in $\sortsof{\cF}$ and a function symbol for each function in $\cF$. The types of the function symbols are of course the types of the corresponding functions. Let $T_\cF$ denote the first order theory of $\cLofF$ interpreted by $\cF$. We say that an $\cLofF$-formula $B$ is \cF-consistent (or \cF-satisfiable) if there is a well-typed assignment of objects from $\bigcup \DT$ to the free variables of $B$ that makes the formula true according to some model of $T_\cF$.\footnote{Some SMTLib theories have more than one standard model due to how undefinedness is handled, or due to the allowance of uninterpreted function symbols.}
 \end{defn}
 
@@ -679,7 +683,7 @@ In the following rule for party/oracle \erules, the as-yet not-explicitly-define
 {	\stackone
 		{P' = P \wedge \psi[\eptosmt, \svtosmt]}
 		{\eptosmt \leftarrow fresh(x^e)}
-& 	\full{\svtosmt}{P'} \text{ consistent}
+& 	\isconsistent{P'}
 &	\eptosmt; \svtosmt; P'  \vdash \yields{\ehandlerof{e}}{\rv}
 }
 \]
@@ -690,8 +694,8 @@ In the following rule for party/oracle \erules, the as-yet not-explicitly-define
 	\svtosmt ; P \vdash \yields{ \deadrule{e}{\psetterpart{e}{1},\ldots,\psetterpart{e}{k}}{\psi}}{\rv}
 }
 {
-	\stackone{P' \text{ consistent}}
-			{P' = P \wedge \psi[\svtosmt]}
+P' = P \wedge \psi[\svtosmt]
+& \isconsistent{P'}			
 &	\stackone{\eptosmt; \svtosmt; P' \vdash \yields{\ehandlerof{e}}{\rv} }
 			{\sigma = \eparams{e} \mapsto \psetterpart{e}{1},\ldots,\psetterpart{e}{k}}
 }
@@ -705,7 +709,7 @@ In the following rule for party/oracle \erules, the as-yet not-explicitly-define
 }
 {
 	P' = P \wedge \psi[\eptosmt, \svtosmt]
-&	P' \text{ consistent}
+&	\isconsistent{P'}
 & 	\eptosmt; \svtosmt; P' \vdash \yields{U \cup X_1}{\rv}
 }
 \]
@@ -714,7 +718,7 @@ In the following rule for party/oracle \erules, the as-yet not-explicitly-define
 	\eptosmt; \svtosmt ; P \vdash \yields{ U \cup \{ \cond{\psi}{X_1}{X_2} \}}{\rv}
 }{
 	P' = P \wedge (\neg\psi)[\eptosmt, \svtosmt]
-&	P' \text{ consistent}
+&	\isconsistent{P'}
 & 	\eptosmt; \svtosmt; P' \vdash \yields{U \cup X_2}{\rv}
 }
 \]
@@ -746,11 +750,10 @@ Since most legal contracts involve time at least a little, and since model check
 \subsubsection{Timed Automata} \label{timedautomata}
 We may relax the constraint from the previous section on the functions/predicates that take \timestamp arguments somewhat, allowing constraints that are boolean combinations of atomic formulas of the form \[ \text{(linear fn of $t$,$t'$)} \ (\leq | < | =) \ \text{(linear fn of $t$,$t'$)} \] where $t$ is the current \timestamp and $t'$ is the next. DateTime and TimeDelta literals can be used also, in the higher-level DSL, by compiling them down to expressions about \timestamps. What we arrive at is a computation model that is close or equivalent to \extlink{https://drum.lib.umd.edu/bitstream/handle/1903/15232/Fontana_umd_0117E_15027.pdf?sequence=1&isAllowed=y}{Timed Automata} with two clocks, one of which is never reset (for the time since the start of the contract) and the other that is reset after each \einst.
 
-Compare to
 
 
 
-\subsection{Unbounded-Trace Formal Verification with Pre/Postconditions and Invariants}
+\subsection{Unbounded-Trace Formal Verification with Pre/Post\-conditions and Invariants}
 
 \subsection{Unexplored: Hard Unbounded-Trace Formal Verification with Interactive Theorem Proving}
 
@@ -764,7 +767,9 @@ We introduce to the definition of \lsmclass{\cF} another finite set \anchorfor{\
 
 \section{L4: An Experimental but Practical \lsm-compatible DSL}
 \subsection{The Largest Set of Examples}
-We take seriously the tenant that DSL development should be guided by usage. Others do not.
+We follow, more seriously than any similar project, the tenant that DSL development should be guided by usage. 
+
+\extlink{}{}
 
 \subsection{Syntax is Not Important}
 
@@ -773,7 +778,7 @@ We take seriously the tenant that DSL development should be guided by usage. Oth
 
 \section{Related Work}
 
-This is thoroughly covered by \extlink{https://github.com/legalese/legalese-compiler/blob/master/doc/chapter-201707.org}{Meng's book chapter} and Appendix B of the \extlink{https://conferences.law.stanford.edu/compkworking201709/wp-content/uploads/sites/40/2017/07/WhitePaperDraftfordistroApril32018.pdf}{CodeX whitepaper} {\it Developing a Legal Specification Protocol: Technological Considerations and Requirements.}
+This is thoroughly covered by \extlink{https://github.com/legalese/legalese-compiler/blob/master/doc/chapter-201707.org}{Meng's book chapter} and Appendix B of the \\ \extlink{https://conferences.law.stanford.edu/compkworking201709/wp-content/uploads/sites/40/2017/07/WhitePaperDraftfordistroApril32018.pdf}{CodeX whitepaper} {\it Developing a Legal Specification Protocol: Technological Considerations and Requirements.}
 
 
 \section{\texorpdfstring{\todomin{Dustin's todo}}{Dustin's todo}}
@@ -794,7 +799,6 @@ Before it's done, leaves undocumented some progress we've made.
 
 \subsection{Low Priority / Questionable}
 \begin{LPPI}
-\item Fix reference undefined errors.
 \item \todomin{Consider changing } $\timestamp^2 \times \svsorts \times \eppartsorts{e} \rarr \svsorts$ to
 \[ (\timestamp \times \svsorts) \times (\timestamp \times \eppartsorts{e}) \rarr \svsorts \]
 since it better reflects the ``Timeless'' reduction.

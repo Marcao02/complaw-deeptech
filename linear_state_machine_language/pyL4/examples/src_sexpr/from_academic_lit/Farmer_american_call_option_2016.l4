@@ -44,8 +44,8 @@
 		)
 
 		(FollowingSituation
-			(Buyer may ExerciseOption (when next_event_dt ≤ (str2dt "December 17, 2015")))
-			(EnterFulfilled (when next_event_dt > (str2dt "December 17, 2015")))
+			(Buyer may ExerciseOption (by (str2dt "December 17, 2015")))
+			(EnterFulfilled (after_dt (str2dt "December 17, 2015")))
 		)
 	)
 
@@ -60,12 +60,11 @@
 		)
 	)
 
-	(Action TransferShare
+	(Action TransferShare (TransitionsTo Fulfilled)
 		(StateTransform
 			(buyer_final_shares' = (BUYER_START_SHARES + (ShareCnt 1)))
 			(seller_final_shares' = (check ShareCnt (SELLER_START_SHARES - (ShareCnt 1))))
 		)
-		(TransitionsTo Fulfilled)
 	)
 
 	(Action EnterFulfilled (TransitionsTo Fulfilled))

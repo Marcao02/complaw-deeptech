@@ -12,18 +12,20 @@
 (ProseContract
 	(P1 'The term of this lease is for {LEASE_DURATION} months, beginning on {LEASE_TERM_START}. At the expiration of said term, the lease will automatically be renewed for a period of one month unless either party (Landlord or Tenant) notifies the other of its intention to terminate the lease at least one month before its expiration date.')
 	(P2 'The lease is for 1 apartment, which is provided by Landlord throughout the term.')
-	(P3 'Tenant agrees to pay the amount of {RENT} per month, each payment due within {MAX_DAYS_RENT_DELAY} days of the start of each month.')   )
+	(P3 'Tenant agrees to pay the amount of {RENT} per month, each payment due within {MAX_DAYS_RENT_DELAY} days of the start of each month.')
+)
 
 (StateVars
-	(lease_term_start : TimeDelta )		; formerly never : Date
-	(lease_term_end : TimeDelta )		; formerly never : Date
+	(lease_term_start : TimeDelta )
+	(lease_term_end : TimeDelta )
 	(writeOnceMore lease_terminated : Bool := false)
-	(branchUnaffecting inconly total_rent_paid : Nat := 0)   )
+	(branchUnaffecting inconly total_rent_paid : Nat := 0)
+)
 
 
 (Macro RequestTerminationActionRuleMacro (RoleId SituationId)
 	(if (not lease_terminated)
-		(RoleId may (RequestTerminationFromSituationId) (when next_event_td ≤ (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE))))
+		(RoleId may (RequestTerminationFromSituationId) (within (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE))))
 	)
 )
 
@@ -49,14 +51,15 @@
 
 	(Action StartLeaseTerm (TransitionsTo MonthStarted)
 		(StateTransform
-			; (conjecture ((eventTimestamp) == (monthStartDay_td)))
 			(lease_term_start' = last_event_td)
-			(lease_term_end' = (last_event_td + LEASE_DURATION))   ))
+			(lease_term_end' = (last_event_td + LEASE_DURATION))
+		)
+	)
 
 	(Action EnterMonthStarted (TransitionsTo MonthStarted))
 
 	(Situation MonthStarted
-		(Tenant may (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
+		(Tenant may (PayRent) (within ((monthStartDay_td) + MAX_RENT_DELAY)))
 		(Breach_Tenant (after ((monthStartDay_td) + MAX_RENT_DELAY)))
 		(RequestTerminationActionRuleMacro (Tenant MonthStarted))
 		(RequestTerminationActionRuleMacro (Landlord MonthStarted))
@@ -64,7 +67,7 @@
 
 	(Action PayRent (StateTransform (total_rent_paid' += 1000))
 		(FollowingSituation
-			(EnterMonthEnded (when next_event_td == (monthEndDay_td)))
+			(EnterMonthEnded (at (monthEndDay_td)))
 			(RequestTerminationActionRuleMacro (Tenant AfterPayRent))
 			(RequestTerminationActionRuleMacro (Landlord AfterPayRent))
 		)
@@ -78,7 +81,7 @@
 			(if (lease_term_end ≤ (last_situation_td + 1D))
 				(EnterLeaseTermEnded immediately)   )
 			(if (lease_term_end > (last_situation_td + 1D))
-				(EnterMonthStarted (when next_event_td == (last_situation_td + 1d)))   )
+				(EnterMonthStarted (at (last_situation_td + 1d)))   )
 			(RequestTerminationActionRuleMacro (Tenant MonthEnded))
 			(RequestTerminationActionRuleMacro (Landlord MonthEnded))
 		)
@@ -87,7 +90,6 @@
 	(Action EnterLeaseTermEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
 		(FollowingSituation
-
 			(if lease_terminated (Tenant must (MoveOut) immediately))
 			(if (not lease_terminated) (StartLeaseTerm immediately))
 		)
