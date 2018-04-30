@@ -11,36 +11,28 @@
 	(StartSituation AssignmentOut)
 
 	(Situation AssignmentOut
-		(Next
-			(Student must Submit (at 11))
-		)
+		(Student must Submit (at 11))
 	)
 
 	(Action Accept (AllowedRoles Grader) (TransitionsTo Fulfilled))
 
 	(Action Submit (AllowedRoles Student)
 		(FollowingSituation
-			(Next
-				(Grader may Accept (when next_event_td ≤ (last_situation_td + 7d)))
-				(Grader may Reject (when next_event_td ≤ (last_situation_td + 7d)))
-				(Breach_Grader (after last_situation_td + 7d))
-			)
+			(Grader may Accept (when next_event_td ≤ (last_situation_td + 7d)))
+			(Grader may Reject (when next_event_td ≤ (last_situation_td + 7d)))
+			(Breach_Grader (after last_situation_td + 7d))
 		)
 	)
 
 	(Action Reject (AllowedRoles Grader)
 		(FollowingSituation
-			(Next
-				(Student must Resubmit (by 27))
-			)
+			(Student must Resubmit (by 27))
 		)
 	)
 
 	(Action Resubmit (AllowedRoles Student)
 		(FollowingSituation
-			(Next
-				(Grader must Accept (within 7))
-			)
+			(Grader must Accept (within 7))
 		)
 	)
 )

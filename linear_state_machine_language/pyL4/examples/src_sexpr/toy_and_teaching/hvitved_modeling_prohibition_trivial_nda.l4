@@ -14,9 +14,7 @@
 	(StartSituation Employed)
 
 	(Situation Employed
-		(Next
-			(Employee may Disclose)
-		)
+		(Employee may Disclose)
 	)
 
 	(Action Disclose

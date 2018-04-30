@@ -18,16 +18,14 @@
 	(StartSituation Ongoing)
 
 	(Situation Ongoing
-		(Next
-			(if ((x == 0) or (x == 1))
-				(EnterFulfilled immediately)
-			)
-			(if ((x > 1) and (even x))
-				(DivideBy2 immediately)
-			)
-			(if ((x > 1) and (odd x))
-				(TripplePlus1 immediately)
-			)
+		(if ((x == 0) or (x == 1))
+			(EnterFulfilled immediately)
+		)
+		(if ((x > 1) and (even x))
+			(DivideBy2 immediately)
+		)
+		(if ((x > 1) and (odd x))
+			(TripplePlus1 immediately)
 		)
 	)
 

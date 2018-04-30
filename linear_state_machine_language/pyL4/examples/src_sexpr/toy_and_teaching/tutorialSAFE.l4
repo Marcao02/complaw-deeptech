@@ -49,12 +49,10 @@
 	(StartSituation InvestorInvests)
 
 	(Situation InvestorInvests
-		(Next
-			(Company may CommitToEquityFinancing)
-			(Company may (CommitToIPO ?1)) ; IPO
-			; should Company breach after a while? no; company can actually remain in this state forever,
-			; though they won't be able to raise any new money or sell.
-		)
+		(Company may CommitToEquityFinancing)
+		(Company may (CommitToIPO ?1)) ; IPO
+		; should Company breach after a while? no; company can actually remain in this state forever,
+		; though they won't be able to raise any new money or sell.
 	)
 
 	; ----------------- Equity Financing Event -------------------
@@ -62,25 +60,19 @@
 
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(FollowingSituation
-			(Next
-				(Company must SendEquityFinancingTransactionDocsWithPRRAForSigning (within 14d))
-			)
+			(Company must SendEquityFinancingTransactionDocsWithPRRAForSigning (within 14d))
 		)
 	)
 
 	(Action SendEquityFinancingTransactionDocsWithPRRAForSigning (AllowedSubjects Company)
 		(FollowingSituation
-			(Next
-				(Investor must ExecuteAndDeliverTransactionDocs (within 14d))
-			)
+			(Investor must ExecuteAndDeliverTransactionDocs (within 14d))
 		)
 	)
 
 	(Action ExecuteAndDeliverTransactionDocs (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next
-				(Company must (IssueSAFEPreferredStock ?1 ?2) (within 14d))
-			)
+			(Company must (IssueSAFEPreferredStock ?1 ?2) (within 14d))
 		)
 	)
 
@@ -95,7 +87,7 @@
 			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
 		)
 		(FollowingSituation
-			(Next (Company must DoEquityFinancing (within 1d)))
+			(Company must DoEquityFinancing (within 1d))
 		)
 	)
 
@@ -114,22 +106,20 @@
 		)
 
 		(FollowingSituation
-			(Next
-				; 1W is totally made up by Dustin!
-				(Investor may ChooseCashPayment [when next_event_td < (last_situation_td + 1W)])
-				(Investor may ChooseStockPayment [when next_event_td < (last_situation_td + 1W)])
-				(Company may AutoChooseStockPayment [when next_event_td == (last_situation_td + 1W)])
-				(Breach_Company [after last_situation_td + 1W])
-			)
+			; 1W is totally made up by Dustin!
+			(Investor may ChooseCashPayment [when next_event_td < (last_situation_td + 1W)])
+			(Investor may ChooseStockPayment [when next_event_td < (last_situation_td + 1W)])
+			(Company may AutoChooseStockPayment [when next_event_td == (last_situation_td + 1W)])
+			(Breach_Company [after last_situation_td + 1W])
 		)
 	)
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
-		(FollowingSituation (Next (Company must TransferCommonStock (within 14d))))
+		(FollowingSituation (Company must TransferCommonStock (within 14d)))
 	)
 
 	(Action ChooseStockPayment (AllowedSubjects Investor)
-		(FollowingSituation (Next (Company must TransferCommonStock (within 14d))))
+		(FollowingSituation (Company must TransferCommonStock (within 14d)))
 	)
 
 	(Action TransferCommonStock (AllowedSubjects Company)
@@ -137,13 +127,13 @@
 			(investor_Common_Stocks' += ((check $ (cash_currently_unconverted - liq_cashout)) round/ cap_price))
 		)
 		(FollowingSituation
-			(Next (Company must DoLiquidityEvent (within 14d)))
+			(Company must DoLiquidityEvent (within 14d))
 		)
 	)
 
 	(Action ChooseCashPayment (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next (Company must (TransferCash_L ?1) (within 14d)))
+			(Company must (TransferCash_L ?1) (within 14d))
 		)
 	)
 
@@ -157,13 +147,11 @@
 		)
 
 		(FollowingSituation
-			(Next
-				(if (liq_cashout < cash_currently_unconverted)
-					(Company must TransferCommonStock (within 14d)) )
+			(if (liq_cashout < cash_currently_unconverted)
+				(Company must TransferCommonStock (within 14d)) )
 
-				(if (liq_cashout == cash_currently_unconverted)
-					(Company must DoLiquidityEvent (within 14d))
-				)
+			(if (liq_cashout == cash_currently_unconverted)
+				(Company must DoLiquidityEvent (within 14d))
 			)
 		)
 	)

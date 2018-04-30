@@ -3,8 +3,6 @@
 
 ; QUESTION: In Acquisition event if investor chooses 2x payment ("(b) get paid a multiple on the original investment."), does that mean the interest rate has no effect? NO -->
 
-; TODO: "No Fractional ShareCnt"
-
 (Roles Investor Company)
 (TimeUnit d)
 
@@ -46,25 +44,11 @@
 )
 
 
-
-(TypedMacro compounded_full_periods ((#princ : Pos$) (#ir : "Fraction(0,1)") (#periods : PosInt)) -> Pos$
-	(#princ * ((1 + #ir) ^ #periods))
-)
-
 (Macro compounded_full_periods (#princ #ir #periods)
 	(#princ * ((1 + #ir) ^ #periods))
 )
 
-; [p * (1 + ir)^N] + [p * (1 + ir)^N * ir * q]
-(TypedMacro principle_and_compound_interest
-	; (((#princ : Pos$) (#ir : "Fraction(0,1)") (#full_periods : PosInt) (#final_period_fraction: "Fraction[0,1)")) -> (Pos$ & (GEQ #princ)))
-	(((#princ : Pos$) (#ir : "Fraction(0,1)") (#full_periods : PosInt) (#final_period_fraction: "Fraction[0,1)")) -> Pos$)
-	(
-		(compounded_full_periods (#princ #ir #full_periods)) +
-		(((compounded_full_periods (#princ #ir #full_periods)) * #ir) * #final_period_fraction)
-	)
-	(Post (RETURN_VALUE : (GEQ #princ)))
-)
+
 (Macro principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction) (
 	(compounded_full_periods (#princ #ir #full_periods)) +
 	(((compounded_full_periods (#princ #ir #full_periods)) * #ir) * #final_period_fraction)
@@ -77,10 +61,7 @@
 	(((#princ * (1 + #ir)) * #ir) * #final_period_fraction)
 ))
 
-(TypedMacro compound_interest
-	((#princ : Pos$) (#ir : "Fraction(0,1)") (#full_periods : PosInt) (#final_period_fraction: "Fraction[0,1)")) -> Pos$
-	(check Pos$ ((principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
-)
+
 (Macro compound_interest (#princ #ir #full_periods #final_period_fraction)
 	(check Pos$ ((principle_and_compound_interest (#princ #ir #full_periods #final_period_fraction)) - #princ))
 )
@@ -90,60 +71,23 @@
 (Macro compound_interest_gt_year (#princ #ir #final_period_fraction)
 	(check Pos$ ((principle_and_compound_interest_gt_year (#princ #ir #final_period_fraction)) - #princ))
 )
-; Interesting issue here: ifthenelse (a ≤ t') t_true t_false
-; gives a type (LEQ t') in t_true, and type (GT t') in t_false
-; but that, as it's written now, seems to require an encoding of the relationship between formulas and types.
-; Alternatively, ≤ could have types:
-; ∀x:TimeDelta. {x} -> (GEQ x) -> {true}
-; ∀x:TimeDelta. {x} -> (LT x) -> {false}
-; ∀x:TimeDelta. (LEQ x) -> {x} -> {true}
-; ∀x:TimeDelta. (GT x) -> {x} -> {false}
-; Another option to typecheck ifthenelse:
-;   you infer type of a in t_true by checking (a ≤ t') against {true}
-;   you infer type of a in t_false by checking (a ≤ t') against {false}
-; That's too complicated.
-; FOR NOW just use
-;	iftype (#td : (LEQ 365d)) t1 t2
-(TypedMacro interest_from_td (#td : TimeDelta) -> Pos$
-	(ifthenelse (#td ≤ 365d)
-		(compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
-		(compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((trust PosTimeDelta (#td - 365d)) / 365d)))
-	)
-)
-; (Macro interest_from_td #td
-; 	(ifthenelse (#td ≤ 365d)
-; 		(compound_interest (PURCHASE_AMOUNT INTEREST_RATE 0 (#td / 365d)))
-; 		(compound_interest (PURCHASE_AMOUNT INTEREST_RATE 1 ((trust PosTimeDelta (#td - 365d)) / 365d)))
-; 	)
-; )
+
+
 (Macro interest_from_td #td
 	(ifthenelse (#td ≤ 365d)
 		(compound_interest_lt_year (PURCHASE_AMOUNT INTEREST_RATE (#td / 365d)))
 		(compound_interest_gt_year (PURCHASE_AMOUNT INTEREST_RATE ((trust PosTimeDelta (#td - 365d)) / 365d)))
 	)
 )
-; issue can't redeclare local var:
-; (Macro interest_from_td (#local_var #td)
-; 	(if (#td ≤ 365d) (
-; 		(local #local_var : $ := (compound_interest_lt_year (PURCHASE_AMOUNT INTEREST_RATE (#td / 365d))))
-; 	)
-; 	else (
-; 		(local #local_var : $ := (compound_interest_gt_year (PURCHASE_AMOUNT INTEREST_RATE ((trust PosTimeDelta (#td - 365d)) / 365d))))
-; 	))
-; )
 
 (FormalContract "KISS"
 	(StartSituation InvestorInvests)
 
 	(Situation InvestorInvests
-		(Next
-			(Company may (CommitToAcquisition ?1) (when next_event_td < (last_situation_td + TIME_TILL_MATURITY)))
-			(Company may (CommitToFinancing ?1) (when next_event_td < (last_situation_td + TIME_TILL_MATURITY))) ; IPO
-			(ReachMaturity (when next_event_td ≥ (last_situation_td + TIME_TILL_MATURITY)))
-		)
+		(Company may (CommitToAcquisition ?1) (when next_event_td < (last_situation_td + TIME_TILL_MATURITY)))
+		(Company may (CommitToFinancing ?1) (when next_event_td < (last_situation_td + TIME_TILL_MATURITY))) ; IPO
+		(ReachMaturity (when next_event_td ≥ (last_situation_td + TIME_TILL_MATURITY)))
 	)
-
-	; ((ifthenelse (last_event_td ≤ 365d) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 0)) * INTEREST_RATE) * (last_event_td / 365d))) - PURCHASE_AMOUNT) (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) + (((PURCHASE_AMOUNT * ((1 + INTEREST_RATE) ^ 1)) * INTEREST_RATE) * ((check PosTimeDelta (last_event_td - 365d)) / 365d))) - PURCHASE_AMOUNT)) + (2 * PURCHASE_AMOUNT))
 
 	(Action (CommitToFinancing
 				(qualifying_round_new_money : $)
@@ -154,9 +98,7 @@
 		(Pre (qualifying_round_new_money ≥ ($ 1000000)))
 
 		(FollowingSituation
-			(Next
-				(Company must NotifyInvestorOfNextEquityFinancingTerms)
-			)
+			(Company must NotifyInvestorOfNextEquityFinancingTerms)
 		)
 	)
 
@@ -166,11 +108,9 @@
 	)
 
 	(Situation After_NotifyInvestorOfNextEquityFinancingTerms
-		(Next
-			(Investor may choose_cash_interest_repayment)
-			(Company may (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (last_situation_td + 5D)))
-			; discretionary Breach if never close?
-		)
+		(Investor may choose_cash_interest_repayment)
+		(Company may (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (last_situation_td + 5D)))
+		; discretionary Breach if never close?
 	)
 
 	(Action choose_cash_interest_repayment (TransitionsTo SRC)
@@ -192,10 +132,7 @@
 			(local discount_price : SharePrice = (qualifying_round_price * DISCOUNT_RATE)) ; check this!
 			(local conversion_price : SharePrice = (min discount_price cap_price))
 			(if pay_interest_in_cash (
-				; this won't work because we don't have short circuit ifthenelse from Z3's current (very basic) perspective
 				(local change : $ := (min (interest_from_td last_event_td) company_cash))
-				; and this won't work because it declares a local variable twice, which doesn't work with local variable elimination.
-				; (interest_from_td (change last_event_td))
 				(company_cash' = (check $ (company_cash - change)))
 				(investor_cash' += change)
 				(investor_PreferredStock' += (PURCHASE_AMOUNT round/ conversion_price))
@@ -213,12 +150,10 @@
 		(AllowedSubjects Company)
 
 		(FollowingSituation
-			(Next
-				(Investor may ChooseMultipleRepayment)
-				(Investor may (ChooseConvertToCommonStock company_capitalization) )
-				; KISS doesn't say there's a default, so...
-				(Arbiter may InterveneOnDelay_Investor)
-			)
+			(Investor may ChooseMultipleRepayment)
+			(Investor may (ChooseConvertToCommonStock company_capitalization) )
+			; KISS doesn't say there's a default, so...
+			(Arbiter may InterveneOnDelay_Investor)
 		)
 	)
 
@@ -227,7 +162,6 @@
 		(StateTransform
 			; from Corporate Transaction Payment defn
 			(local change : $ = (min ((interest_from_td last_event_td) + (2 * PURCHASE_AMOUNT)) company_cash))
-			; (company_cash' -= change)
 			(company_cash' = (check $ (company_cash - change)))
 			(investor_cash' += change)
 
@@ -249,14 +183,12 @@
 		(AllowedSubjects Env)
 
 		(FollowingSituation
-			(Next
-				(if DEBT_VERSION
-					(Investor may (ChooseConversionToSeriesSeedPreferredStock ?1))
-				)
-				(Investor may ChooseMaturityRepayment)
-				; KISS doesn't say there's a default, so...
-				(Arbiter may InterveneOnDelay_Investor)
+			(if DEBT_VERSION
+				(Investor may (ChooseConversionToSeriesSeedPreferredStock ?1))
 			)
+			(Investor may ChooseMaturityRepayment)
+			; KISS doesn't say there's a default, so...
+			(Arbiter may InterveneOnDelay_Investor)
 		)
 	)
 
@@ -264,7 +196,6 @@
 		(AllowedSubjects Investor)
 		(StateTransform
 			(local change : $ = (min ((interest_from_td last_event_td) + PURCHASE_AMOUNT) company_cash))
-			; (company_cash' -= change)
 			(company_cash' = (check $ (company_cash - change)))
 			(investor_cash' += change)
 		)
@@ -281,14 +212,3 @@
 	)
 
 )
-
-
-
-
-; PurchasePrice : #
-; ConversionShareCnt ... of CompanyPreferredStock
-; ConversionShareCntSect21 ... of a ShadowSeries
-
-; Definition (a) of ConversionShareCnt tells us there are 3 kinds of conversions:
-
-; CapPrice (my term) := ValuationCap / ...

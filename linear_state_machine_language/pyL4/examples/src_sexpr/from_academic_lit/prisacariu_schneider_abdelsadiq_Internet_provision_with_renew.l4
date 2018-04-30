@@ -134,62 +134,55 @@
 	(Action EnterFulfilled (AllowedSubjects Env) (TransitionsTo Fulfilled))
 
 	(Situation NoInfraction
-		(Next
-			(if (not contract_canceled)
-				(Client may RaiseTraffic)
-			)
-			(if contract_canceled
-				(EnterFulfilled immediately)
-			)
-			(ISP may SendCancelNoticeByPost)
-			(ISP may SendCancelNoticeByEmail)
+		(if (not contract_canceled)
+			(Client may RaiseTraffic)
 		)
+		(if contract_canceled
+			(EnterFulfilled immediately)
+		)
+		(ISP may SendCancelNoticeByPost)
+		(ISP may SendCancelNoticeByEmail)
 	)
 
 	(Situation UnsettledInfraction
-		(Next
-			; no penalty for sending multiples.
-			(ISP may SendCancelNoticeByPost)
-			(ISP may SendCancelNoticeByEmail)
+		; no penalty for sending multiples.
+		(ISP may SendCancelNoticeByPost)
+		(ISP may SendCancelNoticeByEmail)
 
-			(if (not usage_level_normal)
-				(Client may LowerTraffic (when within48HOfInfraction))
-			)
+		(if (not usage_level_normal)
+			(Client may LowerTraffic (when within48HOfInfraction))
+		)
 
-			; it might not do anything, but we don't penalyze them in that case.
-			(Client may SendDelayEmail (when within48HOfInfraction))
+		; it might not do anything, but we don't penalyze them in that case.
+		(Client may SendDelayEmail (when within48HOfInfraction))
 
-			(Client may (Pay ?x) (when within48HOfInfraction) (where ((?x > ($ 0)) and (?x ≤ ($ 3)))))
+		(Client may (Pay ?x) (when within48HOfInfraction) (where ((?x > ($ 0)) and (?x ≤ ($ 3)))))
 
-			(if (and (not sent_delay_email) usage_level_normal (paid ≥ ($ 1)))
-				(Reset (when within24HOfInfraction))
-			)
+		(if (and (not sent_delay_email) usage_level_normal (paid ≥ ($ 1)))
+			(Reset (when within24HOfInfraction))
+		)
 
-			(if ((not sent_delay_email) and ((not usage_level_normal) or (not paidBefore24)))
-				(ClientBreaches (when after24HSinceInfraction))
-			)
+		(if ((not sent_delay_email) and ((not usage_level_normal) or (not paidBefore24)))
+			(ClientBreaches (when after24HSinceInfraction))
+		)
 
-			(if (and sent_delay_email usage_level_normal (paid ≥ ($ 2)))
-				(Reset (when within48HOfInfraction))
-			)
+		(if (and sent_delay_email usage_level_normal (paid ≥ ($ 2)))
+			(Reset (when within48HOfInfraction))
+		)
 
-			(if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 2)))
-				(Reset (when within48HOfInfraction))
-			)
+		(if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 2)))
+			(Reset (when within48HOfInfraction))
+		)
 
-			(if (and sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 3)))
-				(Reset (when within48HOfInfraction))
-			)
+		(if (and sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 3)))
+			(Reset (when within48HOfInfraction))
+		)
 
-			(ClientBreaches (when after48HSinceInfraction))
+		(ClientBreaches (when after48HSinceInfraction))
 
-			(if contract_canceled
-				(EnterFulfilled immediately)
-			)
-
+		(if contract_canceled
+			(EnterFulfilled immediately)
 		)
 
 	)
-
-
 )

@@ -10,8 +10,8 @@ contract params:
     SELLER_START_SHARES : PosShareCnt := 1
 
 state vars:
-    writes1 seller_funds : $
-    writes1 buyer_funds : $
+    writes≤1 seller_funds : $
+    writes≤1 buyer_funds : $
     writes≤1 buyer_final_shares : ShareCnt
     writes≤1 seller_final_shares : ShareCnt
 
@@ -25,6 +25,7 @@ action PaySellerForOption()  transitions to AfterPaySellerForOption:
         seller_funds := (SELLER_START_FUNDS + (units $ 5))
     following situation:
         Buyer may ExerciseOption (next_event_dt ≤ 350 days, 0:00:00)
+        EnterFulfilled (next_event_dt > 350 days, 0:00:00)
 
 action ExerciseOption()  transitions to AfterExerciseOption:
     transform:
@@ -38,3 +39,5 @@ action TransferShare()  transitions to Fulfilled:
     transform:
         buyer_final_shares := (BUYER_START_SHARES + (units ShareCnt 1))
         seller_final_shares := (check ShareCnt (SELLER_START_SHARES - (units ShareCnt 1)))
+
+action EnterFulfilled()  transitions to Fulfilled

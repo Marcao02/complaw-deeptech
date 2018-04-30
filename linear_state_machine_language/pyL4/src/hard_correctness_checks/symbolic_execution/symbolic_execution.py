@@ -109,8 +109,7 @@ class SEvalRVInconsistent(NamedTuple):
 class SEvalRVStopThread(NamedTuple):
     msg: str
 
-SEvalRV = Union[SEvalRVChange,
-          SEvalRVInconsistent, SEvalRVStopThread]
+SEvalRV = Union[SEvalRVChange, SEvalRVInconsistent, SEvalRVStopThread]
 
 pathconstr:Z3Term
 state:Store

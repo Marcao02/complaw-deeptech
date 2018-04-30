@@ -14,9 +14,7 @@
 	(StartSituation Ongoing)
 
 	(Situation Ongoing
-		(Next
-			(DoIt immediately)
-		)
+		(DoIt immediately)
 	)
 
 	(Action DoIt

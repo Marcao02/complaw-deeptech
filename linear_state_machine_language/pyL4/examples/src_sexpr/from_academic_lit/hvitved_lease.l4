@@ -38,14 +38,14 @@
 	"Lease Hvitved"
 	(StartSituation Start)
 
-	(Situation Start (Next (Landlord must (EnsureApartmentReady) immediately)))
+	(Situation Start  (Landlord must (EnsureApartmentReady) immediately))
 
 	(RequestTerminationActionMacro MonthStarted)
 	(RequestTerminationActionMacro AfterPayRent)
 	(RequestTerminationActionMacro MonthEnded)
 
 	(Action EnsureApartmentReady (AllowedRoles Landlord))
-	(Situation AfterEnsureApartmentReady (Next (StartLeaseTerm immediately)))
+	(Situation AfterEnsureApartmentReady (StartLeaseTerm immediately))
 
 	(Action StartLeaseTerm (TransitionsTo MonthStarted)
 		(StateTransform
@@ -56,39 +56,42 @@
 	(Action EnterMonthStarted (TransitionsTo MonthStarted))
 
 	(Situation MonthStarted
-		; (Next
-			(Tenant may (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
-			(Breach_Tenant (after ((monthStartDay_td) + MAX_RENT_DELAY)))
-			(RequestTerminationActionRuleMacro (Tenant MonthStarted))
-			(RequestTerminationActionRuleMacro (Landlord MonthStarted))
-		; )
+		(Tenant may (PayRent) (when next_event_td ≤ ((monthStartDay_td) + MAX_RENT_DELAY)))
+		(Breach_Tenant (after ((monthStartDay_td) + MAX_RENT_DELAY)))
+		(RequestTerminationActionRuleMacro (Tenant MonthStarted))
+		(RequestTerminationActionRuleMacro (Landlord MonthStarted))
 	)
 
 	(Action PayRent (StateTransform (total_rent_paid' += 1000))
 		(FollowingSituation
-			(Next
-				(EnterMonthEnded (when next_event_td == (monthEndDay_td)))
-				(RequestTerminationActionRuleMacro (Tenant AfterPayRent))
-				(RequestTerminationActionRuleMacro (Landlord AfterPayRent))  )))
+			(EnterMonthEnded (when next_event_td == (monthEndDay_td)))
+			(RequestTerminationActionRuleMacro (Tenant AfterPayRent))
+			(RequestTerminationActionRuleMacro (Landlord AfterPayRent))
+		)
+	)
 
 	(Action EnterMonthEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
 		(FollowingSituation
 			(Pre (last_situation_td ≤ lease_term_end))
-			(Next
-				(if (lease_term_end ≤ (last_situation_td + 1D))
-					(EnterLeaseTermEnded immediately)   )
-				(if (lease_term_end > (last_situation_td + 1D))
-					(EnterMonthStarted (when next_event_td == (last_situation_td + 1d)))   )
-				(RequestTerminationActionRuleMacro (Tenant MonthEnded))
-				(RequestTerminationActionRuleMacro (Landlord MonthEnded))   )))
+
+			(if (lease_term_end ≤ (last_situation_td + 1D))
+				(EnterLeaseTermEnded immediately)   )
+			(if (lease_term_end > (last_situation_td + 1D))
+				(EnterMonthStarted (when next_event_td == (last_situation_td + 1d)))   )
+			(RequestTerminationActionRuleMacro (Tenant MonthEnded))
+			(RequestTerminationActionRuleMacro (Landlord MonthEnded))
+		)
+	)
 
 	(Action EnterLeaseTermEnded (AllowedSubjects Env)
 		(1 ≤ traversals ≤ nonconstant)
 		(FollowingSituation
-			(Next
-				(if lease_terminated (Tenant must (MoveOut) immediately))
-				(if (not lease_terminated) (StartLeaseTerm immediately))   )))
+
+			(if lease_terminated (Tenant must (MoveOut) immediately))
+			(if (not lease_terminated) (StartLeaseTerm immediately))
+		)
+	)
 
 	(Action MoveOut (TransitionsTo Fulfilled) )
 )

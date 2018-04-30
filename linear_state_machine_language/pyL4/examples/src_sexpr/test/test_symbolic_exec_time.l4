@@ -4,12 +4,9 @@
 	(StartSituation Ongoing)
 
 	(Situation Ongoing
-		(Next
-			(DoIt immediately)
-			; which is short for:
-			; (DoIt (when next_event_td == last_situation_td))
-
-		)
+		(DoIt immediately)
+		; which is short for:
+		; (DoIt (when next_event_td == last_situation_td))
 	)
 
 	(Action DoIt

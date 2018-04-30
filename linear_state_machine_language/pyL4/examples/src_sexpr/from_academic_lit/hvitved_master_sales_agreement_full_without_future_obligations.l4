@@ -100,34 +100,31 @@
 	(StartSituation VendorAcceptingOrders)
 
 	(Situation VendorAcceptingOrders
-		(Next
-			(if (orderable_units > 0)
-				(Customer may (SubmitNewOrder ?q) (when next_event_td ≤ order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
-			)
-			(if (nonempty 2Bdelivered)
-				; lang note: the `where (mapHas  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
-				(Vendor may (Deliver ?order) (when tdGEQ 2Bdelivered ?order next_event_td) (where (mapHas 2Bdelivered ?order)))
-				(Breach_Vendor (when tdmapHasItemExpiredBefore 2Bdelivered next_event_td))
-			)
-			(if (nonempty 2Binvoiced)
-				(Vendor may (EmailInvoice ?order) (when tdGEQ 2Binvoiced ?order next_event_td) (where (mapHas 2Binvoiced ?order)))
-			)
-			(if (nonempty 2Bpaid)
-				(Customer may (PayBill ?order) (when tdGEQ 2Bpaid ?order next_event_td) (where (mapHas 2Bpaid ?order)))
-				(Breach_Customer (when tdmapHasItemExpiredBefore 2Bpaid next_event_td))
-			)
-			(if ; conditions for early end of contract
-				( and (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
-				; then fulfilled provided all invoice deadlines are expired
-				(EnterFulfilled (when next_event_td > furthest_invoice_deadline))
-			)
-			(if ; conditions for end of contract with units remaining
-				( and (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )
-				; then fulfilled provided all invoice deadlines are expired, and the _order period is over
-				(EnterFulfilled (when (next_event_td > furthest_invoice_deadline) and (next_event_td > order_period_ends)))
-			)
+		(if (orderable_units > 0)
+			(Customer may (SubmitNewOrder ?q) (when next_event_td ≤ order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
 		)
-
+		(if (nonempty 2Bdelivered)
+			; lang note: the `where (mapHas  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
+			(Vendor may (Deliver ?order) (when tdGEQ 2Bdelivered ?order next_event_td) (where (mapHas 2Bdelivered ?order)))
+			(Breach_Vendor (when tdmapHasItemExpiredBefore 2Bdelivered next_event_td))
+		)
+		(if (nonempty 2Binvoiced)
+			(Vendor may (EmailInvoice ?order) (when tdGEQ 2Binvoiced ?order next_event_td) (where (mapHas 2Binvoiced ?order)))
+		)
+		(if (nonempty 2Bpaid)
+			(Customer may (PayBill ?order) (when tdGEQ 2Bpaid ?order next_event_td) (where (mapHas 2Bpaid ?order)))
+			(Breach_Customer (when tdmapHasItemExpiredBefore 2Bpaid next_event_td))
+		)
+		(if ; conditions for early end of contract
+			( and (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
+			; then fulfilled provided all invoice deadlines are expired
+			(EnterFulfilled (when next_event_td > furthest_invoice_deadline))
+		)
+		(if ; conditions for end of contract with units remaining
+			( and (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )
+			; then fulfilled provided all invoice deadlines are expired, and the _order period is over
+			(EnterFulfilled (when (next_event_td > furthest_invoice_deadline) and (next_event_td > order_period_ends)))
+		)
 	)
 
 	(Action EnterFulfilled (TransitionsTo Fulfilled))

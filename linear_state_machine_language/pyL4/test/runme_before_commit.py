@@ -7,9 +7,9 @@ from src.independent.util import print_all_todos
 
 tests_to_run = {
     'L4typechecker',
-    'smt',
+    # 'smt',
     'graphviz',
-    # 'prettyprint',
+    'prettyprint',
     'interpreter',
 }
 

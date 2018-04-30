@@ -11,16 +11,14 @@
 	(StartSituation Ongoing)
 
 	(Situation Ongoing
-		(Next
-			(if (n < 5)
-				(I may Throw immediately)
-			)
-			(if (n < 5)
-				(I may Stand immediately)
-			)
-			(if (n == 5)
-				(EnterFulfilled immediately)
-			)
+		(if (n < 5)
+			(I may Throw immediately)
+		)
+		(if (n < 5)
+			(I may Stand immediately)
+		)
+		(if (n == 5)
+			(EnterFulfilled immediately)
 		)
 
 		(possibly-from-earlier I must-later Catch)

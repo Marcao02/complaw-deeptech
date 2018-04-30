@@ -6,10 +6,8 @@
 	[StartSituation Ongoing]
 
 	[Situation Ongoing
-		[Next
-			[I may [Throw ?n]]
-			[I may EnterFulfilled]
-		]
+		[I may [Throw ?n]]
+		[I may EnterFulfilled]
 
 		(possibly-from-earlier I must-later Catch)
 	]

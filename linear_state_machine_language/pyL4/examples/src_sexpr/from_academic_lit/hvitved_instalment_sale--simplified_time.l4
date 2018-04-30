@@ -32,25 +32,25 @@
 	(StartSituation WaitingForFirstDayOfNextMonth)
 
 	(Situation WaitingForFirstDayOfNextMonth
-		(Next
-			; note contract says payments happen on the first day of the month, not on-or-before.
-			; so I am being lazy and interpreting it literally.
 
-			; Can make a non-final payment, provided it's at least MIN_PAYMENT
-			; and it's before the final month of the contract.
-			(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
-				(Buyer may (PayInstallment ?amount)
-					(when next_event_td == (last_situation_td + 30d))
-					(where (MIN_PAYMENT ≤ ?amount ) and (?amount ≤ balance_remaining))
-				)
-			)
+		; note contract says payments happen on the first day of the month, not on-or-before.
+		; so I am being lazy and interpreting it literally.
 
-			(Buyer may (PayLastInstallment (balance_remaining + DUE_AT_CLOSING))
+		; Can make a non-final payment, provided it's at least MIN_PAYMENT
+		; and it's before the final month of the contract.
+		(if ( (MIN_PAYMENT ≤ balance_remaining) and (next_payment_month < 23) )
+			(Buyer may (PayInstallment ?amount)
 				(when next_event_td == (last_situation_td + 30d))
+				(where (MIN_PAYMENT ≤ ?amount ) and (?amount ≤ balance_remaining))
 			)
+		)
 
-			(Breach_Buyer (after last_situation_td + 30d))
-		))
+		(Buyer may (PayLastInstallment (balance_remaining + DUE_AT_CLOSING))
+			(when next_event_td == (last_situation_td + 30d))
+		)
+
+		(Breach_Buyer (after last_situation_td + 30d))
+	)
 
 	(Action (PayInstallment(amount:Pos$)) (TransitionsTo WaitingForFirstDayOfNextMonth)
 		(Pre (amount ≤ balance_remaining)) ; overpaying is forbidden

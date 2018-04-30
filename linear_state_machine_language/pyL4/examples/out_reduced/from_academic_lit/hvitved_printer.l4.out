@@ -10,7 +10,7 @@ contract params:
 state vars:
     nonoperative buyer_paid : Nat := 0
     nonoperative seller_refunded : Nat := 0
-    writes1 delivery_td : TimeDelta
+    writes≤1 delivery_td : TimeDelta
 
 claims:
     ["MAX_TIME'", '=', '44D']

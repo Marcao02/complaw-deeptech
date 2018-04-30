@@ -109,7 +109,7 @@
         ;[StateTransform
         ;    [order_period_ends' += [contractStart_dt + CONTRACT_LIFE]] ]
     ;    [FollowingSituation
-    ;        [Next [EnterVendorAcceptingOrders immediately]]
+    ;        [EnterVendorAcceptingOrders immediately]
     ;    ]
     ;]
 
@@ -130,17 +130,16 @@
         ; LANG note: `guardsDisjointExhaustive` will tell the static checker to verify that it is
         ; always the case that exactly one of the tests of the children conditionals is true.
         ; I think we should at least encourage this style of order-insensitive conditionals.
-        [Next
-            [guardsDisjointExhaustive
-                [if [orderable_units_remaining > 0]
-                    [Customer may [SubmitNewOrder ?q] [when next_event_td ≤ order_period_ends]
-                         [where [[0 < ?q] and [?q ≤ orderable_units_remaining]]] ]
-                ]
-                [if [orderable_units_remaining == 0]
-                    [EnterFulfilled [when next_event_td ≥ order_period_ends]]
-                ]
-            ]
+
+        [if [orderable_units_remaining > 0]
+            [Customer may [SubmitNewOrder ?q] [when next_event_td ≤ order_period_ends]
+                 [where [[0 < ?q] and [?q ≤ orderable_units_remaining]]] ]
         ]
+        [if [orderable_units_remaining == 0]
+            [EnterFulfilled [when next_event_td ≥ order_period_ends]]
+        ]
+
+
 
         ; LANG note: the following three lines are not necessary for defining the contract.
         ; The idea is that `possibly-from-earlier` indicates to the static checker that

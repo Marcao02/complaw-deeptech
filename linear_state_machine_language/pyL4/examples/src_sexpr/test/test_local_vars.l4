@@ -11,9 +11,7 @@
 	(StartSituation Ongoing)
 
 	(Situation Ongoing
-		(Next
-			(DoIt immediately)
-		)
+		(DoIt immediately)
 	)
 
 	(Action DoIt
@@ -22,9 +20,7 @@
 			(local y : Nat = (x * x))
 		)
 		(FollowingSituation
-			(Next
-				((FinishIt y) immediately)
-			)
+			((FinishIt y) immediately)
 		)
 	)
 

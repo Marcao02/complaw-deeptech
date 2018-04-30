@@ -25,10 +25,8 @@
 		)
 
 		(FollowingSituation
-			(Next
-				(if (x > 1)
-					(NextInSeq immediately)
-				)
+			(if (x > 1)
+				(NextInSeq immediately)
 			)
 		)
 	)

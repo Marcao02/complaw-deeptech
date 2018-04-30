@@ -29,17 +29,15 @@
 (FormalContract
 	"partner assignment demonstrating relievable obligations"
 	(Situation WorkingOnAssignment
-		(Next
-			(Alice quasi-responsibility SolveProbA (when next_event_td ≤ DUE_TD))
-			(Bob   quasi-responsibility SolveProbB (when next_event_td ≤ DUE_TD))
+		(Alice quasi-responsibility SolveProbA (when next_event_td ≤ DUE_TD))
+		(Bob   quasi-responsibility SolveProbB (when next_event_td ≤ DUE_TD))
 
-			(Alice may SolveProbB (when next_event_td ≤ DUE_TD))
-			(Bob   may SolveProbA (when next_event_td ≤ DUE_TD))
+		(Alice may SolveProbB (when next_event_td ≤ DUE_TD))
+		(Bob   may SolveProbA (when next_event_td ≤ DUE_TD))
 
-			(if (probAsolved and probBsolved)
-				(Alice may Submit (when next_event_td ≤ DUE_TD))
-				(Bob may Submit (when next_event_td ≤ DUE_TD))
-			)
+		(if (probAsolved and probBsolved)
+			(Alice may Submit (when next_event_td ≤ DUE_TD))
+			(Bob may Submit (when next_event_td ≤ DUE_TD))
 		)
 	)
 
