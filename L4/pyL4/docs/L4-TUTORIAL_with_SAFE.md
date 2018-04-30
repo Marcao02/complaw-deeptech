@@ -1,7 +1,7 @@
 
 
 
-This will teach you how to use the current implementation of L4, by way of writing a simplified version of Y-Combinator's Simple Agreement for Future Financing. The full version can be [found in github](https://github.com/legalese/complaw-deeptech/blob/master/linear_state_machine_language/pyL4/examples/src_sexpr/serious/SAFE.l4). The version used here is obtained from the full version by:
+This will teach you how to use the current implementation of L4, by way of writing a simplified version of Y-Combinator's Simple Agreement for Future Financing. The full version can be [found in github](https://github.com/legalese/complaw-deeptech/blob/master/L4/pyL4/examples/src_sexpr/serious/SAFE.l4). The version used here is obtained from the full version by:
 
 - setting two preprocessor flags (a feature not covered here) `HAS_CAP` and `HAS_DISCOUNT` to true.
 - expanding instances of the one macro defined in SAFE.l4.
