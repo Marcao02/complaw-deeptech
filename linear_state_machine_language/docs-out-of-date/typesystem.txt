@@ -9,7 +9,7 @@ Nat ⊆ Int ⊆ Real
 Nat ⊆ PostReal ⊆ Real
 
 The relationships between the number types are sort of compiled away -- they aren't visible to SMT solvers, for example.
-See https://github.com/legalese/legalese-compiler/issues/4
+See https://github.com/legalese/complaw-deeptech/issues/4
 
 There are arbitrarily-many copies of each of those types, to be used for units, e.g.
 	type numshares := Nat_1

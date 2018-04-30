@@ -2,7 +2,7 @@ name:                l4
 version:             0.1.0.0
 -- synopsis:
 -- description:
-homepage:            https://github.com/legalese/legalese-compiler/sandbox6/l4
+homepage:            https://github.com/legalese/complaw-deeptech/sandbox6/l4
 license:             BSD3
 license-file:        LICENSE
 author:              Meng Weng Wong
@@ -42,4 +42,4 @@ test-suite l4-test
 
 source-repository head
   type:     git
-  location: https://github.com/legalese/legalese-compiler/
+  location: https://github.com/legalese/complaw-deeptech/

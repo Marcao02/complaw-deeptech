@@ -2,9 +2,9 @@
 -- the language here is PCSL, defined by Hvitved as a tweak of CSL
 -- language definition: https://drive.google.com/open?id=0BxOaYa8pqqSwbl9GMWtwVU5HSFU
 -- CSL implementation: https://bitbucket.org/jespera/poets/overview
--- see also: https://github.com/legalese/legalese-compiler/tree/master/nix
+-- see also: https://github.com/legalese/complaw-deeptech/tree/master/nix
 -- note that this is just a sample draft used to give a taste of how CSL thinks
--- 
+--
 -- author: mengwong@legalese.com
 
 Name: Burger Challenge

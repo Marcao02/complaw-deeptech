@@ -1,5 +1,5 @@
 # **INCOMPLETE**
-copied from now-closed issue https://github.com/legalese/legalese-compiler/issues/36
+copied from now-closed issue https://github.com/legalese/complaw-deeptech/issues/36
 
 # Idea
 This reduction works for `must-later`/`may-later` declarations that have no time constraint or a time constraint of the form event\_ts ≤ E for some expression E.

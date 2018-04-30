@@ -1,8 +1,8 @@
 # pyL4 (L4 implementation)
 
-Some limitted info about [L4 readme.md](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/README.md)
+Some limitted info about [L4 readme.md](https://github.com/legalese/complaw-deeptech/blob/master/linear_state_machine_language/README.md)
 
-<!-- Most of the [example contracts](https://github.com/legalese/legalese-compiler/tree/master/linear_state_machine_language/examplesLSM2) are problems from Tom Hvitved's PhD thesis. He wrote executable contracts in the language CSL that he developed. CSL influenced L4/LSM, but in the end they use quite different approaches.  -->
+<!-- Most of the [example contracts](https://github.com/legalese/complaw-deeptech/tree/master/linear_state_machine_language/examplesLSM2) are problems from Tom Hvitved's PhD thesis. He wrote executable contracts in the language CSL that he developed. CSL influenced L4/LSM, but in the end they use quite different approaches.  -->
 
 ## Dependencies
 You'll need to install Python 3.6 because the code uses format strings e.g. `f"text {code} text"` and Named Tuple syntax. It will be installed alongside any other python versions you have, so don't worry about it breaking anything. Also, some version of Python 3 is needed to recognize the static typing annotations.

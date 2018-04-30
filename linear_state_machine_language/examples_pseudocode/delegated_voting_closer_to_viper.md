@@ -1,4 +1,4 @@
-### See legalese-compiler/blockchain/viper_examples/voting for the ethereum Viper code that came of this.
+### See complaw-deeptech/blockchain/viper_examples/voting for the ethereum Viper code that came of this.
 
 *This algorithm is complete, but not yet in the syntax of LSM3.*
 
@@ -14,7 +14,7 @@ R - the set of **R**egistered voters, which is the disjoint union of the sets U,
 
 Some pure helper functions:
 
-decided(u:address) is True iff 
+decided(u:address) is True iff
 
 The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 
@@ -28,19 +28,19 @@ The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 	* Invariant v ∈ D? → v.delegate ≠ None and v.counted = False and v.vote = 0
 	* Invariant v ∈ D? → v.delegate ∈ D? ⋃ D✓ ⋃ U
 
-- D✓ - the set of registered voters who have **D**elegated their vote, whose delegated vote has been determined. 
+- D✓ - the set of registered voters who have **D**elegated their vote, whose delegated vote has been determined.
 	* Invariant v ∈ D✓ → v.delegate ≠ None and v.vote = 0
 
 - G - A directed graph on R (implicitly represented by the `.delegate` field values), where:
 	* the U and S voters have no out-edges
 	* the D? and D✓ voters have exactly one out-edge, and any number of in-edges. u ∈ D? has an edge to v ∈ R iff u.delegate = v.
-	* The subgraph obtained by ignoring all out-edges from nodes in D? (including only those in D✓) is a forest. Thus, among confirmed delegated voters, there are no cycles. 
+	* The subgraph obtained by ignoring all out-edges from nodes in D? (including only those in D✓) is a forest. Thus, among confirmed delegated voters, there are no cycles.
 
-- P - the set of k proposals to be voted on. 
+- P - the set of k proposals to be voted on.
 	* Each p ∈ P has p.votecnt ∈ ℕ
 	* Each p ∈ P initially has p.votecnt = 0
 
-	
+
 **Algorithm**
 
 * @constant **hasActed**(addr:address) -> bool:
@@ -51,13 +51,13 @@ The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 	* self.voters[msg.sender].vote = p
 	* self.voters[msg.sender].counted = True
 	* self.proposals[p].vote_count += 1
-		
+
 * **_Delegate_**(v:address): An undecided voter delegates to another, different voter v.
-	* assert not self.hasActed(msg.sender) 
-	* assert msg.sender != v 
+	* assert not self.hasActed(msg.sender)
+	* assert msg.sender != v
 	* self.voters[msg.sender].delegate := v
 
-* **_Shorten Delegation Chain_**(u_addr:address): If u has an unconfirmed delegation to some voter v, where v delegates to a voter w who has submitted a ballot, then we move u's delegation from v to w. 
+* **_Shorten Delegation Chain_**(u_addr:address): If u has an unconfirmed delegation to some voter v, where v delegates to a voter w who has submitted a ballot, then we move u's delegation from v to w.
 	* u = self.voters[u_addr]
 	* v = self.voters[u.delegate]
 	* w = self.voters[v.delegate]
@@ -67,12 +67,12 @@ The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 	* assert v.counted
 	* assert v.vote == None
 	* u.delegate = v.delegate
-	
+
 * **_Count Delegated Vote_**(u_addr:address): If u has (confirmed or unconfirmed) delegation to v, and v has submitted their vote, and u has not had their vote counted, then this transition count's u's vote, and marks u's delegation as confirmed if it isn't already.
-	* u = self.voters[u_addr] 
+	* u = self.voters[u_addr]
 	* v = self.voters[u.delegate]
 	* assert v.vote != None
-	* assert not u.counted 
+	* assert not u.counted
 	* u.vote := u.delegate.vote
 	* u.counted := True
 	* self.proposals[v.vote].vote_count += 1
@@ -83,12 +83,12 @@ The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 	* v_addr = u.delegate
 	* v = self.voters[v_addr]
 	* assert not u.counted
-	* assert not self.hasActed(v_addr) or not v.counted	
+	* assert not self.hasActed(v_addr) or not v.counted
 	* w = self.voters[to]
 	* assert w.voted != None or w.counted
 	* u.delegate = to
 
-* **_Cancel Delegation And Vote_**(p:num) (*this is optional*): If u has an unconfirmed delegation to v, and v has not participated or also has an unconfirmed delegation (these are the same conditions as _Redeligate_), then u can cancel their delegation and vote directly for a proposal p. 
+* **_Cancel Delegation And Vote_**(p:num) (*this is optional*): If u has an unconfirmed delegation to v, and v has not participated or also has an unconfirmed delegation (these are the same conditions as _Redeligate_), then u can cancel their delegation and vote directly for a proposal p.
 	* u_addr = msg.sender
 	* u = self.voters[u_addr]
 	* v_addr = u.delegate
@@ -106,8 +106,8 @@ The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 		* u.vote := u.delegate.vote
 		* u.delegate.vote.votecnt += 1
 		* u.counted := True
-					
-* *Nonaction State Transition* **_Shorten Delegation Chain_**: If u has an unconfirmed delegation to a voter v, where v delegates to a voter w who has submitted, then we move u's delegation from v to w. 
+
+* *Nonaction State Transition* **_Shorten Delegation Chain_**: If u has an unconfirmed delegation to a voter v, where v delegates to a voter w who has submitted, then we move u's delegation from v to w.
 	* Pre: hasUnconfirmedDelegation(u), directlyVoted(w), confirmedDelegation(v), w.counted , u.delegate = v, v.delegate = w
 	* Assert u,v,w distinct
 	* Post:
@@ -117,7 +117,7 @@ The state is given by a tuple ❬U, S, D?, D✓, G, P❭:
 	* Observation: repeated applications of Shorten Delegation Chain convert paths into [star graphs](https://en.wikipedia.org/wiki/Star_(graph_theory)
 ) with edges pointed toward the internal node.
 
-		
+
 #### Optimization:
 In a blockchain implementation, the two kinds of *Nonaction State Transitions* can be carried out repeatedly in any order until the gas is spent or the block is full or no more such transitions are possible.
 
@@ -143,8 +143,8 @@ Fix a state of the contract. For each proposal p ∈ P, let pointsToInG(p) be th
 		* D? := D? - u
 		* U := U + u
 -->
-		
-<!--	
+
+<!--
 * Nonaction State Transition: u has submitted their vote, but hasn't had it counted
 	* Pre u ∈ S and u.weight > 0
 	* Post:

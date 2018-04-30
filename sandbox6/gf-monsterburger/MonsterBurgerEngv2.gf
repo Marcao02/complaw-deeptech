@@ -1,4 +1,4 @@
---based on https://github.com/legalese/legalese-compiler/blob/56c97731d282ad914a7218b64d1dc07525cdf772/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM4/monster_burger_lsm_nlg.md
+--based on https://github.com/legalese/complaw-deeptech/blob/56c97731d282ad914a7218b64d1dc07525cdf772/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM4/monster_burger_lsm_nlg.md
 
 concrete MonsterBurgerEngv2 of MonsterBurgerv2 =
   open SyntaxEng, ParadigmsEng, (E=ExtendEng), (S=SentenceEng) in {
@@ -75,7 +75,7 @@ concrete MonsterBurgerEngv2 of MonsterBurgerv2 =
       lTransition timeexpression9 = mkUtt timeexpression9 ;
       mObligation party2 deontic3 party1 timeexpression6 = mkUtt (mkS (mkS (mkCl party2 deontic3 party1)) timeexpression6) ;
       nViolation controlflow1 party2 party2action1 object7 = mkUtt (mkS controlflow1 (mkS (mkCl party2 party2action1 object7))) ;
-      --sentence 5      
+      --sentence 5
       oCondition controlflow2 party2 party2action1 object7 = mkUtt (mkS controlflow2 (mkS (mkCl party2 party2action1 object7))) ;
       pCondition controlflow3 party2 party2action1 object2 = mkUtt (mkS controlflow3 (mkS (mkCl party2 party2action1 object2))) ;
       qCondition controlflow3 party2 party2action5 party1 party1action2 = mkUtt (mkS controlflow3 (mkS (mkCl party2 party2action5 party1 (party1action2)))) ;
@@ -88,15 +88,15 @@ concrete MonsterBurgerEngv2 of MonsterBurgerv2 =
       --sentence 7
       wTransition timeexpression11 = mkUtt timeexpression11 ;
       xObligation controlflow4 party1 deontic6 object9 = mkUtt (mkS controlflow4 (mkS (mkCl party1 deontic6 object9))) ;
-      yObligationCondition controlflow2 object6 party2action4 object3 = mkUtt (mkS controlflow2 (mkS (mkCl object6 party2action4 object3))) ; 
-      zAlternative controlflow1 object5 object5definition = mkUtt (mkS controlflow1 (mkS (mkCl object5 object5definition))) ; 
+      yObligationCondition controlflow2 object6 party2action4 object3 = mkUtt (mkS controlflow2 (mkS (mkCl object6 party2action4 object3))) ;
+      zAlternative controlflow1 object5 object5definition = mkUtt (mkS controlflow1 (mkS (mkCl object5 object5definition))) ;
       zaAlternativeCondition controlflow2 object6 timeexpression8 object3 = mkUtt (mkS controlflow2 (mkS (mkCl object6 timeexpression8 object3))) ;
       --sentence 8
       zbCondition controlflow2 party1 party1action3 object9 = mkUtt (mkS controlflow2 (mkS (mkCl party1 party1action3 object9))) ;
       zcConditionTrue controlflow4 object10 object4 = mkUtt (mkS controlflow4 (mkS (mkCl object10 object4))) ;
-      zdConditionTrue controlflow5 object4 object4definition2 = mkUtt (mkS controlflow5 (mkS (mkCl object4 object4definition2))) ; 
+      zdConditionTrue controlflow5 object4 object4definition2 = mkUtt (mkS controlflow5 (mkS (mkCl object4 object4definition2))) ;
       zeConditionTrue controlflow5 object8 party2action6 = mkUtt (mkS controlflow5 (mkS (mkCl object8 party2action6))) ;
---constructing noun phrase, verb phrases adverbial phrases. Prepositional phrasesthanks to Inari :) for the Upon parameters)       
+--constructing noun phrase, verb phrases adverbial phrases. Prepositional phrasesthanks to Inari :) for the Upon parameters)
       Customer = mkNP the_Det (mkCN (mkN "customer")) ;
       Restaurant = mkNP the_Det (mkCN (mkN "restaurant")) ;
       MonsterBurger = mkNP the_Det (mkCN (mkA "monster") (mkN "burger")) ;
@@ -130,12 +130,12 @@ concrete MonsterBurgerEngv2 of MonsterBurgerv2 =
       Fulfill = mkVP (mkV "fulfill") ;
       Check = mkV2V (mkV "check") noPrep noPrep ;
       Disconfirm = mkV2 "disconfirm" ;
-      Upon1 customer order burger = 
+      Upon1 customer order burger =
          let order_burger : Adv = E.GerundAdv (mkVP order burger) ;
              customer_order_burger : NP = mkNP customer order_burger ;
           in SyntaxEng.mkAdv (mkPrep "Upon") customer_order_burger ;
       Within15minutes = mkAdv "within 15 minutes" ;
-      Upon2 restaurant serve burger = 
+      Upon2 restaurant serve burger =
          let serve_burger : Adv = E.GerundAdv (mkVP serve burger) ;
              restaurant_serve_burger : NP = mkNP restaurant serve_burger ;
           in SyntaxEng.mkAdv (mkPrep "Upon") restaurant_serve_burger ;

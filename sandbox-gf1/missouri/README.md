@@ -88,12 +88,12 @@ That path corresponds to the three lines above, with `prelude`, `AllTenses`, `Pr
 
 That's half the library. Now for the other half.
 
-The `gruter` folder should be under your `legalese-compiler` repo, in something like `compiler/sandbox-gf1/201705-may/gruter`
+The `gruter` folder should be under your `complaw-deeptech` repo, in something like `compiler/sandbox-gf1/201705-may/gruter`
 
 Now append that to the `GF_LIB_PATH`:
 
 ```
-export GF_LIB_PATH=$HOME/Library/Haskell/share/ghc-8.0.2-x86_64/gf-3.9/lib:$HOME/src/legalese-compiler/sandbox-gf1/201705-may/gruter
+export GF_LIB_PATH=$HOME/Library/Haskell/share/ghc-8.0.2-x86_64/gf-3.9/lib:$HOME/src/complaw-deeptech/sandbox-gf1/201705-may/gruter
 ```
 
 or whatever is correct in your case.

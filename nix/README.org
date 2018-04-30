@@ -59,7 +59,7 @@ lrwxr-xr-x  1 mengwong  wheel  82 Jan  1  1970 .nix-profile/bin/ghci-7.4.2 -> /n
 /ghci-7.4.2
 #+END_SRC
 
-If you followed the Nix install instructions, that directory should be in your ~$PATH~, so you should be able to run ~ghci-7.4.2~. 
+If you followed the Nix install instructions, that directory should be in your ~$PATH~, so you should be able to run ~ghci-7.4.2~.
 
 If you don't have it in your path, you will have to run it as ~.nix-profile/bin/ghci-7.4.2~.
 
@@ -76,24 +76,24 @@ Loading package integer-gmp ... linking ... done.
 Loading package base ... linking ... done.
 
 Prelude> import Poets.Contracts.Base
-Prelude Poets.Contracts.Base> 
+Prelude Poets.Contracts.Base>
 Leaving GHCi.
 #+END_SRC
 
 * Now you can build the REPL!
 
 #+BEGIN_SRC
-src/legalese-compiler% ls -s bin/REPL.hs
+src/complaw-deeptech% ls -s bin/REPL.hs
 24 bin/REPL.hs
 
-src/legalese-compiler% ~/.nix-profile/bin/ghc-7.4.2 bin/REPL.hs
+src/complaw-deeptech% ~/.nix-profile/bin/ghc-7.4.2 bin/REPL.hs
 [1 of 1] Compiling Main             ( REPL.hs, REPL.o )
 Linking REPL ...
 
 20170106-16:26:04 mengwong@venice2:~/non-db-src/l/compiler% ls -s bin/REPL
 57168 bin/REPL*
 
-src/legalese-compiler% bin/REPL
+src/complaw-deeptech% bin/REPL
 Missing: -c contract.csl -o ontology.pce
 
 Usage: REPL -c contract.csl -o ontology.pce
@@ -108,7 +108,7 @@ That error message means the REPL is working.
 
 You should have a CSL and a PCE ready to play with. Use the REPL to play with them.
 
-* If you want to play Poets developer 
+* If you want to play Poets developer
 
 Fork poets on Github. Edit the ~poets~ derivation in ~config.nix~ to point to your forked repo. You now have enough rope to hang yourself.
 

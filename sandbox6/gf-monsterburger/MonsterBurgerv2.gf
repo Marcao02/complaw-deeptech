@@ -1,4 +1,4 @@
---based on https://github.com/legalese/legalese-compiler/blob/56c97731d282ad914a7218b64d1dc07525cdf772/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM4/monster_burger_lsm_nlg.md
+--based on https://github.com/legalese/complaw-deeptech/blob/56c97731d282ad914a7218b64d1dc07525cdf772/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM4/monster_burger_lsm_nlg.md
 
 abstract MonsterBurgerv2 = {
 
@@ -55,7 +55,7 @@ abstract MonsterBurgerv2 = {
     ControlFlow3 ;
     ControlFlow4 ;
     ControlFlow5 ;
-    
+
 
   fun
 --sentence constructions
@@ -63,7 +63,7 @@ abstract MonsterBurgerv2 = {
     aTransition : TimeExpression1 -> Challenge ;
     bObligation : Party2 -> Deontic1 -> Object1 -> TimeExpression2 -> Challenge ;
     cViolation : ControlFlow1 -> Party2 -> Party2Action1 -> Object2 -> Challenge ;
---sentence 2    
+--sentence 2
     dTransition : TimeExpression3 -> Challenge ;
     eTerm : Object3 -> Object3Definition -> Challenge ;
     fObligation : Object4 -> Object4Definition -> Challenge ;
@@ -73,11 +73,11 @@ abstract MonsterBurgerv2 = {
     iPermission : Party1 -> Deontic2 -> Object1 -> TimeExpression5 -> Challenge ;
     jAlternative : ControlFlow1 -> Object5 -> Party2Action3 -> Challenge ;
     kAlternativeCondition : ControlFlow2 -> Object6 -> Party2Action4 -> Object3 -> Challenge ;
---sentence 4    
+--sentence 4
     lTransition : TimeExpression9 -> Challenge ;
     mObligation : Party2 -> Deontic3 -> Party1 -> TimeExpression6 -> Challenge ;
     nViolation : ControlFlow1 -> Party2 -> Party2Action1 -> Object7 -> Challenge ;
---sentence 5    
+--sentence 5
     oCondition : ControlFlow2 -> Party2 -> Party2Action1 -> Object7 -> Challenge ;
     pCondition : ControlFlow3 -> Party2 -> Party2Action1 -> Object2 -> Challenge ;
     qCondition : ControlFlow3 -> Party2 -> Party2Action5 -> Party1 -> Party1Action2 -> Challenge ;
@@ -97,8 +97,8 @@ abstract MonsterBurgerv2 = {
     zbCondition : ControlFlow2 -> Party1 -> Party1Action3 -> Object9 -> Challenge ;
     zcConditionTrue : ControlFlow4 -> Object10 -> Object4 -> Challenge ;
     zdConditionTrue : ControlFlow5 -> Object4 -> Object4Definition2 -> Challenge ;
-    zeConditionTrue : ControlFlow5 -> Object8 -> Party2Action6 -> Challenge ;   
-    --noun phrases, verb phrases, adverbial phrases. Prepositional phrases (thanks Inari :) for the Upon parameters!) 
+    zeConditionTrue : ControlFlow5 -> Object8 -> Party2Action6 -> Challenge ;
+    --noun phrases, verb phrases, adverbial phrases. Prepositional phrases (thanks Inari :) for the Upon parameters!)
     Customer : Party1 ;
     Restaurant : Party2 ;
     MonsterBurger : Object1 ;

@@ -1,7 +1,7 @@
 
 
 
-This will teach you how to use the current implementation of L4, by way of writing a simplified version of Y-Combinator's Simple Agreement for Future Financing. The full version can be [found in github](https://github.com/legalese/legalese-compiler/blob/master/linear_state_machine_language/pyL4/examples/src_sexpr/serious/SAFE.l4). The version used here is obtained from the full version by:
+This will teach you how to use the current implementation of L4, by way of writing a simplified version of Y-Combinator's Simple Agreement for Future Financing. The full version can be [found in github](https://github.com/legalese/complaw-deeptech/blob/master/linear_state_machine_language/pyL4/examples/src_sexpr/serious/SAFE.l4). The version used here is obtained from the full version by:
 
 - setting two preprocessor flags (a feature not covered here) `HAS_CAP` and `HAS_DISCOUNT` to true.
 - expanding instances of the one macro defined in SAFE.l4.
@@ -9,7 +9,7 @@ This will teach you how to use the current implementation of L4, by way of writi
 - setting some deadlines to 7 or 14 days, arbitrarily, where they are either (a) not specified in the SAFE (and thus taken to be something a judge would use their discretion on), or (b) governed by the following clause:
 
 	> (b)	Any notice required or permitted by this instrument will be deemed sufficient when delivered personally or by overnight courier or sent by email to the relevant address listed on the signature page, or 48 hours after being deposited in the U.S. mail as certified or registered mail with postage prepaid, addressed to the party to be notified at such party’s address listed on the signature page, as subsequently modified by written notice.
-	
+
 - Removing some state variable annotations, which direct the static checker to verify certain properties. In the full version, most of the state variables have a `writes≤1` annotation.
 
 Please be aware that you won't be using a carefully-designed concrete syntax. Instead, you'll be using a carefully-designed abstract syntax, which is written in a fully-parenthesized language (like LISP). A nicer looking and slightly-more-concise concrete syntax, with a lot less parentheses, will come later. There are good reasons for delaying it now, which I won't get into. On the other hand, there is one good reason for *not* delaying it, which is that most programmers find fully-parenthesized languages off-putting.
@@ -33,7 +33,7 @@ The main components of an L4 contract are:
 	1. An assignment of data values (numbers, strings, dates, durations, lists, etc) to a set of **state variables**
 	2. The current time duration since the start of the contract.
 	3. The current `Situation` (see below).
-	
+
 	Each state variable has a type, which as usual restricts the set of values it is allowed to have assigned to it. L4 lets you use some types not often found in programming languages, such as currencies, rates (e.g. price of a stock), and some commonly-useful rational number intervals such as (0,1), [0,1), [0,1]. The type system, sometimes with the help of an SMT solver, allows you to prove that all division operations are well defined, that subtraction operations you intend to never result in negative numbers indeed have that property, etc.
 - **Action Rules**. These are rules that govern, as a function of the contract state, which actions by which actors may or must be performed next. Each action rule belongs to a unique `Situation`.
 
@@ -113,7 +113,7 @@ Most of the program is in the section named `Actions&Situations` (or Situations&
 	(Actions&Situations "Reduced SAFE for tutorial"
 		(StartSituation InvestorInvests)
 
-Now let's look at the first `Situation` definition. It tells us that the first action in an execution of this contract must be by `Company`. This tutorialSAFE.l4 excludes two of the action rules from SAFE.l4. The ones remaining correspond to starting a new round of funding (`CommitToEquityFinancing`), and to ending the private fundraising by doing an Initial Public Offering. The parameter `?1` in `(CommitToIPO ?1)` corresponds to the one action parameter of `CommitToIPO`. It is for constraining the allowed values of the parameter, although this action rule doesn't do so. If we were to add `(where (?1 ≤ 1000))`, the (nonsensical) effect in this contract would be that there must be at most 1000 existing shares of the company's stock for the company to do an IPO.  
+Now let's look at the first `Situation` definition. It tells us that the first action in an execution of this contract must be by `Company`. This tutorialSAFE.l4 excludes two of the action rules from SAFE.l4. The ones remaining correspond to starting a new round of funding (`CommitToEquityFinancing`), and to ending the private fundraising by doing an Initial Public Offering. The parameter `?1` in `(CommitToIPO ?1)` corresponds to the one action parameter of `CommitToIPO`. It is for constraining the allowed values of the parameter, although this action rule doesn't do so. If we were to add `(where (?1 ≤ 1000))`, the (nonsensical) effect in this contract would be that there must be at most 1000 existing shares of the company's stock for the company to do an IPO.
 You can also see here that `;` starts a line comment in L4.
 
 	(Situation InvestorInvests
@@ -121,7 +121,7 @@ You can also see here that `;` starts a line comment in L4.
 			(Company may CommitToEquityFinancing)
 			(Company may (CommitToIPO ?1))
 			; Should Company breach after a while?
-			; No - SAFE says explicitly that they can 
+			; No - SAFE says explicitly that they can
 			; remain in this state forever.
 		)
 	)
@@ -135,13 +135,13 @@ Next we have the first `Action` declaration. After the company registers that th
 			)
 		)
 	)
-	
+
 The above `must` action rule is *exactly* equivalent to the following pair of a `may` action rule and a _simple deterministic transition rule_, which is a kind of non-action event rule:
-	
+
 			(Next
 				(Company may SendEFTransactionDocsWithPRRA (within 7))
 				(Breach_Company (after 7))
-			)		
+			)
 
 `(within T)` and `(after T)` are also abbreviations for commonly used patterns:
 
@@ -157,22 +157,22 @@ The next two `Action`s are very similar to `CommitToEquityFinancing`, except tha
 	(Action SendEFTransactionDocsWithPRRA (AllowedSubjects Company)
 		(FollowingSituation
 			(Next
-				(Investor must ExecuteAndDeliverEFTransactionDocs (within 14))				
+				(Investor must ExecuteAndDeliverEFTransactionDocs (within 14))
 			)
 		)
 	)
 
 	(Action ExecuteAndDeliverEFTransactionDocs (AllowedSubjects Investor)
 		(FollowingSituation
-			(Next 
+			(Next
 				(Company must (IssueSAFEPreferredStock ?1 ?2) (within 14))
 			)
 		)
 	)
-	
+
 There is more going on in the next `Action`.
 
-	
+
 	(Action (IssueSAFEPreferredStock
 				(company_capitalization : PosShareCnt)
 				(premoney_valuation : Pos$) ) (AllowedSubjects Company)

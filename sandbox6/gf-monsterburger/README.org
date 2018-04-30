@@ -77,7 +77,7 @@ and the contract fulfills
 
 **  Modelling MonsterBurger
 
-based on Dustin's MonsterBurger NLG example  https://github.com/legalese/legalese-compiler/blob/56c97731d282ad914a7218b64d1dc07525cdf772/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM4/monster_burger_lsm_nlg.md
+based on Dustin's MonsterBurger NLG example  https://github.com/legalese/complaw-deeptech/blob/56c97731d282ad914a7218b64d1dc07525cdf772/linear_state_machine_language/examples_to_port_to_pyL4/examplesLSM4/monster_burger_lsm_nlg.md
 
 | party                  | action            |                |              |              |
 | object                 | action/definition |                |              |              |
@@ -88,13 +88,13 @@ based on Dustin's MonsterBurger NLG example  https://github.com/legalese/legales
 | If-then-else           |                   |                |              |              |
 | timeExpression         | preposition       | party/object   | action       | party/object |
 
-Each party is tagged to a specific action. For example, serve is an action that's only done by the restaurant as in "The restaurant serves the monster burger" and eat is an action that's only done by the customer as in "the customer eats the monster burger". 
+Each party is tagged to a specific action. For example, serve is an action that's only done by the restaurant as in "The restaurant serves the monster burger" and eat is an action that's only done by the customer as in "the customer eats the monster burger".
 
-It would have been meaningless in the context of the Challenge if the verb randomly attaches to any party during language generation. 
+It would have been meaningless in the context of the Challenge if the verb randomly attaches to any party during language generation.
 
-The act of restricting particular actions to particular parties is known as dependent types. Here, for now, simple tagging is used. 
+The act of restricting particular actions to particular parties is known as dependent types. Here, for now, simple tagging is used.
 
-Same parameters for Object as those described for Party. 
+Same parameters for Object as those described for Party.
 
 Deontic based on action. Must ++ action , May ++ action, Should ++ action, Will ++ action.
 
@@ -116,7 +116,7 @@ mkS    : Adv -> S -> S
 
 mkS    : Cl -> S
 
-mkUtt  : Adv -> Utt 
+mkUtt  : Adv -> Utt
 
 **** A clause can be built from a noun phrase and a complement verb phrase (i.e party action object)
 
@@ -141,9 +141,9 @@ Some agreements of the grammar are still a bit off and will need tweakings, for 
 
 ** To run the code
 
-You will see two GF files in the legalese-compile repo:  
+You will see two GF files in the legalese-compile repo:
 
-legalese-compiler/sandbox6/gf-monsterburger
+complaw-deeptech/sandbox6/gf-monsterburger
 
 An abstract syntax: MonsterBurgerv2.gf
 
