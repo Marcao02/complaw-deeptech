@@ -1,8 +1,0 @@
-We create a directed graph of company states (CS for short).
-The edges are completely-filled-in forms.
-We want to explore the set of paths from src CS to dest CS, not just find an optimal one by some optimality criteria.
-
-A form can be filled out in an enormous number of ways in most cases, so we have to be smart about the ways we consider.
-
-Example of path dependence:
-Name change will need to happen before any document that uses the new name.

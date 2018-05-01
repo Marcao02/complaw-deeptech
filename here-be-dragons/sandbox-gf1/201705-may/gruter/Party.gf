@@ -1,3 +1,0 @@
-abstract Party = {
-  cat Party;
-}

@@ -1,1 +1,0 @@
-Rename "deontic guard" to "deontic switch"
