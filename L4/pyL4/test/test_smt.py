@@ -1,5 +1,5 @@
 import test.test_parser
-from hard_correctness_checks.symbolic_execution.symbolic_execution import symbolic_execution
+from src.hard_correctness_checks.symbolic_execution.symbolic_execution import symbolic_execution
 from src.independent.util import nonempty
 from src.independent.util_for_str import strwbar
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse

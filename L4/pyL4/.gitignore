@@ -2,5 +2,4 @@
 /__pycache__/
 /.idea/
 /todo untracked.txt
-z3test_castconst*.txt
-*.z3
+your_config.json

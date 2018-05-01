@@ -4,7 +4,7 @@ from math import inf
 from typing import Sequence, Tuple, Optional, Iterable
 
 import test_parser
-from hard_correctness_checks.normal_forms import eliminate_ifthenelse, eliminate_local_vars
+from src.hard_correctness_checks.normal_forms import eliminate_ifthenelse, eliminate_local_vars
 from src.constants_and_defined_types import *
 from src.independent.parse_sexpr import prettySExprStr, parse_file
 from src.independent.util import castid

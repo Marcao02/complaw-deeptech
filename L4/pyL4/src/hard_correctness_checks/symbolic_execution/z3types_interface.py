@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import NewType
-from z3 import z3, z3num, Solver  # type:ignore
+from z3 import z3, z3num  # type:ignore
+from z3.z3 import Solver
 
 from src.independent.util import todo_once, chcaststr
 from src.independent.typing_imports import *

@@ -1,6 +1,6 @@
 import test_parser
-from active_examples import EXAMPLES_UNPARSED_ROOT
-from independent.util_for_io import writeReadOnlyFile
+from test.active_examples import EXAMPLES_UNPARSED_ROOT
+from src.independent.util_for_io import writeReadOnlyFile
 from src.independent.typing_imports import *
 from src.model.L4Contract import L4Contract
 

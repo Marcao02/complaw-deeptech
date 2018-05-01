@@ -1,7 +1,7 @@
 from typing import Sequence, Dict
 
 import test_parser
-from model.L4Contract import L4Contract
+from src.model.L4Contract import L4Contract
 from src.typechecking.typecheck import typecheck_prog
 
 EXAMPLES_TO_TYPECHECK = [

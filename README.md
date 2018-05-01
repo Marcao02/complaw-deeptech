@@ -1,3 +1,5 @@
+**This repo is undergoing a major reorganization, which will make it easier for you to understand and contribute to.**
+
 # Computational Contracts
 
 > What I'd like to see is legal contracts written up in a kind of code
@@ -12,7 +14,8 @@ incredibly hard to define.
 >
 > -- email from Michael Wayne Goodman <goodmami@u.washington.edu> 2014/08/15
 
-**As you can probably tell, this repo is undergoing a major reorganization. This is so it will be easier for you to understand and contribute to.**
+L4 is the strongest domain-specific language for writing such code. It builds on [70 years of academic work in computational law](https://legalese.com/#informatics-content).
 
+[L4 Examples](https://github.com/legalese/complaw-deeptech/tree/master/L4/pyL4/examples/src_sexpr)
 
 [Definition of L4's language-independent computation model (aka formal semantics)](https://github.com/legalese/complaw-deeptech/blob/master/L4/language-independent/LegaleseResearchReportApril2018/LegaleseResearchReportApril2018.pdf)
