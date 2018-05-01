@@ -1,0 +1,71 @@
+(LSMVersion 3.0.0)
+
+(GlobalVars 
+	( nonoperative units_ordered : ℕ := 0 )	
+	( nonoperative inconly units_delivered : ℕ := 0 )
+	( writeonce contract_ends : Date )	
+	( orders : Queue[Pair[ℕ,Deadline]] := (emptyQueue) ) 
+
+	( reactive orderable_units : ℕ := (MAX_UNITS - units_ordered))
+)
+
+(Actors Customer Vendor)
+
+(ContractParams 
+	(MAX_UNITS : ℕ := 1000)
+	(CONTRACT_LIFE : Date := 1Y)
+)
+
+(ProseContract 
+	(P1 'The master agreement between Vendor and Customer is for 1000 printers, with a unit price of e100. The agreement is valid for one year, starting 2011-01-01.')
+	(P2 'The customer may at any time order an amount of printers (with the total not exceeding the threshold of 1000), after which the Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days.')
+	(P3 'After delivering the goods, Vendor may invoice the Customer within 1 month, after which the goods must be paid for by Customer within 14 days.')	
+)
+
+(FormalContract	
+	"Master Sales Agreement"	
+	(StartState Start)
+	
+	(Event&State Start()
+		(Entrance
+			(contract_ends := ((contract_start_date) + 1Y))
+		)
+		(Fallbacks
+			(ContractLive())
+		)			
+	)
+
+	(Event&State ContractLive()
+		(ActorEvents
+			(Customer mayif (orderable_units > 0)
+				(Order(p) by contract_ends where (p ≤ orderable_units))
+			)
+			(Vendor mustif ((nonempty orders) and (q == (fst (top orders))))
+				; fst (top orders) is the quantity. snd (top orders) is the deadline.
+				(Deliver(q) by (snd (top orders)))
+			)
+		)
+		(Fallbacks
+			; this will only be executed when both of the actions in ActorEvents are disabled			
+			(Fulfilled())
+		)
+	)
+
+	(Action Order(quantity : ℕ)			
+		(Entrance
+			(local delivery_deadline : Date := (dateplus (event_start_date) (days (max 14 (ceil (quantity / 10))))) )
+			(units_ordered += quantity )
+			(orders := (enqueue orders (tuple quantity delivery_deadline)) )
+		)		
+	)
+
+	(Action Deliver(quantity : ℕ)
+		(Entrance
+			(units_delivered += quantity)
+			(orders := (discardTop orders))
+		)		
+	)	
+)
+
+(DotFileName 'hvitved_simplified_master_sales_agreement.dot')
+(ImgFileName 'hvitved_simplified_master_sales_agreement.png')

@@ -1,0 +1,48 @@
+{
+  "parties" : [
+    { "fullname": "Alice"
+      , "idtype": "passport"
+      , "idnum":  "E1111111B"
+      , "nature": "natural"
+      , "gender": "female"
+    }
+  ],
+
+
+
+
+
+
+
+
+
+
+
+
+  "securities": [ { "name": "ordinary shares",  "measure": "ByUnit" } ],
+  "company": { "name": "Acme Potato Pte. Ltd."
+               , "jurisdiction" : "Singapore"
+               , "address" : "1 Corporate Park, Singapore 139951"
+               , "idtype" : "UEN"
+               , "idnum"  : "UEN11111111A"
+               , "constitution" : [ { "title" : "Constitution Default",
+                                      "body"  : "The default constitution shall be substituted here." } ]
+               , "directors" : ["Alice" ]
+               , "secretary" : "Alice"
+             },
+  "holdings": [
+    { "holder": "Alice", "holds": [ { "securityName": "ordinary shares", "units": 100,
+                                      "description" : "Alice doesn't change"} ] }
+    ],
+
+
+
+
+
+
+  "agreements": [ {"title" : "shareholdersAgreement",
+                   "dated" : "1970-01-01",
+                   "parties" : ["Alice","Company"],
+                   "singleton": true
+                  } ]
+}

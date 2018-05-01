@@ -1,0 +1,14 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Master_Sales_Agreement {
+	Start[label=Start];
+	ContractLive[label=ContractLive];
+	Order[label=Order];
+	Deliver[label=Deliver];
+	Start -> ContractLive [style=dashed];
+	ContractLive -> Order;
+	ContractLive -> Deliver;
+	ContractLive -> Fulfilled [style=dashed];
+	Order -> ContractLive [style=dashed];
+	Deliver -> ContractLive [style=dashed];
+}

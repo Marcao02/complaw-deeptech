@@ -1,0 +1,217 @@
+(LSMVersion 4.0.0)
+
+; *I should have said this earlier:*
+; The LSM3 examples all have the following property
+; (which requires some easy automated theorem proving to verify)
+; which makes the conception of obligations and permissions extremely simple
+; (and, I would argue, basically impossible to misuse):
+; In LSM3, at any instant in contract execution:
+; - There can be any number of permitted (“may”) actions by any number of
+; agents.
+; - [edit: actually this was false for LSM3 master sales agreement] There
+; can be at most one required (“must”) action set (an action with
+; parameters, possibly constrained), belonging to one of the agents only,
+; such that the agent must do exactly one of the actions.
+;
+; In LSM3 “must” means “must as the next action in this contract
+; execution”, and “may” means “may as the next action in this contract
+; execution”.
+;
+; This example introduces the feature of adding future obligations/permissions
+; to the environment. This expands the characterization of the state of a
+; contract to the following (Γ is added):
+; A tupple <t, σ, s, Γ> where
+; - t is the current time
+; - σ is an assignment of values to the global variables
+; - s is one of the fixed number of `State`s.
+; - Γ is a finite set of fully-instantiated `Action`s (all parameters, if any,
+;   have values), each of which is an obligation or a permission.
+
+; ABOUT THIS EXAMPLE
+; I think this is the ONLY example, out of all the Hvitved examples, SAFE, and
+; monster burger, where it is advisable to have "first class" Obligation
+; objects in the state of the contract. Compare this to
+; ../examplesLSM3/hvitved_master_sales_agreement_full_with_ids.LSM
+; which instead took the approach of using data structures and a new data type
+; to track obligations. The difference (LSM3 version of example vs this version
+; of example) is very loosely analogous to introducing a combinator datatype
+; vs using a language's build-in function type.
+;
+; ASIDE:
+;   This takes us toward the idea of offering high level abstractions,
+;   but with unusually-specific instructions on when to use them.
+;   I think we will want to retain finite-state LSM as a named
+;   sublanguage of a more advanced version of LSM that offers explicit
+;   obligation objects (as I’ve demoed in this file). And we may want
+;   to advise that the extra features of this more advanced language
+;   _only_ be used when infinite state is needed.
+;   I never liked having to introduce unbounded collection data structures
+;   into LSM (as in the LSM3 version of this example),
+;   because it would result in generated natural language contracts
+;   that don’t read the way current natural language contracts do (under
+;   the assumption that current natural language contracts rarely use
+;   (informal) collection data structures).
+;
+;
+; There's not much too it. We now have a minimal feature for adding obligations and permissions floating out in the future, whereas before the active obligations and permissions (can we say "deontics" or something like that?) were always specified by the current State.
+; The main reason for this is that it will be better for NLG than using Set data structures
+
+
+(ContractParams
+    (MAX_UNITS : ℕ := 1000)
+    (CONTRACT_LIFE : Date := 1Y)
+    (PRICE_PER_UNIT : $ := 100)
+)
+
+(GlobalVars
+    ( inconly next_order_id : Id = 0 )
+    ( inconly units_ordered : ℕ = 0 )
+    ( writeonce contract_ends : Date )
+    ( reactive orderable_units_remaining : ℕ = (MAX_UNITS - units_ordered))
+
+    ; `nonoperative` instructs our static checker to verify that these
+    ; variables cannot affect program execution. They would only be used
+    ; for verification conditions (which we haven't done in this example
+    ; yet).
+    ( nonoperative inconly units_delivered : ℕ = 0 )
+    ( nonoperative inconly total_paid : $ = 0 )
+)
+
+(Actors Customer Vendor)
+
+(ProseContract
+    (P1 'The master agreement between Vendor and Customer is for {MAX_UNITS} printers, with a unit price of {PRICE_PER_UNIT}. The agreement is valid for {CONTRACT_LIFE}, starting 2011-01-01.')
+    (P2 'The customer may at any time order an amount of printers (with the total not exceeding the threshold of {MAX_UNITS}), after which the Vendor must deliver the goods before the maximum of (i) 14 days, or (ii) the number of ordered goods divided by ten days.')
+    (P3 'After delivering the goods, Vendor may bill the Customer within 1 month, after which the goods must be paid for by Customer within 14 days.')
+)
+
+; NTS: removed preliminary work with VerificationDefinition, FOLContract, Conjecture
+
+(FormalContract
+    "Master Sales Agreement"
+    (StartState Start)
+
+    (Event&State (Start)
+        ; When the contract starts:
+        ;   -{contract_ends} is defined as {CONTRACT_LIFE} years after {contract_start_date}
+        ;   -then {Vendor} begins or continues accepting new orders.
+
+        (visits == 1)
+
+        (Entrance
+            (contract_ends = (CONTRACT_LIFE yearsAfter (contract_start_date)))
+        )
+        (VendorAcceptingOrders)
+    )
+
+    (Event&State (VendorAcceptingOrders)
+        ; When {Vendor} is accepting new orders:
+        ;   -If {orderable_units_remaining} > 0 and the time has not passed {contract_ends}:
+        ;       -then {Customer} may next submit a new order for q units, where 0 < q ≤ orderable_units_remaining.
+        ;   -If {orderable_units_remaining} == 0 or the time has passed {contract_ends}:
+        ;       -then the contract is fulfilled if, and as soon as, all earlier obligations are fulfilled.
+        ;   -{Customer} might have an obligation from earlier to pay the bill for some order.
+        ;   -{Vendor} might have an obligation from earlier to deliver some order.
+        ;   -{Vendor} might have a permission from earlier to send an invoice for some order.
+
+        ; LANG note: see monster_burger.LSM in this directory
+        (1 ≤ visits ≤ nonconstant)
+
+        ; LANG note: `verifiedDisjointExhaustive` will tell the static checker to verify that it is
+        ; always the case that exactly one of the tests of the children conditionals is true.
+        ; I think we should at least encourage this style of order-insensitive conditionals.
+        (verifiedDisjointExhaustive
+            (if ((orderable_units_remaining > 0) and (nowNoLaterThanAbs? contract_ends))
+                (Customer may next (SubmitNewOrder q)
+                     for some (q : ℕ) such that (0 < q ≤ orderable_units_remaining))
+            )
+            (if ((orderable_units_remaining == 0) or (nowPastAbs? contract_ends))
+                ; LANG note: `ContingentFulfilled` means it will be fulfilled once/if all
+                ; floating obligations have been met.
+                (ContingentFulfilled)
+            )
+        )
+
+        ; LANG note: the following three lines are not necessary for defining the contract.
+        ; The idea is that `possibly` indicates to the static checker that
+        ; these are exactly the types of floating permissions/obligations
+        ; that might be active in this state. Checker will verify that's true
+        (possibly Customer must PayBill)
+        (possibly Vendor must Deliver)
+        (possibly Vender may SendInvoice)
+    )
+
+    (Action (SubmitNewOrder (quantity : ℕ))
+        ; When {Customer} submits a new order for {quantity} printers:
+        ;   - {delivery_deadline} is defined to be the later of:
+        ;       - 14 days after the order submission
+        ;       - ⎡quantity/10⎤ days after the order submission
+        ;   - {units_ordered} is increased by {quantity}.
+        ;   - {this_order_id} is defined to be the current value of {next_order_id}.
+        ;   - {next_order_id} is increased by 1.
+        ;   - then, {Vendor} must later, by {delivery_deadline}, deliver the order.
+
+        ; LANG note: see monster_burger.LSM in this directory
+        (0 ≤ traversals ≤ nonconstant)
+
+        (AllowedSubjects Customer)
+        (Entrance
+            ; 14 days later, or quantity/10 days later, whichever occurs last
+            (let delivery_deadline : Date = (laterOf
+                    (14 afterEntrance)
+                    ((ceil (quantity / 10)) afterEntrance)
+                )
+            )
+            (units_ordered += quantity)
+            (let this_order_id = next_order_id)
+            (next_order_id += 1)
+        )
+        ( Vendor must later and (by delivery_deadline)
+                do (Deliver quantity this_order_id) )
+    )
+
+    (Action (Deliver (quantity : ℕ) (orderid : ℕ))
+        ; When {Vendor} delivers an order for {quantity} units:
+        ;   - {units_delivered} is increased by {quantity}.
+        ;   - then, {Vendor} may later, within 30 days, send an invoice for the order.
+
+        (0 ≤ traversals ≤ nonconstant)
+
+        (AllowedSubjects Vendor)
+        (Entrance
+            ( units_delivered += quantity )
+        )
+        ( Vendor may later (within 30D))
+                do (SendInvoice quantity orderid) )
+    )
+
+    (Action (SendInvoice (quantity : ℕ) (orderid : ℕ))
+        ; When {Vendor} sends an invoice for {quantity} units:
+        ;   - {units_invoiced} is increased by {quantity}.
+        ;   - then, {Customer} must later, within 14 days, pay for the order.
+
+        (0 ≤ traversals ≤ nonconstant)
+
+        (AllowedSubjects Vendor)
+        (Entrance
+            ( units_invoiced += quantity )
+        )
+        ( Customer must later and (within 14D)
+                do (PayBill quantity orderid) )
+    )
+
+    (Action (PayBill (quantity : ℕ) (orderid : ℕ))
+        ; When {Customer} pays the bill for an order of {quantity} units:
+        ;   - {total_paid} is increased by {quantity}*{PRICE_PER_UNIT}.
+
+        (0 ≤ traversals ≤ 1)
+
+        (AllowedSubjects Customer)
+        (Entrance
+            ( total_paid += (quantity * PRICE_PER_UNIT) )
+        )
+    )
+)
+
+(DotFileName 'hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.dot')
+(ImgFileName 'hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.png')

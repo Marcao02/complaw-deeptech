@@ -1,0 +1,3 @@
+abstract Party = {
+  cat Party;
+}

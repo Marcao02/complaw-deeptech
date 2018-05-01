@@ -1,0 +1,43 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph SAFE {
+	InvestorInvests[label=InvestorInvests,color=Red];
+	Dissolution[label=Dissolution,color=Red];
+	DissolutionTransferCash[label=DissolutionTransferCash,color=Red];
+	DissolutionTransferAssets[label=DissolutionTransferAssets];
+	LiquidityEvent[label=LiquidityEvent,color=Blue];
+	LiquidityChooseStockPayment[label=LiquidityChooseStockPayment,color=Red];
+	LiquidityTransferCommonStock[label=LiquidityTransferCommonStock];
+	LiquidityChooseCashPayment[label=LiquidityChooseCashPayment,color=Red];
+	LiquidityTransferCash[label=LiquidityTransferCash,color=Red];
+	LiquidityEventWithChangeOfControl[label=LiquidityEventWithChangeOfControl];
+	EquityFinancing[label=EquityFinancing,color=Red];
+	EquityDeliverDocsWithProRataAgreement[label=EquityDeliverDocsWithProRataAgreement,color=Red];
+	EquityDeliverDocsWithoutProRataAgreement[label=EquityDeliverDocsWithoutProRataAgreement,color=Red];
+	EquitySubmitProRataRightsAgreementForSigning[label=EquitySubmitProRataRightsAgreementForSigning,color=Blue];
+	EquitySignProRataAgreement[label=EquitySignProRataAgreement,color=Red];
+	EquityIssueSAFEPreferredStock[label=EquityIssueSAFEPreferredStock];
+	InvestorInvests -> EquityFinancing;
+	InvestorInvests -> LiquidityEvent;
+	InvestorInvests -> LiquidityEventWithChangeOfControl;
+	InvestorInvests -> Dissolution;
+	Dissolution -> DissolutionTransferCash;
+	DissolutionTransferCash -> DissolutionTransferAssets;
+	DissolutionTransferCash -> Fulfilled [style=dashed];
+	DissolutionTransferAssets -> Fulfilled [style=dashed];
+	LiquidityEvent -> LiquidityChooseCashPayment;
+	LiquidityEvent -> LiquidityChooseStockPayment;
+	LiquidityEvent -> LiquidityChooseStockPayment [style=dashed];
+	LiquidityChooseStockPayment -> LiquidityTransferCommonStock;
+	LiquidityTransferCommonStock -> Fulfilled [style=dashed];
+	LiquidityChooseCashPayment -> LiquidityTransferCash;
+	LiquidityTransferCash -> LiquidityTransferCommonStock;
+	LiquidityTransferCash -> Fulfilled [style=dashed];
+	EquityFinancing -> EquityDeliverDocsWithoutProRataAgreement;
+	EquityFinancing -> EquityDeliverDocsWithProRataAgreement;
+	EquityDeliverDocsWithProRataAgreement -> EquityIssueSAFEPreferredStock;
+	EquityDeliverDocsWithoutProRataAgreement -> EquitySubmitProRataRightsAgreementForSigning;
+	EquitySubmitProRataRightsAgreementForSigning -> EquitySignProRataAgreement;
+	EquitySignProRataAgreement -> EquityIssueSAFEPreferredStock;
+	EquityIssueSAFEPreferredStock -> Fulfilled [style=dashed];
+}

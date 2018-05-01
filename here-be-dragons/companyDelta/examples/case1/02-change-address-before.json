@@ -1,0 +1,33 @@
+{
+  "holders" : [
+    { "fullname": "Alice"
+      , "idtype": "passport"
+      , "idnum":  "E1111111B"
+      , "nature": "natural"
+      , "gender": "female"
+    },
+    { "fullname": "Bob"
+      , "idtype": "nric"
+      , "idnum":  "S2222222B"
+      , "nature": "natural"
+      , "gender": "male"
+    }
+  ],
+  "securities": [ { "name": "ordinary shares",  "measure": "ByUnit" } ],
+  "company": { "name": "Acme Potato Pte. Ltd."
+               , "jurisdiction" : "Singapore"
+               , "address" : "1 Corporate Park, Singapore 139951"
+               , "idtype" : "UEN"
+               , "idnum"  : "UEN11111111A"
+               , "constitution" : [ { "title" : "Constitution Default",
+                                      "body"  : "The default constitution shall be substituted here." } ]
+             },
+  "holdings": [
+    { "holder": "Alice", "holds": [ { "securityName": "ordinary shares", "units": 100,
+                                      "descripton" : "Alice doesn't change"} ] },
+    { "holder": "Bob",   "holds": [ { "securityName": "ordinary shares", "units": 200,
+                                      "description" : "Bob is added"
+                                    } ] }
+  ],
+  "agreements": [ {"shareholdersAgreement" : false} ]
+}

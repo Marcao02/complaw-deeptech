@@ -1,0 +1,103 @@
+name: supersimplenote
+type: Debt
+description: "Super Simple Convertible Note"
+
+//clause main()<agent : <Agent>> =
+//  when ElectionResponse(respondent r, choice c) due immediately then fulfilment else (<agent> IssueSecurities due within 1W)
+
+
+clause convertibleNote( principal : Real
+                      , conversionPrice : Real
+                      , maturityDiscount : Real
+                      , third : Agent
+                      , offerExpiry : Duration
+                      , nteTerm : Duration)<company : Agent, investor : Agent> =
+// The agreement becomes effective when the investor provides evidence
+// of having injected principal into the company or third party.
+  <investor> Payment(from sender, to recipient, amount balance)
+      where balance   == principal
+         && sender    == investor
+         && (recipient == company ||
+             recipient == third)
+  due within offerExpiry
+  then preMaturity(balance, nteTerm, conversionPrice, maturityDiscount, investor)<company>
+
+
+
+
+clause preMaturity( principal  : Real
+                  , deadline   : Duration
+                  , sharePrice : Real
+                  , maturityDiscount : Real
+                  , investor   : Agent
+                  )<company : Agent> =
+  if principal <= 0.0
+  then fulfilment
+  else
+  // four possibiilties during the lifetime of the note
+      // Repayment of part of the principal.
+    (when Payment(from dr, to cr, amount a)
+     where dr == company && cr == investor
+     due within deadline remaining z
+     then preMaturity(principal - a, z, sharePrice, maturityDiscount, investor)<company>
+     else postMaturity(principal, maturityDiscount * sharePrice, investor) <company>
+     )
+    or
+      // stock split happens, we have to change the shareprice
+    (when AdjustmentEvent(ratio r)
+     due within deadline remaining z
+     then preMaturity (principal, z, sharePrice / r, maturityDiscount, investor)<company>
+     else postMaturity(principal, maturityDiscount * sharePrice, investor) <company>
+     )
+    or onCompanySale(principal, sharePrice, deadline, maturityDiscount, sharePrice, investor)<company>
+    or
+      // Optional Conversion at the option of the company
+    (when IssueSecurities(from dr, to cr, shares sh)
+     where dr == company && cr == investor && sh >= (principal / sharePrice)
+     due within deadline
+     then fulfilment
+     else postMaturity(principal, maturityDiscount * sharePrice, investor) <company>)
+  
+
+
+
+
+clause onCompanySale( principal : Real
+                    , conversionPrice : Real
+                    , deadline : Duration
+                    , maturityDiscount : Real
+                    , sharePrice : Real
+                    , investor : Agent
+                    ) <company : Agent> =
+   when CompanySale
+   due  within deadline
+   then when ElectionResponse(choice c)
+          due within 1W
+          then (onElectionResponse(principal, conversionPrice, c, investor) <company>)
+
+
+
+clause onElectionResponse (principal : Real, conversionPrice : Real, c : ElectionChoice, investor : Agent) <company : Agent> =
+     if (c == Equity) then
+        (<company> IssueSecurities(from dr, to cr, shares ss)
+        where dr == company && cr == investor && ss >= principal / conversionPrice
+        due within 1W)
+     else
+        (<company> Payment(from d, to c, amount a)
+        where d == company && c == investor && a == 2 * principal
+        due within 1W)
+
+
+
+clause postMaturity(principal : Real
+                  , conversionPrice : Real
+                  , investor : Agent)<company : Agent> =
+  <company> IssueSecurities(from dr, to cr, shares sh)
+  where dr == company && cr == investor && sh == principal / conversionPrice
+  due immediately
+  
+
+
+
+contract = convertibleNote(347.45, 1.0, 0.7, Acra, 1M, 1Y)<MyStartup, Alice>
+

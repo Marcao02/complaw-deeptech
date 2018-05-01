@@ -1,0 +1,184 @@
+#+TITLE: The Gruter Experiment
+
+This is an L4 prototype developed at and after the Gruter Institute conference at Olympic Village, 2017.
+
+This code demonstrates correct use of GF's module system.
+
+* L4 Core
+
+The ~Gruter~ modules contain the L4 core.
+
+| Gruter       | abstract              |
+| GruterI      | incomplete concrete   |
+| LexGruter    | interface             |
+| LexGruterEng | instance of LexGruter |
+| GruterIEng   | concrete              |
+
+** Core Dependencies
+
+Distinct components of the L4 core have their own modules.
+
+Gruter inherits from Deontic and Party.
+
+** ~Deontic~
+
+| Deontic       | abstract  |
+| DeonticI      | functor   |
+| LexDeontic    | interface |
+| LexDeonticEng | instance  |
+
+** ~Party~
+
+| Party       | abstract  |
+| PartyI      | functor   |
+| LexParty    | interface |
+| LexPartyEng | instance  |
+
+* Extending Gruter for your own application
+
+The ~Gruter~ modules need to be extended with the specifics of your application. They won't do anything on their own.
+
+Two example applications are provided.
+
+The ~London~ modules extend the L4 core with minimal application-specific code.
+
+| London       | abstract  | declares application-specific instances of Gruter abstract categories                                    |
+| LondonI      | functor   | defines the party. defines the when/kind/act/exp values phrasally, usually employing intermediate values |
+| LexLondon    | interface | declares the types of the expected intermediate values                                                   |
+| LexLondonEng | instance  | resolve the intermediate values to specific English-language lexical elements                            |
+
+The ~Particular~ modules extend the L4 core with a little more application-specific code.
+
+Structurally, ~London~ and ~Particular~ are the same.
+
+It may be useful to compare the two examples to triangulate an appreciation of the system.
+
+** Running London
+
+This example was so named because Meng was in London for ICAIL.
+
+#+BEGIN_SRC txt
+20170630-20:03:27 mengwong@venice2:~/non-db-src/l/compiler/sandbox-gf1/201705-may/gruter% rm *.gfo; gf
+rm: *.gfo: No such file or directory
+
+         *  *  *
+      *           *
+    *               *
+   *
+   *
+   *        * * * * * *
+   *        *         *
+    *       * * * *  *
+      *     *      *
+         *  *  *
+
+This is GF version 3.8.
+No detailed version info available
+Built on darwin/x86_64 with ghc-8.0, flags: interrupt
+License: see help -license.
+
+
+Languages:
+> import LondonIEng.gf
+- compiling Deontic.gf...   write file Deontic.gfo
+- compiling Party.gf...   write file Party.gfo
+- compiling Gruter.gf...   write file Gruter.gfo
+- compiling London.gf...   write file London.gfo
+- compiling DeonticI.gf...   write file DeonticI.gfo
+- compiling GruterI.gf...   write file GruterI.gfo
+- compiling LexGruter.gf...   write file LexGruter.gfo
+- compiling LexGruterEng.gf...   write file LexGruterEng.gfo
+- compiling LexDeontic.gf...   write file LexDeontic.gfo
+- compiling LexDeonticEng.gf...   write file LexDeonticEng.gfo
+- compiling LexParty.gf...   write file LexParty.gfo
+- compiling LexPartyEng.gf...   write file LexPartyEng.gfo
+- compiling GruterIEng.gf...   write file GruterIEng.gfo
+- compiling LondonI.gf...   write file LondonI.gfo
+- compiling LexLondon.gf...   write file LexLondon.gfo
+- compiling LexLondonEng.gf...   write file LexLondonEng.gfo
+- compiling LondonIEng.gf...   write file LondonIEng.gfo
+linking ... OK
+
+Languages: LondonIEng
+251 msec
+London> gt | l -unlextext
+By default, Winston Churchill may win, where the winning is winsome.
+By default, Winston Churchill mustn't win, where the winning is winsome.
+By default, Winston Churchill must win, such that the winning is winsome.
+
+4 msec
+London>
+
+
+#+END_SRC
+
+
+** Running Particular
+
+This example was named after the party particulars.
+
+#+BEGIN_SRC txt
+
+London> e
+
+0 msec
+> import ParticularIEng.gf
+- compiling Particular.gf...   write file Particular.gfo
+- compiling ParticularI.gf...   write file ParticularI.gfo
+- compiling LexParticular.gf...   write file LexParticular.gfo
+- compiling LexParticularEng.gf...   write file LexParticularEng.gfo
+- compiling ParticularIEng.gf...   write file ParticularIEng.gfo
+linking ... OK
+
+Languages: ParticularIEng
+166 msec
+Particular> gt | l -unlextext
+If the sun is shining, Alice Andromeda may deliver the things, where the things are hot.
+If the sun is shining, Alice Andromeda may pay, where the payment is correct.
+If the sun is shining, Alice Andromeda mustn't deliver the things, where the things are hot.
+If the sun is shining, Alice Andromeda mustn't pay, where the payment is correct.
+If the sun is shining, Alice Andromeda must deliver the things, such that the things are hot.
+If the sun is shining, Alice Andromeda must pay, such that the payment is correct.
+If the sun is shining, Bai Bobo may deliver the things, where the things are hot.
+If the sun is shining, Bai Bobo may pay, where the payment is correct.
+If the sun is shining, Bai Bobo mustn't deliver the things, where the things are hot.
+If the sun is shining, Bai Bobo mustn't pay, where the payment is correct.
+If the sun is shining, Bai Bobo must deliver the things, such that the things are hot.
+If the sun is shining, Bai Bobo must pay, such that the payment is correct.
+If the sun is shining, Carol Centaurus may deliver the things, where the things are hot.
+If the sun is shining, Carol Centaurus may pay, where the payment is correct.
+If the sun is shining, Carol Centaurus mustn't deliver the things, where the things are hot.
+If the sun is shining, Carol Centaurus mustn't pay, where the payment is correct.
+If the sun is shining, Carol Centaurus must deliver the things, such that the things are hot.
+If the sun is shining, Carol Centaurus must pay, such that the payment is correct.
+When the moon is blue, Alice Andromeda may deliver the things, where the things are hot.
+When the moon is blue, Alice Andromeda may pay, where the payment is correct.
+When the moon is blue, Alice Andromeda mustn't deliver the things, where the things are hot.
+When the moon is blue, Alice Andromeda mustn't pay, where the payment is correct.
+When the moon is blue, Alice Andromeda must deliver the things, such that the things are hot.
+When the moon is blue, Alice Andromeda must pay, such that the payment is correct.
+When the moon is blue, Bai Bobo may deliver the things, where the things are hot.
+When the moon is blue, Bai Bobo may pay, where the payment is correct.
+When the moon is blue, Bai Bobo mustn't deliver the things, where the things are hot.
+When the moon is blue, Bai Bobo mustn't pay, where the payment is correct.
+When the moon is blue, Bai Bobo must deliver the things, such that the things are hot.
+When the moon is blue, Bai Bobo must pay, such that the payment is correct.
+When the moon is blue, Carol Centaurus may deliver the things, where the things are hot.
+When the moon is blue, Carol Centaurus may pay, where the payment is correct.
+When the moon is blue, Carol Centaurus mustn't deliver the things, where the things are hot.
+When the moon is blue, Carol Centaurus mustn't pay, where the payment is correct.
+When the moon is blue, Carol Centaurus must deliver the things, such that the things are hot.
+When the moon is blue, Carol Centaurus must pay, such that the payment is correct.
+
+10 msec
+Particular>
+#+END_SRC
+
+* Utilities
+
+#+BEGIN_SRC
+i -retain something.gf
+dependency_graph
+! dot -Tpng _gfdepgraph.dot > diamond.png
+#+END_SRC
+

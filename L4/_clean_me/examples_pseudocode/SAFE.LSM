@@ -1,0 +1,200 @@
+; Should these 4 terms just be natural numbers?
+`Common Stock` ⊆ `Capital Stock`
+`Preferred Stock` ⊆ `Capital Stock`
+
+`Common Stock` + `Preferred Stock` ≤ `Capital Stock`
+
+`Company Capitalization` : ℕ
+`Conversion Price` := min(`Safe Price`, `Discount Price`)
+
+`EquityFinancingPrice` : ℕ
+
+actors: Investor, Company
+
+contract params:
+	PURCHASE_AMOUNT : $ = $100000
+	VALUATION_CAP : $ = $100
+	DISCOUNT_PERCENT : % = 20 ; must be < 100
+	START_INVESTOR_COMMON_STOCKS : ℕ
+	START_INVESTOR_PREFERRED_STOCKS : ℕ
+	START_INVESTOR_CASH : $
+
+global vars:
+	has_cap : Bool = (VALUATION_CAP > $0)
+	has_discount : Bool = (DISCOUNT_PERCENT > $0)
+
+	; this will only be non-None in a liquidity event
+	investor_remaining_investment_L : Option[$] = None ;# writeAtMostOnce
+	investor_Preferred_Stocks : ℕ = START_INVESTOR_PREFERRED_STOCKS  ;# writeAtMostOnce
+	investor_Common_Stocks : ℕ = START_INVESTOR_COMMON_STOCKS  ;# writeAtMostOnce
+	liq_price : Option[$] = None 	;# writeAtMostOnce
+	liq_cashout : $ = $0 ;# writeAtMostOnce
+	investor_cash : $ = START_INVESTOR_CASH ;# writeAtMostOnce
+
+oracle inputs:
+	; These should be reducible to event parameters, e.g. the first is syntactic sugar
+	; for COMPANY_CAPITALIZATION being an action parameter of IssueSAFEPreferredStock_E,
+	; and in the global variables transform of that action, the value is saved in a
+	; fresh global variable *IF* it's used somewhere else in the contract (in this case,
+	; it isn't used anywhere else)
+
+	; for Equity Financing
+	COMPANY_CAPITALIZATION : ℕ
+
+	; for Liquidity
+	LIQUIDITY_CAPITALIZATION : ℕ
+	INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS : %
+	COMPANY_CASH_AT_LIQUIDITY_EVENT : $
+	REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG : $
+
+	; for Dissolution
+	COMPANY_CASH_AT_DISSOLUTION_EVENT : $
+	INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS : %
+
+
+definitions:
+	DiscountRate = 100 - DISCOUNT_PERCENT
+	LiquidityPrice = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
+
+
+formal contract "SAFE"
+	apply to all actions and states:
+		at-most-once ; static checker should verify that every action and state occurs at most once in any trace
+
+	start section InvestorInvests
+		; Following syntax is shorthand for 4 "relievable must" edges that have the same
+		; subject and deadline expression
+		Company must by ∞ choose:
+			CommitToEquityFinancing
+			CommitToLiquidityEvent(false) ; IPO
+			CommitToLiquidityEvent(true) ; change of control
+			CommitToDissolution
+
+
+	; ----------------- Equity Financing Event -------------------
+	; NOTE: PRA abbreviates pro rata agreement
+	; `_E` is just a redundant notational reminder that the action/section
+	; is associated with the equity event case.
+
+	action CommitToEquityFinancing by Company
+	following section:
+		Company must choose within discretionary:
+			DeliverDocsWithPRA_E
+			DeliverDocsWithoutPRA_E
+
+	action DeliverDocsWithPRA_E by Company
+	following section:
+		Company must IssueSAFEPreferredStock_E within discretionary
+
+	action DeliverDocsWithoutPRA_E by Company
+	following section:
+		Company must SubmitProRataRightsAgreementForSigning_E within discretionary
+
+	action SubmitProRataRightsAgreementForSigning_E by Company
+	following section:
+		Investor must SignPRA_E within discretionary
+		; TODO: Obviously this shouldn't be a *must*, since they ought to be
+		; able to send it back with proposed amendments/corrections.
+		; That seems like something we should have a reusable module for.
+
+	action SignPRA_E by Investor:
+	following section:
+		Company must IssueSAFEPreferredStock_E within discretionary
+
+	action IssueSAFEPreferredStock_E by Company:
+		transform:
+			investor_SAFE_Preferred_Stocks += PURCHASE_AMOUNT / COMPANY_CAPITALIZATION
+	following section:
+		Company must DoEquityFinancing within discretionary
+
+	action DoEquityFinancing of Company transitions to Fulfilled
+
+
+	; ----------------- Liquidity Event -------------------
+
+	action CommitToLiquidityEvent(change_of_control:Bool) by Company:
+		transform
+			liq_price = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
+			(if (change_of_control and REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG > 0)
+				let purchase_amount_reduction = INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS * REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG
+				investor_Common_Stocks += round(purchase_amount_reduction / liq_price)
+				investor_remaining_investment_L = PURCHASE_AMOUNT - purchase_amount_reduction
+				; "In connection with a Change of Control intended to qualify as a tax-free reorganization, the Company may reduce, pro rata, the Purchase Amounts payable to the Cash-Out Investors by the amount determined by its board of directors in good faith to be advisable for such Change of Control to qualify as a tax-free reorganization for U.S. federal income tax purposes, and in such case, the Cash-Out Investors will automatically receive the number of shares of Common Stock equal to the remaining unpaid Purchase Amount divided by the Liquidity Price."
+			else
+				investor_remaining_investment_L = PURCHASE_AMOUNT
+			)
+			company_cash_remaining = COMPANY_CASH_AT_LIQUIDITY_EVENT - REDUCTION_NEEDED_TO_QUALIFY_AS_USA_TAX_FREE_REORG
+	following section:
+		Investor may before discretionary₁:
+			ChooseCashPayment_L
+			ChooseStockPayment_L
+
+		Company should AutoChooseStockPayment_L on discretionary_1
+
+	action AutoChooseStockPayment_L by Company
+	following section:
+		Company must TransferCommonStock_L within discretionary
+
+	action ChooseStockPayment_L by Investor:
+	following section:
+		Company must TransferCommonStock_L within discretionary
+
+	action TransferCommonStock_L by Company:
+		transform:
+			investor_Common_Stocks += round((investor_remaining_investment_L - liq_cashout) / liq_price)
+			; TODO: should we round that division up, down, or to nearest?
+	following section:
+		Company must DoLiquidityEvent by discretionary
+
+	action ChooseCashPayment_L by Investor
+	following section:
+		Company must TransferCash_L within discretionary
+
+	action TransferCash_L by Company:
+		transform:
+			liq_cashout = (
+				if investor_remaining_investment_L ≤ (company_cash_remaining * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS)
+				then investor_remaining_investment_L
+				else company_cash_remaining * INVESTOR_PERCENT_OF_CASHOUT_INVESTOR_INVESTMENTS
+			)
+			investor_cash += liq_cashout
+			company_cash -= liq_cashout
+	following section:
+		Company must if (liq_cashout < investor_remaining_investment_L) TransferCommonStock_L within discretionary₃
+		Company must if (liq_cashout == investor_remaining_investment_L) DoLiquidityEvent within discretionary₃
+
+	action DoLiquidityEvent of Company transitions to Fulfilled
+
+
+	; ----------------- Dissolution Event -------------------
+
+	action CommitToDissolution of Company
+	following section:
+		Company must TransferCash_D by discretionary
+
+	action TransferCash_D by Company:
+		transform:
+			dis_cashout = (ifthenelse
+				(PURCHASE_AMOUNT ≤ (COMPANY_CASH_AT_DISSOLUTION_EVENT * INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS))
+				 PURCHASE_AMOUNT
+				 (COMPANY_CASH_AT_DISSOLUTION_EVENT * INVESTOR_PERCENT_OF_DISSOLVING_INVESTOR_INVESTMENTS)
+			)
+			investor_cash = dis_cashout
+			company_cash = COMPANY_CASH_AT_DISSOLUTION_EVENT - dis_cashout
+	following section:
+		; Don't need to specify that following two `must`s are verified disjoint exhaustive,
+		; becase it's implied by the definitions.
+		Company must if (dis_cashout < PURCHASE_AMOUNT)
+			TransferAssets_D within discretionary
+
+		Company must if (dis_cashout == PURCHASE_AMOUNT)
+			Dissolve within discretionary
+
+	action TransferAssets_D by Company:
+		transform:
+			liq_price = VALUATION_CAP / LIQUIDITY_CAPITALIZATION
+			investor_Common_Stocks += ((PURCHASE_AMOUNT - dis_cashout) / liq_price))
+	following section:
+		Company must Dissolve within discretionary
+
+	action Dissolve of Company transitions to Fulfilled

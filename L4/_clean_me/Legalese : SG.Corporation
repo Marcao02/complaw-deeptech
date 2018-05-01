@@ -1,0 +1,9 @@
+Legalese : SG.Corporation
+`Legalese subsidiaries and affiliates` : FuzzyThing ; what we use when we don't have or know of an appropriate standard library category
+Alexis : SG.Citizen
+Meng : SG.Citizen
+Directors = {Alexis,Meng}
+Competitors : FuzzyThing
+; or:
+Competitors = Earth.competitorsOfCompany(Legalese)
+`works created by IC` : FuzzyThing ; this should probably be definable in terms of standard library stuff, namely symbols corresponding to each of the type of work that Alexis mentioned in her definition.

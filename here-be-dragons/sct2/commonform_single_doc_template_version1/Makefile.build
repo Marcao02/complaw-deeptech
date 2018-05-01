@@ -1,0 +1,5 @@
+all: read_SAFE.js
+
+read_SAFE.js: ../read_SAFE.ts
+	tsc --outFile $@ $?
+

@@ -1,0 +1,20 @@
+This document should not contain details about specific actions.
+
+A short list of some of the company-state changing actions follows.
+As much as possible, we want to automate the paperwork selection, ordering, and filling needed to accomplish these actions
+
+-change of company address
+-add/remove a director
+-change secretary or auditor
+-authorize current and future directors / company secretary (this happens only once?)
+-add/remove an existing shareholder
+-add a new investor with a new SAFE
+-edit member/investor names and other identifying details
+-start a round
+-close a round
+
+Some of these actions are major enough that they are represented as procedural, "blocking" actions in our GUI, as opposed to the more-declarative form style used to enter existing shareholders and such. "start a round" is an example. Let's call those "noncomposable actions".
+Our code for synthesizing a paperwork plan for the client does not deal with noncomposable actions.
+In the short term, a paperwork plan is a DAG with company states as nodes, with unique source and sync nodes (the current company state and the desired company state), whose edges are filled paperwork that we ask the users to sign. There is one paperwork plan for everyone involved in the financing.
+
+

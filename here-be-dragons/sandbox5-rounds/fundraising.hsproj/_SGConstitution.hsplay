@@ -1,0 +1,26 @@
+-- Haskell Playground 1.0
+
+
+let alice = Individual { entityName = "Alice" }
+let bob   = Individual { entityName = "Bob" }
+let carol = Individual { entityName = "Carol" }
+
+let potatoCorp = Company { entityName = "Potato Corp"
+                         , board = map Director [alice, bob, carol]
+                         , shareholders = map (flip Shareholder Ordinary)  [ alice, bob, carol ]
+                         }
+
+-- Share capital and variation of rights
+-- 7.—(1)  Without prejudice to any special rights previously conferred on the holders of any existing shares or class of shares but subject to the Act, shares in the company may be issued by the directors.
+-- (2)  Shares referred to in paragraph (1) may be issued with preferred, deferred, or other special rights or restrictions, whether in regard to dividend, voting, return of capital, or otherwise, as the directors, subject to any ordinary resolution of the company, determine.
+
+let reg7'1 = Mu { entity = AbstractEntity $ AbstractCompany
+                , cond   = Always
+                , deontic = May
+                , action = IssueSecurity $ Security "ordinary"
+                , temporal = After $ RelativeTime $ EventStart $ Event "Company" $ Performative "incorporates"
+                , thence = TriviallyFulfilled
+                , lest = TriviallyBreached
+                }
+
+do putStrLn $ showMu reg7'1

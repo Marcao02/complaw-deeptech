@@ -1,0 +1,38 @@
+#!/usr/local/bin/node -*- js -*-
+// a vapourware demo in which Legalese incorporates a company in < 40 lines of Javascript
+var Corp = require("../lib/Corp.js");
+
+// the name of the company and other basic deets
+var newCo = new Corp.Company({ name:    "The Next Facebook Pte. Ltd.",
+							   address: "71 Ayer Rajah Crescent\n#05-16\nSingapore 139951", state: "Singapore", constitution: "default",
+							   ssUrl:   "https://docs.google.com/spreadsheets/d/1rBuKOWSqRE7QgKgF6uVWR9www4LoLho4UjOCHPQplhw",
+							   driveUrl:"https://drive.google.com/drive/u/0/folders/0BxOaYapq8qwMSmpTBXGpNWtMtUV",
+							   // status ::= unincorporated | nameReserved | filingSubmitted | incorporated; // loaded from Google Spreadsheets
+							 });
+
+if (newCo.status == "unincorporated") { // Founder deets. How many shares will they each hold?
+  newCo.addCapTable({ founders: [ { name: "Papa Legs",      money: "$6", shares: 6, idtype: "NRIC", id:"S00000001A", address:"1 Frog Hollow" },
+								  { name: "Mama Smoochy",   money: "$4", shares: 4, idtype: "NRIC", id:"S00000002B", address:"2 Frog Hollow" },
+								  { name: "Tadpole Jumper", money: "$2", shares: 2, idtype: "NRIC", id:"S00000003C", address:"3 Frog Hollow" },
+								] } );
+  // or, if the captable has already been configured in Google Spreadsheets, just say
+  newCo.addCapTableFromURL();
+}
+if (newCo.status != "incorporated") { newCo.runWorkflow("incorporation", {ccnum:"0123 4567 8910 1112", exp:"12/18"}) }
+
+// elsewhere in the Corp class library definition,
+Corp.Company.prototype.runWorkflow = function(workflowName, paymentDetails) {
+  if (this.isNameAvailable())        this.reserveName();
+  else                               throw("sorry, name " + this.name + " is not available. Pick another.");
+
+  if (this.status == "nameReserved") {
+	this.makeDocs({workflow:workflowName});
+	if (this.allDocsSigned({workflow:workflowName}))  this.submitFiling({workflow:workflowName, payment:paymentDetails});
+	else                                              this.sendDocsForSignature({workflow:workflowName, reminder:true, reminderInterval:24*3600});
+  }
+  if (this.status == "filingSubmitted") { this.awaitFilingResult() }
+  if (this.status == "incorporated") {
+	this.updateSS(); // save the newly received Company Number to the Google Spreadsheet.
+	this.purchaseCorporateStatus(); // for showing to busybodies; saves PDF to Google Drive.
+  }
+};

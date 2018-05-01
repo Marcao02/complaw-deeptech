@@ -1,0 +1,195 @@
+-- http://bnfc.digitalgrammars.com/
+-- lbnf format
+
+layout toplevel;
+layout ":--";
+
+MkL4Module . L4Module ::= [Section] ;
+
+separator Section ";" ;
+
+MkSectionImport.   Section ::= SectionImport ;
+MkSectionContract. Section ::= SectionContract ;
+MkSectionParties.  Section ::= SectionParties ;
+MkSectionDefine.   Section ::= SectionDefine ;
+MkSectionTypes.    Section ::= SectionTypes ;
+MkSectionClause.   Section ::= SectionCl ;
+MkSectionAction.   Section ::= SectionAction ;
+
+MkHeaderImport. SectionImport ::= "IMPORT" Lingam "{" [BodyImport] "}" ;
+separator BodyImport ";";
+MkBodyImport. BodyImport ::= UIdent "(" [ImportSym] ")";
+
+separator ImportSym "," ;
+MkImportSymI. ImportSym ::= Ident;
+MkImportSymU. ImportSym ::= UIdent;
+
+-- list next, generative marker
+MkLingam. Lingam ::= ":--" ;
+
+MkHeaderContract. SectionContract ::= "CONTRACT" Lingam "{" [DefContract] "}" ;
+separator DefContract ";" ;
+MkDefContract. DefContract ::= RegularDef ;
+
+MkHeaderParties. SectionParties ::= "PARTIES" Lingam "{" [TypedDefAlias] "}" ;
+separator TypedDefAlias ";" ;
+MkTypedDefAlias. TypedDefAlias ::= Ident ":" UIdent AliasParen "=" RBT;
+
+MkRBTblock. RBT ::= RecordBlock;
+MkRBTterm.  RBT ::= [Term];
+
+MkAliasParen. AliasParen ::= "(" [AliasBody] ")" ;
+separator AliasBody "";
+MkAliasBodyString. AliasBody ::= RegularString;
+MkAliasBodySymbol. AliasBody ::= RegularSymbol;
+
+MkHeaderDefine.      SectionDefine ::= DefineHeader Lingam "{" [TypedDefAlias] "}";
+MkHeaderDefineText.  DefineHeader ::= "DEFINE";
+MkHeaderDefineText2. DefineHeader ::= "DEFINITIONS";
+
+MkHeaderTypes. SectionTypes ::= "TYPES" Lingam "{" [DefType] "}" ;
+separator DefType ";" ;
+MkDefType. DefType ::= UIdent "=" [SumType] ;
+separator SumType "|" ;
+MkSumTypeUIdent. SumType ::= UIdent ;
+MkSumTypeRecord. SumType ::= RecordBlock ;
+
+
+
+MkRecordBlockExtension. RecordBlock ::= BasePrefix RecordBlock;
+MkRecordBlock.          RecordBlock ::= "{" [RegularDef] "}" ;
+MkRecordBasePrefix.      BasePrefix ::= [RecordBase] "**";
+
+separator RecordBase "," ;
+MkRecordBase. RecordBase ::= UIdent ;
+
+separator RegularDef "," ;
+MkRegularDefTerm.  RegularDef ::= Ident "=" Term;
+MkRegularString.   RegularString ::= String ;
+MkRegularSymbol.   RegularSymbol ::= UIdent ;
+
+token UIdent (upper (letter | digit | '_')*) ;
+
+separator nonempty Term "" ;
+MkTermUIdent.  Term ::= UIdent;
+MkTermIdent.   Term ::=  Ident;
+MkTermString.  Term ::= String;
+MkTermFloat.   Term ::= Double;
+MkTermInteger. Term ::= Integer;
+MkTermParens.  Term ::= "(" Term ")" ;
+
+comment "--";
+comment "//" ;
+comment "/*" "*/" ;
+comment "{-" "-}" ;
+
+
+
+-- CLAUSES
+
+
+MkSectionClMustSequence. SectionCl ::= "CLAUSE" ClLabel ClGiven ClParty ClMust ClDeadline ClMustConnector ;
+MkSectionClMustSolo.     SectionCl ::= "CLAUSE" ClLabel ClGiven ClParty ClMust ClDeadline ClMustHence ClMustLest ;
+MkSectionClMay.  SectionCl ::= "CLAUSE" ClLabel ClGiven ClParty ClMay  ClDeadline ClMayThen   ClMayLest  ClMayConnector ;
+
+MkClLabel.      ClLabel  ::= UIdent ":" String;
+MkClGivenNone.  ClGiven  ::= ;
+MkClGiven.      ClGiven  ::= "GIVEN"  "(" [Given] ")";
+MkClGiving.     ClGiving ::= "GIVING" "(" [Given] ")";
+NoClGiving.     ClGiving ::= ;
+
+
+MkClParty.      ClParty ::= "PARTY" [Term] ;
+MkClMay.        ClMay   ::= MayWord        DeonticAction ;
+MkClMayNot.     ClMay   ::= MayWord "NOT"  DeonticAction ;
+MkClMust.       ClMust  ::= MustWord       DeonticAction ;
+MkClMustNot.    ClMust  ::= MustWord "NOT" DeonticAction ;
+
+rules MustWord ::= "MUST" | "SHALL";
+rules MayWord  ::= "MAY"; 
+rules DeadlineWord ::= "WITHIN" | "BEFORE" | "DUE" ;
+
+MkClDeadline.   ClDeadline ::= DeadlineWord DeadlineBody;
+
+rules DeadlineBody ::= "immediately" | "IMMEDIATELY"
+  | [Term] RemainingOrBlank -- within 20 minutes
+  | "BY" Ident RemainingOrBlank ;
+
+MkRemainingOrBlank. RemainingOrBlank ::= "REMAINING" Ident;
+MkRemainingBlank.   RemainingOrBlank ::= ;
+
+MkClMayThen.      ClMayThen ::= ThenWord ClauseSpec ;
+MkClMayLest.      ClMayLest ::= LestWord ClauseSpec ;
+
+MkClMayConnectorBlank.  ClMayConnector ::= "REQUIRING";
+MkClMayConnectorClause. ClMayConnector ::= "REQUIRING" ClauseSpec;
+
+MkClauseSpecPlain. ClauseSpec ::= UIdent ;
+MkClauseSpec.      ClauseSpec ::= UIdent "(" [CallArg] ")" ;
+
+MkClMustHenceBlank. ClMustHence ::= ;
+MkClMustHence.     ClMustHence  ::= "HENCE" HenceBody;
+MkClMustLestBlank. ClMustLest   ::= ;
+MkClMustLest.      ClMustLest   ::= "LEST"  LestBody;
+
+layout "OF" ;
+MkHenceBodyF.      HenceBody ::= "FULFILLED" ;
+MkHenceBodyCase.   HenceBody ::= "CASE" Ident "OF" "{" [CaseBody] "}" ;
+MkLestBodySpec.    LestBody  ::= ClauseSpec;
+MkLestBody.        LestBody  ::= "BREACH" ;
+
+separator nonempty CaseBody ";" ;
+layout "=>" ;
+MkCaseBody.        CaseBody ::= [Term] "=>" "{" [CaseStatement] "}";
+
+separator CaseStatement ";" ;
+  
+MkCaseStmAss.       CaseStatement ::= StmAssignment;
+MkCaseStmCall.      CaseStatement ::= ClauseSpec;
+MkCaseStmF.         CaseStatement ::= "FULFILLED";
+MkCaseStmB.         CaseStatement ::= "BREACH";
+MkCaseStmNoop.      CaseStatement ::= "NOOP";
+
+MkStmAssignment.    StmAssignment ::= Ident "=" [Term];
+
+MkClMustConnectorHence. ClMustConnector ::= "HENCE";
+
+rules ThenWord  ::= "THEN";
+rules HenceWord ::= "HENCE";
+rules LestWord  ::= "LEST";
+
+
+
+MkDeonticAction.  DeonticAction ::= UIdent "(" [CallArg] ")" ;
+MkDeonticAction1. DeonticAction ::= DeonticAction "AND" DeonticAction ;
+MkDeonticAction2. DeonticAction ::= DeonticAction "OR" DeonticAction ;
+
+separator CallArg "," ;
+MkCallArgLeft.   CallArg ::= Ident "<-" [Term] ;
+MkCallArgRight.  CallArg ::= Ident "->" Term ;
+MkCallArgEquals. CallArg ::= Ident "="  [Term] ;
+
+separator Given "," ;
+MkGivenPlain. Given   ::= [GivenScope] Ident TypeAnnotation GivenDefault ;
+
+MkGivenDefaultNone.   GivenDefault ::= ;
+MkGivenDefault.       GivenDefault ::= "=" [Term] ;
+
+MkTypeAnnotation.     TypeAnnotation ::= ":" [TypeSpec] ;
+MkTypeAnnotationNone. TypeAnnotation ::= ;
+
+separator nonempty TypeSpec "" ;
+MkTypeSpec. TypeSpec ::= UIdent;
+
+separator GivenScope "" ;
+MkGivenScope. GivenScope ::= "global";
+
+MkHeaderSection. SectionAction ::= "ACTION" UIdent ClGiven ClGiving ActionBody;
+
+MkActionBodyNoop.   ActionBody ::= "noop";
+MkActionBodyEvent.  ActionBody ::= "event" String [Term];
+MkActionBodyAss.    ActionBody ::= StmAssignment;
+MkActionBodyMulti.  ActionBody ::= "{" [ActionLine] "}" ;
+  
+separator ActionLine ";";
+MkActionLine.       ActionLine ::= ActionBody;

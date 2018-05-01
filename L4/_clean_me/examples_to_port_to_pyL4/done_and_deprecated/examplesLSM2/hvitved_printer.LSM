@@ -1,0 +1,131 @@
+(GlobalVars 
+	(nonoperative buyer_paid : ℕ := 0)
+	(nonoperative seller_refunded : ℕ := 0)
+	(writeonce delivery_date : Date)
+)
+
+(Claims 
+	($MAX_TIME = 44D)
+	($MAX_EVENT_STATE_CHANGES := 6)
+)
+
+(Actors Buyer Seller)
+
+(ContractParams 
+	(CONTRACT_START : Date := "2010-12-30")
+	(DELIVERY_DEADlINE : Date := "2011-01-01")
+)
+
+(ProseContract 
+	(P1 'Seller agrees to transfer and deliver to Buyer, on or before 2011-01-01, the goods: 1 laser printer.')
+	(P2 'Buyer agrees to accept the goods and to pay a total of €200 for them according to the terms further set out below.')
+	(P3 'Paragraph 3. Buyer agrees to pay for the goods half upon receipt, with the remainder due within 30 days of delivery.')
+	(P4 'If Buyer fails to pay the second half within 30 days, an additional fine of 10% has to be paid within 14 days.')
+	(P5	'Upon receipt, Buyer has 14 days to return the goods to Seller in original, unopened packaging. Within 7 days thereafter, Seller has to repay the total amount to Buyer.')
+)
+
+(FormalContract	
+	"Two part sale Hvitved Laser Printer"	
+	(StartState Awaiting_Delivery)
+	{EventStates
+		(Awaiting_Delivery() 
+			[ProseRefs P1] 
+			(ActorEvents
+				(Seller must
+					(Deliver() by DELIVERY_DEADLINE)
+				)
+			)
+		)
+	
+		(Deliver() [ProseRefs P1] 
+			(Entrance
+				(delivery_date := (event_start_date))
+			)
+			(ActorEvents
+				(Buyer must
+					(Pay_1st_Installment() immediately)
+				)
+			)
+		)
+
+		(Pay_1st_Installment() [ProseRefs P1 P2 P3] 
+			(Entrance
+				(conjecture (buyer_paid == 0))
+				(buyer_paid := 100)
+			)
+			(ActorEvents
+				(Buyer should
+					(Pay_2nd_Installment() by (delivery_date + 30D))				
+				)
+				(Buyer may
+					(Return_On_Time() by (delivery_date + 14D))
+				)
+			)
+			(Fallbacks 
+				(Late_2nd_Installment())
+			)
+		)
+
+		(Late_2nd_Installment() [ProseRefs P4] 
+			(ActorEvents
+				(Buyer must
+					(Pay_2nd_Installment_With_Late_Fee() by (delivery_date + 44D))
+				)
+			)
+		)
+		
+		(Pay_2nd_Installment() [ProseRefs P5] 
+			(Entrance
+				(conjecture (buyer_paid == 100))
+				(buyer_paid := 200)
+			)
+			(ActorEvents
+				(Buyer may
+					(Return_On_Time() by (delivery_date + 14D))
+				)
+			)
+			(Fallbacks 
+				(Normal_Sale_Ended())
+			)
+		)
+
+		(Return_On_Time() [ProseRefs P5] 
+			(ActorEvents
+				(Seller must
+					; NOTE: changing this to make the obligation be postmarked-by
+					(Refund_Postmarked() by (today() + 7D))
+				)
+			)
+		)
+
+		(Pay_2nd_Installment_With_Late_Fee() [ProseRefs P4] 
+			(Entrance 
+				(conjecture (buyer_paid == 100))
+				(buyer_paid := 220)
+			)
+			(Fallbacks 
+				(Fulfilled())
+			)
+		)
+
+		(Normal_Sale_Ended() [ProseRefsP2] 
+			(Fallbacks 
+				(Fulfilled())
+			)
+		)
+
+		(Refund_Postmarked() [ProseRefs P5] 
+			(Entrance
+				(conjecture (seller_refunded == 0))
+				(conjecture ((buyer_paid == 100) or (buyer_paid == 200)))
+				(seller_refunded := buyer_paid)
+			)
+			(Fallbacks 
+				(Fulfilled())
+			)
+		)
+	}
+)
+
+(DotFileName 'hvitved_printer.dot')
+(ImgFileName 'hvitved_printer.png')

@@ -1,0 +1,25 @@
+Contract is abstract.
+Sale is a Contract.
+
+Noop is abstract.
+
+Agent is abstract.
+Alice is an Agent.
+Bob   is an Agent.
+Carol is an Agent.
+
+Sale has an Agent called seller.
+Sale has an Agent called buyer.
+
+Payment is abstract.
+Payment has an Agent called from.
+Payment has an Agent called to.
+Payment has a Real called amount.
+
+MoonPhase is abstract.
+MoonPhase has a String called phase.
+// phase == "waxing" || phase == "waning"
+
+Potato is abstract.
+RedBliss is a Potato.
+Russet is a Potato.

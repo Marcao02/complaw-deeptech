@@ -1,0 +1,143 @@
+(GlobalVars 	
+	(writeonce challenge_start_time : Time )
+	(writeonce challenge_endlimit_time : Time)
+	(amount_owing : Price := 0)
+)
+
+(Actors Challenger Restaurant)
+
+(ContractParams 
+	(MB_PRICE : Price := $50)
+	(TIME_TO_EAT_BURGER : Duration := 1H)
+	(MAX_SERVE_DELAY : Duration := 20M)
+	(MAX_CLAIM_VERIFICATION_DELAY : Duration = 10M)
+	(MAX_REFUND_DELAY : Duration := 10M)
+)
+
+(ProseContract 
+	(P1 'A monster burger (MB) challenge is between a customer and the Restaurant.')
+	(P2 'A customer can only enter one MB challenge per visit to the Restaurant.')
+	(P3 'If the customer finishes the MB within {TIME_TO_EAT_BURGER} of being served, the burger is free. Otherwise, they owe $50 for the burger.')
+	(P4 'When a customer orders a MB, the restaurant guarantees they will serve the burger within {MAX_SERVE_DELAY}. Otherwise, the customer is not obligated to pay for the burger (but the restaurant may still serve the burger late).')
+	(P5 'The customer can claim to be finished early, after which the restaurant must within ({MAX_CLAIM_VERIFICATION_DELAY}, or by the end of the {TIME_TO_EAT_BURGER} challenge period -- whichever comes first) confirm or reject the claim. If no such "early finish" claim is made, the restaurant checks after {TIME_TO_EAT_BURGER} from serving time')
+	(P6 'Any other food or drink that the customer wishes to consume while doing the MB challenge must be ordered on a separate bill.')
+)
+
+(FormalContract	
+	"Monster Burger"		
+	(StartState MonsterBurgerOrdered)
+	(EventStates
+		(MonsterBurgerOrdered() 
+			(Entrance
+				(amount_owing := MB_PRICE)
+			)
+			(ActorEvents
+				(Restaurant must
+					(ServeMB() within MAX_SERVE_DELAY)
+				)
+			)			
+			(Fallbacks
+				(MissedServeDeadline())
+			)
+		)
+	
+		(ServeMB()  
+			(Entrance				
+				(challenge_start_time := (event_start_time))
+				(challenge_endlimit_time := (challenge_start_time + TIME_TO_EAT_BURGER))
+			)			
+			(Fallbacks
+				(EatingMB())
+			)
+		)
+
+
+		(MissedServeDeadline()  
+			(Entrance
+				(amount_owing := 0)
+			)			
+			(Fallbacks
+				(Fulfilled())
+			)
+
+		)
+
+		(EatingMB()  
+			(ActorEvents
+				(Challenger may
+					(AnnounceMBFinished() before challenge_endlimit_time)
+				)
+				(Restaurant should
+					(CheckFinishedClaim() between (interval challenge_endlimit_time (time+ challenge_endlimit_time MAX_CLAIM_VERIFICATION_DELAY)) )
+				)
+			)
+			(Fallbacks			
+				(LateCheck())			
+			)
+		)	
+
+		(AnnounceMBFinished()  
+			(ActorEvents
+				(Restaurant should
+					(CheckFinishedClaim() by (earliest (time+ event_start() MAX_CLAIM_VERIFICATION_DELAY) challenge_endlimit_time))
+				)
+			)
+			(Fallbacks
+				(LateCheck())
+			)
+		)
+
+		(LateCheck()  
+			(Entrance
+				(amount_owing := 0)
+			)
+			(Fallbacks
+				(Fulfilled())
+			)
+
+		)
+
+		(CheckFinishedClaim()  
+			(ActorEvents
+				(Restaurant must
+					(VerifyFinishedClaim() immediately) 
+					; or
+					(RejectFinishedClaim() immediately)
+				)
+			)		
+		)
+
+		(RejectFinishedClaim()  
+			(ActorEvents			
+				(Customer mustif ((event_start) ≥ challenge_endlimit_time)
+					(PayForMB() immediately)
+				)
+			)
+			(Fallbacks
+				(EatingMB())
+			)
+		)
+
+		(PayForMB()
+			(Entrance
+				(amount_paid := amount_owing)
+				(amount_owing := 0)
+			)			
+			(Fallbacks
+				(Fulfilled())
+			)
+		)
+
+		(VerifyFinishedClaim()  
+			(Entrance
+				(amount_owing := 0)
+			)			
+			(Fallbacks
+				(Fulfilled())
+			)			
+		)
+	)
+)
+
+(DotFileName 'monster_burger.dot')
+(ImgFileName 'monster_burger.png')

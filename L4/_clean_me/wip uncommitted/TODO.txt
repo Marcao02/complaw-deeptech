@@ -1,0 +1,16 @@
+0. FINISH THAT VIDEO
+
+1. explicit 'obliged' 'permitted'
+
+Update README.md
+"event states" -> "event states" and "action-event states"
+
+"should" and "may" are almost synonymous ATM; their difference is in intention. "should" is a soft obligation, which the contract is made to recover from. "must" is a hard obligation, which causes a breach of the contract if it fails.
+
+
+
+1. Environment/Oracle Events
+2. EventData params
+3. Make executable.
+4. Compile to Solidity!!
+

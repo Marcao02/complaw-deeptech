@@ -1,0 +1,166 @@
+* Project GF MonsterBurger
+
+GF Output
+
+write file MonsterBurgerEngv2.gfo
+
+linking ... OK
+
+Languages: MonsterBurgerEngv2
+
+623 msec
+
+MonsterBurgerv2> gt | l
+
+Upon the customer ordering the monster burger
+
+the restaurant should serves the monster burger within 15 minutes
+
+otherwise the restaurant violates its prompt serve guarantee
+
+Upon the restaurant serving the monster burger
+
+the challenge end time is current time plus 1 hour
+
+the amount owing is set to S$50
+
+the challenge is continuing
+
+Whenever the challenge is continuing
+
+the customer may finishes the monster burger before challenge end time
+
+otherwise the challenge is overs
+
+If the time reaches the challenge end time
+
+Upon the challenge end time
+
+the restaurant should checks the customer within 10 minutes
+
+otherwise the restaurant violates its prompt check guarantee
+
+If the restaurant violates its prompt check guarantee
+
+or the restaurant violates its prompt serve guarantee
+
+or the restaurant confirms the customer has finished
+
+then the amount owing is set to S$0
+
+and the contract fulfills
+
+Upon the restaurant the restaurant checks the customer has finished
+
+the restaurant may confirms that immediately
+
+the restaurant may disconfirms that immediately
+
+Upon the restaurant disconfirming the customer
+
+then the customer must pays the bill
+
+If the time reaches the challenge end time
+
+otherwise the challenge is continuing
+
+If the time is before the the challenge end time
+
+If the customer pays the bill
+
+then the amount paid is the amount owing
+
+and the amount owing is set to S$0
+
+and the contract fulfills
+
+
+**  Modelling MonsterBurger
+
+based on Dustin's MonsterBurger NLG example  https://github.com/legalese/complaw-deeptech/blob/56c97731d282ad914a7218b64d1dc07525cdf772/L4/_clean_me/examples_to_port_to_pyL4/examplesLSM4/monster_burger_lsm_nlg.md
+
+| party                  | action            |                |              |              |
+| object                 | action/definition |                |              |              |
+| deonticAction          |                   |                |              |              |
+| transitionEvent        | party/object      | action         | party/object |              |
+| obligation/permission  | party             | deonticAction  | party/object |              |
+| violation              | party             | deonticAction  | object       |              |
+| If-then-else           |                   |                |              |              |
+| timeExpression         | preposition       | party/object   | action       | party/object |
+
+Each party is tagged to a specific action. For example, serve is an action that's only done by the restaurant as in "The restaurant serves the monster burger" and eat is an action that's only done by the customer as in "the customer eats the monster burger".
+
+It would have been meaningless in the context of the Challenge if the verb randomly attaches to any party during language generation.
+
+The act of restricting particular actions to particular parties is known as dependent types. Here, for now, simple tagging is used.
+
+Same parameters for Object as those described for Party.
+
+Deontic based on action. Must ++ action , May ++ action, Should ++ action, Will ++ action.
+
+transitionEvent indicates a change in state. And in a particular state, there is either an obligation or permission statement followed by an or-Else statement or a violation statement.
+
+timeExpression indicates the relationship between an operation and time. For example:
+ - upon indicates a simultaneous operation
+ - within specifies an upper limit on the time range for an operation to occur
+ - before means doing something before a certain point in time
+
+
+** grammar building blocks
+
+**** The main sentence structures
+
+A sentence can be built from an adverb and a sentence; a sentence can be built from a clause; an utterance can be built from an adverb
+
+mkS    : Adv -> S -> S
+
+mkS    : Cl -> S
+
+mkUtt  : Adv -> Utt
+
+**** A clause can be built from a noun phrase and a complement verb phrase (i.e party action object)
+
+mkCl   : NP -> V2 -> NP -> Cl
+
+**** A noun phrase can be built from a determiner and a common noun (The + Party/Object)
+
+mkNP   : Det -> CN -> NP
+
+**** An adverb can be built from a preposition and a noun phrase, which goes into building a sentence
+
+mkAdv  : Prep -> NP -> Adv
+
+**** Subjunctions to join up sentences; an adverb can be built from a subjunction and a sentence, which goes into building a sentence
+
+mkAdv  : Subj -> S -> Adv
+
+There is a slight hack done to structure the linearisation of sentences in a specific order, not random; just like how lawyers would use clause numbers to structure a legal document.
+
+Some agreements of the grammar are still a bit off and will need tweakings, for example "otherwise the challenge is overs".
+
+
+** To run the code
+
+You will see two GF files in the legalese-compile repo:
+
+complaw-deeptech/sandbox6/gf-monsterburger
+
+An abstract syntax: MonsterBurgerv2.gf
+
+A concrete syntax: MonsterBurgerEngv2.gf
+
+An abstract syntax expresses general grammar categories common to all languages (type assignments) and follow strict rules of combinations for sentence formations.
+
+A concrete syntax deals with manipulating strings, operations and specific language dependent constructions. Different languages have different linguistic structures for example in English we have the definite article the_Det when you use it to build a clause from a determiner and a noun but in french, the definite article produces a word whose form depends on the noun for example, Le is used for masculine nouns, La is used for feminine nouns.
+
+Install GF 3.9 https://github.com/GrammaticalFramework/GF/blob/master/download/index.t2t
+
+Run GF 3.9 in terminal
+
+Use command: i MonsterBurgerEngv2.gf to run the code
+
+Once the linking to the file is established, use command gt | l to linearise the code.
+
+
+
+

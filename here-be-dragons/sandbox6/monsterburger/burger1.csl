@@ -1,0 +1,113 @@
+
+-- the language here is PCSL, defined by Hvitved as a tweak of CSL
+-- language definition: https://drive.google.com/open?id=0BxOaYa8pqqSwbl9GMWtwVU5HSFU
+-- CSL implementation: https://bitbucket.org/jespera/poets/overview
+-- see also: https://github.com/legalese/complaw-deeptech/tree/master/nix
+-- note that this is just a sample draft used to give a taste of how CSL thinks
+--
+-- author: mengwong@legalese.com
+
+Name: Burger Challenge
+Type: DiscountableSale
+Description: https://groups.google.com/a/lists.legalese.com/forum/#!topic/talk/7GuYsUzpoLs
+
+import Currency (currency, Currency, USD)
+
+val NormalPrice = currency USD 7.20
+
+clause FoodChallenge( entryFee : Currency
+                    , foodItem : FoodType
+                    , deadline : Duration
+                    ) < restaurant : <Company>
+                      , customer   : <Person> > =
+
+  -- NARRATIVE: the customer pays
+
+  <customer> Pay( amount a, recipient r )
+    where a === entryFee && r === restaurant
+    due immediately
+  then
+
+  -- NARRATIVE: the restaurant sets the burger down
+
+    <restaurant> Serve( foodItem f, recipient b )
+      where f === foodItem && b === customer
+      due within 20 minutes
+    then
+
+      -- NARRATIVE: the customer says "i'm done!" and the restaurant confirms.
+      -- we model this as an external choice
+
+      when CheckEmpty( foodItem f
+                     , verifier r
+                     , patron   c
+                     , state    s )
+        where f === foodItem
+           && isRepresentativeOf restaurant r
+           && c === customer
+           && s === Eaten
+        due within deadline
+
+        -- NARRATIVE: the restaurant now has to refund the customer
+
+      then
+        Refund( entryFee, customer, 10 minutes ) <restaurant>
+
+      -- NARRATIVE: after the 1 hour deadline, the restaurant should come around to check.
+      -- this covers the race condition where the customer finishes at 00:59:59 and
+      -- doesn't have time to announce to the restaurant that he's done.
+
+      else
+        when CheckEmpty( foodItem f
+                       , verifier r
+                       , patron   c
+                       , state    s )
+            where f === foodItem
+               && isRepresentativeOf restaurant r
+               && c === customer
+            due within 10m
+        then
+          case s of Eaten -> Refund( entryFee, customer, 10 minutes ) <restaurant>
+                  | Puked      -> fulfilled
+                  | Unfinished -> fulfilled
+
+        -- if the restaurant FAILED to come around to check on the customer
+        -- then it will owe the customer a refund.
+        else
+          Refund( entryFee, customer, 10 minutes ) <restaurant>
+
+        -- N.B. in practice, the restaurant should be motivated to check because
+        -- every minute that it doesn't is a minute the customer can keep eating.
+
+
+
+clause Refund( amount : Currency, recipient : Party, deadline : Duration )
+             < payer : <Party> > =
+  <payer> Pay( amount a, recipient r )
+    where a === amount, r === recipient
+    due within deadline
+  then fulfilment
+
+-- "main" instantiation
+
+contract = FoodChallenge( NormalPrice, Burger, 1 hour )
+                        < BobsBurgerShack, BellatrixLestrange >
+
+-- auxiliary action definitions
+
+action CheckEmpty( foodItem : FoodType
+                 , verifier : Party
+                 , patron   : Person
+                 , state    : EatState
+                 ) =
+  -- we assume some sort of Prolog-style unification?
+  state = verifier `examine` (seat patron) foodItem
+
+-- auxiliary datatypes
+
+data EatState == Eaten | Unfinished | Puked
+
+-- auxiliary function definitions
+
+fun seat :: Person -> Seat
+fun examine :: Party -> Seat -> FoodItem -> EatState
