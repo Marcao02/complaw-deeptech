@@ -109,7 +109,7 @@
 
 	(Situation After_NotifyInvestorOfNextEquityFinancingTerms
 		(Investor may choose_cash_interest_repayment)
-		(Company may (CloseEquityFinancingSale ?1 ?2) (when next_event_td > (last_situation_td + 5D)))
+		(Company may (CloseEquityFinancingSale ?1 ?2) (after_split 5D))
 		; discretionary Breach if never close?
 	)
 

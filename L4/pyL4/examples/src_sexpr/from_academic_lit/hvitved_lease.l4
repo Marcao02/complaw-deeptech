@@ -81,7 +81,7 @@
 			(if (lease_term_end ≤ (last_situation_td + 1D))
 				(EnterLeaseTermEnded immediately)   )
 			(if (lease_term_end > (last_situation_td + 1D))
-				(EnterMonthStarted (at (last_situation_td + 1d)))   )
+				(EnterMonthStarted (at_split 1d))   )
 			(RequestTerminationActionRuleMacro (Tenant MonthEnded))
 			(RequestTerminationActionRuleMacro (Landlord MonthEnded))
 		)

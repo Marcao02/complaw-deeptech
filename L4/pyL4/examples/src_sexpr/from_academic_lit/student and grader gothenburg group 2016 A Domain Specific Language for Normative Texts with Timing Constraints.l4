@@ -18,21 +18,21 @@
 
 	(Action Submit (AllowedRoles Student)
 		(FollowingSituation
-			(Grader may Accept (when next_event_td ≤ (last_situation_td + 7d)))
-			(Grader may Reject (when next_event_td ≤ (last_situation_td + 7d)))
-			(Breach_Grader (after last_situation_td + 7d))
+			(Grader may Accept (within_split 7d))
+			(Grader may Reject (within_split 7d))
+			(Breach_Grader (after_split 7d))
 		)
 	)
 
 	(Action Reject (AllowedRoles Grader)
 		(FollowingSituation
-			(Student must Resubmit (by 27))
+			(Student must Resubmit (by 26))
 		)
 	)
 
 	(Action Resubmit (AllowedRoles Student)
 		(FollowingSituation
-			(Grader must Accept (within 7))
+			(Grader must Accept (within (7 + last_situation_td)))
 		)
 	)
 )

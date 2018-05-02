@@ -60,8 +60,8 @@
 		(FollowingSituation
 			(visits == 1) ; LANG note: Similar to (traversal == 1) but for Situations.
             ; (timeConstraintsPartitionFuture
-	            (Restaurant may ServeMB (when next_event_td < (MAX_SERVE_DELAY + last_situation_td)))
-	            (EnterPromptServeGuaranteeViolated (when next_event_td ≥ (MAX_SERVE_DELAY + last_situation_td)))
+	            (Restaurant may ServeMB (before_split MAX_SERVE_DELAY))
+	            (EnterPromptServeGuaranteeViolated (at_or_after_split MAX_SERVE_DELAY))
             ; )
 		)
 	)
@@ -116,8 +116,8 @@
 		(FollowingSituation
 			(0 ≤ visits ≤ nonconstant)
             ; (timeConstraintsPartitionFuture
-	            (Restaurant may CheckCompletionClaim (when next_event_td < (last_situation_td + MAX_CLAIM_VERIFICATION_DELAY)))
-	            (TimeToCheckCompletionExpires (when next_event_td ≥ (MAX_CLAIM_VERIFICATION_DELAY + last_situation_td)))
+	            (Restaurant may CheckCompletionClaim (before_split MAX_CLAIM_VERIFICATION_DELAY))
+	            (TimeToCheckCompletionExpires (at_or_after_split MAX_CLAIM_VERIFICATION_DELAY))
             ; )
 		)
 	)
@@ -139,7 +139,7 @@
 			(0 ≤ visits ≤ nonconstant)
 		    (Restaurant may VerifyCompletionClaim immediately)
 		    (Restaurant may RejectCompletionClaim immediately)
-		    (Breach_Restaurant (when next_event_td ≥ (last_situation_td + 1m) ))
+		    (Breach_Restaurant (at_or_after_split 1m))
 		)
 	)
 

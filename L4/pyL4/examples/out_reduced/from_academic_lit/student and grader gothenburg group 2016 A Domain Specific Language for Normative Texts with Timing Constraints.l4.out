@@ -19,10 +19,10 @@ action Submit()  transitions to AfterSubmit
 
 action Reject()  transitions to AfterReject
     following situation:
-        Breach_Student (next_event_dt > 27)
-        Student may Resubmit (next_event_dt ≤ 27)
+        Breach_Student (next_event_dt ≤ 26)
+        Student may Resubmit (next_event_dt ≤ 26)
 
 action Resubmit()  transitions to AfterResubmit
     following situation:
-        Breach_Grader (next_event_td > 7)
-        Grader may Accept (next_event_td ≤ 7)
+        Breach_Grader (next_event_td > (7 + last_situation_td))
+        Grader may Accept (next_event_td ≤ (7 + last_situation_td))

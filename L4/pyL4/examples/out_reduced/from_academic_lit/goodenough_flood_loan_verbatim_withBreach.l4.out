@@ -15,7 +15,7 @@ state vars:
     cures : Nat := 0
 
 situation ActiveContract:
-    Borrower may RequestPrinciple (next_event_dt == 151 days, 0:00:00)
+    Borrower may RequestPrinciple (next_event_dt ≤ 151 days, 0:00:00)
     RequestDeadlinePasses (next_event_td > 151 days, 0:00:00)
 
 action RequestPrinciple()  transitions to PrincipleRequested:
@@ -25,7 +25,7 @@ action RequestPrinciple()  transitions to PrincipleRequested:
 
 situation PrincipleRequested:
     AdvanceDeadlinePasses (next_event_td > 152 days, 0:00:00)
-    Lender may AdvancePrinciple (next_event_dt == 152 days, 0:00:00)
+    Lender may AdvancePrinciple (next_event_dt ≤ 152 days, 0:00:00)
 
 action AdvancePrinciple()  transitions to Pmt1Accruing:
     transform:
@@ -35,13 +35,13 @@ action AdvanceDeadlinePasses()  transitions to DefaultLender
 
 situation DefaultLender:
     Borrower may FileLawsuit (next_event_td < 2343 days, 0:00:00)
-    StatuteOfLimitations (next_event_dt == 2343 days, 0:00:00)
+    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
 
 situation Pmt1Accruing:
     Borrower may Bankruptcy1 (next_event_td < 516 days, 0:00:00)
     Borrower may Convenant1 (next_event_td < 516 days, 0:00:00)
     Borrower may RepsWarr1 (next_event_td < 516 days, 0:00:00)
-    Pmt1DuedateArrives (next_event_dt == 516 days, 0:00:00)
+    Pmt1DuedateArrives (next_event_dt ≤ 516 days, 0:00:00)
 
 action RepsWarr1()  transitions to BorrowerDefaultRepsWarr1
 
@@ -108,14 +108,14 @@ action AcceleratedPaymentFailure1()  transitions to Crisis1
 
 situation Crisis1:
     Borrower may MakePmt12 (next_event_td == last_situation_td)
-    StatuteOfLimitations (next_event_dt == 2343 days, 0:00:00)
+    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
     Lender may FileLawsuit (next_event_td < 2343 days, 0:00:00)
 
 situation Pmt2Accruing:
     Borrower may Bankruptcy2 (next_event_td < 882 days, 0:00:00)
     Borrower may Convenant2 (next_event_td < 882 days, 0:00:00)
     Borrower may RepsWarr2 (next_event_td < 882 days, 0:00:00)
-    Pmt2DueDateArrives (next_event_dt == 882 days, 0:00:00)
+    Pmt2DueDateArrives (next_event_dt ≤ 882 days, 0:00:00)
 
 action RepsWarr2()  transitions to BorrowerDefaultRepsWarr2
 
@@ -174,7 +174,7 @@ action AcceleratedPaymentFailure2()  transitions to Crisis2
 
 situation Crisis2:
     Borrower may MakePmt2 (next_event_td == last_situation_td)
-    StatuteOfLimitations (next_event_dt == 2343 days, 0:00:00)
+    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
     Lender may FileLawsuit (next_event_td < 2343 days, 0:00:00)
 
 action MakePmt2()  transitions to Term:

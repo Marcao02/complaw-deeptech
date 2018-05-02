@@ -1142,45 +1142,57 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     else:
                         ar.time_constraint = self._mk_time_constraint(x[1], src_situation, src_or_parent_act, ar, x)
 
-                elif x[0] == "within":
+                elif x[0] in {"before", "within", "at", "after", "at_or_after"}:
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr(['≤', 'next_event_td', rest], x.line, x.col)
-                    # expanded = SExpr(['==', 'next_event_td',
-                    #                   SExpr(['+', rest, "1" + self.top.timeunit], x.line, x.col)], x.line, x.col)
+                    if x[0] == "within":
+                        symb = '≤'
+                    elif x[0] == "at":
+                        symb = '=='
+                    elif x[0] == "before":
+                        symb = '<'
+                    elif x[0] == "after":
+                        symb = '>'
+                    elif x[0] == "at_or_after":
+                        symb = '≥'
+                    expanded = x.newHere([symb, 'next_event_td', rest])
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
-                elif x[0] == "at":
+
+                # =============TimeDelta since last shorthand=============
+                elif x[0] in { "before_split", "within_split", "at_split", "after_split", "at_or_after_split"}:
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr(['==', 'next_event_td', rest], x.line, x.col)
+                    if x[0] == "within_split":
+                        symb = '≤'
+                    elif x[0] == "at_split":
+                        symb = '=='
+                    elif x[0] == "before_split":
+                        symb = '<'
+                    elif x[0] == "after_split":
+                        symb = '>'
+                    elif x[0] == "at_or_after_split":
+                        symb = '≥'
+                    expanded = x.newHere([symb, 'next_event_td', x.newHere(['+', 'last_situation_td', rest])])
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
-                elif x[0] == "by":
+
+
+                # =============DateTime shorthand=============
+                elif x[0] in {"before_dt", "by", "within_dt", "on", "at_dt", "after_dt", "at_or_after_dt"}:
                     found_labeled_time_constraint = True
                     rest = x[1] if len(x) == 2 else x.tillEnd(1)
+                    if x[0] == "on" or x[0] == "at_dt":
+                        symb = '=='
+                    elif x[0] == "within_dt" or x[0] == "by":
+                        symb = '≤'
+                    elif x[0] == "before_dt":
+                        symb = '<'
+                    elif x[0] == 'after_dt':
+                        symb = '>'
+                    elif x[0] == 'at_or_after_dt':
+                        symb = '≥'
                     expanded = SExpr(['≤', 'next_event_dt', rest], x.line, x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
 
-                elif x[0] == "after":
-                    found_labeled_time_constraint = True
-                    rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = x.newHere(['>', 'next_event_td', rest])
-                    # expanded = SExpr(['==', 'next_event_td', SExpr(['+', rest, "1" + self.top.timeunit], x.line, x.col)], x.line, x.col)
-                    ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
-                elif x[0] == "before":
-                    found_labeled_time_constraint = True
-                    rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr(['<', 'next_event_td', rest], x.line, x.col)
-                    ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
-                elif x[0] == "on":
-                    found_labeled_time_constraint = True
-                    rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr(['==', 'next_event_dt', rest], x.line, x.col)
-                    ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
-                elif x[0] == "after_dt":
-                    found_labeled_time_constraint = True
-                    rest = x[1] if len(x) == 2 else x.tillEnd(1)
-                    expanded = SExpr(['>', 'next_event_dt', rest], x.line, x.col)
-                    ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
                 else:
                     self.syntaxError(rem)
 

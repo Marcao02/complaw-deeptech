@@ -7,7 +7,7 @@ from src.independent.util import print_all_todos
 
 tests_to_run = {
     'L4typechecker',
-    'smt',
+    # 'smt',
     'graphviz',
     'prettyprint',
     'interpreter',
@@ -81,7 +81,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     show_splits()
 
 # runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
-runit("export MYPYPATH=.; mypy src", "typechecker")
+runit("cd ..; export MYPYPATH=.; mypy src", "typechecker")
 
 
 
