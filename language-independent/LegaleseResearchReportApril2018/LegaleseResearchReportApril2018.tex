@@ -107,8 +107,6 @@
 \newcommand{\reguard}[1]{\EM{\textsf{\hyperref[reguard]{enabled-guard}}_{#1}}} % re for 'rule enabled'
 \newcommand{\deadfn}[1]{\EM{\textsf{\hyperref[deadfn]{deadline}}_{#1}}} % ep for 'event parameters'
 \newcommand{\eppartconstr}[1]{\EM{\textsf{\hyperref[epconstr]{param-constraint}}_{#1}}}
-\newcommand{\udc}{\termz{udc}{unambiguous deadline\- condition}}
-\newcommand{\nsc}{\termz{nsc}{never-stuck condition}}
 \newcommand{\governs}{\term{governs}}
 \newcommand{\prules}{\termz{prules}{party-rules}}
 \newcommand{\orules}{\termz{orules}{oracle-rules}}
@@ -142,7 +140,6 @@
 \newcommand{\estatements}[1]{\EM{#1\text{-}\textsf{\hyperref[estatement]{statements}}}}
 %\newcommand{\estatements}[1]{#1-\termz{statement}{statements}}
 \newcommand{\stransimpl}{\termz{stransimpl}{conditional-tree}}
-\newcommand{\uuc}{\termz{uuc}{unambiguous statevar-update condition}}
 \newcommand{\statementsetexec}{\termz{statementsetexec}{exec}}
 
 
@@ -200,7 +197,10 @@
 
 %\newcommand{\smtfterms}{\EM{\cF-text{terms}}\xspace}
 
-
+\newcommand{\uuc}{\termz{uuc}{unambiguous statevar-update condition}}
+\newcommand{\udc}{\termz{udc}{unambiguous deadline\- condition}}
+\newcommand{\nsc}{\termz{nsc}{never-stuck condition}}
+\newcommand{\noreadbeforewrite}{\termz{nowritebeforeread}{no read-before-write condition}}
 
 %\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
 %\author{dustin.wehr@gmail.com}
@@ -287,7 +287,7 @@ A Legal State Machine (\anchorfor{\lsm}{lsm}) first of all fixes the definitions
 Let \anchorfor{\termin}{termin} be the union of those symbols.%, i.e.  $\{\fulfilled\} \cup \{\breached{A} \ | \ \text{nonempty } A \subseteq \actor\}$.
 
 %, and partitions \ename into three subsets: party event names, oracle event names, and deadline event names.
-An \lsm $M$ also has an ordered finite set of symbols \anchorfor{\statevars}{statevars}, and an assignment \anchorfor{\svsorts}{svsorts} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \svsorts to be an element of $\DT^*$. $M$ also includes an initial setting \anchorfor{\initvals}{initvals} of its \statevars, and designates one the \snames its \anchorfor{\startsname}{startsname}.
+An \lsm $M$ also has an ordered finite set of symbols \anchorfor{\statevars}{statevars}, and an assignment \anchorfor{\svsorts}{svsorts} of a datatype from $\DT$ to each. Since the \statevars are ordered, we can take \svsorts to be an element of $\DT^*$. $M$ also includes an initial setting \anchorfor{\initvals}{initvals} of its \statevars, and designates one of the \snames its \anchorfor{\startsname}{startsname}.
 
 The \anchorfor{state space}{statespace} of $M$ is the product set
 \[ \sname \times \svsorts \times \timestamp\] %(element of $\TS$).
@@ -766,6 +766,16 @@ We may relax the constraint from the previous section on the functions/predicate
 \subsection{Unexplored: Hard Unbounded-Trace Formal Verification with Interactive Theorem Proving}
 
 \section{Extensions}
+\subsection{Uninitialized \texorpdfstring{\statevars}{State Variables}}
+It is very common in computational contracts, and programming in general, to have state variables that are not meaningful until they are written to the first time, and then are meaningful forever after. L4 introduces a significant extension of the minimal type system that \lsms have (see Section \ref{typechecking}), which allows one to introduce an {\tt Option} or {\tt Maybe} type operator. However, it is wrong and inconvenient to treat an uninitialized {\tt T} variable as type {\tt Maybe T} if it never becomes {\tt None} again after first getting a value of the form {\tt Some x}. 
+
+We therefore propose an extension to $\lsmclass{\cF}$ where $\initvals$ can omit some $\statevars$. This requires an additional correctness condition to be checked using the methods of Section \ref{lsmstatic}:\\
+\anchorfor{\noreadbeforewrite}{noreadbeforewrite} - If \statevar $q$ is omitted from $\initvals$, then there is no computation path in which it is read before it is written. 
+
+
+
+
+
 \subsection{Unbounded \texorpdfstring{\actor}{actor} Set}
 This is to accommodate smart contracts (aka dapps). It is a \textbf{\underline{very}} tentative proposal.
 
@@ -777,9 +787,8 @@ We introduce to the definition of \lsmclass{\cF} another finite set \anchorfor{\
 \subsection{The Largest Set of Examples}
 We follow, more seriously than any similar project, the tenant that DSL development should be guided by usage.
 
-\extlink{}{}
-
-\subsection{Syntax is Not Important}
+%\extlink{}{}
+%\subsection{Syntax is Not Important}
 
 \subsection{Type Checking with Subtyping and Intersection Types} \label{typechecking}
 
