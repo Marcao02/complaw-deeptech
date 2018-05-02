@@ -52,11 +52,13 @@
 	)
 
 	(Action (PayInstallment(amount:Pos$)) (TransitionsTo WaitingForFirstDayOfNextMonth)
-		(Pre (amount ≤ balance_remaining)) ; overpaying is forbidden
-		(StateTransform ; conjecture statement is unnecessary
+		(Pre (amount ≤ balance_remaining)) ; overpaying is forbidden. this is checked statically.
+		(StateTransform
 			(local before_interest : $ := (check $ (balance_remaining - amount)))
 			(balance_remaining' = (before_interest * (1 + INTEREST_RATE)))
-			(next_payment_month' += 1)   ))
+			(next_payment_month' += 1)
+		)
+	)
 
 
 	(Action (PayLastInstallment(amount:Pos$)) (TransitionsTo Fulfilled)
