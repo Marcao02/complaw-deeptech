@@ -29,13 +29,21 @@
 \newcommand{\term}[1]{\EM{\textsf{\hyperref[#1]{#1}}}\xspace}
 \newcommand{\termz}[2]{\EM{\textsf{\hyperref[#1]{#2}}}\xspace}
 
-\newcommand{\lsmslong}{Contract State Machines\xspace}
-\newcommand{\lsm}{\texorpdfstring{\termz{lsm}{CSM}}{CSM}}
-\newcommand{\lsms}{\texorpdfstring{\termz{lsm}{CSMs}}{CSMs}}
-\newcommand{\lsmclass}[1]{\texorpdfstring{\textsf{\hyperref[lsmclass]{CSM}}(#1)}{CSM(F)}}
+%\newcommand{\lsmslong}{Contract State Machines\xspace}
+%\newcommand{\lsm}{\texorpdfstring{\termz{lsm}{CSM}}{CSM}}
+%\newcommand{\lsms}{\texorpdfstring{\termz{lsm}{CSMs}}{CSMs}}
+%\newcommand{\lsmclass}[1]{\texorpdfstring{\textsf{\hyperref[lsmclass]{CSM}}(#1)}{CSM(F)}}
+%\newcommand{\timelesslsmclass}[1]{\texorpdfstring{
+%	\textsf{\hyperref[timeless-lsmclass]{timeless-CSM}}(#1)}
+%	{timeless-CSM(F)}}
+\newcommand{\lsmslong}{Legal State Machines\xspace}
+\newcommand{\lsm}{\texorpdfstring{\termz{lsm}{LSM}}{LSM}}
+\newcommand{\lsms}{\texorpdfstring{\termz{lsm}{LSMs}}{LSMs}}
+\newcommand{\lsmclass}[1]{\texorpdfstring{\textsf{\hyperref[lsmclass]{LSM}}(#1)}{LSM(F)}}
 \newcommand{\timelesslsmclass}[1]{\texorpdfstring{
-	\textsf{\hyperref[timeless-lsmclass]{timeless-CSM}}(#1)}
-	{timeless-CSM(F)}}
+	\textsf{\hyperref[timeless-lsmclass]{timeless-LSM}}(#1)}
+	{timeless-LSM(F)}}
+
 
 \newcommand{\actor}{\term{actor}}
 \newcommand{\actors}{\termz{actor}{actors}}
@@ -197,7 +205,7 @@
 %\author{Dustin Wehr\footnote{dustin.wehr@gmail.com}}
 %\author{dustin.wehr@gmail.com}
 
-\title{Contract State Machines, the language L4,\\
+\title{\lsmslong, the language L4,\\
 and Formal Verification of Legal Contracts \\
 \smaller \smaller Report on Computational Law Research by \extlink{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
 \begin{document}
@@ -220,9 +228,9 @@ In programming language theory jargon, \lsms are a denotational semantics.
 %\section{Who this is for and how to read it}
 \section{Introduction}
 
-We expect the Computational Law community will develop a number of independent, open source, computational contract DSLs, to suit different tastes and focuses, but we hope that the bulk of the work done by the community will be effectively reusable, particularly in statute and contract libraries, formal verification, and visualization. For this reason, not only have we made our DSL L4 completely free and open source, we have also ensured that none of our work on formal verification of contracts is dependent on the fine details of L4 - only on the much simpler mathematical model of Legal State Machines that one can use L4 (or your own DSL!) to construct.
+We expect the Computational Law community will develop a number of independent, open source, computational contract DSLs, to suit different tastes and focuses, but we hope that the bulk of the work done by the community will be effectively reusable, particularly in statute and contract libraries, formal verification, and visualization. For this reason, not only have we made our DSL L4 completely free and open source, we have also ensured that none of our work on formal verification of contracts is dependent on the fine details of L4 - only on the much simpler mathematical model of \lsmslong that one can use L4 (or your own DSL!) to construct.
 
-Sections \ref{basics} and \ref{lsmdef} define Legal State Machines. Section \ref{lsmstatic} documents our progress on static analysis for \lsms.
+Sections \ref{basics} and \ref{lsmdef} define \lsmslong. Section \ref{lsmstatic} documents our progress on static analysis for \lsms.
 
 Hovering over (resp. clicking on) most terms in \textsf{{sf font}} should show you a popup of (resp. take you to)  where the term is defined and styled like \defstyle{this}. This might not work in all PDF viewers.
 
@@ -269,7 +277,7 @@ Event instances are instantaneous,\footnote{We might relax this before publicati
 
 For our intended domain of legal contracts, we are not aware of any cogent criticism of requiring instantaneous event instances with strictly increasing timestamps; and \emph{\textbf{we welcome attempts}}. An earlier version of the model, in fact, did not require that timestamps are {\it strictly} increasing, used discrete time, and had what we believe was a very satisfying\footnote{Or ``elegant'', as unscrupulous researchers put it.} justification. However, the justification requires at least another paragraph, and probably several more to adequately defend it. Meanwhile, it offered no advantages in examples, and had one clear disadvantage for formal verification, where the use of integer variables is costly for SMT solvers.\footnote{The best explanation we have for this is not simple. It starts with noting that real arithmetic is decidable (real closed fields), but even quantifier free integer arithmetic is undecidable (diophantine equations). This does not necessarily mean that simple uses of integer variables will be costly, but in practice, as of April 2018, it seems to, at least to us outsiders. We are not aware of any particularly-useful decidable restriction of quantifier free combined real/integer arithmetic, and the currently-implemented heuristics, at least in Z3, are easily fooled.}
 
-\section{Legal State Machines} \label{lsmdef}
+\section{\lsmslong} \label{lsmdef}
 
 A Legal State Machine (\anchorfor{\lsm}{lsm}) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \DT, \timeunit, \actor, and \ename. It also includes a finite set of symbols \anchorfor{situation}{sname} that must contain at least the symbols:
 \begin{PPI}
