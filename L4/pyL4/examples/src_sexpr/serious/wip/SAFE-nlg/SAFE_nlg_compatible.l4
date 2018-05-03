@@ -1,0 +1,336 @@
+(Roles Investor Company)
+
+(TimeUnit d)
+
+(SortDefinitions
+	($ := (Dimensioned NonnegReal "$"))
+	(Pos$ := (Dimensioned PosReal "$"))
+	(ShareCnt = (Dimensioned Nat "shares"))
+	(PosShareCnt = (Dimensioned PosInt "shares"))
+	(SharePrice = (Ratio $ PosShareCnt))
+	(PosSharePrice = (Ratio Pos$ PosShareCnt))
+)
+
+(BlockMacro set_conversion_price (company_capitalization company_valuation)
+	(ifflag HAS_CAP (
+		(ifflag HAS_DISCOUNT (
+			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
+			(cap_price' = (VALUATION_CAP / company_capitalization))
+			(discount_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
+			(conversion_price' = (min cap_price' discount_price'))
+		)
+		else (
+			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
+			(cap_price' = (VALUATION_CAP / company_capitalization))
+			(conversion_price' = (min cap_price' undiscounted_price_per_share_standard_preferred_stock'))
+		))
+	)
+	else (
+		(ifflag HAS_DISCOUNT (
+			(undiscounted_price_per_share_standard_preferred_stock' = (company_valuation / company_capitalization))
+			(conversion_price' = (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE))
+		)
+		else (
+			(conversion_price' = (company_valuation / company_capitalization))
+		))
+	))
+)
+
+(ContractParams
+		(PURCHASE_AMOUNT : Pos$ = 100000)
+		(ifflag HAS_DISCOUNT (
+			(DISCOUNT_RATE : "Fraction(0,1]" = .9)
+		))
+		(ifflag HAS_CAP (
+			(VALUATION_CAP : Pos$ = 100000000)
+		))
+
+	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
+	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
+	(START_INVESTOR_CASH : $ = PURCHASE_AMOUNT)
+)
+
+
+(StateVars
+	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
+	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
+
+	; note the type of the following variable will be (Uninitialized $), which behaves just like $
+	; after the first write, and causes a type error if there's a read before the first write.
+	(investor_cash_currently_unconverted : $ = 0)
+	(writes≤1 conversion_price : SharePrice)
+
+
+	; for Equity and Liquidity
+	(ifflag HAS_CAP (
+		(writes≤1 cap_price : SharePrice)
+		(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
+
+		(ifflag HAS_DISCOUNT (
+			(writes≤1 discount_price : SharePrice)
+		))
+	)
+	else (
+		(ifflag HAS_DISCOUNT (
+			(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
+			(writes≤1 discount_price : SharePrice)
+		))
+	))
+
+	; for Liquidity
+	(writes≤1 liq_cashout : $)
+	(company_cash : $)
+	(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction(0,1]")
+
+	; for Dissolution
+	(writes≤1 dis_cashout : $)
+)
+; recall bug in a subcase of the case when the company cannot fully pay out all the investors who want to cash out.
+(Invariants
+	(liq_cashout ≤ investor_cash_currently_unconverted)
+	(dis_cashout ≤ PURCHASE_AMOUNT)
+)
+
+(FormalContract "SAFE"
+	; apply to all actions and states:
+	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
+
+	(StartSituation Signed)
+
+	(Situation Signed
+		(nlg "Investment Agreement Signed")
+		(Investor may TransferInvestmentCash)
+	)
+	(Action TransferInvestmentCash (TransitionsTo InvestmentWaitingToConvert) (AllowedSubjects Investor)
+		(nlg "Transfer Investment to Company")
+		(StateTransform
+			(investor_cash' = (cast $ (investor_cash + PURCHASE_AMOUNT)))
+			(company_cash' = (company_cash + PURCHASE_AMOUNT))
+		)
+	)
+
+	(Situation InvestmentWaitingToConvert
+		(nlg "Investment Waiting to Convert")
+		({Company Arbiter} may
+			(CommitToEquityFinancing)
+			((CommitToIPO ?1 ?2 ?3))
+			((CommitToChangeOfControl ?1 ?2 ?3 ?total_investments_of_cashout_investors ?5)
+						(where (?total_investments_of_cashout_investors ≥ PURCHASE_AMOUNT)))
+			(CommitToDissolution)
+		)
+	)
+
+	; ----------------- Equity Financing Event -------------------
+	; NOTE: PRA abbreviates pro rata agreement
+
+	(Action CommitToEquityFinancing (AllowedSubjects Company)
+		(nlg "Initiate an Equity Financing Event")
+		(FollowingSituation
+			(Company may DeliverTransactionDocsWithPRA)
+			(Company may DeliverTransactionDocsWithoutPRA)
+			(Arbiter may InterveneOnDelay_Company)
+		)
+	)
+
+	(Action DeliverTransactionDocsWithPRA (AllowedSubjects Company) (TransitionsTo AfterPRASigned)
+		(nlg "Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)")
+	)
+
+	(Action DeliverTransactionDocsWithoutPRA (AllowedSubjects Company)
+		(nlg "Deliver Transaction Docs (PRA to follow)")
+		(FollowingSituation
+			(Company must SendProRataRightsAgreementForSigning)
+		)
+	)
+
+	(Action SendProRataRightsAgreementForSigning  (AllowedSubjects Company)
+		(nlg "Send PRA for Signing")
+		(FollowingSituation
+			; TODO: Obviously this shouldn't be a *must*, since they ought to be
+			; able to send it back with proposed amendments/corrections.
+			; That seems like something we should have a reusable module for.
+			(Investor must SignPRA)
+		)
+	)
+
+	(Action SignPRA (AllowedSubjects Investor) (TransitionsTo AfterPRASigned)
+		(nlg "Sign PRA")
+	)
+
+	(Situation AfterPRASigned
+		(nlg "After PRA Signed")
+		(Company must (IssueSAFEPreferredStock ?1 ?2))
+	)
+
+	(Action (IssueSAFEPreferredStock
+				(company_capitalization : PosShareCnt)
+				(premoney_valuation : Pos$) ) (AllowedSubjects Company)
+		(nlg "Issue SAFE Preferred Stock")
+		(StateTransform
+			(set_conversion_price (company_capitalization premoney_valuation))
+			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT round/ conversion_price'))
+		)
+		(FollowingSituation
+			(Company must DoEquityFinancing)
+		)
+	)
+
+	(Action DoEquityFinancing (AllowedSubjects Company) (TransitionsTo Fulfilled)
+		(nlg "Execute Equity Financing")
+	)
+
+
+	; ----------------- Liquidity Event -------------------
+
+	(Situation InvestorToChooseMethodOfPayment
+		(nlg "Investor to Choose Method of Payment")
+		; 1W is totally made up by Dustin!
+		(Investor may ChooseCashPayment [when next_event_td < (last_situation_td + 1W)])
+		(Investor may ChooseStockPayment [when next_event_td < (last_situation_td + 1W)])
+		(AutoChooseStockPayment [when next_event_td == (last_situation_td + 1W)])
+	)
+
+	(Action (CommitToIPO (company_cash_at_liquidity_event : $)
+						 (liquidity_capitalization : PosShareCnt)
+						 (company_valuation : Pos$)
+			) (AllowedSubjects Company)  (TransitionsTo InvestorToChooseMethodOfPayment)
+		(nlg "Initiate an IPO Liquidity Event")
+		(StateTransform
+			(set_conversion_price (liquidity_capitalization company_valuation))
+			(investor_cash_currently_unconverted' = PURCHASE_AMOUNT)
+			(company_cash' = company_cash_at_liquidity_event)
+		)
+	)
+
+	(Action (CommitToChangeOfControl (company_cash_at_liquidity_event : $)
+								     (liquidity_capitalization : PosShareCnt)
+								     (company_valuation : Pos$)
+								     (total_investments_of_cashout_investors: Pos$)
+								     (reduction_needed_to_qualify_as_usa_tax_free_reorg : $)
+
+			) (AllowedSubjects Company) (TransitionsTo InvestorToChooseMethodOfPayment)
+		(nlg "Initiate a Change-of-Control Liquidity Event")
+		(StateTransform
+			(set_conversion_price (liquidity_capitalization company_valuation))
+			(investor_percent_of_cashout_investor_investments' = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
+
+		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+			(investor_Common_Stocks' += (purchase_amount_reduction round/ conversion_price'))
+			(investor_cash_currently_unconverted' = (check $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
+			(company_cash' = (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+		)
+	)
+
+	(Action AutoChooseStockPayment (AllowedSubjects Company)
+		(nlg "Stock Payment Option Chosen by Default")
+		(FollowingSituation
+			(Company must TransferCommonStock)
+			; translates to:
+			; (Company may TransferCommonStock)
+			; (Arbiter may InterveneOnDelay_Company)
+		)
+	)
+
+	(Action ChooseStockPayment (AllowedSubjects Investor)
+		(nlg "Choose Payment in Common Stock")
+		(FollowingSituation
+			(Company must TransferCommonStock)
+		)
+	)
+
+	(Action TransferCommonStock (AllowedSubjects Company)
+		(nlg "Transfer Common Stock")
+		(StateTransform
+			(investor_Common_Stocks' += ((check $ (investor_cash_currently_unconverted - liq_cashout)) round/ conversion_price))
+		)
+		(FollowingSituation
+			(Company must DoLiquidityEvent)
+		)
+	)
+
+	(Action ChooseCashPayment (AllowedSubjects Investor)
+		(nlg "Choose Payment in Cash")
+		(FollowingSituation
+			(Company must (TransferCash_L ?1))
+		)
+	)
+
+	(Action (TransferCash_L (total_investments_of_cashout_investors : Pos$)) (AllowedSubjects Company)
+		(nlg "Transfer Cash (liquidity)")
+		(StateTransform
+			(investor_percent_of_cashout_investor_investments' = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
+			(liq_cashout' = (min investor_cash_currently_unconverted
+								 (company_cash * investor_percent_of_cashout_investor_investments'))
+			)
+			(investor_cash' += liq_cashout')
+			; (company_cash' = (check $ (company_cash - liq_cashout')))
+		)
+
+		(FollowingSituation
+			(if (liq_cashout < investor_cash_currently_unconverted)
+				(Company must TransferCommonStock)
+			)
+
+			(if (liq_cashout == investor_cash_currently_unconverted)
+				(Company must DoLiquidityEvent)
+			)
+		)
+	)
+
+	(Action DoLiquidityEvent (AllowedSubjects Company) (TransitionsTo Fulfilled)
+		(nlg "Execute Liquidity Event")
+	)
+
+
+	; ----------------- Dissolution Event -------------------
+
+	(Action CommitToDissolution (AllowedSubjects Company)
+		(nlg "Initiate a Dissolution Event")
+		(FollowingSituation
+			(Company must
+				(TransferCash_D ?company_cash_at_dissolution_event
+								?investor_percent_of_dissolving_investor_investments)
+			)
+		)
+	)
+
+
+	(Action (TransferCash_D (company_cash_at_dissolution_event : $)
+						    (investor_percent_of_dissolving_investor_investments : "Fraction(0,1]"))
+		(AllowedSubjects Company)
+		(nlg "Transfer Cash (dissolution)")
+		(StateTransform
+			(dis_cashout' = (min
+							PURCHASE_AMOUNT
+							(company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
+			)
+			(investor_cash' = dis_cashout')
+		)
+
+		(FollowingSituation
+			(if (dis_cashout < PURCHASE_AMOUNT)
+				(Company must (TransferAssets ?1 ?2))  )
+			(if (dis_cashout == PURCHASE_AMOUNT)
+				(Company must Dissolve)     )
+		)
+	)
+
+	(Action (TransferAssets (liquidity_capitalization : PosShareCnt)
+							(company_valuation : Pos$) )
+		(nlg "Transfer Assets")
+		(AllowedSubjects Company)
+		(StateTransform
+			(set_conversion_price (liquidity_capitalization company_valuation))
+			(investor_Common_Stocks' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))
+		)
+		(FollowingSituation
+			(Company must Dissolve)
+		)
+	)
+
+
+	(Action Dissolve (AllowedSubjects Company) (TransitionsTo Fulfilled)
+		(nlg "Execute Dissolution")
+	)
+)
