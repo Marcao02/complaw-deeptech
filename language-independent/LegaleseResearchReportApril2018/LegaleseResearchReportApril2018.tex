@@ -207,14 +207,14 @@
 
 \title{\lsmslong, the language L4,\\
 and Formal Verification of Legal Contracts \\
-\smaller \smaller Report on Computational Law Research by \extlink{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
+\smaller \smaller Report on Open Source Computational Law Research by \extlink{https://legalese.com}{Legalese}\footnote{Contact: dustin.wehr@gmail.com or collective@legalese.com}\larger \larger }
 \begin{document}
 \maketitle
 
 \begin{abstract}
 This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace} and introducing yourself if you're planning on spending more than half an hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
 
-The primary focus of this report is the definition of the unpretentious programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, called \textit{\lsmslong} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4, but it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
+The primary focus of this report is the definition of the unpretentious programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, called \textit{\lsmslong} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4. But more importantly, it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
 % In fact, it would be hard to add L4's typesystem to the definition of \lsms, as \lsms do not even have a term language!}
 In programming language theory jargon, \lsms are a denotational semantics.
 %Legalese is not advocating for the adoption of L4 at this time. We would prefer to join forces with another open source computational contracts DSL project, but we are also prepared not to. Our main opinion on this matter is that whatever DSL we align ourselves with, it should have a fragment that fully supports \lsms.
@@ -440,13 +440,12 @@ Let $\DT$ be $\sortsof{\cF}$. An $\lsmclass{\cF}$ model is given by the followin
 \item $\timeunit$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$.
 \item Finite sets $\actor, \ename, \sname$, and $\statevar$.
 \item A mapping $\svsorts$ from $\statevar$ to \DT.
-\item For each $e \in \ename$, a type for its parameters $\eppartsorts{e} \in \DT^*$.
+\item For each $e \in \ename$, a (possibly empty) type for its parameters $\eppartsorts{e} \in \DT^*$.
 \item For each $e \in \ename$, a \stransimpl $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. The functions used on the right side of assignment statements are from $\cFstar$.
-\item For each $s \in \sname$, a \shandler $\shandlerof{s}$, which is a finite subset of $\erule$ that satisfies the \udc.
 \item A finite set $\erule$, with two partitions:
 \begin{PPI}
 \item \anchorfor{\prules}{prules}, \anchorfor{\orules}{orules}, and \anchorfor{\drules}{drules}
-\item $\{ \shandlerof{s} \ | \ s \in \sname \}$
+\item $\{ \shandlerof{s} \subseteq \erule \ | \ s \in \sname \}$ where each $\shandlerof{s}$ satisfies the \\ \udc.
 \end{PPI}
 \item An $\cFstar$ function $\reguard{r} : \timestamp \times \svsorts \rarr \Bool$ for each \erule $r$.
 \item For each party or oracle \erule $r$ that \governs an \ename $e$:
@@ -517,9 +516,9 @@ Symbolic execution is a technique for avoiding some of the approximation, especi
 
 \subsubsection{Initial values, fixed or not?}
 
-Note that due to the nondeterminacy in the occurrence of \einsts (which recall can have parameters), using fixed \initvals is not like using fixed inputs in formal verification of software (which would then just be testing, unless the software interacts with an environment, in which case the situation is similar to ours).
-
-When we symbolically execute an \lsm, we have a choice about whether to use some, all, or none of the model's \initvals of its \statevars. Generally, the more of them used, the faster \statespace exploration will be. For example, in a loan agreement, we could treat an interest rate as an arbitrary element of $(0,1)$. We would then be proving correctness of the agreement for interests rates that we'll never use, which of course is perfectly fine if the analysis finishes in a reasonable amount of time. Alternatively, we could use fixed values of the interest rate only, and whenever we use a new fixed interest rate (for a new instance of the contract), we simply rerun symbolic execution.
+First, observe that due to the nondeterminacy in the occurrence of \einsts (which recall can have parameters), using fixed \initvals is not like using fixed inputs in formal verification of software (which would then just be testing, unless the software interacts with an environment, in which case the situation is similar to ours). 
+%That being said, \lsm/L4 does not require fixed initial values of its \statevars. 
+When we symbolically execute an \lsm, we have a choice about whether to use some, all, or none of the model's \initvals of its \statevars. Generally, the more of them used, the faster \statespace exploration will be. For example, in a loan agreement we could treat an interest rate as an arbitrary element of $(0,1)$. We would then be proving correctness of the agreement for interests rates that we'll never use, which of course is perfectly fine if the analysis finishes in a reasonable amount of time. Alternatively, we could use fixed values of the interest rate only, and whenever we use a new fixed interest rate (for a new instance of the contract), we simply rerun symbolic execution.
 
 
 
@@ -529,16 +528,18 @@ We define a normal form for $\lsmclass{\cF}$ which is not literally ``timeless''
 
 First, and unrelated to the following \timestamp-related transformations (but with the same goal of simplifying symbolic execution), we eliminate $\reguard{r}$ for each party/oracle \erule $r$, as described in Note \ref{guardredundancy}. Next:
 \begin{LPPI}
-\item Introduce a new \statevar $\tlast$ of sort \timestamp with initial value $0$.\footnote{i.e. $\svsorts(\tlast) = \timestamp$ and $\initvals(\tlast) = 0$.}
-\item Add a parameter $\tnext$ of sort \timestamp to every \ename \footnote{i.e. $\eppartsorts{e}(\tnext) = \timestamp$ for every \ename $e$.}
+\item Introduce a new \statevar $\tlast$ of sort \timestamp with initial value $0$. The new versions of $\svsorts, \initvals, \statevar$ are the same as the old but with the additions: $\svsorts'(\tlast) = \timestamp$ and $\initvals'(\tlast) = 0$ and $\statevar' = \statevar + \tlast$.
+\item Add a parameter $\tnext$ of sort \timestamp to every \ename.\footnote{i.e. $\eppartsorts{e}(\tnext) = \timestamp$ for every \ename $e$.}
 \item Add $\assign{\tlast}{\tnext}$ to $\statetransform{e}$ for each $e$.
-\item Replace $\psetterpart{r}{i}$ with $\psetterpart{r}{i}(\tlast,\cdot)$. Recall $\psetterpart{r}{i}$
-\item Move $\deadfn{r}(\tnext, \cdot)$ into $\psetterpart{r}{\tnext}$ for each deadline \erule $r$.
+\item For each deadline \erule $r$:
+\begin{LPPI}
+	\item For existing event parameters $x$ (i.e. not \tnext), $\psetterpart{r}{x}$ does not change, since its domain type $\timestamp \times \svsorts$ is already equivalent to $\svsorts'$.  
+	\item Define $\psetterpart{r}{\tnext}(\vx) := \deadfn{r}(\tnext, \vx)$.
+\end{LPPI}	
 \item Add $>_{ts} {:} \timestamp \times \timestamp \rarr \Bool$ to $\cF$.
-\item Conjoin ($\wedge$) $\tnext >_{ts} \tlast$ to $\eppartconstr{r}$ for each party/oracle \erule $r$.
+\item Conjoin (i.e. with $\wedge$) $\tnext >_{ts} \tlast$ to $\eppartconstr{r}$ for each party/oracle \erule $r$.
 \end{LPPI}
-
-We obtain the following slightly simplified \lsm definition:
+Those transformations take us to the following slightly simplified \lsmclass{\cF} definition:
 \begin{defn}[\anchorfor{\timelesslsmclass{\cF}}{timeless-lsmclass}]
 Let $\DT$ be $\sortsof{\cF}$. The relation $>_{ts} {:} \timestamp \times \timestamp \rarr \Bool$ must be in $\cF$ (and so \timestamp must be in \DT). A $\timelesslsmclass{\cF}$ model is given by the following components.
 \begin{LPPI}
@@ -546,12 +547,12 @@ Let $\DT$ be $\sortsof{\cF}$. The relation $>_{ts} {:} \timestamp \times \timest
 \item Finite sets $\actor, \ename, \sname$, and $\statevar$.
 \item A mapping $\svsorts$ from $\statevar$ to \DT.
 \item For each $e \in \ename$, types for its parameters $\eppartsorts{e} \in \DT^*$.
-\item For each $e \in \ename$, a \stransimpl $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. The functions used on the right side of assignment statements are from $\cFstar$.
-\item For each $s \in \sname$, a \shandler $\shandlerof{s}$, which is a finite subset of $\erule$ that satisfies the \udc.
+\item For each $e \in \ename$ a \stransimpl, $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. The functions used on the right side of assignment statements are from $\cFstar$.
+%\item For each $s \in \sname$ a \shandler, $\shandlerof{s}$, which is a subset of $\erule$ that satisfies the \udc.
 \item A finite set $\erule$, with two partitions:
 \begin{PPI}
 \item \prules, \orules, and \drules
-\item $\{ \shandlerof{s} \ | \ s \in \sname \}$
+\item $\{ \shandlerof{s} \subseteq \erule \ | \ s \in \sname \}$ where each $\shandlerof{s}$ satisfies the \\ \udc.
 \end{PPI}
 \item For each party or oracle \erule $r$ that \governs an \ename $e$
     	\begin{PPI}
