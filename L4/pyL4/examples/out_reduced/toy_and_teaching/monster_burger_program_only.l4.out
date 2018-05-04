@@ -18,8 +18,8 @@ action RequestCookMB()  transitions to AfterRequestCookMB:
     transform:
         amount_owing := MB_PRICE
     following situation:
-        EnterPromptServeGuaranteeViolated (next_event_td ≥ (15m + last_situation_td))
-        Restaurant may ServeMB (next_event_td < (15m + last_situation_td))
+        EnterPromptServeGuaranteeViolated (next_event_td ≥ (last_situation_td + 15m))
+        Restaurant may ServeMB (next_event_td < (last_situation_td + 15m))
 
 action ServeMB()  transitions to EatingMB:
     transform:
@@ -38,7 +38,7 @@ situation EatingMB:
 
 action AnnounceMBFinished()  transitions to AfterAnnounceMBFinished
     following situation:
-        TimeToCheckCompletionExpires (next_event_td ≥ (10m + last_situation_td))
+        TimeToCheckCompletionExpires (next_event_td ≥ (last_situation_td + 10m))
         Restaurant may CheckCompletionClaim (next_event_td < (last_situation_td + 10m))
 
 action TimeToCheckCompletionExpires()  transitions to Fulfilled:

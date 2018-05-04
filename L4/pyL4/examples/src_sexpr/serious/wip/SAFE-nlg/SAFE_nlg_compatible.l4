@@ -37,24 +37,25 @@
 )
 
 (ContractParams
-		(PURCHASE_AMOUNT : Pos$ = 100000)
-		(ifflag HAS_DISCOUNT (
-			(DISCOUNT_RATE : "Fraction(0,1]" = .9)
-		))
-		(ifflag HAS_CAP (
-			(VALUATION_CAP : Pos$ = 100000000)
-		))
+	(PURCHASE_AMOUNT : Pos$ = 100000)
+	(ifflag HAS_DISCOUNT (
+		(DISCOUNT_RATE : "Fraction(0,1]" = .9)
+	))
+	(ifflag HAS_CAP (
+		(VALUATION_CAP : Pos$ = 100000000)
+	))
 
 	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
-	(START_INVESTOR_CASH : $ = PURCHASE_AMOUNT)
+	; (START_INVESTOR_CASH : $ = PURCHASE_AMOUNT)
 )
 
 
 (StateVars
 	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
 	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
-	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
+	; (writes≤1 investor_cash : $ = START_INVESTOR_CASH )
+	(writes≤1 investor_cash : $ = PURCHASE_AMOUNT )
 
 	; note the type of the following variable will be (Uninitialized $), which behaves just like $
 	; after the first write, and causes a type error if there's a read before the first write.
@@ -105,7 +106,7 @@
 	(Action TransferInvestmentCash (TransitionsTo InvestmentWaitingToConvert) (AllowedSubjects Investor)
 		(nlg "Transfer Investment to Company")
 		(StateTransform
-			(investor_cash' = (cast $ (investor_cash + PURCHASE_AMOUNT)))
+			(investor_cash' = (cast $ (investor_cash - PURCHASE_AMOUNT)))
 			(company_cash' = (company_cash + PURCHASE_AMOUNT))
 		)
 	)
