@@ -212,11 +212,11 @@ and Formal Verification of Legal Contracts \\
 \maketitle
 
 \begin{abstract}
-This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace} and introducing yourself if you're planning on spending more than half an hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
+This report is intended for industry and academics in Computational Law. However, by publication time it should be readable by anyone with an undergraduate level background in computer science or mathematics. We recommend joining \extlink{https://legalese.slack.com/messages/C0SB9HZ1S/}{the \#dsl channel} on \extlink{https://legalese.slack.com}{our Slack workspace} and introducing yourself if you're planning on spending more than an hour with this document. %before delving into this. Most of the L4 documentation needs updating/improving, including this document, and Dustin or Meng will be much more motivated to prioritize that if they know there are people waiting for it.
 
-The primary focus of this report is the definition of the unpretentious programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, called \textit{\lsmslong} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4. But more importantly, it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
+The primary focus of this report is the definition of the unpretentious, programming language-independent mathematical model for computational legal contracts that we've developed after a comprehensive review of the literature and months of research. The model, (tentatively) called \textit{\lsmslong} (\lsms), provides the formal semantics for our prototype open source computational legal contracts DSL L4. But more importantly, it is intended to be a \textit{necessary substructure of the semantics of any computational legal contracts language that is worth a damn} (and we eagerly invite disputes).\footnote{L4's typesystem (Section \ref{typechecking}), though we are quite proud of it, is an example of a feature that does not meet this high standard. It is plausible that the complication it introduces, when in the presence of other optional language features that (the current version of) L4 does not have, makes its inclusion unjustified.}
 % In fact, it would be hard to add L4's typesystem to the definition of \lsms, as \lsms do not even have a term language!}
-In programming language theory jargon, \lsms are a denotational semantics.
+In programming language theory jargon, \lsms are a denotational semantics. We will argue that a single-threaded, non-distributed, event-driven computation model is best suited for legal contracts, despite not being the first thing one thinks of for multi-agent computation.
 %Legalese is not advocating for the adoption of L4 at this time. We would prefer to join forces with another open source computational contracts DSL project, but we are also prepared not to. Our main opinion on this matter is that whatever DSL we align ourselves with, it should have a fragment that fully supports \lsms.
 \end{abstract}
 \pagebreak
@@ -256,12 +256,13 @@ Also, every typed symbol has a dedicated type (i.e. element of $\DT$ for various
 
 \noindent Fix a finite set of symbols \anchorfor{actor}{actor}, which includes:
 \begin{PPI}
-\item The parties to the contract.
-\item Any ``oracles'' that send information to the contract from the environment. In our implementation of SAFE in L4, we have an oracle that decides whether a liquidation, equity, or dissolution event has occurred. Generally, we put an event's announcement in the hands of an oracle when every party has an incentive to lie about it.
+\item The parties to the contract, who announce action-events, which are the elements of the event stream most responsible for driving a contract.
+\item Any ``oracles'' that send information to the contract from the environment. In our implementation of Y-Combinator's SAFE in L4, we have an oracle that decides whether a liquidation, equity, or dissolution event has occurred, in case the company fails to announce it. % Generally, we put an event's announcement in the hands of an oracle when every party has an incentive to lie about it.
 \item The special symbol \anchorfor{\codeactor}{codeactor}, for events that are initiated by the code of the contract.
 \end{PPI}
+\mybox{\begin{bnote} \label{roles}
 Before publication of this document, we will likely replace the finite set of party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of party-\actors in each role, since that seems to be necessary to model many blockchain smart contracts in a natural way.
-
+\end{bnote}}
 Fix a finite set of symbols \anchorfor{event}{ename}, and for each such $e$ a parameter type assignment $\anchorfor{\eppartsorts{e}}{eppartsorts} \in \DT^*$. Furthermore, partition \ename into three kinds of events:
 \begin{PPI}
 \item \anchorfor{\penames}{penames}, which are actions done by a party-to-the-contract,
@@ -537,7 +538,7 @@ First, and unrelated to the following \timestamp-related transformations (but wi
 	\item Define $\psetterpart{r}{\tnext}(\vx) := \deadfn{r}(\tnext, \vx)$.
 \end{LPPI}	
 \item Add $>_{ts} {:} \timestamp \times \timestamp \rarr \Bool$ to $\cF$.
-\item Conjoin (i.e. with $\wedge$) $\tnext >_{ts} \tlast$ to $\eppartconstr{r}$ for each party/oracle \erule $r$.
+\item Conjoin $\tnext >_{ts} \tlast$ to $\eppartconstr{r}$ for each party/oracle \erule $r$.
 \end{LPPI}
 Those transformations take us to the following slightly simplified \lsmclass{\cF} definition:
 \begin{defn}[\anchorfor{\timelesslsmclass{\cF}}{timeless-lsmclass}]
