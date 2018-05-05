@@ -33,7 +33,7 @@ from src.model.L4Contract import L4Contract, is_derived_destination_id, is_deriv
     derived_trigger_id_to_situation_id, derived_destination_id
 from src.model.L4Macro import L4Macro, L4BlockMacro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, SimpleTimeDeltaLit, DateTimeLit, \
-    RoleIdLit, Literal, TimeDeltaLit
+    RoleIdLit, Literal, TimeDeltaLit, StringLit
 from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
@@ -87,7 +87,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         assert self._needs_preprocessing()
         print("_handle_flags")
         flags = cast(Dict[str, bool], self.flags)
-        rs = cast(Dict[str, bool], self.raw_substitutions)
+        rs = cast(Dict[str, Any], self.raw_substitutions)
 
         def helper(x:SExprOrStr) -> List[SExprOrStr]:
             if isinstance(x,str):
@@ -579,6 +579,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 situation.possible_floating_rule_types.add(floating_rule_type)
                 self.top.possible_floating_rule_types.add(floating_rule_type)
 
+            elif head("nlg"):
+                pass
+
             elif head(OUT_CONNECTIONS_LABEL):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'timeConstraintsPartitionFuture'):
                     x = x[1]
@@ -1044,7 +1047,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if not is_derived_trigger_id(action_id):
             self.referenced_nonderived_action_ids.add(action_id)
 
-        rv = PartyFutureActionRule(src_action.action_id, role_id, action_id, args, entrance_enabled_guard, deontic_keyword)
+        rv = PartyFutureActionRule(src_action.action_id, [role_id], action_id, args, entrance_enabled_guard, deontic_keyword)
         if args is None:
             rv.fixed_args = [self._mk_term(arg, None, src_action, rv, args_part) for arg in args_part]
 
@@ -1071,6 +1074,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         deontic_keyword : Optional[str] = None
         role_id : RoleId
+        role_ids: List[RoleId]
         action_id : ActionId
         ruleparams : Optional[List[RuleParamId]] = None
         nar : NextActionRule
@@ -1095,7 +1099,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             rem = expr.tillEnd(1)
 
         else:
-            role_id = castid(RoleId, expr[0])
+            role_ids = [castid(RoleId, expr[0])] if (isinstance(expr[0],Literal) or isinstance(expr[0],str)) else expr[0]
             deontic_keyword = castid(DeonticKeyword, expr[1])
             self.assertOrSyntaxError(deontic_keyword in DEONTIC_KEYWORDS, expr, deontic_keyword)
             if isinstance(expr[2],str):
@@ -1114,7 +1118,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if not is_derived_trigger_id(action_id):
                 self.referenced_nonderived_action_ids.add(action_id)
 
-            nar = PartyNextActionRule(src_situation.situation_id, role_id, action_id, ruleparams, entrance_enabled_guard, deontic_keyword)
+            nar = PartyNextActionRule(src_situation.situation_id, role_ids, action_id, ruleparams, entrance_enabled_guard, deontic_keyword)
             rem = expr.tillEnd(3)
 
         if ruleparams is None:

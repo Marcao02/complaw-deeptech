@@ -151,7 +151,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
             # params : List[Term]
             rule : PartyNextActionRule
             if kw == 'may-later':
-                rule = PartyNextActionRule(sit.situation_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'may'))
+                rule = PartyNextActionRule(sit.situation_id, [rid], aid, [], map_nonempty_term, castid(DeonticKeyword,'may'))
                 params = [RuleBoundActionParam(castid(RuleParamId, "?" + str(i)), rule, i) for i in range(len(action.param_names))]
                 rule.time_constraint =  FnApp("tdGEQ",
                                              [map_var,
@@ -175,7 +175,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                 # rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 # sit.add_future_action_rule(rule)
 
-                rule = PartyNextActionRule(sit.situation_id, rid, aid, [], map_nonempty_term, castid(DeonticKeyword,'quasi-responsibility'))
+                rule = PartyNextActionRule(sit.situation_id, [rid], aid, [], map_nonempty_term, castid(DeonticKeyword,'quasi-responsibility'))
                 params = [RuleBoundActionParam(castid(RuleParamId, "?" + str(i)), rule, i) for i in
                           range(len(action.param_names))]
                 rule.time_constraint = FnApp("tdGEQ",

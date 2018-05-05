@@ -438,7 +438,7 @@ class TypeChecker:
         if not sub(inferred,s):
             print(f"{inferred} not ≤ {s}")
             print(t)
-            raise L4TypeInferCheckError(t,inferred,s)
+            raise L4TypeInferCheckError(t,inferred,s, self.prog.filename)
         return True
 
     def typecheck_statement(self, s:Statement):

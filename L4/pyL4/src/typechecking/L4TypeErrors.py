@@ -5,9 +5,10 @@ from src.model.Sort import Sort
 
 
 class L4TypeError(Exception):
-    def __init__(self, msg:str, term:Optional[Term] = None) -> None:
+    def __init__(self, msg:str, term:Optional[Term] = None, filename: Optional[str] = None) -> None:
         self.term = term
         self.msg = msg
+        self.filename = filename
     def __str__(self) -> str:
         rv = self.msg
         if self.term and self.term.coord:
@@ -27,9 +28,9 @@ class L4TypeInferError(L4TypeError):
         super().__init__((msg + "\n" if msg else "") + f"Failed to infer sort of term {term}.", term)
 
 class L4TypeInferCheckError(L4TypeError):
-    def __init__(self, term:Term, inferred_sort:Sort, check_sort:Sort) -> None:
+    def __init__(self, term:Term, inferred_sort:Sort, check_sort:Sort, filename:str) -> None:
         msg = f"Term {term}'s inferred sort {inferred_sort} is not a subtype of the sort {check_sort} checked against."
-        super().__init__(msg, term)
+        super().__init__(msg, term, filename)
 
         # self.inferred_sort = inferred_sort
         # self.check_sort = check_sort
@@ -42,4 +43,6 @@ class L4TypeInferCheckError(L4TypeError):
                 rv += f"\nSee (near) line {self.term.coord.line} col {self.term.coord.col}"
             else:
                 rv += f"\nSee (near) line {self.term.coord.line}."
+            if self.filename:
+                rv += "\nfile " + self.filename
         return rv

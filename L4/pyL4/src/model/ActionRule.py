@@ -16,11 +16,11 @@ class FutureActionRuleType(NamedTuple):
 # ABSTRACT
 class ActionRule:
     def __init__(self,
-                 role_id: RoleId,
+                 role_ids: List[RoleId],
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
-        self.role_id = role_id
+        self.role_ids = role_ids
         self.action_id = action_id
         self.entrance_enabled_guard = entrance_enabled_guard
         self.time_constraint: Optional[Term] = None
@@ -94,10 +94,11 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv += indent(indent_level) + FULFILLED_SITUATION_LABEL
         return rv
 
-    if ar.role_id == ENV_ROLE:
+
+    if ar.role_ids[0] == ENV_ROLE:
         rv += indent(indent_level) + ar.action_id
     else:
-        rv += indent(indent_level) + f"{ar.role_id} {ar.deontic_keyword} {ar.action_id}"
+        rv += indent(indent_level) + f"{roles_to_str(ar.role_ids)} {ar.deontic_keyword} {ar.action_id}"
 
     if fixed_param_vals:
         assert not ar.ruleparam_names
@@ -122,12 +123,13 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
 class PartyFutureActionRule(ActionRule):
     def __init__(self,
                  src_action_id: ActionId,
-                 role_id: RoleId,
+                 role_ids: List[RoleId],
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term],
                  deontic_keyword: DeonticKeyword) -> None:
-        super().__init__(role_id, action_id, ruleparam_names, entrance_enabled_guard)
+        super().__init__(role_ids, action_id, ruleparam_names, entrance_enabled_guard)
+        self.role_id = role_ids[0]
         self.src_action_id = src_action_id
         self.deontic_keyword = deontic_keyword
 
@@ -139,23 +141,23 @@ class PartyFutureActionRule(ActionRule):
 class NextActionRule(ActionRule):
     def __init__(self,
                  src_id: SituationId,
-                 role_id: RoleId,
+                 role_ids: List[RoleId],
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
-        super().__init__(role_id, action_id, ruleparam_names, entrance_enabled_guard)
+        super().__init__(role_ids, action_id, ruleparam_names, entrance_enabled_guard)
         self.time_constraint : Optional[Term]
         self.src_id = src_id
 
 class PartyNextActionRule(NextActionRule):
     def __init__(self,
                  src_id: SituationId,
-                 role_id: RoleId,
+                 role_ids: List[RoleId],
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term],
                  deontic_keyword: DeonticKeyword) -> None:
-        super().__init__(src_id, role_id, action_id, ruleparam_names, entrance_enabled_guard)
+        super().__init__(src_id, role_ids, action_id, ruleparam_names, entrance_enabled_guard)
 
         self.deontic_keyword = deontic_keyword
 
@@ -169,7 +171,8 @@ class EnvNextActionRule(NextActionRule):
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
-        super().__init__(src_id, ENV_ROLE, action_id, ruleparam_names, entrance_enabled_guard)
+        super().__init__(src_id, [ENV_ROLE], action_id, ruleparam_names, entrance_enabled_guard)
+        self.role_id = ENV_ROLE
 
     def toStr(self, i:int) -> str:
         rv : str = ""
@@ -178,7 +181,7 @@ class EnvNextActionRule(NextActionRule):
             rv = indent(indent_level) + "if " + str(self.entrance_enabled_guard) + ":\n"
             indent_level += 1
 
-        assert self.role_id == ENV_ROLE
+        assert len(self.role_ids) == 1 and self.role_ids[0] == ENV_ROLE
         rv += indent(indent_level) + self.action_id
 
         if self.ruleparam_names:
@@ -197,3 +200,8 @@ class EnvNextActionRule(NextActionRule):
 
 
 
+def roles_to_str(roles:Sequence[str]) -> str:
+    if len(roles) == 1:
+        return roles[0]
+    else:
+        return "{" + mapjoin(str, roles, ',') + "}"

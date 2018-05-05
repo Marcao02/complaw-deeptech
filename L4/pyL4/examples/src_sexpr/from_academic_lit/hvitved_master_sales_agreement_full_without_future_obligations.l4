@@ -4,7 +4,7 @@
 (SortDefinitions
 	(Pos$ := (Dimensioned PosReal "Pos$"))
 	($ := (Dimensioned NonnegReal "$"))
-	(Order = (Tuple Nat Nat))
+	(Order = (Tuple PosInt Nat))
 	(TDMap_Order = (TDMap (Tuple Nat Nat)))
 )
 

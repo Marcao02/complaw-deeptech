@@ -8,9 +8,9 @@ from src.independent.util import print_all_todos
 tests_to_run = {
     'L4typechecker',
     # 'smt',
-    'graphviz',
-    'prettyprint',
-    'interpreter',
+    # 'graphviz',
+    # 'prettyprint',
+    # 'interpreter',
 }
 
 def runit(s, optional_s=""):

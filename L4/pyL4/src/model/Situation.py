@@ -1,10 +1,11 @@
 from itertools import chain
 
+from src.independent.util_for_str import mapjoin
 from src.model.EventsAndTraces import breachSituationId
 from src.independent.util import indent
 from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
-from src.model.ActionRule import NextActionRule, FutureActionRuleType
+from src.model.ActionRule import NextActionRule, FutureActionRuleType, roles_to_str
 from src.model.Term import Term
 
 T = TypeVar('T')
@@ -67,8 +68,7 @@ class Situation:
 
         # if self.visit_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
-
-        rules = sorted(self.action_rules(), key = lambda x: x.role_id + x.action_id )
+        rules = sorted(self.action_rules(), key = lambda x: roles_to_str(x.role_ids) + x.action_id )
         for t in rules:
             rv += t.toStr(i+1) + "\n"
 
@@ -86,3 +86,4 @@ class Situation:
     def breachSituation(*role_ids: str) -> 'Situation':
         rv = Situation(breachSituationId(*role_ids))
         return rv
+

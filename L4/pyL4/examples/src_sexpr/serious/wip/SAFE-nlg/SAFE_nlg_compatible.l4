@@ -113,13 +113,11 @@
 
 	(Situation InvestmentWaitingToConvert
 		(nlg "Investment Waiting to Convert")
-		({Company Arbiter} may
-			(CommitToEquityFinancing)
-			((CommitToIPO ?1 ?2 ?3))
-			((CommitToChangeOfControl ?1 ?2 ?3 ?total_investments_of_cashout_investors ?5)
+		([Company Arbiter] may (CommitToEquityFinancing))
+		([Company Arbiter] may (CommitToIPO ?1 ?2 ?3))
+		([Company Arbiter] may (CommitToChangeOfControl ?1 ?2 ?3 ?total_investments_of_cashout_investors ?5)
 						(where (?total_investments_of_cashout_investors ≥ PURCHASE_AMOUNT)))
-			(CommitToDissolution)
-		)
+		([Company Arbiter] may CommitToDissolution)
 	)
 
 	; ----------------- Equity Financing Event -------------------

@@ -203,10 +203,11 @@ class ExecEnv:
                         enabled_strong_obligs.append(nar)
                     elif nar.deontic_keyword == 'quasi-responsibility':
                         enabled_weak_obligs.append(nar)
-                        if nar.role_id not in enabled_weak_obligs_by_role:
-                            enabled_weak_obligs_by_role[nar.role_id] = [nar]
-                        else:
-                            enabled_weak_obligs_by_role[nar.role_id].append(nar)
+                        for role_id in nar.role_ids:
+                            if role_id not in enabled_weak_obligs_by_role:
+                                enabled_weak_obligs_by_role[role_id] = [nar]
+                            else:
+                                enabled_weak_obligs_by_role[role_id].append(nar)
                     else:
                         assert False
 
@@ -229,8 +230,8 @@ class ExecEnv:
                 if self.current_event_compatible_with_enabled_NextActionRule(enabled_strong_obligs[0]):
                     return EventOk()
                 else:
-                    return BreachResult({enabled_strong_obligs[0].role_id},
-                                 f"The unique enabled strong obligation (of {enabled_strong_obligs[0].role_id}) is incompatible "
+                    return BreachResult(enabled_strong_obligs[0].role_ids,
+                                 f"The unique enabled strong obligation (of {enabled_strong_obligs[0].role_ids}) is incompatible "
                                  "with the current event (expired or not yet active, wrong action, wrong role, etc):"
                                  f"\t{event}\n"
                                  f"See rule {enabled_strong_obligs[0]}\n with time constraint {enabled_strong_obligs[0].time_constraint}."
@@ -295,7 +296,7 @@ class ExecEnv:
         assert self.cur_event is not None
         rv : bool
         self.evaluation_is_in_next_action_rule = True
-        role_action_match = self.cur_event.role_id == action_rule.role_id and self.cur_event.action_id == action_rule.action_id
+        role_action_match = self.cur_event.role_id in action_rule.role_ids and self.cur_event.action_id == action_rule.action_id
         if not role_action_match:
             rv = False
         elif not self.evalTimeConstraint(action_rule.time_constraint):
