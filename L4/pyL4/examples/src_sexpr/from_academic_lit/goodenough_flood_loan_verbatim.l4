@@ -8,7 +8,7 @@
 
 (ContractParams
 	(LOAN_AMOUNT    : Pos$     = 1000)
-	(INTEREST_RATE	: "(0,1)"  = .05)
+	(INTEREST_RATE	: "Fraction(0,1)"  = .05)
 	(PAYMENT1_AMOUNT	: Pos$ = 550)
 	(PAYMENT2_AMOUNT	: Pos$ = 525)
 )

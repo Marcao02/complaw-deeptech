@@ -330,6 +330,8 @@ overloaded_types_data : FnTypesData = [
             # apparently haven't actually used these:
             {N:PosReal2, D:PosReal2, R:PosReal},
             {N:NonnegReal2, D:PosReal2, R:NonnegReal},
+
+            {N:PosReal2, D:PosInt, R:PosReal2}
         ])
      ),
      (('/',), parametric_mult_vars(

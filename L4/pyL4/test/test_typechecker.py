@@ -21,6 +21,8 @@ EXAMPLES_TO_TYPECHECK = [
     'from_academic_lit/hvitved_printer.l4',
     'from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
     'from_academic_lit/Farmer_american_call_option_2016.l4',
+    'from_academic_lit/goodenough_flood_loan_verbatim.l4',
+    'from_academic_lit/goodenough_flood_loan_verbatim_noBreach.l4',
 
     'serious/SAFE_mfn.l4',
     'serious/SAFE_cap.l4',
@@ -37,8 +39,8 @@ def main(examples:Dict[str,L4Contract], verbose=True):
         if examplekey not in ALL_AFTER_EXPAND_EXAMPLE_KEYS:
             raise Exception("probably have typo in this path: ", examplekey)
         if examplekey in EXAMPLES_TO_TYPECHECK:
-            # msg = f"Example {filename}:"
-            # print(f"\n{'='*len(msg)}\n{msg}")
+            msg = f"Example {examplekey}:"
+            print(f"\n{'='*len(msg)}\n{msg}")
             # print(f"\n{msg}\n{'='*len(msg)}")
             # in_path = EXAMPLES_SEXPR_ROOT + filename
             # parsed = parse_file(in_path)
