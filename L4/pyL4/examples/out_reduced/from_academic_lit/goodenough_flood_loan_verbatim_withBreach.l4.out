@@ -64,7 +64,7 @@ situation BorrowerDefaultBankruptcy1:
 action GiveNoticeOfGeneralDefault1()  transitions to BorrowerNotifiedOfGeneralDefault1
 
 situation BorrowerNotifiedOfGeneralDefault1:
-    if (cures < 2):
+    if (cures < 1):
         Borrower may CureDefault1 (next_event_td ≤ (last_situation_td + 2d))
     AcceleratePayments12 (next_event_td > (last_situation_td + 2d))
 
@@ -139,7 +139,7 @@ action GiveNoticeOfGeneralDefault2()  transitions to BorrowerNotifiedOfGeneralDe
 
 situation BorrowerNotifiedOfGeneralDefault2:
     Borrower may AcceleratePayment2 (next_event_td > (last_situation_td + 2d))
-    if (cures < 2):
+    if (cures < 1):
         Borrower may CureDefault2 (next_event_td ≤ (last_situation_td + 2d))
 
 action CureDefault2()  transitions to Pmt2Accruing:

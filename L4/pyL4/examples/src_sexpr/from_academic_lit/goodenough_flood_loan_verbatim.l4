@@ -21,7 +21,7 @@
 	(PAYMENT1_DUE_DATE	= (str2dt "June 1, 2015"))
 	(PAYMENT2_DUE_DATE	= (str2dt "June 1, 2016"))
 	(STATUTE_OF_LIM_DATE = (str2dt "June 1, 2020"))
-	(MAX_CURES = 2)
+	(MAX_CURES = 1)
 )
 
 (StateVars

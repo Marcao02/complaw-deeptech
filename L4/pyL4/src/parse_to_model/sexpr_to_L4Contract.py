@@ -208,7 +208,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.timeunit = LONGFORMS_OF_SUPPORTED_TIMEUNITS[given]
 
         elif head("StartDatetime","StartDT"):
-            print("start datetime?", rem)
+            # print("start datetime?", rem)
             try:
                 dt = dateutil.parser.parse(rem[0][1])
                 print("the dt", dt)

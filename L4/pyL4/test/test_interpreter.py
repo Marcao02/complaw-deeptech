@@ -1,70 +1,17 @@
 from datetime import timedelta
 from itertools import chain
-from math import inf
-from typing import Sequence, Tuple, Optional, Iterable
+from typing import Sequence, Tuple, Optional
 
-import test_parser
 from src.hard_correctness_checks.normal_forms import eliminate_ifthenelse, eliminate_local_vars
 from src.constants_and_defined_types import *
-from src.independent.parse_sexpr import prettySExprStr, parse_file
-from src.independent.util import castid
 from src.interpreter.interpreter_runner import evalTrace
 from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSituationId, EventType, breachActionId
 from src.model.L4Contract import L4Contract
-from src.parse_to_model.sexpr_to_L4Contract import L4ContractConstructor
+from test import test_parser
+from test.active_examples import EXAMPLES, ALL_AFTER_EXPAND_EXAMPLE_KEYS
+from test.test_SAFE import all_safe_tests
+from test.test_util import *
 
-
-def event(action_id:str, role_id:str = ENV_ROLE,
-          timestamp: int = 0,
-          params:Optional[Dict[str, Data]] = None,
-          eventType: Optional[EventType] = None ) -> Event:
-    if eventType is None:
-        eventType = EventType.env_next if role_id == ENV_ROLE else EventType.party_next
-    params = params or dict()
-    return Event(action_id=castid(ActionId, action_id), role_id=castid(RoleId, role_id),
-                 timestamp= timestamp,
-                 actionparam_subst=cast(ActionParamSubst, params) if params else None,
-                 actionparam_subst_list=list(params.values()) if params else None,
-                 type=eventType)
-
-def foevent(action_id:str, role_id:str = ENV_ROLE,
-          timestamp: int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
-    return event(action_id, role_id, timestamp , params, EventType.fulfill_floating_obligation)
-
-def fpevent(action_id:str, role_id:str = ENV_ROLE,
-          timestamp:int = 0, params:Optional[Dict[str, Data]] = None) -> Event:
-    return event(action_id,role_id,timestamp,params,EventType.use_floating_permission)
-
-inc_timestamp = 0
-
-def firstTSEvent(action_id:str,
-                 role_id:str = ENV_ROLE,
-                 params:Optional[Dict[str, Data]] = None,
-                 eventType: Optional[EventType] = None) -> Event:
-    global inc_timestamp
-    inc_timestamp = 0
-    return nextTSEvent(action_id, role_id, params, eventType)
-
-def nextTSEvent(action_id:str,
-                role_id:str = ENV_ROLE,
-                params:Optional[Dict[str, Data]] = None,
-                eventType: Optional[EventType] = None) -> Event:
-    global inc_timestamp
-    inc_timestamp = inc_timestamp + 1
-    newevent = event(action_id, role_id, inc_timestamp, params, eventType)
-    return newevent
-
-def sameTSEvent(action_id:str,
-                role_id:str = ENV_ROLE,
-                params:Optional[Dict[str, Data]] = None,
-                eventType: Optional[EventType] = None) -> Event:
-    global inc_timestamp
-    return event(action_id, role_id, inc_timestamp, params, eventType)
-
-
-
-K = 1000
-M = 1000000
 
 traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
     ('test/test_symbexec_multiwrite.l4',  CompleteTrace(
@@ -115,7 +62,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
      ),
 
 
-    ('toy_and_teaching/test_local_vars.l4', CompleteTrace(
+    ('test/test_local_vars.l4', CompleteTrace(
         {},
         (
             event('DoIt', 'Env', 0),
@@ -248,11 +195,11 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
         FULFILLED_SITUATION_LABEL
     )),
 
-    ('from_academic_lit//hvitved_lease.l4',
+    ('from_academic_lit/hvitved_lease.l4',
      CompleteTrace({}, (
-        firstTSEvent('EnsureApartmentReady', 'Landlord'), # 1
-        nextTSEvent('StartLeaseTerm'), # 2
-        nextTSEvent('PayRent', 'Tenant'), # 3
+        event('EnsureApartmentReady', 'Landlord', 0), # 1
+        event('StartLeaseTerm', ENV_ROLE, 0), # 2
+        event('PayRent', 'Tenant', 7), # 3
         event('EnterMonthEnded', ENV_ROLE, 30), # Jan 31
         event('EnterMonthStarted', ENV_ROLE, 31),
         event('RequestTerminationFromMonthStarted', 'Tenant', 34),
@@ -358,161 +305,9 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
 )
 
 
-traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[str, Union[Trace,CompleteTrace], str]] ] = [
-    ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 5 * M,
-         },
-        (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverTransactionDocsWithPRA', 'Company', 0),
-         event('IssueSAFEPreferredStock', 'Company', 0,
-               {'company_capitalization': 11 * M, 'premoney_valuation': 10 * M}),
-         event('DoEquityFinancing', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {"investor_SAFE_Preferred_Stocks": 220000})  # primer says 220,022 from rounding price
-        , "Example 1 in SAFE_Primer.rtf"
-    ),
+traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[str, Union[Trace,CompleteTrace], str]] ] = list(all_safe_tests)
 
-    ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 4 * M,
-         },
-        (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverTransactionDocsWithPRA', 'Company', 0),
-         event('IssueSAFEPreferredStock', 'Company', 0,
-               {'company_capitalization': 12.5 * M, 'premoney_valuation': 3 * M}),
-         event('DoEquityFinancing', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {"investor_SAFE_Preferred_Stocks": 416667}),
-        "Example 2 in SAFE_Primer.rtf"
-    ),
 
-    ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 8 * M,
-         },
-        (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverTransactionDocsWithPRA', 'Company', 0),
-         event('IssueSAFEPreferredStock', 'Company', 0,
-               {'company_capitalization': 11.5 * M, 'premoney_valuation': 8 * M}),
-         event('DoEquityFinancing', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {"investor_SAFE_Preferred_Stocks": 143750})  # primer says 143,760 from rounding price
-        ,"Example 3 in SAFE_Primer.rtf"
-    ),
-
-    ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
-         },
-        (event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 50 * M,
-            'company_capitalization': 11.5 * M,
-            'company_valuation': 11 * M
-        }),
-
-         event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 11 * M}),
-         # event('TransferCommonStock', 'Company', 0),
-         event('DoLiquidityEvent', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {
-         "investor_Common_Stocks": 0,
-         "investor_SAFE_Preferred_Stocks": 0,
-         "investor_cash": 100000}),
-        "Example 4 in SAFE_Primer.rtf, if dumb and choose cash payment"
-    ),
-
-    ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
-         },
-        (event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 9 * M,
-            'company_capitalization': 11.5 * M,
-            'company_valuation': 11 * M, # note greater than CAP
-        }),
-
-         event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 11 * M}),
-         event('TransferCommonStock', 'Company', 0),
-         event('DoLiquidityEvent', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {
-         "investor_Common_Stocks": 20909,
-         "investor_SAFE_Preferred_Stocks": 0,
-         "liq_cashout": 81818.18181818181,
-         "investor_cash": 81818.18181818181}),
-         "Example where company can't fully pay out the investors"
-    ),
-
-    ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
-         },
-        (event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 9 * M,
-            'company_capitalization': 11.5 * M,
-            'company_valuation': 11 * M,
-        }),
-
-         event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 10 * M}),
-         event('TransferCommonStock', 'Company', 0),
-         event('DoLiquidityEvent', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {
-         "investor_Common_Stocks": 11500,
-         "investor_SAFE_Preferred_Stocks": 0,
-         "investor_cash": 90000}),
-        "Example where company can't fully pay out the investors, AND not all investments are from SAFE investors"
-    ),
-
-    ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
-         },
-        (event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 50 * M,
-            'company_capitalization': 11.5 * M,
-            "company_valuation": 11 * M,
-
-        }),
-
-         event('ChooseStockPayment', 'Investor', 0),
-         event('TransferCommonStock', 'Company', 0),
-         event('DoLiquidityEvent', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL, {
-            "investor_Common_Stocks": 115000
-        }), "Example 4 in SAFE_Primer.rtf"
-    ),
-
-    ('serious/SAFE_discount.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 20 * K,
-         # "VALUATION_CAP": inf,
-         "DISCOUNT_RATE": .8
-         },
-        (event('CommitToEquityFinancing', 'Company', 0),
-         event('DeliverTransactionDocsWithPRA', 'Company', 0),
-         event('IssueSAFEPreferredStock', 'Company', 0,
-               {'company_capitalization': 10.5 * M, 'premoney_valuation': 2 * M}),
-         event('DoEquityFinancing', 'Company', 0)
-         ),
-        FULFILLED_SITUATION_LABEL,
-        {"undiscounted_price_per_share_standard_preferred_stock": 2 / 10.5,
-         "conversion_price": 0.8 * (2 / 10.5),
-         "investor_SAFE_Preferred_Stocks": 131250})  # primer says 131,578 from rounding price
-     , "Example 8 in SAFE_Primer.rtf"
-     ),
-
-]
 
 # this is used in runme_before_commit.py b/c I often comment out some of the entries of EXAMPLES_TO_RUN
 EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
@@ -527,20 +322,20 @@ EXAMPLES_TO_RUN = [
 
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
 
-        'toy_and_teaching/test_local_vars.l4',
         'toy_and_teaching/minimal_future-actions.l4',
         'toy_and_teaching/minimal_future-actions2.l4',
         'toy_and_teaching/collatz.l4',
         'toy_and_teaching/collatz2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
 
+        'test/test_local_vars.l4',
         'test/test_symbexec_multiwrite.l4',
         'test/test_symbexec_multiwrite_error.l4',
 
         # 'serious/SAFE.l4',
         'serious/SAFE_cap.l4',
         'serious/SAFE_discount.l4',
-        # 'serious/SAFE_cap_discount.l4',
+        'serious/SAFE_cap_discount.l4',
         # 'serious/SAFE_mfn.l4',
         # 'serious/SAFE_2_liq_eventtypes.l4'
     ]
@@ -549,6 +344,8 @@ EXAMPLES_TO_RUN = [
 def main(examples:Dict[str,L4Contract], verbose=True):
     for trace in traces:
         examplekey = trace[0]
+        if examplekey not in ALL_AFTER_EXPAND_EXAMPLE_KEYS:
+            raise Exception("probably have typo in this path: ", examplekey)
         if examplekey in examples and examplekey in EXAMPLES_TO_RUN:
             if verbose:
                 print("\nRunning test trace for " + examplekey)
@@ -565,6 +362,7 @@ def main(examples:Dict[str,L4Contract], verbose=True):
                 if len(trace) == 3:
                     print(trace[2])
                 raise e
+
 
 def cli(sys_argv:Sequence[str]):
     main(test_parser.main(keep=True, verbose=False), verbose=True)

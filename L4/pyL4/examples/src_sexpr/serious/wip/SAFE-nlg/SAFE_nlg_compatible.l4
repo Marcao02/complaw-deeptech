@@ -37,6 +37,8 @@
 )
 
 (ContractParams
+	(DEFAULT_ACTION_TIME_LIMIT : TimeDelta = 2d)
+
 	(PURCHASE_AMOUNT : Pos$ = 100000)
 	(ifflag HAS_DISCOUNT (
 		(DISCOUNT_RATE : "Fraction(0,1]" = .9)
@@ -93,6 +95,7 @@
 	(dis_cashout ≤ PURCHASE_AMOUNT)
 )
 
+
 (FormalContract "SAFE"
 	; apply to all actions and states:
 	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
@@ -113,11 +116,11 @@
 
 	(Situation InvestmentWaitingToConvert
 		(nlg "Investment Waiting to Convert")
-		([Company Arbiter] may (CommitToEquityFinancing))
-		([Company Arbiter] may (CommitToIPO ?1 ?2 ?3))
-		([Company Arbiter] may (CommitToChangeOfControl ?1 ?2 ?3 ?total_investments_of_cashout_investors ?5)
+		(Company may (CommitToEquityFinancing))
+		(Company may (CommitToIPO ?1 ?2 ?3))
+		(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?total_investments_of_cashout_investors ?5)
 						(where (?total_investments_of_cashout_investors ≥ PURCHASE_AMOUNT)))
-		([Company Arbiter] may CommitToDissolution)
+		(Company may CommitToDissolution)
 	)
 
 	; ----------------- Equity Financing Event -------------------
@@ -128,7 +131,7 @@
 		(FollowingSituation
 			(Company may DeliverTransactionDocsWithPRA)
 			(Company may DeliverTransactionDocsWithoutPRA)
-			(Arbiter may InterveneOnDelay_Company)
+			(Breach_Company (after_split DEFAULT_ACTION_TIME_LIMIT))
 		)
 	)
 
@@ -332,4 +335,6 @@
 	(Action Dissolve (AllowedSubjects Company) (TransitionsTo Fulfilled)
 		(nlg "Execute Dissolution")
 	)
+
+	(Situation Fulfilled)
 )

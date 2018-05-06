@@ -49,5 +49,16 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool],Dict[str,bool]]]] = [
 
     'toy_and_teaching/tutorialSAFE.l4'
 ]
+
+ALL_BEFORE_EXPAND_EXAMPLE_KEYS : List[str] = []
+ALL_AFTER_EXPAND_EXAMPLE_KEYS : List[str] = []
+for x in EXAMPLES:
+    if isinstance(x,str):
+        ALL_BEFORE_EXPAND_EXAMPLE_KEYS.append(x)
+        ALL_AFTER_EXPAND_EXAMPLE_KEYS.append(x)
+    else:
+        ALL_BEFORE_EXPAND_EXAMPLE_KEYS.append(x[0])
+        ALL_AFTER_EXPAND_EXAMPLE_KEYS.append(x[1])
+
 EXAMPLES_FULL_SIZE = 33
 # EXAMPLES_FULL_SIZE = 1

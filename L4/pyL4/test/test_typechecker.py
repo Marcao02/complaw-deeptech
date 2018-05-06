@@ -3,6 +3,7 @@ from typing import Sequence, Dict
 import test.test_parser as test_parser
 from src.model.L4Contract import L4Contract
 from src.typechecking.typecheck import typecheck_prog
+from test.active_examples import EXAMPLES, ALL_AFTER_EXPAND_EXAMPLE_KEYS
 
 EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/test_local_vars.l4',
@@ -25,6 +26,7 @@ EXAMPLES_TO_TYPECHECK = [
     'serious/SAFE_cap.l4',
     'serious/SAFE_discount.l4',
     'serious/SAFE_cap_discount.l4',
+    'serious/wip/SAFE-nlg/SAFE_nlg_compatible_cap_discount.l4',
     'toy_and_teaching/tutorialSAFE.l4',
     'serious/KISS.l4',
 ]
@@ -32,6 +34,8 @@ EXAMPLES_TO_TYPECHECK = [
 def main(examples:Dict[str,L4Contract], verbose=True):
     # print_types_map(STANDARD_FNTYPES)
     for examplekey in examples:
+        if examplekey not in ALL_AFTER_EXPAND_EXAMPLE_KEYS:
+            raise Exception("probably have typo in this path: ", examplekey)
         if examplekey in EXAMPLES_TO_TYPECHECK:
             # msg = f"Example {filename}:"
             # print(f"\n{'='*len(msg)}\n{msg}")

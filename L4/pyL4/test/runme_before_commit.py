@@ -5,12 +5,16 @@ from typing import Dict, Optional
 
 from src.independent.util import print_all_todos
 
+import _tkinter
+
+
+
 tests_to_run = {
     'L4typechecker',
     # 'smt',
     # 'graphviz',
-    # 'prettyprint',
-    # 'interpreter',
+    'prettyprint',
+    'interpreter',
 }
 
 def runit(s, optional_s=""):
@@ -18,7 +22,7 @@ def runit(s, optional_s=""):
     print(f"\n{'='*len(line2)}\n{line2}")
     os.system(s)
 
-VERBOSE = False
+VERBOSE = True
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     splits : Dict[str,int] = {}
