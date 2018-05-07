@@ -1,7 +1,7 @@
 from distutils.file_util import write_file
 from typing import Any, Dict
 
-from src.constants_and_defined_types import ContractParamId
+from src.constants_and_defined_types import ContractParamId, FULFILLED_SITUATION_LABEL
 from src.independent.util_for_io import writeFile
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule, PartyNextActionRule, EnvNextActionRule
@@ -71,7 +71,7 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         )
     )
     docbody = doc.add(body())
-    docbody.add(title("prog.filename"), h1("Simple Agreement fo Future Equity (SAFE)"))
+    docbody.add(title("prog.filename"), h1("Simple Agreement for Future Equity (SAFE)"))
 
     def svar(s: str) -> Any:
         return b(s)
@@ -83,13 +83,20 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         for para,dec in params.items():
             cpul.add( li( svar(para), f" which is a {sort_descriptions[str(dec.sort)]}.") )
 
-    def situationHtml(sit:Situation) -> Any:
-        sitsec = li()
-        sitsec.add(situationtitle(sit))
-        rules = sitsec.add(ul(cls="nomarkers"))
-        for rule in sit.action_rules():
-            rules.add(ruleHtml(rule))
-        return sitsec
+    def situationHtml(sit:Situation, is_anon=False) -> Any:
+        if is_anon:
+            rules = []
+            for rule in sit.action_rules():
+                rules.append(ruleHtml(rule))
+            return rules
+
+        else:
+            sitsec = li()
+            sitsec.add(situationtitle(sit))
+            rules = sitsec.add(ul(cls="nomarkers"))
+            for rule in sit.action_rules():
+                rules.add(ruleHtml(rule))
+            return sitsec
 
     def actionHtml(act: Action) -> Any:
         # actsec = ul(cls="nomarkers")
@@ -99,11 +106,19 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         if len(act.param_names) > 0:
             actcontents.add(div(act.allowed_subjects[0] + " must provide:"))
             actcontents.add(paramsHtml(act.param_sorts_by_name))
+            actcontents.add(br())
         if act.state_transform:
             actcontents.add(div("Define:"))
             statetrans = actcontents.add(ul(cls="nomarkers"))
             statetrans.add(blockHtml(act.state_transform.statements))
-        actcontents.add(div("Go to ", actid2link(act.action_id)))
+            actcontents.add(br())
+
+        if act.following_anon_situation:
+            actcontents.add(situationHtml(act.following_anon_situation, True))
+        elif act.dest_situation_id == FULFILLED_SITUATION_LABEL:
+            actcontents.add(div("Contract fulfilled."))
+        else:
+            actcontents.add(div("Go to ", sitid2link(act.dest_situation_id)))
         return rv
 
     def paramsHtml(d:Dict[str,Sort]) -> Any:

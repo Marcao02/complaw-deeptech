@@ -20,7 +20,7 @@ body {
   </head>
   <body>
     <title>prog.filename</title>
-    <h1>Simple Agreement fo Future Equity (SAFE)</h1>
+    <h1>Simple Agreement for Future Equity (SAFE)</h1>
     <div>The parameters to the contract are:</div>
     <ul class="nomarkers">
       <li>
@@ -96,9 +96,9 @@ body {
                   <div>investor_cash := (cast $ (investor_cash - PURCHASE_AMOUNT))</div>
                   <div>company_cash := (company_cash + PURCHASE_AMOUNT)</div>
                 </div>
-              </ul>
+              </ul><br>
               <div>Go to 
-                <a href="#TransferInvestmentCash">Transfer Investment to Company</a>
+                <a href="#InvestmentWaitingToConvert">Investment Waiting to Convert</a>
               </div>
             </ul>
           </li>
@@ -130,9 +130,20 @@ body {
               <span class="actionword"> action </span>Initiate an Equity Financing Event
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#CommitToEquityFinancing">Initiate an Equity Financing Event</a>
-              </div>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#DeliverTransactionDocsWithPRA">Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)</a>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#DeliverTransactionDocsWithoutPRA">Deliver Transaction Docs (PRA to follow)</a>
+              </li>
+              <li>
+                <span>Go to </span>
+                <a href="#Breach_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -142,7 +153,7 @@ body {
             </h3>
             <ul class="nomarkers">
               <div>Go to 
-                <a href="#DeliverTransactionDocsWithPRA">Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)</a>
+                <a href="#AfterPRASigned">After PRA Signed</a>
               </div>
             </ul>
           </li>
@@ -152,9 +163,16 @@ body {
               <span class="actionword"> action </span>Deliver Transaction Docs (PRA to follow)
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#DeliverTransactionDocsWithoutPRA">Deliver Transaction Docs (PRA to follow)</a>
-              </div>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#SendProRataRightsAgreementForSigning">Send PRA for Signing</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -163,9 +181,16 @@ body {
               <span class="actionword"> action </span>Send PRA for Signing
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#SendProRataRightsAgreementForSigning">Send PRA for Signing</a>
-              </div>
+              <li>
+                <span>Investor</span>
+                <span> may </span>
+                <a href="#SignPRA">Sign PRA</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Investor"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -175,7 +200,7 @@ body {
             </h3>
             <ul class="nomarkers">
               <div>Go to 
-                <a href="#SignPRA">Sign PRA</a>
+                <a href="#AfterPRASigned">After PRA Signed</a>
               </div>
             </ul>
           </li>
@@ -189,7 +214,7 @@ body {
               <ul class="nomarkers">
                 <li>company_capitalization, which is a positive number of shares</li>
                 <li>premoney_valuation, which is a positive USD amount</li>
-              </ul>
+              </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
@@ -199,10 +224,17 @@ body {
                   <div>conversion_price := (min cap_price' discount_price')</div>
                   <div>investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))</div>
                 </div>
-              </ul>
-              <div>Go to 
-                <a href="#IssueSAFEPreferredStock">Issue SAFE Preferred Stock</a>
-              </div>
+              </ul><br>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#DoEquityFinancing">Execute Equity Financing</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -211,9 +243,7 @@ body {
               <span class="actionword"> action </span>Execute Equity Financing
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#DoEquityFinancing">Execute Equity Financing</a>
-              </div>
+              <div>Contract fulfilled.</div>
             </ul>
           </li>
         </ul>
@@ -253,7 +283,7 @@ body {
                 <li>company_cash_at_liquidity_event, which is a USD amount</li>
                 <li>liquidity_capitalization, which is a positive number of shares</li>
                 <li>company_valuation, which is a positive USD amount</li>
-              </ul>
+              </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
@@ -264,9 +294,9 @@ body {
                   <div>investor_cash_currently_unconverted := PURCHASE_AMOUNT</div>
                   <div>company_cash := company_cash_at_liquidity_event</div>
                 </div>
-              </ul>
+              </ul><br>
               <div>Go to 
-                <a href="#CommitToIPO">Initiate an IPO Liquidity Event</a>
+                <a href="#InvestorToChooseMethodOfPayment">Investor to Choose Method of Payment</a>
               </div>
             </ul>
           </li>
@@ -283,7 +313,7 @@ body {
                 <li>company_valuation, which is a positive USD amount</li>
                 <li>total_investments_of_cashout_investors, which is a positive USD amount</li>
                 <li>reduction_needed_to_qualify_as_usa_tax_free_reorg, which is a USD amount</li>
-              </ul>
+              </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
@@ -297,9 +327,9 @@ body {
                   <div>investor_cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - purchase_amount_reduction))</div>
                   <div>company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))</div>
                 </div>
-              </ul>
+              </ul><br>
               <div>Go to 
-                <a href="#CommitToChangeOfControl">Initiate a Change-of-Control Liquidity Event</a>
+                <a href="#InvestorToChooseMethodOfPayment">Investor to Choose Method of Payment</a>
               </div>
             </ul>
           </li>
@@ -309,9 +339,16 @@ body {
               <span class="actionword"> action </span>Stock Payment Option Chosen by Default
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#AutoChooseStockPayment">Stock Payment Option Chosen by Default</a>
-              </div>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#TransferCommonStock">Transfer Common Stock</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -320,9 +357,16 @@ body {
               <span class="actionword"> action </span>Choose Payment in Common Stock
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#ChooseStockPayment">Choose Payment in Common Stock</a>
-              </div>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#TransferCommonStock">Transfer Common Stock</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -336,10 +380,17 @@ body {
                 <div>
                   <div>investor_Common_Stocks := (investor_Common_Stocks + ((check $ (investor_cash_currently_unconverted - liq_cashout)) round/ conversion_price))</div>
                 </div>
-              </ul>
-              <div>Go to 
-                <a href="#TransferCommonStock">Transfer Common Stock</a>
-              </div>
+              </ul><br>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -348,9 +399,16 @@ body {
               <span class="actionword"> action </span>Choose Payment in Cash
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#ChooseCashPayment">Choose Payment in Cash</a>
-              </div>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#TransferCash_L">Transfer Cash (liquidity)</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -362,7 +420,7 @@ body {
               <div>Company must provide:</div>
               <ul class="nomarkers">
                 <li>total_investments_of_cashout_investors, which is a positive USD amount</li>
-              </ul>
+              </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
@@ -370,10 +428,27 @@ body {
                   <div>liq_cashout := (min investor_cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments'))</div>
                   <div>investor_cash := (investor_cash + liq_cashout')</div>
                 </div>
-              </ul>
-              <div>Go to 
-                <a href="#TransferCash_L">Transfer Cash (liquidity)</a>
-              </div>
+              </ul><br>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#TransferCommonStock">Transfer Common Stock</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -382,9 +457,7 @@ body {
               <span class="actionword"> action </span>Execute Liquidity Event
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
-              </div>
+              <div>Contract fulfilled.</div>
             </ul>
           </li>
         </ul>
@@ -398,9 +471,16 @@ body {
               <span class="actionword"> action </span>Initiate a Dissolution Event
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#CommitToDissolution">Initiate a Dissolution Event</a>
-              </div>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#TransferCash_D">Transfer Cash (dissolution)</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -413,17 +493,34 @@ body {
               <ul class="nomarkers">
                 <li>company_cash_at_dissolution_event, which is a USD amount</li>
                 <li>investor_percent_of_dissolving_investor_investments, which is a fraction in the range (0,1]</li>
-              </ul>
+              </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
                   <div>dis_cashout := (min PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))</div>
                   <div>investor_cash := dis_cashout'</div>
                 </div>
-              </ul>
-              <div>Go to 
-                <a href="#TransferCash_D">Transfer Cash (dissolution)</a>
-              </div>
+              </ul><br>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#TransferAssets">Transfer Assets</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#Dissolve">Execute Dissolution</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -436,7 +533,7 @@ body {
               <ul class="nomarkers">
                 <li>liquidity_capitalization, which is a positive number of shares</li>
                 <li>company_valuation, which is a positive USD amount</li>
-              </ul>
+              </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
@@ -446,10 +543,17 @@ body {
                   <div>conversion_price := (min cap_price' discount_price')</div>
                   <div>investor_Common_Stocks := (investor_Common_Stocks + ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))</div>
                 </div>
-              </ul>
-              <div>Go to 
-                <a href="#TransferAssets">Transfer Assets</a>
-              </div>
+              </ul><br>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#Dissolve">Execute Dissolution</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
             </ul>
           </li>
           <li>
@@ -458,9 +562,7 @@ body {
               <span class="actionword"> action </span>Execute Dissolution
             </h3>
             <ul class="nomarkers">
-              <div>Go to 
-                <a href="#Dissolve">Execute Dissolution</a>
-              </div>
+              <div>Contract fulfilled.</div>
             </ul>
           </li>
         </ul>
