@@ -27,6 +27,9 @@ class Situation:
 
         self.possible_floating_rule_types : Set[FutureActionRuleType] = set()
 
+        self.nlg = ""
+        self.nlgsection = "root"
+
     def is_anon(self) -> bool:
         return self.parent_action_id is not None
 

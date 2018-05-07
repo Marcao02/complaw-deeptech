@@ -38,6 +38,9 @@ class Action:
         self.param_names : List[ActionParamId] = []
         self.param_name_to_ind : Dict[ActionParamId,int] = dict()
 
+        self.nlg = ""
+        self.nlgsection = "root"
+
     def param_sort(self, ind_or_name:Union[str,int]) -> Sort:
         if isinstance(ind_or_name,str):
             return self.param_sorts_by_name[castid(ActionParamId,ind_or_name)]

@@ -580,7 +580,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.possible_floating_rule_types.add(floating_rule_type)
 
             elif head("nlg"):
-                pass
+                situation.nlg = x[1][1]
+            elif head("nlgsection"):
+                situation.nlgsection = x[1][1]
 
             elif head(OUT_CONNECTIONS_LABEL):
                 if isinstance(x[1],SExpr) and isinstance(x[1][0],str) and (x[1][0] == 'guardsDisjointExhaustive' or x[1][0] == 'timeConstraintsPartitionFuture'):
@@ -643,6 +645,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif 'traversals' in x or 'visits' in x:
                 a.traversal_bounds = x # self.term(x, None, a)
+
+            elif head("nlg"):
+                a.nlg = x[1][1]
+            elif head("nlgsection"):
+                a.nlgsection = x[1][1]
 
             elif head('Future'):
                 a.futures = self._mk_futures(x.tillEnd(1), a)

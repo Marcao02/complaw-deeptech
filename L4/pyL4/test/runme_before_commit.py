@@ -5,16 +5,18 @@ from typing import Dict, Optional
 
 from src.independent.util import print_all_todos
 
-import _tkinter
+# import _tkinter
+# import tkinter
+# tkinter._test()
 
 
 
 tests_to_run = {
-    'L4typechecker',
+    # 'L4typechecker',
     # 'smt',
     # 'graphviz',
     'prettyprint',
-    'interpreter',
+    # 'interpreter',
 }
 
 def runit(s, optional_s=""):
@@ -85,7 +87,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     show_splits()
 
 # runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
-runit("cd ..; export MYPYPATH=.; mypy src", "typechecker")
+# runit("cd ..; export MYPYPATH=.; mypy src", "typechecker")
 
 
 

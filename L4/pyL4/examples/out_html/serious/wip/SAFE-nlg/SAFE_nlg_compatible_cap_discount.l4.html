@@ -1,0 +1,470 @@
+<html>
+  <head>
+    <style>
+body {
+    margin-bottom : 1000px;
+}
+.nomarkers {
+    list-style-type: none;
+}
+.role {
+    
+}
+.actionword {
+    
+}
+.situationword {
+
+}
+</style>
+  </head>
+  <body>
+    <title>prog.filename</title>
+    <h1>Simple Agreement fo Future Equity (SAFE)</h1>
+    <div>The parameters to the contract are:</div>
+    <ul class="nomarkers">
+      <li>
+        <b>DEFAULT_ACTION_TIME_LIMIT</b> which is a number of days.
+      </li>
+      <li>
+        <b>PURCHASE_AMOUNT</b> which is a positive USD amount.
+      </li>
+      <li>
+        <b>DISCOUNT_RATE</b> which is a fraction in the range (0,1].
+      </li>
+      <li>
+        <b>VALUATION_CAP</b> which is a positive USD amount.
+      </li>
+      <li>
+        <b>START_INVESTOR_COMMON_STOCKS</b> which is a number of shares.
+      </li>
+      <li>
+        <b>START_INVESTOR_SAFE_PREFERRED_STOCKS</b> which is a number of shares.
+      </li>
+    </ul>
+    <div class="nomarkers">
+      <div>
+        <div>
+          <li>
+            <h3 id="Signed">
+              <span class="situationword">Scenario: </span>Investment Agreement Signed
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Investor</span>
+                <span> may </span>
+                <a href="#TransferInvestmentCash">Transfer Investment to Company</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="InvestmentWaitingToConvert">
+              <span class="situationword">Scenario: </span>Investment Waiting to Convert
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#CommitToEquityFinancing">Initiate an Equity Financing Event</a>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#CommitToIPO">Initiate an IPO Liquidity Event</a>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#CommitToChangeOfControl">Initiate a Change-of-Control Liquidity Event</a>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#CommitToDissolution">Initiate a Dissolution Event</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferInvestmentCash">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Transfer Investment to Company
+            </h3>
+            <ul class="nomarkers">
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>investor_cash := (cast $ (investor_cash - PURCHASE_AMOUNT))</div>
+                  <div>company_cash := (company_cash + PURCHASE_AMOUNT)</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#TransferInvestmentCash">Transfer Investment to Company</a>
+              </div>
+            </ul>
+          </li>
+        </div>
+      </div>
+      <li>
+        <h2>Equity Events</h2>
+        <ul class="nomarkers">
+          <li>
+            <h3 id="AfterPRASigned">
+              <span class="situationword">Scenario: </span>After PRA Signed
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#IssueSAFEPreferredStock">Issue SAFE Preferred Stock</a>
+              </li>
+              <li>
+                <span>Arbiter</span>
+                <span> may </span>
+                <a href="#InterveneOnDelay_Company"></a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="CommitToEquityFinancing">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate an Equity Financing Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#CommitToEquityFinancing">Initiate an Equity Financing Event</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="DeliverTransactionDocsWithPRA">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#DeliverTransactionDocsWithPRA">Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="DeliverTransactionDocsWithoutPRA">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Deliver Transaction Docs (PRA to follow)
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#DeliverTransactionDocsWithoutPRA">Deliver Transaction Docs (PRA to follow)</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="SendProRataRightsAgreementForSigning">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Send PRA for Signing
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#SendProRataRightsAgreementForSigning">Send PRA for Signing</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="SignPRA">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Sign PRA
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#SignPRA">Sign PRA</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="IssueSAFEPreferredStock">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Issue SAFE Preferred Stock
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li>company_capitalization, which is a positive number of shares</li>
+                <li>premoney_valuation, which is a positive USD amount</li>
+              </ul>
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>undiscounted_price_per_share_standard_preferred_stock := (premoney_valuation / company_capitalization)</div>
+                  <div>cap_price := (VALUATION_CAP / company_capitalization)</div>
+                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
+                  <div>conversion_price := (min cap_price' discount_price')</div>
+                  <div>investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#IssueSAFEPreferredStock">Issue SAFE Preferred Stock</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="DoEquityFinancing">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Execute Equity Financing
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#DoEquityFinancing">Execute Equity Financing</a>
+              </div>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <h2>Liquidity Events</h2>
+        <ul class="nomarkers">
+          <li>
+            <h3 id="InvestorToChooseMethodOfPayment">
+              <span class="situationword">Scenario: </span>Investor to Choose Method of Payment
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Investor</span>
+                <span> may </span>
+                <a href="#ChooseCashPayment">Choose Payment in Cash</a>
+              </li>
+              <li>
+                <span>Investor</span>
+                <span> may </span>
+                <a href="#ChooseStockPayment">Choose Payment in Common Stock</a>
+              </li>
+              <li>
+                <span>Go to </span>
+                <a href="#AutoChooseStockPayment">Stock Payment Option Chosen by Default</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="CommitToIPO">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate an IPO Liquidity Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li>company_cash_at_liquidity_event, which is a USD amount</li>
+                <li>liquidity_capitalization, which is a positive number of shares</li>
+                <li>company_valuation, which is a positive USD amount</li>
+              </ul>
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)</div>
+                  <div>cap_price := (VALUATION_CAP / liquidity_capitalization)</div>
+                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
+                  <div>conversion_price := (min cap_price' discount_price')</div>
+                  <div>investor_cash_currently_unconverted := PURCHASE_AMOUNT</div>
+                  <div>company_cash := company_cash_at_liquidity_event</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#CommitToIPO">Initiate an IPO Liquidity Event</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="CommitToChangeOfControl">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate a Change-of-Control Liquidity Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li>company_cash_at_liquidity_event, which is a USD amount</li>
+                <li>liquidity_capitalization, which is a positive number of shares</li>
+                <li>company_valuation, which is a positive USD amount</li>
+                <li>total_investments_of_cashout_investors, which is a positive USD amount</li>
+                <li>reduction_needed_to_qualify_as_usa_tax_free_reorg, which is a USD amount</li>
+              </ul>
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)</div>
+                  <div>cap_price := (VALUATION_CAP / liquidity_capitalization)</div>
+                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
+                  <div>conversion_price := (min cap_price' discount_price')</div>
+                  <div>investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))</div>
+                  <div>purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)</div>
+                  <div>investor_Common_Stocks := (investor_Common_Stocks + (purchase_amount_reduction round/ conversion_price'))</div>
+                  <div>investor_cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - purchase_amount_reduction))</div>
+                  <div>company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#CommitToChangeOfControl">Initiate a Change-of-Control Liquidity Event</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="AutoChooseStockPayment">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Stock Payment Option Chosen by Default
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#AutoChooseStockPayment">Stock Payment Option Chosen by Default</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="ChooseStockPayment">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Choose Payment in Common Stock
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#ChooseStockPayment">Choose Payment in Common Stock</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferCommonStock">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Common Stock
+            </h3>
+            <ul class="nomarkers">
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>investor_Common_Stocks := (investor_Common_Stocks + ((check $ (investor_cash_currently_unconverted - liq_cashout)) round/ conversion_price))</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#TransferCommonStock">Transfer Common Stock</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="ChooseCashPayment">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Choose Payment in Cash
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#ChooseCashPayment">Choose Payment in Cash</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferCash_L">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Cash (liquidity)
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li>total_investments_of_cashout_investors, which is a positive USD amount</li>
+              </ul>
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))</div>
+                  <div>liq_cashout := (min investor_cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments'))</div>
+                  <div>investor_cash := (investor_cash + liq_cashout')</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#TransferCash_L">Transfer Cash (liquidity)</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="DoLiquidityEvent">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Execute Liquidity Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
+              </div>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <h2>Dissolution Events</h2>
+        <ul class="nomarkers">
+          <li>
+            <h3 id="CommitToDissolution">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate a Dissolution Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#CommitToDissolution">Initiate a Dissolution Event</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferCash_D">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Cash (dissolution)
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li>company_cash_at_dissolution_event, which is a USD amount</li>
+                <li>investor_percent_of_dissolving_investor_investments, which is a fraction in the range (0,1]</li>
+              </ul>
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>dis_cashout := (min PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))</div>
+                  <div>investor_cash := dis_cashout'</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#TransferCash_D">Transfer Cash (dissolution)</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferAssets">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Assets
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li>liquidity_capitalization, which is a positive number of shares</li>
+                <li>company_valuation, which is a positive USD amount</li>
+              </ul>
+              <div>Define:</div>
+              <ul class="nomarkers">
+                <div>
+                  <div>undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)</div>
+                  <div>cap_price := (VALUATION_CAP / liquidity_capitalization)</div>
+                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
+                  <div>conversion_price := (min cap_price' discount_price')</div>
+                  <div>investor_Common_Stocks := (investor_Common_Stocks + ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))</div>
+                </div>
+              </ul>
+              <div>Go to 
+                <a href="#TransferAssets">Transfer Assets</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="Dissolve">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Execute Dissolution
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#Dissolve">Execute Dissolution</a>
+              </div>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </div>
+  </body>
+</html>
