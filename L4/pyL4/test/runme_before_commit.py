@@ -45,14 +45,16 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
 
     timetask_start("parse")
     import test_parser
-    assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), "Some entries of cli.EXAMPLES are commented out, or you need to increase cli.EXAMPLES_FULL_SIZE"
+    assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), f"Some entries of cli.EXAMPLES are commented out (count {len(test_parser.EXAMPLES)}), or you need to change cli.EXAMPLES_FULL_SIZE (count {test_parser.EXAMPLES_FULL_SIZE})"
     progs = test_parser.main(keep=True,verbose=False)
     timetask_stop()
 
     if 'interpreter' in tests_to_run:
         timetask_start('interpreter')
         import test_interpreter
-        assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), f"Some entries of test_interpreter.EXAMPLES_TO_RUN are probably commented out... {test_interpreter.EXAMPLES_FULL_SIZE} {len(test_interpreter.EXAMPLES_TO_RUN)}"
+        print(test_interpreter.EXAMPLES_TO_RUN)
+        assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), f"Some entries of " \
+                f"test_interpreter.EXAMPLES_TO_RUN are probably commented out... {test_interpreter.EXAMPLES_FULL_SIZE} {len(test_interpreter.EXAMPLES_TO_RUN)}"
         test_interpreter.main(progs, VERBOSE)
         timetask_stop()
 
@@ -87,7 +89,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     show_splits()
 
 # runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
-# runit("cd ..; export MYPYPATH=.; mypy src", "typechecker")
+runit("cd ..; export MYPYPATH=.; mypy src", "typechecker")
 
 
 

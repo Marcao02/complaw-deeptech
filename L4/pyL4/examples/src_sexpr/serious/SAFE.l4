@@ -66,18 +66,19 @@
 	))
 	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
 	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
-	(START_INVESTOR_CASH : $ = 0)
+	; (START_INVESTOR_CASH : $ = 0)
 )
 
 
 (StateVars
 	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
 	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
-	(writes≤1 investor_cash : $ = START_INVESTOR_CASH )
+	(writes≤1 investor_cash : $ = PURCHASE_AMOUNT )
 
 	(cash_currently_unconverted : $ = PURCHASE_AMOUNT)
 	(writes≤1 conversion_price : SharePrice)
 
+	(company_cash : $ = 0)
 
 	; for Equity and Liquidity
 	(ifflag HAS_CAP (
@@ -97,7 +98,6 @@
 
 	; for Liquidity
 	(writes≤1 liq_cashout : $ = 0 ) ; this needs to either be initialized to 0, or else changed to an Optional and some of the code rewritten a bit.
-	(company_cash : $ = 0) ; maybe this should be an input.
 	(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction(0,1]")
 
 	; for Dissolution
@@ -114,14 +114,35 @@
 	; apply to all actions and states:
 	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 
-	(StartSituation InvestorInvests)
+	; (StartSituation InvestorInvests)
+	(StartSituation Signed)
 
-	(Situation InvestorInvests
-		(Company may CommitToEquityFinancing)
-		(Company may (CommitToIPO ?1 ?2 ?3)) ; IPO
-		(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?4 ?5) (where (?4 ≥ PURCHASE_AMOUNT)))
+	; (Situation InvestorInvests
+	; 	(Company may CommitToEquityFinancing)
+	; 	(Company may (CommitToIPO ?1 ?2 ?3)) ; IPO
+	; 	(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?4 ?5) (where (?4 ≥ PURCHASE_AMOUNT)))
+	; 	(Company may CommitToDissolution)
+	; 	; (Breach_Company discretionary) ; actually company can remain in current state forever.
+	; )
+	(Situation Signed
+		(nlg "Investment Agreement Signed")
+		(Investor may TransferInvestmentCash)
+	)
+	(Action TransferInvestmentCash (TransitionsTo InvestmentWaitingToConvert) (AllowedSubjects Investor)
+		(nlg "Transfer Investment to Company")
+		(StateTransform
+			(investor_cash' = (cast $ (investor_cash - PURCHASE_AMOUNT)))
+			(company_cash' = (company_cash + PURCHASE_AMOUNT))
+		)
+	)
+
+	(Situation InvestmentWaitingToConvert
+		(nlg "Investment Waiting to Convert")
+		(Company may (CommitToEquityFinancing))
+		(Company may (CommitToIPO ?1 ?2 ?3))
+		(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?total_investments_of_cashout_investors ?5)
+						(where (?total_investments_of_cashout_investors ≥ PURCHASE_AMOUNT)))
 		(Company may CommitToDissolution)
-		; (Breach_Company discretionary) ; actually company can remain in current state forever.
 	)
 
 	; ----------------- Equity Financing Event -------------------

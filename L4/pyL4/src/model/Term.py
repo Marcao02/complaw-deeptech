@@ -1,5 +1,6 @@
 from itertools import chain
 
+from src.independent.SExpr import SExpr
 from src.independent.typing_imports import *
 
 from src.independent.FileCoord import FileCoord
@@ -11,6 +12,7 @@ T = TypeVar('T')
 class Term:
     def __init__(self, coord: Optional[FileCoord] = None) -> None:
         self.coord = coord
+        self.src_expr : Optional[SExpr] = None
 
     def forEachTerm(self, f: Callable[['Term'], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
         raise NotImplementedError

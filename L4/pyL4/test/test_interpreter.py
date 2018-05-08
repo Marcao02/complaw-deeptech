@@ -307,8 +307,6 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
 
 traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[str, Union[Trace,CompleteTrace], str]] ] = list(all_safe_tests)
 
-
-
 # this is used in runme_before_commit.py b/c I often comment out some of the entries of EXAMPLES_TO_RUN
 EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
 traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious)
@@ -336,6 +334,7 @@ EXAMPLES_TO_RUN = [
         'serious/SAFE_cap.l4',
         'serious/SAFE_discount.l4',
         'serious/SAFE_cap_discount.l4',
+        'serious/wip/SAFE-nlg/SAFE_nlg_compatible_cap_discount.l4',
         # 'serious/SAFE_mfn.l4',
         # 'serious/SAFE_2_liq_eventtypes.l4'
     ]

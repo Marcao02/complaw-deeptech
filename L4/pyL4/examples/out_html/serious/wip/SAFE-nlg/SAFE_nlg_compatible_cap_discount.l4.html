@@ -16,6 +16,12 @@ body {
 .situationword {
 
 }
+.is_assignment {
+    font-weight: bold;
+}
+.boiler {
+    font-weight: bold;
+}
 </style>
   </head>
   <body>
@@ -24,22 +30,19 @@ body {
     <div>The parameters to the contract are:</div>
     <ul class="nomarkers">
       <li>
-        <b>DEFAULT_ACTION_TIME_LIMIT</b> which is a number of days.
+        <b>PURCHASE_AMOUNT</b>, which is a positive USD amount.
       </li>
       <li>
-        <b>PURCHASE_AMOUNT</b> which is a positive USD amount.
+        <b>DISCOUNT_RATE</b>, which is a fraction in the range (0,1].
       </li>
       <li>
-        <b>DISCOUNT_RATE</b> which is a fraction in the range (0,1].
+        <b>VALUATION_CAP</b>, which is a positive USD amount.
       </li>
       <li>
-        <b>VALUATION_CAP</b> which is a positive USD amount.
+        <b>START_INVESTOR_COMMON_STOCKS</b>, which is a number of shares.
       </li>
       <li>
-        <b>START_INVESTOR_COMMON_STOCKS</b> which is a number of shares.
-      </li>
-      <li>
-        <b>START_INVESTOR_SAFE_PREFERRED_STOCKS</b> which is a number of shares.
+        <b>START_INVESTOR_SAFE_PREFERRED_STOCKS</b>, which is a number of shares.
       </li>
     </ul>
     <div class="nomarkers">
@@ -73,9 +76,16 @@ body {
                 <a href="#CommitToIPO">Initiate an IPO Liquidity Event</a>
               </li>
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#CommitToChangeOfControl">Initiate a Change-of-Control Liquidity Event</a>
+                <span>if 
+                  <span>?total_investments_of_cashout_investors is at least PURCHASE_AMOUNT</span>
+                </span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#CommitToChangeOfControl">Initiate a Change-of-Control Liquidity Event</a>
+                  </li>
+                </ul>
               </li>
               <li>
                 <span>Company</span>
@@ -93,8 +103,20 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>investor_cash := (cast $ (investor_cash - PURCHASE_AMOUNT))</div>
-                  <div>company_cash := (company_cash + PURCHASE_AMOUNT)</div>
+                  <div>investor_cash
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>(cast $ (investor_cash - PURCHASE_AMOUNT))</li>
+                    </ul>
+                  </div>
+                  <div>company_cash
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( company_cash + PURCHASE_AMOUNT )</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <div>Go to 
@@ -113,14 +135,22 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#IssueSAFEPreferredStock">Issue SAFE Preferred Stock</a>
+                <span>Within 1 day of the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#IssueSAFEPreferredStock">Issue SAFE Preferred Stock</a>
+                  </li>
+                </ul>
               </li>
               <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <span>After 1 day since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company breaches the contract.</span>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -131,18 +161,29 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#DeliverTransactionDocsWithPRA">Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)</a>
-              </li>
-              <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#DeliverTransactionDocsWithoutPRA">Deliver Transaction Docs (PRA to follow)</a>
-              </li>
-              <li>
-                <span>Go to </span>
-                <a href="#Breach_Company"></a>
+                <h3 id="AfterCommitToEquityFinancing">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#DeliverTransactionDocsWithPRA">Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)</a>
+                  </li>
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#DeliverTransactionDocsWithoutPRA">Deliver Transaction Docs (PRA to follow)</a>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -164,14 +205,29 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#SendProRataRightsAgreementForSigning">Send PRA for Signing</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterDeliverTransactionDocsWithoutPRA">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#SendProRataRightsAgreementForSigning">Send PRA for Signing</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -182,14 +238,29 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Investor</span>
-                <span> may </span>
-                <a href="#SignPRA">Sign PRA</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Investor"></a>
+                <h3 id="AfterSendProRataRightsAgreementForSigning">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Investor</span>
+                        <span> may </span>
+                        <a href="#SignPRA">Sign PRA</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Investor breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -218,22 +289,71 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>undiscounted_price_per_share_standard_preferred_stock := (premoney_valuation / company_capitalization)</div>
-                  <div>cap_price := (VALUATION_CAP / company_capitalization)</div>
-                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
-                  <div>conversion_price := (min cap_price' discount_price')</div>
-                  <div>investor_SAFE_Preferred_Stocks := (investor_SAFE_Preferred_Stocks + (PURCHASE_AMOUNT round/ conversion_price'))</div>
+                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>premoney_valuation / company_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, cap_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>VALUATION_CAP / company_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, discount_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>conversion_price
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>the minimum of cap_price' and discount_price'</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_SAFE_Preferred_Stocks
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( investor_SAFE_Preferred_Stocks + 
+                          <span>⎡PURCHASE_AMOUNT / conversion_price'⎤</span> )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#DoEquityFinancing">Execute Equity Financing</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterIssueSAFEPreferredStock">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#DoEquityFinancing">Execute Equity Financing</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -257,18 +377,33 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Investor</span>
-                <span> may </span>
-                <a href="#ChooseCashPayment">Choose Payment in Cash</a>
+                <span>Before 1 week since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Investor</span>
+                    <span> may </span>
+                    <a href="#ChooseCashPayment">Choose Payment in Cash</a>
+                  </li>
+                </ul>
               </li>
               <li>
-                <span>Investor</span>
-                <span> may </span>
-                <a href="#ChooseStockPayment">Choose Payment in Common Stock</a>
+                <span>Before 1 week since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Investor</span>
+                    <span> may </span>
+                    <a href="#ChooseStockPayment">Choose Payment in Common Stock</a>
+                  </li>
+                </ul>
               </li>
               <li>
-                <span>Go to </span>
-                <a href="#AutoChooseStockPayment">Stock Payment Option Chosen by Default</a>
+                <span>At 1 week since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Go to </span>
+                    <a href="#AutoChooseStockPayment">Stock Payment Option Chosen by Default</a>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -287,12 +422,47 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)</div>
-                  <div>cap_price := (VALUATION_CAP / liquidity_capitalization)</div>
-                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
-                  <div>conversion_price := (min cap_price' discount_price')</div>
-                  <div>investor_cash_currently_unconverted := PURCHASE_AMOUNT</div>
-                  <div>company_cash := company_cash_at_liquidity_event</div>
+                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>company_valuation / liquidity_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, cap_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>VALUATION_CAP / liquidity_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, discount_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>conversion_price
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>the minimum of cap_price' and discount_price'</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_cash_currently_unconverted
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>PURCHASE_AMOUNT</li>
+                    </ul>
+                  </div>
+                  <div>company_cash
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>company_cash_at_liquidity_event</li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <div>Go to 
@@ -317,15 +487,76 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)</div>
-                  <div>cap_price := (VALUATION_CAP / liquidity_capitalization)</div>
-                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
-                  <div>conversion_price := (min cap_price' discount_price')</div>
-                  <div>investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))</div>
-                  <div>purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg)</div>
-                  <div>investor_Common_Stocks := (investor_Common_Stocks + (purchase_amount_reduction round/ conversion_price'))</div>
-                  <div>investor_cash_currently_unconverted := (check $ (PURCHASE_AMOUNT - purchase_amount_reduction))</div>
-                  <div>company_cash := (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg))</div>
+                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>company_valuation / liquidity_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, cap_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>VALUATION_CAP / liquidity_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, discount_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>conversion_price
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>the minimum of cap_price' and discount_price'</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_percent_of_cashout_investor_investments
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>PURCHASE_AMOUNT / total_investments_of_cashout_investors</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a USD amount, purchase_amount_reduction, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_Common_Stocks
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( investor_Common_Stocks + 
+                          <span>⎡purchase_amount_reduction / conversion_price'⎤</span> )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_cash_currently_unconverted
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( PURCHASE_AMOUNT - purchase_amount_reduction )</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>company_cash
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg )</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <div>Go to 
@@ -340,14 +571,29 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#TransferCommonStock">Transfer Common Stock</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterAutoChooseStockPayment">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCommonStock">Transfer Common Stock</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -358,14 +604,29 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#TransferCommonStock">Transfer Common Stock</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterChooseStockPayment">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCommonStock">Transfer Common Stock</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -378,18 +639,44 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>investor_Common_Stocks := (investor_Common_Stocks + ((check $ (investor_cash_currently_unconverted - liq_cashout)) round/ conversion_price))</div>
+                  <div>investor_Common_Stocks
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( investor_Common_Stocks + 
+                          <span>⎡
+                            <span>( investor_cash_currently_unconverted - liq_cashout )</span> / conversion_price⎤
+                          </span> )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterTransferCommonStock">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -400,14 +687,29 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#TransferCash_L">Transfer Cash (liquidity)</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterChooseCashPayment">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCash_L">Transfer Cash (liquidity)</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -424,30 +726,90 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>investor_percent_of_cashout_investor_investments := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))</div>
-                  <div>liq_cashout := (min investor_cash_currently_unconverted (company_cash * investor_percent_of_cashout_investor_investments'))</div>
-                  <div>investor_cash := (investor_cash + liq_cashout')</div>
+                  <div>investor_percent_of_cashout_investor_investments
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>PURCHASE_AMOUNT / total_investments_of_cashout_investors</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>liq_cashout
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>the minimum of investor_cash_currently_unconverted and 
+                          <span>company_cash * investor_percent_of_cashout_investor_investments'</span>
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_cash
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( investor_cash + liq_cashout' )</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#TransferCommonStock">Transfer Common Stock</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
-              </li>
-              <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterTransferCash_L">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>if 
+                      <span>liq_cashout is less than investor_cash_currently_unconverted</span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#TransferCommonStock">Transfer Common Stock</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>if 
+                      <span>liq_cashout = investor_cash_currently_unconverted</span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -472,14 +834,29 @@ body {
             </h3>
             <ul class="nomarkers">
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#TransferCash_D">Transfer Cash (dissolution)</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterCommitToDissolution">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCash_D">Transfer Cash (dissolution)</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -497,29 +874,80 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>dis_cashout := (min PURCHASE_AMOUNT (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))</div>
-                  <div>investor_cash := dis_cashout'</div>
+                  <div>dis_cashout
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>the minimum of PURCHASE_AMOUNT and 
+                          <span>company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments</span>
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_cash
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>dis_cashout'</li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#TransferAssets">Transfer Assets</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
-              </li>
-              <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#Dissolve">Execute Dissolution</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterTransferCash_D">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>if 
+                      <span>dis_cashout is less than PURCHASE_AMOUNT</span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#TransferAssets">Transfer Assets</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>if 
+                      <span>dis_cashout = PURCHASE_AMOUNT</span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#Dissolve">Execute Dissolution</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -537,22 +965,73 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>undiscounted_price_per_share_standard_preferred_stock := (company_valuation / liquidity_capitalization)</div>
-                  <div>cap_price := (VALUATION_CAP / liquidity_capitalization)</div>
-                  <div>discount_price := (undiscounted_price_per_share_standard_preferred_stock' * DISCOUNT_RATE)</div>
-                  <div>conversion_price := (min cap_price' discount_price')</div>
-                  <div>investor_Common_Stocks := (investor_Common_Stocks + ((check $ (PURCHASE_AMOUNT - dis_cashout)) round/ conversion_price'))</div>
+                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>company_valuation / liquidity_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, cap_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>VALUATION_CAP / liquidity_capitalization</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>Temporarily, a price in USD/share, discount_price, by  
+                    <ul class="nomarkers">
+                      <li>
+                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>conversion_price
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>the minimum of cap_price' and discount_price'</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>investor_Common_Stocks
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( investor_Common_Stocks + 
+                          <span>⎡
+                            <span>( PURCHASE_AMOUNT - dis_cashout )</span> / conversion_price'⎤
+                          </span> )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </ul><br>
               <li>
-                <span>Company</span>
-                <span> may </span>
-                <a href="#Dissolve">Execute Dissolution</a>
-              </li>
-              <li>
-                <span>Arbiter</span>
-                <span> may </span>
-                <a href="#InterveneOnDelay_Company"></a>
+                <h3 id="AfterTransferAssets">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#Dissolve">Execute Dissolution</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>

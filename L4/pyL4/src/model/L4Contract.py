@@ -68,11 +68,11 @@ class L4Contract:
     def register_sorted_name(self,name:str,sort:Sort):
         if name in self.all_sorted_names:
             assert sort == self.all_sorted_names[name], f"Every occurrence of a sort-typed name (with the exception of event " \
-                                                        f"rule variables) must have the same sort. "\
+                                                        f"rule variables)\nmust have the same sort.\n"\
                                                         f"This makes it easier for you interact with the system (no need " \
-                                                        f"to specify a typing context), and " \
-                                                        f"easier for us to ensure correctness. You've used {name} with both "\
-                                                        f"{sort} and {self.all_sorted_names[name]}. See " + self.filename
+                                                        f"to specify a typing context),\nand easier for us to ensure correctness.\n" \
+                                                        f"You've used {name} with both {sort} and {self.all_sorted_names[name]}.\n" \
+                                                        f"See {self.filename}."
         else:
             self.all_sorted_names[name] = sort
 

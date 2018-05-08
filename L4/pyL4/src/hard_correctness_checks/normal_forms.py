@@ -310,7 +310,7 @@ def eliminate_local_vars(p:L4Contract):
                     # rule.arg_vars_bound_by_rule[i]))
                     # rule.args[i] =
 
-def eliminate_must(sexpr:SExpr, timeunit:str):
+def eliminate_must(sexpr:SExpr, timeunit:str, default_time_limit:Optional[Any] = None):
     def is_must(sexpr2:SExpr) -> bool:
         return len(sexpr2) >= 3 and sexpr2[1] == "must"
 
@@ -319,12 +319,18 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
             # e.g. (EnterLate2ndInstallment (when next_event_td > (30d + delivery_td)))
             return []
         role = sexpr2[0]
-        may = SExpr([role, "may"] + sexpr2[2:], sexpr2.line, sexpr2.col, "(")
 
-
+        may = sexpr2.newHere([role, "may"] + sexpr2[2:])
         other : Optional[SExpr] = None
         if len(sexpr2) == 3:
-            other = SExpr([ARBITER_ROLE, "may", interveneOnDelayId(role)], sexpr2.line, sexpr2.col, "(")
+            if default_time_limit:
+                may = sexpr2.newHere([role, "may"] + sexpr2[2:] +
+                                   [sexpr2.newHere(["within_split", default_time_limit])])
+                other = sexpr2.newHere([breachActionId(role)] +
+                                   [sexpr2.newHere(["after_split", default_time_limit])] )
+            else:
+                may = sexpr2.newHere([role, "may"] + sexpr2[2:])
+                other = sexpr2.newHere([ARBITER_ROLE, "may", interveneOnDelayId(role)])
         else:
             for i in range(3,len(sexpr2.lst)):
                 child = sexpr2.lst[i]
@@ -332,28 +338,30 @@ def eliminate_must(sexpr:SExpr, timeunit:str):
                 if isinstance(child, SExpr) and len(child.lst) >= 1 and (child.lst[0] in ("at","within")):
                     other = SExpr([breachActionId(role)] + list(sexpr2[3:i]) +
                                   [SExpr([cast(SExprOrStr, "after")] + child.lst[1:], sexpr2.line,
-                                         sexpr2.col)] + sexpr2[i + 1:], sexpr2.line, sexpr2.col, "(")
+                                         sexpr2.col)] + sexpr2[i + 1:], sexpr2.line, sexpr2.col)
                     break
 
                 elif isinstance(child, SExpr) and len(child.lst) >= 1 and (child.lst[0] in ("on","by")):
-                    other = SExpr([breachActionId(role)] + list(sexpr2[3:i]) +
-                                  [SExpr([cast(SExprOrStr, "after_dt")] + child.lst[1:], sexpr2.line,
-                                         sexpr2.col)] + sexpr2[i + 1:], sexpr2.line, sexpr2.col, "(")
+                    other = sexpr2.newHere([breachActionId(role)] + list(sexpr2[3:i]) +
+                                  [sexpr2.newHere([cast(SExprOrStr, "after_dt")] + child.lst[1:])] + sexpr2[i + 1:])
                     break
 
                 elif child == "no_time_constraint":
-                    other = SExpr([ARBITER_ROLE, "may", interveneOnDelayId(role)] + sexpr2[3:], sexpr2.line, sexpr2.col,
-                                  "(")
+                    if default_time_limit:
+                        other = sexpr2.newHere([breachActionId(role)] + list(sexpr2[3:i]) +
+                                      [sexpr2.newHere([cast(SExprOrStr, "after")] + default_time_limit)] + sexpr2[i + 1:])
+                    else:
+                        other = SExpr([ARBITER_ROLE, "may", interveneOnDelayId(role)] + sexpr2[3:], sexpr2.line, sexpr2.col)
                     break
 
                 elif child == "immediately":
                     # this works:
                     # pastdeadline = SExpr(['>', 'next_event_td', 'last_situation_td'], sexpr2.line, sexpr2.col)
                     # other = SExpr([breachActionId(role), SExpr(["when", pastdeadline], sexpr2.line, sexpr2.col)],
-                    #               sexpr2.line, sexpr2.col, "(")
+                    #               sexpr2.line, sexpr2.col)
                     pastdeadline = SExpr(['after', 'last_situation_td'], sexpr2.line, sexpr2.col)
                     other = SExpr([breachActionId(role), pastdeadline],
-                                  sexpr2.line, sexpr2.col, "(")
+                                  sexpr2.line, sexpr2.col)
 
                     # old:
                     # SExpr(['+', "last_situation_td", "1" + timeunit], sexpr2.line,

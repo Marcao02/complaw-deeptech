@@ -261,8 +261,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             #     print(prettySExprStr(x))
 
         for sexpr in  l:
-            eliminate_must(sexpr, self.top.timeunit)
-
+            eliminate_must(sexpr, self.top.timeunit, "1d")
 
         for x in l:
             self._mk_toplevel(x)
@@ -1006,11 +1005,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if pair and pair[0] in TIME_CONSTRAINT_PREDICATES:
                 # return self._mk_term(expr, src_situation, src_action, parent_action_rule, None)
                 rv = FnApp(
-                    pair[0],
-                    [self._mk_term(arg, src_situation, src_action, parent_action_rule, expr) for arg in pair[1]],
-                    FileCoord(expr.line, expr.col)
-                )
-                # print("$ " + str(rv))
+                        pair[0],
+                        [self._mk_term(arg, src_situation, src_action, parent_action_rule, expr) for arg in pair[1]],
+                        FileCoord(expr.line, expr.col)
+                    )
             else:
                 if src_situation:
                     print("pair: ", pair)
@@ -1169,6 +1167,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         symb = '≥'
                     expanded = x.newHere([symb, 'next_event_td', rest])
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
+                    cast(Term, ar.time_constraint).src_expr = x
 
                 # =============TimeDelta since last shorthand=============
                 elif x[0] in { "before_split", "within_split", "at_split", "after_split", "at_or_after_split"}:
@@ -1186,7 +1185,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         symb = '≥'
                     expanded = x.newHere([symb, 'next_event_td', x.newHere(['+', 'last_situation_td', rest])])
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
-
+                    cast(Term, ar.time_constraint).src_expr = x
 
                 # =============DateTime shorthand=============
                 elif x[0] in {"before_dt", "by", "within_dt", "on", "at_dt", "after_dt", "at_or_after_dt"}:
@@ -1204,9 +1203,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         symb = '≥'
                     expanded = SExpr(['≤', 'next_event_dt', rest], x.line, x.col)
                     ar.time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
+                    cast(Term,ar.time_constraint).src_expr = x
 
                 else:
                     self.syntaxError(rem)
+
+
 
             elif x in TIME_CONSTRAINT_KEYWORDS:
                 found_labeled_time_constraint = True
