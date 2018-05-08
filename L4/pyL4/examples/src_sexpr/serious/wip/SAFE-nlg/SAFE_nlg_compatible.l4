@@ -36,6 +36,19 @@
 	))
 )
 
+; (NLGNames
+; 	(PURCHASE_AMOUNT "Purchase Amount")
+; 	(DISCOUNT_RATE "Discount Rate")
+; 	(VALUATION_CAP "Valuation Cap")
+; 	(investor_Common_Stock "Investor's Common Stock")
+; 	(investor_SAFE_Preferred_Stock "Investor's SAFE Stock")
+; 	(investor_cash "Investor's Cash" )
+; 	(investor_cash_currently_unconverted "Unconverted Investment")
+; 	(conversion_price "Conversion Price")
+; 	(company_cash "Company's Cash")
+
+; )
+
 (ContractParams
 	; (DEFAULT_ACTION_TIME_LIMIT : TimeDelta = 2d)
 
@@ -47,16 +60,17 @@
 		(VALUATION_CAP : Pos$ = 100000000)
 	))
 
-	(START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
-	(START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
+	; (START_INVESTOR_COMMON_STOCKS : ShareCnt = 0)
+	; (START_INVESTOR_SAFE_PREFERRED_STOCKS : ShareCnt = 0)
 	; (START_INVESTOR_CASH : $ = PURCHASE_AMOUNT)
 )
 
 
 (StateVars
-	(writes≤1 investor_Common_Stocks : ShareCnt = START_INVESTOR_COMMON_STOCKS  )
-	(writes≤1 investor_SAFE_Preferred_Stocks : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
-	; (writes≤1 investor_cash : $ = START_INVESTOR_CASH )
+	; (writes≤1 investor_Common_Stock : ShareCnt = START_INVESTOR_COMMON_STOCKS)
+	; (writes≤1 investor_SAFE_Preferred_Stock : ShareCnt = START_INVESTOR_SAFE_PREFERRED_STOCKS)
+	(writes≤1 investor_Common_Stock : ShareCnt = 0)
+	(writes≤1 investor_SAFE_Preferred_Stock : ShareCnt = 0)
 	(writes≤1 investor_cash : $ = PURCHASE_AMOUNT )
 
 	; note the type of the following variable will be (Uninitialized $), which behaves just like $
@@ -66,25 +80,9 @@
 
 	(company_cash : $ = 0)
 
-	; for Equity and Liquidity
-	(ifflag HAS_CAP (
-		(writes≤1 cap_price : SharePrice)
-		(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
-
-		(ifflag HAS_DISCOUNT (
-			(writes≤1 discount_price : SharePrice)
-		))
-	)
-	else (
-		(ifflag HAS_DISCOUNT (
-			(writes≤1 undiscounted_price_per_share_standard_preferred_stock : SharePrice)
-			(writes≤1 discount_price : SharePrice)
-		))
-	))
-
 	; for Liquidity
 	(writes≤1 liq_cashout : $ = 0) ; this needs to either be initialized to 0, or else changed to an Optional and some of the code rewritten a bit.
-	(writes≤1 investor_percent_of_cashout_investor_investments : "Fraction(0,1]")
+	; (writes≤1 investor_percent_of_cashout_investor_investments : "Fraction(0,1]")
 
 	; for Dissolution
 	(writes≤1 dis_cashout : $)
@@ -178,7 +176,7 @@
 		(nlgsection "Equity Events")
 		(StateTransform
 			(set_conversion_price (company_capitalization premoney_valuation))
-			(investor_SAFE_Preferred_Stocks' += (PURCHASE_AMOUNT ceil/ conversion_price'))
+			(investor_SAFE_Preferred_Stock' += (PURCHASE_AMOUNT ceil/ conversion_price'))
 		)
 		(FollowingSituation
 			(Company must DoEquityFinancing)
@@ -226,10 +224,10 @@
 		(nlgsection "Liquidity Events")
 		(StateTransform
 			(set_conversion_price (liquidity_capitalization company_valuation))
-			(investor_percent_of_cashout_investor_investments' = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
+			(local investor_percent_of_cashout_investor_investments : "Fraction(0,1]" = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
 
-		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg))
-			(investor_Common_Stocks' += (purchase_amount_reduction ceil/ conversion_price'))
+		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
+			(investor_Common_Stock' += (purchase_amount_reduction ceil/ conversion_price'))
 			(investor_cash_currently_unconverted' = (check $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
 			(company_cash' = (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 		)
@@ -258,7 +256,7 @@
 		(nlg "Transfer Common Stock")
 		(nlgsection "Liquidity Events")
 		(StateTransform
-			(investor_Common_Stocks' += ((check $ (investor_cash_currently_unconverted - liq_cashout)) ceil/ conversion_price))
+			(investor_Common_Stock' += ((check $ (investor_cash_currently_unconverted - liq_cashout)) ceil/ conversion_price))
 		)
 		(FollowingSituation
 			(Company must DoLiquidityEvent)
@@ -277,9 +275,9 @@
 		(nlg "Transfer Cash (liquidity)")
 		(nlgsection "Liquidity Events")
 		(StateTransform
-			(investor_percent_of_cashout_investor_investments' = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
+			(local investor_percent_of_cashout_investor_investments : "Fraction(0,1]" = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
 			(liq_cashout' = (min investor_cash_currently_unconverted
-								 (company_cash * investor_percent_of_cashout_investor_investments'))
+								 (company_cash * investor_percent_of_cashout_investor_investments))
 			)
 			(investor_cash' += liq_cashout')
 			; (company_cash' = (check $ (company_cash - liq_cashout')))
@@ -344,7 +342,7 @@
 		(AllowedSubjects Company)
 		(StateTransform
 			(set_conversion_price (liquidity_capitalization company_valuation))
-			(investor_Common_Stocks' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) ceil/ conversion_price'))
+			(investor_Common_Stock' += ((check $ (PURCHASE_AMOUNT - dis_cashout)) ceil/ conversion_price'))
 		)
 		(FollowingSituation
 			(Company must Dissolve)

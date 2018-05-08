@@ -16,6 +16,9 @@ body {
 .situationword {
 
 }
+.symbintro {
+    color: red;
+}
 .is_assignment {
     font-weight: bold;
 }
@@ -30,19 +33,13 @@ body {
     <div>The parameters to the contract are:</div>
     <ul class="nomarkers">
       <li>
-        <b>PURCHASE_AMOUNT</b>, which is a positive USD amount.
+        <span class="symbintro">PURCHASE_AMOUNT</span>, which is a positive USD amount.
       </li>
       <li>
-        <b>DISCOUNT_RATE</b>, which is a fraction in the range (0,1].
+        <span class="symbintro">DISCOUNT_RATE</span>, which is a fraction in the range (0,1].
       </li>
       <li>
-        <b>VALUATION_CAP</b>, which is a positive USD amount.
-      </li>
-      <li>
-        <b>START_INVESTOR_COMMON_STOCKS</b>, which is a number of shares.
-      </li>
-      <li>
-        <b>START_INVESTOR_SAFE_PREFERRED_STOCKS</b>, which is a number of shares.
+        <span class="symbintro">VALUATION_CAP</span>, which is a positive USD amount.
       </li>
     </ul>
     <div class="nomarkers">
@@ -77,7 +74,9 @@ body {
               </li>
               <li>
                 <span>if 
-                  <span>?total_investments_of_cashout_investors is at least PURCHASE_AMOUNT</span>
+                  <span>?total_investments_of_cashout_investors is at least 
+                    <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a>
+                  </span>
                 </span>
                 <ul class="nomarkers">
                   <li>
@@ -103,17 +102,27 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>investor_cash
-                    <span> is:</span>
-                    <ul class="nomarkers">
-                      <li>(cast $ (investor_cash - PURCHASE_AMOUNT))</li>
-                    </ul>
-                  </div>
-                  <div>company_cash
+                  <div>
+                    <a href="#investor_cash">investor_cash</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>( company_cash + PURCHASE_AMOUNT )</span>
+                        <span>( 
+                          <a href="#investor_cash">investor_cash</a> - 
+                          <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <a href="#company_cash">company_cash</a>
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( 
+                          <a href="#company_cash">company_cash</a> + 
+                          <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> )
+                        </span>
                       </li>
                     </ul>
                   </div>
@@ -283,47 +292,47 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li>company_capitalization, which is a positive number of shares</li>
-                <li>premoney_valuation, which is a positive USD amount</li>
+                <li id="IssueSAFEPreferredStock.company_capitalization">
+                  <span class="symbintro">company_capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="IssueSAFEPreferredStock.premoney_valuation">
+                  <span class="symbintro">premoney_valuation</span>, which is a positive USD amount
+                </li>
               </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>premoney_valuation / company_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, cap_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>VALUATION_CAP / company_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, discount_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>conversion_price
+                  <div>
+                    <a href="#conversion_price">conversion_price</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of cap_price' and discount_price'</span>
+                        <span>the minimum of 
+                          <span>
+                            <a href="#VALUATION_CAP">VALUATION_CAP</a> / 
+                            <a href="#IssueSAFEPreferredStock.company_capitalization">company_capitalization</a>
+                          </span> and 
+                          <span>
+                            <span>
+                              <a href="#IssueSAFEPreferredStock.premoney_valuation">premoney_valuation</a> / 
+                              <a href="#IssueSAFEPreferredStock.company_capitalization">company_capitalization</a>
+                            </span> * 
+                            <a href="#DISCOUNT_RATE">DISCOUNT_RATE</a>
+                          </span>
+                        </span>
                       </li>
                     </ul>
                   </div>
-                  <div>investor_SAFE_Preferred_Stocks
+                  <div>
+                    <a href="#investor_SAFE_Preferred_Stock">investor_SAFE_Preferred_Stock</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>( investor_SAFE_Preferred_Stocks + 
-                          <span>⎡PURCHASE_AMOUNT / conversion_price'⎤</span> )
+                        <span>( 
+                          <a href="#investor_SAFE_Preferred_Stock">investor_SAFE_Preferred_Stock</a> + 
+                          <span>⎡
+                            <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> / conversion_price'⎤
+                          </span> )
                         </span>
                       </li>
                     </ul>
@@ -415,52 +424,56 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li>company_cash_at_liquidity_event, which is a USD amount</li>
-                <li>liquidity_capitalization, which is a positive number of shares</li>
-                <li>company_valuation, which is a positive USD amount</li>
+                <li id="CommitToIPO.company_cash_at_liquidity_event">
+                  <span class="symbintro">company_cash_at_liquidity_event</span>, which is a USD amount
+                </li>
+                <li id="CommitToIPO.liquidity_capitalization">
+                  <span class="symbintro">liquidity_capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="CommitToIPO.company_valuation">
+                  <span class="symbintro">company_valuation</span>, which is a positive USD amount
+                </li>
               </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>company_valuation / liquidity_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, cap_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>VALUATION_CAP / liquidity_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, discount_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>conversion_price
+                  <div>
+                    <a href="#conversion_price">conversion_price</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of cap_price' and discount_price'</span>
+                        <span>the minimum of 
+                          <span>
+                            <a href="#VALUATION_CAP">VALUATION_CAP</a> / 
+                            <a href="#CommitToIPO.liquidity_capitalization">liquidity_capitalization</a>
+                          </span> and 
+                          <span>
+                            <span>
+                              <a href="#CommitToIPO.company_valuation">company_valuation</a> / 
+                              <a href="#CommitToIPO.liquidity_capitalization">liquidity_capitalization</a>
+                            </span> * 
+                            <a href="#DISCOUNT_RATE">DISCOUNT_RATE</a>
+                          </span>
+                        </span>
                       </li>
                     </ul>
                   </div>
-                  <div>investor_cash_currently_unconverted
+                  <div>
+                    <a href="#investor_cash_currently_unconverted">investor_cash_currently_unconverted</a>
                     <span> is:</span>
                     <ul class="nomarkers">
-                      <li>PURCHASE_AMOUNT</li>
+                      <li>
+                        <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a>
+                      </li>
                     </ul>
                   </div>
-                  <div>company_cash
+                  <div>
+                    <a href="#company_cash">company_cash</a>
                     <span> is:</span>
                     <ul class="nomarkers">
-                      <li>company_cash_at_liquidity_event</li>
+                      <li>
+                        <a href="#CommitToIPO.company_cash_at_liquidity_event">company_cash_at_liquidity_event</a>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -478,82 +491,93 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li>company_cash_at_liquidity_event, which is a USD amount</li>
-                <li>liquidity_capitalization, which is a positive number of shares</li>
-                <li>company_valuation, which is a positive USD amount</li>
-                <li>total_investments_of_cashout_investors, which is a positive USD amount</li>
-                <li>reduction_needed_to_qualify_as_usa_tax_free_reorg, which is a USD amount</li>
+                <li id="CommitToChangeOfControl.company_cash_at_liquidity_event">
+                  <span class="symbintro">company_cash_at_liquidity_event</span>, which is a USD amount
+                </li>
+                <li id="CommitToChangeOfControl.liquidity_capitalization">
+                  <span class="symbintro">liquidity_capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="CommitToChangeOfControl.company_valuation">
+                  <span class="symbintro">company_valuation</span>, which is a positive USD amount
+                </li>
+                <li id="CommitToChangeOfControl.total_investments_of_cashout_investors">
+                  <span class="symbintro">total_investments_of_cashout_investors</span>, which is a positive USD amount
+                </li>
+                <li id="CommitToChangeOfControl.reduction_needed_to_qualify_as_usa_tax_free_reorg">
+                  <span class="symbintro">reduction_needed_to_qualify_as_usa_tax_free_reorg</span>, which is a USD amount
+                </li>
               </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>company_valuation / liquidity_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, cap_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>VALUATION_CAP / liquidity_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, discount_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>conversion_price
+                  <div>
+                    <a href="#conversion_price">conversion_price</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of cap_price' and discount_price'</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>investor_percent_of_cashout_investor_investments
-                    <span> is:</span>
-                    <ul class="nomarkers">
-                      <li>
-                        <span>PURCHASE_AMOUNT / total_investments_of_cashout_investors</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a USD amount, purchase_amount_reduction, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>investor_percent_of_cashout_investor_investments' * reduction_needed_to_qualify_as_usa_tax_free_reorg</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>investor_Common_Stocks
-                    <span> is:</span>
-                    <ul class="nomarkers">
-                      <li>
-                        <span>( investor_Common_Stocks + 
-                          <span>⎡purchase_amount_reduction / conversion_price'⎤</span> )
+                        <span>the minimum of 
+                          <span>
+                            <a href="#VALUATION_CAP">VALUATION_CAP</a> / 
+                            <a href="#CommitToChangeOfControl.liquidity_capitalization">liquidity_capitalization</a>
+                          </span> and 
+                          <span>
+                            <span>
+                              <a href="#CommitToChangeOfControl.company_valuation">company_valuation</a> / 
+                              <a href="#CommitToChangeOfControl.liquidity_capitalization">liquidity_capitalization</a>
+                            </span> * 
+                            <a href="#DISCOUNT_RATE">DISCOUNT_RATE</a>
+                          </span>
                         </span>
                       </li>
                     </ul>
                   </div>
-                  <div>investor_cash_currently_unconverted
+                  <div>
+                    <a href="#investor_Common_Stock">investor_Common_Stock</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>( PURCHASE_AMOUNT - purchase_amount_reduction )</span>
+                        <span>( 
+                          <a href="#investor_Common_Stock">investor_Common_Stock</a> + 
+                          <span>⎡
+                            <span>
+                              <span>
+                                <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> / 
+                                <a href="#CommitToChangeOfControl.total_investments_of_cashout_investors">total_investments_of_cashout_investors</a>
+                              </span> * 
+                              <a href="#CommitToChangeOfControl.reduction_needed_to_qualify_as_usa_tax_free_reorg">reduction_needed_to_qualify_as_usa_tax_free_reorg</a>
+                            </span> / conversion_price'⎤
+                          </span> )
+                        </span>
                       </li>
                     </ul>
                   </div>
-                  <div>company_cash
+                  <div>
+                    <a href="#investor_cash_currently_unconverted">investor_cash_currently_unconverted</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>( company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg )</span>
+                        <span>( 
+                          <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> - 
+                          <span>
+                            <span>
+                              <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> / 
+                              <a href="#CommitToChangeOfControl.total_investments_of_cashout_investors">total_investments_of_cashout_investors</a>
+                            </span> * 
+                            <a href="#CommitToChangeOfControl.reduction_needed_to_qualify_as_usa_tax_free_reorg">reduction_needed_to_qualify_as_usa_tax_free_reorg</a>
+                          </span> )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <a href="#company_cash">company_cash</a>
+                    <span> is:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( 
+                          <a href="#CommitToChangeOfControl.company_cash_at_liquidity_event">company_cash_at_liquidity_event</a> - 
+                          <a href="#CommitToChangeOfControl.reduction_needed_to_qualify_as_usa_tax_free_reorg">reduction_needed_to_qualify_as_usa_tax_free_reorg</a> )
+                        </span>
                       </li>
                     </ul>
                   </div>
@@ -639,13 +663,19 @@ body {
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>investor_Common_Stocks
+                  <div>
+                    <a href="#investor_Common_Stock">investor_Common_Stock</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>( investor_Common_Stocks + 
+                        <span>( 
+                          <a href="#investor_Common_Stock">investor_Common_Stock</a> + 
                           <span>⎡
-                            <span>( investor_cash_currently_unconverted - liq_cashout )</span> / conversion_price⎤
+                            <span>( 
+                              <a href="#investor_cash_currently_unconverted">investor_cash_currently_unconverted</a> - 
+                              <a href="#liq_cashout">liq_cashout</a> )
+                            </span> / 
+                            <a href="#conversion_price">conversion_price</a>⎤
                           </span> )
                         </span>
                       </li>
@@ -721,34 +751,39 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li>total_investments_of_cashout_investors, which is a positive USD amount</li>
+                <li id="TransferCash_L.total_investments_of_cashout_investors">
+                  <span class="symbintro">total_investments_of_cashout_investors</span>, which is a positive USD amount
+                </li>
               </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>investor_percent_of_cashout_investor_investments
+                  <div>
+                    <a href="#liq_cashout">liq_cashout</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>PURCHASE_AMOUNT / total_investments_of_cashout_investors</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>liq_cashout
-                    <span> is:</span>
-                    <ul class="nomarkers">
-                      <li>
-                        <span>the minimum of investor_cash_currently_unconverted and 
-                          <span>company_cash * investor_percent_of_cashout_investor_investments'</span>
+                        <span>the minimum of 
+                          <a href="#investor_cash_currently_unconverted">investor_cash_currently_unconverted</a> and 
+                          <span>
+                            <a href="#company_cash">company_cash</a> * 
+                            <span>
+                              <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> / 
+                              <a href="#TransferCash_L.total_investments_of_cashout_investors">total_investments_of_cashout_investors</a>
+                            </span>
+                          </span>
                         </span>
                       </li>
                     </ul>
                   </div>
-                  <div>investor_cash
+                  <div>
+                    <a href="#investor_cash">investor_cash</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>( investor_cash + liq_cashout' )</span>
+                        <span>( 
+                          <a href="#investor_cash">investor_cash</a> + liq_cashout' )
+                        </span>
                       </li>
                     </ul>
                   </div>
@@ -761,7 +796,10 @@ body {
                 <ul class="nomarkers">
                   <li>
                     <span>if 
-                      <span>liq_cashout is less than investor_cash_currently_unconverted</span>
+                      <span>
+                        <a href="#liq_cashout">liq_cashout</a> is less than 
+                        <a href="#investor_cash_currently_unconverted">investor_cash_currently_unconverted</a>
+                      </span>
                     </span>
                     <ul class="nomarkers">
                       <li>
@@ -786,7 +824,10 @@ body {
                   </li>
                   <li>
                     <span>if 
-                      <span>liq_cashout = investor_cash_currently_unconverted</span>
+                      <span>
+                        <a href="#liq_cashout">liq_cashout</a> = 
+                        <a href="#investor_cash_currently_unconverted">investor_cash_currently_unconverted</a>
+                      </span>
                     </span>
                     <ul class="nomarkers">
                       <li>
@@ -868,23 +909,33 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li>company_cash_at_dissolution_event, which is a USD amount</li>
-                <li>investor_percent_of_dissolving_investor_investments, which is a fraction in the range (0,1]</li>
+                <li id="TransferCash_D.company_cash_at_dissolution_event">
+                  <span class="symbintro">company_cash_at_dissolution_event</span>, which is a USD amount
+                </li>
+                <li id="TransferCash_D.investor_percent_of_dissolving_investor_investments">
+                  <span class="symbintro">investor_percent_of_dissolving_investor_investments</span>, which is a fraction in the range (0,1]
+                </li>
               </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>dis_cashout
+                  <div>
+                    <a href="#dis_cashout">dis_cashout</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of PURCHASE_AMOUNT and 
-                          <span>company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments</span>
+                        <span>the minimum of 
+                          <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> and 
+                          <span>
+                            <a href="#TransferCash_D.company_cash_at_dissolution_event">company_cash_at_dissolution_event</a> * 
+                            <a href="#TransferCash_D.investor_percent_of_dissolving_investor_investments">investor_percent_of_dissolving_investor_investments</a>
+                          </span>
                         </span>
                       </li>
                     </ul>
                   </div>
-                  <div>investor_cash
+                  <div>
+                    <a href="#investor_cash">investor_cash</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>dis_cashout'</li>
@@ -899,7 +950,10 @@ body {
                 <ul class="nomarkers">
                   <li>
                     <span>if 
-                      <span>dis_cashout is less than PURCHASE_AMOUNT</span>
+                      <span>
+                        <a href="#dis_cashout">dis_cashout</a> is less than 
+                        <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a>
+                      </span>
                     </span>
                     <ul class="nomarkers">
                       <li>
@@ -924,7 +978,10 @@ body {
                   </li>
                   <li>
                     <span>if 
-                      <span>dis_cashout = PURCHASE_AMOUNT</span>
+                      <span>
+                        <a href="#dis_cashout">dis_cashout</a> = 
+                        <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a>
+                      </span>
                     </span>
                     <ul class="nomarkers">
                       <li>
@@ -959,48 +1016,49 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li>liquidity_capitalization, which is a positive number of shares</li>
-                <li>company_valuation, which is a positive USD amount</li>
+                <li id="TransferAssets.liquidity_capitalization">
+                  <span class="symbintro">liquidity_capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="TransferAssets.company_valuation">
+                  <span class="symbintro">company_valuation</span>, which is a positive USD amount
+                </li>
               </ul><br>
               <div>Define:</div>
               <ul class="nomarkers">
                 <div>
-                  <div>Temporarily, a price in USD/share, undiscounted_price_per_share_standard_preferred_stock, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>company_valuation / liquidity_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, cap_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>VALUATION_CAP / liquidity_capitalization</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>Temporarily, a price in USD/share, discount_price, by  
-                    <ul class="nomarkers">
-                      <li>
-                        <span>undiscounted_price_per_share_standard_preferred_stock * DISCOUNT_RATE</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>conversion_price
+                  <div>
+                    <a href="#conversion_price">conversion_price</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of cap_price' and discount_price'</span>
+                        <span>the minimum of 
+                          <span>
+                            <a href="#VALUATION_CAP">VALUATION_CAP</a> / 
+                            <a href="#TransferAssets.liquidity_capitalization">liquidity_capitalization</a>
+                          </span> and 
+                          <span>
+                            <span>
+                              <a href="#TransferAssets.company_valuation">company_valuation</a> / 
+                              <a href="#TransferAssets.liquidity_capitalization">liquidity_capitalization</a>
+                            </span> * 
+                            <a href="#DISCOUNT_RATE">DISCOUNT_RATE</a>
+                          </span>
+                        </span>
                       </li>
                     </ul>
                   </div>
-                  <div>investor_Common_Stocks
+                  <div>
+                    <a href="#investor_Common_Stock">investor_Common_Stock</a>
                     <span> is:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>( investor_Common_Stocks + 
+                        <span>( 
+                          <a href="#investor_Common_Stock">investor_Common_Stock</a> + 
                           <span>⎡
-                            <span>( PURCHASE_AMOUNT - dis_cashout )</span> / conversion_price'⎤
+                            <span>( 
+                              <a href="#PURCHASE_AMOUNT">PURCHASE_AMOUNT</a> - 
+                              <a href="#dis_cashout">dis_cashout</a> )
+                            </span> / conversion_price'⎤
                           </span> )
                         </span>
                       </li>

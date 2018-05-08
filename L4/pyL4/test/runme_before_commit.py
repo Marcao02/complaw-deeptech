@@ -16,7 +16,7 @@ tests_to_run = {
     # 'smt',
     # 'graphviz',
     'prettyprint',
-    # 'interpreter',
+    'interpreter',
 }
 
 def runit(s, optional_s=""):

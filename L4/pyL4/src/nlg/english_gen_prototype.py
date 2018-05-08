@@ -7,6 +7,7 @@ from src.independent.util_for_io import writeFile
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule, PartyNextActionRule, EnvNextActionRule
 from src.model.Block import Block
+from src.model.BoundVar import ActionBoundActionParam, StateVar, ContractParam, LocalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.L4Contract import L4Contract
 
@@ -48,6 +49,9 @@ body {
 .situationword {
 
 }
+.symbintro {
+    color: red;
+}
 .is_assignment {
     font-weight: bold;
 }
@@ -64,6 +68,7 @@ def actiontitle(act:Action) -> Any:
               span(" action ",cls="actionword"),
               act.nlg,
               id=act.action_id)
+
 def situationtitle(sit:Situation) -> Any:
     return h3(span("Scenario: ",cls="situationword"),
               sit.nlg,
@@ -79,13 +84,20 @@ def one_indented(x:Any) -> Any:
     return indented(li(x))
 
 def gen_english(prog:L4Contract, outpath:str) -> str:
-    def sitid2link(sitid) -> Any:
+    def sitid2link(sitid:str) -> Any:
         sit = prog.situation(sitid)
         return a(sit.nlg, href=f"#{sitid}")
-
-    def actid2link(actid) -> Any:
+    def actid2link(actid:str) -> Any:
         act = prog.action(actid)
         return a(act.nlg, href=f"#{actid}")
+    def paramid2link(actid:str,paramid:str) -> Any:
+        return a(paramid, href=f"#{actid}.{paramid}")
+    def contractparamid2link(paramid:str) -> Any:
+        return a(paramid, href=f"#{paramid}")
+    def statevarid2link(id:str) -> Any:
+        return a(id, href=f"#{id}")
+    def id2link(id:str) -> Any:
+        return a(id, href=f"#{id}")
 
     doc = html()
 
@@ -97,15 +109,15 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
     docbody = doc.add(body())
     docbody.add(title("prog.filename"), h1("Simple Agreement for Future Equity (SAFE)"))
 
-    def svar(s: str) -> Any:
-        return b(s)
+    def intro(s: str) -> Any:
+        return span(s, cls="symbintro")
 
     def add_contract_params_section() -> None:
         params = prog.contract_params
         docbody.add(div("The parameters to the contract are:"))
         cpul = docbody.add(indented())
         for para,dec in params.items():
-            cpul.add( li( svar(para), ", which is a ", f"{sortHtml(dec.sort)}.") )
+            cpul.add( li( intro(para), ", which is a ", f"{sortHtml(dec.sort)}.") )
 
     def sortHtml(sort:Sort) -> Any:
         return sort_descriptions[str(sort)]
@@ -135,7 +147,7 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         actcontents = rv.add(indented())
         if len(act.param_names) > 0:
             actcontents.add(div(act.allowed_subjects[0] + " must provide:"))
-            actcontents.add(paramsHtml(act.param_sorts_by_name))
+            actcontents.add(paramsHtml(act.param_sorts_by_name, act.action_id))
             actcontents.add(br())
         if act.state_transform:
             actcontents.add(div("Define:"))
@@ -151,12 +163,15 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
             actcontents.add(div("Go to ", sitid2link(act.dest_situation_id)))
         return rv
 
-    def paramsHtml(d:Dict[str,Sort]) -> Any:
+    def paramsHtml(d:Dict[str,Sort], actid:str) -> Any:
         rv = indented()
         for pname,sort in d.items():
-            rv.add(li(pname + ", which is a " + sortHtml(sort)))
+            rv.add(paramIntro(pname,sort,actid))
+            # rv.add(li(pname + ", which is a " + sortHtml(sort)))
         return rv
 
+    def paramIntro(pname: str, sort: Sort, actid:str):
+        return li(intro(pname), ", which is a " + sortHtml(sort), id=f"{actid}.{pname}")
 
     def blockHtml(block:Block) -> Any:
         rv = div()
@@ -167,9 +182,9 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
     def statementHtml(statement:Statement) -> Any:
         if isinstance(statement,StateVarAssign):
             # return div(statement.varname, span("  is  ",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
-            return div(statement.varname, span(" is:"), one_indented(termHtml(statement.value_expr)))
+            return div(statevarid2link(statement.varname), span(" is:"), one_indented(termHtml(statement.value_expr)))
         elif isinstance(statement,LocalVarDec):
-            return div("Temporarily, a ", sortHtml(statement.sort), ", ", statement.varname, ", by  ", one_indented(termHtml(statement.value_expr)))
+            return div("Temporarily, a ", sortHtml(statement.sort), ", ", intro(statement.varname), ", by  ", one_indented(termHtml(statement.value_expr)))
         return div(str(statement))
 
     def timedeltaLitHtml(s:str) -> str:
@@ -266,7 +281,7 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
                 return span(termHtml(term.args[0]), " is at least ", termHtml(term.args[1]))
             elif term.head == "==":
                 return span(termHtml(term.args[0]), " = ", termHtml(term.args[1]))
-            elif term.head == "check":
+            elif term.head == "check" or term.head == "cast":
                 return termHtml(term.args[1])
             elif term.head == "/" or term.head == "*":
                 return span(termHtml(term.args[0]), " ", term.head, " ", termHtml(term.args[1]))
@@ -276,6 +291,14 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
                 return span("the minimum of ", termHtml(term.args[0]), " and ", termHtml(term.args[1]))
             elif term.head == "+" or term.head == "-":
                 return span("( ", termHtml(term.args[0]), " ", term.head, " ", termHtml(term.args[1]), " )")
+        elif isinstance(term, ActionBoundActionParam):
+            return paramid2link(term.action.action_id, term.name)
+        elif isinstance(term, StateVar):
+            return statevarid2link(term.name)
+        elif isinstance(term, ContractParam):
+            return contractparamid2link(term.name)
+        elif isinstance(term, LocalVar):
+            return id2link(term.name)
         return str(term)
 
 
