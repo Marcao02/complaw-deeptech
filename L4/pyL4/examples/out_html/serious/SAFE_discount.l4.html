@@ -28,7 +28,7 @@ body {
 </style>
   </head>
   <body>
-    <title>serious/wip/SAFE-nlg/SAFE_nlg_compatible_cap_discount.l4</title>
+    <title>serious/SAFE_discount.l4</title>
     <h1>Simple Agreement for Future Equity (SAFE)</h1>
     <div>
       <div>The parameters to the contract are:</div>
@@ -38,9 +38,6 @@ body {
         </li>
         <li>
           <span class="symbintro" id="DISCOUNT_RATE">Discount Rate</span>, which is a fraction in the range (0,1].
-        </li>
-        <li>
-          <span class="symbintro" id="VALUATION_CAP">Valuation Cap</span>, which is a positive USD.
         </li>
       </ul>
     </div>
@@ -105,7 +102,7 @@ body {
               </li>
               <li>
                 <span>if 
-                  <span>?total_investments_of_cashout_investors is at least 
+                  <span>Total Investments of Cashout Investors is at least 
                     <a href="#PURCHASE_AMOUNT">Purchase Amount</a>
                   </span>
                 </span>
@@ -338,18 +335,12 @@ body {
                     <span class="is_assignment">  by:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of 
+                        <span>
                           <span>
-                            <a href="#VALUATION_CAP">Valuation Cap</a> / 
+                            <a href="#IssueSAFEPreferredStock.premoney_valuation">Valuation</a> / 
                             <a href="#IssueSAFEPreferredStock.company_capitalization">Capitalization</a>
-                          </span> and 
-                          <span>
-                            <span>
-                              <a href="#IssueSAFEPreferredStock.premoney_valuation">Valuation</a> / 
-                              <a href="#IssueSAFEPreferredStock.company_capitalization">Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
-                          </span>
+                          </span> * 
+                          <a href="#DISCOUNT_RATE">Discount Rate</a>
                         </span>
                       </li>
                     </ul>
@@ -473,18 +464,12 @@ body {
                     <span class="is_assignment">  by:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of 
+                        <span>
                           <span>
-                            <a href="#VALUATION_CAP">Valuation Cap</a> / 
+                            <a href="#CommitToIPO.company_valuation">Valuation</a> / 
                             <a href="#CommitToIPO.liquidity_capitalization">Liquidity Capitalization</a>
-                          </span> and 
-                          <span>
-                            <span>
-                              <a href="#CommitToIPO.company_valuation">Valuation</a> / 
-                              <a href="#CommitToIPO.liquidity_capitalization">Liquidity Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
-                          </span>
+                          </span> * 
+                          <a href="#DISCOUNT_RATE">Discount Rate</a>
                         </span>
                       </li>
                     </ul>
@@ -546,18 +531,12 @@ body {
                     <span class="is_assignment">  by:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of 
+                        <span>
                           <span>
-                            <a href="#VALUATION_CAP">Valuation Cap</a> / 
+                            <a href="#CommitToChangeOfControl.company_valuation">Valuation</a> / 
                             <a href="#CommitToChangeOfControl.liquidity_capitalization">Liquidity Capitalization</a>
-                          </span> and 
-                          <span>
-                            <span>
-                              <a href="#CommitToChangeOfControl.company_valuation">Valuation</a> / 
-                              <a href="#CommitToChangeOfControl.liquidity_capitalization">Liquidity Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
-                          </span>
+                          </span> * 
+                          <a href="#DISCOUNT_RATE">Discount Rate</a>
                         </span>
                       </li>
                     </ul>
@@ -1062,18 +1041,12 @@ body {
                     <span class="is_assignment">  by:</span>
                     <ul class="nomarkers">
                       <li>
-                        <span>the minimum of 
+                        <span>
                           <span>
-                            <a href="#VALUATION_CAP">Valuation Cap</a> / 
+                            <a href="#TransferAssets.company_valuation">Valuation</a> / 
                             <a href="#TransferAssets.liquidity_capitalization">Liquidity Capitalization</a>
-                          </span> and 
-                          <span>
-                            <span>
-                              <a href="#TransferAssets.company_valuation">Valuation</a> / 
-                              <a href="#TransferAssets.liquidity_capitalization">Liquidity Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
-                          </span>
+                          </span> * 
+                          <a href="#DISCOUNT_RATE">Discount Rate</a>
                         </span>
                       </li>
                     </ul>

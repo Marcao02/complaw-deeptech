@@ -53,11 +53,22 @@ class ExecEnv:
         self.evaluation_is_in_situation = False
         self.evaluation_is_in_next_action_rule = False
 
+        self.writeouts : Dict[str,Data] = dict()
+
         # self.start_datetime = datetime.now(timezone.utc)
         # self.start_datetime : datetime = datetime(2000,1,1,0,0,0,0,timezone.utc)
         self.start_datetime: datetime = prog.start_datetime or datetime(2000, 1, 1, 0, 0, 0, 0)
         self.absolute_timeint2timedelta_converter = self.getIntToDeltaConverter()
         self.last_situation_entrance_delta : timedelta = timedelta(0) # = self.timeint2delta(0)
+
+
+
+
+    def writeout(self, varname:str, data:Data):
+        print(f"writeout({varname}, {data})")
+        # raise Exception
+        assert varname not in self.writeouts
+        self.writeouts[varname] = data
 
     def getIntToDeltaConverter(self) -> Callable[[int], timedelta]:
         if self.top.timeunit == 'd':
@@ -169,8 +180,13 @@ class ExecEnv:
         self.gvarvals = {id: self.gvarvals[id] for id in self.gvarvals if not isprimed(id)}
 
         if final_var_vals:
-            for gvarid,expected_val in final_var_vals.items():
-                actual_val = self.gvarvals[castid(StateVarId, gvarid)]
+            for varid,expected_val in final_var_vals.items():
+                if varid in self.gvarvals:
+                    actual_val = self.gvarvals[castid(StateVarId, varid)]
+                elif varid in self.writeouts:
+                    actual_val = self.writeouts[varid]
+                else:
+                    self.evalError(f"Var {varid} in Trace object is neither a state variable nor a writeout local variable")
                 assert actual_val == expected_val, f"Expected state variable {gvarid} to have value {expected_val} at end of trace, but had value {actual_val}."
 
         if finalSituationId:
@@ -410,6 +426,9 @@ class ExecEnv:
         elif isinstance(stmt, LocalVarDec):
             rhs_value = self.evalTerm(stmt.value_expr)
             self.localvar_vals[stmt.varname] = rhs_value
+            if stmt.is_writeout:
+                todo_once("Writeouts don't work currently because of local var elim.")
+                self.writeout(stmt.varname, rhs_value)
 
         else:
             raise NotImplementedError("Unhandled Statement: " + str(stmt))
@@ -445,7 +464,7 @@ class ExecEnv:
             elif isinstance(term, ActionBoundActionParam):
                 assert (self.last_appliedaction_params is not None) and term.ind < len(self.last_appliedaction_params), \
                     f"Action-bound action parameter {term} (index {term.ind}) occurrence but only have " \
-                    f"{len(cast(ActionParamSubstList,self.last_appliedaction_params)) if self.last_appliedaction_params else 0} values supplied."
+                    f"{len(self.last_appliedaction_params) if self.last_appliedaction_params else 0} values supplied."
                 rv = self.last_appliedaction_params[term.ind]
 
             elif isinstance(term, RuleBoundActionParam):

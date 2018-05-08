@@ -13,7 +13,7 @@ def main(examples:Dict[str,L4Contract]):
         prettyprinted = str(prog)
         writeReadOnlyFile(EXAMPLES_UNPARSED_ROOT + examplekey + ".out", prettyprinted)
 
-        if "SAFE_nlg" in examplekey:
+        if "SAFE_" in examplekey:
             gen_english(prog, EXAMPLES_HTML_ROOT + examplekey + ".html")
 
 def cli(sys_argv:List[str]):

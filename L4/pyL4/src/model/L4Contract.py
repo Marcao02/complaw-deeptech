@@ -1,5 +1,5 @@
 # from typing import Union, List, Dict, Any, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import chain
 from typing import Type
 
@@ -56,6 +56,7 @@ class L4Contract:
 
         self.timeunit : str = "d" # default to days
         self.start_datetime: Optional[datetime] = None
+        self.default_action_timelimit: Optional[timedelta] = None
 
         # self.flags : Optional[Set[str]] = None
 
@@ -66,6 +67,7 @@ class L4Contract:
         self.write_bounds : Dict[str,Tuple[int,Optional[int]]] = dict()
 
         self.nlg_names : Dict[str,str] = dict()
+
 
     def register_sorted_name(self,name:str,sort:Sort):
         if name in self.all_sorted_names:

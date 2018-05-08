@@ -67,7 +67,7 @@ AllAtomicSorts = fsortset(DateTime, TimeDelta, PosTimeDelta, Bool, 'RoleId', 'Em
 todo_once("SHOULD NOT BE PREGENERATING NONATOMIC SORTS\nNot because of efficiency, but because not knowing what the "
           "Dimensioned sorts are until a contract is read led me to implement a nasty hack that is now technical debt")
 
-DimensionedNumericSorts = fsortset(Nat1, PosInt1, PosReal2, NonnegReal2, Real2)
+DimensionedNumericSorts = fsortset(Int1, Nat1, PosInt1, PosReal2, NonnegReal2, Real2)
 AtomicSortsAndDimensionedNumericSorts = AllAtomicSorts.union(DimensionedNumericSorts)
 
 # these are just the only ones we're currently using.
@@ -91,6 +91,9 @@ AllNumericSorts = UnboundedNumericSorts.union( BoundedRealIntervalSorts ).union(
 
 
 def check_sorts_valid(sorts:FrozenSet[Sort], sort_defns:Dict[str,Sort]) -> None:
+
+    # print("sort_defns:\n", sort_defns, "\nAtomicSortsAndDimensionedNumericSorts", AtomicSortsAndDimensionedNumericSorts)
+    # print("'shares.Int' in AtomicSortsAndDimensionedNumericSorts: ", 'shares.Int' in AtomicSortsAndDimensionedNumericSorts)
     def sort_compatible(s: Sort, U: FrozenSet[Sort]) -> bool:
         if isinstance(s, str):
             return sort_compatible(sort_defns[s], U) if s in sort_defns else s in U
@@ -98,6 +101,7 @@ def check_sorts_valid(sorts:FrozenSet[Sort], sort_defns:Dict[str,Sort]) -> None:
             return sort_compatible(s.args[0], U) if s.op == "Dimensioned" else False
 
     def is_valid_sort(s: Sort) -> bool:
+        # print(f"is_valid_sort({s})")
         if isinstance(s, str):
             if s in sort_defns:
                 return is_valid_sort(sort_defns[s])
@@ -115,7 +119,7 @@ def check_sorts_valid(sorts:FrozenSet[Sort], sort_defns:Dict[str,Sort]) -> None:
             elif op == 'TDMap':
                 return s.args[0] in TDMapKeySorts
             elif op == 'Dimensioned':
-                return s.args[0] in {Nat, PosInt, NonnegReal, PosReal, Real}
+                return s.args[0] in {Int, Nat, PosInt, NonnegReal, PosReal, Real}
             raise NotImplementedError
 
     for s in sorts:

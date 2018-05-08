@@ -2,7 +2,11 @@
 
 digraph SAFE {    
     Fulfilled[label=Fufilled];
-    InvestorInvests[label=InvestorInvests]
+    Signed[label=Signed];
+	InvestmentWaitingToConvert[label=InvestmentWaitingToConvert];
+	AfterPRASigned[label=AfterPRASigned];
+	InvestorToChooseMethodOfPayment[label=InvestorToChooseMethodOfPayment];
+	Fulfilled[label=Fulfilled]
         
     
          
@@ -10,51 +14,45 @@ digraph SAFE {
     
     
     
-    InvestorInvests -> AfterCommitToEquityFinancing [label=CommitToEquityFinancing];
-	InvestorInvests -> AfterCommitToIPO [label=CommitToIPO];
-	InvestorInvests -> AfterCommitToChangeOfControl [label=CommitToChangeOfControl];
-	InvestorInvests -> AfterCommitToDissolution [label=CommitToDissolution];
-	AfterCommitToEquityFinancing -> AfterDeliverTransactionDocsWithPRA [label=DeliverTransactionDocsWithPRA];
+    Signed -> InvestmentWaitingToConvert [label=TransferInvestmentCash];
+	InvestmentWaitingToConvert -> AfterCommitToEquityFinancing [label=CommitToEquityFinancing];
+	InvestmentWaitingToConvert -> InvestorToChooseMethodOfPayment [label=CommitToIPO];
+	InvestmentWaitingToConvert -> InvestorToChooseMethodOfPayment [label=CommitToChangeOfControl];
+	InvestmentWaitingToConvert -> AfterCommitToDissolution [label=CommitToDissolution];
+	AfterCommitToEquityFinancing -> AfterPRASigned [label=DeliverTransactionDocsWithPRA];
 	AfterCommitToEquityFinancing -> AfterDeliverTransactionDocsWithoutPRA [label=DeliverTransactionDocsWithoutPRA];
-	AfterCommitToEquityFinancing -> Breached_Company [label=InterveneOnDelay_Company];
-	AfterDeliverTransactionDocsWithPRA -> AfterIssueSAFEPreferredStock [label=IssueSAFEPreferredStock];
-	AfterDeliverTransactionDocsWithPRA -> Breached_Company [label=InterveneOnDelay_Company];
-	AfterDeliverTransactionDocsWithoutPRA -> AfterSubmitProRataRightsAgreementForSigning [label=SubmitProRataRightsAgreementForSigning];
-	AfterDeliverTransactionDocsWithoutPRA -> Breached_Company [label=InterveneOnDelay_Company];
-	AfterSubmitProRataRightsAgreementForSigning -> AfterSignPRA [label=SignPRA];
-	AfterSubmitProRataRightsAgreementForSigning -> Breached_Investor [label=InterveneOnDelay_Investor];
-	AfterSignPRA -> AfterIssueSAFEPreferredStock [label=IssueSAFEPreferredStock];
-	AfterSignPRA -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterCommitToEquityFinancing -> Breached_Company [label=Breach_Company];
+	AfterDeliverTransactionDocsWithoutPRA -> AfterSendProRataRightsAgreementForSigning [label=SendProRataRightsAgreementForSigning];
+	AfterDeliverTransactionDocsWithoutPRA -> Breached_Company [label=Breach_Company];
+	AfterSendProRataRightsAgreementForSigning -> AfterPRASigned [label=SignPRA];
+	AfterSendProRataRightsAgreementForSigning -> Breached_Investor [label=Breach_Investor];
+	AfterPRASigned -> AfterIssueSAFEPreferredStock [label=IssueSAFEPreferredStock];
+	AfterPRASigned -> Breached_Company [label=Breach_Company];
 	AfterIssueSAFEPreferredStock -> Fulfilled [label=DoEquityFinancing];
-	AfterIssueSAFEPreferredStock -> Breached_Company [label=InterveneOnDelay_Company];
-	AfterCommitToIPO -> AfterChooseCashPayment [label=ChooseCashPayment];
-	AfterCommitToIPO -> AfterChooseStockPayment [label=ChooseStockPayment];
-	AfterCommitToIPO -> AfterAutoChooseStockPayment [label=AutoChooseStockPayment];
-	AfterCommitToIPO -> Breached_Company [label=Breach_Company];
-	AfterCommitToChangeOfControl -> AfterChooseCashPayment [label=ChooseCashPayment];
-	AfterCommitToChangeOfControl -> AfterChooseStockPayment [label=ChooseStockPayment];
-	AfterCommitToChangeOfControl -> AfterAutoChooseStockPayment [label=AutoChooseStockPayment];
-	AfterCommitToChangeOfControl -> Breached_Company [label=Breach_Company];
+	AfterIssueSAFEPreferredStock -> Breached_Company [label=Breach_Company];
+	InvestorToChooseMethodOfPayment -> AfterChooseCashPayment [label=ChooseCashPayment];
+	InvestorToChooseMethodOfPayment -> AfterChooseStockPayment [label=ChooseStockPayment];
+	InvestorToChooseMethodOfPayment -> AfterAutoChooseStockPayment [label=AutoChooseStockPayment];
 	AfterAutoChooseStockPayment -> AfterTransferCommonStock [label=TransferCommonStock];
-	AfterAutoChooseStockPayment -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterAutoChooseStockPayment -> Breached_Company [label=Breach_Company];
 	AfterChooseStockPayment -> AfterTransferCommonStock [label=TransferCommonStock];
-	AfterChooseStockPayment -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterChooseStockPayment -> Breached_Company [label=Breach_Company];
 	AfterTransferCommonStock -> Fulfilled [label=DoLiquidityEvent];
-	AfterTransferCommonStock -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterTransferCommonStock -> Breached_Company [label=Breach_Company];
 	AfterChooseCashPayment -> AfterTransferCash_L [label=TransferCash_L];
-	AfterChooseCashPayment -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterChooseCashPayment -> Breached_Company [label=Breach_Company];
 	AfterTransferCash_L -> AfterTransferCommonStock [label=TransferCommonStock];
-	AfterTransferCash_L -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterTransferCash_L -> Breached_Company [label=Breach_Company];
 	AfterTransferCash_L -> Fulfilled [label=DoLiquidityEvent];
-	AfterTransferCash_L -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterTransferCash_L -> Breached_Company [label=Breach_Company];
 	AfterCommitToDissolution -> AfterTransferCash_D [label=TransferCash_D];
-	AfterCommitToDissolution -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterCommitToDissolution -> Breached_Company [label=Breach_Company];
 	AfterTransferCash_D -> AfterTransferAssets [label=TransferAssets];
-	AfterTransferCash_D -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterTransferCash_D -> Breached_Company [label=Breach_Company];
 	AfterTransferCash_D -> Fulfilled [label=Dissolve];
-	AfterTransferCash_D -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterTransferCash_D -> Breached_Company [label=Breach_Company];
 	AfterTransferAssets -> Fulfilled [label=Dissolve];
-	AfterTransferAssets -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterTransferAssets -> Breached_Company [label=Breach_Company];
 	     
     
        

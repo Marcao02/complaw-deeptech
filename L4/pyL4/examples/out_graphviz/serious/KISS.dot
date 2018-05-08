@@ -15,7 +15,7 @@ digraph KISS {
 	InvestorInvests -> AfterCommitToFinancing [label=CommitToFinancing];
 	InvestorInvests -> AfterReachMaturity [label=ReachMaturity];
 	AfterCommitToFinancing -> After_NotifyInvestorOfNextEquityFinancingTerms [label=NotifyInvestorOfNextEquityFinancingTerms];
-	AfterCommitToFinancing -> Breached_Company [label=InterveneOnDelay_Company];
+	AfterCommitToFinancing -> Breached_Company [label=Breach_Company];
 	After_NotifyInvestorOfNextEquityFinancingTerms -> Fulfilled [label=CloseEquityFinancingSale];
 	AfterCommitToAcquisition -> Fulfilled [label=ChooseMultipleRepayment];
 	AfterCommitToAcquisition -> Fulfilled [label=ChooseConvertToCommonStock];

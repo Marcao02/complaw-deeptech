@@ -208,11 +208,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.timeunit = LONGFORMS_OF_SUPPORTED_TIMEUNITS[given]
 
         elif head("StartDatetime","StartDT"):
-            # print("start datetime?", rem)
             try:
                 dt = dateutil.parser.parse(rem[0][1])
-                print("the dt", dt)
-                # return DateTimeLit(dt, rem.coord())
                 self.top.start_datetime = dt
             except Exception as e:
                 print(rem,e)
@@ -246,6 +243,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         elif head("NLGNames"):
             for pair in x[1:]:
                 self.top.nlg_names[pair[0]] = pair[1][1]
+
+        elif head("DefaultActionTimeLimit"):
+            self.top.default_action_timelimit = cast(SimpleTimeDeltaLit, self.mk_literal(x[1], x, self.top)).lit
 
         # elif head("Flags"):
             # self._flags = set(x[1:])
@@ -752,7 +752,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 rhs = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)
                 rv = FVRequirement(rhs)
 
-            elif statement_expr[0] == 'local':
+            elif statement_expr[0] == 'local' or statement_expr[0] == 'writeout':
                 self.assertOrSyntaxError(len(statement_expr) == 6, statement_expr, 'Local var dec should have form (local name : type = term) or := instead of =')
                 self.assertOrSyntaxError(statement_expr[2] == ':' and (statement_expr[4] == ":=" or statement_expr[4] == "="), statement_expr,
                                          'Local var dec should have form (local name : type = term)  or := instead of =')
@@ -764,7 +764,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if varname in parent_action.local_vars:
                     self.syntaxError(statement_expr, "Redeclaration of local variable")
                 parent_action.local_vars[varname] = lvd
+                if statement_expr[0] == 'writeout':
+                    lvd.is_writeout = True
                 rv = lvd
+
 
             elif statement_expr[0] == 'if':
                 test = self._mk_term(statement_expr[1], None, parent_action, None, statement_expr)

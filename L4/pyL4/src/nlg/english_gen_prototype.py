@@ -21,11 +21,14 @@ from src.model.Term import Term, FnApp
 from test.active_examples import EXAMPLES_HTML_ROOT
 
 sort_descriptions = {
-    "$": "USD amount",
-    "Pos$": "positive USD amount",
+    "Δ$": "change in USD",
+    "$": "USD",
+    "Pos$": "positive USD",
 
     "Fraction(0,1]": "fraction in the range (0,1]",
+    "Fraction[0,1)": "fraction in the range [0,1)",
     "ShareCnt": "number of shares",
+    "ΔShareCnt": "change in number of shares",
     "PosShareCnt": "positive number of shares",
 
     "SharePrice": "price in USD/share",
@@ -50,7 +53,7 @@ body {
 
 }
 .symbintro {
-    color: red;
+    color: darkgoldenrod;
 }
 .is_assignment {
     font-weight: bold;
@@ -184,10 +187,10 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
 
     def statementHtml(statement:Statement) -> Any:
         if isinstance(statement,StateVarAssign):
-            # return div(statement.varname, span("  is  ",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
-            return div(id2link(statement.varname), span(" is:"), one_indented(termHtml(statement.value_expr)))
+            return div(id2link(statement.varname), span("  by:",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
+            # return div(id2link(statement.varname), span(" by:"), one_indented(termHtml(statement.value_expr)))
         elif isinstance(statement,LocalVarDec):
-            return div("Temporarily, a ", sortHtml(statement.sort), ", ", intro(statement.varname), ", by  ", one_indented(termHtml(statement.value_expr)))
+            return div(intro(statement.varname), ", a ", sortHtml(statement.sort), ", temporarily by:", one_indented(termHtml(statement.value_expr)))
         return div(str(statement))
 
     def timedeltaLitHtml(s:str) -> str:

@@ -334,7 +334,7 @@ EXAMPLES_TO_RUN = [
         'serious/SAFE_cap.l4',
         'serious/SAFE_discount.l4',
         'serious/SAFE_cap_discount.l4',
-        'serious/wip/SAFE-nlg/SAFE_nlg_compatible_cap_discount.l4',
+        # 'serious/wip/SAFE-nlg/SAFE_nlg_compatible_cap_discount.l4',
         # 'serious/SAFE_mfn.l4',
         # 'serious/SAFE_2_liq_eventtypes.l4'
     ]

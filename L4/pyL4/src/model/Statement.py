@@ -161,6 +161,7 @@ class LocalVarDec(WithOneTermChild):
         super().__init__(value_expr)
         self.varname : LocalVarId = varname
         self.sort = sort
+        self.is_writeout = False
 
     def substForVar(self, var:str, term:Term) -> 'LocalVarDec':
         return LocalVarDec(self.varname, self.value_expr.substForVar(var, term), self.sort)

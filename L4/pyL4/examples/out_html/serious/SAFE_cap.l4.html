@@ -28,16 +28,13 @@ body {
 </style>
   </head>
   <body>
-    <title>serious/wip/SAFE-nlg/SAFE_nlg_compatible_cap_discount.l4</title>
+    <title>serious/SAFE_cap.l4</title>
     <h1>Simple Agreement for Future Equity (SAFE)</h1>
     <div>
       <div>The parameters to the contract are:</div>
       <ul class="nomarkers">
         <li>
           <span class="symbintro" id="PURCHASE_AMOUNT">Purchase Amount</span>, which is a positive USD.
-        </li>
-        <li>
-          <span class="symbintro" id="DISCOUNT_RATE">Discount Rate</span>, which is a fraction in the range (0,1].
         </li>
         <li>
           <span class="symbintro" id="VALUATION_CAP">Valuation Cap</span>, which is a positive USD.
@@ -105,7 +102,7 @@ body {
               </li>
               <li>
                 <span>if 
-                  <span>?total_investments_of_cashout_investors is at least 
+                  <span>Total Investments of Cashout Investors is at least 
                     <a href="#PURCHASE_AMOUNT">Purchase Amount</a>
                   </span>
                 </span>
@@ -344,11 +341,8 @@ body {
                             <a href="#IssueSAFEPreferredStock.company_capitalization">Capitalization</a>
                           </span> and 
                           <span>
-                            <span>
-                              <a href="#IssueSAFEPreferredStock.premoney_valuation">Valuation</a> / 
-                              <a href="#IssueSAFEPreferredStock.company_capitalization">Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
+                            <a href="#IssueSAFEPreferredStock.premoney_valuation">Valuation</a> / 
+                            <a href="#IssueSAFEPreferredStock.company_capitalization">Capitalization</a>
                           </span>
                         </span>
                       </li>
@@ -479,11 +473,8 @@ body {
                             <a href="#CommitToIPO.liquidity_capitalization">Liquidity Capitalization</a>
                           </span> and 
                           <span>
-                            <span>
-                              <a href="#CommitToIPO.company_valuation">Valuation</a> / 
-                              <a href="#CommitToIPO.liquidity_capitalization">Liquidity Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
+                            <a href="#CommitToIPO.company_valuation">Valuation</a> / 
+                            <a href="#CommitToIPO.liquidity_capitalization">Liquidity Capitalization</a>
                           </span>
                         </span>
                       </li>
@@ -552,11 +543,8 @@ body {
                             <a href="#CommitToChangeOfControl.liquidity_capitalization">Liquidity Capitalization</a>
                           </span> and 
                           <span>
-                            <span>
-                              <a href="#CommitToChangeOfControl.company_valuation">Valuation</a> / 
-                              <a href="#CommitToChangeOfControl.liquidity_capitalization">Liquidity Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
+                            <a href="#CommitToChangeOfControl.company_valuation">Valuation</a> / 
+                            <a href="#CommitToChangeOfControl.liquidity_capitalization">Liquidity Capitalization</a>
                           </span>
                         </span>
                       </li>
@@ -1068,11 +1056,8 @@ body {
                             <a href="#TransferAssets.liquidity_capitalization">Liquidity Capitalization</a>
                           </span> and 
                           <span>
-                            <span>
-                              <a href="#TransferAssets.company_valuation">Valuation</a> / 
-                              <a href="#TransferAssets.liquidity_capitalization">Liquidity Capitalization</a>
-                            </span> * 
-                            <a href="#DISCOUNT_RATE">Discount Rate</a>
+                            <a href="#TransferAssets.company_valuation">Valuation</a> / 
+                            <a href="#TransferAssets.liquidity_capitalization">Liquidity Capitalization</a>
                           </span>
                         </span>
                       </li>
