@@ -90,34 +90,40 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
     def actid2link(actid:str) -> Any:
         act = prog.action(actid)
         return a(act.nlg, href=f"#{actid}")
-    def paramid2link(actid:str,paramid:str) -> Any:
-        return a(paramid, href=f"#{actid}.{paramid}")
-    def contractparamid2link(paramid:str) -> Any:
-        return a(paramid, href=f"#{paramid}")
-    def statevarid2link(id:str) -> Any:
-        return a(id, href=f"#{id}")
-    def id2link(id:str) -> Any:
-        return a(id, href=f"#{id}")
+    def id2link(nameid:str, ctx:Optional[str] = None) -> Any:
+        if ctx:
+            return a(maybeNL(nameid), href=f"#{ctx}.{nameid}")
+        else:
+            return a(maybeNL(nameid), href=f"#{nameid}")
 
-    doc = html()
+    def intro(nameid: str) -> Any:
+        return span(maybeNL(nameid), id=nameid, cls="symbintro")
+    def actionparamIntro(pname: str, sort: Sort, actid:str):
+        return li(intro(pname), ", which is a " + sortHtml(sort), id=f"{actid}.{pname}")
 
-    doc.add(
-        head(
-            style(CSS)
-        )
-    )
-    docbody = doc.add(body())
-    docbody.add(title("prog.filename"), h1("Simple Agreement for Future Equity (SAFE)"))
+    def maybeNL(s:str) -> str:
+        return prog.nlg_names[s] if s in prog.nlg_names else s
 
-    def intro(s: str) -> Any:
-        return span(s, cls="symbintro")
-
-    def add_contract_params_section() -> None:
+    def contract_params_section() -> Any:
         params = prog.contract_params
-        docbody.add(div("The parameters to the contract are:"))
-        cpul = docbody.add(indented())
+        rv = div()
+        rv.add(div("The parameters to the contract are:"))
+        cpul = rv.add(indented())
         for para,dec in params.items():
             cpul.add( li( intro(para), ", which is a ", f"{sortHtml(dec.sort)}.") )
+        return rv
+
+    def state_vars_section() -> Any:
+        svars = prog.state_var_decs
+        rv = div()
+        rv.add(div("The contract tracks the following variables:"))
+        cpul = rv.add(indented())
+        for svar,dec in svars.items():
+            if dec.initval is not None:
+                cpul.add(li(intro(svar), ", which is a ", f"{sortHtml(dec.sort)} with initial value ", termHtml(dec.initval), "."))
+            else:
+                cpul.add( li( intro(svar), ", which is a ", f"{sortHtml(dec.sort)}.") )
+        return rv
 
     def sortHtml(sort:Sort) -> Any:
         return sort_descriptions[str(sort)]
@@ -147,7 +153,7 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         actcontents = rv.add(indented())
         if len(act.param_names) > 0:
             actcontents.add(div(act.allowed_subjects[0] + " must provide:"))
-            actcontents.add(paramsHtml(act.param_sorts_by_name, act.action_id))
+            actcontents.add(actionparamsHtml(act.param_sorts_by_name, act.action_id))
             actcontents.add(br())
         if act.state_transform:
             actcontents.add(div("Define:"))
@@ -163,15 +169,12 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
             actcontents.add(div("Go to ", sitid2link(act.dest_situation_id)))
         return rv
 
-    def paramsHtml(d:Dict[str,Sort], actid:str) -> Any:
+    def actionparamsHtml(d:Dict[str, Sort], actid:str) -> Any:
         rv = indented()
         for pname,sort in d.items():
-            rv.add(paramIntro(pname,sort,actid))
+            rv.add(actionparamIntro(pname,sort,actid))
             # rv.add(li(pname + ", which is a " + sortHtml(sort)))
         return rv
-
-    def paramIntro(pname: str, sort: Sort, actid:str):
-        return li(intro(pname), ", which is a " + sortHtml(sort), id=f"{actid}.{pname}")
 
     def blockHtml(block:Block) -> Any:
         rv = div()
@@ -182,7 +185,7 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
     def statementHtml(statement:Statement) -> Any:
         if isinstance(statement,StateVarAssign):
             # return div(statement.varname, span("  is  ",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
-            return div(statevarid2link(statement.varname), span(" is:"), one_indented(termHtml(statement.value_expr)))
+            return div(id2link(statement.varname), span(" is:"), one_indented(termHtml(statement.value_expr)))
         elif isinstance(statement,LocalVarDec):
             return div("Temporarily, a ", sortHtml(statement.sort), ", ", intro(statement.varname), ", by  ", one_indented(termHtml(statement.value_expr)))
         return div(str(statement))
@@ -228,7 +231,6 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         if rule.time_constraint:
             if rule.time_constraint.src_expr:
                 y = rule.time_constraint.src_expr
-                print(y)
                 if y[0] in {"before_split", "within_split", "at_split", "after_split", "at_or_after_split"}:
                     if y[0] == "within_split":
                         x = li(span("Within ", timedeltaLitHtml(y[1]), " of the last event:"),
@@ -292,17 +294,28 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
             elif term.head == "+" or term.head == "-":
                 return span("( ", termHtml(term.args[0]), " ", term.head, " ", termHtml(term.args[1]), " )")
         elif isinstance(term, ActionBoundActionParam):
-            return paramid2link(term.action.action_id, term.name)
+            return id2link(term.name, term.action.action_id)
         elif isinstance(term, StateVar):
-            return statevarid2link(term.name)
+            return id2link(term.name)
         elif isinstance(term, ContractParam):
-            return contractparamid2link(term.name)
+            return id2link(term.name)
         elif isinstance(term, LocalVar):
             return id2link(term.name)
-        return str(term)
+        return maybeNL(str(term))
 
+    doc = html()
 
-    add_contract_params_section()
+    doc.add(
+        head(
+            style(CSS)
+        )
+    )
+    docbody = doc.add(body())
+    docbody.add(title(f"{prog.filename}"), h1("Simple Agreement for Future Equity (SAFE)"))
+
+    docbody.add(contract_params_section())
+
+    docbody.add(state_vars_section())
 
     nlgsections : Any = {"root": []}
 
@@ -336,7 +349,6 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
             else:
                 section_items.add(situationHtml(thing))
 
-    print(doc)
     writeFile(outpath,str(doc))
 
 

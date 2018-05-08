@@ -86,7 +86,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
     def _handle_flags(self, l:List[SExpr]) -> List[SExpr]:
         assert self._needs_preprocessing()
-        print("_handle_flags")
         flags = cast(Dict[str, bool], self.flags)
         rs = cast(Dict[str, Any], self.raw_substitutions)
 
@@ -244,9 +243,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         elif head("TypedMacro"):
             todo_once("Handle TypedMacro")
 
-        elif head("Flags"):
+        elif head("NLGNames"):
+            for pair in x[1:]:
+                self.top.nlg_names[pair[0]] = pair[1][1]
+
+        # elif head("Flags"):
             # self._flags = set(x[1:])
-            return
+            # return
 
         else:
             raise Exception("Unsupported: ", x[0])

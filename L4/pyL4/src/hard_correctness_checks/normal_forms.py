@@ -371,8 +371,9 @@ def eliminate_must(sexpr:SExpr, timeunit:str, default_time_limit:Optional[Any] =
                     break
 
                 elif isinstance(child, SExpr) and len(child.lst) >= 1 and child.lst[0] == "when":
-                    print(child)
-                    break
+                    # print(child)
+                    # break
+                    raise NotImplementedError
 
         # print(f"Replacing\n{sexpr2}\nwith\n{may} and \n{other}\n")
 

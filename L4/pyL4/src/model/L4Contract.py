@@ -65,6 +65,8 @@ class L4Contract:
         self.all_sorted_names : Dict[str,Sort] = dict()
         self.write_bounds : Dict[str,Tuple[int,Optional[int]]] = dict()
 
+        self.nlg_names : Dict[str,str] = dict()
+
     def register_sorted_name(self,name:str,sort:Sort):
         if name in self.all_sorted_names:
             assert sort == self.all_sorted_names[name], f"Every occurrence of a sort-typed name (with the exception of event " \
