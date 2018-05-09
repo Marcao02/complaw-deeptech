@@ -5,18 +5,15 @@ from typing import Dict, Optional
 
 from src.independent.util import print_all_todos
 
-# import _tkinter
-# import tkinter
-# tkinter._test()
-
 
 
 tests_to_run = {
-    'L4typechecker',
-    # 'smt',
+    # 'L4typechecker',
+    'smt',
+    'symbexec',
     # 'graphviz',
-    'prettyprint',
-    'interpreter',
+    # 'prettyprint',
+    # 'interpreter',
 }
 
 def runit(s, optional_s=""):
@@ -74,6 +71,12 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         timetask_start('prettyprint')
         import test_prettyprint
         test_prettyprint.main(progs)
+        timetask_stop()
+
+    if 'symbexec' in tests_to_run:
+        timetask_start('symbexec')
+        import test_symbolic_exec
+        test_symbolic_exec.main(progs)
         timetask_stop()
 
     if 'smt' in tests_to_run:
