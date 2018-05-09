@@ -1,10 +1,7 @@
 import test.test_parser
 from src.hard_correctness_checks.symbolic_execution.symbolic_execution import symbolic_execution
-from src.independent.util import nonempty
-from src.independent.util_for_str import strwbar
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse
 from src.independent.typing_imports import *
-from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand, smt_lines_to_str, ToSMTLIB, assertexpr
 from src.model.L4Contract import L4Contract
 
 
@@ -13,7 +10,7 @@ from src.model.L4Contract import L4Contract
 def main(examples: Dict[str, L4Contract], verbose=True):
 
     se_tests = map(lambda x: examples[x], [
-        # 'serious/SAFE_mfn.l4',
+        'serious/SAFE_mfn.l4',
         'serious/SAFE_cap.l4',
         'serious/SAFE_discount.l4',
         'serious/SAFE_cap_discount.l4',
@@ -25,6 +22,7 @@ def main(examples: Dict[str, L4Contract], verbose=True):
         # 'test/test_symbolic_exec_halting_harder.l4', # uses `even`
         'test/test_symbolic_exec_time.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
+        'toy_and_teaching/meng_buy_booze.l4',
         # 'from_academic_lit/hvitved_lease.l4', # uses `monthStartDay_td`
         'from_academic_lit/hvitved_printer.l4',
         'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',

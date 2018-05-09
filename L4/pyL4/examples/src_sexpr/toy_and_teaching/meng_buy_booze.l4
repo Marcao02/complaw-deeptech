@@ -1,0 +1,38 @@
+(Roles Buyer Seller)
+(TimeUnit m)
+
+(FormalContract "Meng buy booze"
+	(StartSituation AtCounter)
+
+	(Situation AtCounter
+		(Buyer may ShowID)
+	)
+
+	(Action ShowID
+		(FollowingSituation
+			(Seller may RefuseID)
+			(Seller may RefuseIntoxicatedBuer)
+			(Seller may AcceptIDAndSobrietyOfBuyer)
+		)
+	)
+	(Action RefuseIntoxicatedBuer (TransitionsTo Fulfilled))
+	(Action RefuseID (TransitionsTo Fulfilled))
+
+	(Action AcceptIDAndSobrietyOfBuyer
+		(FollowingSituation
+			(Buyer may PayForBooze)
+		)
+	)
+
+	(Action PayForBooze
+		(FollowingSituation
+			(Seller may DeliverBooze (within 10m))
+			(Seller may RefundBuyer (within 15m))
+			(Breach_Seller (after 15m))
+		)
+	)
+
+	(Action DeliverBooze (TransitionsTo Fulfilled))
+	(Action RefundBuyer (TransitionsTo Fulfilled))
+
+)

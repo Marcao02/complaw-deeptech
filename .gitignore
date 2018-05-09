@@ -1,0 +1,6 @@
+/KISS_SAFE/
+/tmforum/
+*.aux
+*.synctex.gz
+/_to_clean/
+/.idea/

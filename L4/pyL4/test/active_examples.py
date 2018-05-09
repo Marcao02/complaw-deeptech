@@ -24,6 +24,7 @@ EXAMPLES : List[Union[str,Tuple[str,str,Dict[str,bool],Dict[str,bool]]]] = [
     'toy_and_teaching/partner_assignment_permissions_only.l4',
     'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
     'toy_and_teaching/tutorialSAFE.l4',
+    'toy_and_teaching/meng_buy_booze.l4',
 
     'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
     'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
@@ -62,5 +63,5 @@ for x in EXAMPLES:
         ALL_BEFORE_EXPAND_EXAMPLE_KEYS.append(x[0])
         ALL_AFTER_EXPAND_EXAMPLE_KEYS.append(x[1])
 
-EXAMPLES_FULL_SIZE = 32
+EXAMPLES_FULL_SIZE = 33
 # EXAMPLES_FULL_SIZE = 1

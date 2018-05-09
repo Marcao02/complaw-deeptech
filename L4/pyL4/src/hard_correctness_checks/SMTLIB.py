@@ -30,6 +30,7 @@ INTERP_AS_2PROJECTION = frozenset({"cast", "check", "units", "trust"})
 
 SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
     "$":"Real",
+    "Δ$":"Real",
     "Pos$":"Real",
     "SharePrice":"Real",
     "Fraction[0,1)":"Real",
@@ -40,6 +41,7 @@ SORT_TO_SMTLIB_PRIM_TYPE : Dict[Sort, str] = {
     "TimeDelta":"Int",
     "PosTimeDelta":"Int",
 
+    "ΔShareCnt": "Int",
     "ShareCnt": "Int",
     "PosShareCnt": "Int",
     "Nat": "Int",
