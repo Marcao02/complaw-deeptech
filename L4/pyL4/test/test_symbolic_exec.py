@@ -24,7 +24,6 @@ def main(examples: Dict[str, L4Contract], verbose=True):
         'toy_and_teaching/monster_burger_program_only.l4',
         'toy_and_teaching/meng_buy_booze.l4',
         # 'from_academic_lit/hvitved_lease.l4', # uses `monthStartDay_td`
-        'from_academic_lit/hvitved_printer.l4',
         'toy_and_teaching/hvitved_modeling_prohibition_trivial_nda.l4',
         # 'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4', # uses currently-unsupported data structure
         # 'from_academic_lit/hvitved_instalment_sale--simplified_time.l4' # goes forever because of 0 duration actions
@@ -36,11 +35,14 @@ def main(examples: Dict[str, L4Contract], verbose=True):
         # 'test/test_symbexec_multiwrite_error.l4',
 
         # 'from_academic_lit/wip/goodenough_flood_loan_verbatim_happypath.l4'
-        'from_academic_lit/goodenough_flood_loan_verbatim_noBreach.l4'
+        'from_academic_lit/goodenough_flood_loan_verbatim_noBreach.l4',
+
+
+        'from_academic_lit/hvitved_printer.l4',
 
     ])
     for prog in se_tests:
-        print("\n\n\nsymbolic eval for " + prog.filename)
+        print("\n\n\nsymbolic exec for " + prog.filename)
         eliminate_local_vars(prog)
         eliminate_ifthenelse(prog)
         if prog.filename == "test/test_symbexec_multiwrite_error.l4":

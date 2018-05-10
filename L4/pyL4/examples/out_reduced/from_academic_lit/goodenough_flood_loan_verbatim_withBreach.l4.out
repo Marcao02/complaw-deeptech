@@ -75,8 +75,8 @@ action CureDefault1()  transitions to Pmt1Accruing:
 action Pmt1DuedateArrives()  transitions to Pmt1Due
 
 situation Pmt1Due:
-    Borrower may MakePmt1 (next_event_td == last_situation_td)
-    MissPmt1 (next_event_td ≥ (last_situation_td + 1d))
+    Borrower may MakePmt1 (next_event_td ≤ (last_situation_td + 1d))
+    MissPmt1 (next_event_td > (last_situation_td + 1d))
 
 action MissPmt1()  transitions to BorrowerDefaultMissedPmt1
 
@@ -150,7 +150,7 @@ action Pmt2DueDateArrives()  transitions to Pmt2Due
 
 situation Pmt2Due:
     Borrower may MakePmt2 (next_event_td == last_situation_td)
-    MissPmt2 (next_event_td ≥ (last_situation_td + 1d))
+    MissPmt2 (next_event_td > (last_situation_td + 1d))
 
 action MissPmt2()  transitions to BorrowerDefaultMissedPmt2
 

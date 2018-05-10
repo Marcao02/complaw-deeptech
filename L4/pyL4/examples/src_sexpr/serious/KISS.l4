@@ -84,9 +84,9 @@
 	(StartSituation InvestorInvests)
 
 	(Situation InvestorInvests
-		(Company may (CommitToAcquisition ?1) (when next_event_td < (last_situation_td + TIME_TILL_MATURITY)))
-		(Company may (CommitToFinancing ?1) (when next_event_td < (last_situation_td + TIME_TILL_MATURITY))) ; IPO
-		(ReachMaturity (when next_event_td ≥ (last_situation_td + TIME_TILL_MATURITY)))
+		(Company may (CommitToAcquisition ?1) (before TIME_TILL_MATURITY))
+		(Company may (CommitToFinancing ?1) (before TIME_TILL_MATURITY)) ; IPO
+		(ReachMaturity (at_or_after TIME_TILL_MATURITY))
 	)
 
 	(Action (CommitToFinancing

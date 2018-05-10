@@ -1,0 +1,33 @@
+----------------------------------------
+file: toy_and_teaching/meng_buy_booze.l4
+
+roles: Env, Arbiter, Buyer, Seller
+
+state vars:
+
+situation AtCounter:
+    Buyer may ShowID
+
+action ShowID()  transitions to AfterShowID
+    following situation:
+        Seller may AcceptIDAndSobrietyOfBuyer
+        Seller may RefuseID
+        Seller may RefuseIntoxicatedBuer
+
+action RefuseIntoxicatedBuer()  transitions to Fulfilled
+
+action RefuseID()  transitions to Fulfilled
+
+action AcceptIDAndSobrietyOfBuyer()  transitions to AfterAcceptIDAndSobrietyOfBuyer
+    following situation:
+        Buyer may PayForBooze
+
+action PayForBooze()  transitions to AfterPayForBooze
+    following situation:
+        Breach_Seller (next_event_td > 15m)
+        Seller may DeliverBooze (next_event_td ≤ 10m)
+        Seller may RefundBuyer (next_event_td ≤ 15m)
+
+action DeliverBooze()  transitions to Fulfilled
+
+action RefundBuyer()  transitions to Fulfilled

@@ -57,9 +57,9 @@
 			(buyer_paid' = 100)
 		)
 		(FollowingSituation
-			(Buyer may Pay2ndInstallment (when next_event_td ≤ (30d + delivery_td)))
-			(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
-			(EnterLate2ndInstallment (when next_event_td > (30d + delivery_td)))
+			(Buyer may Pay2ndInstallment (within (30d + delivery_td)))
+			(Buyer may ReturnOnTime (within (14d + delivery_td)))
+			(EnterLate2ndInstallment (after (30d + delivery_td)))
 		)
 	)
 
@@ -75,8 +75,8 @@
 			(buyer_paid' = 200)
 		)
 		(FollowingSituation
-			(Buyer may ReturnOnTime (when next_event_td ≤ (14d + delivery_td)))
-			(CompleteNormalSale (when next_event_td > (14d + delivery_td)))
+			(Buyer may ReturnOnTime (within (14d + delivery_td)))
+			(CompleteNormalSale (after (14d + delivery_td)))
 		)
 	)
 

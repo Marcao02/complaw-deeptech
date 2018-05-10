@@ -87,10 +87,10 @@
 	(Action GiveNoticeOfGeneralDefault1 (TransitionsTo BorrowerNotifiedOfGeneralDefault1))
 	(Situation BorrowerNotifiedOfGeneralDefault1
 		(if (cures < MAX_CURES)
-			(Borrower may CureDefault1 (within (last_situation_td + 2d)))
+			(Borrower may CureDefault1 (within_split 2d))
 			; (Borrower may CureDefault1 (when ((next_event_td >= (last_situation_td + 1)) and (next_event_td <= (last_situation_td + 2d)))))
 		)
-		(AcceleratePayments12 (after (last_situation_td + 2d)))
+		(AcceleratePayments12 (after_split 2d))
 	)
 	(Action CureDefault1 (TransitionsTo Pmt1Accruing)
 		(StateTransform
@@ -100,8 +100,8 @@
 
 	(Action Pmt1DuedateArrives (TransitionsTo Pmt1Due))
 	(Situation Pmt1Due
-		(Borrower may MakePmt1 (at last_situation_td))
-		(MissPmt1 (when (next_event_td ≥ (last_situation_td + 1d) )))
+		(Borrower may MakePmt1 (within_split 1d))
+		(MissPmt1 (after_split 1d))
 	)
 
 	(Action MissPmt1 (TransitionsTo BorrowerDefaultMissedPmt1))
@@ -113,8 +113,8 @@
 
 
 	(Situation BorrowerNotifiedOfPmt1Default
-		(Borrower may MakePmt1 (within (last_situation_td + 1d)))
-		(AcceleratePayments12 (after (last_situation_td + 1d)))
+		(Borrower may MakePmt1 (within_split 1d))
+		(AcceleratePayments12 (after_split 1d))
 	)
 	(Action MakePmt1 (TransitionsTo Pmt2Accruing)
 		(StateTransform (paid_to_lender' = PAYMENT1_AMOUNT))
@@ -122,7 +122,7 @@
 	(Action AcceleratePayments12 (TransitionsTo Payments1and2Accelerating))
 	(Situation Payments1and2Accelerating
 		(Borrower may MakePmt12 immediately)
-		(AcceleratedPaymentFailure1 (after (last_situation_td + 1d)))
+		(AcceleratedPaymentFailure1 (after_split 1d))
 	)
 
 	(Action MakePmt12 (TransitionsTo Term)
@@ -168,10 +168,10 @@
 	)
 	(Situation BorrowerNotifiedOfGeneralDefault2
 		(if (cures < MAX_CURES)
-			(Borrower may CureDefault2 (within (last_situation_td + 2d)))
+			(Borrower may CureDefault2 (within_split 2d))
 			; (Borrower may CureDefault2 (when ((next_event_td >= (last_situation_td + 1)) and (next_event_td <= (last_situation_td + 2d)))))
 		)
-		(Borrower may AcceleratePayment2 (after (last_situation_td + 2d)))
+		(Borrower may AcceleratePayment2 (after_split 2d))
 	)
 	(Action CureDefault2 (TransitionsTo Pmt2Accruing)
 		(StateTransform
@@ -181,8 +181,8 @@
 
 	(Action Pmt2DueDateArrives (TransitionsTo Pmt2Due))
 	(Situation Pmt2Due
-		(Borrower may MakePmt2 (at last_situation_td))
-		(MissPmt2 (when (next_event_td ≥ (last_situation_td + 1d) )))
+		(Borrower may MakePmt2 immediately)
+		(MissPmt2 (after_split 1d))
 	)
 	(Action MissPmt2 (TransitionsTo BorrowerDefaultMissedPmt2))
 	(Situation BorrowerDefaultMissedPmt2
@@ -190,14 +190,14 @@
 	)
 	(Action GiveBorrowerNotice2 (TransitionsTo BorrowerNotifiedOfPmt2Default))
 	(Situation BorrowerNotifiedOfPmt2Default
-		(Borrower may MakePmt2 (within (last_situation_td + 2d)))
-		(AcceleratePayment2 (after (last_situation_td + 2d)))
+		(Borrower may MakePmt2 (within_split 2d))
+		(AcceleratePayment2 (after_split 2d))
 	)
 
 	(Action AcceleratePayment2 (TransitionsTo Payment2Accelerating))
 	(Situation Payment2Accelerating
 		(Borrower may MakePmt2 immediately)
-		(AcceleratedPaymentFailure2 (after (last_situation_td + 1d)))
+		(AcceleratedPaymentFailure2 (after_split 1d))
 	)
 
 	(Action AcceleratedPaymentFailure2 (TransitionsTo Crisis2))

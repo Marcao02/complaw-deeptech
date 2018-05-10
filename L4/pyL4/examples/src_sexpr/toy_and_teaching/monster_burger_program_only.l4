@@ -105,7 +105,7 @@
             	(challenge_endlimit_timestamp ≤ next_event_td)
             and (next_event_td ≤ (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp))
             )))
-            (TimeToCheckCompletionExpires (when next_event_td > (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
+            (TimeToCheckCompletionExpires (after (MAX_CLAIM_VERIFICATION_DELAY + challenge_endlimit_timestamp)))
         ; )
 	)
 

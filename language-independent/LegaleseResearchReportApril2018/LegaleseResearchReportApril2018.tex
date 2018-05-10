@@ -240,7 +240,7 @@ We will always be working with a fixed minimal \anchorfor{timeunit}{timeunit}, w
 %Let $\TS$ denote the nonnegative reals when used for this purpose.
 It is worth emphasizing that \timestamps are distinct from both DateTimes (some standard for calendar dates, clock times, time zones) and TimeDeltas (i.e. durations, which are similar to \timeunit aside from coming in more than one unit), both of which are important datatypes in DSLs such as L4. We have found that there is no advantage, and significant disadvantage (when it comes to formal verification), to having DateTimes or TimeDeltas in the mathematical model.
 
-Fix a set \anchorfor{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lsm-compatible languages we almost always include $\timestamp$ as well, and will usually include $\ZZ$ and $\RR$. We require that these datatypes are definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes\footnote{Though then quantifier free validity is undecidable, so the solver is incomplete.}, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
+Fix a set \anchorfor{$\DT$}{DT} of basic datatypes, or {\it sorts}, which includes at least \Bool. The \lsm-compatible languages we almost always include $\timestamp$ as well, and will usually include $\ZZ$ and $\RR$. We require that these datatypes are definable types of \href{http://smtlib.cs.uiowa.edu/language.shtml}{SMT-LIB}. It is important to note that SMT-LIB itself allows for rich datatypes, including recursive datatypes\footnote{Though then quantifier free validity is undecidable, so the prover is incomplete.}, but also that a computational contracts DSL such as L4 or Ergo can include types beyond those easily definable in SMT-LIB (see Section \ref{typechecking}).
 \medskip
 
 \mybox{\begin{bnote} \label{nameconvention}
@@ -276,7 +276,7 @@ An \anchorfor{event instance}{einst} is a tuple $\tup{e,a,\vts,\sigma}$ where $e
 
 Event instances are instantaneous,\footnote{We might relax this before publication, after discussion with others in the Computational Law community.} occurring at a particular \timestamp; a real world event with duration is modelled by two such instantaneous \einsts, for the start and end of the real world event. That convention is quite flexible; it easily allows modelling overlapping real-world events, for example. We will see in the next section that a sequence of \einsts that constitutes a valid execution of an \lsm requires strictly increasing time stamps. For example, if the \timeunit is days, then three real-world events that happen in some sequence on the second day would happen at \timestamps $1, 1 + \epsilon_1,  1 + \epsilon_1 + \epsilon_2$, for some $\epsilon_1,\epsilon_2 > 0$. When we need to model two real-world events as truly-simultaneous, we use one event instance to model their cooccurrence \todo{example}.
 
-For our intended domain of legal contracts, we are not aware of any cogent criticism of requiring instantaneous event instances with strictly increasing timestamps; and \emph{\textbf{we welcome attempts}}. An earlier version of the model, in fact, did not require that timestamps are {\it strictly} increasing, used discrete time, and had what we believe was a very satisfying\footnote{Or ``elegant'', as unscrupulous researchers put it.} justification. However, the justification requires at least another paragraph, and probably several more to adequately defend it. Meanwhile, it offered no advantages in examples, and had one clear disadvantage for formal verification, where the use of integer variables is costly for SMT solvers.\footnote{The best explanation we have for this is not simple. It starts with noting that real arithmetic is decidable (real closed fields), but even quantifier free integer arithmetic is undecidable (diophantine equations). This does not necessarily mean that simple uses of integer variables will be costly, but in practice, as of April 2018, it seems to, at least to us outsiders. We are not aware of any particularly-useful decidable restriction of quantifier free combined real/integer arithmetic, and the currently-implemented heuristics, at least in Z3, are easily fooled.}
+For our intended domain of legal contracts, we are not aware of any cogent criticism of requiring instantaneous event instances with strictly increasing timestamps; and \emph{\textbf{we welcome attempts}}. An earlier version of the model, in fact, did not require that timestamps are {\it strictly} increasing, used discrete time, and had what we believe was a very satisfying\footnote{Or ``elegant'', as unscrupulous researchers put it.} justification. However, the justification requires at least another paragraph, and probably several more to adequately defend it. Meanwhile, it offered no advantages in examples, and had one clear disadvantage for formal verification, where the use of integer variables is costly for SMT provers.\footnote{The best explanation we have for this is not simple. It starts with noting that real arithmetic is decidable (real closed fields), but even quantifier free integer arithmetic is undecidable (diophantine equations). This does not necessarily mean that simple uses of integer variables will be costly, but in practice, as of April 2018, it seems to, at least to us outsiders. We are not aware of any particularly-useful decidable restriction of quantifier free combined real/integer arithmetic, and the currently-implemented heuristics, at least in Z3, are easily fooled.}
 
 \section{\lsmslong} \label{lsmdef}
 
@@ -502,16 +502,16 @@ Any \wfeseq where $G_i, E_i$ satisfy the above requirements for all $i$ is a val
 \section{Automated Formal Verification for \lsm} \label{lsmstatic}
 
 \subsection{Satisfiability Modulo Theories (SMT) Technology}
-%We use SMT solver tech extensively, but might help.
+%We use SMT prover tech extensively, but might help.
 Familiarity with SMT is not a prerequisite for this document, but if you are unfamiliar and interested, Microsoft's \extlink{https://rise4fun.com/z3/tutorial}{Z3 tutorial} is a fine place to start.
 
 \subsection{Checking the Basic Correctness Conditions}
-We will define here how we use an SMT solver to verify the \udc, \nsc, and \uuc.
+We will define here how we use an SMT prover to verify the \udc, \nsc, and \uuc.
 
 \subsection{\lsmclass{\cF} Extension: Adding Pre/Postconditions and Invariants}
 
 \subsection{Symbolic Execution} \label{symbexec}
-In model checking for expressive models (say, with at least nonlinear integer arithmetic available), usually\footnote{The term ``model checking'' is used rather inconsistently.} an infinite-state model is approximated by a finite or tamely-infinite state model, and correctness properties of the approximation model are checked exhaustively, or exhaustively up to a certain maximum computation path length. In Section \ref{tamelyinfinite} we will consider some cases where approximation is not necessary.
+In model checking for expressive models (say, with at least nonlinear integer arithmetic available), usually\footnote{The term ``model checking'' seems to be used rather inconsistently, at least in the computational law literature.} an infinite-state model is approximated by a finite or tamely-infinite state model, and correctness properties of the approximation model are checked exhaustively, or exhaustively up to a certain maximum computation path length. In Section \ref{tamelyinfinite} we will consider some cases where approximation is not necessary.
 
 Symbolic execution is a technique for avoiding some of the approximation, especially for avoiding having to approximate unbounded datatypes with bounded ones (e.g. $\RR$ approximated by {\sf float}). We do not do this for the sake of more accurate/faithful correctness theorems. Indeed, most of the time software is executed with bounded numeric datatypes anyway, and even when not, no fixed computer can actually compute with arbitrarily large numbers. Rather, we use symbolic execution because, if there is not actually complex math going on (e.g. any cryptographic functions) in a program, but only the use of functions that puts us outside decidable theories, then we should be able to save a lot of time by analyzing computation paths in axiomatically-defined batches.
 
@@ -597,7 +597,7 @@ The set \srcfterm, and the type of an $\srcfterm$, are defined by:
 \end{PPI}
 \end{defn}
 
-We introduce a set \anchorfor{\smtvar}{smtvar},  containing a countable set of variable names for each sort in \DT. These are the existential variables that the SMT solver will try to solve for.
+We introduce a set \anchorfor{\smtvar}{smtvar},  containing a countable set of variable names for each sort in \DT. These are the existential variables that the SMT prover will try to solve for.
 
 \begin{defn}[\anchorfor{\smtfterm}{smtfterm} and their types]
 The set \smtfterm, and the type of an $\smtfterm$, are defined by:
@@ -607,7 +607,7 @@ The set \smtfterm, and the type of an $\smtfterm$, are defined by:
 \end{PPI}
 \end{defn}
 
-
+\todomin{This is not finished! Still need to introduce the syntax for event rules, for example.}
 
 
 
@@ -753,7 +753,7 @@ The main topic of this section will be a reduction to a Timed Automata model che
 
 \subsubsection{Finite Automata / Buchi Automata} \label{finiteautomata}
 
-Suppose the only \statevars in an \lsm $M$ are typed with small finite sorts such as \Bool or enums,\footnote{Technically the following is true for {\it any} finite sorts, but then the representation as a finite state machine becomes prohibitively expensive.} and suppose that for every \erule $r$ and \ename $e$ none of $\reguard{r}$, $\deadfn{r}$, $\eppartconstr{r}$, $\statetransform{e}$, or $\psetter{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM), or when infinite \traces are allowed, to a compressed B\:uchi Automaton. Let's consider the general case where infinite \traces are allowed. Then any properties expressible in the logic \extlink{https://www.cs.toronto.edu/~wehr/buchis_theorem_relating_finite_automata_on_streams_and_S1S.pdf}{S1S}, which includes safety and liveness properties, are decidable about $M$.
+Suppose the only \statevars in an \lsm $M$ are typed with small finite sorts such as \Bool or enums,\footnote{Technically the following is true for {\it any} finite sorts, but then the representation as a finite state machine becomes prohibitively expensive.} and suppose that for every \erule $r$ and \ename $e$ none of $\reguard{r}$, $\deadfn{r}$, $\eppartconstr{r}$, $\statetransform{e}$, or $\psetter{r}$ depend on their \timestamp arguments. Then $M$ is equivalent for formal verification purposes to a kind of compressed\footnote{via the boolean \statevars} deterministic finite state machine (FSM), or when infinite \traces are allowed, to a compressed Buchi Automaton. Let's consider the general case where infinite \traces are allowed. Then any properties expressible in the logic \extlink{https://www.cs.toronto.edu/~wehr/buchis_theorem_relating_finite_automata_on_streams_and_S1S.pdf}{S1S}, which includes safety and liveness properties, are decidable about $M$.
 
 Since most legal contracts involve time at least a little, and since model checking for the more-general Timed Automata model is also tractable, we will skip giving the reduction for this special case in favour of the one given in the next section.
 
@@ -764,6 +764,11 @@ We may relax the constraint from the previous section on the functions/predicate
 
 
 \subsection{Unbounded-Trace Formal Verification with Pre/Post\-conditions and Invariants}
+
+\todomin{WARNING: This section is very hastily written.}
+
+We use SMT provers (possibly falling back to general first-order theorem provers in cases where the SMT prover gives up) in a second way, distinct from symbolic execution. Consider that almost all of the computation in an \lsm happens in the \statetransforms. We may avoid symbolic execution's limitation to bounded traces by employing preconditions (including the already-available \reguard{r} and \eppartconstr{r}) and postconditions in various places. The tradeoff is that we lose a certain completeness property of symbolic execution; it never never considers behaviours that cannot occur in real executions. In contrast, in the approach of this section, we prove stronger properties about components of the contract (individual \statetransforms, especially) than are actually needed for correctness. At this point, we're overdue for an example.
+
 
 \subsection{Unexplored: Hard Unbounded-Trace Formal Verification with Interactive Theorem Proving}
 

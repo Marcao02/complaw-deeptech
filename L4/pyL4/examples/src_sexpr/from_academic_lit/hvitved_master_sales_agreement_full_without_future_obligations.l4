@@ -101,7 +101,7 @@
 
 	(Situation VendorAcceptingOrders
 		(if (orderable_units > 0)
-			(Customer may (SubmitNewOrder ?q) (when next_event_td ≤ order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
+			(Customer may (SubmitNewOrder ?q) (within order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
 		)
 		(if (nonempty 2Bdelivered)
 			; lang note: the `where (mapHas  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
@@ -118,7 +118,7 @@
 		(if ; conditions for early end of contract
 			( and (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
 			; then fulfilled provided all invoice deadlines are expired
-			(EnterFulfilled (when next_event_td > furthest_invoice_deadline))
+			(EnterFulfilled (after furthest_invoice_deadline))
 		)
 		(if ; conditions for end of contract with units remaining
 			( and (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )

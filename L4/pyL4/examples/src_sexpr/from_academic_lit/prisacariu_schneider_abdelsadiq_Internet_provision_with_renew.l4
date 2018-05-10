@@ -57,14 +57,6 @@
 	( infraction_time : TimeDelta )
 )
 
-(Definitions
-	(within24HOfInfraction = (next_event_td ≤ (infraction_time + 24H)))
-	(within48HOfInfraction = (next_event_td ≤ (infraction_time + 48H)))
-	(after24HSinceInfraction = (next_event_td > (infraction_time + 24H)))
-	(after48HSinceInfraction = (next_event_td > (infraction_time + 48H)))
-
-)
-
 
 (FormalContract
 	"PS Internet Provision"
@@ -150,35 +142,35 @@
 		(ISP may SendCancelNoticeByEmail)
 
 		(if (not usage_level_normal)
-			(Client may LowerTraffic (when within48HOfInfraction))
+			(Client may LowerTraffic (within (infraction_time + 48H)))
 		)
 
 		; it might not do anything, but we don't penalyze them in that case.
-		(Client may SendDelayEmail (when within48HOfInfraction))
+		(Client may SendDelayEmail (within (infraction_time + 48H)))
 
-		(Client may (Pay ?x) (when within48HOfInfraction) (where ((?x > ($ 0)) and (?x ≤ ($ 3)))))
+		(Client may (Pay ?x) (within (infraction_time + 48H)) (where ((?x > ($ 0)) and (?x ≤ ($ 3)))))
 
 		(if (and (not sent_delay_email) usage_level_normal (paid ≥ ($ 1)))
-			(Reset (when within24HOfInfraction))
+			(Reset (within (infraction_time + 24H)))
 		)
 
 		(if ((not sent_delay_email) and ((not usage_level_normal) or (not paidBefore24)))
-			(ClientBreaches (when after24HSinceInfraction))
+			(ClientBreaches (after (infraction_time + 24H)))
 		)
 
 		(if (and sent_delay_email usage_level_normal (paid ≥ ($ 2)))
-			(Reset (when within48HOfInfraction))
+			(Reset (within (infraction_time + 48H)))
 		)
 
 		(if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 2)))
-			(Reset (when within48HOfInfraction))
+			(Reset (within (infraction_time + 48H)))
 		)
 
 		(if (and sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 3)))
-			(Reset (when within48HOfInfraction))
+			(Reset (within (infraction_time + 48H)))
 		)
 
-		(ClientBreaches (when after48HSinceInfraction))
+		(ClientBreaches (after (infraction_time + 48H)))
 
 		(if contract_canceled
 			(EnterFulfilled immediately)
