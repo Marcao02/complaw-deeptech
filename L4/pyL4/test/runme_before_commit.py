@@ -1,20 +1,20 @@
 import os
 import sys
 import time
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 
 from src.independent.util import print_all_todos
 
 
-
 tests_to_run = {
-    'L4typechecker',
-    'smt',
-    'symbexec',
-    'graphviz',
+    # 'L4typechecker',
+    # 'smt',
+    # 'symbexec',
+    # 'graphviz',
     'prettyprint',
-    'interpreter',
+    # 'interpreter',
 }
+
 
 def runit(s, optional_s=""):
     line2 = f"Running {optional_s} `{s}`"
@@ -41,47 +41,47 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     timetask_start('total')
 
     timetask_start("parse")
-    import test_parser
-    assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), f"Some entries of cli.EXAMPLES are commented out (count {len(test_parser.EXAMPLES)}), or you need to change cli.EXAMPLES_FULL_SIZE (count {test_parser.EXAMPLES_FULL_SIZE})"
+    from test import test_parser
+    # assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), f"Some entries of cli.EXAMPLES are commented out (count {len(test_parser.EXAMPLES)}), or you need to change cli.EXAMPLES_FULL_SIZE (count {test_parser.EXAMPLES_FULL_SIZE})"
     progs = test_parser.main(keep=True,verbose=False)
     timetask_stop()
 
     if 'interpreter' in tests_to_run:
         timetask_start('interpreter')
-        import test_interpreter
-        print(test_interpreter.EXAMPLES_TO_RUN)
-        assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), f"Some entries of " \
-                f"test_interpreter.EXAMPLES_TO_RUN are probably commented out... {test_interpreter.EXAMPLES_FULL_SIZE} {len(test_interpreter.EXAMPLES_TO_RUN)}"
+        from test import test_interpreter
+        # print(test_interpreter.EXAMPLES_TO_RUN)
+        # assert test_interpreter.EXAMPLES_FULL_SIZE == len(test_interpreter.EXAMPLES_TO_RUN), f"Some entries of " \
+        #         f"test_interpreter.EXAMPLES_TO_RUN are probably commented out... {test_interpreter.EXAMPLES_FULL_SIZE} {len(test_interpreter.EXAMPLES_TO_RUN)}"
         test_interpreter.main(progs, VERBOSE)
         timetask_stop()
 
     if 'L4typechecker' in tests_to_run:
         timetask_start('L4typechecker')
-        import test_typechecker
+        from test import test_typechecker
         test_typechecker.main(progs, VERBOSE)
         timetask_stop()
 
     if 'graphviz' in tests_to_run:
         timetask_start('graphviz')
-        import test_graphviz
+        from test import test_graphviz
         test_graphviz.main(progs, VERBOSE)
         timetask_stop()
 
     if 'prettyprint' in tests_to_run:
         timetask_start('prettyprint')
-        import test_prettyprint
+        from test import test_prettyprint
         test_prettyprint.main(progs)
         timetask_stop()
 
     if 'symbexec' in tests_to_run:
         timetask_start('symbexec')
-        import test_symbolic_exec
+        from test import test_symbolic_exec
         test_symbolic_exec.main(progs)
         timetask_stop()
 
     if 'smt' in tests_to_run:
         timetask_start('smt')
-        import test_smt
+        from test import test_smt
         test_smt.main(progs)
         timetask_stop()
 

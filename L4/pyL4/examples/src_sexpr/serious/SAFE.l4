@@ -14,6 +14,9 @@
 	(PosSharePrice = (Ratio Pos$ PosShareCnt))
 )
 
+; Things to prove:
+; If the contract ends with the investor having no change in stock and investor_cash_delta < 0, then there must have been a dissolution event.
+
 (BlockMacro set_conversion_price (company_capitalization company_valuation)
 	(ifflag HAS_CAP (
 		(ifflag HAS_DISCOUNT (
@@ -94,6 +97,9 @@
 
 	(company_cash_delta : $ = 0)
 
+	; for Liquidity and Dissolution
+	(writes≤1 company_cash_available_for_payout : $)
+
 	; for Liquidity
 	(writes≤1 liq_cashout : $ = 0) ; this needs to either be initialized to 0, or else changed to an Optional and some of the code rewritten a bit.
 
@@ -122,14 +128,15 @@
 		(StateTransform
 			(investor_cash_delta' = (investor_cash_delta - PURCHASE_AMOUNT))
 			(company_cash_delta' = (company_cash_delta + PURCHASE_AMOUNT))
+			(unconverted_investment' = PURCHASE_AMOUNT)
 		)
 	)
 
 	(Situation InvestmentWaitingToConvert
 		(nlg "Investment Waiting to Convert")
 		(Company may (CommitToEquityFinancing))
-		(Company may (CommitToIPO ?1 ?2 ?3))
-		(Company may (CommitToChangeOfControl ?1 ?2 ?3 ?total_investments_of_cashout_investors ?5)
+		(Company may (CommitToIPO ?1 ?2))
+		(Company may (CommitToChangeOfControl ?1 ?2 ?total_investments_of_cashout_investors ?4)
 						(where (?total_investments_of_cashout_investors ≥ PURCHASE_AMOUNT)))
 		(Company may CommitToDissolution)
 	)
@@ -214,21 +221,17 @@
 		(AutoChooseStockPayment [at_split 1w])
 	)
 
-	(Action (CommitToIPO (company_cash_at_liquidity_event : $)
-						 (liquidity_capitalization : PosShareCnt)
+	(Action (CommitToIPO (liquidity_capitalization : PosShareCnt)
 						 (company_valuation : Pos$)
 			) (AllowedSubjects Company)  (TransitionsTo InvestorToChooseMethodOfPayment)
 		(nlg "Initiate an IPO Liquidity Event")
 		(nlgsection "Liquidity Events")
 		(StateTransform
 			(set_conversion_price (liquidity_capitalization company_valuation))
-			(unconverted_investment' = PURCHASE_AMOUNT)
-			(company_cash_delta' = company_cash_at_liquidity_event)
 		)
 	)
 
-	(Action (CommitToChangeOfControl (company_cash_at_liquidity_event : $)
-								     (liquidity_capitalization : PosShareCnt)
+	(Action (CommitToChangeOfControl (liquidity_capitalization : PosShareCnt)
 								     (company_valuation : Pos$)
 								     (total_investments_of_cashout_investors: Pos$)
 								     (reduction_needed_to_qualify_as_usa_tax_free_reorg : $)
@@ -241,8 +244,8 @@
 			(local investor_percent_of_cashout_investor_investments : "Fraction(0,1]" = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
 		 	(local purchase_amount_reduction : $ = (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg))
 			(investor_Common_Stock_delta' += (purchase_amount_reduction ceil/ conversion_price'))
-			(unconverted_investment' = (check $ (PURCHASE_AMOUNT - purchase_amount_reduction)))
-			(company_cash_delta' = (check $ (company_cash_at_liquidity_event - reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+			(unconverted_investment' = (check $ (unconverted_investment - purchase_amount_reduction)))
+			(company_cash_delta' = (check $ (company_cash_delta - purchase_amount_reduction)))
 		)
 	)
 
@@ -278,20 +281,22 @@
 		(nlg "Choose Payment in Cash")
 		(nlgsection "Liquidity Events")
 		(FollowingSituation
-			(Company must (TransferCash_L ?1))
+			(Company must (TransferCash_L ?1 ?2))
 		)
 	)
 
-	(Action (TransferCash_L (total_investments_of_cashout_investors : Pos$)) (AllowedSubjects Company)
+	(Action (TransferCash_L (company_cash_at_liquidity_event : $)
+						    (total_investments_of_cashout_investors : Pos$)) (AllowedSubjects Company)
 		(nlg "Transfer Cash (liquidity)")
 		(nlgsection "Liquidity Events")
 		(StateTransform
 			(local investor_percent_of_cashout_investor_investments : "Fraction(0,1]" = (check "Fraction(0,1]" (PURCHASE_AMOUNT / total_investments_of_cashout_investors)))
 			(liq_cashout' = (min unconverted_investment
-								 (company_cash_delta * investor_percent_of_cashout_investor_investments))
+								 (company_cash_at_liquidity_event * investor_percent_of_cashout_investor_investments))
 			)
 			(investor_cash_delta' += liq_cashout')
-			; (company_cash_delta' = (check $ (company_cash_delta - liq_cashout')))
+			(unconverted_investment' = (check $ (unconverted_investment - liq_cashout)))
+			(company_cash_delta' = (check $ (company_cash_delta - liq_cashout')))
 		)
 
 		(FollowingSituation
@@ -318,7 +323,7 @@
 		(nlgsection "Dissolution Events")
 		(FollowingSituation
 			(Company must
-				(TransferCash_D ?company_cash_delta_at_dissolution_event
+				(TransferCash_D ?company_cash_at_dissolution_event
 								?investor_percent_of_dissolving_investor_investments)
 			)
 		)

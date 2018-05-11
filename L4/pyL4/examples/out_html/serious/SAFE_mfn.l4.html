@@ -60,6 +60,9 @@ body {
           <span class="symbintro" id="company_cash_delta">Change in Company's Cash</span>, which is a USD with initial value 0.
         </li>
         <li>
+          <span class="symbintro" id="company_cash_available_for_payout">company_cash_available_for_payout</span>, which is a USD.
+        </li>
+        <li>
           <span class="symbintro" id="liq_cashout">Liquidity Cashout</span>, which is a USD with initial value 0.
         </li>
         <li>
@@ -124,12 +127,12 @@ body {
               <span class="actionword"> action </span>Transfer Investment to Company
             </h3>
             <ul class="nomarkers">
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
                     <a href="#investor_cash_delta">Change in Investor's Cash</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
@@ -141,13 +144,22 @@ body {
                   </div>
                   <div>
                     <a href="#company_cash_delta">Change in Company's Cash</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
                           <a href="#company_cash_delta">Change in Company's Cash</a> + 
                           <a href="#PURCHASE_AMOUNT">Purchase Amount</a> )
                         </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <a href="#unconverted_investment">Unconverted Investment</a>
+                    <span class="is_assignment">  to:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <a href="#PURCHASE_AMOUNT">Purchase Amount</a>
                       </li>
                     </ul>
                   </div>
@@ -324,12 +336,12 @@ body {
                   <span class="symbintro" id="premoney_valuation">Valuation</span>, which is a positive USD
                 </li>
               </ul><br>
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
                     <a href="#conversion_price">Conversion Price</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>
@@ -341,7 +353,7 @@ body {
                   </div>
                   <div>
                     <a href="#investor_SAFE_Stock_delta">Change in Investor's SAFE Stock</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
@@ -440,9 +452,6 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li id="CommitToIPO.company_cash_at_liquidity_event">
-                  <span class="symbintro" id="company_cash_at_liquidity_event">Total Cash Reserves</span>, which is a USD
-                </li>
                 <li id="CommitToIPO.liquidity_capitalization">
                   <span class="symbintro" id="liquidity_capitalization">Liquidity Capitalization</span>, which is a positive number of shares
                 </li>
@@ -450,36 +459,18 @@ body {
                   <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
                 </li>
               </ul><br>
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
                     <a href="#conversion_price">Conversion Price</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>
                           <a href="#CommitToIPO.company_valuation">Valuation</a> / 
                           <a href="#CommitToIPO.liquidity_capitalization">Liquidity Capitalization</a>
                         </span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <a href="#unconverted_investment">Unconverted Investment</a>
-                    <span class="is_assignment">  by:</span>
-                    <ul class="nomarkers">
-                      <li>
-                        <a href="#PURCHASE_AMOUNT">Purchase Amount</a>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <a href="#company_cash_delta">Change in Company's Cash</a>
-                    <span class="is_assignment">  by:</span>
-                    <ul class="nomarkers">
-                      <li>
-                        <a href="#CommitToIPO.company_cash_at_liquidity_event">Total Cash Reserves</a>
                       </li>
                     </ul>
                   </div>
@@ -498,9 +489,6 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li id="CommitToChangeOfControl.company_cash_at_liquidity_event">
-                  <span class="symbintro" id="company_cash_at_liquidity_event">Total Cash Reserves</span>, which is a USD
-                </li>
                 <li id="CommitToChangeOfControl.liquidity_capitalization">
                   <span class="symbintro" id="liquidity_capitalization">Liquidity Capitalization</span>, which is a positive number of shares
                 </li>
@@ -514,12 +502,12 @@ body {
                   <span class="symbintro" id="reduction_needed_to_qualify_as_usa_tax_free_reorg">Reduction Needed to Qualify as USA Tax-free Reorganization</span>, which is a USD
                 </li>
               </ul><br>
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
                     <a href="#conversion_price">Conversion Price</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>
@@ -530,7 +518,7 @@ body {
                     </ul>
                   </div>
                   <div>
-                    <span class="symbintro" id="investor_percent_of_cashout_investor_investments">Investor Cashout %</span>, a fraction in the range (0,1], temporarily by:
+                    <span class="symbintro" id="investor_percent_of_cashout_investor_investments">Investor Cashout %</span>, a fraction in the range (0,1]  to:
                     <ul class="nomarkers">
                       <li>
                         <span>
@@ -541,7 +529,7 @@ body {
                     </ul>
                   </div>
                   <div>
-                    <span class="symbintro" id="purchase_amount_reduction">Purchase Amount Reduction</span>, a USD, temporarily by:
+                    <span class="symbintro" id="purchase_amount_reduction">Purchase Amount Reduction</span>, a USD  to:
                     <ul class="nomarkers">
                       <li>
                         <span>
@@ -553,7 +541,7 @@ body {
                   </div>
                   <div>
                     <a href="#investor_Common_Stock_delta">Change in Investor's Common Stock</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
@@ -567,11 +555,11 @@ body {
                   </div>
                   <div>
                     <a href="#unconverted_investment">Unconverted Investment</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
-                          <a href="#PURCHASE_AMOUNT">Purchase Amount</a> - 
+                          <a href="#unconverted_investment">Unconverted Investment</a> - 
                           <a href="#purchase_amount_reduction">Purchase Amount Reduction</a> )
                         </span>
                       </li>
@@ -579,12 +567,12 @@ body {
                   </div>
                   <div>
                     <a href="#company_cash_delta">Change in Company's Cash</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
-                          <a href="#CommitToChangeOfControl.company_cash_at_liquidity_event">Total Cash Reserves</a> - 
-                          <a href="#CommitToChangeOfControl.reduction_needed_to_qualify_as_usa_tax_free_reorg">Reduction Needed to Qualify as USA Tax-free Reorganization</a> )
+                          <a href="#company_cash_delta">Change in Company's Cash</a> - 
+                          <a href="#purchase_amount_reduction">Purchase Amount Reduction</a> )
                         </span>
                       </li>
                     </ul>
@@ -668,12 +656,12 @@ body {
               <span class="actionword"> action </span>Transfer Common Stock
             </h3>
             <ul class="nomarkers">
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
                     <a href="#investor_Common_Stock_delta">Change in Investor's Common Stock</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
@@ -759,15 +747,18 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
+                <li id="TransferCash_L.company_cash_at_liquidity_event">
+                  <span class="symbintro" id="company_cash_at_liquidity_event">Total Cash Reserves</span>, which is a USD
+                </li>
                 <li id="TransferCash_L.total_investments_of_cashout_investors">
                   <span class="symbintro" id="total_investments_of_cashout_investors">Total Investments of Cashout Investors</span>, which is a positive USD
                 </li>
               </ul><br>
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
-                    <span class="symbintro" id="investor_percent_of_cashout_investor_investments">Investor Cashout %</span>, a fraction in the range (0,1], temporarily by:
+                    <span class="symbintro" id="investor_percent_of_cashout_investor_investments">Investor Cashout %</span>, a fraction in the range (0,1]  to:
                     <ul class="nomarkers">
                       <li>
                         <span>
@@ -779,13 +770,13 @@ body {
                   </div>
                   <div>
                     <a href="#liq_cashout">Liquidity Cashout</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>the minimum of 
                           <a href="#unconverted_investment">Unconverted Investment</a> and 
                           <span>
-                            <a href="#company_cash_delta">Change in Company's Cash</a> * 
+                            <a href="#TransferCash_L.company_cash_at_liquidity_event">Total Cash Reserves</a> * 
                             <a href="#investor_percent_of_cashout_investor_investments">Investor Cashout %</a>
                           </span>
                         </span>
@@ -794,11 +785,34 @@ body {
                   </div>
                   <div>
                     <a href="#investor_cash_delta">Change in Investor's Cash</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 
                           <a href="#investor_cash_delta">Change in Investor's Cash</a> + liq_cashout' )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <a href="#unconverted_investment">Unconverted Investment</a>
+                    <span class="is_assignment">  to:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( 
+                          <a href="#unconverted_investment">Unconverted Investment</a> - 
+                          <a href="#liq_cashout">Liquidity Cashout</a> )
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <a href="#company_cash_delta">Change in Company's Cash</a>
+                    <span class="is_assignment">  to:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>( 
+                          <a href="#company_cash_delta">Change in Company's Cash</a> - liq_cashout' )
                         </span>
                       </li>
                     </ul>
@@ -932,12 +946,12 @@ body {
                   <span class="symbintro" id="investor_percent_of_dissolving_investor_investments">Investor Cashout %</span>, which is a fraction in the range (0,1]
                 </li>
               </ul><br>
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
                     <a href="#dis_cashout">Dissolution Cashout</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>the minimum of 
@@ -952,7 +966,7 @@ body {
                   </div>
                   <div>
                     <a href="#investor_cash_delta">Change in Investor's Cash</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>dis_cashout'</li>
                     </ul>
@@ -1039,12 +1053,12 @@ body {
                   <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
                 </li>
               </ul><br>
-              <div>Define:</div>
+              <div>Set:</div>
               <ul class="nomarkers">
                 <div>
                   <div>
                     <a href="#conversion_price">Conversion Price</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>
@@ -1056,7 +1070,7 @@ body {
                   </div>
                   <div>
                     <a href="#investor_Common_Stock_delta">Change in Investor's Common Stock</a>
-                    <span class="is_assignment">  by:</span>
+                    <span class="is_assignment">  to:</span>
                     <ul class="nomarkers">
                       <li>
                         <span>( 

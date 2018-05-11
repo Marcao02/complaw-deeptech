@@ -3,7 +3,7 @@ from typing import Sequence, Dict
 import test.test_parser as test_parser
 from src.model.L4Contract import L4Contract
 from src.typechecking.typecheck import typecheck_prog
-from test.active_examples import EXAMPLES, ALL_AFTER_EXPAND_EXAMPLE_KEYS
+from test.active_examples import ALL_EXAMPLES, ALL_AFTER_EXPAND_EXAMPLE_KEYS
 
 EXAMPLES_TO_TYPECHECK = [
     'toy_and_teaching/test_local_vars.l4',

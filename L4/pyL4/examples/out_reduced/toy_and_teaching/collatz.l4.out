@@ -4,7 +4,7 @@ file: toy_and_teaching/collatz.l4
 roles: Env, Arbiter
 
 contract params:
-    START : Nat := 12
+    START : Nat := 99
 
 state vars:
     x : Nat := START

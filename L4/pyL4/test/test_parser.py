@@ -13,7 +13,7 @@ from test.active_examples import *
 # so can run it as a library too, which respects exceptions
 def main(keep=False, verbose=False) -> Dict[str,L4Contract]:
     rv : Dict[str,L4Contract] = {}
-    for example in EXAMPLES:
+    for example in ALL_EXAMPLES:
         fileinsubpath, fileoutsubpath, flags, rawsubst = (example, example, None, None) if isinstance(example,str) else (example[0], example[1], example[2], example[3])
         flags_str = "" if flags else f"({flags})"
         rawsubst_str = "" if rawsubst else f"({rawsubst})"

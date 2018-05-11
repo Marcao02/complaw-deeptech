@@ -8,7 +8,8 @@ from src.interpreter.interpreter_runner import evalTrace
 from src.model.EventsAndTraces import CompleteTrace, Trace, Event, breachSituationId, EventType, breachActionId
 from src.model.L4Contract import L4Contract
 from test import test_parser
-from test.active_examples import EXAMPLES, ALL_AFTER_EXPAND_EXAMPLE_KEYS
+from test.active_examples import ALL_EXAMPLES, ALL_AFTER_EXPAND_EXAMPLE_KEYS
+from test.active_examples import ONLY_THESE_EXAMPLES
 from test.test_SAFE import all_safe_tests
 from test.test_util import *
 
@@ -343,6 +344,8 @@ EXAMPLES_TO_RUN = [
 def main(examples:Dict[str,L4Contract], verbose=True):
     for trace in traces:
         examplekey = trace[0]
+        if examplekey not in ONLY_THESE_EXAMPLES:
+            continue
         if examplekey not in ALL_AFTER_EXPAND_EXAMPLE_KEYS:
             raise Exception("probably have typo in this path: ", examplekey)
         if examplekey in examples and examplekey in EXAMPLES_TO_RUN:

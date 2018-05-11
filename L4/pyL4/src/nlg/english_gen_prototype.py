@@ -159,7 +159,7 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
             actcontents.add(actionparamsHtml(act.param_sorts_by_name, act.action_id))
             actcontents.add(br())
         if act.state_transform:
-            actcontents.add(div("Define:"))
+            actcontents.add(div("Set:"))
             statetrans = actcontents.add(indented())
             statetrans.add(blockHtml(act.state_transform.statements))
             actcontents.add(br())
@@ -187,10 +187,10 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
 
     def statementHtml(statement:Statement) -> Any:
         if isinstance(statement,StateVarAssign):
-            return div(id2link(statement.varname), span("  by:",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
+            return div(id2link(statement.varname), span("  to:",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
             # return div(id2link(statement.varname), span(" by:"), one_indented(termHtml(statement.value_expr)))
         elif isinstance(statement,LocalVarDec):
-            return div(intro(statement.varname), ", a ", sortHtml(statement.sort), ", temporarily by:", one_indented(termHtml(statement.value_expr)))
+            return div(intro(statement.varname), ", a ", sortHtml(statement.sort), "  to:", one_indented(termHtml(statement.value_expr)))
         return div(str(statement))
 
     def timedeltaLitHtml(s:str) -> str:

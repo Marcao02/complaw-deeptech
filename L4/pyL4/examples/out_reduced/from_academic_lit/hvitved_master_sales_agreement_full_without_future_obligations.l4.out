@@ -6,7 +6,7 @@ roles: Env, Arbiter, Customer, Vendor
 contract params:
     MAX_UNITS : Nat := 1000
     CONTRACT_LIFE : TimeDelta := 52w
-    PRICE_PER_UNIT : $ := 100
+    PRICE_PER_UNIT : $ := (units $ 100)
 
 state vars:
     writes1 order_period_ends : TimeDelta := CONTRACT_LIFE
@@ -45,27 +45,34 @@ action EnterFulfilled()  transitions to Fulfilled
 
 action SubmitNewOrder(quantity: PosInt) transitions to VendorAcceptingOrders:
     transform:
+        test : PosInt := (quantity ceil/ 10)
+        test2 : PosInt := (max 14 (quantity ceil/ 10))
+        delivery_deadline : TimeDelta := (last_event_td + (days (max 14 (quantity ceil/ 10))))
         units_ordered := (units_ordered + quantity)
-        2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) (last_event_td + (days (max 14 (quantity ceil/ 10)))))
+        2Bdelivered := (mapSet 2Bdelivered (tuple quantity next_order_id) delivery_deadline)
         next_order_id := (next_order_id + 1)
 
 action Deliver(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bdelivered order)
-        units_delivered := (units_delivered + (tupleGet order 0))
+        quantity : PosInt := (tupleGet order 0)
+        units_delivered := (units_delivered + quantity)
         2Bdelivered := (mapDelete 2Bdelivered order)
-        furthest_invoice_deadline := (max furthest_invoice_deadline (last_event_td + 30d))
-        2Binvoiced := (mapSet 2Binvoiced (tuple (tupleGet order 0) (tupleGet order 1)) (last_event_td + 30d))
+        invoice_deadline : TimeDelta := (last_event_td + 30d)
+        furthest_invoice_deadline := (max furthest_invoice_deadline invoice_deadline)
+        2Binvoiced := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline)
 
 action EmailInvoice(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Binvoiced order)
-        units_invoiced := (units_invoiced + (tupleGet order 0))
+        quantity : PosInt := (tupleGet order 0)
+        units_invoiced := (units_invoiced + quantity)
         2Binvoiced := (mapDelete 2Binvoiced order)
-        2Bpaid := (mapSet 2Bpaid (tuple (tupleGet order 0) (tupleGet order 1)) (last_event_td + 14d))
+        2Bpaid := (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (last_event_td + 14d))
 
 action PayBill(order: Order) transitions to VendorAcceptingOrders:
     transform:
         prove (mapHas 2Bpaid order)
-        total_paid := (total_paid + ((tupleGet order 0) * PRICE_PER_UNIT))
+        quantity : PosInt := (tupleGet order 0)
+        total_paid := (total_paid + (quantity * PRICE_PER_UNIT))
         2Bpaid := (mapDelete 2Bpaid order)

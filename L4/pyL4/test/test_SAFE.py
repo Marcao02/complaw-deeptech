@@ -60,13 +60,14 @@ primer_ex = [
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 50 * M,
             'company_capitalization': 11.5 * M,
             'company_valuation': 11 * M
         }),
 
          event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 11 * M}),
+         event('TransferCash_L', 'Company', 0, {
+             'company_cash_at_liquidity_event': 50 * M,
+             'total_investments_of_cashout_investors': 11 * M}),
          # event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
@@ -84,7 +85,6 @@ primer_ex = [
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 50 * M,
             'company_capitalization': 11.5 * M,
             "company_valuation": 11 * M,
         }),
@@ -126,13 +126,15 @@ other_ex = [
 
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 9 * M,
+
             'company_capitalization': 11.5 * M,
             'company_valuation': 11 * M, # note greater than CAP
            }),
 
          event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 11 * M}),
+         event('TransferCash_L', 'Company', 0, {
+             'company_cash_at_liquidity_event': 9 * M,
+             'total_investments_of_cashout_investors': 11 * M}),
          event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
@@ -151,12 +153,13 @@ other_ex = [
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToIPO', 'Company', 0, {
-            'company_cash_at_liquidity_event': 9 * M,
             'company_capitalization': 11.5 * M,
             'company_valuation': 11 * M,
           }),
          event('ChooseCashPayment', 'Investor', 0),
-         event('TransferCash_L', 'Company', 0, {'total_investments_of_cashout_investors': 10 * M}),
+         event('TransferCash_L', 'Company', 0, {
+             'company_cash_at_liquidity_event': 9 * M,
+             'total_investments_of_cashout_investors': 10 * M}),
          event('TransferCommonStock', 'Company', 0),
          event('DoLiquidityEvent', 'Company', 0)
          ),
