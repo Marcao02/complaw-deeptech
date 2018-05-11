@@ -25,7 +25,7 @@ def runit(s, optional_s=""):
 VERBOSE = True
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
-    splits : Dict[str,int] = {}
+    splits : Dict[str,float] = {}
     last = ""
     def timetask_start(label:str):
         global last
@@ -99,7 +99,7 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     show_splits()
 
 # runit("export MYPYPATH=.; mypy --ignore-missing-imports src", "typechecker")
-runit("cd ..; export MYPYPATH=.; mypy src", "typechecker")
+runit("export MYPYPATH=.; mypy runme_before_commit.py test src", "typechecker")
 
 
 

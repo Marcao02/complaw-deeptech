@@ -19,8 +19,8 @@ class Action:
     def __init__(self, action_id:ActionId) -> None:
         self.action_id = action_id
         self.dest_situation_id : SituationId = castid(SituationId,"to be set after constructor")
-        self.traversal_bounds: Optional[Any] = None # SExpr
-        self.allowed_subjects: Optional[Any] = None # SExpr
+        self.traversal_bounds: Any = None # actually SExpr
+        self.allowed_subjects: Any = None # actually SExpr
         self.action_description: Optional[str] = None
         self.local_vars: Dict[LocalVarId, LocalVarDec] = dict()
         self.is_compound = False

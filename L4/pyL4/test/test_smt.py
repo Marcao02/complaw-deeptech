@@ -4,7 +4,7 @@ from src.independent.util import nonempty
 from src.independent.util_for_str import strwbar
 from src.hard_correctness_checks.normal_forms import eliminate_local_vars, eliminate_ifthenelse
 from src.independent.typing_imports import *
-from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand, smt_lines_to_str, ToSMTLIB, assertexpr
+from src.hard_correctness_checks.toSMTLIB import SMTLine, SMTCommand_, smt_lines_to_str, ToSMTLIB, assertexpr
 from src.model.L4Contract import L4Contract
 
 # from z3 import z3, z3num  # type:ignore
@@ -45,7 +45,7 @@ def smt_test(prog:L4Contract, outfilepath:str, verbose=True):
             lines.append("")
         lines.append('; ' + s)
 
-    def extend(_lines: Iterable[Union[SMTCommand, str]]):
+    def extend(_lines: Iterable[Union[SMTCommand_, str]]):
         lines.extend(_lines)
 
     eliminate_local_vars(prog)
@@ -96,7 +96,7 @@ def main(examples:Dict[str,L4Contract], verbose=True):
     for examplekey in examples:
         if examplekey in EXAMPLES_TO_USE_FOR_OLD_SMT:
             prog = examples[examplekey]
-            outfilepath = "../examples/out_smt/" + prog.filename[:-2] + "z3"
+            outfilepath = "examples/out_smt/" + prog.filename[:-2] + "z3"
             smt_test(prog, outfilepath, verbose=verbose)
 
 

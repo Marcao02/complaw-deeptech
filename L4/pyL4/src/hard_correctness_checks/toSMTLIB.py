@@ -11,7 +11,7 @@ from src.model.L4Contract import L4Contract
 from src.model.Term import Term, FnApp
 from src.parse_to_model.sexpr_to_L4Contract import isprimed, unprimed
 from src.model.StateTransform import StateTransform
-from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement, Block
+from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement, StatementList
 
 
 # def appendSMTLine(self, s: SMTLine, tolines:List[SMTLine]):
@@ -291,7 +291,7 @@ class ToSMTLIB:
     def stateTransform2smtlib(self, st:Optional[StateTransform]):
         self.block2smtlib(st.statements if st else [])
 
-    def block2smtlib(self,block:Block):
+    def block2smtlib(self, block:StatementList):
         # assert len(block) > 0
         for s in block:
             self.statement2smtlib(s)

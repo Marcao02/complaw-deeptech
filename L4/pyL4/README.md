@@ -13,25 +13,33 @@ https://www.python.org/downloads/release/python-362/
 
 `pip3 install z3` or maybe `python3.6 -m pip install z3`
 
-### (Optional) For typechecking the python code
-Install [mypy](http://mypy-lang.org/) with
-
-`python3.6 -m pip install -U mypy`
-
-To typecheck, from `pyL4` do `mypy src`, or `python3.6 test/run_me_before_commit.py tconly`.
-
 ### (Optional) For generating contract diagrams
 Install graphviz (AKA 'dot'):
 
 http://www.graphviz.org/Download.php
 
+### (Optional) For natural language generation to HTML
+
+`pip3 install dominate`
+
+### (Optional) For typechecking the python code
+Install [mypy](http://mypy-lang.org/) with
+
+`python3.6 -m pip install -U mypy`
+
+To typecheck, from `pyL4` do `python3.6 run_me_before_commit.py tconly`.
+
+
+
 ## Running
 
-`python3.6 test/run_me_before_commit.py`
+You can control which modules to run examples on, and which examples to run, with `tests_to_run` in `runme_before_commit.py` and by commenting out lines in `ALL_EXAMPLES` in `test/active_examples.py`.
 
-`python3.6 test/run_me_before_commit.py tconly`
+`python3.6 runme_before_commit.py`
 
-`python3.6 test/test_smt.py`
+`python3.6 runme_before_commit.py tconly`
+
+<!--`python3.6 test/test_smt.py`
 
 `python3.6 test/test_interpreter.py`
 
@@ -40,9 +48,9 @@ http://www.graphviz.org/Download.php
 `python3.6 test/test_prettyprint.py`
 
 `python3.6 test/test_graphviz.py`
-
-`python3.6 test/test_parser.py` (this file gets used by all the other `test_`* files, as well as `run_me_before_commit.py`)
-
+-->
+<!--`python3.6 test/test_parser.py` (this file gets used by all the other `test_`* files, as well as `run_me_before_commit.py`)
+-->
 
 ## Relation to Linear State Machines
 

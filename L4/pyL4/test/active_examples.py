@@ -1,16 +1,19 @@
 from typing import List, Union, Tuple, Dict, Set, Optional
 
-EXAMPLES_SEXPR_ROOT = "../examples/src_sexpr/"
-EXAMPLES_UNPARSED_ROOT = "../examples/out_reduced/"
-EXAMPLES_HTML_ROOT = "../examples/out_html/"
+EXAMPLES_SEXPR_ROOT = "examples/src_sexpr/"
+EXAMPLES_UNPARSED_ROOT = "examples/out_reduced/"
+EXAMPLES_HTML_ROOT = "examples/out_html/"
 
-# ONLY_THESE_EXAMPLES = None
-ONLY_THESE_EXAMPLES : Optional[Set[str]] = {
-    'serious/SAFE_cap_discount.l4'
-}
+# THIS IS CURRENTLY ONLY USED BY test_interpreter.py !!!!!
+ONLY_THESE_EXAMPLES = None
+# ONLY_THESE_EXAMPLES : Optional[Set[str]] = {
+#     'serious/SAFE_cap_discount.l4'
+# }
 
 
-ALL_EXAMPLES : List[Union[str, Tuple[str, str, Dict[str, bool], Dict[str, bool]]]] = [
+# second part of Union is for files with pre-model-build macros
+ALL_EXAMPLES : List[Union[str,
+                          Tuple[str, str, Optional[Dict[str, bool]], Optional[Dict[str, str]]]]] = [
     'test/test_symbolic_exec_time.l4',
     'test/test_symbolic_exec_ifelse_halting_split.l4',
     'test/test_symbolic_exec_ifelse_halting.l4',

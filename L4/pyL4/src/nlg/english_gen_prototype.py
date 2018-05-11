@@ -1,22 +1,37 @@
 from distutils.file_util import write_file
 from typing import Any, Dict, Optional
 
-from src.constants_and_defined_types import ContractParamId, FULFILLED_SITUATION_LABEL
+from src.constants_and_defined_types import ContractParamId, FULFILLED_SITUATION_LABEL, ActionParamId, SituationId, \
+    ActionId
+from src.independent.util import castid
 from src.independent.util_for_dicts import partitionBy
 from src.independent.util_for_io import writeFile
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule, PartyNextActionRule, EnvNextActionRule
-from src.model.Block import Block
 from src.model.BoundVar import ActionBoundActionParam, StateVar, ContractParam, LocalVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.L4Contract import L4Contract
 
-import dominate
-from dominate.tags import *
+import dominate #type:ignore
+from dominate.tags import * #type:ignore
+span : Any
+h1 : Any
+h2 : Any
+h3 : Any
+ul : Any
+li : Any
+a : Any
+div : Any
+br : Any
+html : Any
+head : Any
+body : Any
+style : Any
+title : Any
 
 from src.model.Situation import Situation
 from src.model.Sort import Sort
-from src.model.Statement import Statement, StateVarAssign, LocalVarDec
+from src.model.Statement import Statement, StateVarAssign, LocalVarDec, StatementList
 from src.model.Term import Term, FnApp
 from test.active_examples import EXAMPLES_HTML_ROOT
 
@@ -86,12 +101,12 @@ def indented(x:Optional[Any] = None) -> Any:
 def one_indented(x:Any) -> Any:
     return indented(li(x))
 
-def gen_english(prog:L4Contract, outpath:str) -> str:
+def gen_english(prog:L4Contract, outpath:str) -> None:
     def sitid2link(sitid:str) -> Any:
-        sit = prog.situation(sitid)
+        sit = prog.situation(castid(SituationId,sitid))
         return a(sit.nlg, href=f"#{sitid}")
     def actid2link(actid:str) -> Any:
-        act = prog.action(actid)
+        act = prog.action(castid(ActionId,actid))
         return a(act.nlg, href=f"#{actid}")
     def id2link(nameid:str, ctx:Optional[str] = None) -> Any:
         if ctx:
@@ -139,7 +154,9 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         rules = sitsec.add(indented())
         for guardkey,rulelist in rules_by_enabled_guard.items():
             if guardkey != "None":
-                rulegroup = rules.add(li(span("if ", termHtml(rulelist[0].entrance_enabled_guard)))).add(indented())
+                theguard = rulelist[0].entrance_enabled_guard
+                assert theguard is not None
+                rulegroup = rules.add(li(span("if ", termHtml(theguard)))).add(indented())
                 for rule in rulelist:
                     rulegroup.add(ruleHtml(rule))
             else:
@@ -154,7 +171,7 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
         # container.add(actsec)
         rv = li(actiontitle(act))
         actcontents = rv.add(indented())
-        if len(act.param_names) > 0:
+        if act.param_names and len(act.param_names) > 0:
             actcontents.add(div(act.allowed_subjects[0] + " must provide:"))
             actcontents.add(actionparamsHtml(act.param_sorts_by_name, act.action_id))
             actcontents.add(br())
@@ -172,14 +189,14 @@ def gen_english(prog:L4Contract, outpath:str) -> str:
             actcontents.add(div("Go to ", sitid2link(act.dest_situation_id)))
         return rv
 
-    def actionparamsHtml(d:Dict[str, Sort], actid:str) -> Any:
+    def actionparamsHtml(d:Dict[ActionParamId, Sort], actid:str) -> Any:
         rv = indented()
         for pname,sort in d.items():
             rv.add(actionparamIntro(pname,sort,actid))
             # rv.add(li(pname + ", which is a " + sortHtml(sort)))
         return rv
 
-    def blockHtml(block:Block) -> Any:
+    def blockHtml(block:StatementList) -> Any:
         rv = div()
         for statement in block:
             rv.add(statementHtml(statement))

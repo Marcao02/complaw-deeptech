@@ -21,7 +21,7 @@ from src.model.Action import Action
 from src.model.ActionRule import NextActionRule
 from src.model.L4Contract import L4Contract
 from src.model.Situation import Situation
-from src.model.Statement import Block, Statement, StateVarAssign, IfElse, FVRequirement, LocalVarDec
+from src.model.Statement import StatementList, Statement, StateVarAssign, IfElse, FVRequirement, LocalVarDec
 from src.model.Term import Term, FnApp
 from src.hard_correctness_checks.symbolic_execution.z3types_interface import *
 
@@ -56,7 +56,7 @@ class CoreSymbExecState(NamedTuple):
 
 class GuardedBlockPath(NamedTuple):
     # guard: Z3Term  # already conjoined with path_constraint, for now
-    block: Block
+    block: StatementList
     next_state: Store # for Alg2, always frozen. For Alg1, sometimes mutable.
     next_statement: Optional[Statement]
     action: Action
@@ -367,12 +367,12 @@ def symbolic_execution(prog:L4Contract):
 
         return sevalActionAfterStateTransform(a, res.next_state, CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
 
-    def sevalBlock(block: Block,
+    def sevalBlock(block: StatementList,
                    next_state: Store,
                    a: Action,
                    actparam_store: Optional[OneUseStore],  # if it's in an Action with params
                    core: CoreSymbExecState
-                  ) -> SEvalRV:
+                   ) -> SEvalRV:
         pathconstr, time_pathconstr, state, t, envvars, extra = core
         if TRACE:
             print(f"sevalBlock(...,{state},{next_state}...,{t}")

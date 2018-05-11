@@ -180,7 +180,7 @@ for case in primer_ex:
     if len(case) == 3:
         case2 = ("serious/SAFE_cap_discount.l4", deepcopy(case[1]), case[2])
     else:
-        case2 = ("serious/SAFE_cap_discount.l4", deepcopy(case[1]))
+        case2 = ("serious/SAFE_cap_discount.l4", deepcopy(case[1]), "")
     if "SAFE_discount.l4" in case[0]:
         case2[1].contract_param_subst["VALUATION_CAP"] = TOO_LARGE_CAP  # wanted this to cause a test error
     elif "SAFE_cap.l4" in case[0]:

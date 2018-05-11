@@ -28,7 +28,7 @@ from src.model.ContractParamDec import ContractParamDec
 from src.model.Definition import Definition
 from src.model.StateTransform import StateTransform
 from src.model.Statement import Statement, FVRequirement, \
-    LocalVarDec, IfElse, StateVarAssign, Block
+    LocalVarDec, IfElse, StateVarAssign, StatementList
 from src.model.StateVarDec import StateVarDec
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id, \
     derived_trigger_id_to_situation_id, derived_destination_id
@@ -740,7 +740,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             #                                                   "I don't remember if there's a reason for that besides for symbolic execution."
         return rv
 
-    def _mk_statement(self, statement_expr:SExpr, parent_action:Action, parent_block:Block, parent_ifelse:Optional[IfElse]) -> Statement:
+    def _mk_statement(self, statement_expr:SExpr, parent_action:Action, parent_block:StatementList, parent_ifelse:Optional[IfElse]) -> Statement:
         assert isinstance(statement_expr, SExpr) and statement_expr.coord is not None, statement_expr
         varname : str
         rv : Statement

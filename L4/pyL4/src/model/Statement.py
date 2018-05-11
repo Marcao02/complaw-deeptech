@@ -7,20 +7,20 @@ from src.model.StateVarDec import StateVarDec
 from src.model.Sort import Sort
 from src.model.Term import Term
 
-Block = List['Statement']
+StatementList = List['Statement']
 T = TypeVar('T')
 
-def blocksubstForVar(b:Block, var:str, term:Term) -> Block:
+def blocksubstForVar(b:StatementList, var:str, term:Term) -> StatementList:
     return [s.substForVar(var, term) for s in b]
 
-def blocksubstForTerm(b:Block, toremove:Term, term:Term) -> Block:
+def blocksubstForTerm(b:StatementList, toremove:Term, term:Term) -> StatementList:
     return [s.substForTerm(toremove, term) for s in b]
 
 """ Just the common parent """
 class Statement:
     def __init__(self):
         self.orig : Optional[Statement]
-        self.parent_block : Optional[Block] = None
+        self.parent_block : Optional[StatementList] = None
         self.grandparent_ifelse: Optional[IfElse] = None
 
     def next_statement(self) -> Optional['Statement']:

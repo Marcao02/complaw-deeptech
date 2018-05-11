@@ -1,5 +1,6 @@
 from datetime import timedelta
 from itertools import chain
+from logging import warning
 from typing import Sequence, Tuple, Optional
 
 from src.hard_correctness_checks.normal_forms import eliminate_ifthenelse, eliminate_local_vars
@@ -14,7 +15,10 @@ from test.test_SAFE import all_safe_tests
 from test.test_util import *
 
 
-traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
+TraceExample = Union[ Tuple[str, Union[Trace,CompleteTrace]],
+                      Tuple[str, Union[Trace,CompleteTrace], str] ]
+
+traces_toy_and_teaching : Sequence[ TraceExample ] = (
     ('test/test_symbexec_multiwrite.l4',  CompleteTrace(
         {'N':1200},
         (
@@ -171,7 +175,7 @@ traces_toy_and_teaching : Sequence[ Tuple[str, Union[Trace,CompleteTrace]] ] = (
         ), FULFILLED_SITUATION_LABEL)
      ),
 )
-traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
+traces_from_academic_lit: Sequence[TraceExample] = (
     ('from_academic_lit/prisacariu_schneider_abdelsadiq_Internet_provision_with_renew.l4',
      CompleteTrace({},(
             event('RaiseTraffic','Client',0),
@@ -306,10 +310,10 @@ traces_from_academic_lit: Sequence[Tuple[str, Union[Trace, CompleteTrace]]] = (
 )
 
 
-traces_serious: Sequence[ Union[ Tuple[str, Union[Trace,CompleteTrace]], Tuple[str, Union[Trace,CompleteTrace], str]] ] = list(all_safe_tests)
+traces_serious: Sequence[ TraceExample ] = all_safe_tests
 
 # this is used in runme_before_commit.py b/c I often comment out some of the entries of EXAMPLES_TO_RUN
-EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
+# EXAMPLES_FULL_SIZE = sum((len({x[0] for x in col}) for col in [traces_toy_and_teaching, traces_from_academic_lit, traces_serious]))
 traces = chain(traces_toy_and_teaching, traces_from_academic_lit, traces_serious)
 
 EXAMPLES_TO_RUN = [
@@ -344,10 +348,12 @@ EXAMPLES_TO_RUN = [
 def main(examples:Dict[str,L4Contract], verbose=True):
     for trace in traces:
         examplekey = trace[0]
-        if examplekey not in ONLY_THESE_EXAMPLES:
+        if ONLY_THESE_EXAMPLES and examplekey not in ONLY_THESE_EXAMPLES:
             continue
         if examplekey not in ALL_AFTER_EXPAND_EXAMPLE_KEYS:
-            raise Exception("probably have typo in this path: ", examplekey)
+            warning("maybe have typo in this path: + examplekey")
+            continue
+            # raise Exception("probably have typo in this path: ", examplekey)
         if examplekey in examples and examplekey in EXAMPLES_TO_RUN:
             if verbose:
                 print("\nRunning test trace for " + examplekey)
