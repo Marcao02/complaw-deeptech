@@ -68,6 +68,10 @@ class L4Contract:
 
         self.nlg_names : Dict[str,str] = dict()
 
+        self.local_vars_eliminated = False
+        self.if_then_else_terms_eliminated = False
+        self.must_eliminated = False
+
 
     def register_sorted_name(self,name:str,sort:Sort):
         if name in self.all_sorted_names:

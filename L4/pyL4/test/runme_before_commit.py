@@ -7,12 +7,13 @@ from src.independent.util import print_all_todos
 
 
 tests_to_run = {
-    # 'L4typechecker',
-    # 'smt',
-    # 'symbexec',
-    # 'graphviz',
+    'L4typechecker',
+    'smtlegacy',
+    'symbexec',
+    'graphviz',
     'prettyprint',
-    # 'interpreter',
+    'nlg',
+    'interpreter',
 }
 
 
@@ -45,6 +46,12 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     # assert test_parser.EXAMPLES_FULL_SIZE == len(test_parser.EXAMPLES), f"Some entries of cli.EXAMPLES are commented out (count {len(test_parser.EXAMPLES)}), or you need to change cli.EXAMPLES_FULL_SIZE (count {test_parser.EXAMPLES_FULL_SIZE})"
     progs = test_parser.main(keep=True,verbose=False)
     timetask_stop()
+
+    if 'nlg' in tests_to_run:
+        timetask_start('nlg')
+        from test import test_nlg
+        test_nlg.main(progs)
+        timetask_stop()
 
     if 'interpreter' in tests_to_run:
         timetask_start('interpreter')
@@ -79,8 +86,8 @@ if not "onlytc" in sys.argv and not "tconly" in sys.argv:
         test_symbolic_exec.main(progs)
         timetask_stop()
 
-    if 'smt' in tests_to_run:
-        timetask_start('smt')
+    if 'smtlegacy' in tests_to_run:
+        timetask_start('smt-legacy')
         from test import test_smt
         test_smt.main(progs)
         timetask_stop()

@@ -4,9 +4,9 @@ file: serious/SAFE_cap_discount.l4
 roles: Env, Arbiter, Investor, Company
 
 contract params:
-    PURCHASE_AMOUNT : Pos$ := 100000
-    DISCOUNT_RATE : Fraction(0,1] := 0.9
-    VALUATION_CAP : Pos$ := 100000000
+    PURCHASE_AMOUNT : Pos$ := 20000
+    DISCOUNT_RATE : Fraction(0,1] := 0.8
+    VALUATION_CAP : Pos$ := 99999999
 
 state vars:
     writes≤1 investor_Common_Stock_delta : ΔShareCnt := 0
@@ -60,10 +60,7 @@ situation AfterPRASigned:
 
 action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, premoney_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
     transform:
-        undiscounted_standard_preferred_stock_price : SharePrice := (premoney_valuation / company_capitalization)
-        cap_price : SharePrice := (VALUATION_CAP / company_capitalization)
-        discount_price : SharePrice := (undiscounted_standard_preferred_stock_price * DISCOUNT_RATE)
-        conversion_price := (min cap_price discount_price)
+        conversion_price := (min (VALUATION_CAP / company_capitalization) ((premoney_valuation / company_capitalization) * DISCOUNT_RATE))
         investor_SAFE_Stock_delta := (investor_SAFE_Stock_delta + (PURCHASE_AMOUNT ceil/ conversion_price'))
     following situation:
         Company may DoEquityFinancing (next_event_td ≤ (last_situation_td + 1d))
@@ -78,22 +75,14 @@ situation InvestorToChooseMethodOfPayment:
 
 action CommitToIPO(liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to InvestorToChooseMethodOfPayment:
     transform:
-        undiscounted_standard_preferred_stock_price : SharePrice := (company_valuation / liquidity_capitalization)
-        cap_price : SharePrice := (VALUATION_CAP / liquidity_capitalization)
-        discount_price : SharePrice := (undiscounted_standard_preferred_stock_price * DISCOUNT_RATE)
-        conversion_price := (min cap_price discount_price)
+        conversion_price := (min (VALUATION_CAP / liquidity_capitalization) ((company_valuation / liquidity_capitalization) * DISCOUNT_RATE))
 
 action CommitToChangeOfControl(liquidity_capitalization: PosShareCnt, company_valuation: Pos$, total_investments_of_cashout_investors: Pos$, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to InvestorToChooseMethodOfPayment:
     transform:
-        undiscounted_standard_preferred_stock_price : SharePrice := (company_valuation / liquidity_capitalization)
-        cap_price : SharePrice := (VALUATION_CAP / liquidity_capitalization)
-        discount_price : SharePrice := (undiscounted_standard_preferred_stock_price * DISCOUNT_RATE)
-        conversion_price := (min cap_price discount_price)
-        investor_percent_of_cashout_investor_investments : Fraction(0,1] := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
-        purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg)
-        investor_Common_Stock_delta := (investor_Common_Stock_delta + (purchase_amount_reduction ceil/ conversion_price'))
-        unconverted_investment := (check $ (unconverted_investment - purchase_amount_reduction))
-        company_cash_delta := (check $ (company_cash_delta - purchase_amount_reduction))
+        conversion_price := (min (VALUATION_CAP / liquidity_capitalization) ((company_valuation / liquidity_capitalization) * DISCOUNT_RATE))
+        investor_Common_Stock_delta := (investor_Common_Stock_delta + (((check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors)) * reduction_needed_to_qualify_as_usa_tax_free_reorg) ceil/ conversion_price'))
+        unconverted_investment := (check $ (unconverted_investment - ((check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors)) * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
+        company_cash_delta := (check $ (company_cash_delta - ((check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors)) * reduction_needed_to_qualify_as_usa_tax_free_reorg)))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:
@@ -119,8 +108,7 @@ action ChooseCashPayment()  transitions to AfterChooseCashPayment
 
 action TransferCash_L(company_cash_at_liquidity_event: $, total_investments_of_cashout_investors: Pos$) transitions to AfterTransferCash_L:
     transform:
-        investor_percent_of_cashout_investor_investments : Fraction(0,1] := (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))
-        liq_cashout := (min unconverted_investment (company_cash_at_liquidity_event * investor_percent_of_cashout_investor_investments))
+        liq_cashout := (min unconverted_investment (company_cash_at_liquidity_event * (check Fraction(0,1] (PURCHASE_AMOUNT / total_investments_of_cashout_investors))))
         investor_cash_delta := (investor_cash_delta + liq_cashout')
         unconverted_investment := (check $ (unconverted_investment - liq_cashout))
         company_cash_delta := (check $ (company_cash_delta - liq_cashout'))
@@ -157,10 +145,7 @@ action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_
 
 action TransferAssets(liquidity_capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterTransferAssets:
     transform:
-        undiscounted_standard_preferred_stock_price : SharePrice := (company_valuation / liquidity_capitalization)
-        cap_price : SharePrice := (VALUATION_CAP / liquidity_capitalization)
-        discount_price : SharePrice := (undiscounted_standard_preferred_stock_price * DISCOUNT_RATE)
-        conversion_price := (min cap_price discount_price)
+        conversion_price := (min (VALUATION_CAP / liquidity_capitalization) ((company_valuation / liquidity_capitalization) * DISCOUNT_RATE))
         investor_Common_Stock_delta := (investor_Common_Stock_delta + ((check $ (PURCHASE_AMOUNT - dis_cashout)) ceil/ conversion_price'))
     following situation:
         Company may Dissolve (next_event_td ≤ (last_situation_td + 1d))

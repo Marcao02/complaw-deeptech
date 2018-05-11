@@ -42,6 +42,7 @@ def fdset(d:FrozenDict[T1,T2],k:T1,v:T2) -> FrozenDict[T1,T2]:
     return dcopy
 
 def eliminate_ifthenelse(p:L4Contract):
+    p.local_vars_eliminated = True
     progress_made = False
 
     def isite(t:Term) -> bool:
@@ -132,6 +133,7 @@ def eliminate_ifthenelse(p:L4Contract):
 
 
 def eliminate_local_vars(p:L4Contract):
+    p.local_vars_eliminated = True
     warn_once("WARNING I PLAYED FAST AND LOOSE WITH MUTABLE DATA STRUCTURES")
     """Currently unchecked conditions: 
 	You can't reassign local variables. Use a new one. Try adding a ' or a 2 or a _.
@@ -310,7 +312,9 @@ def eliminate_local_vars(p:L4Contract):
                     # rule.arg_vars_bound_by_rule[i]))
                     # rule.args[i] =
 
-def eliminate_must(sexpr:SExpr, timeunit:str, default_time_limit:Optional[Any] = None):
+def eliminate_must(sexpr:SExpr, prog:L4Contract, timeunit:str, default_time_limit:Optional[Any] = None):
+    prog.must_eliminated = True
+
     def is_must(sexpr2:SExpr) -> bool:
         return len(sexpr2) >= 3 and sexpr2[1] == "must"
 

@@ -264,7 +264,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             #     print(prettySExprStr(x))
 
         for sexpr in  l:
-            eliminate_must(sexpr, self.top.timeunit, "1d")
+            eliminate_must(sexpr, self.top, self.top.timeunit, "1d")
 
         for x in l:
             self._mk_toplevel(x)
