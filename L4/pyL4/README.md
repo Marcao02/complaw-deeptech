@@ -25,7 +25,7 @@ http://www.graphviz.org/Download.php
 ### (Optional) For typechecking the python code
 Install [mypy](http://mypy-lang.org/) with
 
-`python3.6 -m pip install -U mypy`
+`python3.6 -m pip install -U mypy mypy_extensions`
 
 To typecheck, from `pyL4` do `python3.6 run_me_before_commit.py tconly`.
 
