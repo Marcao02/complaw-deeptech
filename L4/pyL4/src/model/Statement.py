@@ -20,7 +20,8 @@ def blocksubstForTerm(b:StatementList, toremove:Term, term:Term) -> StatementLis
 class Statement:
     def __init__(self):
         self.orig : Optional[Statement]
-        self.parent_block : Optional[StatementList] = None
+        # we will ensure that the following field isn't None for very long after construction
+        self.parent_block : StatementList = None # type: ignore
         self.grandparent_ifelse: Optional[IfElse] = None
 
     def next_statement(self) -> Optional['Statement']:

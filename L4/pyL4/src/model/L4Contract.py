@@ -31,9 +31,11 @@ class L4Contract:
         self.start_situation_id = cast(SituationId, "start situation id to be assigned")
 
         self.state_var_decs : Dict[StateVarId, StateVarDec] = dict()
-        self.claims : Iterable[ContractClaim] = []
-        self.state_invariants : Iterable[StateInvariant] = []
         self.contract_params : Dict[ContractParamId, ContractParamDec] = dict()
+
+        self.claims: Iterable[ContractClaim] = []
+        self.state_invariants: Iterable[StateInvariant] = []
+        self.end_of_trace_claims: List[Term] = []
 
         # TODO: make `definitions` `term_definitions`
         self.definitions: Dict[DefinitionId, Definition] = dict()

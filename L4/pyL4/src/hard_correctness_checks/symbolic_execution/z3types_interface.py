@@ -1,7 +1,10 @@
 from datetime import timedelta
 from typing import NewType
-from z3 import z3, z3num  # type:ignore
+# from z3 import z3 # type:ignore
+import z3 # type:ignore
 from z3.z3 import Solver # type:ignore
+
+Z3 = z3.z3
 
 from src.independent.util import todo_once, chcaststr
 from src.independent.typing_imports import *
@@ -28,8 +31,8 @@ class Z3Term:
         pass
     def is_int(self) -> bool:
         pass
-Z3TRUE = z3.BoolVal(True)
-Z3FALSE = z3.BoolVal(False)
+Z3TRUE = Z3.BoolVal(True)
+Z3FALSE = Z3.BoolVal(False)
 
 SORT_TO_SMTLIB_PRIM_TYPE : Dict[str, str] = {
     "$":"Real",
@@ -57,17 +60,17 @@ SORT_TO_SMTLIB_PRIM_TYPE : Dict[str, str] = {
 }
 
 def conj(*forms:Z3Term) -> Z3Term:
-    return z3.And(*forms) # type:ignore
+    return Z3.And(*forms) # type:ignore
 def neg(form:Z3Term) -> Z3Term:
-    return z3.Not(form) # type:ignore
+    return Z3.Not(form) # type:ignore
 def disj(*forms:Z3Term) -> Z3Term:
-    return z3.Or(forms) # type:ignore
+    return Z3.Or(forms) # type:ignore
 def implies(arg1:Z3Term, arg2:Z3Term) -> Z3Term:
-    return z3.Implies(arg1,arg2)   # type:ignore
+    return Z3.Implies(arg1,arg2)   # type:ignore
 def equals(arg1:Z3Term, arg2:Z3Term) -> Z3Term:
     return arg1 == arg2 # type:ignore
 def ite(a1:Z3Term, a2:Z3Term, a3:Z3Term) -> Z3Term:
-    return z3.If(a1, a2, a3) # type:ignore
+    return Z3.If(a1, a2, a3) # type:ignore
 def div(a1:Z3Term, a2:Z3Term) -> Z3Term:
     """
     Integer division when REALS_ONLY is false. Real division otherwise.
@@ -76,22 +79,22 @@ def div(a1:Z3Term, a2:Z3Term) -> Z3Term:
         return a1 / a2 # type:ignore
     else:
         if a1.is_int():
-            a1 = z3.ToReal(a1)
+            a1 = Z3.ToReal(a1)
         if a2.is_int():
-            a2 = z3.ToReal(a2)
-        return z3.ToInt(a1 / a2) # type:ignore
+            a2 = Z3.ToReal(a2)
+        return Z3.ToInt(a1 / a2) # type:ignore
 
 
 # def fnapp(symb:str, *args:SMTExpr) -> SMTExprNonatom_:
 #     return SMTExprNonatom(symb, args)
 
 if REALS_ONLY:
-    z30 = z3.RealVal(0)
-    z31 = z3.RealVal(1)
+    z30 = Z3.RealVal(0)
+    z31 = Z3.RealVal(1)
 else:
-    z30 = z3.IntVal(0)
-    z31 = z3.IntVal(1)
-z3half = z3.RealVal(1/2)
+    z30 = Z3.IntVal(0)
+    z31 = Z3.IntVal(1)
+z3half = Z3.RealVal(1/2)
 
 z3interp : Dict[str,Any] = dict()
 z3interp["<"] = lambda x,y: x < y
@@ -106,12 +109,18 @@ z3interp["=="] = lambda x,y: x == y
 z3interp["not"] = neg
 z3interp["and"] = conj
 z3interp["or"] = disj
+z3interp["->"] = implies
 z3interp["even"] = lambda x: (x % 2) == 0
 z3interp["min"] = lambda x,y: ite(x < y, x, y)
 
 if REALS_ONLY:
-    z3interp["ceil/"] = lambda a, b: ite(z3.IsInt(a / b), a / b, z3.ToReal(z3.ToInt(a / b)) + z31)  # type:ignore
-    z3interp["floor/"] = lambda a,b: z3.ToReal(z3.ToInt(a / b))
+    # TODO TEMP
+    z3interp["ceil/"] = lambda a, b: a / b  # type:ignore
+    z3interp["floor/"] = lambda a,b: a / b
+    # this is the correct defn:
+    # z3interp["ceil/"] = lambda a, b: ite(Z3.IsInt(a / b), a / b, Z3.ToReal(Z3.ToInt(a / b)) + z31)  # type:ignore
+    # z3interp["floor/"] = lambda a,b: Z3.ToReal(Z3.ToInt(a / b))
+
 else:
     # a round/ b is floor(a/b) + (1 if rem(a,b) >= floor(b/2) else 0   (and floor(a/b) is integer division)
     z3interp["ceil/"] = lambda a,b: ite(a / b == div(a,b),
@@ -149,14 +158,14 @@ def somewhatPrimValToZ3(val:Union[bool, int, float, timedelta], prog_timeunit:st
 
 def primValToZ3(val:Union[bool, int, float]) -> Z3Term:
     if isinstance(val, bool):
-        return z3.BoolVal(val) # type:ignore
+        return Z3.BoolVal(val) # type:ignore
     elif isinstance(val, int):
         if REALS_ONLY:
-            return z3.RealVal(val)
+            return Z3.RealVal(val)
         else:
-            return z3.IntVal(val) # type:ignore
+            return Z3.IntVal(val) # type:ignore
     elif isinstance(val, float):
-        return z3.RealVal(val) # type:ignore
+        return Z3.RealVal(val) # type:ignore
 
     raise TypeError(str(val) + " of type " + str(type(val)))
 
@@ -172,14 +181,15 @@ def timedeltaToZ3(val:timedelta, prog_timeunit:str) -> Z3Term:
     else:
         raise ValueError
     if REALS_ONLY:
-        return z3.RealVal(num) #type:ignore
+        return Z3.RealVal(num) #type:ignore
     else:
-        return z3.IntVal(num) #type:ignore
+        return Z3.IntVal(num) #type:ignore
 
 
 # todo_once("TEMP: this will silently fuck up if run code for two contracts in one thread")
 # sort_accounted : set[str]
 
+added_sort_constraints : Set[str] = set()
 def name2symbolicvar(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
 
     smtsort = SORT_TO_SMTLIB_PRIM_TYPE[chcaststr(sort)]
@@ -187,24 +197,28 @@ def name2symbolicvar(name:str,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Ter
     rv : Z3Term
     if smtsort == "Int":
         if REALS_ONLY:
-            rv = z3.Real(name)
+            rv = Z3.Real(name)
         else:
-            rv = z3.Int(name)  # type:ignore
+            rv = Z3.Int(name)  # type:ignore
     elif smtsort == "Real":
-        rv = z3.Real(name)  # type:ignore
+        rv = Z3.Real(name)  # type:ignore
     elif smtsort == "Bool":
-        rv = z3.Bool(name)  # type:ignore
+        rv = Z3.Bool(name)  # type:ignore
     else:
         raise NotImplementedError(f"SMT sort {smtsort} unsupported")
     if sz3:
         if sort in SORT_TO_PRED:
-            sz3.add(SORT_TO_PRED[cast(str,sort)](rv))
+            c = SORT_TO_PRED[cast(str,sort)](rv)
+            strc = str(c)
+            if strc not in added_sort_constraints:
+                sz3.add(c)
+                added_sort_constraints.add(strc)
         else:
             print(f"Sort {sort} not in SORT_TO_PRED")
     return rv
 
 def name2actparam_symbolic_var(name:str,t:int,sort:L4Sort, sz3:Optional[Solver] = None) -> Z3Term:
-    return name2symbolicvar(name + "_" + str(t), sort,sz3)
+    return name2symbolicvar(name + "_" + str(t), sort, sz3)
 
 
 

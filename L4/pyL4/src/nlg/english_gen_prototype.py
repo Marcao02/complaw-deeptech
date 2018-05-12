@@ -47,6 +47,7 @@ sort_descriptions = {
     "PosShareCnt": "positive number of shares",
 
     "SharePrice": "price in USD/share",
+    "PosSharePrice": "positive price in USD/share",
 
     "TimeDelta": "number of days",
 }

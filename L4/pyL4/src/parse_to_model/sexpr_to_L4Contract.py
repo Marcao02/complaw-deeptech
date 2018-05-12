@@ -4,7 +4,7 @@ import dateutil.parser
 from mypy_extensions import NoReturn
 from copy import deepcopy
 
-from src.hard_correctness_checks.normal_forms import eliminate_must
+from src.hard_correctness_checks.normal_forms import eliminate_must, reset_ancestor_statement_pointers
 from src.model.EventsAndTraces import breachActionId, interveneOnDelayId
 from src.independent.util_for_sequences import flatten
 from src.independent.util_for_str import nonemptySortedSubsets
@@ -34,7 +34,7 @@ from src.model.L4Contract import L4Contract, is_derived_destination_id, is_deriv
     derived_trigger_id_to_situation_id, derived_destination_id
 from src.model.L4Macro import L4Macro, L4BlockMacro
 from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, SimpleTimeDeltaLit, DateTimeLit, \
-    RoleIdLit, Literal, TimeDeltaLit, StringLit
+    RoleIdLit, Literal, TimeDeltaLit, StringLit, EventIdLit
 from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
 from src.model.Term import FnApp
@@ -227,6 +227,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         elif head(TOPLEVEL_STATE_INVARIANTS_AREA_LABEL):
             self.top.state_invariants = self._mk_invariants(rem)
 
+        elif head("EndOfTraceClaims"):
+            self.top.end_of_trace_claims = self._mk_end_of_trace_claims(rem)
+
         elif head("VerificationDefinition"):
             return
 
@@ -294,6 +297,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         #             self.top.register_sorted_name(rule_varname, sort)
 
         floating_rules_transpile_away(self.top, self.verbose)
+
+        reset_ancestor_statement_pointers(self.top, "At end of L4ContractConstructor.mk_l4contract, ")
+
         return self.top
 
     def _mk_sort(self, x:SExprOrStr) -> Sort:
@@ -396,10 +402,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def _mk_invariants(self, l:SExpr) -> List[StateInvariant]:
-        # rv = [ContractClaim(self.term(x)) for x in l]
         rv = [StateInvariant(self._mk_term(x,None,None,None,x)) for x in l]
-        # logging.info(str(rv))
         return rv
+
+    def _mk_end_of_trace_claims(self, l:SExpr) -> List[Term]:
+        return [self._mk_term(x,None,None,None,x) for x in l]
+
 
     def _mk_actors(self, s:SExpr) -> List[RoleId]:
         # logging.info(str(l))
@@ -723,21 +731,24 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         rv = []
         for statement_expr in statement_exprs:
             assert not isinstance(statement_expr,list)
+            # assert not self._is_anymacro_app(statement_expr)
+            # it = self._mk_statement(statement_expr, parent_action, rv, parent_ifelse)
+            # rv.append(it)
             if self._is_blockmacro_app(statement_expr):
-                rv.extend(self._mk_statements(self.handle_apply_blockmacro(statement_expr), parent_action, parent_ifelse))
+                statements = self._mk_statements(self.handle_apply_blockmacro(statement_expr), parent_action, parent_ifelse)
+                rv.extend(statements)
+
             elif self._is_macro_app(statement_expr):
-                rv.extend(self._mk_statements([self.handle_apply_macro(statement_expr)], parent_action, parent_ifelse))
+                # old version, which is more-likely to be fucking up ancestor pointers:
+                # statements = self._mk_statements([self.handle_apply_macro(statement_expr)], parent_action, parent_ifelse)
+                statements = [self._mk_statement(self.handle_apply_macro(statement_expr), parent_action,
+                                                 rv, parent_ifelse)]
+                rv.extend(statements)
             else:
                 it = self._mk_statement(statement_expr, parent_action, rv, parent_ifelse)
                 rv.append(it)
 
-            # if isinstance(rv[-1],IfElse):
-            #     print(rv[-1].next_statement())
-            #     # print(rv[-1])
-            #     assert statement_expr == statement_exprs[-1], "For now (not too much work to lift this), " \
-            #                                                   "(if Term Block else Block) can only appear as the last " \
-            #                                                   "statement in a Block." \
-            #                                                   "I don't remember if there's a reason for that besides for symbolic execution."
+
         return rv
 
     def _mk_statement(self, statement_expr:SExpr, parent_action:Action, parent_block:StatementList, parent_ifelse:Optional[IfElse]) -> Statement:
@@ -873,6 +884,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
                 return FnApp(x,[], parent_SExpr.coord() if parent_SExpr else None)
 
+            if x in self.top.actions_by_id:
+                return EventIdLit(x)
+
             if x in TIME_CONSTRAINT_KEYWORDS:
                 assert x != "no_time_constraint"
                 if x == "immediately":
@@ -990,7 +1004,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     if x[0] in INFIX_FN_SYMBOLS:
                         self.syntaxError(x, f"Didn't recognize symbol {x[0]} in: {x}. Did you mean to use infix notation?")
                     else:
-                        self.syntaxError(x, f"Didn't recognize symbol {x[0]} in: {x}")
+                        self.syntaxError(x, f"Didn't recognize a function symbol in: {x}")
 
                 assert False # this is just to get mypy to not complain about missing return statement
 

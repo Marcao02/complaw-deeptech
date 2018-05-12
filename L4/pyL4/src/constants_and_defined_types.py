@@ -63,7 +63,10 @@ EXEC_ENV_VARIABLES = {'contractStart_dt',
                       'next_event_dt',
                       'next_event_td',
                       'future_event_td',
-                      'event_role'}
+                      'event_role',
+                      'last_event_name'}
+
+VERIFICATION_FN_SYMBOLS = {'event_names'} #, 'last_event_name'}
 
 PREFIX_FN_SYMBOLS = { 'cast','check',
                       'units','trust',
@@ -85,10 +88,10 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                      'emptyTDMap', # should be a constant but more important things to do
                      'mapSet','mapDelete','mapHas','tdGEQ','tdLT', 'tdmapHasItemExpiredBefore',
                      'nonempty', 'empty'
-                     }.union(TIME_CONSTRAINT_OPERATORS)
+                     }.union(TIME_CONSTRAINT_OPERATORS).union(VERIFICATION_FN_SYMBOLS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
-                    'or','and',
+                    'or','and', '->',
                     # derived, but useful for being rigorous about types
                     'floor/', 'round/', 'ceil/',
                     }

@@ -7,7 +7,7 @@ from src.model.EventsAndTraces import interveneOnDelayId, breachActionId
 from src.model.Term import Term, FnApp
 from src.model.BoundVar import LocalVar, StateVar
 from src.independent.typing_imports import *
-from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement
+from src.model.Statement import LocalVarDec, StateVarAssign, IfElse, FVRequirement, Statement, StatementList
 from src.model.L4Contract import L4Contract
 
 INCOMPLETE_ILLEGAL_MULTIWRITE_CHECK = False
@@ -308,12 +308,37 @@ def eliminate_local_vars(p:L4Contract):
                 if rule.where_clause:
                     rule.where_clause = eliminate_local_vars_term(rule.where_clause, allsubst, frozenset())
 
+    reset_ancestor_statement_pointers(p, "At end of eliminate_local_vars, ")
+
     # for sit in p.situations_iter():
                     # rule.arg_vars_bound_by_rule[i]))
                     # rule.args[i] =
 
+def reset_ancestor_statement_pointers(prog:L4Contract, on_fix_msg_prefix:str = ""):
+    def reset(stmt:Statement, parent_block:StatementList, grandparent_ifelse:Optional[IfElse]):
+        if stmt.parent_block != parent_block:
+            print(f"{on_fix_msg_prefix}Found and fixing statement ancestor pointer discrepency in {prog.filename}. Statement is\n", stmt)
+            stmt.parent_block = parent_block
+        if stmt.grandparent_ifelse != grandparent_ifelse:
+            print(f"{on_fix_msg_prefix}Found and fixing statement ancestor pointer discrepency in {prog.filename}. Statement is\n", stmt)
+            stmt.grandparent_ifelse = grandparent_ifelse
+        if isinstance(stmt, IfElse):
+            for child in stmt.true_branch:
+                reset(child, stmt.true_branch, stmt)
+            if stmt.false_branch:
+                for child in stmt.false_branch:
+                    reset(child, stmt.false_branch, stmt)
+
+    for a in prog.actions_iter():
+        if a.state_transform:
+            for stmt in a.state_transform.statements:
+                reset(stmt, a.state_transform.statements, None)
+
+
+
+
 def eliminate_must(sexpr:SExpr, prog:L4Contract, timeunit:str, default_time_limit:Optional[Any] = None):
-    prog.must_eliminated = True
+
 
     def is_must(sexpr2:SExpr) -> bool:
         return len(sexpr2) >= 3 and sexpr2[1] == "must"
@@ -387,3 +412,5 @@ def eliminate_must(sexpr:SExpr, prog:L4Contract, timeunit:str, default_time_limi
             raise Exception(str(sexpr), sexpr.coord())
 
     sexpr_rewrite(sexpr, is_must, _eliminate_must)
+
+    prog.must_eliminated = True

@@ -6,9 +6,9 @@ from typing import Dict, Optional, Set
 from src.independent.util import print_all_todos
 
 
-tests_to_run = {
+tests_to_run : Set[str] = {
     'L4typechecker',
-    'smtlegacy',
+    # 'smtlegacy',
     'symbexec',
     'graphviz',
     'prettyprint',
@@ -22,7 +22,8 @@ def runit(s, optional_s=""):
     print(f"\n{'='*len(line2)}\n{line2}")
     os.system(s)
 
-VERBOSE = True
+# VERBOSE = True
+VERBOSE = False
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     splits : Dict[str,float] = {}

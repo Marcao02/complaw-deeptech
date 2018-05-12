@@ -43,8 +43,8 @@ def main(examples: Dict[str, L4Contract], verbose=True):
     ])
     for prog in se_tests:
         print("\n\n\nsymbolic exec for " + prog.filename)
-        eliminate_local_vars(prog)
         eliminate_ifthenelse(prog)
+        eliminate_local_vars(prog)
         if prog.filename == "test/test_symbexec_multiwrite_error.l4":
             try:
                 symbolic_execution(prog)

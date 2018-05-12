@@ -54,7 +54,7 @@ body {
           <span class="symbintro" id="unconverted_investment">Unconverted Investment</span>, which is a USD with initial value 0.
         </li>
         <li>
-          <span class="symbintro" id="conversion_price">Conversion Price</span>, which is a price in USD/share.
+          <span class="symbintro" id="conversion_price">Conversion Price</span>, which is a positive price in USD/share.
         </li>
         <li>
           <span class="symbintro" id="company_cash_delta">Change in Company's Cash</span>, which is a USD with initial value 0.
@@ -332,8 +332,8 @@ body {
                 <li id="IssueSAFEPreferredStock.company_capitalization">
                   <span class="symbintro" id="company_capitalization">Capitalization</span>, which is a positive number of shares
                 </li>
-                <li id="IssueSAFEPreferredStock.premoney_valuation">
-                  <span class="symbintro" id="premoney_valuation">Valuation</span>, which is a positive USD
+                <li id="IssueSAFEPreferredStock.company_valuation">
+                  <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
                 </li>
               </ul><br>
               <div>Set:</div>
@@ -345,7 +345,7 @@ body {
                     <ul class="nomarkers">
                       <li>
                         <span>
-                          <a href="#IssueSAFEPreferredStock.premoney_valuation">Valuation</a> / 
+                          <a href="#IssueSAFEPreferredStock.company_valuation">Valuation</a> / 
                           <a href="#IssueSAFEPreferredStock.company_capitalization">Capitalization</a>
                         </span>
                       </li>
@@ -452,8 +452,8 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li id="CommitToIPO.liquidity_capitalization">
-                  <span class="symbintro" id="liquidity_capitalization">Liquidity Capitalization</span>, which is a positive number of shares
+                <li id="CommitToIPO.company_capitalization">
+                  <span class="symbintro" id="company_capitalization">Capitalization</span>, which is a positive number of shares
                 </li>
                 <li id="CommitToIPO.company_valuation">
                   <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
@@ -469,7 +469,7 @@ body {
                       <li>
                         <span>
                           <a href="#CommitToIPO.company_valuation">Valuation</a> / 
-                          <a href="#CommitToIPO.liquidity_capitalization">Liquidity Capitalization</a>
+                          <a href="#CommitToIPO.company_capitalization">Capitalization</a>
                         </span>
                       </li>
                     </ul>
@@ -489,8 +489,8 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li id="CommitToChangeOfControl.liquidity_capitalization">
-                  <span class="symbintro" id="liquidity_capitalization">Liquidity Capitalization</span>, which is a positive number of shares
+                <li id="CommitToChangeOfControl.company_capitalization">
+                  <span class="symbintro" id="company_capitalization">Capitalization</span>, which is a positive number of shares
                 </li>
                 <li id="CommitToChangeOfControl.company_valuation">
                   <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
@@ -512,7 +512,7 @@ body {
                       <li>
                         <span>
                           <a href="#CommitToChangeOfControl.company_valuation">Valuation</a> / 
-                          <a href="#CommitToChangeOfControl.liquidity_capitalization">Liquidity Capitalization</a>
+                          <a href="#CommitToChangeOfControl.company_capitalization">Capitalization</a>
                         </span>
                       </li>
                     </ul>
@@ -1046,8 +1046,8 @@ body {
             <ul class="nomarkers">
               <div>Company must provide:</div>
               <ul class="nomarkers">
-                <li id="TransferAssets.liquidity_capitalization">
-                  <span class="symbintro" id="liquidity_capitalization">Liquidity Capitalization</span>, which is a positive number of shares
+                <li id="TransferAssets.company_capitalization">
+                  <span class="symbintro" id="company_capitalization">Capitalization</span>, which is a positive number of shares
                 </li>
                 <li id="TransferAssets.company_valuation">
                   <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
@@ -1063,7 +1063,7 @@ body {
                       <li>
                         <span>
                           <a href="#TransferAssets.company_valuation">Valuation</a> / 
-                          <a href="#TransferAssets.liquidity_capitalization">Liquidity Capitalization</a>
+                          <a href="#TransferAssets.company_capitalization">Capitalization</a>
                         </span>
                       </li>
                     </ul>

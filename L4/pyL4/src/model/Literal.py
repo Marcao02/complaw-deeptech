@@ -70,6 +70,13 @@ class RoleIdLit(Literal):
     def __str__(self):
         return str(self.lit)
 
+class EventIdLit(Literal):
+    def __init__(self, lit:str, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(lit,coord)
+        self.lit = lit
+    def __str__(self):
+        return str(self.lit)
+
 class StringLit(Literal):
     def __init__(self, lit:str, coord:Optional[FileCoord] = None) -> None:
         super().__init__(lit,coord)

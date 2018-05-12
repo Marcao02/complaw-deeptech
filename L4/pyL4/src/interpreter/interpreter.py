@@ -65,8 +65,6 @@ class ExecEnv:
 
 
     def writeout(self, varname:str, data:Data):
-        print(f"writeout({varname}, {data})")
-        # raise Exception
         assert varname not in self.writeouts
         self.writeouts[varname] = data
 

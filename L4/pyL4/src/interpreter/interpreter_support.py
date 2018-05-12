@@ -81,6 +81,7 @@ FN_SYMB_INTERP = {
     'not': lambda x: not x,
     'and': and_eval,
     'or': or_eval,
+    '->': lambda x,y: (not x) or y,
     'days': lambda x: timedelta(days=x),
     # 'round': round,
     # 'ceil': math.ceil,
