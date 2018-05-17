@@ -1,4 +1,5 @@
-from typing import NamedTuple, Tuple, Set, Dict, Union, TypeVar, Sequence, Generator, Any, cast, Optional, List
+from typing import NamedTuple, Tuple, Set, Dict, Union, TypeVar, Sequence, Generator, Any, cast, Optional, List, \
+    Callable
 
 # I'm implementing NoLockin for GC-collected languages.
 # Our first use, the symbolic exec alg, is a pure function.
@@ -131,6 +132,37 @@ def mapp2args(u:Node) -> Any:
     # does this delay a
     return (x for x in u.ch[1:])
 
+def holds_for_all_NodeOrStr(u:NodeOrStr, prop:Callable[[NodeOrStr],bool]) -> bool:
+    return prop(u) and (isinstance(u,str) or all(holds_for_all_NodeOrStr(v,prop) for v in u.ch))
+def assert_for_all_NodeOrStr(u:NodeOrStr, prop:Callable[[NodeOrStr],bool], msg:Optional[Callable[[],str]] = None):
+    assert prop(u), f"Node\n{u}\nviolates given property.\n" + ("" if not msg else msg())
+    if not isinstance(u,str):
+        for v in u.ch:
+            assert isinstance(v,Node) or isinstance(v,str), f"Node:\n{u}\nhas an illegal child:\n{v}.\n"
+            assert_for_all_NodeOrStr(v, prop, msg)
+
+def convert_nodes_bottom_up(u:NodeOrStr, converter:Callable[[Node],Node]) -> NodeOrStr:
+    if isinstance(u,str):
+        return u
+    newch = tuple(convert_nodes_bottom_up(v,converter) for v in u.ch)
+    return converter(Node(newch,u.meta))
+
+def filter_nodes(u:NodeOrStr, filter:Callable[[Node],bool]) -> Set[Node]:
+    if isinstance(u,str):
+        return set()
+    rv = set(u) if filter(u) else set()
+    for v in u.ch:
+        rv.update(filter_nodes(v,filter))
+    return rv
+
+def collect_partialfn_range(u:NodeOrStr, pfn:Callable[[NodeOrStr],Optional[T]]) -> Set[T]:
+    result = pfn(u)
+    rv = set((result,)) if (result is not None) else set()
+    if isinstance(u,str):
+        return rv
+    for v in u.ch:
+        rv.update(collect_partialfn_range(v,pfn))
+    return rv
 
 def sexpr_to_node(se:SExprOrStr) -> NodeOrStr:
     if isinstance(se,str):
@@ -285,7 +317,11 @@ def eliminate_macro_defs(top:Node) -> Node:
                              top.ch)),
                 top.meta)
 
+
 def eliminate_self_and_overloads_from_macroless_node(top:Node) -> Node:
+
+    # overloads_by_tns : Dict[str,]
+
     def h(u:NodeOrStr):
         if isinstance(u,str) or len(u) == 0:
             return u
@@ -295,8 +331,8 @@ def eliminate_self_and_overloads_from_macroless_node(top:Node) -> Node:
             cur_tns_name = u.ch[1]
             fn_names : Set[str] = set()
             doubles : Set[str] = set()
-            print(cur_tns_name, str(u))
-            new_uch : List[NodeOrStr] = []
+            # print(cur_tns_name, str(u))
+            new_uch : List[NodeOrStr] = ['tns',cur_tns_name]
             change_made = False
             for v in u.ch[2:]:
                 assert isinstance(v,Node), f"Should be only nodes in (tns node).ch[2:] == {u.ch[2:]} but found {v}"
@@ -316,20 +352,9 @@ def eliminate_self_and_overloads_from_macroless_node(top:Node) -> Node:
                     new_uch.append(replace_self_result[0])
                 else:
                     new_uch.append(v)
-                # if len(v.ch) == 5:
-                #     # has parameters
-                #     params = v.ch[2]
-                #     newparams = tuple(cur_tns_name if typ == '**' else typ for typ in params)
-                #     if params != newparams:
-                #         change_made = True
-                #         new_uch.append(Node(('absfn', name, newparams, '->', v.ch[4]),v.meta))
-                #     else:
-                #         new_uch.append(v)
-                # else:
-                #     new_uch.append(v)
 
-            new_uch2: List[NodeOrStr] = []
-            for v in new_uch:
+            new_uch2: List[NodeOrStr] = ['tns',cur_tns_name]
+            for v in new_uch[2:]:
                 assert isinstance(v, Node), f"Should be only nodes in (tns node).ch[2:] == {u.ch[2:]} but found {v}"
                 assert len(v) > 0, "There should be no empty Node immediately inside the third element of a Node with head 'tns'"
                 if v.head != 'absfn':
@@ -342,9 +367,10 @@ def eliminate_self_and_overloads_from_macroless_node(top:Node) -> Node:
                     newparts = ('absfn', name + str(arity))
                     if len(v.ch) == 5:
                         # has parameters
-                        params = v.ch[2]
+                        params_node = chcast(Node,v.ch[2])
+                        params = params_node.ch
                         newparams = tuple(cur_tns_name if typ == '**' else typ for typ in params)
-                        new_vch = newparts + (newparams, '->', v.ch[4])
+                        new_vch = cast(Tuple[NodeOrStr], newparts + (Node(newparams,params_node.meta), '->', v.ch[4]))
                     else:
                         assert len(v.ch) == 4
                         new_vch = newparts + ('->', v.ch[3])
@@ -355,12 +381,44 @@ def eliminate_self_and_overloads_from_macroless_node(top:Node) -> Node:
         return Node(tuple(h(child) for child in u.ch), u.meta)
     return h(top)
 
+def check_dot_calls(top:Node):
+    def dot_correctness(u:NodeOrStr) -> bool:
+        if isinstance(u,str):
+            return True
+        if '.' not in u.ch:
+            return True
+        # last occurrence must be at position 2
+        # and next child must exist and be a string
+        return (len(u.ch) >= 3) and (u.ch[1] == '.') and isinstance(u.ch[2],str) and (tuple(reversed(u.ch)).index('.') == len(u.ch) - 2)
+        # and next child must exist and be a string
+    assert_for_all_NodeOrStr(top, dot_correctness, lambda: "If '.' occurs in a tuple, then its only occurrence must be at position 2 and the element following it must be a string")
+
 def printTop(top:Node):
     for dec in top.ch:
         print(prettyNodeStr(dec))
 
+def dot_split_condition(s:str, i:int):
+    return (0 < i < len(s)-1) and (
+        s[i] == '.' and (not s[i-1].isdigit() or not s[i+1].isdigit())
+    )
 
-parsed = parse_file("SymbExecTimelessLSM.nl")
+def convert_dot_calls(u:Node, tns_names:Set[str]):
+    def converter(v:Node) -> Node:
+        if len(v.ch) >= 3 and v.ch[1] == '.':
+            if v.ch[0] in tns_names:
+                # (type . f y z) becomes (type.f x y z)
+                return Node((v.ch[0] + "." + v.ch[2],) + v.ch[3:],
+                     v.meta)
+            else:
+                # (x . f y z) becomes (.f x y z)
+                return Node(("." + v.ch[2], v.ch[0]) + v.ch[3:],
+                            v.meta)
+        return v
+
+    return convert_nodes_bottom_up(u,converter)
+
+
+parsed = parse_file("SymbExecTimelessLSM.nl", False, True, dot_split_condition)
 # print(prettySExprStr(parsed))
 topnode = chcast(Node,sexpr_to_node(parsed))
 # print(repr(topnode))
@@ -370,13 +428,32 @@ mdefs = collect_macro_defs(topnode)
 #     print(f"{prettyNodeStr(v)}\n")
 
 expand_macro_defs(mdefs)
+# printTop(topnode)
 
 # for k,v in mdefs.items():
 #     print(f"{prettyNodeStr(v)}\n")
 
 topnode = eliminate_macro_defs(topnode)
 topnode = eliminate_depth0_macros(topnode, mdefs)
-printTop(topnode)
+
 
 topnode = eliminate_self_and_overloads_from_macroless_node(topnode)
+
+def maybe_to_tns_name(v:NodeOrStr) -> Optional[str]:
+    if isinstance(v,str): return None
+    if len(v.ch) > 0 and v.ch[0] == 'tns': return v.ch[1]
+    return None
+
+
+tns_names = collect_partialfn_range(topnode, maybe_to_tns_name)
+print("tns_names:", tns_names)
+
+check_dot_calls(topnode)
+topnode = convert_dot_calls(topnode, tns_names)
 printTop(topnode)
+print("""We can't add the arity numbers to all functions yet, just due to the case where some name N is used
+in two TNSs, but it's overloaded in only one of them. So we'll  """)
+
+
+
+# printTop(topnode)

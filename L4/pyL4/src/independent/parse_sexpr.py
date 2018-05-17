@@ -35,7 +35,7 @@ class SExprBuilder:
         return '*' + repr(self.stack) + '*'
 
 
-def parse(string:str, debug=False, strip_comments=True) -> SExpr:
+def parse(string:str, debug=False, strip_comments=True, custom_splitter:Optional[Callable[[str,int],bool]] = None) -> SExpr:
     """
     >>> parse("(+ 5 (+ 3 5))")
     [['+', '5', ['+', '3', '5']]]
@@ -135,6 +135,10 @@ def parse(string:str, debug=False, strip_comments=True) -> SExpr:
                 word = char
                 maybeAppendToken()
 
+            elif custom_splitter and custom_splitter(string,i):
+                maybeAppendToken()
+                word = char
+                maybeAppendToken()
 
             else:
                 word += char
@@ -191,10 +195,10 @@ def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
             s += " " + rsymb    
         return s
 
-def parse_file(path):
+def parse_file(path:str,debug=False, strip_comments=True, custom_splitter:Optional[Callable[[str,int],bool]] = None):
     try:
         fil = open(path,encoding='utf8')
-        parsed = parse(fil.read())
+        parsed = parse(fil.read(), debug, strip_comments, custom_splitter)
         fil.close()
     except Exception as e:
         print(f"Problem parsing file: {path}")

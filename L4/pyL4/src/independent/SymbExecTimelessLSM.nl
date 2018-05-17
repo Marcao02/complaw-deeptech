@@ -5,12 +5,21 @@
 	; ✓ 2b do recursive expansion in macro bodies, bottom-up
 	; ✓ 2c expand macros in main program
 ; ✓ 3 replace **, and overloads (easy, cuz for now same name requires different # params)
-; 4 create dotcall nodes. (a b c . )
+; ✓	3.5 collect tns names
+; ✓ 4 create dotcall nodes.
+;	(W . fnsymb Y Z) becomes (.fnsymb W Y Z)
+;	(namespace . fnsymb Y Z) becomes (namespace.fnsymb Y Z)
+;	(W . fnsymb (Y . fnsymb2 Z)) becomes (.fnsymb W (.fnsymb2 Y Z))
+;	((W . fnsymb Y) . fnsymb2 Z) becomes (.fnsymb2 (.fnsymb W Y) Z))
+;	(W1 W2.fnsymb Y1 Y2.fnsymb2 Z1 Z2) becomes (.fnsymb2 (.fnsymb W Y) Z))
 ; 5 typecheck and insert coercions
 	; Terms to typecheck are all inside (`fn`...) nodes, and come in these forms
-	; (1)	(...) ~> Term, only in function arg position (not in function position itself)
-	; (2)	(Namespace.fnsymb ...)
-	; (3)
+	; (1)	((...) ~> Term), only in function arg position (not in function position itself)
+	; (2)	((...) ~> Block), only in function arg position (not in function position itself)
+	;		Should I try to eliminate this form? Or insert `block`?
+	; (3)	(Namespace.fnsymb ...)
+	; (4)	(.fnsymb x ...)
+	; (5)	(`fn`-defined-function-symb ...)
 	; 5a Need some way of assigning NL types to subterms.
 ; 6 eliminte dot call syntax in favor of Namespace.fn form (even in languages with dynamic dispatch!)
 ; 7 hard-coded routine for expanding into some mainstream language
@@ -65,7 +74,7 @@
 		(absfn mk (Base BaseTuple) -> **) ; or use BaseTuple.prepend
 		; dot or ns call
 		(absfn fst (**) -> Base)
-		(absfn rest (**) -> Block)
+		(absfn rest (**) -> BaseTuple)
 		(upcast BaseTuple)
 	)
 ))
@@ -74,42 +83,29 @@
 (TupleOfType EventRule) ; EventRuleTuple, ...
 
 ; a better but more verbose name would be ConcatTuple
-(macro SeqOfType (Base) ( group
+(macro SeqOfType (Base)
 	(tns BaseSeq
 		; ns call
 		(absfn empty -> **)
 		(absfn singleton (Base) -> **)
+		; also ns call, but just to test overloading by different arity:
+		(absfn mk -> **) ; alias of empty
+		(absfn mk (Base) -> **)  ; alias of singleton
+		(absfn mk (Base Base) -> **)
+		(absfn mk (Base Base Base) -> **)
 		; dot or ns call
 		(absfn prepend (** Base) -> NonemptyBaseSeq)
 		(absfn fst (**) -> Base)
-		(absfn rest (**) -> Block)
+		(absfn rest (**) -> **)
 		(absfn cases (T) (** (EmptyBaseSeq ~> T) (NonemptyBaseSeq ~> T) -> T))
 		(absfn match (T) (** ( ~> T) ((Base **) ~> T) -> T))
-		(absfn concatXX (** **) -> **)
-		(absfn concatXx (** NonemptyBaseSeq) -> NonemptyBaseSeq)
-		(absfn concatxX (NonemptyBaseSeq **) -> NonemptyBaseSeq)
-		(absfn concatxx (NonemptyBaseSeq NonemptyBaseSeq) -> NonemptyBaseSeq) ; this one will probably be rarely used
+		(absfn concat (** **) -> **)
 	)
-	(tns EmptyBaseSeq
-		; ns calls.
-		(absfn mk -> **) ; or use BaseSeq.empty
-		; dot or ns call
-		(upcast BaseSeq)
-	)
-	(tns NonemptyBaseSeq
-		; ns calls
-		(absfn mk (Base) -> **) ; or use BaseSeq.singleton
-		(absfn mk (Base BaseSeq) -> **) ; or use BaseSeq.prepend
-		; dot or ns call
-		(upcast BaseSeq)
-	)
-))
+)
 (SeqOfType SEResult) ; defines SEResultSeq
 (SeqOfType Statement) ; StatementSeq
-
 (alias Block () StatementSeq)
-(alias NonemptyBlock () NonemptyStatementSeq)
-(alias EmptyBlock () EmptyStatementSeq)
+
 
 (tns SortOpApp
 	(upcast Sort)
@@ -182,9 +178,21 @@
 (VarOccurrenceType EventParamId)
 (VarOccurrenceType ContractParamId)
 
+(macro PairOfType (Left Right)
+	(tns PairLeftRight
+		(absfn mk (Left Right) -> **)
+		(absfn fst (**) -> Left)
+		(absfn snd (**) -> Right)
+	)
+)
+; one for each SubstType
+(PairOfType StateVarId Term)  ; PairStateVarIdTerm
+(PairOfType EventParamId Term)
+(PairOfType ContractParamId Term)
+
 (macro SubstType (IdType)
 	(tns IdSubstType
-		(absfn append (** PairIdTypeTerm)) -> **)
+		(absfn append (** PairIdTypeTerm) -> **)
 	)
 )
 (SubstType StateVarId) ; defines StateVarIdSubst
@@ -239,6 +247,8 @@
   (absfn consistent (**) -> Bool)
   (absfn valid (**) -> Bool)
   (absfn and (** **) -> **)
+  (absfn and (** ** **) -> **)
+  (absfn and (** ** ** **) -> **)
   (absfn not (**) -> **)
   (absfn implies (** **) -> **)
 )
@@ -259,35 +269,39 @@
 	(absfn paramSetters -> EventParamSubst)
 )
 
-(macro consistent (x) Z3Term.consistent)
-(macro z3and (x y) Z3Term.and)
-(macro z3not (x) Z3Term.not)
-(macro z3implies (x y) Z3Term.implies)
+(macro consistent (x) (Z3Term.consistent x))
+(macro z3and (x y) (Z3Term.and x y))
+(macro z3not (x) (Z3Term.not x))
+(macro z3implies (x y) (Z3Term.implies x y))
 
 
-;(tns SymbExecLSM
+(tns SymbExecLSM
 	(fn symbexecStmts ((EventParamSubst epsubst) (Event e) (StateVarSubst svsubst) (Term pathform) (Block blck)) -> SEResultSeq
 		(blck.match
-			( ~> (symbexecSit svsubst P e.dest) )
+			( ~> (symbexecSit svsubst P (e.dest)) )
 			((fst rest) ~>
 				(fst.match
 					; Assign
-					((lhs rhs) ~> (symbexecStmts (svsubst.add (pair lhs rhs)) pathform rest))
+					((lhs rhs) ~> (SymbExecLSM.symbexecStmts (svsubst.add
+						; (PairStateVarIdTerm.mk lhs rhs)
+						; just for testing a syntax form I haven't used yet:
+						(PairStateVarIdTerm.mk lhs ((PairStateVarIdTerm.mk lhs rhs).snd))
+					) pathform rest))
 
 				   	; IfElse
 				   	((test true_branch false_branch) ~> (
-				   		(testapplied (subst2 test epsubst svsubst))
+				   		(TESTapplied (subst2 test epsubst svsubst))
 				   		(pathform1 = (z3and pathform testapplied))
 				   		(rv1 =
 				   			(ifelse (consistent pathform1)
-				   				(symbexecStmts epsubst e pathform (blck1.concat rest))
+				   				(SymbExecLSM.symbexecStmts epsubst e pathform (blck1.concat rest))
 				   				(SEResultSeq.empty)
 				   			)
 				   		)
 				   		(pathform2 = (z3and pathform (z3not testapplied)))
 				   		(rv2 =
 				   			(ifelse (consistent pathform2)
-				   				(symbexecStmts epsubst e pathform2 (blck2.concat rest))
+				   				(SymbExecLSM.symbexecStmts epsubst e pathform2 (blck2.concat rest))
 				   				(SEResultSeq.empty)
 				   			)
 				   		)
@@ -297,8 +311,8 @@
 				   	; Prove
 				   	(prfoblig ~>
 				   		(ifelse (valid (z3implies pathform proofoblig))
-							(symbexecStmts epsubst svsubst e pathform rest)
-				   			(SEResultSeq.singleton SEResult.claimError)
+							(SymbExecLSM.symbexecStmts epsubst svsubst e pathform rest)
+				   			(SEResultSeq.singleton (SEResult.claimError))
 				   		)
 				   	)
 				)
@@ -307,18 +321,18 @@
 	)
 
 	(fn symbexecSit ((StateVarSubst svsubst) (Z3Form pathform) (Situation s)) -> SEResultSeq
-		(symbexecERules svsubst pathform s.handlerSet)
+		(SymbExecLSM.symbexecERules svsubst pathform (s.handlerSet))
 	)
 	(fn symbexecEvent ((RoleId roleid) (StateVarSubst svsubst) (Z3Term pathform) (Event event)) -> SEResultSeq
-		(symbexecStmts svsubst event pathform event.transform)
+		(SymbExecLSM.symbexecERules svsubst event pathform (event.transform))
 	)
 
 	(fn symbexecERules ((StateVarSubst svsubst) (Z3Term pathform) (Event event) (EventRuleTuple erules)) -> SEResultSeq
 		(erules.match
-		  (~> SEResultSeq.empty)
+		  (~> (SEResultSeq.empty))
 		  ((rule rest) ~>    (SEResultSeq.concat
-		  						(symbexecERule pathform event rule)
-		  						(symbexecERules svsubst pathform event rest))
+		  						(SymbExecLSM.symbexecERule pathform event rule)
+		  						(SymbExecLSM.symbexecERules svsubst pathform event rest))
 		  )
 
 		)
@@ -328,18 +342,18 @@
 		(rule.match
 			; AgentERule
 			((nextevent enabledGuard roles paramConstraint timeConstraint) ~>
-				SEResultSeq.flatmap( (role) ~> (
-					(epsubst = (safeEventParamSEVars nextevent timeind))
+				(SEResultSeq.flatmap ( (role) ~> (
+					(epsubst = (SymbExecLSM.safeEventParamSEVars nextevent timeind))
 					(pathform2 = (z3and
 								 (z3and (subst2 epsubst svsubst paramConstraint)
 										(subst1 svsubst enabledGuard))
 								 		pathform)
 					)
 					(ifelse (consistent pathform2)
-					  	(symbexecEvent role epsubst svsubst pathform2 nextevent)
+					  	(SymbExecLSM.symbexecEvent role epsubst svsubst pathform2 nextevent)
 						(SEResultSeq.empty)
 					)
-				) roles)
+				)) roles)
 			)
 			; DeadlineERule
 			((nextevent enabledGuard paramSetters) ~> (
@@ -352,14 +366,13 @@
 							 		pathform)
 				)
 				(ifelse (consistent pathform2)
-				  	(symbexecEvent (RoleId.envroleid) epsubst svsubst pathform2 nextevent)
+				  	(SymbExecLSM.symbexecEvent (RoleId.envroleid) epsubst svsubst pathform2 nextevent)
 					(SEResultSeq.empty)
 				)
 			))
 		)
 	)
-
-;)
+)
 
 
 ; old:
