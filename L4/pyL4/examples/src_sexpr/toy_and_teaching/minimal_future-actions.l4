@@ -7,7 +7,7 @@
 
 (TimeUnit d)
 
-(FormalContract "test contract for must later"
+(Dynamics "test contract for must later"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

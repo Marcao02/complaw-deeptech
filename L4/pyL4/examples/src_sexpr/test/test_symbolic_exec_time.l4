@@ -1,6 +1,6 @@
 (TimeUnit m)
 
-(FormalContract "test symbolic exec time"
+(Dynamics "test symbolic exec time"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

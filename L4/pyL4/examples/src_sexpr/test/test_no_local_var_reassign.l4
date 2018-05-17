@@ -3,7 +3,7 @@
 ; This is the default:
 ; (TimeUnit d)
 
-(FormalContract "test no local var reassign"
+(Dynamics "test no local var reassign"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

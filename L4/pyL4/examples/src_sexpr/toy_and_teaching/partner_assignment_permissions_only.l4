@@ -16,7 +16,7 @@
 (Roles Alice Bob)
 
 
-(FormalContract
+(Dynamics
 	"partner assignment demonstrating relievable obligations via permissions"
 	(StartSituation WorkingOnAssignment)
 	(Situation WorkingOnAssignment

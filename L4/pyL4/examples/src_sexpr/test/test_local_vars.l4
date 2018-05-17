@@ -7,7 +7,7 @@
 	(n : Nat = 3)
 )
 
-(FormalContract "test for local vars"
+(Dynamics "test for local vars"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

@@ -11,7 +11,7 @@
 	(x : Nat = START)
 )
 
-(FormalContract "Collatz"
+(Dynamics "Collatz"
 	(StartSituation AfterNextInSeq)
 
 	(Action NextInSeq

@@ -96,7 +96,7 @@
 ; NTS: removed preliminary work with VerificationDefinition, FOLContract, Conjecture
 ; Can find it in `examples_to_port_to_pyL4`
 
-[FormalContract
+[Dynamics
     "Master Sales Agreement"
     [StartSituation VendorAcceptingOrders]
 

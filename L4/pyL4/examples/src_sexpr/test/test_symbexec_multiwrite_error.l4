@@ -9,7 +9,7 @@
 	(v : Nat = 0)
 )
 
-(FormalContract "double write error"
+(Dynamics "double write error"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

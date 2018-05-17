@@ -30,7 +30,7 @@
 	(cures : Nat := 0)
 )
 
-(FormalContract "Goodenough Flood Loan"
+(Dynamics "Goodenough Flood Loan"
 	(StartSituation ActiveContract)
 
 	(Situation ActiveContract

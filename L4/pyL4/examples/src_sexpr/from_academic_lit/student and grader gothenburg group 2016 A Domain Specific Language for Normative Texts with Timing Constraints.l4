@@ -5,7 +5,7 @@
 
 (Roles Student Grader)
 
-(FormalContract
+(Dynamics
 	"student and grader from gothenburg group 2016 A Domain Specific Language for Normative Texts with Timing Constraints"
 
 	(StartSituation AssignmentOut)

@@ -14,7 +14,7 @@
 	(x : Nat = START)
 )
 
-(FormalContract "Collatz"
+(Dynamics "Collatz"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

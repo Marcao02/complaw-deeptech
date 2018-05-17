@@ -80,7 +80,7 @@
 	)
 )
 
-(FormalContract "KISS"
+(Dynamics "KISS"
 	(StartSituation InvestorInvests)
 
 	(Situation InvestorInvests

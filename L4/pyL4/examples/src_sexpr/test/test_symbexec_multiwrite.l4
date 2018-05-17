@@ -10,7 +10,7 @@
 	(z : Nat = 0)
 )
 
-(FormalContract "double write OK"
+(Dynamics "double write OK"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

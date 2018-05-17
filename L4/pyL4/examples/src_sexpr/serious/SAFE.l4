@@ -175,7 +175,7 @@
 )
 
 
-(FormalContract "SAFE"
+(Dynamics "SAFE"
 	; apply to all actions and states:
 	; 	at-most-once ; static checker should verify that every action and state occurs at most once in any trace
 

@@ -28,7 +28,7 @@
 	(P4 'Monthly payments shall include both principal and interest with interest at the rate of {INTEREST_RATE}, computed monthly on the remaining balance from time to time unpaid.')
 )
 
-(FormalContract
+(Dynamics
 	"Instalment Sale Hvitved"
 	(StartSituation WaitingForFirstDayOfNextMonth)
 

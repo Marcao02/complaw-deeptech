@@ -9,7 +9,7 @@
 
 (Roles Employee Employer)
 
-(FormalContract
+(Dynamics
 	"Hvitved prohibitions NDA"
 	(StartSituation Employed)
 

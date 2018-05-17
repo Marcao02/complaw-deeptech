@@ -58,7 +58,7 @@
 )
 
 
-(FormalContract
+(Dynamics
 	"PS Internet Provision"
 	(StartSituation NoInfraction)
 

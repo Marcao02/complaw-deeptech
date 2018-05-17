@@ -26,7 +26,7 @@
 
 (Roles Alice Bob)
 
-(FormalContract
+(Dynamics
 	"partner assignment demonstrating relievable obligations"
 	(Situation WorkingOnAssignment
 		(Alice quasi-responsibility SolveProbA (when next_event_td ≤ DUE_TD))

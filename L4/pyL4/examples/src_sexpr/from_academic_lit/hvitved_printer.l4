@@ -30,7 +30,7 @@
 	(P5	'Upon receipt, Buyer has 14 days to return the goods to Seller in original, unopened packaging. Within 7 days thereafter, Seller has to repay the total amount to Buyer.')
 )
 
-(FormalContract
+(Dynamics
 	"Two part sale Hvitved Laser Printer"
 	(StartSituation Awaiting_Delivery)
 

@@ -107,10 +107,10 @@ We have a first taste of beyond-typechecking formal verification next. pyL4 can 
 
 [//]: # "There's a simple macro system. We use one to compute the share price that de"
 
-Most of the program is in the section named `Actions&Situations` (or Situations&Actions). The string after that keyword is a name used for the program in some situations. We already mentioned the role of `StartSituation`.
+Most of the program is in the section named `Dynamics` (or Dynamics). The string after that keyword is a name used for the program in some situations. We already mentioned the role of `StartSituation`.
 
 
-	(Actions&Situations "Reduced SAFE for tutorial"
+	(Dynamics "Reduced SAFE for tutorial"
 		(StartSituation InvestorInvests)
 
 Now let's look at the first `Situation` definition. It tells us that the first action in an execution of this contract must be by `Company`. This tutorialSAFE.l4 excludes two of the action rules from SAFE.l4. The ones remaining correspond to starting a new round of funding (`CommitToEquityFinancing`), and to ending the private fundraising by doing an Initial Public Offering. The parameter `?1` in `(CommitToIPO ?1)` corresponds to the one action parameter of `CommitToIPO`. It is for constraining the allowed values of the parameter, although this action rule doesn't do so. If we were to add `(where (?1 ≤ 1000))`, the (nonsensical) effect in this contract would be that there must be at most 1000 existing shares of the company's stock for the company to do an IPO.

@@ -28,7 +28,7 @@
 	(writes≤1 seller_final_shares : ShareCnt)
 )
 
-(FormalContract
+(Dynamics
 	"Farmer American call option from A Formal Language for Writing Contracts 2016"
 
 	(StartSituation BeforeOptionPurchase)

@@ -95,7 +95,7 @@
 	)
 ))
 
-(FormalContract
+(Dynamics
 	"Master Sales Agreement"
 	(StartSituation VendorAcceptingOrders)
 

@@ -194,7 +194,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         elif head(PROSE_CONTRACT_AREA_LABEL):
             self.top.prose_contract = self._mk_prose_contract(cast(List[List[str]], rem))
 
-        elif head(FORMAL_CONTRACT_AREA_LABEL, "Actions&Situations", "Situations&Actions"):
+        elif head(FORMAL_CONTRACT_AREA_LABEL):
             self._mk_main_program_area(rem)
 
         elif head(TIMEUNIT_DEC_LABEL):

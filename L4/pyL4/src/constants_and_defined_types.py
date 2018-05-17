@@ -106,7 +106,7 @@ DeonticKeyword = NewType('DeonticKeyword',str)
 # ------------Top-level declarations------------
 GLOBAL_VARS_AREA_LABEL = "StateVars"
 PROSE_CONTRACT_AREA_LABEL = "ProseContract"
-FORMAL_CONTRACT_AREA_LABEL = "FormalContract"
+FORMAL_CONTRACT_AREA_LABEL = "Dynamics"
 ROLES_DEC_LABEL = "Roles"
 TIMEUNIT_DEC_LABEL = "TimeUnit"
 SUPPORTED_TIMEUNITS = ['w','d','h','m','s']

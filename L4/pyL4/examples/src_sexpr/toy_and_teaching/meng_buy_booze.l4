@@ -1,7 +1,7 @@
 (Roles Buyer Seller)
 (TimeUnit m)
 
-(FormalContract "Meng buy booze"
+(Dynamics "Meng buy booze"
 	(StartSituation AtCounter)
 
 	(Situation AtCounter

@@ -6,7 +6,7 @@
 	(n : Int = START)
 )
 
-(FormalContract "test symbolic exec halting"
+(Dynamics "test symbolic exec halting"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing

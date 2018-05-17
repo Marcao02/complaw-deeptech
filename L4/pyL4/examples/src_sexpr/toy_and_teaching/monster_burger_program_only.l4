@@ -40,7 +40,7 @@
 	(P6 'Any other food or drink that the customer wishes to consume while doing the MB challenge must be ordered on a separate bill.')
 )
 
-(FormalContract
+(Dynamics
 	"Monster Burger"
 	(StartSituation MonsterBurgerUncooked)
 
