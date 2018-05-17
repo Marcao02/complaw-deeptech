@@ -88,9 +88,9 @@
 [Roles Customer Vendor]
 
 [ProseContract
-    [P1 'The master agreement between Vendor and Customer is for {MAX_UNITS} printers, with a unit price of {PRICE_PER_UNIT}. The agreement is valid for {CONTRACT_LIFE}, starting 2011-01-01.']
-    [P2 'The customer may at any time order an amount of printers [with the total not exceeding the threshold of {MAX_UNITS}], after which the Vendor must deliver the goods before the maximum of [i] 14 days, or [ii] the number of ordered goods divided by ten days.']
-    [P3 'After delivering the goods, Vendor may bill the Customer within 1 month, after which the goods must be paid for by Customer within 14 days.']
+    [P1 "The master agreement between Vendor and Customer is for {MAX_UNITS} printers, with a unit price of {PRICE_PER_UNIT}. The agreement is valid for {CONTRACT_LIFE}, starting 2011-01-01."]
+    [P2 "The customer may at any time order an amount of printers [with the total not exceeding the threshold of {MAX_UNITS}], after which the Vendor must deliver the goods before the maximum of [i] 14 days, or [ii] the number of ordered goods divided by ten days."]
+    [P3 "After delivering the goods, Vendor may bill the Customer within 1 month, after which the goods must be paid for by Customer within 14 days."]
 ]
 
 ; NTS: removed preliminary work with VerificationDefinition, FOLContract, Conjecture

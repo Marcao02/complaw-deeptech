@@ -15,7 +15,7 @@
 			(Seller may AcceptIDAndSobrietyOfBuyer)
 		)
 	)
-	(Action RefuseIntoxicatedBuer (TransitionsTo Fulfilled))
+	(Action RefuseIntoxicatedBuyer (TransitionsTo Fulfilled))
 	(Action RefuseID (TransitionsTo Fulfilled))
 
 	(Action AcceptIDAndSobrietyOfBuyer

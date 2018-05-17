@@ -33,10 +33,10 @@
 
 ; The original (ambiguous) agreement.
 (ProseContract
-	(P1 'Whenever Internet traffic is high then the client must pay {HIGH_USAGE_FEE} or the client must notify the service provider by sending an e-mail specifying that he will pay later within {HOURS_PARAM} hours.')
-	(P2 'In case the client delays the payment, after notification he must lower Internet traffic within {HOURS_PARAM} hours to the low level, and pay twice the amount {HIGH_USAGE_FEE}.')
-	(P3 'If the client does not lower the Internet traffic within {HOURS_PARAM} hours, then the client will have to pay thrice the amount {HIGH_USAGE_FEE}.')
-	(P4 'The provider does not have permission to cancel the contract without previous written notification by normal post and by e-mail.')
+	(P1 "Whenever Internet traffic is high then the client must pay {HIGH_USAGE_FEE} or the client must notify the service provider by sending an e-mail specifying that he will pay later within {HOURS_PARAM} hours.")
+	(P2 "In case the client delays the payment, after notification he must lower Internet traffic within {HOURS_PARAM} hours to the low level, and pay twice the amount {HIGH_USAGE_FEE}.")
+	(P3 "If the client does not lower the Internet traffic within {HOURS_PARAM} hours, then the client will have to pay thrice the amount {HIGH_USAGE_FEE}.")
+	(P4 "The provider does not have permission to cancel the contract without previous written notification by normal post and by e-mail.")
 )
 
 (StateVars

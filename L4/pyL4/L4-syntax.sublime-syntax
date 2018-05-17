@@ -1,0 +1,133 @@
+%YAML 1.2
+---
+# v1.0
+name: L4
+file_extensions: [l4]
+scope: source.l4
+
+variables:
+  open_brack: '\(|\[|\{'
+  close_brack: '\)|\]|\}'
+  built_in_sort: '(Nat|PosInt|Int|NonnegReal|PosReal|Real|TimeDelta|DateTime)'
+  var_modifier: 'writeout|local|inconly|writes≤1|writeonce|writes1|nonoperative'
+  time_unit: '(d|m|s|w|D|M|S|W)'
+
+contexts:
+  prototype:
+    - include: comments
+
+  main:
+    - match: \(|\[\s*(ContractParams)
+      captures:
+          1: keyword.toplevel.l4
+      push: ContractParams_toplevel
+    - match: \b(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions)\b
+      scope: keyword.toplevel.l4
+    # - match: \b(ContractParams|StateVars|SortDefinitions|NLGNames)\b
+      # push: namedefcontext
+    - match: '\b{{built_in_sort}}\b'
+      scope: support.type
+
+
+    - match: '"'
+      push: in_stringlit
+    # - match: \(
+    #   push: brackets
+    # - match: \)
+    #   scope: invalid.illegal.stray-bracket-end
+    - match: '\b(before_split|at_split|within|after_split|after_dt|before|at|after|on|by|immediately|last_situation_td|AllowedRoles|may-later|may|must-later|must|check|nlg|nlgsection|Action|FollowingSituation|Situation|Future|StartSituation|StateTransform|TransitionsTo|AllowedSubjects|when|where|{{var_modifier}})\b'
+      scope: keyword.other
+
+    - match: \b(ifflag|if|else)\b
+      scope: keyword.control
+
+    - match: \b(not|and|or|max|min|str2dt|after_dt)\b
+      scope: keyword.operator
+
+    - match: :=|:|=|\+=|\+|\*|ceil/|/|≤|≥|<|>|\s-\s
+      scope: keyword.operator
+
+    - match: \b(last_situation_td|next_event_td|last_event_td|traversals|visits|Fulfilled)\b
+      scope: variable.language
+
+    - match: \?\w+
+      scope: variable.parameter
+
+    - match: '\d+{{time_unit}}'
+      scope: constant.other
+
+    - match: \b(\d+.\d+|\d+)\b
+      scope: constant.numeric
+
+
+  ContractParams_toplevel:
+    - meta_scope: 'scope_ContractParams_toplevel'
+    - include: main
+    - match: '{{open_brack}}'
+      push: ContractParams_depth1
+    - match: '{{close_brack}}'
+      pop: true
+
+  ContractParams_depth1:
+    - meta_scope: 'scope_ContractParams_depth1'
+    - include: main
+    # - match: '(\w+)\s*\:\s*\w+'
+    #   captures:
+    #     1: entity.name.function
+    - match: '{{open_brack}}'
+      push: ContractParams_depth2
+    - match: '{{close_brack}}'
+      pop: true
+
+  ContractParams_depth2:
+    - meta_scope: 'scope_ContractParams_depth2'
+    - include: main
+    - match: '{{open_brack}}'
+      push: ContractParams_deeper
+    - match: '{{close_brack}}'
+      pop: true
+
+  ContractParams_deeper:
+    # - meta_scope: test
+    - include: main
+    - match: '{{open_brack}}'
+      push: ContractParams_deeper
+    - match: '{{close_brack}}'
+      pop: true
+
+  # namedefcontext:
+  #   - match: \b\w+\b
+  #     scope: entity.name.type
+  #     pop: true
+
+  # brackets:
+  #   - match: \)
+  #     pop: true
+  #   - include: main
+
+  in_stringlit:
+    - match: \{
+      set: in_template
+    - match: '"'
+      pop: true
+    # - match: '[^"]*'
+    - match: .
+      scope: string.quoted.double.l4
+    # - meta_scope:
+    - meta_include_prototype: false
+
+  in_template:
+    - match: \}
+      set: in_stringlit
+    # - match: .
+      # scope: string.regexp
+
+    - meta_include_prototype: false
+
+  comments:
+    - match: ;.*\n
+      scope: comment.line.semicolon
+      pop: true
+
+
+
