@@ -1,4 +1,4 @@
-**This repo is undergoing a major reorganization, which will make it easier for you to understand and contribute to.**
+**This repo has recently undergone a major reorganization, to make it easier for you to understand and contribute to. The previous version, which contains a lot of dormant unmigrated stuff, is [here](https://github.com/legalese/legalese-compiler-legacy).**
 
 # Computational Contracts
 
@@ -15,6 +15,8 @@ incredibly hard to define.
 > -- email from Michael Wayne Goodman <goodmami@u.washington.edu> 2014/08/15
 
 L4 is the strongest domain-specific language for writing such code. It builds on [70 years of academic work in computational law](https://legalese.com/#informatics-content).
+
+[L4 implementation](https://github.com/legalese/complaw-deeptech/tree/master/L4/pyL4)
 
 [L4 Examples](https://github.com/legalese/complaw-deeptech/tree/master/L4/pyL4/examples/src_sexpr)
 
