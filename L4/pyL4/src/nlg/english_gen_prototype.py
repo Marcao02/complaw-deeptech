@@ -177,8 +177,9 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             actcontents.add(actionparamsHtml(act.param_sorts_by_name, act.action_id))
             actcontents.add(br())
         if act.state_transform:
-            actcontents.add(div("Set:"))
-            statetrans = actcontents.add(indented())
+            # actcontents.add(div("We calculate:"))
+            # statetrans = actcontents.add(indented())
+            statetrans = actcontents.add(div())
             statetrans.add(blockHtml(act.state_transform.statements))
             actcontents.add(br())
 
@@ -205,10 +206,20 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
     def statementHtml(statement:Statement) -> Any:
         if isinstance(statement,StateVarAssign):
-            return div(id2link(statement.varname), span("  to:",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
+            rhs = statement.value_expr
+            if isinstance(rhs, FnApp) and rhs.fnsymb_name == "-":
+                return div("Reduce ", id2link(statement.varname), " by ", termHtml(rhs.args[1]))
+            if isinstance(rhs, FnApp) and rhs.fnsymb_name == "+":
+                return div("Increase ", id2link(statement.varname), " by ", termHtml(rhs.args[1]))
+            else:
+                return div(id2link(statement.varname), span(" is ", cls="is_assignment"),
+                           termHtml(statement.value_expr))
+                # return div(id2link(statement.varname), span("  to:",cls="is_assignment"), one_indented(termHtml(statement.value_expr)))
             # return div(id2link(statement.varname), span(" by:"), one_indented(termHtml(statement.value_expr)))
         elif isinstance(statement,LocalVarDec):
-            return div(intro(statement.varname), ", a ", sortHtml(statement.sort), "  to:", one_indented(termHtml(statement.value_expr)))
+            return div(intro(statement.varname), " is ", termHtml(statement.value_expr))
+        # elif isinstance(statement,LocalVarDec):
+        #     return div(intro(statement.varname), ", a ", sortHtml(statement.sort), "  to:", one_indented(termHtml(statement.value_expr)))
         return div(str(statement))
 
     def timedeltaLitHtml(s:str) -> str:
