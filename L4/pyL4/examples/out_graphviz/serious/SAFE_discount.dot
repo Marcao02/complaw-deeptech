@@ -49,9 +49,9 @@ digraph SAFE {
 	AfterCommitToDissolution -> Breached_Company [label=Breach_Company];
 	AfterTransferCash_D -> AfterTransferAssets [label=TransferAssets];
 	AfterTransferCash_D -> Breached_Company [label=Breach_Company];
-	AfterTransferCash_D -> Fulfilled [label=Dissolve];
+	AfterTransferCash_D -> Fulfilled [label=Dissolution_Event];
 	AfterTransferCash_D -> Breached_Company [label=Breach_Company];
-	AfterTransferAssets -> Fulfilled [label=Dissolve];
+	AfterTransferAssets -> Fulfilled [label=Dissolution_Event];
 	AfterTransferAssets -> Breached_Company [label=Breach_Company];
 	     
     

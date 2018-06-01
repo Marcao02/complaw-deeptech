@@ -12,9 +12,9 @@ action ShowID()  transitions to AfterShowID
     following situation:
         Seller may AcceptIDAndSobrietyOfBuyer
         Seller may RefuseID
-        Seller may RefuseIntoxicatedBuer
+        Seller may RefuseIntoxicatedBuyer
 
-action RefuseIntoxicatedBuer()  transitions to Fulfilled
+action RefuseIntoxicatedBuyer()  transitions to Fulfilled
 
 action RefuseID()  transitions to Fulfilled
 
