@@ -5,8 +5,8 @@ from typing import Dict, Optional, Set
 
 from src.independent.util import print_all_todos
 
-
-tests_to_run : Set[str] = {
+# it would be nice to have an sys.argv parser library generalize this to select tests_to_run
+tests_to_run : Set[str] = { 'nlg' } if "nlg" in sys.argv else {
     'L4typechecker',
     # 'smtlegacy',
     'symbexec',
@@ -25,12 +25,6 @@ def runit(s, optional_s=""):
 # it would be nice to have a sys.argv parser library allow us to do --verbose or -v
 # VERBOSE = True
 VERBOSE = False
-
-# it would be nice to generalize this to all the above tests_to_run
-if "nlg" in sys.argv:
-    tests_to_run : Set[str] = {
-        'nlg'
-    }
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     splits : Dict[str,float] = {}
