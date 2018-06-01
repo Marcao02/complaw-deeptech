@@ -22,8 +22,15 @@ def runit(s, optional_s=""):
     print(f"\n{'='*len(line2)}\n{line2}")
     os.system(s)
 
+# it would be nice to have a sys.argv parser library allow us to do --verbose or -v
 # VERBOSE = True
 VERBOSE = False
+
+# it would be nice to generalize this to all the above tests_to_run
+if "nlg" in sys.argv:
+    tests_to_run : Set[str] = {
+        'nlg'
+    }
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     splits : Dict[str,float] = {}
