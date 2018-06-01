@@ -315,8 +315,8 @@
 		(nlg "Initiate an IPO Liquidity Event")
 		(nlgsection "Liquidity Events")
 		(StateTransform
-			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / Liquidity))
-			(writeout Safe_Price : SharePrice = (Valuation_Cap / Liquidity))
+			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / Liquidity_Capitalization))
+			(writeout Safe_Price : SharePrice = (Valuation_Cap / Liquidity_Capitalization))
 			(writeout Discount_Price : SharePrice = (undiscounted_standard_preferred_stock_price * Discount_Rate))
 			(Conversion_Price' = (min Safe_Price Discount_Price))
 		)
@@ -445,7 +445,7 @@
 		)
 	)
 
-	(Action (TransferAssets (company_capitalization : PosShareCnt)
+	(Action (TransferAssets (Company_Capitalization : PosShareCnt)
 							(company_valuation : Pos$) )
 		(nlg "Transfer Assets")
 		(nlgsection "Dissolution Events")

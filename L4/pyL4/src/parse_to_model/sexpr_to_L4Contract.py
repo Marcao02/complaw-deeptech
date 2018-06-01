@@ -241,9 +241,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             self.top.img_file_name = chcaststr(
                 x[1][1])  # the extra [1] is because its parse is of the form ['STRLIT', 'filename']
 
-        elif head("TypedMacro"):
-            todo_once("Handle TypedMacro")
-
         elif head("NLGNames"):
             for pair in x[1:]:
                 self.top.nlg_names[pair[0]] = pair[1][1]
@@ -254,6 +251,16 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         # elif head("Flags"):
             # self._flags = set(x[1:])
             # return
+
+        elif head("TypedMacro"):
+            todo_once("Handle TypedMacro")
+
+        elif head("NonoperativeContractParams"):
+            todo_once("Handle NonoperativeContractParams")
+        elif head("NLGSection"):
+            todo_once("Handle NLGSection")
+        elif head("ActionPredicate"):
+            todo_once("Handle ActionPredicate")
 
         else:
             raise Exception("Unsupported: ", x[0])
@@ -683,6 +690,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 todo_once("handle (AllowedRoles ...)")
             elif head("nlg"):
                 todo_once("handle (nlg ...)")
+            elif head("sideeffects"):
+                todo_once("handle (sideeffects ...)")
             else:
                 self.syntaxError(f"Unhandled {x[0]}",str(x))
                 todo_once(f"Handle {x[0]} in action dec.")

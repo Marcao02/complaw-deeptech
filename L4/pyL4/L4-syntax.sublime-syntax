@@ -21,7 +21,7 @@ contexts:
       captures:
           1: keyword.toplevel.l4
       push: ContractParams_toplevel
-    - match: \b(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions)\b
+    - match: \b(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions|NLGSection|NonoperativeContractParams)\b
       scope: keyword.toplevel.l4
     # - match: \b(ContractParams|StateVars|SortDefinitions|NLGNames)\b
       # push: namedefcontext
