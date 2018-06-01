@@ -7,8 +7,8 @@ TOO_LARGE_CAP = 99999999
 
 primer_ex = [
     ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 5 * M,
+        {"Purchase_Amount": 100 * K,
+         "Valuation_Cap": 5 * M,
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToEquityFinancing', 'Company', 0),
@@ -23,8 +23,8 @@ primer_ex = [
     ),
 
     ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 4 * M,
+        {"Purchase_Amount": 100 * K,
+         "Valuation_Cap": 4 * M,
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToEquityFinancing', 'Company', 0),
@@ -39,8 +39,8 @@ primer_ex = [
     ),
 
     ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 8 * M,
+        {"Purchase_Amount": 100 * K,
+         "Valuation_Cap": 8 * M,
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToEquityFinancing', 'Company', 0),
@@ -55,8 +55,8 @@ primer_ex = [
     ),
 
     ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
+        {"Purchase_Amount": 100 * K,
+         "Valuation_Cap": 10 * M,
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToIPO', 'Company', 0, {
@@ -80,8 +80,8 @@ primer_ex = [
     ),
 
     ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
+        {"Purchase_Amount": 100 * K,
+         "Valuation_Cap": 10 * M,
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToIPO', 'Company', 0, {
@@ -99,9 +99,9 @@ primer_ex = [
     ),
 
     ('serious/SAFE_discount.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 20 * K,
-         # "VALUATION_CAP": inf,
-         "DISCOUNT_RATE": .8
+        {"Purchase_Amount": 20 * K,
+         # "Valuation_Cap": inf,
+         "Discount_Rate": .8
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToEquityFinancing', 'Company', 0),
@@ -120,8 +120,8 @@ primer_ex = [
 
 other_ex = [
     ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
+        {"Purchase_Amount": 100 * K,
+         "Valuation_Cap": 10 * M,
          },
 
         (event('TransferInvestmentCash', "Investor",0),
@@ -148,8 +148,8 @@ other_ex = [
     ),
 
     ('serious/SAFE_cap.l4', CompleteTrace(
-        {"PURCHASE_AMOUNT": 100 * K,
-         "VALUATION_CAP": 10 * M,
+        {"Purchase_Amount": 100 * K,
+         "Valuation_Cap": 10 * M,
          },
         (event('TransferInvestmentCash', "Investor",0),
          event('CommitToIPO', 'Company', 0, {
@@ -182,9 +182,9 @@ for case in primer_ex:
     else:
         case2 = ("serious/SAFE_cap_discount.l4", deepcopy(case[1]), "")
     if "SAFE_discount.l4" in case[0]:
-        case2[1].contract_param_subst["VALUATION_CAP"] = TOO_LARGE_CAP  # wanted this to cause a test error
+        case2[1].contract_param_subst["Valuation_Cap"] = TOO_LARGE_CAP  # wanted this to cause a test error
     elif "SAFE_cap.l4" in case[0]:
-        case2[1].contract_param_subst["DISCOUNT_RATE"] = 1 # wanted this to cause a test error
+        case2[1].contract_param_subst["Discount_Rate"] = 1 # wanted this to cause a test error
 
     primer_derived.append(case2)
 
