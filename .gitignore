@@ -4,3 +4,5 @@
 *.synctex.gz
 /_to_clean/
 /.idea/
+__pycache__
+
