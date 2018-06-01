@@ -11,7 +11,7 @@
 	(Action ShowID
 		(FollowingSituation
 			(Seller may RefuseID)
-			(Seller may RefuseIntoxicatedBuer)
+			(Seller may RefuseIntoxicatedBuyer)
 			(Seller may AcceptIDAndSobrietyOfBuyer)
 		)
 	)
