@@ -1,5 +1,10 @@
 from typing import Optional
 
+# By age 35, you should have written an ad-hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp.
+# https://en.wikipedia.org/wiki/Greenspun%27s_tenth_rule
+# https://twitter.com/NeckbeardHacker/status/999087537883942912
+
+
 from src.independent.util import chcaststr
 from src.independent.util_for_sequences import is_singleton_string_list
 from src.independent.SExpr import *
