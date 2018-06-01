@@ -10,6 +10,7 @@ from src.independent.util_for_sequences import is_singleton_string_list
 from src.independent.SExpr import *
 
 ALLOW_PRIMED_NAMES = True
+FORBID_LINEBREAKS = False
 
 class SExprBuilder:
     def __init__(self) -> None:
@@ -129,7 +130,7 @@ def parse(string:str, debug=False, strip_comments=True, custom_splitter:Optional
                 skip_next_char = True
                 maybeAppendToken()
 
-            elif in_str_lit and char == '\n':
+            elif FORBID_LINEBREAKS and in_str_lit and char == '\n':
                 assert False, "\nNo linebreaks in strings, just to prevent hard-to-diagnose syntax errors. See line {} column {}".format(line,col)
 
             elif in_str_lit:

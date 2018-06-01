@@ -186,7 +186,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             self.top.state_var_decs = self._mk_statevar_decs(rem)
 
         elif head(CONTRACT_PARAMETERS_AREA_LABEL):
-            self.top.contract_params = {castid(ContractParamId, expr[0]): self._mk_contract_param(expr) for expr in rem}
+            for expr in rem:
+                self.top.contract_params[castid(ContractParamId, expr[0])] = self._mk_contract_param(expr)
 
         elif head(ROLES_DEC_LABEL) or head("Actors"):
             self.top.roles.extend(self._mk_actors(rem))
