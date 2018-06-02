@@ -1,3 +1,12 @@
+; After all substitution and disamiguation, you have fully-unambiguous mutually-recursive function calls, local variable assignments, and some variable-binding terms via lambda terms. The lambda terms, as in LF, stand for target language expressions with holes.
+;
+;
+; A possible indication for abandoning: `erroriff`. how to do error-handling in
+; a language-neutral way?
+;
+; Why it might be a bad idea: look at the "innerfun" form I introduced for tarjan SCC alg.
+; On the other hand, I think the serious problem there is that I didn't document the code!
+;
 ; In Python
 ; ✓ 1 parse as s-expression (using existing code!! can replace later if get first version finished!!)
 ; ✓ 2 expand macros (easyish)
@@ -7,17 +16,17 @@
 ; ✓ 3 replace **, and overloads (easy, cuz for now same name requires different # params)
 ; ✓	3.5 collect tns names
 ; ✓ 4 create dotcall nodes.
-;	(W . fnsymb Y Z) becomes (.fnsymb W Y Z)
-;	(namespace . fnsymb Y Z) becomes (namespace.fnsymb Y Z)
-;	(W . fnsymb (Y . fnsymb2 Z)) becomes (.fnsymb W (.fnsymb2 Y Z))
-;	((W . fnsymb Y) . fnsymb2 Z) becomes (.fnsymb2 (.fnsymb W Y) Z))
-;	(W1 W2.fnsymb Y1 Y2.fnsymb2 Z1 Z2) becomes (.fnsymb2 (.fnsymb W Y) Z))
+;   ✓ (W . fnsymb Y Z) becomes (.fnsymb W Y Z). Will eventually be replaced by namespace.fnsymb
+;   ✓ (namespace . fnsymb Y Z) becomes (namespace.fnsymb Y Z)
+;	✓ (I think) (W . fnsymb (Y . fnsymb2 Z)) becomes (.fnsymb W (.fnsymb2 Y Z))
+;	✓ (I think) ((W . fnsymb Y) . fnsymb2 Z) becomes (.fnsymb2 (.fnsymb W Y) Z))
+;	✓ (I think) (W1 W2.fnsymb Y1 Y2.fnsymb2 Z1 Z2) becomes (.fnsymb2 (.fnsymb W Y) Z))
 ; 5 typecheck and insert coercions
-	; Terms to typecheck are all inside (`fn`...) nodes, and come in these forms
+	; Terms to typecheck are all inside (`fn`...) nodes, and come in these forms:
 	; (1)	((...) ~> Term), only in function arg position (not in function position itself)
-	; (2)	((...) ~> Block), only in function arg position (not in function position itself)
+	; (2)	((...) ~> StatementSeq), only in function arg position (not in function position itself)
 	;		Should I try to eliminate this form? Or insert `block`?
-	; (3)	(Namespace.fnsymb ...)
+	; (3)	(<namespace>.fnsymb ...)  this includes <namespace> = 'toplevel'
 	; (4)	(.fnsymb x ...)
 	; (5)	(`fn`-defined-function-symb ...)
 	; 5a Need some way of assigning NL types to subterms.
@@ -97,14 +106,16 @@
 		(absfn prepend (** Base) -> NonemptyBaseSeq)
 		(absfn fst (**) -> Base)
 		(absfn rest (**) -> **)
-		(absfn cases (T) (** (EmptyBaseSeq ~> T) (NonemptyBaseSeq ~> T) -> T))
-		(absfn match (T) (** ( ~> T) ((Base **) ~> T) -> T))
+		(absfn cases (T) (** (EmptyBaseSeq ~> T) (NonemptyBaseSeq ~> T)) -> T)
+		(absfn match (T) (** (() ~> T) ((Base **) ~> T)) -> T)
 		(absfn concat (** **) -> **)
 	)
 )
 (SeqOfType SEResult) ; defines SEResultSeq
-(SeqOfType Statement) ; StatementSeq
+(SeqOfType Statement) ; defines StatementSeq
+; doesn't work atm:
 (alias Block () StatementSeq)
+
 
 
 (tns SortOpApp
@@ -121,8 +132,8 @@
 (tns Sort
 	(absfn cases (T) (** (AtomicSort ~> T) (SortOpApp ~> T)) -> T)
 	(absfn match (T) (**
-		(AtomicSort (AtomicSortId) 			~> T)
-		((SortOpApp (SortOpId SortTuple)) ~> T)
+		((AtomicSort AtomicSortId) 	  ~> T)
+		((SortOpApp SortOpId SortTuple) ~> T)
 	) -> T)
 )
 
@@ -201,9 +212,9 @@
 
 (tns IfElse
 	(absfn test (**) -> Term)
-	(absfn true_branch (**) -> Block)
-	(absfn false_branch (**) -> Block)
-	(absfn mk (Term Block Block) -> **)
+	(absfn true_branch (**) -> StatementSeq)
+	(absfn false_branch (**) -> StatementSeq)
+	(absfn mk (Term StatementSeq StatementSeq) -> **)
 	(upcast Statement)
 )
 
@@ -233,7 +244,7 @@
 
 (tns Event
 	(absfn id (**) -> EventId)
-	(absfn transform (**) -> Block)
+	(absfn transform (**) -> StatementSeq)
 	(absfn params (**) -> EventParamIdTuple)
 	(absfn destid (**) -> SituationId)
 )
@@ -273,10 +284,11 @@
 (macro z3and (x y) (Z3Term.and x y))
 (macro z3not (x) (Z3Term.not x))
 (macro z3implies (x y) (Z3Term.implies x y))
+(macro ifelse (test x y) (Bool.ifelse test x y))
 
 
 (tns SymbExecLSM
-	(fn symbexecStmts ((EventParamSubst epsubst) (Event e) (StateVarSubst svsubst) (Term pathform) (Block blck)) -> SEResultSeq
+	(fn symbexecStmts ((EventParamSubst epsubst) (Event e) (StateVarSubst svsubst) (Term pathform) (StatementSeq blck)) -> SEResultSeq
 		(blck.match
 			( ~> (symbexecSit svsubst P (e.dest)) )
 			((fst rest) ~>
@@ -290,7 +302,7 @@
 
 				   	; IfElse
 				   	((test true_branch false_branch) ~> (
-				   		(TESTapplied (subst2 test epsubst svsubst))
+				   		(THIS_IS_A_TESTapplied (subst2 test epsubst svsubst))
 				   		(pathform1 = (z3and pathform testapplied))
 				   		(rv1 =
 				   			(ifelse (consistent pathform1)
@@ -305,7 +317,7 @@
 				   				(SEResultSeq.empty)
 				   			)
 				   		)
-				   		(Block.concat rv1 rv2)
+				   		(StatementSeq.concat rv1 rv2)
 				   	))
 
 				   	; Prove
@@ -324,7 +336,7 @@
 		(SymbExecLSM.symbexecERules svsubst pathform (s.handlerSet))
 	)
 	(fn symbexecEvent ((RoleId roleid) (StateVarSubst svsubst) (Z3Term pathform) (Event event)) -> SEResultSeq
-		(SymbExecLSM.symbexecERules svsubst event pathform (event.transform))
+		(SymbExecLSM.symbexecStmts event svsubst event pathform (event.transform))
 	)
 
 	(fn symbexecERules ((StateVarSubst svsubst) (Z3Term pathform) (Event event) (EventRuleTuple erules)) -> SEResultSeq
@@ -337,6 +349,18 @@
 
 		)
 	)
+
+	(fn term2z3term ((tm Term)) -> Z3Term
+		()
+		;(tm.cases Z3Term (
+		; 	(ContractParam ~> T)
+		; 	(EventParam ~> T)
+		; 	(StateVar ~> T)
+		; 	(FnApp ~> T)
+		; 	(Literal ~> T)
+		; ))
+	)
+
 
 	(fn symbexecERule ((StateVarSubst svsubst) (Z3Term pathform) (Event event) (EventRule rule) (Nat timeind)) -> SEResultSeq
 		(rule.match

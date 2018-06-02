@@ -1,6 +1,11 @@
 from typing import NamedTuple, Tuple, Set, Dict, Union, TypeVar, Sequence, Generator, Any, cast, Optional, List, \
     Callable
 
+from src.independent.SExpr import SExprOrStr
+from src.independent.nolockin_classes import *
+from src.independent.parse_sexpr import parse_file, prettySExprStr
+from src.independent.util import chcast, chcaststr
+
 # I'm implementing NoLockin for GC-collected languages.
 # Our first use, the symbolic exec alg, is a pure function.
 
@@ -25,9 +30,6 @@ from typing import NamedTuple, Tuple, Set, Dict, Union, TypeVar, Sequence, Gener
 # node with no macro applications is already expanded, and has depth 0.
 # repeat till no change:
 #   expand all depth-0-macro applications to depth-0 nodes.
-from src.independent.SExpr import SExprOrStr
-from src.independent.parse_sexpr import parse_file, prettySExprStr
-from src.independent.util import chcast, chcaststr
 
 T = TypeVar('T')
 Tup = Tuple[T,...]
@@ -46,6 +48,12 @@ class Node(NamedTuple):
     def head(self) -> Union['Node',str]:
         assert len(self.ch) > 0, self
         return self.ch[0]
+
+    def error(self) -> str:
+        return f"Error at line {self.meta.line}, col {self.meta.col}:\n{self}"
+
+    def printerror(self) -> str:
+        print(self.error())
 
     # def tillEnd(self,i:int) -> 'Node':
     #     return Node(self.ch[i:], self.meta)
@@ -417,6 +425,104 @@ def convert_dot_calls(u:Node, tns_names:Set[str]):
 
     return convert_nodes_bottom_up(u,converter)
 
+def untyped_tuple_to_typed(top:Node) -> NLFile:
+    all_sorts : Set[str] = set()
+
+    def from_tns_tup(x:Node) -> TNSDec:
+        tns_name = chcaststr(x.ch[1])
+        absfns : List[AbsFnDec] = []
+        fns: List[FnDec] = []
+        for dec in x.ch[2:]:
+            assert isinstance(dec,Node)
+            if dec.ch[0] == 'absfn':
+                absfns.append(to_abs_fn_dec(dec))
+            elif dec.ch[0] == 'fn':
+                fns.append(to_fn_dec(dec))
+        return TNSDec(tns_name, tuple(absfns), tuple(fns))
+
+    def to_sort(x:NodeOrStr) -> str:
+        assert isinstance(x,str), x.error()
+        all_sorts.add(x)
+        return x
+
+    def to_lambda_type(x:NodeOrStr) -> LambdaType:
+        assert isinstance(x,Node), x
+        dompart = tuple(to_sort(y) for y in x.ch[0])
+        assert len(x.ch) >= 3, x.error()
+        rangtype = to_sort(x.ch[2])
+        return LambdaType(dompart, rangtype)
+
+    def to_argtype(x:NodeOrStr) -> Union[LambdaType,str]:
+        if isinstance(x,str):
+            return to_sort(x)
+        else:
+            return to_lambda_type(x)
+
+    def to_abs_fn_dec(x:Node) -> AbsFnDec:
+        fn_name = chcaststr(x.ch[1])
+        assert len(x.ch) == 6 or len(x.ch) == 5 or len(x.ch) == 4, x.error()
+        if len(x.ch) == 6:
+            typeparams = tuple(chcaststr(s) for s in x.ch[2])
+            argtypes = tuple(to_argtype(s) for s in x.ch[3])
+            rantype = to_sort(x.ch[5])
+        elif len(x.ch) == 5:
+            typeparams = None
+            argtypes = tuple(to_argtype(s) for s in x.ch[2])
+            rantype = to_sort(x.ch[4])
+        else:
+            typeparams = None
+            argtypes = ()
+            rantype = to_sort(x.ch[3])
+        return AbsFnDec(fn_name, argtypes, rantype, typeparams)
+
+    def to_fn_dec(x:Node) -> FnDec:
+        fn_name = chcaststr(x.ch[1])
+        if len(x.ch) == 7:
+            typeparams = tuple(chcaststr(s) for s in x.ch[2])
+            argtypes = tuple(to_argtype(pair.ch[0]) for pair in x.ch[3])
+            args = tuple(chcaststr(pair.ch[1]) for pair in x.ch[3])
+            rantype = to_sort(x.ch[5])
+            body = to_fnbody(x.ch[6])
+        elif len(x.ch) == 6:
+            typeparams = None
+            argtypes = tuple(to_argtype(pair.ch[0]) for pair in x.ch[2].ch)
+            args = tuple(chcaststr(pair.ch[1]) for pair in x.ch[2].ch)
+            rantype = to_sort(x.ch[4])
+            body = to_fnbody(x.ch[5])
+        else:
+            typeparams = None
+            argtypes = ()
+            args = tuple()
+            rantype = to_sort(x.ch[3])
+            body = to_fnbody(x.ch[4])
+
+        # argtypes = tuple(to_argtype(pair[1]) for pair in x.ch[2])
+        # args = tuple(chcaststr(pair[0]) for pair in x.ch[2])
+        # rantype = to_sort(x.ch[4])
+        # body = to_fnbody(x.ch[5])
+        return FnDec(fn_name, argtypes, rantype, args, body)
+
+    def to_fnbody(x:Node) -> FnBody:
+        if len(x.ch) == 0 or isinstance(x.ch[0], Node):
+            return to_block(x)
+        else:
+            return to_term(x)
+
+    def to_block(x:Node) -> Block:
+        return (to_statement(s) for s in x.ch)
+
+    def to_statement(x:Node) -> Statement:
+        if len(x) >= 3 and x[1] == "=":
+            return LocalAssignStatement(x[0], to_term(x[2]))
+
+
+
+    def to_term(x: Node) -> Term:
+        pass
+
+    return NLFile(tuple( from_tns_tup(u) for u in filter(lambda v: v.ch[0] == "tns", top.ch) ))
+
+
 
 parsed = parse_file("SymbExecTimelessLSM.nl", False, True, dot_split_condition)
 # print(prettySExprStr(parsed))
@@ -451,9 +557,10 @@ print("tns_names:", tns_names)
 check_dot_calls(topnode)
 topnode = convert_dot_calls(topnode, tns_names)
 printTop(topnode)
-print("""We can't add the arity numbers to all functions yet, just due to the case where some name N is used
-in two TNSs, but it's overloaded in only one of them. So we'll  """)
+print("""We shouldn't add the arity numbers to all functions yet, just due to the case where some name N is used
+in two TNSs, but it's overloaded in only one of them. Alternatively, could temporarily allow for unnecessary arity 
+numbers in some functions.""")
 
-
+print(untyped_tuple_to_typed(topnode))
 
 # printTop(topnode)
