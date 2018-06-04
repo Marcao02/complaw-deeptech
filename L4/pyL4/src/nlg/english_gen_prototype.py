@@ -322,7 +322,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             elif term.head == "ceil/":
                 return span("⎡", termHtml(term.args[0]), " / ", termHtml(term.args[1]), "⎤")
             elif term.head == "min":
-                return span("the minimum of ", termHtml(term.args[0]), " and ", termHtml(term.args[1]))
+                return span("the lesser of ", termHtml(term.args[0]), " and ", termHtml(term.args[1]))
             elif term.head == "+" or term.head == "-":
                 return span("( ", termHtml(term.args[0]), " ", term.head, " ", termHtml(term.args[1]), " )")
         elif isinstance(term, ActionBoundActionParam):
