@@ -37,6 +37,11 @@ class L4Contract:
         self.state_invariants: Iterable[StateInvariant] = []
         self.end_of_trace_claims: List[Term] = []
 
+        self.ontology_axioms: List[Term] = []
+        # temporary till process the entire thing:
+        self.ontology_fns: List[str] = []
+
+
         # TODO: make `definitions` `term_definitions`
         self.definitions: Dict[DefinitionId, Definition] = dict()
         self.sort_definitions: Dict[str, Sort] = dict()
@@ -69,6 +74,7 @@ class L4Contract:
         self.write_bounds : Dict[str,Tuple[int,Optional[int]]] = dict()
 
         self.nlg_names : Dict[str,str] = dict()
+        self.nlg_sections: List[Any] = []
 
         self.local_vars_eliminated = False
         self.if_then_else_terms_eliminated = False

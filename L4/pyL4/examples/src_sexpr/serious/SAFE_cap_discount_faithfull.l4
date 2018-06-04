@@ -7,6 +7,36 @@
 (TimeUnit d)
 (DefaultActionTimeLimit 2d)
 
+(Ontology
+	(Sort Power)
+	(Sort Date)
+	(Sort Group)
+	(Sort CompanyApproval)
+	(Sort Act)
+	(Fn is_issue_shares_power (Power → Bool))
+	(Fn ☐_exercises_☐_on_☐ (Group Power Date → Act))
+	(Fn ☐_is_an_approval_given_on_☐_to_☐ (CompanyApproval Date Group → Bool))
+	(Fn before_date)
+	(Fn violation (Act → Bool))
+
+	;(Axiom
+	;	(∀ (DG Group) (POW Power) (ACT Act) (D2 Date)
+	;		(
+	;			(	∧
+	;				(is_issue_shares_power POW)
+	;				(ACT = (☐_exercises_☐_on_☐ DG POW D2))
+	;				(¬ ( ∃ (APP CompanyApproval) (D1 Date)
+	;					((before_date D1 D2) ∧ (☐_is_an_approval_given_on_☐_to_☐ APP D1 ACT ))
+	;				))
+	;			)
+	;		→
+	;			(violation DG ACT)
+	;		)
+	;	)
+	; )
+)
+
+
 
 (ContractParams
 	(Purchase_Amount : Pos$ = 100000)
@@ -81,20 +111,13 @@
 )
 
 (NLGSection
-    (Definition Capital_Stock
-    "means the capital stock of the {Company}, including, without limitation, {Common_Stock} and {Preferred_Stock}."
-    )
+    (Definition Capital_Stock "means the capital stock of the {Company}, including, without limitation, {Common_Stock} and {Preferred_Stock}.")
 
-    (Definition Change_of_Control
-    "means (i) a transaction or series of related transactions in which any “person” or “group” (within the meaning of Section 13(d) and 14(d) of the Securities Exchange Act of 1934, as amended), becomes the “beneficial owner” (as defined in Rule 13d-3 under the Securities Exchange Act of 1934, as amended), directly or indirectly, of more than 50% of the outstanding voting securities of the {Company} having the right to vote for the election of members of the {Company}’s board of directors, (ii) any reorganization, merger or consolidation of the {Company}, other than a transaction or series of related transactions in which the holders of the voting securities of the {Company} outstanding immediately prior to such transaction or series of related transactions retain, immediately after such transaction or series of related transactions, at least a majority of the total voting power represented by the outstanding voting securities of the {Company} or such other surviving or resulting entity or (iii) a sale, lease or other disposition of all or substantially all of the assets of the {Company}."
-    )
+    (Definition Change_of_Control "means (i) a transaction or series of related transactions in which any “person” or “group” (within the meaning of Section 13(d) and 14(d) of the Securities Exchange Act of 1934, as amended), becomes the “beneficial owner” (as defined in Rule 13d-3 under the Securities Exchange Act of 1934, as amended), directly or indirectly, of more than 50% of the outstanding voting securities of the {Company} having the right to vote for the election of members of the {Company}’s board of directors, (ii) any reorganization, merger or consolidation of the {Company}, other than a transaction or series of related transactions in which the holders of the voting securities of the {Company} outstanding immediately prior to such transaction or series of related transactions retain, immediately after such transaction or series of related transactions, at least a majority of the total voting power represented by the outstanding voting securities of the {Company} or such other surviving or resulting entity or (iii) a sale, lease or other disposition of all or substantially all of the assets of the {Company}.")
 
-    (Definition Company_Capitalization
-    "means the sum, as of immediately prior to the {Equity_Financing}, of: (1) all shares of {Capital_Stock} (on an as-converted basis) issued and outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities, but excluding (A) this instrument, (B) all other Safes, and (C) convertible promissory notes; and (2) all shares of {Common_Stock} reserved and available for future grant under any equity incentive or similar plan of the {Company}, and/or any equity incentive or similar plan to be created or increased in connection with the {Equity_Financing}."
-    )
+    (Definition Company_Capitalization "means the sum, as of immediately prior to the {Equity_Financing}, of: (1) all shares of {Capital_Stock} (on an as-converted basis) issued and outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities, but excluding (A) this instrument, (B) all other Safes, and (C) convertible promissory notes; and (2) all shares of {Common_Stock} reserved and available for future grant under any equity incentive or similar plan of the {Company}, and/or any equity incentive or similar plan to be created or increased in connection with the {Equity_Financing}.")
 
-    (Definition Conversion_Price
-    "means either: (1) the {Safe_Price} or (2) the {Discount_Price}, whichever calculation results in a greater number of shares of {Safe_Preferred_Stock}."
+    (Definition Conversion_Price "means either: (1) the {Safe_Price} or (2) the {Discount_Price}, whichever calculation results in a greater number of shares of {Safe_Preferred_Stock}."
     )
 
     (Definition Discount_Price

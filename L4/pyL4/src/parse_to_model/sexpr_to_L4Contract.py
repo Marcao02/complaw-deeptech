@@ -7,7 +7,7 @@ from copy import deepcopy
 from src.hard_correctness_checks.normal_forms import eliminate_must, reset_ancestor_statement_pointers
 from src.model.EventsAndTraces import breachActionId, interveneOnDelayId
 from src.independent.util_for_sequences import flatten
-from src.independent.util_for_str import nonemptySortedSubsets
+from src.independent.util_for_str import nonemptySortedSubsets, mapjoin
 from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import chcaststr, todo_once, castid, chcast
 from src.independent.util_for_str import streqci, isFloat, isInt
@@ -37,7 +37,7 @@ from src.model.Literal import SortLit, IntLit, FloatLit, BoolLit, SimpleTimeDelt
     RoleIdLit, Literal, TimeDeltaLit, StringLit, EventIdLit
 from src.model.Situation import Situation
 from src.model.Sort import Sort, SortOpApp
-from src.model.Term import FnApp
+from src.model.Term import FnApp, Quantified
 from src.model.Term import Term
 
 def primed(s:str) -> StateVarId:
@@ -232,7 +232,10 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             self.top.end_of_trace_claims = self._mk_end_of_trace_claims(rem)
 
         elif head("VerificationDefinition"):
-            return
+            todo_once("handle VerificationDefinition")
+
+        elif head("Ontology"):
+            self._process_ontology_section(rem)
 
         elif head(DOT_FILE_NAME_LABEL):
             self.top.dot_file_name = chcaststr(
@@ -248,6 +251,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         elif head("DefaultActionTimeLimit"):
             self.top.default_action_timelimit = cast(SimpleTimeDeltaLit, self.mk_literal(x[1], x, self.top)).lit
 
+
         # elif head("Flags"):
             # self._flags = set(x[1:])
             # return
@@ -258,12 +262,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         elif head("NonoperativeContractParams"):
             todo_once("Handle NonoperativeContractParams")
         elif head("NLGSection"):
-            todo_once("Handle NLGSection")
+            self.top.nlg_sections.append(chcaststr(x[1][1]))
+
         elif head("ActionPredicate"):
             todo_once("Handle ActionPredicate")
 
         else:
-            raise Exception("Unsupported: ", x[0])
+            raise self.syntaxError(x, "Unsupported: " + str(x[0]))
 
     def _needs_preprocessing(self) -> bool:
         return (self.flags is not None and len(self.flags) > 0) or (self.raw_substitutions is not None and len(self.raw_substitutions) > 0)
@@ -435,6 +440,19 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         self._expand_sort_defns()
 
+    def _process_ontology_section(self, s: SExpr) -> None:
+        for x in s:
+            if x[0] == "Axiom":
+                self.top.ontology_axioms.append(self._mk_term(x[1], None, None, None, x))
+            elif x[0] == "Fn":
+                self.top.ontology_fns.append(x[1])
+                todo_once("Handle Fn")
+            elif x[0] == "Sort":
+                todo_once("Handle Sort")
+            else:
+                raise NotImplementedError
+
+
     def _expand_sort_defns(self):
         expanded: Dict[str,Optional[Sort]] = {sid: None for sid in self.top.sort_definitions}
         def helper(sort:Sort) -> Sort:
@@ -573,7 +591,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self._building_situation_id = situation_id
         x: SExpr
         for x in rest:
-            assert isinstance(x,SExpr), f"{x} should be an s-expression"
+            self.assertOrSyntaxError(isinstance(x,SExpr), rest, f"{x} should be an s-expression")
+
 
             def head(constant:str) -> bool:
                 nonlocal x
@@ -967,6 +986,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if self._is_macro_app(x):
                 x = self.handle_apply_macro(x)
 
+            if x[0] in QUANTIFIERS:
+                rv = Quantified(x[0],
+                                tuple((chcaststr(pair[0]), self._mk_sort(pair[1])) for pair in x[1:-1]),
+                                self._mk_term(x[-1], None, None, None, x), x.coord())
+                print("Found quantified formula: ", str(rv))
+                return rv
+
             pair = try_parse_as_fn_app(x)
             if pair:
                 fnsymb_name = pair[0]
@@ -1013,10 +1039,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 else:
                     if x[0] in INFIX_FN_SYMBOLS:
                         self.syntaxError(x, f"Didn't recognize symbol {x[0]} in: {x}. Did you mean to use infix notation?")
-                    else:
-                        self.syntaxError(x, f"Didn't recognize a function symbol in: {x}")
 
-                assert False # this is just to get mypy to not complain about missing return statement
+                if x[0] in self.top.ontology_fns:
+                    return cast(Any,x.tillEnd(1))
+                self.syntaxError(x, "Didn't recognize a function symbol in sexpr with components:\n" + mapjoin(str, x, '\n'))
+
 
     def _mk_time_constraint(self, expr:SExprOrStr, src_situation:Optional[Situation], src_action:Optional[Action],
                             parent_action_rule:Optional[ActionRule], parent_sexpr:SExpr) -> Optional[Term]:
@@ -1262,13 +1289,18 @@ def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:
 def maybe_as_prefix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if isinstance(se[0],str):
         symb = se[0]
+        if symb in UNICODE_TO_ASCII:
+            symb = UNICODE_TO_ASCII[symb]
         if symb in PREFIX_FN_SYMBOLS or symb in INFIX_FN_SYMBOLS:
             return symb, se.tillEnd(1)
+
     return None
 
 def maybe_as_infix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if len(se) == 3 and isinstance(se[1],str):
         symb : str = se[1]
+        if symb in UNICODE_TO_ASCII:
+            symb = UNICODE_TO_ASCII[symb]
         if symb in INFIX_FN_SYMBOLS:
             return symb, se.withElementDropped(1)
     return None
@@ -1276,6 +1308,8 @@ def maybe_as_infix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
 def maybe_as_postfix_fn_app(se:SExpr) -> Optional[Tuple[str, SExpr]]:
     if isinstance(se[-1],str):
         symb = se[-1]
+        if symb in UNICODE_TO_ASCII:
+            symb = UNICODE_TO_ASCII[symb]
         if symb in POSTFIX_FN_SYMBOLS:
             return symb, se.fromStartToExclusive(len(se) - 1)
     return None

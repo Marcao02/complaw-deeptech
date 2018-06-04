@@ -100,7 +100,7 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                      'nonempty', 'empty'
                      }.union(TIME_CONSTRAINT_OPERATORS).union(VERIFICATION_FN_SYMBOLS)
 
-INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
+INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^', '=',
                     'or','and', '->', '>=', '<=', '∧',
                     # derived, but useful for being rigorous about types
                     'floor/', 'round/', 'ceil/',
