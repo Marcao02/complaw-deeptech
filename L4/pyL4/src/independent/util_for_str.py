@@ -9,7 +9,9 @@ def streqci(s1:Any,s2:Any) -> bool:
     return isinstance(s1,str) and isinstance(s2,str) and s1.lower() == s2.lower()
 
 
-def mapjoin(f:Callable[[Any],str], iter:Union[Iterable[Any],Iterator[Any]], delim:str='') -> str:
+def mapjoin(f:Callable[[Any],str],
+            iter:Union[Iterable[Any],Iterator[Any]],
+            delim:str='') -> str:
     return delim.join(map(f,iter))
 
 

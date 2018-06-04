@@ -2,7 +2,7 @@ from typing import FrozenSet
 
 from src.constants_and_defined_types import LocalVarId, ARBITER_ROLE
 from src.independent.SExpr import SExpr, SExprOrStr, sexpr_rewrite
-from src.independent.util import chcast, warn_once
+from src.independent.util import chcast, warn_once, todo_once
 from src.model.EventsAndTraces import interveneOnDelayId, breachActionId
 from src.model.Term import Term, FnApp
 from src.model.BoundVar import LocalVar, StateVar
@@ -317,10 +317,13 @@ def eliminate_local_vars(p:L4Contract):
 def reset_ancestor_statement_pointers(prog:L4Contract, on_fix_msg_prefix:str = ""):
     def reset(stmt:Statement, parent_block:StatementList, grandparent_ifelse:Optional[IfElse]):
         if stmt.parent_block != parent_block:
-            print(f"{on_fix_msg_prefix}Found and fixing statement ancestor pointer discrepency in {prog.filename}. Statement is\n", stmt)
+            todo_once("Recall hid 'Found and fixing statement ancestor pointer discrepency' msg, which would've been used at least once in this run.")
+            # print(f"{on_fix_msg_prefix}Found and fixing statement ancestor pointer discrepency in {prog.filename}. Statement is\n", stmt)
             stmt.parent_block = parent_block
         if stmt.grandparent_ifelse != grandparent_ifelse:
-            print(f"{on_fix_msg_prefix}Found and fixing statement ancestor pointer discrepency in {prog.filename}. Statement is\n", stmt)
+            todo_once(
+                "Recall hid 'Found and fixing statement ancestor pointer discrepency' msg, which would've been used at least once in this run.")
+            # print(f"{on_fix_msg_prefix}Found and fixing statement ancestor pointer discrepency in {prog.filename}. Statement is\n", stmt)
             stmt.grandparent_ifelse = grandparent_ifelse
         if isinstance(stmt, IfElse):
             for child in stmt.true_branch:

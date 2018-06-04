@@ -181,6 +181,7 @@
 \newcommand{\yields}[2]{#1 \rightsquigarrow #2}
 \newcommand{\svtosmt}{\pi}
 \newcommand{\eptosmt}{\sigma}
+\newcommand{\vq}{\vec{q}}
 \newcommand{\vx}{\vec{x}}
 \newcommand{\vv}{\vec{v}}
 \newcommand{\rv}{\EM{\textsf{rv}}\xspace}
@@ -441,12 +442,17 @@ Let $\DT$ be $\sortsof{\cF}$. An $\lsmclass{\cF}$ model is given by the followin
 \item $\timeunit$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$.
 \item Finite sets $\actor, \ename, \sname$, and $\statevar$.
 \item A mapping $\svsorts$ from $\statevar$ to \DT.
-\item For each $e \in \ename$, a (possibly empty) type for its parameters $\eppartsorts{e} \in \DT^*$.
-\item For each $e \in \ename$, a \stransimpl $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. The functions used on the right side of assignment statements are from $\cFstar$.
+\item For each $e \in \ename$:
+\begin{PPI}
+\item a subset of \actor; the \actors allowed to initiate an \einst of type $e$.
+\item a destination \sname $\edest{e}$.
+\item types for its parameters $\eppartsorts{e} \in \DT^*$.
+\item a \stransimpl, $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. The functions used on the right side of assignment statements are from $\cFstar$.
+\end{PPI}
 \item A finite set $\erule$, with two partitions:
 \begin{PPI}
 \item \anchorfor{\prules}{prules}, \anchorfor{\orules}{orules}, and \anchorfor{\drules}{drules}
-\item $\{ \shandlerof{s} \subseteq \erule \ | \ s \in \sname \}$ where each $\shandlerof{s}$ satisfies the \\ \udc.
+\item $\{ \shandlerof{s} \subseteq \erule \ | \ s \in \sname \}$ where each $\shandlerof{s}$ satisfies the \\ \udc. 
 \end{PPI}
 \item An $\cFstar$ function $\reguard{r} : \timestamp \times \svsorts \rarr \Bool$ for each \erule $r$.
 \item For each party or oracle \erule $r$ that \governs an \ename $e$:
@@ -529,16 +535,21 @@ We define a normal form for $\lsmclass{\cF}$ which is not literally ``timeless''
 
 First, and unrelated to the following \timestamp-related transformations (but with the same goal of simplifying symbolic execution), we eliminate $\reguard{r}$ for each party/oracle \erule $r$, as described in Note \ref{guardredundancy}. Next:
 \begin{LPPI}
-\item Introduce a new \statevar $\tlast$ of sort \timestamp with initial value $0$. The new versions of $\svsorts, \initvals, \statevar$ are the same as the old but with the additions: $\svsorts'(\tlast) = \timestamp$ and $\initvals'(\tlast) = 0$ and $\statevar' = \statevar + \tlast$.
-\item Add a parameter $\tnext$ of sort \timestamp to every \ename.\footnote{i.e. $\eppartsorts{e}(\tnext) = \timestamp$ for every \ename $e$.}
+\item Introduce a new \statevar $\tlast$ of sort \timestamp with initial value $0$. 
+%In the technical terminology: the new versions $\svsorts'$, $\initvals'$, $\statevar'$ are the same as the old $\svsorts$, $\initvals$, $\statevar$, but with the additions: $\svsorts'(\tlast) = \timestamp$ and $\initvals'(\tlast) = 0$ and $\statevar' = \statevar + \tlast$.
+\item Add a parameter $\tnext$ of sort \timestamp to every \ename.
+%\footnote{i.e. $\eppartsorts{e}(\tnext) = \timestamp$ for every \ename $e$.}
 \item Add $\assign{\tlast}{\tnext}$ to $\statetransform{e}$ for each $e$.
-\item For each deadline \erule $r$:
-\begin{LPPI}
-	\item For existing event parameters $x$ (i.e. not \tnext), $\psetterpart{r}{x}$ does not change, since its domain type $\timestamp \times \svsorts$ is already equivalent to $\svsorts'$.  
-	\item Define $\psetterpart{r}{\tnext}(\vx) := \deadfn{r}(\tnext, \vx)$.
-\end{LPPI}	
 \item Add $>_{ts} {:} \timestamp \times \timestamp \rarr \Bool$ to $\cF$.
-\item Conjoin $\tnext >_{ts} \tlast$ to $\eppartconstr{r}$ for each party/oracle \erule $r$.
+\item For each party/oracle \erule $r$:
+\[
+ \eppartconstr{r}'(\vq, \vx) := \eppartconstr{r}(\tlast, \tnext, \vq, \vx) \wedge \tnext >_{ts} \tlast
+\]
+\item For each deadline \erule $r$:
+\begin{PPI}
+	\item For existing event parameters $x$ (i.e. not \tnext), $\psetterpart{r}{x}$ does not change, since its domain type $\timestamp \times \svsorts$ is already equivalent to $\svsorts'$.  
+	\item $\psetterpart{r}'{\tnext}(\vq) := \deadfn{r}(\tnext, \vq)$.
+\end{PPI}	
 \end{LPPI}
 Those transformations take us to the following slightly simplified \lsmclass{\cF} definition:
 \begin{defn}[\anchorfor{\timelesslsmclass{\cF}}{timeless-lsmclass}]
@@ -547,8 +558,13 @@ Let $\DT$ be $\sortsof{\cF}$. The relation $>_{ts} {:} \timestamp \times \timest
 \item $\timeunit$ in $\{\text{days, hours, minutes, seconds, \ldots}\}$.
 \item Finite sets $\actor, \ename, \sname$, and $\statevar$.
 \item A mapping $\svsorts$ from $\statevar$ to \DT.
-\item For each $e \in \ename$, types for its parameters $\eppartsorts{e} \in \DT^*$.
-\item For each $e \in \ename$ a \stransimpl, $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. The functions used on the right side of assignment statements are from $\cFstar$.
+\item For each $e \in \ename$:
+\begin{PPI}
+\item a subset of \actor; the \actors allowed to initiate an \einst of type $e$.
+\item a destination \sname $\edest{e}$.
+\item types for its parameters $\eppartsorts{e} \in \DT^*$.
+\item a \stransimpl, $\statetransform{e}$, which is a set of $\estatements{e}$ that satisfies the \uuc. The functions used on the right side of assignment statements are from $\cFstar$.
+\end{PPI}
 %\item For each $s \in \sname$ a \shandler, $\shandlerof{s}$, which is a subset of $\erule$ that satisfies the \udc.
 \item A finite set $\erule$, with two partitions:
 \begin{PPI}
@@ -624,7 +640,7 @@ The set \smtfterm, and the type of an $\smtfterm$, are defined by:
 \item $\psi$ ranges over \srcfterms of type \Bool. $t$ ranges over \srcfterms in general.
 \item $U$ ranges over sets of $\estatements{e}$ (all elements share the same $e$).
 \item $\svtosmt$ ranges over certain $\statevar$-substitutions, namely over full mappings from $\statevar$ to \smtfterms of the correct type.
-\item Define \anchorfor{\esubst{e}}{esubst} to be the set of mappings from $\eparams{e}$ to \smtfterms of the correct type. Then \\
+\item Define \anchorfor{\esubst{e}}{esubst} to be the set of mappings from $\eparams{e}$ to \smtfterms of the correct type. Then: \\
 $\eptosmt$ ranges over $\bigcup_{e \in \ename} \esubst{e} $
 \end{PPI}
 
@@ -655,6 +671,8 @@ Let $\cLofF$ be the many-sorted first order language with a sort symbol for each
 \bigskip
 
 \noindent Now it is time for the proof.sty part. :-)
+
+\todomin{Roles most ignored atm! Consider eliminating them from \timelesslsmclass{\cF}.}
 
 \medskip
 
@@ -707,7 +725,7 @@ In the following rule for party/oracle \erules, the as-yet not-explicitly-define
 P' = P \wedge \psi[\svtosmt]
 & \isconsistent{P'}
 &	\stackone{\eptosmt; \svtosmt; P' \vdash \yields{\ehandlerof{e}}{\rv} }
-			{\sigma = \eparams{e} \mapsto \psetterpart{e}{1},\ldots,\psetterpart{e}{k}}
+			{\sigma = \eparams{e} \mapsto \psetterpart{e}{1}(\pi),\ldots,\psetterpart{e}{k}(\pi)}
 }
 \]
 
@@ -739,7 +757,7 @@ The algorithm arrives at the need to use the following rule after repeated use o
 \infer{
 	\eptosmt; \svtosmt ; P \vdash \yields{   \{ \assign{q_{i_1}}{t_{i_1}}, \ldots, \assign{q_{i_m}}{t_{i_m}}  \}   }{\rv}
 }{	\stackone
-	 	{\eptosmt; \svtosmt' ; P \vdash \yields{\edest{e}}{\rv} }
+	 	{\svtosmt' ; P \vdash \yields{\edest{e}}{\rv} }
 		{\svtosmt' = \svtosmt \text{ updated by } \{ \assign{q_{i_1}}{t_{i_1}[\eptosmt,\svtosmt]}, \ldots, \assign{q_{i_m}}{t_{i_m}[\eptosmt,\svtosmt]}  \}}
 }\]
 
