@@ -1,0 +1,1101 @@
+<html>
+  <head>
+    <style>
+body {
+    margin-bottom : 1000px;
+}
+.nomarkers {
+    list-style-type: none;
+}
+.role {
+    
+}
+.actionword {
+    
+}
+.situationword {
+
+}
+.symbintro {
+    color: darkgoldenrod;
+}
+.is_assignment {
+    font-weight: bold;
+}
+.boiler {
+    font-weight: bold;
+}
+</style>
+  </head>
+  <body>
+    <title>serious/SAFE_cap_discount_faithfull.l4</title>
+    <h1>Simple Agreement for Future Equity (SAFE)</h1>
+    <div>
+      <div>The parameters to the contract are:</div>
+      <ul class="nomarkers">
+        <li>
+          <span class="symbintro" id="Purchase_Amount">Purchase Amount</span>, which is a positive USD.
+        </li>
+        <li>
+          <span class="symbintro" id="Discount_Rate">Discount Rate</span>, which is a fraction in the range (0,1].
+        </li>
+        <li>
+          <span class="symbintro" id="Discount">Discount</span>, which is a fraction in the range [0,1).
+        </li>
+        <li>
+          <span class="symbintro" id="Valuation_Cap">Valuation Cap</span>, which is a positive USD.
+        </li>
+      </ul>
+    </div>
+    <div>
+      <div>The contract tracks the following variables:</div>
+      <ul class="nomarkers">
+        <li>
+          <span class="symbintro" id="investor_Common_Stock">Investor's Common Stock</span>, which is a change in number of shares with initial value 0.
+        </li>
+        <li>
+          <span class="symbintro" id="investor_SAFE_Stock">Investor's SAFE Stock</span>, which is a change in number of shares with initial value 0.
+        </li>
+        <li>
+          <span class="symbintro" id="investor_cash">Investor's Cash</span>, which is a change in USD with initial value 
+          <a href="#Purchase_Amount">Purchase Amount</a>.
+        </li>
+        <li>
+          <span class="symbintro" id="unconverted_investment">Unconverted Investment</span>, which is a USD with initial value 0.
+        </li>
+        <li>
+          <span class="symbintro" id="Conversion_Price">Conversion Price</span>, which is a positive price in USD/share.
+        </li>
+        <li>
+          <span class="symbintro" id="company_cash">Company's Cash</span>, which is a USD with initial value 0.
+        </li>
+        <li>
+          <span class="symbintro" id="company_cash_available_for_payout">company_cash_available_for_payout</span>, which is a USD.
+        </li>
+        <li>
+          <span class="symbintro" id="liq_cashout">Liquidity Cashout</span>, which is a USD with initial value 0.
+        </li>
+        <li>
+          <span class="symbintro" id="dis_cashout">Dissolution Cashout</span>, which is a USD.
+        </li>
+      </ul>
+    </div>
+    <div class="nomarkers">
+      <div>
+        <div>
+          <li>
+            <h3 id="Signed">
+              <span class="situationword">Scenario: </span>Investment Agreement Signed
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Investor</span>
+                <span> may </span>
+                <a href="#TransferInvestmentCash">Transfer Investment to Company</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="InvestmentWaitingToConvert">
+              <span class="situationword">Scenario: </span>Investment Waiting to Convert
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#CommitToEquityFinancing">Initiate an {Equity_Financing} Event</a>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#CommitToIPO">Initiate an IPO Liquidity Event</a>
+              </li>
+              <li>
+                <span>if 
+                  <span>Total Investments of Cashout Investors is at least 
+                    <a href="#Purchase_Amount">Purchase Amount</a>
+                  </span>
+                </span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#CommitToChangeOfControl">Initiate a Change-of-Control Liquidity Event</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <span>Company</span>
+                <span> may </span>
+                <a href="#CommitToDissolution">Initiate a Dissolution Event</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferInvestmentCash">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Transfer Investment to Company
+            </h3>
+            <ul class="nomarkers">
+              <div>
+                <div>
+                  <div>Reduce 
+                    <a href="#investor_cash">Investor's Cash</a> by 
+                    <a href="#Purchase_Amount">Purchase Amount</a>
+                  </div>
+                  <div>Increase 
+                    <a href="#company_cash">Company's Cash</a> by 
+                    <a href="#Purchase_Amount">Purchase Amount</a>
+                  </div>
+                  <div>
+                    <a href="#unconverted_investment">Unconverted Investment</a>
+                    <span class="is_assignment"> is </span>
+                    <a href="#Purchase_Amount">Purchase Amount</a>
+                  </div>
+                </div>
+              </div><br>
+              <div>Go to 
+                <a href="#InvestmentWaitingToConvert">Investment Waiting to Convert</a>
+              </div>
+            </ul>
+          </li>
+        </div>
+      </div>
+      <li>
+        <h2>Equity Events</h2>
+        <ul class="nomarkers">
+          <li>
+            <h3 id="AfterPRASigned">
+              <span class="situationword">Scenario: </span>After PRA Signed
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Within 1 day of the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#IssueSAFEPreferredStock">Issue SAFE Preferred Stock</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <span>After 1 day since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company breaches the contract.</span>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="CommitToEquityFinancing">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate an {Equity_Financing} Event
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <h3 id="AfterCommitToEquityFinancing">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#DeliverTransactionDocsWithPRA">Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)</a>
+                  </li>
+                  <li>
+                    <span>Company</span>
+                    <span> may </span>
+                    <a href="#DeliverTransactionDocsWithoutPRA">Deliver Transaction Docs (PRA to follow)</a>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="DeliverTransactionDocsWithPRA">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#AfterPRASigned">After PRA Signed</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="DeliverTransactionDocsWithoutPRA">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Deliver Transaction Docs (PRA to follow)
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <h3 id="AfterDeliverTransactionDocsWithoutPRA">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#SendProRataRightsAgreementForSigning">Send PRA for Signing</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="SendProRataRightsAgreementForSigning">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Send PRA for Signing
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <h3 id="AfterSendProRataRightsAgreementForSigning">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Investor</span>
+                        <span> may </span>
+                        <a href="#SignPRA">Sign PRA</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Investor breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="SignPRA">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Sign PRA
+            </h3>
+            <ul class="nomarkers">
+              <div>Go to 
+                <a href="#AfterPRASigned">After PRA Signed</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="IssueSAFEPreferredStock">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Issue SAFE Preferred Stock
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li id="IssueSAFEPreferredStock.Company_Capitalization">
+                  <span class="symbintro" id="Company_Capitalization">Company_Capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="IssueSAFEPreferredStock.company_valuation">
+                  <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
+                </li>
+              </ul><br>
+              <div>
+                <div>
+                  <div>
+                    <span class="symbintro" id="undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</span> is 
+                    <span>
+                      <a href="#IssueSAFEPreferredStock.company_valuation">Valuation</a> / 
+                      <a href="#IssueSAFEPreferredStock.Company_Capitalization">Company_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Safe_Price">Cap Price</span> is 
+                    <span>
+                      <a href="#Valuation_Cap">Valuation Cap</a> / 
+                      <a href="#IssueSAFEPreferredStock.Company_Capitalization">Company_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Discount_Price">Discount Price</span> is 
+                    <span>
+                      <a href="#undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</a> * 
+                      <a href="#Discount_Rate">Discount Rate</a>
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#Conversion_Price">Conversion Price</a>
+                    <span class="is_assignment"> is </span>
+                    <span>the minimum of 
+                      <a href="#Safe_Price">Cap Price</a> and 
+                      <a href="#Discount_Price">Discount Price</a>
+                    </span>
+                  </div>
+                  <div>Increase 
+                    <a href="#investor_SAFE_Stock">Investor's SAFE Stock</a> by 
+                    <span>⎡
+                      <a href="#Purchase_Amount">Purchase Amount</a> / Conversion_Price'⎤
+                    </span>
+                  </div>
+                </div>
+              </div><br>
+              <li>
+                <h3 id="AfterIssueSAFEPreferredStock">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#Equity_Financing">Execute {Equity_Financing}</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="Equity_Financing">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Execute {Equity_Financing}
+            </h3>
+            <ul class="nomarkers">
+              <div>Contract fulfilled.</div>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <h2>Liquidity Events</h2>
+        <ul class="nomarkers">
+          <li>
+            <h3 id="InvestorToChooseMethodOfPayment">
+              <span class="situationword">Scenario: </span>Investor to Choose Method of Payment
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <span>Before 1 week since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Investor</span>
+                    <span> may </span>
+                    <a href="#ChooseCashPayment">Choose Payment in Cash</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <span>Before 1 week since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Investor</span>
+                    <span> may </span>
+                    <a href="#ChooseStockPayment">Choose Payment in Common Stock</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <span>At 1 week since the last event:</span>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Go to </span>
+                    <a href="#AutoChooseStockPayment">Stock Payment Option Chosen by Default</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="CommitToIPO">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate an IPO Liquidity Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li id="CommitToIPO.Liquidity_Capitalization">
+                  <span class="symbintro" id="Liquidity_Capitalization">Liquidity_Capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="CommitToIPO.company_valuation">
+                  <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
+                </li>
+              </ul><br>
+              <div>
+                <div>
+                  <div>
+                    <span class="symbintro" id="undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</span> is 
+                    <span>
+                      <a href="#CommitToIPO.company_valuation">Valuation</a> / 
+                      <a href="#CommitToIPO.Liquidity_Capitalization">Liquidity_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Safe_Price">Cap Price</span> is 
+                    <span>
+                      <a href="#Valuation_Cap">Valuation Cap</a> / 
+                      <a href="#CommitToIPO.Liquidity_Capitalization">Liquidity_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Discount_Price">Discount Price</span> is 
+                    <span>
+                      <a href="#undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</a> * 
+                      <a href="#Discount_Rate">Discount Rate</a>
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#Conversion_Price">Conversion Price</a>
+                    <span class="is_assignment"> is </span>
+                    <span>the minimum of 
+                      <a href="#Safe_Price">Cap Price</a> and 
+                      <a href="#Discount_Price">Discount Price</a>
+                    </span>
+                  </div>
+                </div>
+              </div><br>
+              <div>Go to 
+                <a href="#InvestorToChooseMethodOfPayment">Investor to Choose Method of Payment</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="CommitToChangeOfControl">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate a Change-of-Control Liquidity Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li id="CommitToChangeOfControl.Company_Capitalization">
+                  <span class="symbintro" id="Company_Capitalization">Company_Capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="CommitToChangeOfControl.company_valuation">
+                  <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
+                </li>
+                <li id="CommitToChangeOfControl.total_investments_of_cashout_investors">
+                  <span class="symbintro" id="total_investments_of_cashout_investors">Total Investments of Cashout Investors</span>, which is a positive USD
+                </li>
+                <li id="CommitToChangeOfControl.reduction_needed_to_qualify_as_usa_tax_free_reorg">
+                  <span class="symbintro" id="reduction_needed_to_qualify_as_usa_tax_free_reorg">Reduction Needed to Qualify as USA Tax-free Reorganization</span>, which is a USD
+                </li>
+              </ul><br>
+              <div>
+                <div>
+                  <div>
+                    <span class="symbintro" id="undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</span> is 
+                    <span>
+                      <a href="#CommitToChangeOfControl.company_valuation">Valuation</a> / 
+                      <a href="#CommitToChangeOfControl.Company_Capitalization">Company_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Safe_Price">Cap Price</span> is 
+                    <span>
+                      <a href="#Valuation_Cap">Valuation Cap</a> / 
+                      <a href="#CommitToChangeOfControl.Company_Capitalization">Company_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Discount_Price">Discount Price</span> is 
+                    <span>
+                      <a href="#undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</a> * 
+                      <a href="#Discount_Rate">Discount Rate</a>
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#Conversion_Price">Conversion Price</a>
+                    <span class="is_assignment"> is </span>
+                    <span>the minimum of 
+                      <a href="#Safe_Price">Cap Price</a> and 
+                      <a href="#Discount_Price">Discount Price</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="investor_percent_of_cashout_investor_investments">Investor Cashout %</span> is 
+                    <span>
+                      <a href="#Purchase_Amount">Purchase Amount</a> / 
+                      <a href="#CommitToChangeOfControl.total_investments_of_cashout_investors">Total Investments of Cashout Investors</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="purchase_amount_reduction">Purchase Amount Reduction</span> is 
+                    <span>
+                      <a href="#investor_percent_of_cashout_investor_investments">Investor Cashout %</a> * 
+                      <a href="#CommitToChangeOfControl.reduction_needed_to_qualify_as_usa_tax_free_reorg">Reduction Needed to Qualify as USA Tax-free Reorganization</a>
+                    </span>
+                  </div>
+                  <div>Increase 
+                    <a href="#investor_Common_Stock">Investor's Common Stock</a> by 
+                    <span>⎡
+                      <a href="#purchase_amount_reduction">Purchase Amount Reduction</a> / Conversion_Price'⎤
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#unconverted_investment">Unconverted Investment</a>
+                    <span class="is_assignment"> is </span>
+                    <span>( 
+                      <a href="#unconverted_investment">Unconverted Investment</a> - 
+                      <a href="#purchase_amount_reduction">Purchase Amount Reduction</a> )
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#company_cash">Company's Cash</a>
+                    <span class="is_assignment"> is </span>
+                    <span>( 
+                      <a href="#company_cash">Company's Cash</a> - 
+                      <a href="#purchase_amount_reduction">Purchase Amount Reduction</a> )
+                    </span>
+                  </div>
+                </div>
+              </div><br>
+              <div>Go to 
+                <a href="#InvestorToChooseMethodOfPayment">Investor to Choose Method of Payment</a>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <h3 id="AutoChooseStockPayment">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Stock Payment Option Chosen by Default
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <h3 id="AfterAutoChooseStockPayment">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCommonStock">Transfer Common Stock</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="ChooseStockPayment">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Choose Payment in Common Stock
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <h3 id="AfterChooseStockPayment">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCommonStock">Transfer Common Stock</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferCommonStock">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Common Stock
+            </h3>
+            <ul class="nomarkers">
+              <div>
+                <div>
+                  <div>Increase 
+                    <a href="#investor_Common_Stock">Investor's Common Stock</a> by 
+                    <span>⎡
+                      <span>( 
+                        <a href="#unconverted_investment">Unconverted Investment</a> - 
+                        <a href="#liq_cashout">Liquidity Cashout</a> )
+                      </span> / 
+                      <a href="#Conversion_Price">Conversion Price</a>⎤
+                    </span>
+                  </div>
+                </div>
+              </div><br>
+              <li>
+                <h3 id="AfterTransferCommonStock">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="ChooseCashPayment">
+              <span class="role">Investor</span>
+              <span class="actionword"> action </span>Choose Payment in Cash
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <h3 id="AfterChooseCashPayment">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCash_L">Transfer Cash (liquidity)</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferCash_L">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Cash (liquidity)
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li id="TransferCash_L.company_cash_at_liquidity_event">
+                  <span class="symbintro" id="company_cash_at_liquidity_event">Total Cash Reserves</span>, which is a USD
+                </li>
+                <li id="TransferCash_L.total_investments_of_cashout_investors">
+                  <span class="symbintro" id="total_investments_of_cashout_investors">Total Investments of Cashout Investors</span>, which is a positive USD
+                </li>
+              </ul><br>
+              <div>
+                <div>
+                  <div>
+                    <span class="symbintro" id="investor_percent_of_cashout_investor_investments">Investor Cashout %</span> is 
+                    <span>
+                      <a href="#Purchase_Amount">Purchase Amount</a> / 
+                      <a href="#TransferCash_L.total_investments_of_cashout_investors">Total Investments of Cashout Investors</a>
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#liq_cashout">Liquidity Cashout</a>
+                    <span class="is_assignment"> is </span>
+                    <span>the minimum of 
+                      <a href="#unconverted_investment">Unconverted Investment</a> and 
+                      <span>
+                        <a href="#TransferCash_L.company_cash_at_liquidity_event">Total Cash Reserves</a> * 
+                        <a href="#investor_percent_of_cashout_investor_investments">Investor Cashout %</a>
+                      </span>
+                    </span>
+                  </div>
+                  <div>Increase 
+                    <a href="#investor_cash">Investor's Cash</a> by liq_cashout'
+                  </div>
+                  <div>
+                    <a href="#unconverted_investment">Unconverted Investment</a>
+                    <span class="is_assignment"> is </span>
+                    <span>( 
+                      <a href="#unconverted_investment">Unconverted Investment</a> - 
+                      <a href="#liq_cashout">Liquidity Cashout</a> )
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#company_cash">Company's Cash</a>
+                    <span class="is_assignment"> is </span>
+                    <span>( 
+                      <a href="#company_cash">Company's Cash</a> - liq_cashout' )
+                    </span>
+                  </div>
+                </div>
+              </div><br>
+              <li>
+                <h3 id="AfterTransferCash_L">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>if 
+                      <span>
+                        <a href="#liq_cashout">Liquidity Cashout</a> is less than 
+                        <a href="#unconverted_investment">Unconverted Investment</a>
+                      </span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#TransferCommonStock">Transfer Common Stock</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>if 
+                      <span>
+                        <a href="#liq_cashout">Liquidity Cashout</a> = 
+                        <a href="#unconverted_investment">Unconverted Investment</a>
+                      </span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#DoLiquidityEvent">Execute Liquidity Event</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="DoLiquidityEvent">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Execute Liquidity Event
+            </h3>
+            <ul class="nomarkers">
+              <div>Contract fulfilled.</div>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <h2>Dissolution Events</h2>
+        <ul class="nomarkers">
+          <li>
+            <h3 id="CommitToDissolution">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Initiate a Dissolution Event
+            </h3>
+            <ul class="nomarkers">
+              <li>
+                <h3 id="AfterCommitToDissolution">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#TransferCash_D">Transfer Cash (dissolution)</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferCash_D">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Cash (dissolution)
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li id="TransferCash_D.company_cash_at_dissolution_event">
+                  <span class="symbintro" id="company_cash_at_dissolution_event">Total Cash Reserves</span>, which is a USD
+                </li>
+                <li id="TransferCash_D.investor_percent_of_dissolving_investor_investments">
+                  <span class="symbintro" id="investor_percent_of_dissolving_investor_investments">Investor Cashout %</span>, which is a fraction in the range (0,1]
+                </li>
+              </ul><br>
+              <div>
+                <div>
+                  <div>
+                    <a href="#dis_cashout">Dissolution Cashout</a>
+                    <span class="is_assignment"> is </span>
+                    <span>the minimum of 
+                      <a href="#Purchase_Amount">Purchase Amount</a> and 
+                      <span>
+                        <a href="#TransferCash_D.company_cash_at_dissolution_event">Total Cash Reserves</a> * 
+                        <a href="#TransferCash_D.investor_percent_of_dissolving_investor_investments">Investor Cashout %</a>
+                      </span>
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#investor_cash">Investor's Cash</a>
+                    <span class="is_assignment"> is </span>dis_cashout'
+                  </div>
+                </div>
+              </div><br>
+              <li>
+                <h3 id="AfterTransferCash_D">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>if 
+                      <span>
+                        <a href="#dis_cashout">Dissolution Cashout</a> is less than 
+                        <a href="#Purchase_Amount">Purchase Amount</a>
+                      </span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#TransferAssets">Transfer Assets</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>if 
+                      <span>
+                        <a href="#dis_cashout">Dissolution Cashout</a> = 
+                        <a href="#Purchase_Amount">Purchase Amount</a>
+                      </span>
+                    </span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Within 1 day of the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company</span>
+                            <span> may </span>
+                            <a href="#Dissolution_Event">Execute Dissolution</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span>After 1 day since the last event:</span>
+                        <ul class="nomarkers">
+                          <li>
+                            <span>Company breaches the contract.</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="TransferAssets">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Transfer Assets
+            </h3>
+            <ul class="nomarkers">
+              <div>Company must provide:</div>
+              <ul class="nomarkers">
+                <li id="TransferAssets.Company_Capitalization">
+                  <span class="symbintro" id="Company_Capitalization">Company_Capitalization</span>, which is a positive number of shares
+                </li>
+                <li id="TransferAssets.company_valuation">
+                  <span class="symbintro" id="company_valuation">Valuation</span>, which is a positive USD
+                </li>
+              </ul><br>
+              <div>
+                <div>
+                  <div>
+                    <span class="symbintro" id="undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</span> is 
+                    <span>
+                      <a href="#TransferAssets.company_valuation">Valuation</a> / 
+                      <a href="#TransferAssets.Company_Capitalization">Company_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Safe_Price">Cap Price</span> is 
+                    <span>
+                      <a href="#Valuation_Cap">Valuation Cap</a> / 
+                      <a href="#TransferAssets.Company_Capitalization">Company_Capitalization</a>
+                    </span>
+                  </div>
+                  <div>
+                    <span class="symbintro" id="Discount_Price">Discount Price</span> is 
+                    <span>
+                      <a href="#undiscounted_standard_preferred_stock_price">Undiscounted Preferred Stock Price</a> * 
+                      <a href="#Discount_Rate">Discount Rate</a>
+                    </span>
+                  </div>
+                  <div>
+                    <a href="#Conversion_Price">Conversion Price</a>
+                    <span class="is_assignment"> is </span>
+                    <span>the minimum of 
+                      <a href="#Safe_Price">Cap Price</a> and 
+                      <a href="#Discount_Price">Discount Price</a>
+                    </span>
+                  </div>
+                  <div>Increase 
+                    <a href="#investor_Common_Stock">Investor's Common Stock</a> by 
+                    <span>⎡
+                      <span>( 
+                        <a href="#Purchase_Amount">Purchase Amount</a> - 
+                        <a href="#dis_cashout">Dissolution Cashout</a> )
+                      </span> / Conversion_Price'⎤
+                    </span>
+                  </div>
+                </div>
+              </div><br>
+              <li>
+                <h3 id="AfterTransferAssets">
+                  <span class="situationword">Scenario: </span>
+                </h3>
+                <ul class="nomarkers">
+                  <li>
+                    <span>Within 1 day of the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company</span>
+                        <span> may </span>
+                        <a href="#Dissolution_Event">Execute Dissolution</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <span>After 1 day since the last event:</span>
+                    <ul class="nomarkers">
+                      <li>
+                        <span>Company breaches the contract.</span>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <h3 id="Dissolution_Event">
+              <span class="role">Company</span>
+              <span class="actionword"> action </span>Execute Dissolution
+            </h3>
+            <ul class="nomarkers">
+              <div>Contract fulfilled.</div>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </div>
+  </body>
+</html>

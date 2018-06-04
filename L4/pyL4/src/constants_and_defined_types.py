@@ -41,8 +41,8 @@ VARIABLE_MODIFIERS = {'writeonce', 'writes1', 'writeonly', 'writeatmostonce', 'w
 # the sequence of event-states. We might later change this keyword to "validationOnly".
 
 UNICODE_TO_ASCII = {
-    '≤':'<=',
-    '≥':'>=',
+    # '≤':'<=',
+    # '≥':'>=',
     '¬':'not',
 
     '∧':'and',

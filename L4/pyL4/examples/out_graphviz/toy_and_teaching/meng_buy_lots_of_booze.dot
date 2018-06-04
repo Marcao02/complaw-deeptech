@@ -1,0 +1,27 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Meng_buys_lots_of_booze {    
+    Fulfilled[label=Fufilled];
+    NothingHappening[label=NothingHappening];
+	AtCounter[label=AtCounter]
+        
+    
+         
+    
+    
+    
+    
+    NothingHappening -> AtCounter [label=EnterStore];
+	AtCounter -> NothingHappening [label=RefuseID];
+	AtCounter -> NothingHappening [label=RefuseIntoxicatedBuyer];
+	AtCounter -> AfterAcceptSobrietyOfBuyer [label=AcceptSobrietyOfBuyer];
+	AfterAcceptSobrietyOfBuyer -> AfterRingUpBuyer [label=RingUpBuyer];
+	AfterRingUpBuyer -> AfterPayForBooze [label=PayForBooze];
+	AfterPayForBooze -> NothingHappening [label=DeliverBooze];
+	AfterPayForBooze -> NothingHappening [label=RefundBuyer];
+	AfterPayForBooze -> Breached_Seller [label=Breach_Seller];
+	     
+    
+    AtCounter -> AtCounter [label=AcceptID];
+	   
+}

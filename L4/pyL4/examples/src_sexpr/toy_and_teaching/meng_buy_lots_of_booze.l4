@@ -1,0 +1,73 @@
+(Roles Buyer Seller)
+(TimeUnit m)
+
+
+(StateVars
+	(writes≤1 id_accepted : Bool)
+	(buyer_funds : $)
+)
+
+(Dynamics "Meng buys lots of booze"
+	(StartSituation AtCounter)
+
+	(Situation NothingHappening
+		(Buyer may EnterStore)
+	)
+
+	(Action EnterStore (TransitionsTo AtCounter))
+
+	(Situation AtCounter
+		(Buyer may ShowID)
+	)
+
+	(Action ShowID (TransitionsTo AtCounter))
+
+	(Situation AtCounter
+		(if (not id_accepted)
+			(Seller may AcceptID)
+			(Seller may RefuseID)
+		)
+		(Seller may RefuseIntoxicatedBuyer)
+		(if id_accepted
+			(Seller may AcceptSobrietyOfBuyer)
+		)
+	)
+	(Action RefuseIntoxicatedBuyer (TransitionsTo NothingHappening))
+	(Action RefuseID (TransitionsTo NothingHappening))
+	(Action AcceptID (TransitionsTo AtCounter))
+
+	(Action AcceptSobrietyOfBuyer
+		(FollowingSituation
+			(Seller may (RingUpBuyer ?cost))
+		)
+	)
+
+	(Action (RingUpBuyer (cost : Pos$))
+		(FollowingSituation
+			(if (cost ≤ buyer_funds)
+				(Buyer may (PayForBooze cost))
+			)
+		)
+	)
+
+	(Action (PayForBooze (cost : Pos$))
+		(Pre (cost ≤ buyer_funds))
+		(StateTransform
+			(buyer_funds' = (buyer_funds - cost))
+		)
+		(FollowingSituation
+			(Seller may DeliverBooze (within 10m))
+			(Seller may (RefundBuyer cost) (within 15m))
+			(Breach_Seller (after 15m))
+		)
+	)
+
+	(Action DeliverBooze (TransitionsTo NothingHappening))
+
+	(Action (RefundBuyer (cost : Pos$)) (TransitionsTo NothingHappening)
+		(StateTransform
+			(buyer_funds' = (buyer_funds + cost))
+		)
+	)
+
+)

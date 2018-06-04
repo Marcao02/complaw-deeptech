@@ -1,0 +1,24 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph Meng_buy_booze {    
+    Fulfilled[label=Fufilled];
+    AtCounter[label=AtCounter]
+        
+    
+         
+    
+    
+    
+    
+    AtCounter -> AfterShowID [label=ShowID];
+	AfterShowID -> Fulfilled [label=RefuseID];
+	AfterShowID -> Fulfilled [label=RefuseIntoxicatedBuyer];
+	AfterShowID -> AfterAcceptIDAndSobrietyOfBuyer [label=AcceptIDAndSobrietyOfBuyer];
+	AfterAcceptIDAndSobrietyOfBuyer -> AfterPayForBooze [label=PayForBooze];
+	AfterPayForBooze -> Fulfilled [label=DeliverBooze];
+	AfterPayForBooze -> Fulfilled [label=RefundBuyer];
+	AfterPayForBooze -> Breached_Seller [label=Breach_Seller];
+	     
+    
+       
+}

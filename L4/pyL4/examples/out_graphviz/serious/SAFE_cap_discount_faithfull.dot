@@ -1,0 +1,59 @@
+// THIS IS A GENERATED FILE. DO NOT EDIT.
+
+digraph SAFE {    
+    Fulfilled[label=Fufilled];
+    Signed[label=Signed];
+	InvestmentWaitingToConvert[label=InvestmentWaitingToConvert];
+	AfterPRASigned[label=AfterPRASigned];
+	InvestorToChooseMethodOfPayment[label=InvestorToChooseMethodOfPayment];
+	Fulfilled[label=Fulfilled]
+        
+    
+         
+    
+    
+    
+    
+    Signed -> InvestmentWaitingToConvert [label=TransferInvestmentCash];
+	InvestmentWaitingToConvert -> AfterCommitToEquityFinancing [label=CommitToEquityFinancing];
+	InvestmentWaitingToConvert -> InvestorToChooseMethodOfPayment [label=CommitToIPO];
+	InvestmentWaitingToConvert -> InvestorToChooseMethodOfPayment [label=CommitToChangeOfControl];
+	InvestmentWaitingToConvert -> AfterCommitToDissolution [label=CommitToDissolution];
+	AfterCommitToEquityFinancing -> AfterPRASigned [label=DeliverTransactionDocsWithPRA];
+	AfterCommitToEquityFinancing -> AfterDeliverTransactionDocsWithoutPRA [label=DeliverTransactionDocsWithoutPRA];
+	AfterCommitToEquityFinancing -> Breached_Company [label=Breach_Company];
+	AfterDeliverTransactionDocsWithoutPRA -> AfterSendProRataRightsAgreementForSigning [label=SendProRataRightsAgreementForSigning];
+	AfterDeliverTransactionDocsWithoutPRA -> Breached_Company [label=Breach_Company];
+	AfterSendProRataRightsAgreementForSigning -> AfterPRASigned [label=SignPRA];
+	AfterSendProRataRightsAgreementForSigning -> Breached_Investor [label=Breach_Investor];
+	AfterPRASigned -> AfterIssueSAFEPreferredStock [label=IssueSAFEPreferredStock];
+	AfterPRASigned -> Breached_Company [label=Breach_Company];
+	AfterIssueSAFEPreferredStock -> Fulfilled [label=Equity_Financing];
+	AfterIssueSAFEPreferredStock -> Breached_Company [label=Breach_Company];
+	InvestorToChooseMethodOfPayment -> AfterChooseCashPayment [label=ChooseCashPayment];
+	InvestorToChooseMethodOfPayment -> AfterChooseStockPayment [label=ChooseStockPayment];
+	InvestorToChooseMethodOfPayment -> AfterAutoChooseStockPayment [label=AutoChooseStockPayment];
+	AfterAutoChooseStockPayment -> AfterTransferCommonStock [label=TransferCommonStock];
+	AfterAutoChooseStockPayment -> Breached_Company [label=Breach_Company];
+	AfterChooseStockPayment -> AfterTransferCommonStock [label=TransferCommonStock];
+	AfterChooseStockPayment -> Breached_Company [label=Breach_Company];
+	AfterTransferCommonStock -> Fulfilled [label=DoLiquidityEvent];
+	AfterTransferCommonStock -> Breached_Company [label=Breach_Company];
+	AfterChooseCashPayment -> AfterTransferCash_L [label=TransferCash_L];
+	AfterChooseCashPayment -> Breached_Company [label=Breach_Company];
+	AfterTransferCash_L -> AfterTransferCommonStock [label=TransferCommonStock];
+	AfterTransferCash_L -> Breached_Company [label=Breach_Company];
+	AfterTransferCash_L -> Fulfilled [label=DoLiquidityEvent];
+	AfterTransferCash_L -> Breached_Company [label=Breach_Company];
+	AfterCommitToDissolution -> AfterTransferCash_D [label=TransferCash_D];
+	AfterCommitToDissolution -> Breached_Company [label=Breach_Company];
+	AfterTransferCash_D -> AfterTransferAssets [label=TransferAssets];
+	AfterTransferCash_D -> Breached_Company [label=Breach_Company];
+	AfterTransferCash_D -> Fulfilled [label=Dissolution_Event];
+	AfterTransferCash_D -> Breached_Company [label=Breach_Company];
+	AfterTransferAssets -> Fulfilled [label=Dissolution_Event];
+	AfterTransferAssets -> Breached_Company [label=Breach_Company];
+	     
+    
+       
+}

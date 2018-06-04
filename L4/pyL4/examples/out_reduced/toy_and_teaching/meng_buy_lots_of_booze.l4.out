@@ -1,0 +1,57 @@
+------------------------------------------------
+file: toy_and_teaching/meng_buy_lots_of_booze.l4
+
+roles: Env, Arbiter, Buyer, Seller
+
+state vars:
+    writes≤1 id_accepted : Bool
+    buyer_funds : $
+
+situation NothingHappening:
+    Buyer may EnterStore
+
+action EnterStore()  transitions to AtCounter
+
+situation AtCounter:
+    Buyer may ShowID
+
+action ShowID()  transitions to AtCounter
+
+situation AtCounter:
+    if ¬id_accepted:
+        Seller may AcceptID
+    if id_accepted:
+        Seller may AcceptSobrietyOfBuyer
+    if ¬id_accepted:
+        Seller may RefuseID
+    Seller may RefuseIntoxicatedBuyer
+
+action RefuseIntoxicatedBuyer()  transitions to NothingHappening
+
+action RefuseID()  transitions to NothingHappening
+
+action AcceptID()  transitions to AtCounter
+
+action AcceptSobrietyOfBuyer()  transitions to AfterAcceptSobrietyOfBuyer
+    following situation:
+        Seller may RingUpBuyer(?cost)
+
+action RingUpBuyer(cost: Pos$) transitions to AfterRingUpBuyer
+    following situation:
+        if (cost ≤ buyer_funds):
+            Buyer may PayForBooze(cost)
+
+action PayForBooze(cost: Pos$) transitions to AfterPayForBooze:
+    pre: (cost ≤ buyer_funds)
+    transform:
+        buyer_funds := (buyer_funds - cost)
+    following situation:
+        Breach_Seller (next_event_td > 15m)
+        Seller may DeliverBooze (next_event_td ≤ 10m)
+        Seller may RefundBuyer(cost) (next_event_td ≤ 15m)
+
+action DeliverBooze()  transitions to NothingHappening
+
+action RefundBuyer(cost: Pos$) transitions to NothingHappening:
+    transform:
+        buyer_funds := (buyer_funds + cost)

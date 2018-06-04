@@ -1,0 +1,174 @@
+--------------------------------------------
+file: serious/SAFE_cap_discount_faithfull.l4
+
+roles: Env, Arbiter, Investor, Company
+
+contract params:
+    Purchase_Amount : Pos$ := 100000
+    Discount_Rate : Fraction(0,1] := 0.9
+    Discount : Fraction[0,1) := (1 - Discount_Rate)
+    Valuation_Cap : Pos$ := 100000000
+
+state vars:
+    writes≤1 investor_Common_Stock : ΔShareCnt := 0
+    writes≤1 investor_SAFE_Stock : ΔShareCnt := 0
+    writes≤1 investor_cash : Δ$ := Purchase_Amount
+    unconverted_investment : $ := 0
+    writes≤1 Conversion_Price : PosSharePrice
+    company_cash : $ := 0
+    writes≤1 company_cash_available_for_payout : $
+    writes≤1 liq_cashout : $ := 0
+    writes≤1 dis_cashout : $
+
+action ExternalShareCntChange()  transitions to AfterExternalShareCntChange
+
+situation Signed:
+    Investor may TransferInvestmentCash
+
+action TransferInvestmentCash()  transitions to InvestmentWaitingToConvert:
+    transform:
+        investor_cash := (investor_cash - Purchase_Amount)
+        company_cash := (company_cash + Purchase_Amount)
+        unconverted_investment := Purchase_Amount
+
+situation InvestmentWaitingToConvert:
+    Company may CommitToChangeOfControl(?1, ?2, ?total_investments_of_cashout_investors, ?4) where (?total_investments_of_cashout_investors ≥ Purchase_Amount)
+    Company may CommitToDissolution
+    Company may CommitToEquityFinancing
+    Company may CommitToIPO(?1, ?2)
+
+action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
+    following situation:
+        Company may DeliverTransactionDocsWithPRA
+        Company may DeliverTransactionDocsWithoutPRA
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action DeliverTransactionDocsWithPRA()  transitions to AfterPRASigned
+
+action DeliverTransactionDocsWithoutPRA()  transitions to AfterDeliverTransactionDocsWithoutPRA
+    following situation:
+        Company may SendProRataRightsAgreementForSigning (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action SendProRataRightsAgreementForSigning()  transitions to AfterSendProRataRightsAgreementForSigning
+    following situation:
+        Breach_Investor (next_event_td > (last_situation_td + 1d))
+        Investor may SignPRA (next_event_td ≤ (last_situation_td + 1d))
+
+action SignPRA()  transitions to AfterPRASigned
+
+situation AfterPRASigned:
+    Company may IssueSAFEPreferredStock(?1, ?2) (next_event_td ≤ (last_situation_td + 1d))
+    Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action IssueSAFEPreferredStock(Company_Capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterIssueSAFEPreferredStock:
+    transform:
+        undiscounted_standard_preferred_stock_price : SharePrice := (company_valuation / Company_Capitalization)
+        Safe_Price : SharePrice := (Valuation_Cap / Company_Capitalization)
+        Discount_Price : SharePrice := (undiscounted_standard_preferred_stock_price * Discount_Rate)
+        Conversion_Price := (min Safe_Price Discount_Price)
+        investor_SAFE_Stock := (investor_SAFE_Stock + (Purchase_Amount ceil/ Conversion_Price'))
+    following situation:
+        Company may Equity_Financing (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action Equity_Financing()  transitions to Fulfilled
+
+situation InvestorToChooseMethodOfPayment:
+    AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
+    Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
+    Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
+
+action CommitToIPO(Liquidity_Capitalization: PosShareCnt, company_valuation: Pos$) transitions to InvestorToChooseMethodOfPayment:
+    transform:
+        undiscounted_standard_preferred_stock_price : SharePrice := (company_valuation / Liquidity_Capitalization)
+        Safe_Price : SharePrice := (Valuation_Cap / Liquidity_Capitalization)
+        Discount_Price : SharePrice := (undiscounted_standard_preferred_stock_price * Discount_Rate)
+        Conversion_Price := (min Safe_Price Discount_Price)
+
+action CommitToChangeOfControl(Company_Capitalization: PosShareCnt, company_valuation: Pos$, total_investments_of_cashout_investors: Pos$, reduction_needed_to_qualify_as_usa_tax_free_reorg: $) transitions to InvestorToChooseMethodOfPayment:
+    transform:
+        undiscounted_standard_preferred_stock_price : SharePrice := (company_valuation / Company_Capitalization)
+        Safe_Price : SharePrice := (Valuation_Cap / Company_Capitalization)
+        Discount_Price : SharePrice := (undiscounted_standard_preferred_stock_price * Discount_Rate)
+        Conversion_Price := (min Safe_Price Discount_Price)
+        investor_percent_of_cashout_investor_investments : Fraction(0,1] := (check Fraction(0,1] (Purchase_Amount / total_investments_of_cashout_investors))
+        purchase_amount_reduction : $ := (investor_percent_of_cashout_investor_investments * reduction_needed_to_qualify_as_usa_tax_free_reorg)
+        investor_Common_Stock := (investor_Common_Stock + (purchase_amount_reduction ceil/ Conversion_Price'))
+        unconverted_investment := (check Pos$ (unconverted_investment - purchase_amount_reduction))
+        company_cash := (check $ (company_cash - purchase_amount_reduction))
+
+action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
+    following situation:
+        Company may TransferCommonStock (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action ChooseStockPayment()  transitions to AfterChooseStockPayment
+    following situation:
+        Company may TransferCommonStock (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action TransferCommonStock()  transitions to AfterTransferCommonStock:
+    transform:
+        investor_Common_Stock := (investor_Common_Stock + ((check $ (unconverted_investment - liq_cashout)) ceil/ Conversion_Price))
+    following situation:
+        Company may DoLiquidityEvent (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action ChooseCashPayment()  transitions to AfterChooseCashPayment
+    following situation:
+        Company may TransferCash_L(?1, ?2) (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action TransferCash_L(company_cash_at_liquidity_event: $, total_investments_of_cashout_investors: Pos$) transitions to AfterTransferCash_L:
+    transform:
+        investor_percent_of_cashout_investor_investments : Fraction(0,1] := (check Fraction(0,1] (Purchase_Amount / total_investments_of_cashout_investors))
+        liq_cashout := (min unconverted_investment (company_cash_at_liquidity_event * investor_percent_of_cashout_investor_investments))
+        investor_cash := (investor_cash + liq_cashout')
+        unconverted_investment := (check $ (unconverted_investment - liq_cashout))
+        company_cash := (check $ (company_cash - liq_cashout'))
+    following situation:
+        if (liq_cashout == unconverted_investment):
+            Company may DoLiquidityEvent (next_event_td ≤ (last_situation_td + 1d))
+        if (liq_cashout < unconverted_investment):
+            Company may TransferCommonStock (next_event_td ≤ (last_situation_td + 1d))
+        if (liq_cashout < unconverted_investment):
+            Breach_Company (next_event_td > (last_situation_td + 1d))
+        if (liq_cashout == unconverted_investment):
+            Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action DoLiquidityEvent()  transitions to Fulfilled
+
+action CommitToDissolution()  transitions to AfterCommitToDissolution
+    following situation:
+        Company may TransferCash_D(?company_cash_at_dissolution_event, ?investor_percent_of_dissolving_investor_investments) (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action TransferCash_D(company_cash_at_dissolution_event: $, investor_percent_of_dissolving_investor_investments: Fraction(0,1]) transitions to AfterTransferCash_D:
+    transform:
+        dis_cashout := (min Purchase_Amount (company_cash_at_dissolution_event * investor_percent_of_dissolving_investor_investments))
+        investor_cash := dis_cashout'
+    following situation:
+        if (dis_cashout == Purchase_Amount):
+            Company may Dissolution_Event (next_event_td ≤ (last_situation_td + 1d))
+        if (dis_cashout < Purchase_Amount):
+            Company may TransferAssets(?1, ?2) (next_event_td ≤ (last_situation_td + 1d))
+        if (dis_cashout < Purchase_Amount):
+            Breach_Company (next_event_td > (last_situation_td + 1d))
+        if (dis_cashout == Purchase_Amount):
+            Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action TransferAssets(Company_Capitalization: PosShareCnt, company_valuation: Pos$) transitions to AfterTransferAssets:
+    transform:
+        undiscounted_standard_preferred_stock_price : SharePrice := (company_valuation / Company_Capitalization)
+        Safe_Price : SharePrice := (Valuation_Cap / Company_Capitalization)
+        Discount_Price : SharePrice := (undiscounted_standard_preferred_stock_price * Discount_Rate)
+        Conversion_Price := (min Safe_Price Discount_Price)
+        investor_Common_Stock := (investor_Common_Stock + ((check $ (Purchase_Amount - dis_cashout)) ceil/ Conversion_Price'))
+    following situation:
+        Company may Dissolution_Event (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company (next_event_td > (last_situation_td + 1d))
+
+action Dissolution_Event()  transitions to Fulfilled
+
+situation Fulfilled:
