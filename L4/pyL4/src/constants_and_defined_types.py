@@ -42,10 +42,20 @@ VARIABLE_MODIFIERS = {'writeonce', 'writes1', 'writeonly', 'writeatmostonce', 'w
 
 UNICODE_TO_ASCII = {
     '≤':'<=',
-    '≥':'>='
+    '≥':'>=',
+    '¬':'not',
+
+    '∧':'and',
+
+    '→':'->',
+    '⟶':'->',
+    '⇒':'->',
+    '⟹':'->'
 }
 
-TIME_CONSTRAINT_PREDICATES = {'≤','≥','<','>','==','and','tdGEQ', 'tdLT', 'tdmapHasItemExpiredBefore'}
+QUANTIFIERS = { '∀','∃','∃!' }
+
+TIME_CONSTRAINT_PREDICATES = {'≤','<=','≥','>=','<','>','==','and','tdGEQ', 'tdLT', 'tdmapHasItemExpiredBefore'}
 
 TIME_CONSTRAINT_OPERATORS = { # THESE MUST ALL BE PREFIX CURRENTLY
                       'dateFromDayAndMonthIndices', 'nextMonthIndex',
@@ -91,7 +101,7 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                      }.union(TIME_CONSTRAINT_OPERATORS).union(VERIFICATION_FN_SYMBOLS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^',
-                    'or','and', '->',
+                    'or','and', '->', '>=', '<=', '∧',
                     # derived, but useful for being rigorous about types
                     'floor/', 'round/', 'ceil/',
                     }
