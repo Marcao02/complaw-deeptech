@@ -5,7 +5,8 @@ from src.independent.typing_imports import *
 
 from src.independent.FileCoord import FileCoord
 from src.constants_and_defined_types import PREFIX_FN_SYMBOLS, INFIX_FN_SYMBOLS, POSTFIX_FN_SYMBOLS, \
-    EXEC_ENV_VARIABLES
+    EXEC_ENV_VARIABLES, QUANTIFIERS
+from src.model.Sort import Sort
 
 T = TypeVar('T')
 
@@ -106,6 +107,53 @@ class FnApp(Term):
             # else:
             #     return f"{self.args[0]} {self.head} {self.args[1]}"
             # return f"({self.args[0]} {self.head} {self.args[1]})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+class Quantified(Term):
+    def __init__(self, quantifier:Union[str], vars:Tuple[Tuple[str,Sort],...], body: Term, coord:Optional[FileCoord] = None) -> None:
+        super().__init__(coord)
+        assert quantifier in QUANTIFIERS
+        self.quantifier = quantifier
+        self.vars = vars
+        self.body = body
+        self.coord = coord
+
+
+    def forEachTerm(self, f: Callable[[Term], Iterable[T]], iteraccum_maybe: Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        return chain(rviter, f(self), self.body.forEachTerm(f,rviter))
+
+    def findFirstTerm(self, pred: Callable[[Term],bool]) -> Optional[Term]:
+        if pred(self):
+            return self
+        else:
+            rv = self.body.findFirstTerm(pred)
+            if rv:
+                return rv
+            return None
+
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        return chain(rviter, self.body.forEach(pred,f))
+
+    def substForVar(self, var:str, term: Term) -> Term:
+        assert all( (pair[0] != var for pair in self.vars) ), "Variable shadowing not permitted"
+        return Quantified(self.quantifier, self.vars, self.body.substForVar(var, term))
+
+    def substForTerm(self, toremove: Term, term: Term) -> Term:
+        if self == toremove:
+            return term
+        else:
+            assert all((pair[0] != toremove for pair in self.vars)), "Variable shadowing not permitted"
+            return Quantified(self.quantifier, self.vars, self.body.substForTerm(toremove, term))
+
+    def __str__(self) -> str:
+        return f"({self.quantifier} " + ','.join((f"{var}:{str(sort)}" for var,sort in self.vars)) + \
+               str(self.body) + ")"
 
     def __repr__(self) -> str:
         return str(self)
