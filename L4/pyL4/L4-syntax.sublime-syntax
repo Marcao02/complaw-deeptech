@@ -8,7 +8,7 @@ scope: source.l4
 variables:
   open_brack: '\(|\[|\{'
   close_brack: '\)|\]|\}'
-  built_in_sort: '(Nat|PosInt|Int|NonnegReal|PosReal|Real|TimeDelta|DateTime)'
+  built_in_sort: '(Nat|PosInt|Int|NonnegReal|PosReal|Real|TimeDelta|DateTime|Bool|\$|Pos\$)'
   var_modifier: 'writeout|local|inconly|writes≤1|writeonce|writes1|nonoperative'
   time_unit: '(d|m|s|w|D|M|S|W)'
 
@@ -17,48 +17,69 @@ contexts:
     - include: comments
 
   main:
-    - match: \(|\[\s*(ContractParams)
-      captures:
-          1: keyword.toplevel.l4
-      push: ContractParams_toplevel
-    - match: \b(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions|NLGSection|NonoperativeContractParams)\b
-      scope: keyword.toplevel.l4
-    # - match: \b(ContractParams|StateVars|SortDefinitions|NLGNames)\b
-      # push: namedefcontext
-    - match: '\b{{built_in_sort}}\b'
-      scope: support.type
 
+    - match: (\(|\[)\s*(ContractParams)\W
+      captures:
+          2: keyword.toplevel.l4
+      push: ContractParams_toplevel
+
+    - match: '\W(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions|NLGSection|NonoperativeContractParams|Ontology)\W'
+      captures:
+        1: keyword.toplevel.l4
+
+    - match: '\W{{built_in_sort}}\W'
+      captures:
+        1: support.type
 
     - match: '"'
       push: in_stringlit
-    # - match: \(
-    #   push: brackets
-    # - match: \)
-    #   scope: invalid.illegal.stray-bracket-end
-    - match: '\b(before_split|at_split|within|after_split|after_dt|before|at|after|on|by|immediately|last_situation_td|AllowedRoles|may-later|may|must-later|must|check|nlg|nlgsection|Action|FollowingSituation|Situation|Future|StartSituation|StateTransform|TransitionsTo|AllowedSubjects|when|where|{{var_modifier}})\b'
-      scope: keyword.other
 
-    - match: \b(ifflag|if|else)\b
-      scope: keyword.control
+    - match: \w+(')\W
+      captures:
+        1: keyword.operator
 
-    - match: \b(not|and|or|max|min|str2dt|after_dt)\b
+    - match: '\W(before_split|at_split|within|after_split|after_dt|before|at|after|on|by|immediately|last_situation_td|AllowedRoles|may-later|may|must-later|must|check|nlg|nlgsection|Action|FollowingSituation|Situation|Future|Sort|Definition|Axiom|Fn|StartSituation|StateTransform|TransitionsTo|AllowedSubjects|when|where|{{var_modifier}})\W'
+      captures:
+        1: keyword.other
+
+    - match: \W(ifflag|if|else)\W
+      captures:
+        1: keyword.control
+
+    - match: \W(not|and|or|max|min|str2dt|after_dt)\W
+      captures:
+        1: keyword.operator
+
+    - match: :=|:|=|\+=|\+|\*|ceil/|/|≤|≥|>=|<=|->|→|¬|∨|∧|∀|∃!|∃|<|>|\s-\s
       scope: keyword.operator
 
-    - match: :=|:|=|\+=|\+|\*|ceil/|/|≤|≥|<|>|\s-\s
-      scope: keyword.operator
-
-    - match: \b(last_situation_td|next_event_td|last_event_td|traversals|visits|Fulfilled)\b
-      scope: variable.language
+    - match: \W(last_situation_td|next_event_td|last_event_td|traversals|visits|Fulfilled)\W
+      captures:
+        1: variable.language
 
     - match: \?\w+
       scope: variable.parameter
 
-    - match: '\d+{{time_unit}}'
-      scope: constant.other
+    # timedelta literal
+    - match: '(\d+{{time_unit}})[\W]'
+      captures:
+        1: constant.other
+      # scope: constant.other
 
-    - match: \b(\d+.\d+|\d+)\b
-      scope: constant.numeric
+    # standalone timeunit
+    - match: '[\W]({{time_unit}})[\W]'
+      captures:
+        1: keyword.other
+      # scope: keyword.other
 
+    - match: \W(\d+.\d+|\d+)\W
+      captures:
+        1: constant.numeric
+
+    # - match: \(
+    #   push: brackets
+    # - match: \)
+    #   scope: invalid.illegal.stray-bracket-end
 
   ContractParams_toplevel:
     - meta_scope: 'scope_ContractParams_toplevel'
