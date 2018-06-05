@@ -96,18 +96,21 @@
 
 
 (NLGSection
-	"THIS INSTRUMENT AND ANY SECURITIES ISSUABLE PURSUANT HERETO HAVE NOT BEEN REGISTERED UNDER THE SECURITIES ACT OF 1933, AS AMENDED (THE “SECURITIES ACT”), OR UNDER THE SECURITIES LAWS OF CERTAIN STATES.  THESE SECURITIES MAY NOT BE OFFERED, SOLD OR OTHERWISE TRANSFERRED, PLEDGED OR HYPOTHECATED EXCEPT AS PERMITTED UNDER THE ACT AND APPLICABLE STATE SECURITIES LAWS PURSUANT TO AN EFFECTIVE REGISTRATION STATEMENT OR AN EXEMPTION THEREFROM.
-
+	<p>"THIS INSTRUMENT AND ANY SECURITIES ISSUABLE PURSUANT HERETO HAVE NOT BEEN REGISTERED UNDER THE SECURITIES ACT OF 1933, AS AMENDED (THE “SECURITIES ACT”), OR UNDER THE SECURITIES LAWS OF CERTAIN STATES.  THESE SECURITIES MAY NOT BE OFFERED, SOLD OR OTHERWISE TRANSFERRED, PLEDGED OR HYPOTHECATED EXCEPT AS PERMITTED UNDER THE ACT AND APPLICABLE STATE SECURITIES LAWS PURSUANT TO AN EFFECTIVE REGISTRATION STATEMENT OR AN EXEMPTION THEREFROM.</p>
 	{val Company}
-
-	SAFE
+	<br/>
+	SAFE <br/>
 	(Simple Agreement for Future Equity)
+	<br/>
 
-	THIS CERTIFIES THAT in exchange for the payment by {val Investor} (the {Investor}) of ${val Purchase_Amount} ({Purchase_Amount}) on or about {val Date_of_Safe}, {val Company}, a {val State_of_Incorporation} corporation (the {Company}), hereby issues to the {Investor} the right to certain shares of the {Company}’s capital stock, subject to the terms set forth below.
+	<p>THIS CERTIFIES THAT in exchange for the payment by {val Investor} (the {Investor}) of ${val Purchase_Amount} ({Purchase_Amount}) on or about {val Date_of_Safe}, {val Company}, a {val State_of_Incorporation} corporation (the {Company}), hereby issues to the {Investor} the right to certain shares of the {Company}’s capital stock, subject to the terms set forth below.<p>
 
-	{Valuation_Cap} is ${val Valuation_Cap}.
-	{Discount} is {val Discount}%.
-	{Discount_Rate} is {val DiscountRate}."
+	<ul>
+		<li>{Valuation_Cap} is ${val Valuation_Cap}.</li>
+		<li>{Discount} is {val Discount}%.</li>
+		<li>{Discount_Rate} is {val DiscountRate}.</li>
+	</ol>
+	"
 )
 
 (NLDefinitions

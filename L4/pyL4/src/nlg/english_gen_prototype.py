@@ -1,5 +1,6 @@
 from distutils.file_util import write_file
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Match
+import re
 
 from src.constants_and_defined_types import ContractParamId, FULFILLED_SITUATION_LABEL, ActionParamId, SituationId, \
     ActionId
@@ -14,11 +15,13 @@ from src.model.L4Contract import L4Contract
 
 import dominate #type:ignore
 from dominate.tags import * #type:ignore
+from dominate.util import raw #type:ignore
 span : Any
 h1 : Any
 h2 : Any
 h3 : Any
 ul : Any
+ol : Any
 li : Any
 a : Any
 div : Any
@@ -28,6 +31,7 @@ head : Any
 body : Any
 style : Any
 title : Any
+p : Any
 
 from src.model.Situation import Situation
 from src.model.Sort import Sort
@@ -335,6 +339,22 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             return id2link(term.name)
         return maybeNL(str(term))
 
+    def mk_terms_regexp() -> Any:
+        s = ("|".join("\{" + x + "\}|\{val " + x + "\}" for x in prog.nlg_definitions) + "|" +
+             "|".join("\{" + x + "\}|\{val " + x + "\}" for x in prog.nlg_names))
+        # print(s)
+        return re.compile(s)
+
+    def _replacer(mo:Match) -> str:
+        if mo[0][1:-1].startswith("val"):
+            return mo[0][5:-1]
+        return f"<a href=''>{mo[0][1:-1]}</a>"
+    def insert_refs(s:str, regexp:Any) -> Any:
+        rv = regexp.sub(_replacer,s)
+        print(rv)
+        return rv
+
+
     doc = html()
 
     doc.add(
@@ -348,6 +368,18 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
     docbody.add(contract_params_section())
 
     docbody.add(state_vars_section())
+
+    # -----------prose stuff-----------
+    termsregexp = mk_terms_regexp()
+
+    for prose in prog.nlg_sections:
+        docbody.add(p(raw(insert_refs(prose,termsregexp))))
+
+    defns_html = ol()
+    for term,defn in prog.nlg_definitions.items():
+        defns_html.add(li(term + " - ", raw(insert_refs(defn,termsregexp))))
+    docbody.add(defns_html)
+    # -----------end prose stuff-----------
 
     nlgsections : Any = {"root": []}
 
