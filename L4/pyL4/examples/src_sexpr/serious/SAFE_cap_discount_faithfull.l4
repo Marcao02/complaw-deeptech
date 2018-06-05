@@ -110,7 +110,7 @@
 	{Discount_Rate} is {val DiscountRate}."
 )
 
-(NLGSection
+(NLDefinitions
     (Definition Capital_Stock "means the capital stock of the {Company}, including, without limitation, {Common_Stock} and {Preferred_Stock}.")
 
     (Definition Change_of_Control "means (i) a transaction or series of related transactions in which any “person” or “group” (within the meaning of Section 13(d) and 14(d) of the Securities Exchange Act of 1934, as amended), becomes the “beneficial owner” (as defined in Rule 13d-3 under the Securities Exchange Act of 1934, as amended), directly or indirectly, of more than 50% of the outstanding voting securities of the {Company} having the right to vote for the election of members of the {Company}’s board of directors, (ii) any reorganization, merger or consolidation of the {Company}, other than a transaction or series of related transactions in which the holders of the voting securities of the {Company} outstanding immediately prior to such transaction or series of related transactions retain, immediately after such transaction or series of related transactions, at least a majority of the total voting power represented by the outstanding voting securities of the {Company} or such other surviving or resulting entity or (iii) a sale, lease or other disposition of all or substantially all of the assets of the {Company}.")

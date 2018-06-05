@@ -261,14 +261,33 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         elif head("NonoperativeContractParams"):
             todo_once("Handle NonoperativeContractParams")
+
         elif head("NLGSection"):
-            self.top.nlg_sections.append(chcaststr(x[1][1]))
+            self.top.nlg_sections.append(self._mk_nlg_section(x[1]))
+
+        elif head("NLDefinitions"):
+            self._mk_nlg_definitions(x.tillEnd(1))
 
         elif head("ActionPredicate"):
             todo_once("Handle ActionPredicate")
 
         else:
             raise self.syntaxError(x, "Unsupported: " + str(x[0]))
+
+    def _mk_nlg_section(self, x:SExprOrStr):
+        assert isinstance(x, SExpr) and x[0] == STRING_LITERAL_MARKER, f"{x} should be a STRLIT tuple"
+        return x[1]
+
+
+    def _mk_nlg_definitions(self, x:SExprOrStr):
+        assert isinstance(x, SExpr), "should be a list"
+        for defn in x:
+            assert isinstance(defn[1],str)
+            assert isinstance(defn[2],SExpr), defn
+            assert defn[2][0] == STRING_LITERAL_MARKER, defn
+            nlterm = chcaststr(defn[1])
+            defntext = defn[2][1]
+            self.top.nlg_definitions[nlterm] = chcaststr(defntext)
 
     def _needs_preprocessing(self) -> bool:
         return (self.flags is not None and len(self.flags) > 0) or (self.raw_substitutions is not None and len(self.raw_substitutions) > 0)
@@ -1041,7 +1060,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         self.syntaxError(x, f"Didn't recognize symbol {x[0]} in: {x}. Did you mean to use infix notation?")
 
                 if x[0] in self.top.ontology_fns:
+                    todo_once("this is temporary")
                     return cast(Any,x.tillEnd(1))
+
                 self.syntaxError(x, "Didn't recognize a function symbol in sexpr with components:\n" + mapjoin(str, x, '\n'))
 
 
