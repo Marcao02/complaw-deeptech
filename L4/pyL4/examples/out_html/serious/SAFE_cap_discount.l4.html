@@ -1,6 +1,9 @@
 <html>
   <head>
     <style>
+.action_header,.situation_header {
+    margin: .2%;
+}
 body {
     margin-bottom : 1000px;
 }
@@ -84,7 +87,7 @@ body {
       <div>
         <div>
           <li>
-            <h3 id="Signed">
+            <h3 class="situation_header" id="Signed">
               <span class="situationword">Scenario: </span>Investment Agreement Signed
             </h3>
             <ul class="nomarkers">
@@ -96,7 +99,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="InvestmentWaitingToConvert">
+            <h3 class="situation_header" id="InvestmentWaitingToConvert">
               <span class="situationword">Scenario: </span>Investment Waiting to Convert
             </h3>
             <ul class="nomarkers">
@@ -132,7 +135,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferInvestmentCash">
+            <h3 class="action_header" id="TransferInvestmentCash">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Transfer Investment to Company
             </h3>
@@ -165,7 +168,7 @@ body {
         <h2>Equity Events</h2>
         <ul class="nomarkers">
           <li>
-            <h3 id="AfterPRASigned">
+            <h3 class="situation_header" id="AfterPRASigned">
               <span class="situationword">Scenario: </span>After PRA Signed
             </h3>
             <ul class="nomarkers">
@@ -190,13 +193,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="CommitToEquityFinancing">
+            <h3 class="action_header" id="CommitToEquityFinancing">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Initiate an {Equity_Financing} Event
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterCommitToEquityFinancing">
+                <h3 class="situation_header" id="AfterCommitToEquityFinancing">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -223,7 +226,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="DeliverTransactionDocsWithPRA">
+            <h3 class="action_header" id="DeliverTransactionDocsWithPRA">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)
             </h3>
@@ -234,13 +237,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="DeliverTransactionDocsWithoutPRA">
+            <h3 class="action_header" id="DeliverTransactionDocsWithoutPRA">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Deliver Transaction Docs (PRA to follow)
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterDeliverTransactionDocsWithoutPRA">
+                <h3 class="situation_header" id="AfterDeliverTransactionDocsWithoutPRA">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -267,13 +270,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="SendProRataRightsAgreementForSigning">
+            <h3 class="action_header" id="SendProRataRightsAgreementForSigning">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Send PRA for Signing
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterSendProRataRightsAgreementForSigning">
+                <h3 class="situation_header" id="AfterSendProRataRightsAgreementForSigning">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -300,7 +303,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="SignPRA">
+            <h3 class="action_header" id="SignPRA">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Sign PRA
             </h3>
@@ -311,7 +314,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="IssueSAFEPreferredStock">
+            <h3 class="action_header" id="IssueSAFEPreferredStock">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Issue SAFE Preferred Stock
             </h3>
@@ -365,7 +368,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterIssueSAFEPreferredStock">
+                <h3 class="situation_header" id="AfterIssueSAFEPreferredStock">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -392,7 +395,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="DoEquityFinancing">
+            <h3 class="action_header" id="DoEquityFinancing">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Execute {Equity_Financing}
             </h3>
@@ -406,7 +409,7 @@ body {
         <h2>Liquidity Events</h2>
         <ul class="nomarkers">
           <li>
-            <h3 id="InvestorToChooseMethodOfPayment">
+            <h3 class="situation_header" id="InvestorToChooseMethodOfPayment">
               <span class="situationword">Scenario: </span>Investor to Choose Method of Payment
             </h3>
             <ul class="nomarkers">
@@ -442,7 +445,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="CommitToIPO">
+            <h3 class="action_header" id="CommitToIPO">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Initiate an IPO Liquidity Event
             </h3>
@@ -495,7 +498,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="CommitToChangeOfControl">
+            <h3 class="action_header" id="CommitToChangeOfControl">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Initiate a Change-of-Control Liquidity Event
             </h3>
@@ -590,13 +593,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="AutoChooseStockPayment">
+            <h3 class="action_header" id="AutoChooseStockPayment">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Stock Payment Option Chosen by Default
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterAutoChooseStockPayment">
+                <h3 class="situation_header" id="AfterAutoChooseStockPayment">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -623,13 +626,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="ChooseStockPayment">
+            <h3 class="action_header" id="ChooseStockPayment">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Choose Payment in Common Stock
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterChooseStockPayment">
+                <h3 class="situation_header" id="AfterChooseStockPayment">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -656,7 +659,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferCommonStock">
+            <h3 class="action_header" id="TransferCommonStock">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Common Stock
             </h3>
@@ -676,7 +679,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferCommonStock">
+                <h3 class="situation_header" id="AfterTransferCommonStock">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -703,13 +706,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="ChooseCashPayment">
+            <h3 class="action_header" id="ChooseCashPayment">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Choose Payment in Cash
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterChooseCashPayment">
+                <h3 class="situation_header" id="AfterChooseCashPayment">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -736,7 +739,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferCash_L">
+            <h3 class="action_header" id="TransferCash_L">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Cash (liquidity)
             </h3>
@@ -791,7 +794,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferCash_L">
+                <h3 class="situation_header" id="AfterTransferCash_L">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -856,7 +859,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="DoLiquidityEvent">
+            <h3 class="action_header" id="DoLiquidityEvent">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Execute Liquidity Event
             </h3>
@@ -870,13 +873,13 @@ body {
         <h2>Dissolution Events</h2>
         <ul class="nomarkers">
           <li>
-            <h3 id="CommitToDissolution">
+            <h3 class="action_header" id="CommitToDissolution">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Initiate a Dissolution Event
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterCommitToDissolution">
+                <h3 class="situation_header" id="AfterCommitToDissolution">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -903,7 +906,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferCash_D">
+            <h3 class="action_header" id="TransferCash_D">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Cash (dissolution)
             </h3>
@@ -937,7 +940,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferCash_D">
+                <h3 class="situation_header" id="AfterTransferCash_D">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -1002,7 +1005,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferAssets">
+            <h3 class="action_header" id="TransferAssets">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Assets
             </h3>
@@ -1059,7 +1062,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferAssets">
+                <h3 class="situation_header" id="AfterTransferAssets">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -1086,7 +1089,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="Dissolution_Event">
+            <h3 class="action_header" id="Dissolution_Event">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Execute Dissolution
             </h3>

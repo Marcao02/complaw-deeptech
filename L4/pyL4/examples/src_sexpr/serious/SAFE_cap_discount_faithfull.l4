@@ -19,21 +19,25 @@
 	(Fn before_date)
 	(Fn violation (Act → Bool))
 
-	;(Axiom
-	;	(∀ (DG Group) (POW Power) (ACT Act) (D2 Date)
-	;		(
-	;			(	∧
-	;				(is_issue_shares_power POW)
-	;				(ACT = (☐_exercises_☐_on_☐ DG POW D2))
-	;				(¬ ( ∃ (APP CompanyApproval) (D1 Date)
-	;					((before_date D1 D2) ∧ (☐_is_an_approval_given_on_☐_to_☐ APP D1 ACT ))
-	;				))
-	;			)
-	;		→
-	;			(violation DG ACT)
-	;		)
-	;	)
+	; (Axiom
+	; 	(∀ (DG Group) (POW Power) (ACT Act) (D2 Date)
+	; 		(
+	; 			(	∧
+	; 				(is_issue_shares_power POW)
+	; 				(ACT = (☐_exercises_☐_on_☐ DG POW D2))
+	; 				(¬ ( ∃ (APP CompanyApproval) (D1 Date)
+	; 					((before_date D1 D2) ∧ (☐_is_an_approval_given_on_☐_to_☐ APP D1 ACT ))
+	; 				))
+	; 			)
+	; 		→
+	; 			(violation DG ACT)
+	; 		)
+	; 	)
 	; )
+
+	(BeforeStart ((Completed preemptive_waiver) and (Completed members_resolution)))
+
+	(SortDefn OrdinraryResolutinPassMathod = (AGM EGM Written))
 )
 
 
@@ -47,17 +51,18 @@
 
 
 (NonoperativeContractParams
-	(Governing_Law_Jurisdiction)
-	(State_of_Incorporation)
-	(Date_of_Safe)
+	(Governing_Law_Jurisdiction "Singapore")
+	(State_of_Incorporation "Singapore")
+	(Date_of_Safe "1 July 2018")
+	(Investor "CryptoBoy")
+	(Company "Legalese")
 )
 
 (SortDefinitions
-	(Δ$ := (Dimensioned Real "$"))
+	; (ResolutionPassMethod = (Enum ))
 	($ := (Dimensioned NonnegReal "$"))
 	(Pos$ := (Dimensioned PosReal "$"))
 	(ShareCnt = (Dimensioned Nat "shares"))
-	(ΔShareCnt = (Dimensioned Int "shares"))
 	(PosShareCnt = (Dimensioned PosInt "shares"))
 	(SharePrice = (Ratio $ PosShareCnt))
 	(PosSharePrice = (Ratio Pos$ PosShareCnt))
@@ -83,6 +88,7 @@
 	(investor_percent_of_dissolving_investor_investments "Investor Cashout %")
 	(company_capitalization "Capitalization")
 	(premoney_valuation "Valuation")
+	(company_cash_available_for_payout "Company Cash Available for Payout")
 	(company_cash_at_liquidity_event "Total Cash Reserves")
 	(company_cash_at_dissolution_event "Total Cash Reserves")
 	(purchase_amount_reduction "Purchase Amount Reduction")
@@ -103,12 +109,12 @@
 	(Simple Agreement for Future Equity)
 	<br/>
 
-	<p>THIS CERTIFIES THAT in exchange for the payment by {val Investor} (the {Investor}) of ${val Purchase_Amount} ({Purchase_Amount}) on or about {val Date_of_Safe}, {val Company}, a {val State_of_Incorporation} corporation (the {Company}), hereby issues to the {Investor} the right to certain shares of the {Company}’s capital stock, subject to the terms set forth below.<p>
+	<p>THIS CERTIFIES THAT in exchange for the payment by {val Investor} (the {def Investor}) of ${val Purchase_Amount} ({def Purchase_Amount}) on or about {val Date_of_Safe}, {val Company}, a {val State_of_Incorporation} corporation (the {def Company}), hereby issues to the {Investor} the right to certain shares of the {Company}’s capital stock, subject to the terms set forth below.<p>
 
 	<ul>
-		<li>{Valuation_Cap} is ${val Valuation_Cap}.</li>
-		<li>{Discount} is {val Discount}%.</li>
-		<li>{Discount_Rate} is {val DiscountRate}.</li>
+		<li>{def Valuation_Cap} is ${val Valuation_Cap}.</li>
+		<li>{def Discount} is {val Discount}%.</li>
+		<li>{def Discount_Rate} is {val Discount_Rate}.</li>
 	</ol>
 	"
 )
@@ -117,6 +123,8 @@
     (Definition Capital_Stock "means the capital stock of the {Company}, including, without limitation, {Common_Stock} and {Preferred_Stock}.")
 
     (Definition Change_of_Control "means (i) a transaction or series of related transactions in which any “person” or “group” (within the meaning of Section 13(d) and 14(d) of the Securities Exchange Act of 1934, as amended), becomes the “beneficial owner” (as defined in Rule 13d-3 under the Securities Exchange Act of 1934, as amended), directly or indirectly, of more than 50% of the outstanding voting securities of the {Company} having the right to vote for the election of members of the {Company}’s board of directors, (ii) any reorganization, merger or consolidation of the {Company}, other than a transaction or series of related transactions in which the holders of the voting securities of the {Company} outstanding immediately prior to such transaction or series of related transactions retain, immediately after such transaction or series of related transactions, at least a majority of the total voting power represented by the outstanding voting securities of the {Company} or such other surviving or resulting entity or (iii) a sale, lease or other disposition of all or substantially all of the assets of the {Company}.")
+
+    (Definition Common_Stock "missing defn todo")
 
     (Definition Company_Capitalization "means the sum, as of immediately prior to the {Equity_Financing}, of: (1) all shares of {Capital_Stock} (on an as-converted basis) issued and outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities, but excluding (A) this instrument, (B) all other Safes, and (C) convertible promissory notes; and (2) all shares of {Common_Stock} reserved and available for future grant under any equity incentive or similar plan of the {Company}, and/or any equity incentive or similar plan to be created or increased in connection with the {Equity_Financing}.")
 
@@ -155,6 +163,8 @@
     "means the price per share equal to the {Valuation_Cap} divided by the {Liquidity_Capitalization}."
     )
 
+    (Definition Preferred_Stock "missing defn todo")
+
     (Definition Pro_Rata_Rights_Agreement
     "means a written agreement between the {Company} and the {Investor} (and holders of other Safes, as appropriate) giving the Investor a right to purchase its pro rata share of private placements of securities by the Company occurring after the {Equity_Financing}, subject to customary exceptions.  Pro rata for purposes of the {Pro_Rata_Rights_Agreement} will be calculated based on the ratio of (1) the number of shares of {Capital_Stock} owned by the {Investor} immediately prior to the issuance of the securities to (2) the total number of shares of outstanding {Capital_Stock} on a fully diluted basis, calculated as of immediately prior to the issuance of the securities."
     )
@@ -170,6 +180,8 @@
     (Definition Safe_Price
     " means the price per share equal to the {Valuation_Cap} divided by the {Company_Capitalization}."
     )
+
+    (Definition Securities_Act "Securities Act")
 
     (Definition Standard_Preferred_Stock
     "means the shares of a series of {Preferred_Stock} issued to the investors investing new money in the {Company} in connection with the initial closing of the {Equity_Financing}."
@@ -208,21 +220,18 @@
 
 
 (StateVars
-	(writes≤1 investor_Common_Stock: ΔShareCnt = 0)
-	(writes≤1 investor_SAFE_Stock : ΔShareCnt = 0)
-	(writes≤1 investor_cash : Δ$ = Purchase_Amount )
+	(writes≤1 investor_Common_Stock: ShareCnt = 0)
+	(writes≤1 investor_SAFE_Stock : ShareCnt = 0)
+	(writes≤1 investor_cash : $ = Purchase_Amount )
+	; for Liquidity and Dissolution
+	(writes≤1 company_cash_available_for_payout : $)
 
 	; in a later version of L4, the type of the following variable might be (Uninitialized $),
 	; which behaves just like $ after the first write, and causes a type error if there's a read before the first write.
 	(unconverted_investment : $ = 0)
-
-	; this is wrong, but testing:
-	(writes≤1 Conversion_Price : PosSharePrice)
-
 	(company_cash : $ = 0)
 
-	; for Liquidity and Dissolution
-	(writes≤1 company_cash_available_for_payout : $)
+	(writes≤1 Conversion_Price : PosSharePrice)
 
 	; for Liquidity
 	(writes≤1 liq_cashout : $ = 0) ; this needs to either be initialized to 0, or else changed to an Optional and some of the code rewritten a bit.
@@ -260,15 +269,24 @@
 	(StartSituation Signed)
 
 	(Action ExternalShareCntChange
-
+		(nlgsection "Possible Events and Scenarios")
 	)
+	(Action ExternalShareCntChange
+		(nlgsection "Possible Events and Scenarios")
+	)
+	(Action ExternalShareCntChange
+		(nlgsection "Possible Events and Scenarios")
+	)
+
 
 	(Situation Signed
 		(nlg "Investment Agreement Signed")
+		(nlgsection "Possible Events and Scenarios")
 		(Investor may TransferInvestmentCash)
 	)
 	(Action TransferInvestmentCash (TransitionsTo InvestmentWaitingToConvert) (AllowedSubjects Investor)
 		(nlg "Transfer Investment to Company")
+		(nlgsection "Possible Events and Scenarios")
 		(StateTransform
 			(investor_cash' = (investor_cash - Purchase_Amount))
 			(company_cash' = (company_cash + Purchase_Amount))
@@ -278,6 +296,7 @@
 
 	(Situation InvestmentWaitingToConvert
 		(nlg "Investment Waiting to Convert")
+		(nlgsection "Possible Events and Scenarios")
 		(Company may (CommitToEquityFinancing))
 		(Company may (CommitToIPO ?1 ?2))
 		(Company may (CommitToChangeOfControl ?1 ?2 ?total_investments_of_cashout_investors ?4)
@@ -290,7 +309,7 @@
 	; NOTE: PRA abbreviates pro rata agreement
 
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
-		(nlg "Initiate an {Equity_Financing} Event")
+		(nlg "Initiate an Equity Financing Event")
 		(nlgsection "Equity Events")
 		(FollowingSituation
 			(Company may DeliverTransactionDocsWithPRA)
@@ -355,7 +374,7 @@
 	)
 
 	(Action Equity_Financing (AllowedSubjects Company) (TransitionsTo Fulfilled)
-		(nlg "Execute {Equity_Financing}")
+		(nlg "Execute Equity Financing")
 		(nlgsection "Equity Events")
 	)
 

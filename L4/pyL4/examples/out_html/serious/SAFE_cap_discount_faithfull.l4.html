@@ -1,6 +1,9 @@
 <html>
   <head>
     <style>
+.action_header,.situation_header {
+    margin: .2%;
+}
 body {
     margin-bottom : 1000px;
 }
@@ -51,26 +54,26 @@ body {
       <div>The contract tracks the following variables:</div>
       <ul class="nomarkers">
         <li>
-          <span class="symbintro" id="investor_Common_Stock">Investor's Common Stock</span>, which is a change in number of shares with initial value 0.
+          <span class="symbintro" id="investor_Common_Stock">Investor's Common Stock</span>, which is a number of shares with initial value 0.
         </li>
         <li>
-          <span class="symbintro" id="investor_SAFE_Stock">Investor's SAFE Stock</span>, which is a change in number of shares with initial value 0.
+          <span class="symbintro" id="investor_SAFE_Stock">Investor's SAFE Stock</span>, which is a number of shares with initial value 0.
         </li>
         <li>
-          <span class="symbintro" id="investor_cash">Investor's Cash</span>, which is a change in USD with initial value 
+          <span class="symbintro" id="investor_cash">Investor's Cash</span>, which is a USD with initial value 
           <a href="#Purchase_Amount">Purchase Amount</a>.
+        </li>
+        <li>
+          <span class="symbintro" id="company_cash_available_for_payout">Company Cash Available for Payout</span>, which is a USD.
         </li>
         <li>
           <span class="symbintro" id="unconverted_investment">Unconverted Investment</span>, which is a USD with initial value 0.
         </li>
         <li>
-          <span class="symbintro" id="Conversion_Price">Conversion Price</span>, which is a positive price in USD/share.
-        </li>
-        <li>
           <span class="symbintro" id="company_cash">Company's Cash</span>, which is a USD with initial value 0.
         </li>
         <li>
-          <span class="symbintro" id="company_cash_available_for_payout">company_cash_available_for_payout</span>, which is a USD.
+          <span class="symbintro" id="Conversion_Price">Conversion Price</span>, which is a positive price in USD/share.
         </li>
         <li>
           <span class="symbintro" id="liq_cashout">Liquidity Cashout</span>, which is a USD with initial value 0.
@@ -81,61 +84,64 @@ body {
       </ul>
     </div>
     <p><p>THIS INSTRUMENT AND ANY SECURITIES ISSUABLE PURSUANT HERETO HAVE NOT BEEN REGISTERED UNDER THE SECURITIES ACT OF 1933, AS AMENDED (THE “SECURITIES ACT”), OR UNDER THE SECURITIES LAWS OF CERTAIN STATES.  THESE SECURITIES MAY NOT BE OFFERED, SOLD OR OTHERWISE TRANSFERRED, PLEDGED OR HYPOTHECATED EXCEPT AS PERMITTED UNDER THE ACT AND APPLICABLE STATE SECURITIES LAWS PURSUANT TO AN EFFECTIVE REGISTRATION STATEMENT OR AN EXEMPTION THEREFROM.</p>
-	{val Company}
+	<a href='#Legalese'>Legalese</a>
 	<br/>
 	SAFE <br/>
 	(Simple Agreement for Future Equity)
 	<br/>
 
-	<p>THIS CERTIFIES THAT in exchange for the payment by {val Investor} (the {Investor}) of $Purchase_Amount (<a href=''>Purchase_Amount</a>) on or about {val Date_of_Safe}, {val Company}, a {val State_of_Incorporation} corporation (the {Company}), hereby issues to the {Investor} the right to certain shares of the {Company}’s capital stock, subject to the terms set forth below.<p>
+	<p>THIS CERTIFIES THAT in exchange for the payment by <a href='#CryptoBoy'>CryptoBoy</a> (the <a href='#Investor'>Investor</a>) of $<a href='#100000'>100000</a> (<a href='#Purchase_Amount'>Purchase_Amount</a>) on or about <a href='#1 July 2018'>1 July 2018</a>, <a href='#Legalese'>Legalese</a>, a <a href='#Singapore'>Singapore</a> corporation (the <a href='#Company'>Company</a>), hereby issues to the <a href='#Investor'>Investor</a> the right to certain shares of the <a href='#Company'>Company</a>’s capital stock, subject to the terms set forth below.<p>
 
 	<ul>
-		<li><a href=''>Valuation_Cap</a> is $Valuation_Cap.</li>
-		<li>{Discount} is {val Discount}%.</li>
-		<li><a href=''>Discount_Rate</a> is {val DiscountRate}.</li>
+		<li><a href='#Valuation_Cap'>Valuation_Cap</a> is $<a href='#100000000'>100000000</a>.</li>
+		<li><a href='#Discount'>Discount</a> is <a href='#(1 - Discount_Rate)'>(1 - Discount_Rate)</a>%.</li>
+		<li><a href='#Discount_Rate'>Discount_Rate</a> is <a href='#0.9'>0.9</a>.</li>
 	</ol>
 	</p>
     <p>3.	Company Representations
-		(a)	The {Company} is a corporation duly organized, validly existing and in good standing under the laws of the state of its incorporation, and has the power and authority to own, lease and operate its properties and carry on its business as now conducted.
-		(b)	The execution, delivery and performance by the {Company} of this instrument is within the power of the {Company} and, other than with respect to the actions to be taken when equity is to be issued to the Investor, has been duly authorized by all necessary actions on the part of the {Company}. This instrument constitutes a legal, valid and binding obligation of the {Company}, enforceable against the {Company} in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.  To the knowledge of the {Company}, it is not in violation of (i) its current certificate of incorporation or bylaws, (ii) any material statute, rule or regulation applicable to the {Company} or (iii) any material indenture or contract to which the {Company} is a party or by which it is bound, where, in each case, such violation or default, individually, or together with all such violations or defaults, could reasonably be expected to have a material adverse effect on the {Company}.
-		(c)	The performance and consummation of the transactions contemplated by this instrument do not and will not: (i) violate any material judgment, statute, rule or regulation applicable to the {Company}; (ii) result in the acceleration of any material indenture or contract to which the {Company} is a party or by which it is bound; or (iii) result in the creation or imposition of any lien upon any property, asset or revenue of the {Company} or the suspension, forfeiture, or nonrenewal of any material permit, license or authorization applicable to the {Company}, its business or operations.
-		(d)	No consents or approvals are required in connection with the performance of this instrument, other than: (i) the {Company}’s corporate approvals; (ii) any qualifications or filings under applicable securities laws; and (iii) necessary corporate approvals for the authorization of <a href=''>Capital_Stock</a> issuable pursuant to Section 1.
-		(e)	To its knowledge, the {Company} owns or possesses (or can obtain on commercially reasonable terms) sufficient legal rights to all patents, trademarks, service marks, trade names, copyrights, trade secrets, licenses, information, processes and other intellectual property rights necessary for its business as now conducted and as currently proposed to be conducted, without any conflict with, or infringement of the rights of, others.</p>
+		(a)	The <a href='#Company'>Company</a> is a corporation duly organized, validly existing and in good standing under the laws of the state of its incorporation, and has the power and authority to own, lease and operate its properties and carry on its business as now conducted.
+		(b)	The execution, delivery and performance by the <a href='#Company'>Company</a> of this instrument is within the power of the <a href='#Company'>Company</a> and, other than with respect to the actions to be taken when equity is to be issued to the Investor, has been duly authorized by all necessary actions on the part of the <a href='#Company'>Company</a>. This instrument constitutes a legal, valid and binding obligation of the <a href='#Company'>Company</a>, enforceable against the <a href='#Company'>Company</a> in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.  To the knowledge of the <a href='#Company'>Company</a>, it is not in violation of (i) its current certificate of incorporation or bylaws, (ii) any material statute, rule or regulation applicable to the <a href='#Company'>Company</a> or (iii) any material indenture or contract to which the <a href='#Company'>Company</a> is a party or by which it is bound, where, in each case, such violation or default, individually, or together with all such violations or defaults, could reasonably be expected to have a material adverse effect on the <a href='#Company'>Company</a>.
+		(c)	The performance and consummation of the transactions contemplated by this instrument do not and will not: (i) violate any material judgment, statute, rule or regulation applicable to the <a href='#Company'>Company</a>; (ii) result in the acceleration of any material indenture or contract to which the <a href='#Company'>Company</a> is a party or by which it is bound; or (iii) result in the creation or imposition of any lien upon any property, asset or revenue of the <a href='#Company'>Company</a> or the suspension, forfeiture, or nonrenewal of any material permit, license or authorization applicable to the <a href='#Company'>Company</a>, its business or operations.
+		(d)	No consents or approvals are required in connection with the performance of this instrument, other than: (i) the <a href='#Company'>Company</a>’s corporate approvals; (ii) any qualifications or filings under applicable securities laws; and (iii) necessary corporate approvals for the authorization of <a href='#Capital_Stock'>Capital_Stock</a> issuable pursuant to Section 1.
+		(e)	To its knowledge, the <a href='#Company'>Company</a> owns or possesses (or can obtain on commercially reasonable terms) sufficient legal rights to all patents, trademarks, service marks, trade names, copyrights, trade secrets, licenses, information, processes and other intellectual property rights necessary for its business as now conducted and as currently proposed to be conducted, without any conflict with, or infringement of the rights of, others.</p>
     <p>4.	Investor Representations
-		(a)	The {Investor} has full legal capacity, power and authority to execute and deliver this instrument and to perform its obligations hereunder. This instrument constitutes valid and binding obligation of the {Investor}, enforceable in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.
-		(b)	The {Investor} is an accredited investor as such term is defined in Rule 501 of Regulation D under {Securities_Act}. The {Investor} has been advised that this instrument and the underlying securities have not been registered under {Securities_Act}, or any state securities laws and, therefore, cannot be resold unless they are registered under {Securities_Act} and applicable state securities laws or unless an exemption from such registration requirements is available. The {Investor} is purchasing this instrument and the securities to be acquired by the {Investor} hereunder for its own account for investment, not as a nominee or agent, and not with a view to, or for resale in connection with, the distribution thereof, and the {Investor} has no present intention of selling, granting any participation in, or otherwise distributing the same. The {Investor} has such knowledge and experience in financial and business matters that the {Investor} is capable of evaluating the merits and risks of such investment, is able to incur a complete loss of such investment without impairing the {Investor}’s financial condition and is able to bear the economic risk of such investment for an indefinite period of time.</p>
+		(a)	The <a href='#Investor'>Investor</a> has full legal capacity, power and authority to execute and deliver this instrument and to perform its obligations hereunder. This instrument constitutes valid and binding obligation of the <a href='#Investor'>Investor</a>, enforceable in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.
+		(b)	The <a href='#Investor'>Investor</a> is an accredited investor as such term is defined in Rule 501 of Regulation D under <a href='#Securities_Act'>Securities_Act</a>. The <a href='#Investor'>Investor</a> has been advised that this instrument and the underlying securities have not been registered under <a href='#Securities_Act'>Securities_Act</a>, or any state securities laws and, therefore, cannot be resold unless they are registered under <a href='#Securities_Act'>Securities_Act</a> and applicable state securities laws or unless an exemption from such registration requirements is available. The <a href='#Investor'>Investor</a> is purchasing this instrument and the securities to be acquired by the <a href='#Investor'>Investor</a> hereunder for its own account for investment, not as a nominee or agent, and not with a view to, or for resale in connection with, the distribution thereof, and the <a href='#Investor'>Investor</a> has no present intention of selling, granting any participation in, or otherwise distributing the same. The <a href='#Investor'>Investor</a> has such knowledge and experience in financial and business matters that the <a href='#Investor'>Investor</a> is capable of evaluating the merits and risks of such investment, is able to incur a complete loss of such investment without impairing the <a href='#Investor'>Investor</a>’s financial condition and is able to bear the economic risk of such investment for an indefinite period of time.</p>
     <p>5.	Miscellaneous
-		(a)	Any provision of this instrument may be amended, waived or modified only upon the written consent of the {Company} and the {Investor}.
+		(a)	Any provision of this instrument may be amended, waived or modified only upon the written consent of the <a href='#Company'>Company</a> and the <a href='#Investor'>Investor</a>.
 		(b)	Any notice required or permitted by this instrument will be deemed sufficient when delivered personally or by overnight courier or sent by email to the relevant address listed on the signature page, or {48 hours} after being deposited in the U.S. mail as certified or registered mail with postage prepaid, addressed to the party to be notified at such party’s address listed on the signature page, as subsequently modified by written notice.
-		(c)	The {Investor} is not entitled, as a holder of this instrument, to vote or receive dividends or be deemed the holder of Capital Stock for any purpose, nor will anything contained herein be construed to confer on the {Investor}, as such, any of the rights of a stockholder of the {Company} or any right to vote for the election of directors or upon any matter submitted to stockholders at any meeting thereof, or to give or withhold consent to any corporate action or to receive notice of meetings, or to receive subscription rights or otherwise until shares have been issued upon the terms described herein.
-		(d)	Neither this instrument nor the rights contained herein may be assigned, by operation of law or otherwise, by either party without the prior written consent of the other; provided, however, that this instrument and/or the rights contained herein may be assigned without the {Company}’s consent by the {Investor} to any other entity who directly or indirectly, controls, is controlled by or is under common control with the {Investor}, including, without limitation, any general partner, managing member, officer or director of the {Investor}, or any venture capital fund now or hereafter existing which is controlled by one or more general partners or managing members of, or shares the same management company with, the {Investor}; and provided, further, that the {Company} may assign this instrument in whole, without the consent of the {Investor}, in connection with a reincorporation to change the {Company}’s domicile.
+		(c)	The <a href='#Investor'>Investor</a> is not entitled, as a holder of this instrument, to vote or receive dividends or be deemed the holder of Capital Stock for any purpose, nor will anything contained herein be construed to confer on the <a href='#Investor'>Investor</a>, as such, any of the rights of a stockholder of the <a href='#Company'>Company</a> or any right to vote for the election of directors or upon any matter submitted to stockholders at any meeting thereof, or to give or withhold consent to any corporate action or to receive notice of meetings, or to receive subscription rights or otherwise until shares have been issued upon the terms described herein.
+		(d)	Neither this instrument nor the rights contained herein may be assigned, by operation of law or otherwise, by either party without the prior written consent of the other; provided, however, that this instrument and/or the rights contained herein may be assigned without the <a href='#Company'>Company</a>’s consent by the <a href='#Investor'>Investor</a> to any other entity who directly or indirectly, controls, is controlled by or is under common control with the <a href='#Investor'>Investor</a>, including, without limitation, any general partner, managing member, officer or director of the <a href='#Investor'>Investor</a>, or any venture capital fund now or hereafter existing which is controlled by one or more general partners or managing members of, or shares the same management company with, the <a href='#Investor'>Investor</a>; and provided, further, that the <a href='#Company'>Company</a> may assign this instrument in whole, without the consent of the <a href='#Investor'>Investor</a>, in connection with a reincorporation to change the <a href='#Company'>Company</a>’s domicile.
 		(e)	In the event any one or more of the provisions of this instrument is for any reason held to be invalid, illegal or unenforceable, in whole or in part or in any respect, or in the event that any one or more of the provisions of this instrument operate or would prospectively operate to invalidate this instrument, then and in any such event, such provision(s) only will be deemed null and void and will not affect any other provision of this instrument and the remaining provisions of this instrument will remain operative and in full force and effect and will not be affected, prejudiced, or disturbed thereby.
-		(f)	All rights and obligations hereunder will be governed by the laws of the State of {Governing_Law_Jurisdiction}, without regard to the conflicts of law provisions of such jurisdiction.</p>
+		(f)	All rights and obligations hereunder will be governed by the laws of the State of <a href='#Governing_Law_Jurisdiction'>Governing_Law_Jurisdiction</a>, without regard to the conflicts of law provisions of such jurisdiction.</p>
     <ol>
-      <li>Capital_Stock - means the capital stock of the {Company}, including, without limitation, {Common_Stock} and {Preferred_Stock}.</li>
-      <li>Change_of_Control - means (i) a transaction or series of related transactions in which any “person” or “group” (within the meaning of Section 13(d) and 14(d) of the Securities Exchange Act of 1934, as amended), becomes the “beneficial owner” (as defined in Rule 13d-3 under the Securities Exchange Act of 1934, as amended), directly or indirectly, of more than 50% of the outstanding voting securities of the {Company} having the right to vote for the election of members of the {Company}’s board of directors, (ii) any reorganization, merger or consolidation of the {Company}, other than a transaction or series of related transactions in which the holders of the voting securities of the {Company} outstanding immediately prior to such transaction or series of related transactions retain, immediately after such transaction or series of related transactions, at least a majority of the total voting power represented by the outstanding voting securities of the {Company} or such other surviving or resulting entity or (iii) a sale, lease or other disposition of all or substantially all of the assets of the {Company}.</li>
-      <li>Company_Capitalization - means the sum, as of immediately prior to the <a href=''>Equity_Financing</a>, of: (1) all shares of <a href=''>Capital_Stock</a> (on an as-converted basis) issued and outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities, but excluding (A) this instrument, (B) all other Safes, and (C) convertible promissory notes; and (2) all shares of {Common_Stock} reserved and available for future grant under any equity incentive or similar plan of the {Company}, and/or any equity incentive or similar plan to be created or increased in connection with the <a href=''>Equity_Financing</a>.</li>
-      <li>Conversion_Price - means either: (1) the <a href=''>Safe_Price</a> or (2) the <a href=''>Discount_Price</a>, whichever calculation results in a greater number of shares of <a href=''>Safe_Preferred_Stock</a>.</li>
-      <li>Discount_Price - means the price per share of the <a href=''>Standard_Preferred_Stock</a> sold in the <a href=''>Equity_Financing</a> multiplied by the <a href=''>Discount_Rate</a>.</li>
-      <li>Distribution - means the transfer to holders of <a href=''>Capital_Stock</a> by reason of their ownership thereof of cash or other property without consideration whether by way of dividend or otherwise, other than dividends on {Common_Stock} payable in {Common_Stock}, or the purchase or redemption of <a href=''>Capital_Stock</a> by the {Company} or its subsidiaries for cash or property other than: (i) repurchases of {Common_Stock} held by employees, officers, directors or consultants of the {Company} or its subsidiaries pursuant to an agreement providing, as applicable, a right of first refusal or a right to repurchase shares upon termination of such service provider’s employment or services; or (ii) repurchases of <a href=''>Capital_Stock</a> in connection with the settlement of disputes with any stockholder.</li>
-      <li>Dissolution_Event - means (i) a voluntary termination of operations, (ii) a general assignment for the benefit of the {Company}’s creditors or (iii) any other liquidation, dissolution or winding up of the {Company} (excluding a <a href=''>Liquidity_Event</a>), whether voluntary or involuntary.</li>
-      <li>Equity_Financing - means a bona fide transaction or series of transactions with the principal purpose of raising capital, pursuant to which the {Company} issues and sells {Preferred_Stock} at a fixed pre-money valuation.</li>
-      <li>Initial_Public_Offering - means the closing of the {Company}’s first firm commitment underwritten initial public offering of {Common_Stock} pursuant to a registration statement filed under {Securities_Act}.</li>
-      <li>Liquidity_Capitalization - means the number, as of immediately prior to the <a href=''>Liquidity_Event</a>, of shares of <a href=''>Capital_Stock</a> (on an as-converted basis) outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities, but excluding: (i) shares of {Common_Stock} reserved and available for future grant under any equity incentive or similar plan; (ii) this instrument; (iii) other Safes; and (iv) convertible promissory notes.</li>
-      <li>Liquidity_Event - means a <a href=''>Change_of_Control</a> or an <a href=''>Initial_Public_Offering</a>.</li>
-      <li>Liquidity_Price - means the price per share equal to the <a href=''>Valuation_Cap</a> divided by the <a href=''>Liquidity_Capitalization</a>.</li>
-      <li>Pro_Rata_Rights_Agreement - means a written agreement between the {Company} and the {Investor} (and holders of other Safes, as appropriate) giving the Investor a right to purchase its pro rata share of private placements of securities by the Company occurring after the <a href=''>Equity_Financing</a>, subject to customary exceptions.  Pro rata for purposes of the <a href=''>Pro_Rata_Rights_Agreement</a> will be calculated based on the ratio of (1) the number of shares of <a href=''>Capital_Stock</a> owned by the {Investor} immediately prior to the issuance of the securities to (2) the total number of shares of outstanding <a href=''>Capital_Stock</a> on a fully diluted basis, calculated as of immediately prior to the issuance of the securities.</li>
-      <li>Safe - means an instrument containing a future right to shares of <a href=''>Capital_Stock</a>, similar in form and content to this instrument, purchased by investors for the purpose of funding the Company’s business operations.</li>
-      <li>Safe_Preferred_Stock - means the shares of a series of {Preferred_Stock} issued to the {Investor} in an <a href=''>Equity_Financing</a>, having the identical rights, privileges, preferences and restrictions as the shares of <a href=''>Standard_Preferred_Stock</a>, other than with respect to: (i) the per share liquidation preference and the conversion price for purposes of price-based anti-dilution protection, which will equal the <a href=''>Conversion_Price</a>; and (ii) the basis for any dividend rights, which will be based on the <a href=''>Conversion_Price</a>.</li>
-      <li>Safe_Price -  means the price per share equal to the <a href=''>Valuation_Cap</a> divided by the <a href=''>Company_Capitalization</a>.</li>
-      <li>Standard_Preferred_Stock - means the shares of a series of {Preferred_Stock} issued to the investors investing new money in the {Company} in connection with the initial closing of the <a href=''>Equity_Financing</a>.</li>
-      <li>Transaction_Documents_related_to_Equity_Financing - means all transaction documents related to the <a href=''>Equity_Financing</a>; provided, that such documents are the same documents to be entered into with the purchasers of <a href=''>Standard_Preferred_Stock</a>, with appropriate variations for the <a href=''>Safe_Preferred_Stock</a> if applicable, and provided further, that such documents have customary exceptions to any drag-along applicable to the Investor, including, without limitation, limited representations and warranties and limited liability and indemnification obligations on the part of the Investor.</li>
+      <li class="triggers-tooltip" id="Capital_Stock">Capital Stock - means the capital stock of the <a href='#Company'>Company</a>, including, without limitation, <a href='#Common_Stock'>Common_Stock</a> and <a href='#Preferred_Stock'>Preferred_Stock</a>.</li>
+      <li class="triggers-tooltip" id="Change_of_Control">Change of Control - means (i) a transaction or series of related transactions in which any “person” or “group” (within the meaning of Section 13(d) and 14(d) of the Securities Exchange Act of 1934, as amended), becomes the “beneficial owner” (as defined in Rule 13d-3 under the Securities Exchange Act of 1934, as amended), directly or indirectly, of more than 50% of the outstanding voting securities of the <a href='#Company'>Company</a> having the right to vote for the election of members of the <a href='#Company'>Company</a>’s board of directors, (ii) any reorganization, merger or consolidation of the <a href='#Company'>Company</a>, other than a transaction or series of related transactions in which the holders of the voting securities of the <a href='#Company'>Company</a> outstanding immediately prior to such transaction or series of related transactions retain, immediately after such transaction or series of related transactions, at least a majority of the total voting power represented by the outstanding voting securities of the <a href='#Company'>Company</a> or such other surviving or resulting entity or (iii) a sale, lease or other disposition of all or substantially all of the assets of the <a href='#Company'>Company</a>.</li>
+      <li class="triggers-tooltip" id="Common_Stock">Common Stock - missing defn todo</li>
+      <li class="triggers-tooltip" id="Company_Capitalization">Company Capitalization - means the sum, as of immediately prior to the <a href='#Equity_Financing'>Equity_Financing</a>, of: (1) all shares of <a href='#Capital_Stock'>Capital_Stock</a> (on an as-converted basis) issued and outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities, but excluding (A) this instrument, (B) all other Safes, and (C) convertible promissory notes; and (2) all shares of <a href='#Common_Stock'>Common_Stock</a> reserved and available for future grant under any equity incentive or similar plan of the <a href='#Company'>Company</a>, and/or any equity incentive or similar plan to be created or increased in connection with the <a href='#Equity_Financing'>Equity_Financing</a>.</li>
+      <li class="triggers-tooltip" id="Conversion_Price">Conversion Price - means either: (1) the <a href='#Safe_Price'>Safe_Price</a> or (2) the <a href='#Discount_Price'>Discount_Price</a>, whichever calculation results in a greater number of shares of <a href='#Safe_Preferred_Stock'>Safe_Preferred_Stock</a>.</li>
+      <li class="triggers-tooltip" id="Discount_Price">Discount Price - means the price per share of the <a href='#Standard_Preferred_Stock'>Standard_Preferred_Stock</a> sold in the <a href='#Equity_Financing'>Equity_Financing</a> multiplied by the <a href='#Discount_Rate'>Discount_Rate</a>.</li>
+      <li class="triggers-tooltip" id="Distribution">Distribution - means the transfer to holders of <a href='#Capital_Stock'>Capital_Stock</a> by reason of their ownership thereof of cash or other property without consideration whether by way of dividend or otherwise, other than dividends on <a href='#Common_Stock'>Common_Stock</a> payable in <a href='#Common_Stock'>Common_Stock</a>, or the purchase or redemption of <a href='#Capital_Stock'>Capital_Stock</a> by the <a href='#Company'>Company</a> or its subsidiaries for cash or property other than: (i) repurchases of <a href='#Common_Stock'>Common_Stock</a> held by employees, officers, directors or consultants of the <a href='#Company'>Company</a> or its subsidiaries pursuant to an agreement providing, as applicable, a right of first refusal or a right to repurchase shares upon termination of such service provider’s employment or services; or (ii) repurchases of <a href='#Capital_Stock'>Capital_Stock</a> in connection with the settlement of disputes with any stockholder.</li>
+      <li class="triggers-tooltip" id="Dissolution_Event">Dissolution Event - means (i) a voluntary termination of operations, (ii) a general assignment for the benefit of the <a href='#Company'>Company</a>’s creditors or (iii) any other liquidation, dissolution or winding up of the <a href='#Company'>Company</a> (excluding a <a href='#Liquidity_Event'>Liquidity_Event</a>), whether voluntary or involuntary.</li>
+      <li class="triggers-tooltip" id="Equity_Financing">Equity Financing - means a bona fide transaction or series of transactions with the principal purpose of raising capital, pursuant to which the <a href='#Company'>Company</a> issues and sells <a href='#Preferred_Stock'>Preferred_Stock</a> at a fixed pre-money valuation.</li>
+      <li class="triggers-tooltip" id="Initial_Public_Offering">Initial Public Offering - means the closing of the <a href='#Company'>Company</a>’s first firm commitment underwritten initial public offering of <a href='#Common_Stock'>Common_Stock</a> pursuant to a registration statement filed under <a href='#Securities_Act'>Securities_Act</a>.</li>
+      <li class="triggers-tooltip" id="Liquidity_Capitalization">Liquidity Capitalization - means the number, as of immediately prior to the <a href='#Liquidity_Event'>Liquidity_Event</a>, of shares of <a href='#Capital_Stock'>Capital_Stock</a> (on an as-converted basis) outstanding, assuming exercise or conversion of all outstanding vested and unvested options, warrants and other convertible securities, but excluding: (i) shares of <a href='#Common_Stock'>Common_Stock</a> reserved and available for future grant under any equity incentive or similar plan; (ii) this instrument; (iii) other Safes; and (iv) convertible promissory notes.</li>
+      <li class="triggers-tooltip" id="Liquidity_Event">Liquidity Event - means a <a href='#Change_of_Control'>Change_of_Control</a> or an <a href='#Initial_Public_Offering'>Initial_Public_Offering</a>.</li>
+      <li class="triggers-tooltip" id="Liquidity_Price">Liquidity Price - means the price per share equal to the <a href='#Valuation_Cap'>Valuation_Cap</a> divided by the <a href='#Liquidity_Capitalization'>Liquidity_Capitalization</a>.</li>
+      <li class="triggers-tooltip" id="Preferred_Stock">Preferred Stock - missing defn todo</li>
+      <li class="triggers-tooltip" id="Pro_Rata_Rights_Agreement">Pro Rata Rights Agreement - means a written agreement between the <a href='#Company'>Company</a> and the <a href='#Investor'>Investor</a> (and holders of other Safes, as appropriate) giving the Investor a right to purchase its pro rata share of private placements of securities by the Company occurring after the <a href='#Equity_Financing'>Equity_Financing</a>, subject to customary exceptions.  Pro rata for purposes of the <a href='#Pro_Rata_Rights_Agreement'>Pro_Rata_Rights_Agreement</a> will be calculated based on the ratio of (1) the number of shares of <a href='#Capital_Stock'>Capital_Stock</a> owned by the <a href='#Investor'>Investor</a> immediately prior to the issuance of the securities to (2) the total number of shares of outstanding <a href='#Capital_Stock'>Capital_Stock</a> on a fully diluted basis, calculated as of immediately prior to the issuance of the securities.</li>
+      <li class="triggers-tooltip" id="Safe">Safe - means an instrument containing a future right to shares of <a href='#Capital_Stock'>Capital_Stock</a>, similar in form and content to this instrument, purchased by investors for the purpose of funding the Company’s business operations.</li>
+      <li class="triggers-tooltip" id="Safe_Preferred_Stock">Safe Preferred Stock - means the shares of a series of <a href='#Preferred_Stock'>Preferred_Stock</a> issued to the <a href='#Investor'>Investor</a> in an <a href='#Equity_Financing'>Equity_Financing</a>, having the identical rights, privileges, preferences and restrictions as the shares of <a href='#Standard_Preferred_Stock'>Standard_Preferred_Stock</a>, other than with respect to: (i) the per share liquidation preference and the conversion price for purposes of price-based anti-dilution protection, which will equal the <a href='#Conversion_Price'>Conversion_Price</a>; and (ii) the basis for any dividend rights, which will be based on the <a href='#Conversion_Price'>Conversion_Price</a>.</li>
+      <li class="triggers-tooltip" id="Safe_Price">Safe Price -  means the price per share equal to the <a href='#Valuation_Cap'>Valuation_Cap</a> divided by the <a href='#Company_Capitalization'>Company_Capitalization</a>.</li>
+      <li class="triggers-tooltip" id="Securities_Act">Securities Act - Securities Act</li>
+      <li class="triggers-tooltip" id="Standard_Preferred_Stock">Standard Preferred Stock - means the shares of a series of <a href='#Preferred_Stock'>Preferred_Stock</a> issued to the investors investing new money in the <a href='#Company'>Company</a> in connection with the initial closing of the <a href='#Equity_Financing'>Equity_Financing</a>.</li>
+      <li class="triggers-tooltip" id="Transaction_Documents_related_to_Equity_Financing">Transaction Documents related to Equity Financing - means all transaction documents related to the <a href='#Equity_Financing'>Equity_Financing</a>; provided, that such documents are the same documents to be entered into with the purchasers of <a href='#Standard_Preferred_Stock'>Standard_Preferred_Stock</a>, with appropriate variations for the <a href='#Safe_Preferred_Stock'>Safe_Preferred_Stock</a> if applicable, and provided further, that such documents have customary exceptions to any drag-along applicable to the Investor, including, without limitation, limited representations and warranties and limited liability and indemnification obligations on the part of the Investor.</li>
     </ol>
     <div class="nomarkers">
       <div>
         <div>
           <li>
-            <h3 id="Signed">
+            <h3 class="situation_header" id="Signed">
               <span class="situationword">Scenario: </span>Investment Agreement Signed
             </h3>
             <ul class="nomarkers">
@@ -147,14 +153,14 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="InvestmentWaitingToConvert">
+            <h3 class="situation_header" id="InvestmentWaitingToConvert">
               <span class="situationword">Scenario: </span>Investment Waiting to Convert
             </h3>
             <ul class="nomarkers">
               <li>
                 <span>Company</span>
                 <span> may </span>
-                <a href="#CommitToEquityFinancing">Initiate an {Equity_Financing} Event</a>
+                <a href="#CommitToEquityFinancing">Initiate an Equity Financing Event</a>
               </li>
               <li>
                 <span>Company</span>
@@ -183,7 +189,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferInvestmentCash">
+            <h3 class="action_header" id="TransferInvestmentCash">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Transfer Investment to Company
             </h3>
@@ -216,7 +222,7 @@ body {
         <h2>Equity Events</h2>
         <ul class="nomarkers">
           <li>
-            <h3 id="AfterPRASigned">
+            <h3 class="situation_header" id="AfterPRASigned">
               <span class="situationword">Scenario: </span>After PRA Signed
             </h3>
             <ul class="nomarkers">
@@ -241,13 +247,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="CommitToEquityFinancing">
+            <h3 class="action_header" id="CommitToEquityFinancing">
               <span class="role">Company</span>
-              <span class="actionword"> action </span>Initiate an {Equity_Financing} Event
+              <span class="actionword"> action </span>Initiate an Equity Financing Event
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterCommitToEquityFinancing">
+                <h3 class="situation_header" id="AfterCommitToEquityFinancing">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -274,7 +280,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="DeliverTransactionDocsWithPRA">
+            <h3 class="action_header" id="DeliverTransactionDocsWithPRA">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)
             </h3>
@@ -285,13 +291,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="DeliverTransactionDocsWithoutPRA">
+            <h3 class="action_header" id="DeliverTransactionDocsWithoutPRA">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Deliver Transaction Docs (PRA to follow)
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterDeliverTransactionDocsWithoutPRA">
+                <h3 class="situation_header" id="AfterDeliverTransactionDocsWithoutPRA">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -318,13 +324,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="SendProRataRightsAgreementForSigning">
+            <h3 class="action_header" id="SendProRataRightsAgreementForSigning">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Send PRA for Signing
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterSendProRataRightsAgreementForSigning">
+                <h3 class="situation_header" id="AfterSendProRataRightsAgreementForSigning">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -351,7 +357,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="SignPRA">
+            <h3 class="action_header" id="SignPRA">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Sign PRA
             </h3>
@@ -362,7 +368,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="IssueSAFEPreferredStock">
+            <h3 class="action_header" id="IssueSAFEPreferredStock">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Issue SAFE Preferred Stock
             </h3>
@@ -416,7 +422,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterIssueSAFEPreferredStock">
+                <h3 class="situation_header" id="AfterIssueSAFEPreferredStock">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -426,7 +432,7 @@ body {
                       <li>
                         <span>Company</span>
                         <span> may </span>
-                        <a href="#Equity_Financing">Execute {Equity_Financing}</a>
+                        <a href="#Equity_Financing">Execute Equity Financing</a>
                       </li>
                     </ul>
                   </li>
@@ -443,9 +449,9 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="Equity_Financing">
+            <h3 class="action_header" id="Equity_Financing">
               <span class="role">Company</span>
-              <span class="actionword"> action </span>Execute {Equity_Financing}
+              <span class="actionword"> action </span>Execute Equity Financing
             </h3>
             <ul class="nomarkers">
               <div>Contract fulfilled.</div>
@@ -457,7 +463,7 @@ body {
         <h2>Liquidity Events</h2>
         <ul class="nomarkers">
           <li>
-            <h3 id="InvestorToChooseMethodOfPayment">
+            <h3 class="situation_header" id="InvestorToChooseMethodOfPayment">
               <span class="situationword">Scenario: </span>Investor to Choose Method of Payment
             </h3>
             <ul class="nomarkers">
@@ -493,7 +499,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="CommitToIPO">
+            <h3 class="action_header" id="CommitToIPO">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Initiate an IPO Liquidity Event
             </h3>
@@ -546,7 +552,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="CommitToChangeOfControl">
+            <h3 class="action_header" id="CommitToChangeOfControl">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Initiate a Change-of-Control Liquidity Event
             </h3>
@@ -641,13 +647,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="AutoChooseStockPayment">
+            <h3 class="action_header" id="AutoChooseStockPayment">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Stock Payment Option Chosen by Default
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterAutoChooseStockPayment">
+                <h3 class="situation_header" id="AfterAutoChooseStockPayment">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -674,13 +680,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="ChooseStockPayment">
+            <h3 class="action_header" id="ChooseStockPayment">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Choose Payment in Common Stock
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterChooseStockPayment">
+                <h3 class="situation_header" id="AfterChooseStockPayment">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -707,7 +713,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferCommonStock">
+            <h3 class="action_header" id="TransferCommonStock">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Common Stock
             </h3>
@@ -727,7 +733,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferCommonStock">
+                <h3 class="situation_header" id="AfterTransferCommonStock">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -754,13 +760,13 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="ChooseCashPayment">
+            <h3 class="action_header" id="ChooseCashPayment">
               <span class="role">Investor</span>
               <span class="actionword"> action </span>Choose Payment in Cash
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterChooseCashPayment">
+                <h3 class="situation_header" id="AfterChooseCashPayment">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -787,7 +793,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferCash_L">
+            <h3 class="action_header" id="TransferCash_L">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Cash (liquidity)
             </h3>
@@ -842,7 +848,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferCash_L">
+                <h3 class="situation_header" id="AfterTransferCash_L">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -907,7 +913,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="DoLiquidityEvent">
+            <h3 class="action_header" id="DoLiquidityEvent">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Execute Liquidity Event
             </h3>
@@ -921,13 +927,13 @@ body {
         <h2>Dissolution Events</h2>
         <ul class="nomarkers">
           <li>
-            <h3 id="CommitToDissolution">
+            <h3 class="action_header" id="CommitToDissolution">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Initiate a Dissolution Event
             </h3>
             <ul class="nomarkers">
               <li>
-                <h3 id="AfterCommitToDissolution">
+                <h3 class="situation_header" id="AfterCommitToDissolution">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -954,7 +960,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferCash_D">
+            <h3 class="action_header" id="TransferCash_D">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Cash (dissolution)
             </h3>
@@ -988,7 +994,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferCash_D">
+                <h3 class="situation_header" id="AfterTransferCash_D">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -1053,7 +1059,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="TransferAssets">
+            <h3 class="action_header" id="TransferAssets">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Transfer Assets
             </h3>
@@ -1110,7 +1116,7 @@ body {
                 </div>
               </div><br>
               <li>
-                <h3 id="AfterTransferAssets">
+                <h3 class="situation_header" id="AfterTransferAssets">
                   <span class="situationword">Scenario: </span>
                 </h3>
                 <ul class="nomarkers">
@@ -1137,7 +1143,7 @@ body {
             </ul>
           </li>
           <li>
-            <h3 id="Dissolution_Event">
+            <h3 class="action_header" id="Dissolution_Event">
               <span class="role">Company</span>
               <span class="actionword"> action </span>Execute Dissolution
             </h3>

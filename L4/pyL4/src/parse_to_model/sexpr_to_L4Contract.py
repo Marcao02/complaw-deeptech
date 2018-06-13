@@ -260,7 +260,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             todo_once("Handle TypedMacro")
 
         elif head("NonoperativeContractParams"):
-            todo_once("Handle NonoperativeContractParams")
+            for pair in x[1:]:
+                self.top.contract_params_nonoperative[pair[0]] = pair[1][1]
 
         elif head("NLGSection"):
             self.top.nlg_sections.append(self._mk_nlg_section(x[1]))
@@ -345,7 +346,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 # enclosed in quotes in source code.
                 sort = self._mk_sort(x[1])
             else:
-                assert len(x) >= 2
+                assert len(x) >= 2, x
                 sort = SortOpApp.c(x[0], tuple(self._mk_sort(x[i]) for i in range(1, len(x))))
         self.top.sorts.add(sort)
         assert sort is not None
@@ -468,8 +469,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 todo_once("Handle Fn")
             elif x[0] == "Sort":
                 todo_once("Handle Sort")
+            elif x[0] == "BeforeStart":
+                pass
+            elif x[0] == "SortDefn":
+                pass
             else:
-                raise NotImplementedError
+                raise NotImplementedError(x)
 
 
     def _expand_sort_defns(self):

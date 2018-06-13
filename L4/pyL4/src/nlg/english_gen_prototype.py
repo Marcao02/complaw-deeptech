@@ -57,6 +57,9 @@ sort_descriptions = {
 }
 
 CSS = """
+.action_header,.situation_header {
+    margin: .2%;
+}
 body {
     margin-bottom : 1000px;
 }
@@ -90,12 +93,12 @@ def actiontitle(act:Action) -> Any:
     return h3(span(act.allowed_subjects[0],cls="role"),
               span(" action ",cls="actionword"),
               act.nlg,
-              id=act.action_id)
+              id=act.action_id, cls="action_header")
 
 def situationtitle(sit:Situation) -> Any:
     return h3(span("Scenario: ",cls="situationword"),
               sit.nlg,
-              id=sit.situation_id)
+              id=sit.situation_id, cls="situation_header")
 
 def indented(x:Optional[Any] = None) -> Any:
     if x:
@@ -340,19 +343,49 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
         return maybeNL(str(term))
 
     def mk_terms_regexp() -> Any:
-        s = ("|".join("\{" + x + "\}|\{val " + x + "\}" for x in prog.nlg_definitions) + "|" +
-             "|".join("\{" + x + "\}|\{val " + x + "\}" for x in prog.nlg_names))
-        # print(s)
+        s = ("|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.nlg_definitions) + "|" +
+             "|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.nlg_names) + "|" +
+             "|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.contract_params.keys()) + "|" +
+             "|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.contract_params_nonoperative.keys()))
+        if s[0] == "|":
+            s = s[1:]
+        print(s)
+
         return re.compile(s)
 
+    def _to_link(s:str) -> str:
+        return f"<a href='#{s}'>{s}</a>"
+
+    def _get_val(s:str) -> Any:
+        if s in prog.contract_params:
+            return str(prog.contract_params[s].value_expr)
+        elif s in prog.contract_params_nonoperative:
+            return str(prog.contract_params_nonoperative[s])
+        elif s in prog.nlg_names:
+            return str(prog.nlg_names[s])
+        elif s in prog.nlg_definitions:
+            return str(prog.nlg_definitions[s])
+
+
     def _replacer(mo:Match) -> str:
+        print(mo[0])
         if mo[0][1:-1].startswith("val"):
-            return mo[0][5:-1]
-        return f"<a href=''>{mo[0][1:-1]}</a>"
+            return _to_link(_get_val(mo[0][5:-1]))
+        elif mo[0][1:-1].startswith("def"):
+            return _to_link(mo[0][5:-1])
+        return _to_link(mo[0][1:-1])
+
     def insert_refs(s:str, regexp:Any) -> Any:
         rv = regexp.sub(_replacer,s)
-        print(rv)
+        # print(rv)
         return rv
+
+    def nl_const_to_nl(s:str) -> str:
+        return s.replace("_"," ")
+
+    nltermsregexp = mk_terms_regexp()
+    def nl_defn_html(nlterm:str, defn:str) -> str:
+        return li(nl_const_to_nl(nlterm) + " - ", raw(insert_refs(defn, nltermsregexp)), id=nlterm, _class="triggers-tooltip")
 
 
     doc = html()
@@ -360,6 +393,9 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
     doc.add(
         head(
             style(CSS)
+            # script(src="https://code.jquery.com/jquery-3.3.1.min.js"),
+            # script(src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.js"),
+            # script(src="for_legalese_html_nlg.js")
         )
     )
     docbody = doc.add(body())
@@ -370,14 +406,13 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
     docbody.add(state_vars_section())
 
     # -----------prose stuff-----------
-    termsregexp = mk_terms_regexp()
-
     for prose in prog.nlg_sections:
-        docbody.add(p(raw(insert_refs(prose,termsregexp))))
+        docbody.add(p(raw(insert_refs(prose,nltermsregexp))))
 
     defns_html = ol()
-    for term,defn in prog.nlg_definitions.items():
-        defns_html.add(li(term + " - ", raw(insert_refs(defn,termsregexp))))
+    for nlterm,defn in prog.nlg_definitions.items():
+        defns_html.add(nl_defn_html(nlterm, defn))
+
     docbody.add(defns_html)
     # -----------end prose stuff-----------
 

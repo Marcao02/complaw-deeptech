@@ -76,6 +76,7 @@ class L4Contract:
         self.nlg_names : Dict[str,str] = dict()
         self.nlg_sections: List[Any] = []
         self.nlg_definitions: Dict[str,str] = dict()
+        self.contract_params_nonoperative : Dict[str, str] = dict()
 
         self.local_vars_eliminated = False
         self.if_then_else_terms_eliminated = False

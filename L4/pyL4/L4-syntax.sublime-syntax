@@ -23,7 +23,7 @@ contexts:
           2: keyword.toplevel.l4
       push: ContractParams_toplevel
 
-    - match: '\W(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions|NLGSection|NonoperativeContractParams|Ontology)\W'
+    - match: '\W(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions|NLGSection|NLDefinitions|NonoperativeContractParams|Ontology)\W'
       captures:
         1: keyword.toplevel.l4
 
