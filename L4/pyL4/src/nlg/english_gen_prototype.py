@@ -1,5 +1,5 @@
 from distutils.file_util import write_file
-from typing import Any, Dict, Optional, Match
+from typing import Any, Dict, Optional, Match, List, NamedTuple
 import re
 
 from src.constants_and_defined_types import ContractParamId, FULFILLED_SITUATION_LABEL, ActionParamId, SituationId, \
@@ -14,24 +14,25 @@ from src.model.ContractParamDec import ContractParamDec
 from src.model.L4Contract import L4Contract
 
 import dominate #type:ignore
+from dominate.tags import html_tag #type:ignore
 from dominate.tags import * #type:ignore
 from dominate.util import raw #type:ignore
-span : Any
-h1 : Any
-h2 : Any
-h3 : Any
-ul : Any
-ol : Any
-li : Any
-a : Any
-div : Any
-br : Any
-html : Any
-head : Any
-body : Any
-style : Any
-title : Any
-p : Any
+span : html_tag
+h1 : html_tag
+h2 : html_tag
+h3 : html_tag
+ul : html_tag
+ol : html_tag
+li : html_tag
+a : html_tag
+div : html_tag
+br : html_tag
+html : html_tag
+head : html_tag
+body : html_tag
+style : html_tag
+title : html_tag
+p : html_tag
 
 from src.model.Situation import Situation
 from src.model.Sort import Sort
@@ -66,6 +67,9 @@ body {
 .nomarkers {
     list-style-type: none;
 }
+.defined_term_intro {
+    font-weight: bold;
+}
 .role {
     
 }
@@ -84,10 +88,161 @@ body {
 .boiler {
     font-weight: bold;
 }
+
+.indent1 {
+    
+}
+.indent2 {
+
+}
+.indent3 {
+
+}
+.indent4 {
+
+}
+.indent5 {
+
+}
+.indent6 {
+
+}
 """
 
-def boil(s:Any):
-    return span(s,cls="boiler")
+children_open_css = "fa-li fa fa-caret-down"
+children_closed_css = "fa-li fa fa-caret-right"
+
+SPACES_PER_TAB = 4
+
+class ProseLine(NamedTuple):
+    indent: int
+    bullet: Optional[str]
+    text: str
+
+ProseText = List[ProseLine]
+
+
+# def insert_raw_html_in_text_nodes(x:html_tag) -> None:
+#     if isinstance(x,div):
+#         x.get("text")
+#     elif isinstance(x,li) or isinstance(x,ol):
+#         print(x.get('text'))
+#         for child in x.children:
+#             insert_raw_html_in_text_nodes(child)
+#     else:
+#         print("Unsupported: ", x)
+
+
+testtext = """
+(a)	The {Company} is a corporation duly organized, validly existing and in good standing under the laws of the state of its incorporation, and has the power and authority to own, lease and operate its properties and carry on its business as now conducted.
+(b)	The execution, delivery and performance by the {Company} of this instrument is within the power of the {Company} and, other than with respect to the actions to be taken when equity is to be issued to the Investor, has been duly authorized by all necessary actions on the part of the {Company}.
+	This instrument constitutes a legal, valid and binding obligation of the {Company}, enforceable against the {Company} in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.   
+	To the knowledge of the {Company}, it is not in violation of 
+	(i) its current certificate of incorporation or bylaws,
+	(ii) any material statute, rule or regulation applicable to the {Company} or
+	(iii) any material indenture or contract to which the {Company} is a party or by which it is bound,
+	where, in each case, such violation or default, individually, or together with all such violations or defaults, could reasonably be expected to have a material adverse effect on the {Company}.
+(c)	The performance and consummation of the transactions contemplated by this instrument do not and will not: 
+	(i) violate any material judgment, statute, rule or regulation applicable to the {Company}; 
+	(ii) result in the acceleration of any material indenture or contract to which the {Company} is a party or by which it is bound; or 
+	(iii) result in the creation or imposition of any lien upon any property, asset or revenue of the {Company} or the suspension, forfeiture, or nonrenewal of any material permit, license or authorization applicable to the {Company}, its business or operations.
+(d)	No consents or approvals are required in connection with the performance of this instrument, other than:  
+	(i) the {Company}’s corporate approvals; 
+	(ii) any qualifications or filings under applicable securities laws; and 
+	(iii) necessary corporate approvals for the authorization of {Capital_Stock} issuable pursuant to Section 1.	
+(e)	To its knowledge, the {Company} owns or possesses (or can obtain on commercially reasonable terms) sufficient legal rights to all patents, trademarks, service marks, trade names, copyrights, trade secrets, licenses, information, processes and other intellectual property rights necessary for its business as now conducted and as currently proposed to be conducted, without any conflict with, or infringement of the rights of, others."
+(f) stuff
+	(1) blah
+	    (I) blah!
+		(II) woo!
+	(2) more stuff
+	next
+(g) stuff 2
+	(1) blah
+		(I) blah!
+		(II) woo!
+			(A) A
+			(B) B
+	(2) more stuff 2
+	next 2
+(h) stuff 3
+	(0) uhm
+	(1) blah
+		(I) blah!
+		(II) woo!
+			(A) A
+			(B) B	
+	next 3
+"""
+
+testtext2 = """
+(a) indented first list item 1
+(b) indented first list item 2
+"""
+
+testtext3 = """
+3.	Company Representations
+	(a)	The {Company} is a corporation duly organized, validly existing and in good standing under the laws of the state of its incorporation, and has the power and authority to own, lease and operate its properties and carry on its business as now conducted.
+	(b)	The execution, delivery and performance by the {Company} of this instrument is within the power of the {Company} and, other than with respect to the actions to be taken when equity is to be issued to the Investor, has been duly authorized by all necessary actions on the part of the {Company}.
+		This instrument constitutes a legal, valid and binding obligation of the {Company}, enforceable against the {Company} in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.   
+		To the knowledge of the {Company}, it is not in violation of 
+		(i) its current certificate of incorporation or bylaws,
+		(ii) any material statute, rule or regulation applicable to the {Company} or
+		(iii) any material indenture or contract to which the {Company} is a party or by which it is bound,
+		where, in each case, such violation or default, individually, or together with all such violations or defaults, could reasonably be expected to have a material adverse effect on the {Company}.
+	(c)	The performance and consummation of the transactions contemplated by this instrument do not and will not: 
+		(i) violate any material judgment, statute, rule or regulation applicable to the {Company}; 
+		(ii) result in the acceleration of any material indenture or contract to which the {Company} is a party or by which it is bound; or 
+		(iii) result in the creation or imposition of any lien upon any property, asset or revenue of the {Company} or the suspension, forfeiture, or nonrenewal of any material permit, license or authorization applicable to the {Company}, its business or operations.
+	(d)	No consents or approvals are required in connection with the performance of this instrument, other than:  
+		(i) the {Company}’s corporate approvals; 
+		(ii) any qualifications or filings under applicable securities laws; and 
+		(iii) necessary corporate approvals for the authorization of {Capital_Stock} issuable pursuant to Section 1.
+	(e)	To its knowledge, the {Company} owns or possesses (or can obtain on commercially reasonable terms) sufficient legal rights to all patents, trademarks, service marks, trade names, copyrights, trade secrets, licenses, information, processes and other intellectual property rights necessary for its business as now conducted and as currently proposed to be conducted, without any conflict with, or infringement of the rights of, others."
+
+"""
+
+testtext4 = """
+3.	Company Representations
+	(a)	The {Company} is a corporation duly organized, validly existing and in good standing under the laws of the state of its incorporation, and has the power and authority to own, lease and operate its properties and carry on its business as now conducted.
+	(b)	The execution, delivery and performance by the {Company} of this instrument is within the power of the {Company} and, other than with respect to the actions to be taken when equity is to be issued to the Investor, has been duly authorized by all necessary actions on the part of the {Company}.
+	This instrument constitutes a legal, valid and binding obligation of the {Company}, enforceable against the {Company} in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.   
+	To the knowledge of the {Company}, it is not in violation of 
+	(i) its current certificate of incorporation or bylaws,
+	(ii) any material statute, rule or regulation applicable to the {Company} or
+	(iii) any material indenture or contract to which the {Company} is a party or by which it is bound,
+	where, in each case, such violation or default, individually, or together with all such violations or defaults, could reasonably be expected to have a material adverse effect on the {Company}.
+(c)	The performance and consummation of the transactions contemplated by this instrument do not and will not: 
+	(i) violate any material judgment, statute, rule or regulation applicable to the {Company}; 
+	(ii) result in the acceleration of any material indenture or contract to which the {Company} is a party or by which it is bound; or 
+	(iii) result in the creation or imposition of any lien upon any property, asset or revenue of the {Company} or the suspension, forfeiture, or nonrenewal of any material permit, license or authorization applicable to the {Company}, its business or operations.
+(d)	No consents or approvals are required in connection with the performance of this instrument, other than:  
+	(i) the {Company}’s corporate approvals; 
+	(ii) any qualifications or filings under applicable securities laws; and 
+	(iii) necessary corporate approvals for the authorization of {Capital_Stock} issuable pursuant to Section 1.	
+(e)	To its knowledge, the {Company} owns or possesses (or can obtain on commercially reasonable terms) sufficient legal rights to all patents, trademarks, service marks, trade names, copyrights, trade secrets, licenses, information, processes and other intellectual property rights necessary for its business as now conducted and as currently proposed to be conducted, without any conflict with, or infringement of the rights of, others."
+
+4.	Investor Representations
+	(a)	The {Investor} has full legal capacity, power and authority to execute and deliver this instrument and to perform its obligations hereunder. This instrument constitutes valid and binding obligation of the {Investor}, enforceable in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.
+	(b)	The {Investor} is an accredited investor as such term is defined in Rule 501 of Regulation D under {Securities_Act}. 
+	The {Investor} has been advised that this instrument and the underlying securities have not been registered under {Securities_Act}, or any state securities laws and, therefore, cannot be resold unless they are registered under {Securities_Act} and applicable state securities laws or unless an exemption from such registration requirements is available. 
+	The {Investor} is purchasing this instrument and the securities to be acquired by the {Investor} hereunder for its own account for investment, not as a nominee or agent, and not with a view to, or for resale in connection with, the distribution thereof, and the {Investor} has no present intention of selling, granting any participation in, or otherwise distributing the same. The {Investor} has such knowledge and experience in financial and business matters that the {Investor} is capable of evaluating the merits and risks of such investment, is able to incur a complete loss of such investment without impairing the {Investor}’s financial condition and is able to bear the economic risk of such investment for an indefinite period of time.
+
+5.	Miscellaneous
+	(a)	Any provision of this instrument may be amended, waived or modified only upon the written consent of the {Company} and the {Investor}.
+	(b)	Any notice required or permitted by this instrument will be deemed sufficient when delivered personally or by overnight courier or sent by email to the relevant address listed on the signature page, or {48 hours} after being deposited in the U.S. mail as certified or registered mail with postage prepaid, addressed to the party to be notified at such party’s address listed on the signature page, as subsequently modified by written notice.
+	(c)	The {Investor} is not entitled, as a holder of this instrument, to vote or receive dividends or be deemed the holder of Capital Stock for any purpose, nor will anything contained herein be construed to confer on the {Investor}, as such, any of the rights of a stockholder of the {Company} or any right to vote for the election of directors or upon any matter submitted to stockholders at any meeting thereof, or to give or withhold consent to any corporate action or to receive notice of meetings, or to receive subscription rights or otherwise until shares have been issued upon the terms described herein.
+	(d)	Neither this instrument nor the rights contained herein may be assigned, by operation of law or otherwise, by either party without the prior written consent of the other; provided, however, that this instrument and/or the rights contained herein may be assigned without the {Company}’s consent by the {Investor} to any other entity who directly or indirectly, controls, is controlled by or is under common control with the {Investor}, including, without limitation, any general partner, managing member, officer or director of the {Investor}, or any venture capital fund now or hereafter existing which is controlled by one or more general partners or managing members of, or shares the same management company with, the {Investor}; and provided, further, that the {Company} may assign this instrument in whole, without the consent of the {Investor}, in connection with a reincorporation to change the {Company}’s domicile.
+	(e)	In the event any one or more of the provisions of this instrument is for any reason held to be invalid, illegal or unenforceable, in whole or in part or in any respect, or in the event that any one or more of the provisions of this instrument operate or would prospectively operate to invalidate this instrument, then and in any such event, such provision(s) only will be deemed null and void and will not affect any other provision of this instrument and the remaining provisions of this instrument will remain operative and in full force and effect and will not be affected, prejudiced, or disturbed thereby.
+	(f)	All rights and obligations hereunder will be governed by the laws of the State of {Governing_Law_Jurisdiction}, without regard to the conflicts of law provisions of such jurisdiction.
+
+"""
+
+# indented_text_to_html(testtext)
+# indented_text_to_html(testtext2)
+# indented_text_to_html(testtext3)
+# indented_text_to_html(testtext4)
+# exit()
 
 def actiontitle(act:Action) -> Any:
     return h3(span(act.allowed_subjects[0],cls="role"),
@@ -110,6 +265,96 @@ def one_indented(x:Any) -> Any:
     return indented(li(x))
 
 def gen_english(prog:L4Contract, outpath:str) -> None:
+    bulletre = re.compile("\s*(" + "|".join(("\w\.", "\(\w\)", "\w\)",
+                                             "i+\.", "i+\)", "\(i+\)",
+                                             "I+\.", "I+\)", "\(I+\)")) + ")(.*)$")
+    indentre = re.compile("((?:\\t*)|(?: *))[^\s]")
+
+    def indented_text_to_html(inp: str) -> html_tag:
+        def mkli(s: str) -> html_tag:
+            # return li(span(cls="collapsible-list fa-li fa fa-caret-down"), insert_refs(s), cls="nomarkers")
+            return li(insert_refs(s), cls="nomarkers")
+
+        def mkdiv(s: str) -> html_tag:
+            return div(insert_refs(s))
+
+        def mkol(s: Optional[str] = None) -> html_tag:
+            return ol(insert_refs(s)) if s else ol()
+
+        """
+        Will first parse lines to have form
+        (indent amount: int, bullet: Optional[str], text: str)
+
+        THIS IS NOT CORRECT:
+            A line in inp that starts with k tabs and then has a number/delimiter
+                and follows a line with k-1 tabs, will create a new <ol>
+                and follows a line with k tabs, will create a new <li>
+                and follows a line with k+1 tabs, will complete the current <ol>
+            A line in inp that starts with k tabs, where k-1 is the indent of the most recent <ol>, and then has something other than a number/delimiter, creates a new <div> from the single line
+        """
+        rawlines = inp.split("\n")
+
+        def rawline_to_tuple(rawline: str) -> Optional[ProseLine]:
+            m = indentre.match(rawline)
+            if m:
+                indent = len(m[1])
+                if indent > 0 and m[1][0] == ' ':
+                    indent = int(indent / SPACES_PER_TAB)
+                m = bulletre.match(rawline)
+                bullet, text = (m[1], m[2]) if m else (None, rawline[indent:])
+                return ProseLine(indent, bullet, text)
+            return None
+
+        tups = tuple(map(rawline_to_tuple, rawlines))
+        for x in tups:
+            print(x)
+
+        rv = div()
+        cur = rv
+        cur_list_indent = -1
+
+        for x in tups:
+            if not x:
+                continue
+            if x.bullet:
+                # if x.indent == cur_list_indent + 1:
+                if x.indent >= cur_list_indent + 1:
+                    # new deeper list
+                    cur = cur.add(mkol())
+                    # first bullet of new list is given in the same raw text line:
+                    cur = cur.add(mkli(x.bullet + " " + x.text))
+                    cur_list_indent = cur_list_indent + 1
+                elif x.indent == cur_list_indent:
+                    # new bullet in same list
+                    cur = cur.parent  # pop out of the li only
+                    cur = cur.add(mkli(x.bullet + " " + x.text))  # pop into a new li
+                elif x.indent < cur_list_indent:
+                    # back into a higher list
+                    for i in range(cur_list_indent - x.indent):
+                        # pop out of a li ol pair
+                        cur = cur.parent.parent.parent
+                    # add the next li
+                    cur = cur.add(mkli(x.bullet + " " + x.text))
+                    cur_list_indent = x.indent
+                else:
+                    raise Exception(f"Line\n{x}\nshould have indent ≤ 1 + current list's indent {cur_list_indent}")
+            else:  # Line break without a new bullet
+                if x.indent < cur_list_indent + 1:
+                    # this non-bullet line break ends a list
+                    for i in range(cur_list_indent + 1 - x.indent):
+                        # pop out of li ol pair
+                        cur = cur.parent.parent
+                    cur_list_indent = x.indent - 1
+                    cur.add(mkdiv(x.text))
+                else:
+                    # this non-bullet line break does not end a list
+                    # so we're in the same li
+                    cur.add(mkdiv(x.text))
+
+        # print(type(rv))
+        # print(rv)
+        return rv
+
     def sitid2link(sitid:str) -> Any:
         sit = prog.situation(castid(SituationId,sitid))
         return a(sit.nlg, href=f"#{sitid}")
@@ -353,12 +598,9 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
         return re.compile(s)
 
-    def _to_link(s:str) -> str:
-        return f"<a href='#{s}'>{s}</a>"
-
     def _get_val(s:str) -> Any:
         if s in prog.contract_params:
-            return str(prog.contract_params[s].value_expr)
+            return str(prog.contract_params[castid(ContractParamId,s)].value_expr)
         elif s in prog.contract_params_nonoperative:
             return str(prog.contract_params_nonoperative[s])
         elif s in prog.nlg_names:
@@ -366,26 +608,36 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
         elif s in prog.nlg_definitions:
             return str(prog.nlg_definitions[s])
 
+    def _to_link(s:str, display:Optional[str] = None) -> str:
+        return f"<a href='#{s}'>{display}</a>" if display else f"<a href='#{s}'>{s}</a>"
+
+    def _to_target(s:str) -> str:
+        return f"<span id='{s}' class='defined_term_intro'>{s}</span>"
 
     def _replacer(mo:Match) -> str:
         print(mo[0])
         if mo[0][1:-1].startswith("val"):
-            return _to_link(_get_val(mo[0][5:-1]))
+            ident = mo[0][5:-1]
+            return _to_link(ident, _get_val(ident))
         elif mo[0][1:-1].startswith("def"):
-            return _to_link(mo[0][5:-1])
+            return _to_target(mo[0][5:-1])
         return _to_link(mo[0][1:-1])
 
-    def insert_refs(s:str, regexp:Any) -> Any:
-        rv = regexp.sub(_replacer,s)
+    nltermsregexp = mk_terms_regexp()
+    def insert_refs(s:str) -> Any:
+        rv = nltermsregexp.sub(_replacer,s)
         # print(rv)
-        return rv
+        return raw(rv)
 
     def nl_const_to_nl(s:str) -> str:
-        return s.replace("_"," ")
+        return span(raw(s.replace("_"," ")), cls="defined_term_intro")
 
-    nltermsregexp = mk_terms_regexp()
-    def nl_defn_html(nlterm:str, defn:str) -> str:
-        return li(nl_const_to_nl(nlterm) + " - ", raw(insert_refs(defn, nltermsregexp)), id=nlterm, _class="triggers-tooltip")
+    def nl_defn_html(nlterm:str, defn:str) -> html_tag:
+        return li(nl_const_to_nl(nlterm), " - ", insert_refs(defn), id=nlterm, _class="triggers-tooltip nomarkers")
+        # return li(nl_const_to_nl(nlterm) + " - ", insert_refs(defn, nltermsregexp), id=nlterm,_class="triggers-tooltip")
+
+    def source_prose_to_html(s:str) -> html_tag:
+        return indented_text_to_html(s)
 
 
     doc = html()
@@ -393,6 +645,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
     doc.add(
         head(
             style(CSS)
+            # ,raw("""<link rel = "stylesheet" href = "../font-awesome-4.4.0/css/font-awesome.min.css">""")
             # script(src="https://code.jquery.com/jquery-3.3.1.min.js"),
             # script(src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.js"),
             # script(src="for_legalese_html_nlg.js")
@@ -407,7 +660,8 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
     # -----------prose stuff-----------
     for prose in prog.nlg_sections:
-        docbody.add(p(raw(insert_refs(prose,nltermsregexp))))
+        # docbody.add(p(raw(insert_refs(prose,nltermsregexp))))
+        docbody.add(source_prose_to_html(prose))
 
     defns_html = ol()
     for nlterm,defn in prog.nlg_definitions.items():
