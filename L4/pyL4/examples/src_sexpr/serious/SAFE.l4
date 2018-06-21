@@ -254,7 +254,7 @@
 
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(nlg "Initiate an {Equity_Financing} Event")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 		(FollowingSituation
 			(Company may DeliverTransactionDocsWithPRA)
 			(Company may DeliverTransactionDocsWithoutPRA)
@@ -264,7 +264,7 @@
 
 	(Action DeliverTransactionDocsWithPRA (AllowedSubjects Company) (TransitionsTo AfterPRASigned)
 		(nlg "Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 		; (sideeffects
 		; 	(Company sends Transaction_Documents_related_to_Equity_Financing to Investor)
 		; )
@@ -272,7 +272,7 @@
 
 	(Action DeliverTransactionDocsWithoutPRA (AllowedSubjects Company)
 		(nlg "Deliver Transaction Docs (PRA to follow)")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 		(FollowingSituation
 			(Company must SendProRataRightsAgreementForSigning)
 		)
@@ -280,7 +280,7 @@
 
 	(Action SendProRataRightsAgreementForSigning  (AllowedSubjects Company)
 		(nlg "Send PRA for Signing")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 		(FollowingSituation
 			; TODO: Obviously this shouldn't be a *must*, since they ought to be
 			; able to send it back with proposed amendments/corrections.
@@ -291,12 +291,12 @@
 
 	(Action SignPRA (AllowedSubjects Investor) (TransitionsTo AfterPRASigned)
 		(nlg "Sign PRA")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 	)
 
 	(Situation AfterPRASigned
 		(nlg "After PRA Signed")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 		(Company must (IssueSAFEPreferredStock ?1 ?2))
 	)
 
@@ -304,7 +304,7 @@
 				(company_capitalization : PosShareCnt)
 				(company_valuation : Pos$) ) (AllowedSubjects Company)
 		(nlg "Issue SAFE Preferred Stock")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 		(StateTransform
 			(set_conversion_price (company_capitalization company_valuation))
 			(investor_SAFE_Stock_delta' = (investor_SAFE_Stock_delta + (Purchase_Amount ceil/ conversion_price')))
@@ -316,7 +316,7 @@
 
 	(Action DoEquityFinancing (AllowedSubjects Company) (TransitionsTo Fulfilled)
 		(nlg "Execute {Equity_Financing}")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Events")
 	)
 
 
@@ -324,7 +324,7 @@
 
 	(Situation InvestorToChooseMethodOfPayment
 		(nlg "Investor to Choose Method of Payment")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(Investor may ChooseCashPayment [before_split 1w])
 		(Investor may ChooseStockPayment [before_split 1w])
 		(AutoChooseStockPayment [at_split 1w])
@@ -334,7 +334,7 @@
 						 (company_valuation : Pos$)
 			) (AllowedSubjects Company)  (TransitionsTo InvestorToChooseMethodOfPayment)
 		(nlg "Initiate an IPO Liquidity Event")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(StateTransform
 			(set_conversion_price (company_capitalization company_valuation))
 		)
@@ -347,7 +347,7 @@
 
 			) (AllowedSubjects Company) (TransitionsTo InvestorToChooseMethodOfPayment)
 		(nlg "Initiate a Change-of-Control Liquidity Event")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(StateTransform
 			(set_conversion_price (company_capitalization company_valuation))
 			(local investor_percent_of_cashout_investor_investments : "Fraction(0,1]" = (check "Fraction(0,1]" (Purchase_Amount / total_investments_of_cashout_investors)))
@@ -360,7 +360,7 @@
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
 		(nlg "Stock Payment Option Chosen by Default")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(FollowingSituation
 			; what this translates to depends on if DefaultActionTimeLimit is defined
 			(Company must TransferCommonStock)
@@ -369,7 +369,7 @@
 
 	(Action ChooseStockPayment (AllowedSubjects Investor)
 		(nlg "Choose Payment in Common Stock")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(FollowingSituation
 			(Company must TransferCommonStock)
 		)
@@ -377,7 +377,7 @@
 
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(nlg "Transfer Common Stock")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(StateTransform
 			(investor_Common_Stock_delta' += ((check $ (unconverted_investment - liq_cashout)) ceil/ conversion_price))
 		)
@@ -388,7 +388,7 @@
 
 	(Action ChooseCashPayment (AllowedSubjects Investor)
 		(nlg "Choose Payment in Cash")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(FollowingSituation
 			(Company must (TransferCash_L ?1 ?2))
 		)
@@ -397,7 +397,7 @@
 	(Action (TransferCash_L (company_cash_at_liquidity_event : $)
 						    (total_investments_of_cashout_investors : Pos$)) (AllowedSubjects Company)
 		(nlg "Transfer Cash (liquidity)")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 		(StateTransform
 			(local investor_percent_of_cashout_investor_investments : "Fraction(0,1]" = (check "Fraction(0,1]" (Purchase_Amount / total_investments_of_cashout_investors)))
 			(liq_cashout' = (min unconverted_investment
@@ -421,7 +421,7 @@
 
 	(Action DoLiquidityEvent (AllowedSubjects Company) (TransitionsTo Fulfilled)
 		(nlg "Execute Liquidity Event")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "Liquidity Events")
 	)
 
 
@@ -429,7 +429,7 @@
 
 	(Action CommitToDissolution (AllowedSubjects Company)
 		(nlg "Initiate a Dissolution Event")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution Events")
 		(FollowingSituation
 			(Company must
 				(TransferCash_D ?company_cash_at_dissolution_event
@@ -443,7 +443,7 @@
 						    (investor_percent_of_dissolving_investor_investments : "Fraction(0,1]"))
 		(AllowedSubjects Company)
 		(nlg "Transfer Cash (dissolution)")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution Events")
 		(StateTransform
 			(dis_cashout' = (min
 							Purchase_Amount
@@ -463,7 +463,7 @@
 	(Action (TransferAssets (company_capitalization : PosShareCnt)
 							(company_valuation : Pos$) )
 		(nlg "Transfer Assets")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution Events")
 		(AllowedSubjects Company)
 		(StateTransform
 			(set_conversion_price (company_capitalization company_valuation))
@@ -477,7 +477,7 @@
 
 	(Action Dissolution_Event (AllowedSubjects Company) (TransitionsTo Fulfilled)
 		(nlg "Execute Dissolution")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution Events")
 	)
 
 	(Situation Fulfilled)

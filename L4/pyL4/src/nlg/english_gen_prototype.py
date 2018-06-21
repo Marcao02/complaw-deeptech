@@ -38,7 +38,6 @@ from src.model.Situation import Situation
 from src.model.Sort import Sort
 from src.model.Statement import Statement, StateVarAssign, LocalVarDec, StatementList
 from src.model.Term import Term, FnApp
-from test.active_examples import EXAMPLES_HTML_ROOT
 
 sort_descriptions = {
     "Δ$": "change in USD",
@@ -246,7 +245,7 @@ testtext4 = """
 
 def actiontitle(act:Action) -> Any:
     return h3(span(act.allowed_subjects[0],cls="role"),
-              span(" action ",cls="actionword"),
+              span(" action: ",cls="actionword"),
               act.nlg,
               id=act.action_id, cls="action_header")
 
@@ -279,7 +278,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             return div(insert_refs(s))
 
         def mkol(s: Optional[str] = None) -> html_tag:
-            return ol(insert_refs(s)) if s else ol()
+            return ol(insert_refs(s), cls="nomarkers") if s else ol(cls="nomarkers")
 
         """
         Will first parse lines to have form
@@ -306,8 +305,8 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             return None
 
         tups = tuple(map(rawline_to_tuple, rawlines))
-        for x in tups:
-            print(x)
+        # for x in tups:
+        #     print(x)
 
         rv = div()
         cur = rv
@@ -323,21 +322,23 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
                     cur = cur.add(mkol())
                     # first bullet of new list is given in the same raw text line:
                     cur = cur.add(mkli(x.bullet + " " + x.text))
-                    cur_list_indent = cur_list_indent + 1
+                    # cur_list_indent = cur_list_indent + 1
+                    cur_list_indent = x.indent
                 elif x.indent == cur_list_indent:
                     # new bullet in same list
                     cur = cur.parent  # pop out of the li only
+
                     cur = cur.add(mkli(x.bullet + " " + x.text))  # pop into a new li
-                elif x.indent < cur_list_indent:
+                else:
+                    assert x.indent < cur_list_indent
                     # back into a higher list
                     for i in range(cur_list_indent - x.indent):
                         # pop out of a li ol pair
-                        cur = cur.parent.parent.parent
+                        cur = cur.parent.parent
                     # add the next li
                     cur = cur.add(mkli(x.bullet + " " + x.text))
                     cur_list_indent = x.indent
-                else:
-                    raise Exception(f"Line\n{x}\nshould have indent ≤ 1 + current list's indent {cur_list_indent}")
+
             else:  # Line break without a new bullet
                 if x.indent < cur_list_indent + 1:
                     # this non-bullet line break ends a list
@@ -594,7 +595,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
              "|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.contract_params_nonoperative.keys()))
         if s[0] == "|":
             s = s[1:]
-        print(s)
+
 
         return re.compile(s)
 
@@ -608,28 +609,27 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
         elif s in prog.nlg_definitions:
             return str(prog.nlg_definitions[s])
 
-    def _to_link(s:str, display:Optional[str] = None) -> str:
+    def to_link(s:str, display:Optional[str] = None) -> str:
         return f"<a href='#{s}'>{display}</a>" if display else f"<a href='#{s}'>{s}</a>"
 
-    def _to_target(s:str) -> str:
+    def to_link_target(s:str) -> str:
         return f"<span id='{s}' class='defined_term_intro'>{s}</span>"
 
-    def _replacer(mo:Match) -> str:
-        print(mo[0])
+    def replacer(mo:Match) -> str:
         if mo[0][1:-1].startswith("val"):
             ident = mo[0][5:-1]
-            return _to_link(ident, _get_val(ident))
+            return to_link(ident, _get_val(ident))
         elif mo[0][1:-1].startswith("def"):
-            return _to_target(mo[0][5:-1])
-        return _to_link(mo[0][1:-1])
+            return to_link_target(mo[0][5:-1])
+        return to_link(mo[0][1:-1])
 
     nltermsregexp = mk_terms_regexp()
     def insert_refs(s:str) -> Any:
-        rv = nltermsregexp.sub(_replacer,s)
+        rv = nltermsregexp.sub(replacer,s)
         # print(rv)
         return raw(rv)
 
-    def nl_const_to_nl(s:str) -> str:
+    def nl_const_to_nl(s:str) -> html_tag:
         return span(raw(s.replace("_"," ")), cls="defined_term_intro")
 
     def nl_defn_html(nlterm:str, defn:str) -> html_tag:
@@ -639,69 +639,120 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
     def source_prose_to_html(s:str) -> html_tag:
         return indented_text_to_html(s)
 
+    def section_heading(section_title:str) -> html_tag:
+        return h1(section_title)
 
-    doc = html()
+    def code_group_heading(title:str) -> html_tag:
+        return h2(title)
 
-    doc.add(
-        head(
-            style(CSS)
-            # ,raw("""<link rel = "stylesheet" href = "../font-awesome-4.4.0/css/font-awesome.min.css">""")
-            # script(src="https://code.jquery.com/jquery-3.3.1.min.js"),
-            # script(src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.js"),
-            # script(src="for_legalese_html_nlg.js")
-        )
-    )
-    docbody = doc.add(body())
-    docbody.add(title(f"{prog.filename}"), h1("Simple Agreement for Future Equity (SAFE)"))
+    def contract_logic() -> html_tag:
+        # Ex: the group ids in SAFE example are
+        # Events/Scenarios Relevant in All Cases
+        # Equity Financing
+        # IPO or Change of Control
+        # Dissolution
+        grouped_situations_and_events: Any = {"root": []}
+        for sit in prog.situations_iter():
+            if sit.nlgsection not in grouped_situations_and_events:
+                grouped_situations_and_events[sit.nlgsection] = []
+            if sit.nlg:
+                grouped_situations_and_events[sit.nlgsection].append(sit)
 
-    docbody.add(contract_params_section())
+                # add_situation(sit)
+        for act in prog.actions_iter():
+            if act.nlgsection not in grouped_situations_and_events:
+                grouped_situations_and_events[act.nlgsection] = []
+            if act.nlg:
+                grouped_situations_and_events[act.nlgsection].append(act)
 
-    docbody.add(state_vars_section())
-
-    # -----------prose stuff-----------
-    for prose in prog.nlg_sections:
-        # docbody.add(p(raw(insert_refs(prose,nltermsregexp))))
-        docbody.add(source_prose_to_html(prose))
-
-    defns_html = ol()
-    for nlterm,defn in prog.nlg_definitions.items():
-        defns_html.add(nl_defn_html(nlterm, defn))
-
-    docbody.add(defns_html)
-    # -----------end prose stuff-----------
-
-    nlgsections : Any = {"root": []}
-
-    for sit in prog.situations_iter():
-        if sit.nlgsection not in nlgsections:
-            nlgsections[sit.nlgsection] = []
-        if sit.nlg:
-            nlgsections[sit.nlgsection].append(sit)
-
-            # add_situation(sit)
-    for act in prog.actions_iter():
-        if act.nlgsection not in nlgsections:
-            nlgsections[act.nlgsection] = []
-        if act.nlg:
-            nlgsections[act.nlgsection].append(act)
-
-    sections = docbody.add(div(cls="nomarkers"))
-    for sect in nlgsections:
-        if sect != "root":
-            section = sections.add(li())
-            section.add(h2(sect))
-            section_items = section.add(indented())
-        else:
-            section = sections.add(div())
-            # section.add(h2(sect))
-            section_items = section.add(div())
-
-        for thing in nlgsections[sect]:
-            if isinstance(thing,Action):
-                section_items.add(actionHtml(thing))
+        code_groups = ol(cls="nomarkers")
+        for group_heading in grouped_situations_and_events:
+            if group_heading != "root":
+                code_group = code_groups.add(li())
+                # code_group = code_groups.add(div())
+                code_group.add(code_group_heading(group_heading))
+                code_group_items = code_group.add(indented())
             else:
-                section_items.add(situationHtml(thing))
+                code_group = code_groups.add(div())
+                # code_group.add(h2(sect))
+                code_group_items = code_group.add(div())
 
-    writeFile(outpath,str(doc))
+            for thing in grouped_situations_and_events[group_heading]:
+                if isinstance(thing, Action):
+                    code_group_items.add(actionHtml(thing))
+                else:
+                    code_group_items.add(situationHtml(thing))
 
+        return code_groups
 
+    def html_str_from_source(prog:L4Contract, structure:List[str]) -> body:
+        doc = html()
+        doc.add(
+            head(
+                style(CSS)
+                # ,raw("""<link rel = "stylesheet" href = "../font-awesome-4.4.0/css/font-awesome.min.css">""")
+                # script(src="https://code.jquery.com/jquery-3.3.1.min.js"),
+                # script(src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.js"),
+                # script(src="for_legalese_html_nlg.js")
+            )
+        )
+        docbody = doc.add(body())
+        docbody.add(title(f"{prog.filename}"), h1("Simple Agreement for Future Equity (SAFE)"))
+
+        # "@Title",
+        # "AfterTitle",
+        # "@ContractParams",
+        # "@StateVars",
+        # [
+        #     "@ContractLogic",
+        #     "@Definitions",
+        #     "3. Company Representatons",
+        #     "4. Investor Representatons",
+        #     "5. Miscellaneous"
+        # ]
+
+        if "AfterTitle" in prog.nlg_sections:
+            docbody.add(source_prose_to_html(prog.nlg_sections["AfterTitle"]))
+            docbody.add(br())
+
+        docbody.add(contract_params_section())
+
+        docbody.add(state_vars_section())
+
+        docbody.add(section_heading("1."))
+
+        docbody.add(contract_logic())
+
+        # -----------prose stuff-----------
+        docbody.add(section_heading("2. Definitions"))
+        defns_html = ol()
+        docbody.add(defns_html)
+        for nlterm, defn in prog.nlg_definitions.items():
+            defns_html.add(nl_defn_html(nlterm, defn))
+
+        for prose_key, prose in prog.nlg_sections.items():
+            # docbody.add(p(raw(insert_refs(prose,nltermsregexp))))
+            if prose_key != "AfterTitle":
+                docbody.add(section_heading(prose_key))
+                docbody.add(source_prose_to_html(prose))
+        # -----------end prose stuff-----------
+
+        return doc
+
+    doc_structure = [
+        "@Title",
+        "AfterTitle",
+        "@ContractParams",
+        "@StateVars",
+        [
+        "@ContractLogic",
+        "@Definitions",
+        "3. Company Representatons",
+        "4. Investor Representatons",
+        "5. Miscellaneous"
+        ]
+    ]
+
+    generated_html = html_str_from_source(prog,doc_structure)
+    # print(type(generated_html))
+    writeFile(outpath,str(generated_html))

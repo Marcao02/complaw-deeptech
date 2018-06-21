@@ -74,7 +74,7 @@ class L4Contract:
         self.write_bounds : Dict[str,Tuple[int,Optional[int]]] = dict()
 
         self.nlg_names : Dict[str,str] = dict()
-        self.nlg_sections: List[Any] = []
+        self.nlg_sections: Dict[str,Any] = dict()
         self.nlg_definitions: Dict[str,str] = dict()
         self.contract_params_nonoperative : Dict[str, str] = dict()
 

@@ -264,7 +264,8 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 self.top.contract_params_nonoperative[pair[0]] = pair[1][1]
 
         elif head("NLGSection"):
-            self.top.nlg_sections.append(self._mk_nlg_section(x[1]))
+            assert len(x) == 3, "NLGSection expression should have form (NLGSection <section id> <string>)"
+            self.top.nlg_sections[x[1][1]] = self._mk_nlg_section(x[2])
 
         elif head("NLDefinitions"):
             self._mk_nlg_definitions(x.tillEnd(1))
@@ -275,9 +276,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             raise self.syntaxError(x, "Unsupported: " + str(x[0]))
 
-    def _mk_nlg_section(self, x:SExprOrStr):
+    def _mk_nlg_section(self, x:SExprOrStr) -> str:
         assert isinstance(x, SExpr) and x[0] == STRING_LITERAL_MARKER, f"{x} should be a STRLIT tuple"
-        return x[1]
+        return chcaststr(x[1])
 
 
     def _mk_nlg_definitions(self, x:SExprOrStr):
@@ -643,7 +644,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head("nlg"):
                 situation.nlg = x[1][1]
-            elif head("nlgsection"):
+            elif head("nlglogicsection"):
                 situation.nlgsection = x[1][1]
 
             elif head(OUT_CONNECTIONS_LABEL):
@@ -710,7 +711,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             elif head("nlg"):
                 a.nlg = x[1][1]
-            elif head("nlgsection"):
+            elif head("nlglogicsection"):
                 a.nlgsection = x[1][1]
 
             elif head('Future'):

@@ -101,7 +101,7 @@
 )
 
 
-(NLGSection
+(NLGSection "AfterTitle"
 	"<p>THIS INSTRUMENT AND ANY SECURITIES ISSUABLE PURSUANT HERETO HAVE NOT BEEN REGISTERED UNDER THE SECURITIES ACT OF 1933, AS AMENDED (the {def Securities_Act}), OR UNDER THE SECURITIES LAWS OF CERTAIN STATES.  THESE SECURITIES MAY NOT BE OFFERED, SOLD OR OTHERWISE TRANSFERRED, PLEDGED OR HYPOTHECATED EXCEPT AS PERMITTED UNDER THE ACT AND APPLICABLE STATE SECURITIES LAWS PURSUANT TO AN EFFECTIVE REGISTRATION STATEMENT OR AN EXEMPTION THEREFROM.</p>
 	{val Company}
 	<br/>
@@ -192,24 +192,33 @@
     )
 )
 
-(NLGSection
- "3.	Company Representations
-	(a)	The {Company} is a corporation duly organized, validly existing and in good standing under the laws of the state of its incorporation, and has the power and authority to own, lease and operate its properties and carry on its business as now conducted.
+(NLGSection "3.	Company Representations"
+ "	(a)	The {Company} is a corporation duly organized, validly existing and in good standing under the laws of the state of its incorporation, and has the power and authority to own, lease and operate its properties and carry on its business as now conducted.
 	(b)	The execution, delivery and performance by the {Company} of this instrument is within the power of the {Company} and, other than with respect to the actions to be taken when equity is to be issued to the Investor, has been duly authorized by all necessary actions on the part of the {Company}.
 		This instrument constitutes a legal, valid and binding obligation of the {Company}, enforceable against the {Company} in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.  To the knowledge of the {Company}, it is not in violation of
-			(i) its current certificate of incorporation or bylaws,
-			(ii) any material statute, rule or regulation applicable to the {Company} or
-			(iii) any material indenture or contract to which the {Company} is a party or by which it is bound,
+		(i) its current certificate of incorporation or bylaws,
+		(ii) any material statute, rule or regulation applicable to the {Company} or
+		(iii) any material indenture or contract to which the {Company} is a party or by which it is bound,
 		where, in each case, such violation or default, individually, or together with all such violations or defaults, could reasonably be expected to have a material adverse effect on the {Company}.
-	(c)	The performance and consummation of the transactions contemplated by this instrument do not and will not: (i) violate any material judgment, statute, rule or regulation applicable to the {Company}; (ii) result in the acceleration of any material indenture or contract to which the {Company} is a party or by which it is bound; or (iii) result in the creation or imposition of any lien upon any property, asset or revenue of the {Company} or the suspension, forfeiture, or nonrenewal of any material permit, license or authorization applicable to the {Company}, its business or operations.
-	(d)	No consents or approvals are required in connection with the performance of this instrument, other than: (i) the {Company}’s corporate approvals; (ii) any qualifications or filings under applicable securities laws; and (iii) necessary corporate approvals for the authorization of {Capital_Stock} issuable pursuant to Section 1.
-	(e)	To its knowledge, the {Company} owns or possesses (or can obtain on commercially reasonable terms) sufficient legal rights to all patents, trademarks, service marks, trade names, copyrights, trade secrets, licenses, information, processes and other intellectual property rights necessary for its business as now conducted and as currently proposed to be conducted, without any conflict with, or infringement of the rights of, others.
+	(c)	The performance and consummation of the transactions contemplated by this instrument do not and will not:
+		(i) violate any material judgment, statute, rule or regulation applicable to the {Company};
+		(ii) result in the acceleration of any material indenture or contract to which the {Company} is a party or by which it is bound; or
+		(iii) result in the creation or imposition of any lien upon any property, asset or revenue of the {Company} or the suspension, forfeiture, or nonrenewal of any material permit, license or authorization applicable to the {Company}, its business or operations.
+	(d)	No consents or approvals are required in connection with the performance of this instrument, other than:
+		(i) the {Company}’s corporate approvals;
+		(ii) any qualifications or filings under applicable securities laws; and
+		(iii) necessary corporate approvals for the authorization of {Capital_Stock} issuable pursuant to Section 1.
+	(e)	To its knowledge, the {Company} owns or possesses (or can obtain on commercially reasonable terms) sufficient legal rights to all patents, trademarks, service marks, trade names, copyrights, trade secrets, licenses, information, processes and other intellectual property rights necessary for its business as now conducted and as currently proposed to be conducted, without any conflict with, or infringement of the rights of, others."
+)
 
-4.	Investor Representations
+(NLGSection "4.	Investor Representations"
+	"
 	(a)	The {Investor} has full legal capacity, power and authority to execute and deliver this instrument and to perform its obligations hereunder. This instrument constitutes valid and binding obligation of the {Investor}, enforceable in accordance with its terms, except as limited by bankruptcy, insolvency or other laws of general application relating to or affecting the enforcement of creditors’ rights generally and general principles of equity.
 	(b)	The {Investor} is an accredited investor as such term is defined in Rule 501 of Regulation D under {Securities_Act}. The {Investor} has been advised that this instrument and the underlying securities have not been registered under {Securities_Act}, or any state securities laws and, therefore, cannot be resold unless they are registered under {Securities_Act} and applicable state securities laws or unless an exemption from such registration requirements is available. The {Investor} is purchasing this instrument and the securities to be acquired by the {Investor} hereunder for its own account for investment, not as a nominee or agent, and not with a view to, or for resale in connection with, the distribution thereof, and the {Investor} has no present intention of selling, granting any participation in, or otherwise distributing the same. The {Investor} has such knowledge and experience in financial and business matters that the {Investor} is capable of evaluating the merits and risks of such investment, is able to incur a complete loss of such investment without impairing the {Investor}’s financial condition and is able to bear the economic risk of such investment for an indefinite period of time.
+")
 
-5.	Miscellaneous
+(NLGSection "5.	Miscellaneous"
+"
 	(a)	Any provision of this instrument may be amended, waived or modified only upon the written consent of the {Company} and the {Investor}.
 	(b)	Any notice required or permitted by this instrument will be deemed sufficient when delivered personally or by overnight courier or sent by email to the relevant address listed on the signature page, or {48 hours} after being deposited in the U.S. mail as certified or registered mail with postage prepaid, addressed to the party to be notified at such party’s address listed on the signature page, as subsequently modified by written notice.
 	(c)	The {Investor} is not entitled, as a holder of this instrument, to vote or receive dividends or be deemed the holder of Capital Stock for any purpose, nor will anything contained herein be construed to confer on the {Investor}, as such, any of the rights of a stockholder of the {Company} or any right to vote for the election of directors or upon any matter submitted to stockholders at any meeting thereof, or to give or withhold consent to any corporate action or to receive notice of meetings, or to receive subscription rights or otherwise until shares have been issued upon the terms described herein.
@@ -270,24 +279,24 @@
 	(StartSituation Signed)
 
 	(Action ExternalShareCntChange
-		(nlgsection "Possible Events and Scenarios")
+		(nlglogicsection "Events/Scenarios Relevant in All Cases")
 	)
 	(Action ExternalShareCntChange
-		(nlgsection "Possible Events and Scenarios")
+		(nlglogicsection "Events/Scenarios Relevant in All Cases")
 	)
 	(Action ExternalShareCntChange
-		(nlgsection "Possible Events and Scenarios")
+		(nlglogicsection "Events/Scenarios Relevant in All Cases")
 	)
 
 
 	(Situation Signed
 		(nlg "Investment Agreement Signed")
-		(nlgsection "Possible Events and Scenarios")
+		(nlglogicsection "Events/Scenarios Relevant in All Cases")
 		(Investor may TransferInvestmentCash)
 	)
 	(Action TransferInvestmentCash (TransitionsTo InvestmentWaitingToConvert) (AllowedSubjects Investor)
 		(nlg "Transfer Investment to Company")
-		(nlgsection "Possible Events and Scenarios")
+		(nlglogicsection "Events/Scenarios Relevant in All Cases")
 		(StateTransform
 			(investor_cash' = (investor_cash - Purchase_Amount))
 			(company_cash' = (company_cash + Purchase_Amount))
@@ -297,7 +306,7 @@
 
 	(Situation InvestmentWaitingToConvert
 		(nlg "Investment Waiting to Convert")
-		(nlgsection "Possible Events and Scenarios")
+		(nlglogicsection "Events/Scenarios Relevant in All Cases")
 		(Company may (CommitToEquityFinancing))
 		(Company may (CommitToIPO ?1 ?2))
 		(Company may (CommitToChangeOfControl ?1 ?2 ?total_investments_of_cashout_investors ?4)
@@ -311,7 +320,7 @@
 
 	(Action CommitToEquityFinancing (AllowedSubjects Company)
 		(nlg "Initiate an Equity Financing Event")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 		(FollowingSituation
 			(Company may DeliverTransactionDocsWithPRA)
 			(Company may DeliverTransactionDocsWithoutPRA)
@@ -321,7 +330,7 @@
 
 	(Action DeliverTransactionDocsWithPRA (AllowedSubjects Company) (TransitionsTo AfterPRASigned)
 		(nlg "Deliver Transaction Docs With Pro Rata Rights Agreement (PRA)")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 		(sideeffects
 			(Company sends Transaction_Documents_related_to_Equity_Financing to Investor)
 		)
@@ -329,7 +338,7 @@
 
 	(Action DeliverTransactionDocsWithoutPRA (AllowedSubjects Company)
 		(nlg "Deliver Transaction Docs (PRA to follow)")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 		(FollowingSituation
 			(Company must SendProRataRightsAgreementForSigning)
 		)
@@ -337,7 +346,7 @@
 
 	(Action SendProRataRightsAgreementForSigning  (AllowedSubjects Company)
 		(nlg "Send PRA for Signing")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 		(FollowingSituation
 			; TODO: Obviously this shouldn't be a *must*, since they ought to be
 			; able to send it back with proposed amendments/corrections.
@@ -348,12 +357,12 @@
 
 	(Action SignPRA (AllowedSubjects Investor) (TransitionsTo AfterPRASigned)
 		(nlg "Sign PRA")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 	)
 
 	(Situation AfterPRASigned
 		(nlg "After PRA Signed")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 		(Company must (IssueSAFEPreferredStock ?1 ?2))
 	)
 
@@ -361,7 +370,7 @@
 				(Company_Capitalization : PosShareCnt)
 				(company_valuation : Pos$) ) (AllowedSubjects Company)
 		(nlg "Issue SAFE Preferred Stock")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 		(StateTransform
 			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / Company_Capitalization))
 			(writeout Safe_Price : SharePrice = (Valuation_Cap / Company_Capitalization))
@@ -376,7 +385,7 @@
 
 	(Action Equity_Financing (AllowedSubjects Company) (TransitionsTo Fulfilled)
 		(nlg "Execute Equity Financing")
-		(nlgsection "Equity Events")
+		(nlglogicsection "Equity Financing")
 	)
 
 
@@ -384,7 +393,7 @@
 
 	(Situation InvestorToChooseMethodOfPayment
 		(nlg "Investor to Choose Method of Payment")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(Investor may ChooseCashPayment [before_split 1w])
 		(Investor may ChooseStockPayment [before_split 1w])
 		(AutoChooseStockPayment [at_split 1w])
@@ -394,7 +403,7 @@
 						 (company_valuation : Pos$)
 			) (AllowedSubjects Company)  (TransitionsTo InvestorToChooseMethodOfPayment)
 		(nlg "Initiate an IPO Liquidity Event")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(StateTransform
 			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / Liquidity_Capitalization))
 			(writeout Safe_Price : SharePrice = (Valuation_Cap / Liquidity_Capitalization))
@@ -410,7 +419,7 @@
 
 			) (AllowedSubjects Company) (TransitionsTo InvestorToChooseMethodOfPayment)
 		(nlg "Initiate a Change-of-Control Liquidity Event")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(StateTransform
 			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / Company_Capitalization))
 			(writeout Safe_Price : SharePrice = (Valuation_Cap / Company_Capitalization))
@@ -426,7 +435,7 @@
 
 	(Action AutoChooseStockPayment (AllowedSubjects Company)
 		(nlg "Stock Payment Option Chosen by Default")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(FollowingSituation
 			; what this translates to depends on if DefaultActionTimeLimit is defined
 			(Company must TransferCommonStock)
@@ -435,7 +444,7 @@
 
 	(Action ChooseStockPayment (AllowedSubjects Investor)
 		(nlg "Choose Payment in Common Stock")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(FollowingSituation
 			(Company must TransferCommonStock)
 		)
@@ -443,7 +452,7 @@
 
 	(Action TransferCommonStock (AllowedSubjects Company)
 		(nlg "Transfer Common Stock")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(StateTransform
 			(investor_Common_Stock' += ((check $ (unconverted_investment - liq_cashout)) ceil/ Conversion_Price))
 		)
@@ -454,7 +463,7 @@
 
 	(Action ChooseCashPayment (AllowedSubjects Investor)
 		(nlg "Choose Payment in Cash")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(FollowingSituation
 			(Company must (TransferCash_L ?1 ?2))
 		)
@@ -463,7 +472,7 @@
 	(Action (TransferCash_L (company_cash_at_liquidity_event : $)
 						    (total_investments_of_cashout_investors : Pos$)) (AllowedSubjects Company)
 		(nlg "Transfer Cash (liquidity)")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 		(StateTransform
 			(local investor_percent_of_cashout_investor_investments : "Fraction(0,1]" = (check "Fraction(0,1]" (Purchase_Amount / total_investments_of_cashout_investors)))
 			(liq_cashout' = (min unconverted_investment
@@ -487,7 +496,7 @@
 
 	(Action DoLiquidityEvent (AllowedSubjects Company) (TransitionsTo Fulfilled)
 		(nlg "Execute Liquidity Event")
-		(nlgsection "Liquidity Events")
+		(nlglogicsection "IPO or Change of Control")
 	)
 
 
@@ -495,7 +504,7 @@
 
 	(Action CommitToDissolution (AllowedSubjects Company)
 		(nlg "Initiate a Dissolution Event")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution")
 		(FollowingSituation
 			(Company must
 				(TransferCash_D ?company_cash_at_dissolution_event
@@ -509,7 +518,7 @@
 						    (investor_percent_of_dissolving_investor_investments : "Fraction(0,1]"))
 		(AllowedSubjects Company)
 		(nlg "Transfer Cash (dissolution)")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution")
 		(StateTransform
 			(dis_cashout' = (min
 							Purchase_Amount
@@ -529,7 +538,7 @@
 	(Action (TransferAssets (Company_Capitalization : PosShareCnt)
 							(company_valuation : Pos$) )
 		(nlg "Transfer Assets")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution")
 		(AllowedSubjects Company)
 		(StateTransform
 			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / Company_Capitalization))
@@ -546,7 +555,7 @@
 
 	(Action Dissolution_Event (AllowedSubjects Company) (TransitionsTo Fulfilled)
 		(nlg "Execute Dissolution")
-		(nlgsection "Dissolution Events")
+		(nlglogicsection "Dissolution")
 	)
 
 	(Situation Fulfilled)
