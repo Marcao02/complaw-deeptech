@@ -9,7 +9,7 @@ from src.independent.util_for_dicts import partitionBy
 from src.independent.util_for_io import writeFile
 from src.model.Action import Action
 from src.model.ActionRule import ActionRule, PartyNextActionRule, EnvNextActionRule
-from src.model.BoundVar import ActionBoundActionParam, StateVar, ContractParam, LocalVar
+from src.model.BoundVar import ActionBoundActionParam, StateVar, ContractParam, LocalVar, PrimedStateVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.L4Contract import L4Contract
 
@@ -17,6 +17,9 @@ import dominate #type:ignore
 from dominate.tags import html_tag #type:ignore
 from dominate.tags import * #type:ignore
 from dominate.util import raw #type:ignore
+
+from src.model.Literal import Literal
+
 span : html_tag
 h1 : html_tag
 h2 : html_tag
@@ -356,27 +359,28 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
         # print(rv)
         return rv
 
-    def sitid2link(sitid:str) -> Any:
+    def sitid2link(sitid:str) -> html_tag:
         sit = prog.situation(castid(SituationId,sitid))
         return a(sit.nlg, href=f"#{sitid}")
-    def actid2link(actid:str) -> Any:
+    def actid2link(actid:str) -> html_tag:
         act = prog.action(castid(ActionId,actid))
         return a(act.nlg, href=f"#{actid}")
-    def id2link(nameid:str, ctx:Optional[str] = None) -> Any:
+    def id2link(display_name:str, ctx:Optional[str] = None) -> html_tag:
+        linkid = display_name if display_name[-1] != "'" else display_name[:-1]
         if ctx:
-            return a(maybeNL(nameid), href=f"#{ctx}.{nameid}")
+            return a(maybeNL(display_name), href=f"#{ctx}.{linkid}")
         else:
-            return a(maybeNL(nameid), href=f"#{nameid}")
+            return a(maybeNL(display_name), href=f"#{linkid}")
 
-    def intro(nameid: str) -> Any:
+    def intro(nameid: str) -> html_tag:
         return span(maybeNL(nameid), id=nameid, cls="symbintro")
-    def actionparamIntro(pname: str, sort: Sort, actid:str):
+    def actionparamIntro(pname: str, sort: Sort, actid:str) -> html_tag:
         return li(intro(pname), ", which is a " + sortHtml(sort), id=f"{actid}.{pname}")
 
     def maybeNL(s:str) -> str:
         return prog.nlg_names[s] if s in prog.nlg_names else s
 
-    def contract_params_section() -> Any:
+    def contract_params_section() -> html_tag:
         params = prog.contract_params
         rv = div()
         rv.add(div("The parameters to the contract are:"))
@@ -385,7 +389,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             cpul.add( li( intro(para), ", which is a ", f"{sortHtml(dec.sort)}.") )
         return rv
 
-    def state_vars_section() -> Any:
+    def state_vars_section() -> html_tag:
         svars = prog.state_var_decs
         rv = div()
         rv.add(div("The contract tracks the following variables:"))
@@ -397,10 +401,10 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
                 cpul.add( li( intro(svar), ", which is a ", f"{sortHtml(dec.sort)}.") )
         return rv
 
-    def sortHtml(sort:Sort) -> Any:
+    def sortHtml(sort:Sort) -> str:
         return sort_descriptions[str(sort)]
 
-    def situationHtml(sit:Situation, is_anon=False) -> Any:
+    def situationHtml(sit:Situation, is_anon=False) -> html_tag:
         # show two rules with the same action-enabled guard together
         rules_by_enabled_guard = partitionBy(lambda x: x.entrance_enabled_guard, sit.action_rules())
         sitsec = li()
@@ -420,7 +424,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
         return sitsec
 
-    def actionHtml(act: Action) -> Any:
+    def actionHtml(act: Action) -> html_tag:
         # actsec = indented()
         # container.add(actsec)
         rv = li(actiontitle(act))
@@ -444,20 +448,20 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             actcontents.add(div("Go to ", sitid2link(act.dest_situation_id)))
         return rv
 
-    def actionparamsHtml(d:Dict[ActionParamId, Sort], actid:str) -> Any:
+    def actionparamsHtml(d:Dict[ActionParamId, Sort], actid:str) -> html_tag:
         rv = indented()
         for pname,sort in d.items():
             rv.add(actionparamIntro(pname,sort,actid))
             # rv.add(li(pname + ", which is a " + sortHtml(sort)))
         return rv
 
-    def blockHtml(block:StatementList) -> Any:
+    def blockHtml(block:StatementList) -> html_tag:
         rv = div()
         for statement in block:
             rv.add(statementHtml(statement))
         return rv
 
-    def statementHtml(statement:Statement) -> Any:
+    def statementHtml(statement:Statement) -> html_tag:
         if isinstance(statement,StateVarAssign):
             rhs = statement.value_expr
             if isinstance(rhs, FnApp) and rhs.fnsymb_name == "-":
@@ -489,7 +493,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
         raise NotImplementedError(s)
 
-    def ruleHtml(rule:ActionRule):
+    def ruleHtml(rule:ActionRule) -> html_tag:
             
         if isinstance(rule, PartyNextActionRule):
             x = li(
@@ -586,16 +590,21 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             return id2link(term.name)
         elif isinstance(term, LocalVar):
             return id2link(term.name)
+        elif isinstance(term,Literal):
+            return str(term)
+        elif isinstance(term, PrimedStateVar):
+            return span(id2link(term.name))
+        print("fallback case in termHtml for " + str(term) + " of type " + str(type(term)))
         return maybeNL(str(term))
 
-    def mk_terms_regexp() -> Any:
+    def mk_terms_in_prose_regexp() -> Any:
         s = ("|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.nlg_definitions) + "|" +
              "|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.nlg_names) + "|" +
              "|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.contract_params.keys()) + "|" +
              "|".join("(?:\{" + x + "\})|(?:\{val\s" + x + "\})|(?:\{def\s" + x + "\})" for x in prog.contract_params_nonoperative.keys()))
+        # don't know why s starting with "|" was/is happening.
         if s[0] == "|":
             s = s[1:]
-
 
         return re.compile(s)
 
@@ -623,7 +632,7 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
             return to_link_target(mo[0][5:-1])
         return to_link(mo[0][1:-1])
 
-    nltermsregexp = mk_terms_regexp()
+    nltermsregexp = mk_terms_in_prose_regexp()
     def insert_refs(s:str) -> Any:
         rv = nltermsregexp.sub(replacer,s)
         # print(rv)
@@ -685,7 +694,8 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
         return code_groups
 
-    def html_str_from_source(prog:L4Contract, structure:List[str]) -> body:
+    def html_str_from_source(prog:L4Contract#, structure:List[str]
+                                  ) -> body:
         doc = html()
         doc.add(
             head(
@@ -739,20 +749,20 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
         return doc
 
-    doc_structure = [
-        "@Title",
-        "AfterTitle",
-        "@ContractParams",
-        "@StateVars",
-        [
-        "@ContractLogic",
-        "@Definitions",
-        "3. Company Representatons",
-        "4. Investor Representatons",
-        "5. Miscellaneous"
-        ]
-    ]
+    # doc_structure = [
+    #     "@Title",
+    #     "AfterTitle",
+    #     "@ContractParams",
+    #     "@StateVars",
+    #     [
+    #     "@ContractLogic",
+    #     "@Definitions",
+    #     "3. Company Representatons",
+    #     "4. Investor Representatons",
+    #     "5. Miscellaneous"
+    #     ]
+    # ]
 
-    generated_html = html_str_from_source(prog,doc_structure)
+    generated_html = html_str_from_source(prog)
     # print(type(generated_html))
     writeFile(outpath,str(generated_html))
