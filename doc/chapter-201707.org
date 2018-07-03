@@ -4,9 +4,13 @@
 #+OPTIONS: toc:1
 #+OPTIONS: H:2 num:2
 
-The first edition of this document was drafted beginning July 2017 and queued for publication in November 2017. This is a live document and will evolve toward the second edition.
+The first edition of this document was drafted beginning July 2017 and published in November 2017 in [[https://www.soldan.de/media/pdf/ee/33/e8/9783406713484_inh.pdf][Rechtshandbuch Legal Tech]]. This is a live document and will evolve toward the second edition.
 
 A version of this content is available in [[https://drive.google.com/open?id=10n25p2uwoDP91V-JbyFdWBSAbXfoZOlM-F9YmHeJk5s][a slide deck presented at Stanford on Nov 30 2017]].
+
+The authoritative links are at
+- https://github.com/legalese/complaw-deeptech/blob/master/doc/chapter-201707.org
+- http://legalese.github.io/doc/chapter-201707.html
 
 * Introduction
 
