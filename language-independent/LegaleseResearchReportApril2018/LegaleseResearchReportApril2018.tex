@@ -325,7 +325,7 @@ A deadline event rule $r$ governing the applicability of a deadline \ename $e$ h
 where the \timestamp argument is the \timestamp of the previous \einst.
 $r$ also has a {\it parameter setter} $\anchorfor{\psetter{r}}{psetter}$ of type
 \[ \timestamp \times \svsorts \rarr \eppartsorts{e}  \]
-where the two \timestamp arguments are the \timestamps of the previous and next \einsts.
+where the \timestamp argument is the \timestamp of the previous \einsts. The \ename parameters are completely determined by the rule and the current state since a deadline \einst is created by the contract itself. 
 
 Since deadline \erules cause an event to occur automatically when the rule activates, we would need to either specify what happens when two such rules activate at the same time, or else ensure that can't happen. We take the latter approach.\footnote{Because we see no natural way to pick one over the other. Note that the \erules are not ordered.} For now, we adopt a constraint that is stronger than necessary but especially simple:\footnote{A closer-to-minimal constraint is: when the \enabledguards of two deadline \erules are simultaneously \True, their deadline functions cannot yield the same \timestamp (and then the earlier of the two deadlines is used). We have not yet experienced any desire for the extra leniency, but in case we do, it would be easy to allow it.} \\
 \noindent \anchorfor{\udc}{udc}:  if a \shandler has multiple deadline \erules, then their \enabledguards must be disjoint relations.
@@ -361,6 +361,8 @@ Let $\tau = E_1, E_2, \dots$ be a (finite or infinite) \wfeseq of $M$. The start
 \item If $E_i$ is a party (resp. oracle) \einst, then it must be \compatiblewith some party (resp. oracle) \erule $r$ of $s$ that is \enabled in $G_i$ such that $\eppartconstr{r}$ is \True at $\tup{\vts, \vts', \pi, \sigma}$.
 
 \item If $E_i$ is a deadline \einst, then it must be \compatiblewith the unique\footnote{by the \udc} deadline \erule $r$ of $s$ that is enabled in $G_i$ such that $\deadfn{r}(\vts, \pi) = \vts'$. Moreover, $\sigma$ must be $\psetter{r}(t,\pi)$.
+
+\item $s' = \edest{e}$.
 
 \item $\pi' = \statetransform{e}(\vts, \vts', \pi, \sigma)$.
 
