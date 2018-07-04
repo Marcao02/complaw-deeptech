@@ -294,7 +294,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _needs_preprocessing(self) -> bool:
         return (self.flags is not None and len(self.flags) > 0) or (self.raw_substitutions is not None and len(self.raw_substitutions) > 0)
 
-    def mk_l4contract(self, l:List[SExpr]) -> L4Contract:
+    def mk_l4contract(self, l:SExpr) -> L4Contract:
         if self._needs_preprocessing():
             l = self._handle_flags(l)
             # for x in l:

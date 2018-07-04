@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 
 # By age 35, you should have written an ad-hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp.
 # https://en.wikipedia.org/wiki/Greenspun%27s_tenth_rule
@@ -15,7 +15,8 @@ FORBID_LINEBREAKS = False
 class SExprBuilder:
     def __init__(self) -> None:
         # stack of growing S-Expressions
-        self.stack: List[SExpr] = [SExpr([], 1, 1)]  
+        self.stack: List[SExpr] = [SExpr([], 1, 1)]
+        self.expressions_to_insert : Dict[str,SExpr] = dict()
 
     def openParenSeq(self,symb,line:int,col:int):
         self.stack.append(SExpr([], line, col, symb))
@@ -65,12 +66,16 @@ def parse(string:str, debug=False, strip_comments=True, custom_splitter:Optional
     in_comment = False
     skip_next_char = False
     str_lit_quote = None
+    next_str_lit_is_file_path = False
     
     i,line,col = 0,1,1
 
     def maybeAppendToken():
-        nonlocal word, builder
+        nonlocal word, builder, next_str_lit_is_file_path
+
         if word:
+            if word == PASTE_DIRECTIVE_TOKEN:
+                next_str_lit_is_file_path = True
             builder.appendTokenInCurScope(word)
             word = ''
 
@@ -116,6 +121,10 @@ def parse(string:str, debug=False, strip_comments=True, custom_splitter:Optional
                     in_str_lit = False
                     str_lit_quote = None
                     builder.appendTokenInCurScope(word)
+                    if next_str_lit_is_file_path:
+                        next_str_lit_is_file_path = False
+                        external = parse_file(word, debug, strip_comments, custom_splitter)
+                        builder.expressions_to_insert[word] = external
                     word = ''
                     builder.closeParenSeq(char,line,col)
                 else:
@@ -168,7 +177,18 @@ def parse(string:str, debug=False, strip_comments=True, custom_splitter:Optional
 
     assert len(builder.stack) == 1, "Unbalanced parentheses...\n\n" + str(builder.stack[0])
 
-    return builder.curScope
+    if len(builder.expressions_to_insert) > 0:
+        newScope = builder.curScope.newHere([])
+        for x in builder.curScope:
+            if x[0] == PASTE_DIRECTIVE_TOKEN:
+                filename = x[1][1]
+                # discarding x
+                newScope.lst.extend(builder.expressions_to_insert[filename])
+            else:
+                newScope.append(x)
+        return newScope
+    else:
+        return builder.curScope
 
 def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
     indent : str = " "*nspaces
@@ -201,7 +221,7 @@ def prettySExprStr(l:Union[str, SExpr], nspaces=0) -> str:
             s += " " + rsymb    
         return s
 
-def parse_file(path:str,debug=False, strip_comments=True, custom_splitter:Optional[Callable[[str,int],bool]] = None):
+def parse_file(path:str,debug=False, strip_comments=True, custom_splitter:Optional[Callable[[str,int],bool]] = None) -> SExpr:
     try:
         fil = open(path,encoding='utf8')
         parsed = parse(fil.read(), debug, strip_comments, custom_splitter)

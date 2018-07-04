@@ -5,9 +5,13 @@ from typing import Union, List, Any, cast, Sized, Iterable, Sequence, Callable
 from src.independent.FileCoord import FileCoord
 from src.independent.util import chcaststr
 
-STRING_LITERAL_MARKER = "STRLIT"
-COMMENT_LITERAL_MARKER = "COMMENT"
 LINE_COMMENT_START_CHAR = ';'
+PASTE_DIRECTIVE_TOKEN = 'PASTE'
+
+STRING_LITERAL_MARKER = "STRLIT"
+COMMENT_LITERAL_MARKER = "COMMENT" # the head of a comment SExpr
+
+
 
 left_groupers = {'(','{','[','‹','❪'}
 right_groupers = {')','}',']','›','❫'}
