@@ -638,12 +638,12 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
         # print(rv)
         return raw(rv)
 
-    def nl_const_to_nl(s:str) -> html_tag:
+    def l4_name_to_nl(s:str) -> html_tag:
         return span(raw(s.replace("_"," ")), cls="defined_term_intro")
 
     def nl_defn_html(nlterm:str, defn:str) -> html_tag:
-        return li(nl_const_to_nl(nlterm), " - ", insert_refs(defn), id=nlterm, _class="triggers-tooltip nomarkers")
-        # return li(nl_const_to_nl(nlterm) + " - ", insert_refs(defn, nltermsregexp), id=nlterm,_class="triggers-tooltip")
+        return li(l4_name_to_nl(nlterm), " - ", insert_refs(defn), id=nlterm, _class="triggers-tooltip nomarkers")
+        # return li(l4_name_to_nl(nlterm) + " - ", insert_refs(defn, nltermsregexp), id=nlterm,_class="triggers-tooltip")
 
     def source_prose_to_html(s:str) -> html_tag:
         return indented_text_to_html(s)
