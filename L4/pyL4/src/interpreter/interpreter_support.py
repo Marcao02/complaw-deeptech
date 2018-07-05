@@ -3,8 +3,8 @@ from datetime import timedelta
 from typing import Iterable, NamedTuple
 
 from src.constants_and_defined_types import RoleId
-from src.interpreter.timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT, \
-    tdmapHasItemExpiredBefore, tdmapMinValue
+from src.interpreter.timedelta_map import tdmapSet, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT, \
+    tdmapHasItemExpiredBefore, tdmapMinValue, colHas, deleteFromCollection, tdmapAdd, tdmapTimeDeltaLEQ
 from src.model.EventsAndTraces import Event
 from src.model.Statement import *
 
@@ -93,16 +93,23 @@ FN_SYMB_INTERP = {
     'tupleGet' : lambda t,i: t[i],
 
     'mapSet' : tdmapSet,
-    'delete' : tdmapDelete,
-    'has' : tdmapHas,
+    'tdmapAdd' : tdmapAdd,
+    'delete' : deleteFromCollection,
+    'hasKey' : colHas,
     'minValue' : tdmapMinValue,
     'tdmapHasItemExpiredBefore' : tdmapHasItemExpiredBefore,
     'tdGEQ' : tdmapTimeDeltaGEQ,
+    'tdLEQ' : tdmapTimeDeltaLEQ,
     'tdLT' : tdmapTimeDeltaLT,
     'emptyTDMap' : lambda: tuple(),
+
     'nonempty' : lambda x: len(x) > 0,
     'empty' : lambda x: len(x) == 0,
+    'size' : len,
 
+    'emptySet': lambda: frozenset(),
+    'add': lambda fset, x: fset.union({x}),
+    'has': lambda fset, x: x in fset,
     'ifthenelse' : lambda t,tbranch,fbranch: tbranch if t else fbranch
 }
 

@@ -119,6 +119,8 @@ class SimpleTimeDeltaLit(TimeDeltaLit):
             td = timedelta(weeks=self.num)
         elif self.unit == 'm':
             td = timedelta(minutes=self.num)
+        elif self.unit == 'ms':
+            td = timedelta(milliseconds=self.num)
         else:
             assert self.unit == 's'
             td = timedelta(seconds=self.num)

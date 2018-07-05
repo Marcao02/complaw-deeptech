@@ -85,6 +85,10 @@ class ExecEnv:
             def f(x:int) -> timedelta:
                 return timedelta(minutes=x)
             return f
+        elif self.top.timeunit == 'ms':
+            def f(x:int) -> timedelta:
+                return timedelta(milliseconds=x)
+            return f
         else:
             assert self.top.timeunit == 's'
             def f(x:int) -> timedelta:

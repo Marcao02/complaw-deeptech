@@ -97,12 +97,12 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                      'tuple', 'tupleGet',
 
                      'emptyTDMap', # should be a constant but more important things to do
-                     'mapSet','delete','has',
-                     'nonempty', 'empty', 'tdGEQ','tdLT', 'tdmapHasItemExpiredBefore',
+                     'mapSet','delete','hasKey','tdmapAdd',
+                     'nonempty', 'empty', 'tdGEQ','tdLT', 'tdLEQ', 'tdmapHasItemExpiredBefore',
                      'minValue', 'size',
 
-                     # 'emptySet', # should be a constant but more important things to do
-                     # 'add'
+                     'emptySet', # should be a constant but more important things to do
+                     'add','has'
                      }.union(TIME_CONSTRAINT_OPERATORS).union(VERIFICATION_FN_SYMBOLS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^', '=',

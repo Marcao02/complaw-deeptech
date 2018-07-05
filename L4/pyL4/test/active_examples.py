@@ -25,7 +25,7 @@ ALL_EXAMPLES : List[Union[str,
     'test/test_local_vars.l4',
 
 
-    # 'toy_and_teaching/juggling.l4',
+    'toy_and_teaching/juggling.l4',
     'toy_and_teaching/collatz.l4',
     'toy_and_teaching/collatz2.l4',
     'toy_and_teaching/monster_burger_program_only.l4',

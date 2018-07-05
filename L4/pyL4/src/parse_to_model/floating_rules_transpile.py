@@ -158,7 +158,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               pack(params),
                                               FnApp('next_event_td',[])
                                              ])
-                rule.where_clause = FnApp('has', [map_var, pack(params)])
+                rule.where_clause = FnApp('hasKey', [map_var, pack(params)])
                 rule.ruleparam_names = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sit.add_action_rule(rule)
             else:
@@ -171,7 +171,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                 #                               pack(params),
                 #                               FnApp('last_event_td', [])
                 #                               ])
-                # rule.where_clause = FnApp('has', [map_var, pack(params)])
+                # rule.where_clause = FnApp('hasKey', [map_var, pack(params)])
                 # rule.args = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 # sit.add_future_action_rule(rule)
 
@@ -183,7 +183,7 @@ def floating_rules_transpile_away(prog:L4Contract, verbose:bool) -> None:
                                               pack(params),
                                               FnApp('next_event_td', [])
                                               ])
-                rule.where_clause = FnApp('has', [map_var, pack(params)])
+                rule.where_clause = FnApp('hasKey', [map_var, pack(params)])
                 rule.ruleparam_names = list(map(lambda p: p.name, cast(List[RuleBoundActionParam], params)))
                 sit.add_action_rule(rule)
 

@@ -509,6 +509,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         return rv
 
     def handle_apply_macro(self, x:SExpr) -> SExpr:
+        self.assertOrSyntaxError(len(x) >= 3 if x[0] == APPLY_MACRO_LABEL else len(x) >= 2, x, "macro app problem")
         macroname, args = (chcaststr(x[1]),x[2]) if x[0] == APPLY_MACRO_LABEL else (x[0],x[1])
         macro : L4Macro = self.top.macros[macroname]
         if isinstance(args,str):
@@ -903,7 +904,9 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         #     return DeadlineLit(x, coord)
         if x[-1].lower() in SUPPORTED_TIMEUNITS and isInt(x[:-1]):
             rv = SimpleTimeDeltaLit(int(x[:-1]), x[-1].lower(), coord)
-            # print('STD', rv)
+            return rv
+        if x[-2:].lower() in SUPPORTED_TIMEUNITS and isInt(x[:-2]):
+            rv = SimpleTimeDeltaLit(int(x[:-2]), x[-2:].lower(), coord)
             return rv
         if prog and x in prog.roles:
             return RoleIdLit(x)

@@ -58,6 +58,6 @@ where `A` is an action with (say) 2 parameters. Then it is removed and the follo
 )
 ```
 The line `(tgGT ...)` compares (i) the deadline that `must_R_A` has stored for `(tuple ?1 ?2)`, and (ii) the current event's timedelta.
-We don't need a where clause such as `(where (has must_R_A (tuple ?1 ?2)))` because it is implied by the time constraint.
+We don't need a where clause such as `(where (hasKey must_R_A (tuple ?1 ?2)))` because it is implied by the time constraint.
 
 `[possibly-from-earlier R may A]` gets handled similarly except that `may` is used instead of `quasi-responsibility` in the translation.

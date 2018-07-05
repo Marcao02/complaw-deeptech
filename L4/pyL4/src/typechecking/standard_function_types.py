@@ -184,15 +184,27 @@ overloaded_types_data : FnTypesData = [
         ),
         TDMapKeySorts)
      ),
-    (('tdGEQ',), parametric_one_var(
+    (('tdGEQ','tdLT','tdLEQ'), parametric_one_var(
         sfntype(SApp('TDMap', X), X, 'TimeDelta', 'Bool'),
         TDMapKeySorts)
      ),
     (('delete',), parametric_one_var(
-        sfntype(SApp('TDMap', X), X, SApp('TDMap', X)),
+        ( sfntype(SApp('TDMap', X), X, SApp('TDMap', X)),
+          sfntype(SApp('Set', X), X, SApp('Set', X))
+        ),
+        TDMapKeySorts)
+     ),
+    (('add',), parametric_one_var(
+        ( sfntype(SApp('Set', X), X, SApp('Set', X)),
+        ),
         TDMapKeySorts)
      ),
     (('has',), parametric_one_var(
+        ( sfntype(SApp('Set', X), X, 'Bool'),
+        ),
+        TDMapKeySorts)
+     ),
+    (('hasKey',), parametric_one_var(
         sfntype(SApp('TDMap', X), X, 'Bool'),
         TDMapKeySorts)
      ),

@@ -81,11 +81,11 @@ traces_toy_and_teaching : Sequence[ TraceExample ] = (
         {},
         (event('RequestNewBall', 'You', 0),
          event('RequestNewBall', 'You', 500),
-         event('TossNewBall', 'Assistant', 600, {'latest_possible_catch_time': 500}),
-         event('TossNewBall', 'Assistant', 900, {'latest_possible_catch_time': 400}),
+         event('TossNewBall', 'Assistant', 600, {'latest_possible_catch_delay': timedelta(milliseconds=500)}),
+         event('TossNewBall', 'Assistant', 900, {'latest_possible_catch_delay': timedelta(milliseconds=400)}),
          event('Catch', 'You', 600 + 500, {'n': 0}), # catch ball 0
-         event('Catch', 'You', 900 + 350, {'n': 0}),  # catch ball 0
-         event('FinishJuddgling', 'You', 2000)
+         event('Catch', 'You', 900 + 350, {'n': 1}),  # catch ball 0
+         event('FinishJuggling', 'You', 2000)
          ), FULFILLED_SITUATION_LABEL)
     ),
 
@@ -284,8 +284,7 @@ EXAMPLES_TO_RUN = [
 
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
 
-        'toy_and_teaching/minimal_future-actions.l4',
-        'toy_and_teaching/minimal_future-actions2.l4',
+        'toy_and_teaching/juggling.l4',
         'toy_and_teaching/collatz.l4',
         'toy_and_teaching/collatz2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',
