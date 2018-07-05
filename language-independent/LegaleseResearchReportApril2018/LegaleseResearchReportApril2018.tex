@@ -47,7 +47,11 @@
 
 \newcommand{\actor}{\term{actor}}
 \newcommand{\actors}{\termz{actor}{actors}}
-\newcommand{\codeactor}{\termz{codeactor}{Code}}
+\newcommand{\party}{\termz{parties}{party}}
+\newcommand{\parties}{\term{parties}}
+\newcommand{\oracle}{\termz{oracles}{oracle}}
+\newcommand{\oracles}{\term{oracles}}
+
 
 \newcommand{\timeunit}{\term{timeunit}}
 \newcommand{\timestamp}{\term{timestamp}}
@@ -81,6 +85,7 @@
 \newcommand{\penames}{\termz{penames}{\text{party-events}}}
 \newcommand{\oenames}{\termz{oenames}{\text{oracle-events}}}
 \newcommand{\denames}{\termz{denames}{\text{deadline-events}}}
+\newcommand{\dename}{\termz{denames}{\text{deadline-event}}}
 \newcommand{\einsts}{\termz{einst}{event-instances}}
 \newcommand{\eppartsorts}[1]{\textsf{\hyperref[eppartsorts]{type}}_{#1}}
 \newcommand{\edest}[1]{\textsf{\hyperref[edest]{dest}}_{#1}}
@@ -255,22 +260,21 @@ Also, every typed symbol has a dedicated type (i.e. element of $\DT$ for various
 
 \medskip
 
-\noindent Fix a finite set of symbols \anchorfor{actor}{actor}, which includes:
+\noindent Fix a finite set of symbols \anchorfor{\actor}{actor}, which includes:
 \begin{PPI}
-\item The parties to the contract, who announce action-events, which are the elements of the event stream most responsible for driving a contract.
-\item Any ``oracles'' that send information to the contract from the environment. In our implementation of Y-Combinator's SAFE in L4, we have an oracle that decides whether a liquidation, equity, or dissolution event has occurred, in case the company fails to announce it. % Generally, we put an event's announcement in the hands of an oracle when every party has an incentive to lie about it.
-\item The special symbol \anchorfor{\codeactor}{codeactor}, for events that are initiated by the code of the contract.
+\item The \anchorfor{\parties}{parties} to the contract, who announce action-events, which are the elements of the event stream most responsible for driving a contract.
+\item Any \anchorfor{\oracles}{oracles} that send information to the contract from the environment. In our implementation of Y-Combinator's SAFE in L4, we have an \oracle that decides whether a liquidation, equity, or dissolution event has occurred, in case the company fails to announce it. % Generally, we put an event's announcement in the hands of an oracle when every party has an incentive to lie about it.
 \end{PPI}
 \mybox{\begin{bnote} \label{roles}
-Before publication of this document, we will likely replace the finite set of party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of party-\actors in each role, since that seems to be necessary to model many blockchain smart contracts in a natural way.
+Before publication of this document, we will likely replace the finite set of \party-\actor{s} with a finite set of {\it roles}, and allow for an unbounded number of \party-\actors in each role, since that seems to be necessary to model many blockchain smart contracts in a natural way.
 \end{bnote}}
 Fix a finite set of symbols \anchorfor{event}{ename}, and for each such $e$ a parameter type assignment $\anchorfor{\eppartsorts{e}}{eppartsorts} \in \DT^*$. Furthermore, partition \ename into three kinds of events:
 \begin{PPI}
-\item \anchorfor{\penames}{penames}, which are actions done by a party-to-the-contract,
-\item \anchorfor{\oenames}{oenames}, which provide information from the environment, and
+\item \anchorfor{\penames}{penames}, which are actions done \party-\actors,
+\item \anchorfor{\oenames}{oenames}, which are events created by \oracle-\actors which provide information from the environment, and
 \item \anchorfor{\denames}{denames}, which are transitions mandated by the contract.
 \end{PPI}
-An \anchorfor{event instance}{einst} is a tuple $\tup{e,a,\vts,\sigma}$ where $e$ is an \ename, $a$ is an \actor, $\vts$ is a \timestamp, and $\sigma \in \eppartsorts{e}$. The \actor for a deadline \ename is always \codeactor.
+An \anchorfor{event instance}{einst} is a tuple $\tup{e,a,\vts,\sigma}$ where $e$ is an \ename, $a$ is an \textit{optional} \actor, $\vts$ is a \timestamp, and $\sigma \in \eppartsorts{e}$. The \actor component is omitted iff $e$ is a \dename.
 %\todo{Alternatively, that's only for party and oracle events. A deadline event only needs the first and fourth components.}
 
 %The  include ``oracle'' or environmental actions ``performed'' by the special \Actor \introx{Env}{Env}. We also use the special \Actor \introx{ContractActor}{Contract} for the \Actor component of \devents.
@@ -284,7 +288,7 @@ For our intended domain of legal contracts, we are not aware of any cogent criti
 A Legal State Machine (\anchorfor{\lsm}{lsm}) first of all fixes the definitions of the terms introduced in Section \ref{basics}: \DT, \timeunit, \actor, and \ename. It also includes a finite set of symbols \anchorfor{situation}{sname} that must contain at least the symbols:
 \begin{PPI}
 \item \anchorfor{\fulfilled}{fulfilled}, for handled contract termination.
-\item $\anchorfor{\breached{A}}{breached}$ for each nonempty subset $A$ of $\actor \backslash \{\codeactor\}$.\footnote{These are breaches and oracle errors analogous to undifferentiated, unhandled exceptions in normal programming languages. Some well-drafted computational contracts might avoid using them completely.}
+\item $\anchorfor{\breached{A}}{breached}$ for each nonempty subset $A$ of $\actor$.\footnote{These are breaches and oracle errors analogous to undifferentiated, unhandled exceptions in normal programming languages. Some well-drafted computational contracts might avoid using them completely.}
 \end{PPI}
 Let \anchorfor{\termin}{termin} be the union of those symbols.%, i.e.  $\{\fulfilled\} \cup \{\breached{A} \ | \ \text{nonempty } A \subseteq \actor\}$.
 
@@ -309,7 +313,7 @@ Each \sname gets a \anchorfor{\shandler}{shandler}, which for now is just a fini
 where the \timestamp argument is the \timestamp of the previous \einst. Frequently in our examples, \reguard{r} is just the trivial relation \True. $r$ is \anchorfor{\enabled}{enabled} upon entering its parent situation at the \timestamp $\vts$ of the previous \einst iff \anchorfor{\reguard{r}}{enabledguard} is \True when evaluated at $\vts$ and the current statevar assignment.
 
 %\centerline{\begin{fmpage}{5.5in}
-\begin{bnote}[redundancy of $\reguard{r}$ for party/oracle rules] \label{guardredundancy}
+\begin{bnote}[redundancy of $\reguard{r}$ for \actor rules] \label{guardredundancy}
 With respect to the execution semantics (Section \ref{execution}), it is easy to eliminate $\reguard{r}$ for party and oracle \erules $r$ (though not for deadline \erules), by conjoining $\reguard{r}$ to $\eppartconstr{r}$. We will do this for some formal verification purposes where the simplification of the model outweighs the cost (in development time) of interpreting errors and \traces. From the practical software engineering perspective, on the other hand, we have found it is very natural to split the constraint on when an oracle/party \erule can apply into
 \begin{LPPI}
 \item The (usually-maximal) part that depends only on the current \state. This is $\reguard{r}$.
@@ -325,7 +329,7 @@ A deadline event rule $r$ governing the applicability of a deadline \ename $e$ h
 where the \timestamp argument is the \timestamp of the previous \einst.
 $r$ also has a {\it parameter setter} $\anchorfor{\psetter{r}}{psetter}$ of type
 \[ \timestamp \times \svsorts \rarr \eppartsorts{e}  \]
-where the \timestamp argument is the \timestamp of the previous \einsts. The \ename parameters are completely determined by the rule and the current state since a deadline \einst is created by the contract itself. 
+where the \timestamp argument is the \timestamp of the previous \einst. The \ename parameters are completely determined by the rule and the current state since a deadline \einst is created by the contract itself. 
 
 Since deadline \erules cause an event to occur automatically when the rule activates, we would need to either specify what happens when two such rules activate at the same time, or else ensure that can't happen. We take the latter approach.\footnote{Because we see no natural way to pick one over the other. Note that the \erules are not ordered.} For now, we adopt a constraint that is stronger than necessary but especially simple:\footnote{A closer-to-minimal constraint is: when the \enabledguards of two deadline \erules are simultaneously \True, their deadline functions cannot yield the same \timestamp (and then the earlier of the two deadlines is used). We have not yet experienced any desire for the extra leniency, but in case we do, it would be easy to allow it.} \\
 \noindent \anchorfor{\udc}{udc}:  if a \shandler has multiple deadline \erules, then their \enabledguards must be disjoint relations.
@@ -535,7 +539,7 @@ When we symbolically execute an \lsm, we have a choice about whether to use some
 \subsubsection{Timeless Normal Form for $\lsmclass{\cF}$}
 We define a normal form for $\lsmclass{\cF}$ which is not literally ``timeless'', but removes the special significance of \timestamp from the model. This is just to make the symbolic execution algorithm simpler.
 
-First, and unrelated to the following \timestamp-related transformations (but with the same goal of simplifying symbolic execution), we eliminate $\reguard{r}$ for each party/oracle \erule $r$, as described in Note \ref{guardredundancy}. Next:
+First, and unrelated to the following \timestamp-related transformations (but with the same goal of simplifying symbolic execution), we eliminate $\reguard{r}$ for each \actor \erule $r$, as described in Note \ref{guardredundancy}. Next:
 \begin{LPPI}
 \item Introduce a new \statevar $\tlast$ of sort \timestamp with initial value $0$. 
 %In the technical terminology: the new versions $\svsorts'$, $\initvals'$, $\statevar'$ are the same as the old $\svsorts$, $\initvals$, $\statevar$, but with the additions: $\svsorts'(\tlast) = \timestamp$ and $\initvals'(\tlast) = 0$ and $\statevar' = \statevar + \tlast$.
