@@ -95,9 +95,14 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                      'fraction-of-sum',
 
                      'tuple', 'tupleGet',
+
                      'emptyTDMap', # should be a constant but more important things to do
-                     'mapSet','mapDelete','mapHas','tdGEQ','tdLT', 'tdmapHasItemExpiredBefore',
-                     'nonempty', 'empty'
+                     'mapSet','delete','has',
+                     'nonempty', 'empty', 'tdGEQ','tdLT', 'tdmapHasItemExpiredBefore',
+                     'minValue', 'size',
+
+                     # 'emptySet', # should be a constant but more important things to do
+                     # 'add'
                      }.union(TIME_CONSTRAINT_OPERATORS).union(VERIFICATION_FN_SYMBOLS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^', '=',
@@ -119,8 +124,8 @@ PROSE_CONTRACT_AREA_LABEL = "ProseContract"
 FORMAL_CONTRACT_AREA_LABEL = "Dynamics"
 ROLES_DEC_LABEL = "Roles"
 TIMEUNIT_DEC_LABEL = "TimeUnit"
-SUPPORTED_TIMEUNITS = ['w','d','h','m','s']
-LONGFORMS_OF_SUPPORTED_TIMEUNITS = {'weeks':'w','days':'d','hours':'h','minutes':'m','seconds':'s'}
+SUPPORTED_TIMEUNITS = ['w','d','h','m','s','ms']
+LONGFORMS_OF_SUPPORTED_TIMEUNITS = {'weeks':'w','days':'d','hours':'h','minutes':'m','seconds':'s','milliseconds':'ms'}
 MACRO_DEC_LABEL = "Macro"
 BLOCKMACRO_DEC_LABEL = "BlockMacro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"

@@ -12,6 +12,9 @@ TDMap = Tuple[Tuple[K,timedelta], ...]
 def tdmapHas(tdmap:TDMap[K], key: K) -> bool:
     return any( (key == p[0] for p in tdmap) )
 
+def tdmapMinValue(tdmap:TDMap[K]) -> timedelta:
+    return min( p[1] for p in tdmap )
+
 def tdmapHasItemExpiredBefore(tdmap:TDMap[K], td: timedelta) -> bool:
     return any( (p[1] < td for p in tdmap) )
 

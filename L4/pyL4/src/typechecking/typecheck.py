@@ -337,7 +337,7 @@ class TypeChecker:
                     raise L4TypeInferError(t, "Problem with tupleGet.")
 
             # ------------TDMap------------
-            # if t.fnsymb_name in {'mapSet','tdGEQ','mapDelete','mapHas','nonempty','empty','emptyTDMap'}:
+            # if t.fnsymb_name in {'mapSet','tdGEQ','delete','has','nonempty','empty','emptyTDMap'}:
             #     if t.fnsymb_name == 'mapSet':
 
             # ------------Other function applications------------

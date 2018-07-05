@@ -108,11 +108,11 @@ Complexity k+1 constraints derived from complexity k sort X:
     sfntype(SApp('TDMap', X), X, 'TimeDelta', 'Bool'),
     TDMapKeySorts)
  ),
-(('mapDelete',), parametric_one_var(
+(('delete',), parametric_one_var(
     sfntype(SApp('TDMap', X), X, SApp('TDMap', X)),
     TDMapKeySorts)
  ),
-(('mapHas',), parametric_one_var(
+(('has',), parametric_one_var(
     sfntype(SApp('TDMap', X), X, 'Bool'),
     TDMapKeySorts)
  ),

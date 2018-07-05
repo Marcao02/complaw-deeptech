@@ -17,8 +17,8 @@ is introduced.
 `(Map K V)` is a parametric immutable (all L4 datatypes are immutable) datatype with functions:
 
 `mapSet : (Map K V) -> K -> V -> (Map K V)`
-`mapDelete : (Map K V) -> K -> (Map K V)`
-`mapHas : (Map K V) -> K -> Bool`
+`delete : (Map K V) -> K -> (Map K V)`
+`has : (Map K V) -> K -> Bool`
 `mapDateTimeGT : (Map K DateTime) -> K -> DateTime -> Bool`
 
 The last requires an explanation: `(mapDateTimeLEQ m k dt )` is false if `k` is not in `m`, and if `k` is in `m` then it's true iff `m[k] > dt`.
@@ -58,6 +58,6 @@ where `A` is an action with (say) 2 parameters. Then it is removed and the follo
 )
 ```
 The line `(tgGT ...)` compares (i) the deadline that `must_R_A` has stored for `(tuple ?1 ?2)`, and (ii) the current event's timedelta.
-We don't need a where clause such as `(where (mapHas must_R_A (tuple ?1 ?2)))` because it is implied by the time constraint.
+We don't need a where clause such as `(where (has must_R_A (tuple ?1 ?2)))` because it is implied by the time constraint.
 
 `[possibly-from-earlier R may A]` gets handled similarly except that `may` is used instead of `quasi-responsibility` in the translation.

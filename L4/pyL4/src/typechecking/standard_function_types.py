@@ -188,11 +188,11 @@ overloaded_types_data : FnTypesData = [
         sfntype(SApp('TDMap', X), X, 'TimeDelta', 'Bool'),
         TDMapKeySorts)
      ),
-    (('mapDelete',), parametric_one_var(
+    (('delete',), parametric_one_var(
         sfntype(SApp('TDMap', X), X, SApp('TDMap', X)),
         TDMapKeySorts)
      ),
-    (('mapHas',), parametric_one_var(
+    (('has',), parametric_one_var(
         sfntype(SApp('TDMap', X), X, 'Bool'),
         TDMapKeySorts)
      ),
@@ -202,6 +202,10 @@ overloaded_types_data : FnTypesData = [
      ),
     (('nonempty','empty'), parametric_one_var(
         sfntype(SApp('TDMap', X), 'Bool'),
+        TDMapKeySorts))
+    ,
+    (('minValue',), parametric_one_var(
+        sfntype(SApp('TDMap', X), 'TimeDelta'),
         TDMapKeySorts))
     ,
     (('emptyTDMap',), (sfntype('EmptyTDMap'),)),

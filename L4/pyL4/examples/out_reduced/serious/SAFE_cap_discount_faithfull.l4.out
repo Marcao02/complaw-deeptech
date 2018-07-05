@@ -10,15 +10,19 @@ contract params:
     Valuation_Cap : Pos$ := 100000000
 
 state vars:
-    writes≤1 investor_Common_Stock : ΔShareCnt := 0
-    writes≤1 investor_SAFE_Stock : ΔShareCnt := 0
-    writes≤1 investor_cash : Δ$ := Purchase_Amount
-    unconverted_investment : $ := 0
-    writes≤1 Conversion_Price : PosSharePrice
-    company_cash : $ := 0
+    writes≤1 investor_Common_Stock : ShareCnt := 0
+    writes≤1 investor_SAFE_Stock : ShareCnt := 0
+    writes≤1 investor_cash : $ := Purchase_Amount
     writes≤1 company_cash_available_for_payout : $
+    unconverted_investment : $ := 0
+    company_cash : $ := 0
+    writes≤1 Conversion_Price : PosSharePrice
     writes≤1 liq_cashout : $ := 0
     writes≤1 dis_cashout : $
+
+action ExternalShareCntChange()  transitions to AfterExternalShareCntChange
+
+action ExternalShareCntChange()  transitions to AfterExternalShareCntChange
 
 action ExternalShareCntChange()  transitions to AfterExternalShareCntChange
 

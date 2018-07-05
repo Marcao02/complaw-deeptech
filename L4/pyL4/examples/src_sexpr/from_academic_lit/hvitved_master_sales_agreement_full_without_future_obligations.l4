@@ -104,15 +104,15 @@
 			(Customer may (SubmitNewOrder ?q) (within order_period_ends) (where ((?q ≤ orderable_units) and (?q > 0))))
 		)
 		(if (nonempty 2Bdelivered)
-			; lang note: the `where (mapHas  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
-			(Vendor may (Deliver ?order) (when tdGEQ 2Bdelivered ?order next_event_td) (where (mapHas 2Bdelivered ?order)))
+			; lang note: the `where (has  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
+			(Vendor may (Deliver ?order) (when tdGEQ 2Bdelivered ?order next_event_td) (where (has 2Bdelivered ?order)))
 			(Breach_Vendor (when tdmapHasItemExpiredBefore 2Bdelivered next_event_td))
 		)
 		(if (nonempty 2Binvoiced)
-			(Vendor may (EmailInvoice ?order) (when tdGEQ 2Binvoiced ?order next_event_td) (where (mapHas 2Binvoiced ?order)))
+			(Vendor may (EmailInvoice ?order) (when tdGEQ 2Binvoiced ?order next_event_td) (where (has 2Binvoiced ?order)))
 		)
 		(if (nonempty 2Bpaid)
-			(Customer may (PayBill ?order) (when tdGEQ 2Bpaid ?order next_event_td) (where (mapHas 2Bpaid ?order)))
+			(Customer may (PayBill ?order) (when tdGEQ 2Bpaid ?order next_event_td) (where (has 2Bpaid ?order)))
 			(Breach_Customer (when tdmapHasItemExpiredBefore 2Bpaid next_event_td))
 		)
 		(if ; conditions for early end of contract
@@ -145,10 +145,10 @@
 
 	(Action [Deliver (order : Order)]
 		(StateTransform
-			( conjecture (mapHas 2Bdelivered order) )
+			( conjecture (has 2Bdelivered order) )
 			( local quantity : PosInt := (tupleGet order 0) )
 			( units_delivered' += quantity )
-			( 2Bdelivered' := (mapDelete 2Bdelivered order) )
+			( 2Bdelivered' := (delete 2Bdelivered order) )
 			( local invoice_deadline : TimeDelta := (last_event_td + 30D) )
 			( furthest_invoice_deadline' = (max furthest_invoice_deadline invoice_deadline) )
 			( 2Binvoiced' := (mapSet 2Binvoiced (tuple quantity (tupleGet order 1)) invoice_deadline ) )
@@ -160,10 +160,10 @@
 
 	(Action [EmailInvoice (order : Order)]
 		(StateTransform
-			( conjecture (mapHas 2Binvoiced order) )
+			( conjecture (has 2Binvoiced order) )
 			( local quantity : PosInt := (tupleGet order 0) )
 			( units_invoiced' += quantity )
-			( 2Binvoiced' :=  (mapDelete 2Binvoiced order) )
+			( 2Binvoiced' :=  (delete 2Binvoiced order) )
 			( 2Bpaid' :=  (mapSet 2Bpaid (tuple quantity (tupleGet order 1)) (last_event_td + 14D) ) )
 		)
 
@@ -173,10 +173,10 @@
 
 	(Action [PayBill (order : Order)]
 		(StateTransform
-			( conjecture (mapHas 2Bpaid order) )
+			( conjecture (has 2Bpaid order) )
 			( local quantity : PosInt := (tupleGet order 0) )
 			( total_paid' += (quantity * PRICE_PER_UNIT) )
-			( 2Bpaid' :=  (mapDelete 2Bpaid order) )
+			( 2Bpaid' :=  (delete 2Bpaid order) )
 		)
 
 		(TransitionsTo VendorAcceptingOrders)

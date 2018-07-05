@@ -21,15 +21,15 @@ state vars:
 
 situation VendorAcceptingOrders:
     if (nonempty Customer_must_PayBill_by):
-        Customer quasi-responsibility PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (mapHas Customer_must_PayBill_by (tuple ?0 ?1))
+        Customer quasi-responsibility PayBill(?0, ?1) (tdGEQ Customer_must_PayBill_by (tuple ?0 ?1) next_event_td) where (has Customer_must_PayBill_by (tuple ?0 ?1))
     if ((MAX_UNITS - units_ordered) > 0):
         Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (0 < ?q) (?q ≤ (MAX_UNITS - units_ordered)))
     if ((MAX_UNITS - units_ordered) == 0):
         EnterFulfilled (next_event_td ≥ order_period_ends)
     if (nonempty Vendor_must_Deliver_by):
-        Vendor quasi-responsibility Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_must_Deliver_by (tuple ?0 ?1))
+        Vendor quasi-responsibility Deliver(?0, ?1) (tdGEQ Vendor_must_Deliver_by (tuple ?0 ?1) next_event_td) where (has Vendor_must_Deliver_by (tuple ?0 ?1))
     if (nonempty Vendor_may_EmailInvoice_by):
-        Vendor may EmailInvoice(?0, ?1) (tdGEQ Vendor_may_EmailInvoice_by (tuple ?0 ?1) next_event_td) where (mapHas Vendor_may_EmailInvoice_by (tuple ?0 ?1))
+        Vendor may EmailInvoice(?0, ?1) (tdGEQ Vendor_may_EmailInvoice_by (tuple ?0 ?1) next_event_td) where (has Vendor_may_EmailInvoice_by (tuple ?0 ?1))
 
 action SubmitNewOrder(quantity: Nat) transitions to VendorAcceptingOrders:
     transform:
@@ -41,20 +41,20 @@ action Deliver(quantity: Nat, orderid: Nat) transitions to VendorAcceptingOrders
     transform:
         units_delivered := (units_delivered + quantity)
         if (event_role == Vendor):
-            Vendor_must_Deliver_by := (mapDelete Vendor_must_Deliver_by (tuple quantity orderid))
+            Vendor_must_Deliver_by := (delete Vendor_must_Deliver_by (tuple quantity orderid))
         Vendor_may_EmailInvoice_by := (mapSet Vendor_may_EmailInvoice_by (tuple quantity orderid) (last_event_td + 30d))
 
 action EmailInvoice(quantity: Nat, orderid: Nat) transitions to VendorAcceptingOrders:
     transform:
         units_invoiced := (units_invoiced + quantity)
         if (event_role == Vendor):
-            Vendor_may_EmailInvoice_by := (mapDelete Vendor_may_EmailInvoice_by (tuple quantity orderid))
+            Vendor_may_EmailInvoice_by := (delete Vendor_may_EmailInvoice_by (tuple quantity orderid))
         Customer_must_PayBill_by := (mapSet Customer_must_PayBill_by (tuple quantity orderid) (last_event_td + 14d))
 
 action PayBill(quantity: Nat, orderid: Nat) transitions to VendorAcceptingOrders:
     transform:
         total_paid := (total_paid + (quantity * PRICE_PER_UNIT))
         if (event_role == Customer):
-            Customer_must_PayBill_by := (mapDelete Customer_must_PayBill_by (tuple quantity orderid))
+            Customer_must_PayBill_by := (delete Customer_must_PayBill_by (tuple quantity orderid))
 
 action EnterFulfilled()  transitions to Fulfilled

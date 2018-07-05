@@ -225,6 +225,7 @@ class ExecEnv:
                     else:
                         assert False
 
+        # assert len(enabled_weak_obligs_by_role) == 0, enabled_weak_obligs_by_role
 
         # =====================================================
         # CASE 1: 1 or more entrance-enabled strong obligations

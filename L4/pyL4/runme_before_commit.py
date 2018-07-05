@@ -9,7 +9,7 @@ from src.independent.util import print_all_todos
 tests_to_run : Set[str] = { 'nlg' } if "nlg" in sys.argv else {
     'L4typechecker',
     # 'smtlegacy',
-    'symbexec',
+    # 'symbexec',
     'graphviz',
     'prettyprint',
     'nlg',

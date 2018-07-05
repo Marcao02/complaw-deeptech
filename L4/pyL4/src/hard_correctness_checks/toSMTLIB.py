@@ -213,8 +213,8 @@ class ToSMTLIB:
         )
 
         # 'mapSet': tdmapSet,
-        # 'mapDelete': tdmapDelete,
-        # 'mapHas': tdmapHas,
+        # 'delete': tdmapDelete,
+        # 'has': tdmapHas,
 
         # future_event_td should not be in the program after floating_rules_transpile_away
         # "(declare-const future_event_td Int)",

@@ -4,7 +4,7 @@ from typing import Iterable, NamedTuple
 
 from src.constants_and_defined_types import RoleId
 from src.interpreter.timedelta_map import tdmapDelete, tdmapSet, tdmapHas, tdmapTimeDeltaGEQ, tdmapTimeDeltaLT, \
-    tdmapHasItemExpiredBefore
+    tdmapHasItemExpiredBefore, tdmapMinValue
 from src.model.EventsAndTraces import Event
 from src.model.Statement import *
 
@@ -93,8 +93,9 @@ FN_SYMB_INTERP = {
     'tupleGet' : lambda t,i: t[i],
 
     'mapSet' : tdmapSet,
-    'mapDelete' : tdmapDelete,
-    'mapHas' : tdmapHas,
+    'delete' : tdmapDelete,
+    'has' : tdmapHas,
+    'minValue' : tdmapMinValue,
     'tdmapHasItemExpiredBefore' : tdmapHasItemExpiredBefore,
     'tdGEQ' : tdmapTimeDeltaGEQ,
     'tdLT' : tdmapTimeDeltaLT,
