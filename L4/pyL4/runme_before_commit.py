@@ -9,7 +9,7 @@ from src.independent.util import print_all_todos
 tests_to_run : Set[str] = { 'nlg' } if "nlg" in sys.argv else {
     'L4typechecker',
     # 'smtlegacy',
-    # 'symbexec',
+    'symbexec',
     'graphviz',
     'prettyprint',
     'nlg',
@@ -24,7 +24,7 @@ def runit(s, optional_s=""):
 
 # it would be nice to have a sys.argv parser library allow us to do --verbose or -v
 # VERBOSE = True
-VERBOSE = False
+VERBOSE = True
 
 if not "onlytc" in sys.argv and not "tconly" in sys.argv:
     splits : Dict[str,float] = {}

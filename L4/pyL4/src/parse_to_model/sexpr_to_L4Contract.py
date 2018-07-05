@@ -8,7 +8,6 @@ from src.hard_correctness_checks.normal_forms import eliminate_must, reset_ances
 from src.model.EventsAndTraces import breachActionId, interveneOnDelayId
 from src.independent.util_for_sequences import flatten
 from src.independent.util_for_str import nonemptySortedSubsets, mapjoin
-from src.parse_to_model.floating_rules_transpile import floating_rules_transpile_away
 from src.independent.util import chcaststr, todo_once, castid, chcast
 from src.independent.util_for_str import streqci, isFloat, isInt
 from src.constants_and_defined_types import *
@@ -18,9 +17,7 @@ from src.independent.SExpr import SExpr, SExprOrStr, sexpr_rewrite
 from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER, prettySExprStr
 from src.independent.typing_imports import *
 from src.model.Action import Action
-from src.model.ActionRule import FutureActionRuleType, PartyFutureActionRule, ActionRule, NextActionRule, \
-    EnvNextActionRule, \
-    PartyNextActionRule
+from src.model.ActionRule import ActionRule, NextActionRule, EnvNextActionRule, PartyNextActionRule
 from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
     LocalVar, StateVar, PrimedStateVar
 from src.model.ContractClaim import ContractClaim, StateInvariant
@@ -330,8 +327,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         #             sort = rule.rule_varname_to_sort(self.top,rule_varname)
         #             self.top.register_sorted_name(rule_varname, sort)
 
-        floating_rules_transpile_away(self.top, self.verbose)
-
         reset_ancestor_statement_pointers(self.top, "At end of L4ContractConstructor.mk_l4contract, ")
 
         return self.top
@@ -636,13 +631,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif 'visits' in x or 'traversals' in x:
                 situation.visit_bounds = x # self.term(x, None, situation)
 
-            elif head("possibly-from-earlier"):
-                assert x[1] in self.top.roles
-                assert x[2] in ["must-later", "may-later"]
-                floating_rule_type = FutureActionRuleType(x[1], x[3], x[2])
-                situation.possible_floating_rule_types.add(floating_rule_type)
-                self.top.possible_floating_rule_types.add(floating_rule_type)
-
             elif head("nlg"):
                 situation.nlg = x[1][1]
             elif head("nlglogicsection"):
@@ -715,9 +703,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             elif head("nlglogicsection"):
                 a.nlgsection = x[1][1]
 
-            elif head('Future'):
-                a.futures = self._mk_futures(x.tillEnd(1), a)
-
             elif head(ALLOWED_SUBJECTS_DEC_LABEL):
                 a.allowed_subjects = x.tillEnd(1)
 
@@ -753,11 +738,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         self._building_action_id = action_id
         return a
 
-    def _mk_futures(self, rules:SExpr, src_action:Action) -> List[PartyFutureActionRule]:
-        rv : List[PartyFutureActionRule] = []
-        for action_rule_expr in rules:
-            rv.extend(self._with_macro_handling(action_rule_expr, self._mk_future_action_rule, (src_action,))) # type:ignore
-        return rv
 
     def _mk_action_params(self, parts:List[List[str]]) -> ParamsDec:
         pdec : List[str]
@@ -972,7 +952,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 if not self._building_future_action_rule:
                     self.assertOrSyntaxError(self._building_situation_id is None and not self._building_next_action_rule,
                                              parent_SExpr,
-                                             f"Can't use primed variables outside of a StateTransform or Future section.")# {self._building_situation_id} {self._building_next_action_rule}")
+                                             f"Can't use primed variables outside of a StateTransform section.")# {self._building_situation_id} {self._building_next_action_rule}")
                 self.assertOrSyntaxError(unprimed(x) in self.top.state_var_decs, parent_SExpr, f"Primed variable {x} does not appear to be a state variable.")
                 return PrimedStateVar(self.top.state_var_decs[unprimed(x)], parent_SExpr.coord() if parent_SExpr else None)
 
@@ -1111,44 +1091,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 print("Atypical time constraint:", rv)
         # else:
         #     print("Typical time constraint:", rv)
-        return rv
-
-    def _mk_future_action_rule(self, expr:SExpr, src_action:Action) -> PartyFutureActionRule:
-        self._building_future_action_rule = True
-        entrance_enabled_guard: Optional[Term] = None
-        if expr[0] == 'if':
-            entrance_enabled_guard = self._mk_term(expr[1], None, src_action)
-            expr = expr[2]
-
-        role_id = castid(RoleId, expr[0])
-        deontic_keyword = castid(DeonticKeyword, expr[1])
-        args: Optional[List[RuleParamId]] = None
-        if isinstance(expr[2],str):
-            action_id = castid(ActionId,expr[2])
-            args = []
-        else:
-            action_id = castid(ActionId, (expr[2][0]))
-
-            args_part = expr[2].tillEnd(1)
-            if len(args_part) == 0:
-                args = []
-            elif args_part[0][0] == "?":
-                assert all([args_part[i][0] == "?" for i in range(len(args_part))]), \
-                    "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
-                args = cast(List[RuleParamId], args_part)
-
-        if not is_derived_trigger_id(action_id):
-            self.referenced_nonderived_action_ids.add(action_id)
-
-        rv = PartyFutureActionRule(src_action.action_id, [role_id], action_id, args, entrance_enabled_guard, deontic_keyword)
-        if args is None:
-            rv.fixed_args = [self._mk_term(arg, None, src_action, rv, args_part) for arg in args_part]
-
-        rem = expr.tillEnd(3)
-        self._handle_optional_action_rule_parts(rem, rv, None, src_action)
-
-        src_action.add_future_action_rule(rv)
-        self._building_future_action_rule = False
         return rv
 
 

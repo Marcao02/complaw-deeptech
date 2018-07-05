@@ -24,7 +24,6 @@ ALL_EXAMPLES : List[Union[str,
     'test/test_symbexec_multiwrite_error.l4',
     'test/test_local_vars.l4',
 
-
     'toy_and_teaching/juggling.l4',
     'toy_and_teaching/collatz.l4',
     'toy_and_teaching/collatz2.l4',
@@ -35,7 +34,6 @@ ALL_EXAMPLES : List[Union[str,
     'toy_and_teaching/meng_buy_booze.l4',
     'toy_and_teaching/meng_buy_lots_of_booze.l4',
 
-    'from_academic_lit/hvitved_master_sales_agreement_full_with_ids_and_obligation_objects.l4',
     'from_academic_lit/hvitved_master_sales_agreement_full_without_future_obligations.l4',
     'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
     'from_academic_lit/hvitved_lease.l4',

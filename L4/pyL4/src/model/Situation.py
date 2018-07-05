@@ -5,7 +5,7 @@ from src.model.EventsAndTraces import breachSituationId
 from src.independent.util import indent
 from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
-from src.model.ActionRule import NextActionRule, FutureActionRuleType, roles_to_str
+from src.model.ActionRule import NextActionRule, roles_to_str
 from src.model.Term import Term
 
 T = TypeVar('T')
@@ -24,8 +24,6 @@ class Situation:
 
 
         self.parent_action_id : Optional[ActionId] = None
-
-        self.possible_floating_rule_types : Set[FutureActionRuleType] = set()
 
         self.nlg = ""
         self.nlgsection = "root"

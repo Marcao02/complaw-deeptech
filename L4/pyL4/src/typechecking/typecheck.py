@@ -489,7 +489,4 @@ class TypeChecker:
             self.typecheck_term(prop, 'Bool')
         for statement in action.state_transform_statements():
             self.typecheck_statement(statement)
-        for rule in action.future_action_rules():
-            assert isinstance(rule,ActionRule)
-            self.typecheck_action_rule(rule)
 

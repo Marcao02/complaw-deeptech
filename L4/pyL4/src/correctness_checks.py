@@ -55,7 +55,7 @@ def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
     return True
 
 def role_ids_recognized(it:L4ContractConstructorInterface) -> bool:
-    for rule in chain(cast(Iterable[ActionRule], it.top.nextaction_rules()), cast(Iterable[ActionRule],it.top.futureaction_rules())):
+    for rule in it.top.nextaction_rules():
         role_ids = rule.role_ids
         for role_id in role_ids:
             if role_id not in it.top.roles:

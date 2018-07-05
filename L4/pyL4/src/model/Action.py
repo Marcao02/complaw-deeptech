@@ -5,7 +5,7 @@ from src.independent.util import indent, castid
 from src.constants_and_defined_types import ActionParamId, SituationId, ActionId, LOOP_KEYWORD, \
     LocalVarId
 from src.independent.typing_imports import *
-from src.model.ActionRule import PartyFutureActionRule, ActionRule
+from src.model.ActionRule import ActionRule
 from src.model.StateTransform import StateTransform
 from src.model.Statement import LocalVarDec, Statement
 from src.model.Situation import Situation, ParamsDec
@@ -32,8 +32,6 @@ class Action:
         self.postconditions: List[Term] = []
         self.prose_refs : List[str] = []
 
-        self.futures : List[PartyFutureActionRule] = []
-
         self.param_sorts_by_name: ParamsDec = dict()  # str param id -> str sort id
         self.param_names : List[ActionParamId] = []
         self.param_name_to_ind : Dict[ActionParamId,int] = dict()
@@ -52,19 +50,10 @@ class Action:
             for s in self.state_transform.statements:
                 yield s
 
-    def add_future_action_rule(self, far:PartyFutureActionRule) -> None:
-        self.futures.append(far)
-
-    def future_action_rules(self) -> Iterator[PartyFutureActionRule]:
-        return self.futures.__iter__()
-
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         rviter : Iterable[T] = iteraccum_maybe or []
         for statement in self.state_transform_statements():
             rviter = chain(rviter,statement.forEachTerm(f,rviter))
-        for rule in self.future_action_rules():
-            assert isinstance(rule,ActionRule)
-            rviter = chain(rviter, rule.forEachTerm(f,rviter))
         return rviter
 
     def forEach(self, pred:Callable[[Any],bool], f:Callable[[Any],Iterable[T]]) -> Iterable[T]:
@@ -73,9 +62,6 @@ class Action:
             rviter = chain(rviter, f(self))
         for statement in self.state_transform_statements():
             rviter = chain(rviter, statement.forEach(pred, f))
-        for rule in self.future_action_rules():
-            assert isinstance(rule, ActionRule)
-            rviter = chain(rviter, rule.forEach(pred, f))
         return rviter
     
     def __str__(self) -> str:
@@ -101,9 +87,6 @@ class Action:
         #     rv += indent(1) + "prove " + mapjoin(str, self.traversal_bounds, " ") + "\n"
         if self.state_transform:
             rv += str(self.state_transform) + "\n"
-
-        for t in self.future_action_rules():
-            rv += t.toStr(i + 1) + "\n"
 
         for pre in self.postconditions:
             rv += indent(i+1) + "post: " + str(pre) + "\n"

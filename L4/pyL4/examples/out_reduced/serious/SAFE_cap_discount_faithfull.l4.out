@@ -20,12 +20,6 @@ state vars:
     writes≤1 liq_cashout : $ := 0
     writes≤1 dis_cashout : $
 
-action ExternalShareCntChange()  transitions to AfterExternalShareCntChange
-
-action ExternalShareCntChange()  transitions to AfterExternalShareCntChange
-
-action ExternalShareCntChange()  transitions to AfterExternalShareCntChange
-
 situation Signed:
     Investor may TransferInvestmentCash
 

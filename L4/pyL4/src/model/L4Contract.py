@@ -8,8 +8,7 @@ from src.independent.typing_imports import *
 from src.constants_and_defined_types import *
 from src.model.Term import Term
 from src.model.Action import Action
-from src.model.ActionRule import ActionRule, PartyFutureActionRule, NextActionRule, EnvNextActionRule, \
-    FutureActionRuleType, PartyNextActionRule
+from src.model.ActionRule import ActionRule, NextActionRule, EnvNextActionRule, PartyNextActionRule
 from src.model.BoundVar import StateVar
 from src.model.ContractClaim import ContractClaim, StateInvariant
 from src.model.ContractParamDec import ContractParamDec
@@ -54,8 +53,6 @@ class L4Contract:
         self.situations_by_id: Dict[SituationId, Situation] = dict()
         self.actions_by_id: Dict[ActionId, Action] = dict()
 
-        self.possible_floating_rule_types: Set[FutureActionRuleType] = set()
-
         self.ordered_declarations : List[Union[Action,Situation]] = list()
 
         self.macros : Dict[str, L4Macro] = dict()
@@ -94,16 +91,10 @@ class L4Contract:
         else:
             self.all_sorted_names[name] = sort
 
-
     def nextaction_rules(self) -> Iterator[NextActionRule]:
         for s in self.situations_iter():
             for nar in s.action_rules():
                 yield nar
-    def futureaction_rules(self) -> Iterator[PartyFutureActionRule]:
-        for a in self.actions_iter():
-            for far in a.future_action_rules():
-                yield far
-    def action_rules(self) -> Iterator[ActionRule]: return chain(self.nextaction_rules(), self.futureaction_rules())
 
     def new_state_var_ref(self, varname, coord:Optional[FileCoord] = None) -> StateVar:
         return StateVar(self.state_var_decs[varname], coord)

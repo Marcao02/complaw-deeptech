@@ -1,3 +1,6 @@
+# THIS IS OBSOLETE
+`must-later`/`may-later` are no longer part of the language.
+
 # **INCOMPLETE**
 copied from now-closed issue https://github.com/legalese/complaw-deeptech/issues/36
 

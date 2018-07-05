@@ -8,10 +8,6 @@ from src.model.Term import Term
 
 T = TypeVar('T')
 
-class FutureActionRuleType(NamedTuple):
-    rid: RoleId
-    aid: ActionId
-    kw: DeonticKeyword
 
 # ABSTRACT
 class ActionRule:
@@ -81,7 +77,7 @@ class ActionRule:
     def __repr__(self) -> str:
         return self.toStr(0)
     
-def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextActionRule'], i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
+def common_party_action_rule_toStr(ar:'PartyNextActionRule', i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
     rv: str = ""
     indent_level = i
     if ar.entrance_enabled_guard:
@@ -119,22 +115,6 @@ def common_party_action_rule_toStr(ar:Union['PartyFutureActionRule', 'PartyNextA
         rv += " where " + str(ar.where_clause)
 
     return rv
-
-class PartyFutureActionRule(ActionRule):
-    def __init__(self,
-                 src_action_id: ActionId,
-                 role_ids: List[RoleId],
-                 action_id: ActionId,
-                 ruleparam_names: Optional[List[RuleParamId]],
-                 entrance_enabled_guard: Optional[Term],
-                 deontic_keyword: DeonticKeyword) -> None:
-        super().__init__(role_ids, action_id, ruleparam_names, entrance_enabled_guard)
-        self.role_id = role_ids[0]
-        self.src_action_id = src_action_id
-        self.deontic_keyword = deontic_keyword
-
-    def toStr(self, i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
-        return common_party_action_rule_toStr(self, i, fixed_param_vals)
 
 
 # ABSTRACT
