@@ -5,13 +5,13 @@ from src.parse_to_model.sexpr_to_L4Contract import primed, isprimed, unprimed
 from src.independent.util import todo_once, chcast, contract_bug, castid
 from src.independent.util_for_dicts import hasNotNone
 from src.independent.util_for_dicts import dictInc
-from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst
+from src.constants_and_defined_types import LOOP_KEYWORD, LocalVarSubst, ENV_ROLE
 from src.constants_and_defined_types import TIME_CONSTRAINT_OPERATORS, TIME_CONSTRAINT_PREDICATES, \
     ContractParamId, SituationId, ActionParamSubstList, \
     Data, GVarSubst, ContractParamSubst
 from src.interpreter.interpreter_support import *
 from src.model.Action import Action
-from src.model.ActionRule import PartyNextActionRule, EnvNextActionRule, NextActionRule
+from src.model.EventRule import ActorEventRule, DeadlineEventRule, EventRule
 from src.model.BoundVar import StateVar, ContractParam, ActionBoundActionParam, \
     RuleBoundActionParam, LocalVar, PrimedStateVar
 from src.model.ContractParamDec import ContractParamDec
@@ -197,24 +197,24 @@ class ExecEnv:
 
     def assess_event_legal_wrt_nextrules(self, event:Event, verbose=True) -> EventLegalityAssessment:
 
-        enabled_strong_obligs : List[PartyNextActionRule] = list()
+        enabled_strong_obligs : List[ActorEventRule] = list()
 
-        enabled_permissions : List[PartyNextActionRule] = list()
-        enabled_env_action_rules : List[EnvNextActionRule] = list()
+        enabled_permissions : List[ActorEventRule] = list()
+        enabled_env_action_rules : List[DeadlineEventRule] = list()
 
-        enabled_weak_obligs_by_role : Dict[RoleId, List[PartyNextActionRule]] = dict()
+        enabled_weak_obligs_by_role : Dict[RoleId, List[ActorEventRule]] = dict()
         enabled_weak_obligs = list()
 
-        nar: NextActionRule
+        nar: NextEventRule
 
         for nar in self.last_or_current_situation.action_rules():
             entrance_enabled = not nar.entrance_enabled_guard or chcast(bool, self.evalTerm(nar.entrance_enabled_guard))
 
             if entrance_enabled:
-                if isinstance(nar, EnvNextActionRule):
+                if isinstance(nar, DeadlineEventRule):
                     enabled_env_action_rules.append(nar)
                 else:
-                    assert isinstance(nar, PartyNextActionRule)
+                    assert isinstance(nar, ActorEventRule)
                     if nar.deontic_keyword == 'may' or nar.deontic_keyword == 'should':
                         enabled_permissions.append(nar)
                     elif nar.deontic_keyword == 'must':
@@ -245,8 +245,8 @@ class ExecEnv:
                              "This is a contract bug that eventually will be ruled out statically.")
                 # return ContractFlawedError()
             else:
-                assert isinstance(enabled_strong_obligs[0],PartyNextActionRule)
-                if self.current_event_compatible_with_enabled_NextActionRule(enabled_strong_obligs[0]):
+                assert isinstance(enabled_strong_obligs[0],ActorEventRule)
+                if self.current_event_compatible_with_enabled_NextEventRule(enabled_strong_obligs[0]):
                     return EventOk()
                 else:
                     return BreachResult(enabled_strong_obligs[0].role_ids,
@@ -267,11 +267,11 @@ class ExecEnv:
         todo_once("Verbose print option here for showing compatible enabled env actions and permissions")
         # We ignore permissions for roles that are not the current role id, for actions that aren't the current
         # action id, whose time constraint is false, or whose where clause is false
-        compat_enabled_permissions = list(filter(self.current_event_compatible_with_enabled_NextActionRule, enabled_permissions))
+        compat_enabled_permissions = list(filter(self.current_event_compatible_with_enabled_NextEventRule, enabled_permissions))
         if len(compat_enabled_permissions) > 0:
             return EventOk()
         # Similarly for Env actions:
-        compat_enabled_env_action_rules = list(filter(self.current_event_compatible_with_enabled_NextActionRule, enabled_env_action_rules))
+        compat_enabled_env_action_rules = list(filter(self.current_event_compatible_with_enabled_NextEventRule, enabled_env_action_rules))
         if len(compat_enabled_env_action_rules) > 0:
             return EventOk()
 
@@ -295,7 +295,7 @@ class ExecEnv:
         for roleid_with_wo in enabled_weak_obligs_by_role:
             for rule in enabled_weak_obligs_by_role[roleid_with_wo]:
                 # print(f"An enabled weak oblig rule for {roleid_with_wo}: " + str(rule))
-                if self.current_event_compatible_with_enabled_NextActionRule(rule):
+                if self.current_event_compatible_with_enabled_NextEventRule(rule):
                     if verbose:
                         print("weak oblig rule checks out: ", rule)
                     return EventOk()
@@ -311,25 +311,29 @@ class ExecEnv:
 
     # Only if the current situation is an anonymous situation (i.e. given by a FollowingSituation declaration) is it possible
     # for the where_clause of action_rule to contain action-bound action parameters.
-    def current_event_compatible_with_enabled_NextActionRule(self, action_rule:NextActionRule)  -> bool:
+    def current_event_compatible_with_enabled_NextEventRule(self, action_rule:EventRule)  -> bool:
         assert self.cur_event is not None
         rv : bool
         self.evaluation_is_in_next_action_rule = True
-        role_action_match = self.cur_event.role_id in action_rule.role_ids and self.cur_event.action_id == action_rule.action_id
-        if not role_action_match:
-            rv = False
-        elif not self.evalTimeConstraint(action_rule.time_constraint):
-            rv = False
-        elif action_rule.where_clause:
-            rv = chcast(bool,self.evalTerm(action_rule.where_clause))
-        elif action_rule.fixed_args:
-            if self.cur_event.actionparam_subst_list:
-                argvals = [self.evalTerm(arg) for arg in action_rule.fixed_args]
-                rv = all(argvals[i] == self.cur_event.actionparam_subst_list[i] for i in range(len(self.cur_event.actionparam_subst_list)))
-            else:
-                rv = len(action_rule.fixed_args) == 0
+        print("event role id", self.cur_event.role_id)
+        if isinstance(action_rule,DeadlineEventRule):
+            rv = self.cur_event.role_id == ENV_ROLE
         else:
-            rv = True
+            role_action_match = self.cur_event.role_id in action_rule.role_ids and self.cur_event.action_id == action_rule.action_id
+            if not role_action_match:
+                rv = False
+            elif not self.evalTimeConstraint(action_rule.time_constraint):
+                rv = False
+            elif action_rule.where_clause:
+                rv = chcast(bool,self.evalTerm(action_rule.where_clause))
+            elif action_rule.fixed_args:
+                if self.cur_event.actionparam_subst_list:
+                    argvals = [self.evalTerm(arg) for arg in action_rule.fixed_args]
+                    rv = all(argvals[i] == self.cur_event.actionparam_subst_list[i] for i in range(len(self.cur_event.actionparam_subst_list)))
+                else:
+                    rv = len(action_rule.fixed_args) == 0
+            else:
+                rv = True
         self.evaluation_is_in_next_action_rule = False
         return rv
 
@@ -383,7 +387,7 @@ class ExecEnv:
     def evalStatement(self, stmt:Statement, verbose:bool):
         # An Action's StateTransform block is *always* evaluated in the most recent state variable and
         # action parameter substitution context that's visible to it, as given by self.gvarvals and self.cur_event,
-        # even when applying an action from a PartlyInstantiatedPartyFutureActionRule.
+        # even when applying an action from a PartlyInstantiatedPartyFutureEventRule.
         # Therefore, this function does not take an EvalContext argument.
 
         if isinstance(stmt, StateVarAssign):

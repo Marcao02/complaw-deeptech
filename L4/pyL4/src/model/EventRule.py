@@ -8,15 +8,16 @@ from src.model.Term import Term
 
 T = TypeVar('T')
 
+# EventRule is a ActorEventRule or a DeadlineEventRule
 
 # ABSTRACT
-class ActionRule:
+class EventRule:
     def __init__(self,
-                 role_ids: List[RoleId],
+                 src_id: SituationId,
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term]) -> None:
-        self.role_ids = role_ids
+        self.src_id = src_id
         self.action_id = action_id
         self.entrance_enabled_guard = entrance_enabled_guard
         self.time_constraint: Optional[Term] = None
@@ -77,7 +78,7 @@ class ActionRule:
     def __repr__(self) -> str:
         return self.toStr(0)
     
-def common_party_action_rule_toStr(ar:'PartyNextActionRule', i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
+def common_party_action_rule_toStr(ar:'ActorEventRule', i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
     rv: str = ""
     indent_level = i
     if ar.entrance_enabled_guard:
@@ -117,19 +118,7 @@ def common_party_action_rule_toStr(ar:'PartyNextActionRule', i:int, fixed_param_
     return rv
 
 
-# ABSTRACT
-class NextActionRule(ActionRule):
-    def __init__(self,
-                 src_id: SituationId,
-                 role_ids: List[RoleId],
-                 action_id: ActionId,
-                 ruleparam_names: Optional[List[RuleParamId]],
-                 entrance_enabled_guard: Optional[Term]) -> None:
-        super().__init__(role_ids, action_id, ruleparam_names, entrance_enabled_guard)
-        self.time_constraint : Optional[Term]
-        self.src_id = src_id
-
-class PartyNextActionRule(NextActionRule):
+class ActorEventRule(EventRule):
     def __init__(self,
                  src_id: SituationId,
                  role_ids: List[RoleId],
@@ -137,22 +126,25 @@ class PartyNextActionRule(NextActionRule):
                  ruleparam_names: Optional[List[RuleParamId]],
                  entrance_enabled_guard: Optional[Term],
                  deontic_keyword: DeonticKeyword) -> None:
-        super().__init__(src_id, role_ids, action_id, ruleparam_names, entrance_enabled_guard)
-
+        super().__init__(src_id, action_id, ruleparam_names, entrance_enabled_guard)
+        self.role_ids = role_ids
+        self.time_constraint: Optional[Term]
         self.deontic_keyword = deontic_keyword
 
     def toStr(self, i:int) -> str:
         return common_party_action_rule_toStr(self, i)
 
 
-class EnvNextActionRule(NextActionRule):
+class DeadlineEventRule(EventRule):
     def __init__(self,
                  src_id: SituationId,
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
-                 entrance_enabled_guard: Optional[Term]) -> None:
-        super().__init__(src_id, [ENV_ROLE], action_id, ruleparam_names, entrance_enabled_guard)
-        self.role_id = ENV_ROLE
+                 entrance_enabled_guard: Optional[Term]
+                 # deadline_fn: Term
+                 ) -> None:
+        super().__init__(src_id, action_id, ruleparam_names, entrance_enabled_guard)
+        # self.deadline_fn = deadline_fn
 
     def toStr(self, i:int) -> str:
         rv : str = ""
@@ -161,7 +153,6 @@ class EnvNextActionRule(NextActionRule):
             rv = indent(indent_level) + "if " + str(self.entrance_enabled_guard) + ":\n"
             indent_level += 1
 
-        assert len(self.role_ids) == 1 and self.role_ids[0] == ENV_ROLE
         rv += indent(indent_level) + self.action_id
 
         if self.ruleparam_names:

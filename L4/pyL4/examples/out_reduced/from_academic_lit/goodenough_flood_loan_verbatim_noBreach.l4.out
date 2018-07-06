@@ -24,8 +24,8 @@ action RequestPrinciple()  transitions to PrincipleRequested:
         prove (PAYMENT2_AMOUNT == ((LOAN_AMOUNT / 2) + ((LOAN_AMOUNT / 2) * INTEREST_RATE)))
 
 situation PrincipleRequested:
-    AdvanceDeadlinePasses (next_event_td > 152 days, 0:00:00)
     Lender may AdvancePrinciple (next_event_dt ≤ 152 days, 0:00:00)
+    AdvanceDeadlinePasses (next_event_td > 152 days, 0:00:00)
 
 action AdvancePrinciple()  transitions to Pmt1Accruing:
     transform:
@@ -104,8 +104,8 @@ action AcceleratedPaymentFailure1()  transitions to Crisis1
 
 situation Crisis1:
     Borrower may MakePmt12 (next_event_td == last_situation_td)
-    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
     Lender may FileLawsuit (next_event_td < 2343 days, 0:00:00)
+    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
 
 situation Pmt2Accruing:
     Borrower may Bankruptcy2 (next_event_td < 882 days, 0:00:00)
@@ -166,8 +166,8 @@ action AcceleratedPaymentFailure2()  transitions to Crisis2
 
 situation Crisis2:
     Borrower may MakePmt2 (next_event_td == last_situation_td)
-    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
     Lender may FileLawsuit (next_event_td < 2343 days, 0:00:00)
+    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
 
 action MakePmt2()  transitions to Term:
     transform:

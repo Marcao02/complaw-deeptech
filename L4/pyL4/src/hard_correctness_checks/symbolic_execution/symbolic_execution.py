@@ -18,7 +18,7 @@ from src.parse_to_model.sexpr_to_L4Contract import unprimed, isprimed
 from src.model.BoundVar import BoundVar
 from src.model.Literal import Literal, SortLit, EventIdLit
 from src.model.Action import Action
-from src.model.ActionRule import NextActionRule
+from src.model.EventRule import EventRule
 from src.model.L4Contract import L4Contract
 from src.model.Situation import Situation
 from src.model.Statement import StatementList, Statement, StateVarAssign, IfElse, FVRequirement, LocalVarDec
@@ -69,17 +69,17 @@ class GuardedBlockPath(NamedTuple):
     def __str__(self) -> str:
         return f"GuardedBlockPath(block={self.block}, next_state={self.next_state}, next_statement={self.next_statement}, action={self.action.action_id}, action_params={self.action_params}, core={self.core}"
 
-class ActionRuleEnabledPath(NamedTuple):
+class EventRuleEnabledPath(NamedTuple):
     # guard: Z3Term  # already conjoined with path_constraint, for now
-    rule: NextActionRule
-    # Note that in the ActionRules of a FollowingSituation, action parameters referring to the previous action are
+    rule: EventRule
+    # Note that in the EventRules of a FollowingSituation, action parameters referring to the previous action are
     # forbidden. It's just too confusing. Parser will recommend using a local variable in the StateTransform.
     core: CoreSymbExecState
 
 
-class ActionRuleParamsConstraintPath(NamedTuple):
+class EventRuleParamsConstraintPath(NamedTuple):
     # wherewhen: Z3Term  # already conjoined with path_constraint, for now
-    rule: NextActionRule
+    rule: EventRule
     action_params: OneUseStore  # newly introduced
     core: CoreSymbExecState
 
@@ -92,7 +92,7 @@ class AssertionPath(NamedTuple):
     action_params: Optional[OneUseStore]
     core: CoreSymbExecState
 
-QueryPath = Union[GuardedBlockPath, ActionRuleEnabledPath, ActionRuleParamsConstraintPath, AssertionPath]
+QueryPath = Union[GuardedBlockPath, EventRuleEnabledPath, EventRuleParamsConstraintPath, AssertionPath]
 
 
 class SEvalRVChange(NamedTuple):
@@ -538,11 +538,11 @@ def symbolic_execution(prog:L4Contract):
         todo_once("QueryPath for each precondition, or their conjunction")
 
         for rule in s.action_rules():
-            assert isinstance(rule,NextActionRule)
+            assert isinstance(rule,EventRule)
             if rule.entrance_enabled_guard:
                 enabled_guard_z3 = term2z3(rule.entrance_enabled_guard, None, None,
                                            CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
-                addQueryPath(ActionRuleEnabledPath( rule,
+                addQueryPath(EventRuleEnabledPath( rule,
                                                     CoreSymbExecState(conj(enabled_guard_z3, pathconstr),
                                                                       time_pathconstr, state, t, envvars, extra)
                 ))
@@ -557,7 +557,7 @@ def symbolic_execution(prog:L4Contract):
 
         return SEvalRVStopThread("from sevalSituation")
 
-    def sevalRuleIgnoreGuard(rule:NextActionRule, core:CoreSymbExecState) -> SEvalRV:
+    def sevalRuleIgnoreGuard(rule:EventRule, core:CoreSymbExecState) -> SEvalRV:
         pathconstr, time_pathconstr, state, t, envvars, extra = core
         assert isinstance(state, LedgerDict)
         action = prog.action(rule.action_id)
@@ -599,14 +599,14 @@ def symbolic_execution(prog:L4Contract):
             if rule.time_constraint and rule.time_constraint != "no_time_constraint":
                 tc = term2z3(rule.time_constraint, None, ruleparam_store, newcore)
 
-            addQueryPath( ActionRuleParamsConstraintPath(
+            addQueryPath( EventRuleParamsConstraintPath(
                 rule, actparam_store, CoreSymbExecState(conj(wc, pathconstr), conj(tc, time_pathconstr), state, t, envvars, extra)
             ))
             return SEvalRVStopThread("from sevalRuleIgnoreGuard")
 
 
     def sevalRuleIgnoreGuardAndParamConstraints(
-                             rule:NextActionRule,
+                             rule:EventRule,
                              actparam_store: OneUseStore,
                              core: CoreSymbExecState) -> SEvalRV:
         if TRACE:
@@ -685,14 +685,14 @@ def symbolic_execution(prog:L4Contract):
                     return sevalActionAfterStateTransform(qp.action, qp.next_state, qp.core)
                 # return SEvalRVInconsistent("GuardedBlockPath query unsat")
 
-        elif isinstance(qp, ActionRuleEnabledPath):
+        elif isinstance(qp, EventRuleEnabledPath):
             checkres = check(qp.core.full_constraint())
             if checkres == Z3.sat:# or checkres == Z3.unknown:
                 return sevalRuleIgnoreGuard(qp.rule, qp.core)
             elif checkres == Z3.unsat:
-                return SEvalRVInconsistent("ActionRuleEnabledPath query unsat")
+                return SEvalRVInconsistent("EventRuleEnabledPath query unsat")
 
-        elif isinstance(qp, ActionRuleParamsConstraintPath):
+        elif isinstance(qp, EventRuleParamsConstraintPath):
             assert isinstance(qp.core.state, LedgerDict)
             # print("z3 query", qp.core.path_constraint)
             checkres = check(qp.core.full_constraint())
@@ -706,7 +706,7 @@ def symbolic_execution(prog:L4Contract):
             elif checkres == Z3.unsat:
                 if TRACE:
                     print("path constraint unsat:", z3termPrettyPrint(qp.core.full_constraint()))
-                return SEvalRVInconsistent("ActionRuleParamsConstraintPath query unsat")
+                return SEvalRVInconsistent("EventRuleParamsConstraintPath query unsat")
 
         elif isinstance(qp, AssertionPath):
             checkres = check(Z3.And(Z3.Not(qp.assertion), qp.core.full_constraint()))

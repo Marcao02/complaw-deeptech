@@ -8,7 +8,7 @@ from src.independent.typing_imports import *
 from src.constants_and_defined_types import *
 from src.model.Term import Term
 from src.model.Action import Action
-from src.model.ActionRule import ActionRule, NextActionRule, EnvNextActionRule, PartyNextActionRule
+from src.model.EventRule import EventRule, DeadlineEventRule, ActorEventRule
 from src.model.BoundVar import StateVar
 from src.model.ContractClaim import ContractClaim, StateInvariant
 from src.model.ContractParamDec import ContractParamDec
@@ -91,10 +91,17 @@ class L4Contract:
         else:
             self.all_sorted_names[name] = sort
 
-    def nextaction_rules(self) -> Iterator[NextActionRule]:
+    def event_rules(self) -> Iterator[EventRule]:
         for s in self.situations_iter():
             for nar in s.action_rules():
                 yield nar
+
+    def actor_event_rules(self) -> Iterator[ActorEventRule]:
+        for s in self.situations_iter():
+            for nar in s.action_rules():
+                if isinstance(nar, ActorEventRule):
+                    yield nar
+
 
     def new_state_var_ref(self, varname, coord:Optional[FileCoord] = None) -> StateVar:
         return StateVar(self.state_var_decs[varname], coord)
@@ -102,7 +109,7 @@ class L4Contract:
     def situation_mentions_action_in_nextaction_rule(self, situationid:SituationId, actionid:ActionId) -> bool:
         cursituation = self.situation(situationid)
         for c in cursituation.action_rules():
-            if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
+            if isinstance(c, ActorEventRule) or isinstance(c, DeadlineEventRule):
                 if c.action_id == actionid:
                     return True
             else:
@@ -114,7 +121,7 @@ class L4Contract:
     #     cursituation = self.situation(situationid)
     #     rv : Set[ActionId] = set()
     #     for c in cursituation.future_action_rules():
-    #         if isinstance(c, PartyNextActionRule) or isinstance(c, EnvNextActionRule):
+    #         if isinstance(c, ActorEventRule) or isinstance(c, DeadlineEventRule):
     #             if c.action_id == actionid:
     #                 rv.add(c.action_id)
     #         else:
@@ -122,7 +129,7 @@ class L4Contract:
     #
     #     return rv
 
-    def transitions(self) -> Iterator[NextActionRule]:
+    def transitions(self) -> Iterator[EventRule]:
         for sit in self.situations_iter():
             for c in sit.action_rules():
                 yield c
@@ -225,11 +232,11 @@ class L4Contract:
     #
     #     cursituation = self.situation(situationid1)
     #     for c in cursituation.future_action_rules():
-    #         if isinstance(c, PartyNextActionRule):
+    #         if isinstance(c, ActorEventRule):
     #             action = self.action(c.action_id)
     #             if action.dest_situation_id == situationid2:
     #                 return True
-    #         elif isinstance(c, ActionRuleToSituation):
+    #         elif isinstance(c, EventRuleToSituation):
     #             if c.dest_id == situationid2:
     #                 return True
     #         else:

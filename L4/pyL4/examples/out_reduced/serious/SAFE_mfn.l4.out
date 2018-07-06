@@ -47,8 +47,8 @@ action DeliverTransactionDocsWithoutPRA()  transitions to AfterDeliverTransactio
 
 action SendProRataRightsAgreementForSigning()  transitions to AfterSendProRataRightsAgreementForSigning
     following situation:
-        Breach_Investor (next_event_td > (last_situation_td + 1d))
         Investor may SignPRA (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Investor (next_event_td > (last_situation_td + 1d))
 
 action SignPRA()  transitions to AfterPRASigned
 
@@ -67,9 +67,9 @@ action IssueSAFEPreferredStock(company_capitalization: PosShareCnt, company_valu
 action DoEquityFinancing()  transitions to Fulfilled
 
 situation InvestorToChooseMethodOfPayment:
-    AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
     Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
     Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
+    AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
 
 action CommitToIPO(company_capitalization: PosShareCnt, company_valuation: Pos$) transitions to InvestorToChooseMethodOfPayment:
     transform:

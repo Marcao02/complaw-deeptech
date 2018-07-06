@@ -5,7 +5,7 @@ from typing import Optional, Iterable
 from src.model.FnTypes import OverloadedFnType
 from src.independent.SExpr import SExprOrStr
 from src.constants_and_defined_types import *
-from src.model.ActionRule import ActionRule
+from src.model.EventRule import EventRule
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id
 
 
@@ -45,7 +45,7 @@ def referenced_nonderived_action_ids_equal_defined_nonderived_action_ids(it:L4Co
     return True
 
 def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
-    for c in it.top.nextaction_rules():
+    for c in it.top.event_rules():
         action = it.top.action(c.action_id)
         args_required = len(c.ruleparam_names) if c.ruleparam_names else (len(c.fixed_args) if c.fixed_args else 0)
         args_given = len(action.param_sorts_by_name) if action.param_sorts_by_name else 0
@@ -55,7 +55,7 @@ def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
     return True
 
 def role_ids_recognized(it:L4ContractConstructorInterface) -> bool:
-    for rule in it.top.nextaction_rules():
+    for rule in it.top.actor_event_rules():
         role_ids = rule.role_ids
         for role_id in role_ids:
             if role_id not in it.top.roles:

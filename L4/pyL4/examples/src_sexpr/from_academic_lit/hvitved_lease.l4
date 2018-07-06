@@ -23,7 +23,7 @@
 )
 
 
-(Macro RequestTerminationActionRuleMacro (RoleId SituationId)
+(Macro RequestTerminationEventRuleMacro (RoleId SituationId)
 	(if (not lease_terminated)
 		(RoleId may (RequestTerminationFromSituationId) (within (min ((monthStartDay_td) + MAX_RENT_DELAY) (lease_term_end - MIN_TERMINATION_NOTICE))))
 	)
@@ -61,15 +61,15 @@
 	(Situation MonthStarted
 		(Tenant may (PayRent) (within ((monthStartDay_td) + MAX_RENT_DELAY)))
 		(Breach_Tenant (after ((monthStartDay_td) + MAX_RENT_DELAY)))
-		(RequestTerminationActionRuleMacro (Tenant MonthStarted))
-		(RequestTerminationActionRuleMacro (Landlord MonthStarted))
+		(RequestTerminationEventRuleMacro (Tenant MonthStarted))
+		(RequestTerminationEventRuleMacro (Landlord MonthStarted))
 	)
 
 	(Action PayRent (StateTransform (total_rent_paid' += 1000))
 		(FollowingSituation
 			(EnterMonthEnded (at (monthEndDay_td)))
-			(RequestTerminationActionRuleMacro (Tenant AfterPayRent))
-			(RequestTerminationActionRuleMacro (Landlord AfterPayRent))
+			(RequestTerminationEventRuleMacro (Tenant AfterPayRent))
+			(RequestTerminationEventRuleMacro (Landlord AfterPayRent))
 		)
 	)
 
@@ -82,8 +82,8 @@
 				(EnterLeaseTermEnded immediately)   )
 			(if (lease_term_end > (last_situation_td + 1D))
 				(EnterMonthStarted (at_split 1d))   )
-			(RequestTerminationActionRuleMacro (Tenant MonthEnded))
-			(RequestTerminationActionRuleMacro (Landlord MonthEnded))
+			(RequestTerminationEventRuleMacro (Tenant MonthEnded))
+			(RequestTerminationEventRuleMacro (Landlord MonthEnded))
 		)
 	)
 

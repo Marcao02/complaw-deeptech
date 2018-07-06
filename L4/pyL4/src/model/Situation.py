@@ -5,7 +5,7 @@ from src.model.EventsAndTraces import breachSituationId
 from src.independent.util import indent
 from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
-from src.model.ActionRule import NextActionRule, roles_to_str
+from src.model.EventRule import EventRule, roles_to_str, DeadlineEventRule, ActorEventRule
 from src.model.Term import Term
 
 T = TypeVar('T')
@@ -20,7 +20,7 @@ class Situation:
         self.preconditions: List[Term] = []
 
         # currently can replace this with just a list...
-        self._action_rules: List[NextActionRule] = []
+        self._action_rules: List[EventRule] = []
 
 
         self.parent_action_id : Optional[ActionId] = None
@@ -31,10 +31,10 @@ class Situation:
     def is_anon(self) -> bool:
         return self.parent_action_id is not None
 
-    def add_action_rule(self, nar:NextActionRule) -> None:
+    def add_action_rule(self, nar:EventRule) -> None:
         self._action_rules.append(nar)
 
-    def action_rules(self) -> Iterable[NextActionRule]:
+    def action_rules(self) -> Iterable[EventRule]:
         for r in self._action_rules:
             yield r
 
@@ -69,7 +69,13 @@ class Situation:
 
         # if self.visit_bounds:
         #     rv += indent(1) + "prove " + mapjoin(str, self.visit_bounds, " ") + "\n"
-        rules = sorted(self.action_rules(), key = lambda x: roles_to_str(x.role_ids) + x.action_id )
+        def sortkey(x:EventRule) -> str:
+            if isinstance(x,DeadlineEventRule):
+                return "ZZZZ"
+            elif isinstance(x,ActorEventRule):
+                return roles_to_str(x.role_ids) + x.action_id
+            raise NotImplementedError
+        rules = sorted(self.action_rules(), key = sortkey)
         for t in rules:
             rv += t.toStr(i+1) + "\n"
 

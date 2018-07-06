@@ -28,18 +28,18 @@ situation VendorAcceptingOrders:
         Customer may PayBill(?order) (tdGEQ 2Bpaid ?order next_event_td) where (hasKey 2Bpaid ?order)
     if ((MAX_UNITS - units_ordered) > 0):
         Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (?q ≤ (MAX_UNITS - units_ordered)) (?q > 0))
-    if (nonempty 2Bpaid):
-        Breach_Customer (tdmapHasItemExpiredBefore 2Bpaid next_event_td)
-    if (nonempty 2Bdelivered):
-        Breach_Vendor (tdmapHasItemExpiredBefore 2Bdelivered next_event_td)
-    if (and ((MAX_UNITS - units_ordered) == 0) (empty 2Bpaid) (empty 2Bdelivered)):
-        EnterFulfilled (next_event_td > furthest_invoice_deadline)
-    if (and ((MAX_UNITS - units_ordered) > 0) (empty 2Bpaid) (empty 2Bdelivered)):
-        EnterFulfilled (and (next_event_td > furthest_invoice_deadline) (next_event_td > order_period_ends))
     if (nonempty 2Bdelivered):
         Vendor may Deliver(?order) (tdGEQ 2Bdelivered ?order next_event_td) where (hasKey 2Bdelivered ?order)
     if (nonempty 2Binvoiced):
         Vendor may EmailInvoice(?order) (tdGEQ 2Binvoiced ?order next_event_td) where (hasKey 2Binvoiced ?order)
+    if (nonempty 2Bdelivered):
+        Breach_Vendor (tdmapHasItemExpiredBefore 2Bdelivered next_event_td)
+    if (nonempty 2Bpaid):
+        Breach_Customer (tdmapHasItemExpiredBefore 2Bpaid next_event_td)
+    if (and ((MAX_UNITS - units_ordered) == 0) (empty 2Bpaid) (empty 2Bdelivered)):
+        EnterFulfilled (next_event_td > furthest_invoice_deadline)
+    if (and ((MAX_UNITS - units_ordered) > 0) (empty 2Bpaid) (empty 2Bdelivered)):
+        EnterFulfilled (and (next_event_td > furthest_invoice_deadline) (next_event_td > order_period_ends))
 
 action EnterFulfilled()  transitions to Fulfilled
 

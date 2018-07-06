@@ -8,7 +8,7 @@ from src.independent.util import castid
 from src.independent.util_for_dicts import partitionBy
 from src.independent.util_for_io import writeFile
 from src.model.Action import Action
-from src.model.ActionRule import ActionRule, PartyNextActionRule, EnvNextActionRule
+from src.model.EventRule import EventRule, ActorEventRule, DeadlineEventRule
 from src.model.BoundVar import ActionBoundActionParam, StateVar, ContractParam, LocalVar, PrimedStateVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.L4Contract import L4Contract
@@ -493,15 +493,15 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
         raise NotImplementedError(s)
 
-    def ruleHtml(rule:ActionRule) -> html_tag:
+    def ruleHtml(rule:EventRule) -> html_tag:
             
-        if isinstance(rule, PartyNextActionRule):
+        if isinstance(rule, ActorEventRule):
             x = li(
                 span(rule.role_ids[0]),
                 span(f" {rule.deontic_keyword} "),
                 actid2link(rule.action_id)
             )
-        elif isinstance(rule, EnvNextActionRule):
+        elif isinstance(rule, DeadlineEventRule):
             if "Breach" in rule.action_id:
                 x = li(
                     span(rule.action_id[7:], " breaches the contract.")

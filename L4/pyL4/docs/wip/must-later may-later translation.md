@@ -52,7 +52,7 @@ Suppose a `State` (aka `Situation`) declaration contains
 
 `[possibly-from-earlier R must A]`
 
-where `A` is an action with (say) 2 parameters. Then it is removed and the following `NextActionRule` gets added to the same `State`:
+where `A` is an action with (say) 2 parameters. Then it is removed and the following `NextEventRule` gets added to the same `State`:
 
 ```
 (R quasi-responsibility

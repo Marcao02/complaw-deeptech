@@ -68,28 +68,28 @@ action EnterFulfilled()  transitions to Fulfilled
 situation NoInfraction:
     if ¬contract_canceled:
         Client may RaiseTraffic
-    if contract_canceled:
-        EnterFulfilled (next_event_td == last_situation_td)
     ISP may SendCancelNoticeByEmail
     ISP may SendCancelNoticeByPost
+    if contract_canceled:
+        EnterFulfilled (next_event_td == last_situation_td)
 
 situation UnsettledInfraction:
     if ¬usage_level_normal:
         Client may LowerTraffic (next_event_td ≤ (infraction_time + 48h))
     Client may Pay(?x) (next_event_td ≤ (infraction_time + 48h)) where (and (?x > (units $ 0)) (?x ≤ (units $ 3)))
     Client may SendDelayEmail (next_event_td ≤ (infraction_time + 48h))
-    if (and ¬sent_delay_email (or ¬usage_level_normal ¬paidBefore24)):
-        ClientBreaches (next_event_td > (infraction_time + 24h))
-    ClientBreaches (next_event_td > (infraction_time + 48h))
-    if contract_canceled:
-        EnterFulfilled (next_event_td == last_situation_td)
+    ISP may SendCancelNoticeByEmail
+    ISP may SendCancelNoticeByPost
     if (and ¬sent_delay_email usage_level_normal (paid ≥ (units $ 1))):
         Reset (next_event_td ≤ (infraction_time + 24h))
+    if (and ¬sent_delay_email (or ¬usage_level_normal ¬paidBefore24)):
+        ClientBreaches (next_event_td > (infraction_time + 24h))
     if (and sent_delay_email usage_level_normal (paid ≥ (units $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
     if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24h)) usage_level_normal (paid ≥ (units $ 2))):
         Reset (next_event_td ≤ (infraction_time + 48h))
     if (and sent_delay_email (traffic_low_since > (infraction_time + 24h)) usage_level_normal (paid ≥ (units $ 3))):
         Reset (next_event_td ≤ (infraction_time + 48h))
-    ISP may SendCancelNoticeByEmail
-    ISP may SendCancelNoticeByPost
+    ClientBreaches (next_event_td > (infraction_time + 48h))
+    if contract_canceled:
+        EnterFulfilled (next_event_td == last_situation_td)

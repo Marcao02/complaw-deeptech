@@ -24,8 +24,8 @@ action RequestPrinciple()  transitions to PrincipleRequested:
         prove (PAYMENT2_AMOUNT == ((LOAN_AMOUNT / 2) + ((LOAN_AMOUNT / 2) * INTEREST_RATE)))
 
 situation PrincipleRequested:
-    AdvanceDeadlinePasses (next_event_td > 152 days, 0:00:00)
     Lender may AdvancePrinciple (next_event_dt ≤ 152 days, 0:00:00)
+    AdvanceDeadlinePasses (next_event_td > 152 days, 0:00:00)
 
 action AdvancePrinciple()  transitions to Pmt1Accruing:
     transform:
@@ -46,20 +46,20 @@ situation Pmt1Accruing:
 action RepsWarr1()  transitions to BorrowerDefaultRepsWarr1
 
 situation BorrowerDefaultRepsWarr1:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveNoticeOfGeneralDefault1 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action Convenant1()  transitions to BorrowerDefaultConvenant1
 
 situation BorrowerDefaultConvenant1:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveNoticeOfGeneralDefault1 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action Bankruptcy1()  transitions to BorrowerDefaultBankruptcy1
 
 situation BorrowerDefaultBankruptcy1:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveNoticeOfGeneralDefault1 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action GiveNoticeOfGeneralDefault1()  transitions to BorrowerNotifiedOfGeneralDefault1
 
@@ -81,8 +81,8 @@ situation Pmt1Due:
 action MissPmt1()  transitions to BorrowerDefaultMissedPmt1
 
 situation BorrowerDefaultMissedPmt1:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveBorrowerNotice1 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action GiveBorrowerNotice1()  transitions to BorrowerNotifiedOfPmt1Default
 
@@ -108,8 +108,8 @@ action AcceleratedPaymentFailure1()  transitions to Crisis1
 
 situation Crisis1:
     Borrower may MakePmt12 (next_event_td == last_situation_td)
-    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
     Lender may FileLawsuit (next_event_td < 2343 days, 0:00:00)
+    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
 
 situation Pmt2Accruing:
     Borrower may Bankruptcy2 (next_event_td < 882 days, 0:00:00)
@@ -120,20 +120,20 @@ situation Pmt2Accruing:
 action RepsWarr2()  transitions to BorrowerDefaultRepsWarr2
 
 situation BorrowerDefaultRepsWarr2:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveNoticeOfGeneralDefault2 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action Convenant2()  transitions to BorrowerDefaultConvenant2
 
 situation BorrowerDefaultConvenant2:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveNoticeOfGeneralDefault2 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action Bankruptcy2()  transitions to BorrowerDefaultBankruptcy2
 
 situation BorrowerDefaultBankruptcy2:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveNoticeOfGeneralDefault2 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action GiveNoticeOfGeneralDefault2()  transitions to BorrowerNotifiedOfGeneralDefault2
 
@@ -155,8 +155,8 @@ situation Pmt2Due:
 action MissPmt2()  transitions to BorrowerDefaultMissedPmt2
 
 situation BorrowerDefaultMissedPmt2:
-    Breach_Lender (next_event_td > last_situation_td)
     Lender may GiveBorrowerNotice2 (next_event_td == last_situation_td)
+    Breach_Lender (next_event_td > last_situation_td)
 
 action GiveBorrowerNotice2()  transitions to BorrowerNotifiedOfPmt2Default
 
@@ -174,8 +174,8 @@ action AcceleratedPaymentFailure2()  transitions to Crisis2
 
 situation Crisis2:
     Borrower may MakePmt2 (next_event_td == last_situation_td)
-    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
     Lender may FileLawsuit (next_event_td < 2343 days, 0:00:00)
+    StatuteOfLimitations (next_event_dt ≤ 2343 days, 0:00:00)
 
 action MakePmt2()  transitions to Term:
     transform:

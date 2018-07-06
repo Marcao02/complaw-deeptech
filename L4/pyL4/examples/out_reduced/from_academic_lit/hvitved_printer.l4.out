@@ -17,8 +17,8 @@ claims:
     ["MAX_SITUATION_VISITS'", '=', '6']
 
 situation Awaiting_Delivery:
-    Breach_Seller (next_event_td > DELIVERY_TIME_ALLOWANCE)
     Seller may Deliver (next_event_td ≤ DELIVERY_TIME_ALLOWANCE)
+    Breach_Seller (next_event_td > DELIVERY_TIME_ALLOWANCE)
 
 action Deliver()  transitions to AfterDeliver:
     transform:
@@ -51,8 +51,8 @@ action Pay2ndInstallment()  transitions to AfterPay2ndInstallment:
 
 action ReturnOnTime()  transitions to AfterReturnOnTime
     following situation:
-        Breach_Seller (next_event_td > (7d + last_situation_td))
         Seller may DeliverRefund (next_event_td ≤ (7d + last_situation_td))
+        Breach_Seller (next_event_td > (7d + last_situation_td))
 
 action PayLateFee()  transitions to Fulfilled:
     transform:

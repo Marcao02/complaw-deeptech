@@ -23,10 +23,10 @@ situation WorkingOnAssignment:
         Bob may SolveProbB (next_event_td ≤ DUE_TD)
     if (and probAsolved probBsolved):
         Bob may Submit (next_event_td ≤ DUE_TD)
-    if (and ¬probAsolved probBsolved):
-        Breach_Alice (next_event_td == (DUE_TD + 1))
     if (and ¬probAsolved ¬probBsolved):
         Breach_Alice_Bob (next_event_td == (DUE_TD + 1))
+    if (and ¬probAsolved probBsolved):
+        Breach_Alice (next_event_td == (DUE_TD + 1))
     if (and probAsolved ¬probBsolved):
         Breach_Bob (next_event_td == (DUE_TD + 1))
 

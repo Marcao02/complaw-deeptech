@@ -1,7 +1,7 @@
 from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDirectedGraphInvariantError
 from src.independent.util import todo_once
 from src.model.Action import Action
-from src.model.ActionRule import ActionRule
+from src.model.EventRule import EventRule
 from src.model.BoundVar import LocalVar, StateVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam, PrimedStateVar
 from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, SimpleFnType
@@ -458,7 +458,7 @@ class TypeChecker:
         else:
             raise NotImplementedError
 
-    def typecheck_action_rule(self, rule:ActionRule):
+    def typecheck_action_rule(self, rule:EventRule):
         action = self.prog.action(rule.action_id)
         if rule.entrance_enabled_guard:
             self.typecheck_term(rule.entrance_enabled_guard, 'Bool')

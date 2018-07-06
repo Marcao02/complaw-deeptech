@@ -1,5 +1,5 @@
 from src.independent.util import castid
-from src.model.ActionRule import NextActionRule, PartyNextActionRule, EnvNextActionRule
+from src.model.EventRule import NextEventRule, ActorEventRule, DeadlineEventRule
 from src.model.Situation import Situation
 from src.hard_correctness_checks.SMTLIB import *
 
@@ -277,8 +277,8 @@ class ToSMTLIB:
 
     def situation2smtlib(self, sit:Situation):
         # print(sit.situation_id)
-        strong_oblig_rules : List[PartyNextActionRule] = cast(List[PartyNextActionRule], list(filter(
-            lambda x: isinstance(x,PartyNextActionRule) and x.deontic_keyword == 'must',
+        strong_oblig_rules : List[ActorEventRule] = cast(List[ActorEventRule], list(filter(
+            lambda x: isinstance(x,ActorEventRule) and x.deontic_keyword == 'must',
                                  sit.action_rules())))
 
         if len(strong_oblig_rules) > 1:

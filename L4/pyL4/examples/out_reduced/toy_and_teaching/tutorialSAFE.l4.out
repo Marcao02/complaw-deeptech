@@ -35,8 +35,8 @@ action CommitToEquityFinancing()  transitions to AfterCommitToEquityFinancing
 
 action SendEquityFinancingTransactionDocsWithPRRAForSigning()  transitions to AfterSendEquityFinancingTransactionDocsWithPRRAForSigning
     following situation:
-        Breach_Investor (next_event_td > 14d)
         Investor may ExecuteAndDeliverTransactionDocs (next_event_td ≤ 14d)
+        Breach_Investor (next_event_td > 14d)
 
 action ExecuteAndDeliverTransactionDocs()  transitions to AfterExecuteAndDeliverTransactionDocs
     following situation:
@@ -64,9 +64,9 @@ action CommitToIPO(liquidity_capitalization: PosShareCnt) transitions to AfterCo
         cash_currently_unconverted := PURCHASE_AMOUNT
     following situation:
         Company may AutoChooseStockPayment (next_event_td == (last_situation_td + 1w))
-        Breach_Company (next_event_td > (last_situation_td + 1w))
         Investor may ChooseCashPayment (next_event_td < (last_situation_td + 1w))
         Investor may ChooseStockPayment (next_event_td < (last_situation_td + 1w))
+        Breach_Company (next_event_td > (last_situation_td + 1w))
 
 action AutoChooseStockPayment()  transitions to AfterAutoChooseStockPayment
     following situation:

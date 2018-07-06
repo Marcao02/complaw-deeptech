@@ -5,7 +5,7 @@ from src.independent.util import indent, castid
 from src.constants_and_defined_types import ActionParamId, SituationId, ActionId, LOOP_KEYWORD, \
     LocalVarId
 from src.independent.typing_imports import *
-from src.model.ActionRule import ActionRule
+from src.model.EventRule import EventRule
 from src.model.StateTransform import StateTransform
 from src.model.Statement import LocalVarDec, Statement
 from src.model.Situation import Situation, ParamsDec

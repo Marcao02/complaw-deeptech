@@ -91,6 +91,7 @@
 	(Action (Catch (n : Nat)) (TransitionsTo Juggling)
 		(Pre (hasKey must_catch_by n))
 		(Pre (not (holding n)))
+		(Pre (number_held_balls ≤ 3))
 		(StateTransform
 			(must_catch_by' := (delete must_catch_by n))
 		)

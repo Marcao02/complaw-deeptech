@@ -10,10 +10,10 @@ tests_to_run : Set[str] = { 'nlg' } if "nlg" in sys.argv else {
     'L4typechecker',
     # 'smtlegacy',
     'symbexec',
-    'graphviz',
-    'prettyprint',
-    'nlg',
-    'interpreter',
+    # 'graphviz',
+    # 'prettyprint',
+    # 'nlg',
+    # 'interpreter',
 }
 
 
