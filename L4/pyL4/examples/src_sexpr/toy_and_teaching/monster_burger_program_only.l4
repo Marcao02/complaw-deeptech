@@ -61,7 +61,7 @@
 			(visits == 1) ; LANG note: Similar to (traversal == 1) but for Situations.
             ; (timeConstraintsPartitionFuture
 	            (Restaurant may ServeMB (before_split MAX_SERVE_DELAY))
-	            (EnterPromptServeGuaranteeViolated (at_or_after_split MAX_SERVE_DELAY))
+	            (EnterPromptServeGuaranteeViolated (at_split MAX_SERVE_DELAY))
             ; )
 		)
 	)

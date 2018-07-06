@@ -140,11 +140,13 @@ class DeadlineEventRule(EventRule):
                  src_id: SituationId,
                  action_id: ActionId,
                  ruleparam_names: Optional[List[RuleParamId]],
-                 entrance_enabled_guard: Optional[Term]
-                 # deadline_fn: Term
+                 fixed_args: Optional[List[Term]],
+                 entrance_enabled_guard: Optional[Term],
+                 deadline_fn: Term
                  ) -> None:
         super().__init__(src_id, action_id, ruleparam_names, entrance_enabled_guard)
-        # self.deadline_fn = deadline_fn
+        self.fixed_args = fixed_args
+        self.deadline_fn = deadline_fn
 
     def toStr(self, i:int) -> str:
         rv : str = ""

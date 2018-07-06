@@ -1,5 +1,5 @@
 from src.independent.util import castid
-from src.model.EventRule import NextEventRule, ActorEventRule, DeadlineEventRule
+from src.model.EventRule import ActorEventRule, DeadlineEventRule
 from src.model.Situation import Situation
 from src.hard_correctness_checks.SMTLIB import *
 

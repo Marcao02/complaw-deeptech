@@ -47,10 +47,11 @@ def referenced_nonderived_action_ids_equal_defined_nonderived_action_ids(it:L4Co
 def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
     for c in it.top.event_rules():
         action = it.top.action(c.action_id)
-        args_required = len(c.ruleparam_names) if c.ruleparam_names else (len(c.fixed_args) if c.fixed_args else 0)
-        args_given = len(action.param_sorts_by_name) if action.param_sorts_by_name else 0
+        args_required = len(action.param_sorts_by_name) if action.param_sorts_by_name else 0
+        args_given = len(c.ruleparam_names) if c.ruleparam_names else (len(c.fixed_args) if c.fixed_args else 0)
         if args_given != args_required:
-            it.syntaxError('', f"Wrong number of action parameters for {action.action_id}. See rule:\n{c}")
+            it.syntaxError('', f"Wrong number of action parameters for {action.action_id}. Expected {args_required} but got {args_given}. See rule:\n{c}." +
+                           f"\n{c.ruleparam_names}\n{c.fixed_args}")
             return False
     return True
 

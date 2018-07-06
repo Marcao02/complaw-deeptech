@@ -40,7 +40,7 @@
 		(You may RequestNewBall)
 		(Assistant may (TossNewBall ?t) (within 1000ms) (where (and (400ms ≤ ?t) (?t ≤ 600ms))))
 
-		(Breach_Assistant (after (minValue must_catch_by)))
+		(Breach_Assistant (at ((minValue must_catch_by) + 1ms)))
 
 		(You may (Throw ?n ?t) (where
 			(and
@@ -63,7 +63,7 @@
 		)
 
 
-		(Breach_You (after (minValue must_catch_by)))
+		(Breach_You (at ((minValue must_catch_by) + 1)))
 	)
 
 	(Action RequestNewBall (TransitionsTo Juggling)

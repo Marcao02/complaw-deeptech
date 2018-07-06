@@ -205,7 +205,7 @@ class ExecEnv:
         enabled_weak_obligs_by_role : Dict[RoleId, List[ActorEventRule]] = dict()
         enabled_weak_obligs = list()
 
-        nar: NextEventRule
+        nar: EventRule
 
         for nar in self.last_or_current_situation.action_rules():
             entrance_enabled = not nar.entrance_enabled_guard or chcast(bool, self.evalTerm(nar.entrance_enabled_guard))
@@ -319,7 +319,7 @@ class ExecEnv:
         if isinstance(action_rule,DeadlineEventRule):
             rv = self.cur_event.role_id == ENV_ROLE
         else:
-            role_action_match = self.cur_event.role_id in action_rule.role_ids and self.cur_event.action_id == action_rule.action_id
+            role_action_match = self.cur_event.role_id in cast(ActorEventRule,action_rule).role_ids and self.cur_event.action_id == action_rule.action_id
             if not role_action_match:
                 rv = False
             elif not self.evalTimeConstraint(action_rule.time_constraint):

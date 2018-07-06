@@ -41,20 +41,20 @@
 (BlockMacro set_conversion_price (company_capitalization company_valuation)
 	(ifflag HAS_CAP (
 		(ifflag HAS_DISCOUNT (
-			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / company_capitalization))
-			(writeout cap_price : SharePrice = (Valuation_Cap / company_capitalization))
-			(writeout discount_price : SharePrice = (undiscounted_standard_preferred_stock_price * Discount_Rate))
+			(writeout undiscounted_standard_preferred_stock_price : PosSharePrice = (company_valuation / company_capitalization))
+			(writeout cap_price : PosSharePrice = (Valuation_Cap / company_capitalization))
+			(writeout discount_price : PosSharePrice = (undiscounted_standard_preferred_stock_price * Discount_Rate))
 			(conversion_price' = (min cap_price discount_price))
 		)
 		else (
-			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / company_capitalization))
-			(writeout cap_price : SharePrice = (Valuation_Cap / company_capitalization))
+			(writeout undiscounted_standard_preferred_stock_price : PosSharePrice = (company_valuation / company_capitalization))
+			(writeout cap_price : PosSharePrice = (Valuation_Cap / company_capitalization))
 			(conversion_price' = (min cap_price undiscounted_standard_preferred_stock_price))
 		))
 	)
 	else (
 		(ifflag HAS_DISCOUNT (
-			(writeout undiscounted_standard_preferred_stock_price : SharePrice = (company_valuation / company_capitalization))
+			(writeout undiscounted_standard_preferred_stock_price : PosSharePrice = (company_valuation / company_capitalization))
 			(conversion_price' = (undiscounted_standard_preferred_stock_price * Discount_Rate))
 		)
 		else (
