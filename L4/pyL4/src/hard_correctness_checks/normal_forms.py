@@ -1,8 +1,9 @@
 from typing import FrozenSet
 
-from src.constants_and_defined_types import LocalVarId, ARBITER_ROLE
+from src.constants_and_defined_types import LocalVarId, ARBITER_ROLE, TriggerType
 from src.independent.SExpr import SExpr, SExprOrStr, sexpr_rewrite
 from src.independent.util import chcast, warn_once, todo_once
+from src.model.EventRule import ActorEventRule, DeadlineEventRule
 from src.model.EventsAndTraces import interveneOnDelayId, breachActionId
 from src.model.Term import Term, FnApp
 from src.model.BoundVar import LocalVar, StateVar
@@ -115,15 +116,16 @@ def eliminate_ifthenelse(p:L4Contract):
         if act.following_anon_situation:
             sit = act.following_anon_situation
             for rule in sit.action_rules():
-                # print(rule, rule.fixed_args)
-                if rule.fixed_args:
-                    for i in range(len(rule.fixed_args)):
-                        if rule.fixed_args[i].findFirstTerm(lambda x:isinstance(x,FnApp) and x.fnsymb_name=="ifthenelse"):
+                if rule.param_setter:
+                    for i in range(len(rule.param_setter)):
+                        if rule.param_setter[i].findFirstTerm(lambda x:isinstance(x,FnApp) and x.fnsymb_name=="ifthenelse"):
                             raise NotImplementedError("Elimination of ifthenelse expression in action rules is not yet implemented (but nothing preventing it from being).")
-                if rule.where_clause:
-                    if rule.where_clause.findFirstTerm(lambda x:isinstance(x,FnApp) and x.fnsymb_name=="ifthenelse"):
-                        raise NotImplementedError(
-                            "Elimination of ifthenelse expression in action rules is not yet implemented (but nothing preventing it from being).")
+                if isinstance(rule, ActorEventRule):
+                    if rule.where_clause:
+                        if rule.where_clause.findFirstTerm(lambda x:isinstance(x,FnApp) and x.fnsymb_name=="ifthenelse"):
+                            raise NotImplementedError(
+                                "Elimination of ifthenelse expression in action rules is not yet implemented (but nothing preventing it from being).")
+
 
 # class EliminateLocalVarsInBlockResult(NamedTuple):
 #     block: Block
@@ -300,13 +302,38 @@ def eliminate_local_vars(p:L4Contract):
             act.state_transform.statements = x
         if act.following_anon_situation:
             sit = act.following_anon_situation
-            for rule in sit.action_rules():
-                # print(rule, rule.fixed_args)
-                if rule.fixed_args:
-                    for i in range(len(rule.fixed_args)):
-                        rule.fixed_args[i] = eliminate_local_vars_term(rule.fixed_args[i], allsubst, frozenset())
-                if rule.where_clause:
-                    rule.where_clause = eliminate_local_vars_term(rule.where_clause, allsubst, frozenset())
+            for ruleind in range(len(sit._action_rules)):
+                rule = sit._action_rules[ruleind]
+                param_setter : Optional[Tuple[Term,...]] = None
+                entrance_enabled_guard : Optional[Term] = None
+
+                if rule.param_setter:
+                    param_setter = tuple(eliminate_local_vars_term(rule.param_setter[i], allsubst, frozenset()) \
+                                         for i in range(len(rule.param_setter)))
+                if rule.entrance_enabled_guard:
+                    entrance_enabled_guard = eliminate_local_vars_term(rule.entrance_enabled_guard, allsubst,
+                                                                       frozenset())
+
+                if isinstance(rule,ActorEventRule):
+                    where_clause : Optional[Term] = None
+                    time_constraint : Optional[Term] = None
+                    if rule.where_clause:
+                        where_clause = eliminate_local_vars_term(rule.where_clause, allsubst, frozenset())
+                    if rule.time_constraint:
+                        time_constraint = eliminate_local_vars_term(rule.time_constraint, allsubst, frozenset())
+
+                    sit._action_rules[ruleind] = ActorEventRule(sit.situation_id, rule.action_id, entrance_enabled_guard,
+                                                                rule.ruleparam_names, param_setter, where_clause,
+                                                                rule.role_ids, rule.deontic_keyword, time_constraint,
+                                                                rule.immediate)
+                else:
+                    assert isinstance(rule,DeadlineEventRule)
+                    deadline_fn = eliminate_local_vars_term(rule.deadline_fn, allsubst, frozenset())
+                    sit._action_rules[ruleind] = DeadlineEventRule(sit.situation_id, rule.action_id,
+                                                                entrance_enabled_guard,
+                                                                param_setter, deadline_fn, rule.trigger_type)
+
+
 
     reset_ancestor_statement_pointers(p, "At end of eliminate_local_vars, ")
 
@@ -369,19 +396,19 @@ def eliminate_must(sexpr:SExpr, prog:L4Contract, timeunit:str, default_time_limi
 
                 if isinstance(child, SExpr) and len(child.lst) >= 1 and (child.lst[0] in ("at","within")):
                     other = SExpr([breachActionId(role)] + list(sexpr2[3:i]) +
-                                  [SExpr([cast(SExprOrStr, "after")] + child.lst[1:], sexpr2.line,
+                                  [SExpr([cast(SExprOrStr, TriggerType.after_td_contract.value)] + child.lst[1:], sexpr2.line,
                                          sexpr2.col)] + sexpr2[i + 1:], sexpr2.line, sexpr2.col)
                     break
 
                 elif isinstance(child, SExpr) and len(child.lst) >= 1 and (child.lst[0] in ("on","by")):
                     other = sexpr2.newHere([breachActionId(role)] + list(sexpr2[3:i]) +
-                                  [sexpr2.newHere([cast(SExprOrStr, "after_dt")] + child.lst[1:])] + sexpr2[i + 1:])
+                                  [sexpr2.newHere([cast(SExprOrStr, TriggerType.after_dt.value)] + child.lst[1:])] + sexpr2[i + 1:])
                     break
 
                 elif child == "no_time_constraint":
                     if default_time_limit:
                         other = sexpr2.newHere([breachActionId(role)] + list(sexpr2[3:i]) +
-                                      [sexpr2.newHere([cast(SExprOrStr, "after")] + default_time_limit)] + sexpr2[i + 1:])
+                                      [sexpr2.newHere([cast(SExprOrStr, TriggerType.after_td_contract.value)] + default_time_limit)] + sexpr2[i + 1:])
                     else:
                         other = SExpr([ARBITER_ROLE, "may", interveneOnDelayId(role)] + sexpr2[3:], sexpr2.line, sexpr2.col)
                     break
@@ -391,7 +418,8 @@ def eliminate_must(sexpr:SExpr, prog:L4Contract, timeunit:str, default_time_limi
                     # pastdeadline = SExpr(['>', 'next_event_td', 'last_situation_td'], sexpr2.line, sexpr2.col)
                     # other = SExpr([breachActionId(role), SExpr(["when", pastdeadline], sexpr2.line, sexpr2.col)],
                     #               sexpr2.line, sexpr2.col)
-                    pastdeadline = SExpr(['after', 'last_situation_td'], sexpr2.line, sexpr2.col)
+                    # pastdeadline = SExpr(['after', 'last_situation_td'], sexpr2.line, sexpr2.col)
+                    pastdeadline = SExpr([TriggerType.after_td_contract.value, 'last_situation_td'], sexpr2.line, sexpr2.col)
                     other = SExpr([breachActionId(role), pastdeadline],
                                   sexpr2.line, sexpr2.col)
 

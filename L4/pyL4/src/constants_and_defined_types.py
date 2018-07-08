@@ -1,4 +1,5 @@
 # from enum import Enum
+from enum import Enum
 from typing import Dict, NewType, cast, Union, List, Any, Set, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -51,6 +52,32 @@ UNICODE_TO_ASCII = {
     '⟶':'->',
     '⇒':'->',
     '⟹':'->'
+}
+
+class TriggerType(Enum):
+    at_td_contract = "at_td_abs" # relative to start of contract, not situation entrance
+    after_td_contract = "after_td_abs" # relative to start of contract, not situation entrance
+
+    at_td_event = "at_td_event"
+    after_td_event = "after_td_event"
+
+    on_dt = "on_dt"
+    after_dt = "after_dt"
+
+TRIGGER_TYPE_INTERP : Dict[str,TriggerType] = {
+    "at": TriggerType.at_td_contract,
+    "at_td": TriggerType.at_td_contract,
+    "within": TriggerType.at_td_contract,
+    "at_split": TriggerType.at_td_event,
+
+    "on": TriggerType.on_dt,
+    "on_dt": TriggerType.on_dt,
+
+    "after": TriggerType.after_td_contract,
+    "after_td": TriggerType.after_td_contract,
+    "after_split": TriggerType.after_td_event,
+    "after_td_abs": TriggerType.after_td_contract,
+    "after_dt": TriggerType.after_dt
 }
 
 QUANTIFIERS = { '∀','∃','∃!' }

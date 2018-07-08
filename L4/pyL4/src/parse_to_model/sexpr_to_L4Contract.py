@@ -17,7 +17,7 @@ from src.independent.SExpr import SExpr, SExprOrStr, sexpr_rewrite
 from src.independent.parse_sexpr import castse, STRING_LITERAL_MARKER, prettySExprStr
 from src.independent.typing_imports import *
 from src.model.Action import Action
-from src.model.EventRule import EventRule, DeadlineEventRule, ActorEventRule
+from src.model.EventRule import EventRule, DeadlineEventRule, ActorEventRule, EventRuleContext
 from src.model.BoundVar import ContractParam, RuleBoundActionParam, ActionBoundActionParam, \
     LocalVar, StateVar, PrimedStateVar
 from src.model.ContractClaim import ContractClaim, StateInvariant
@@ -900,10 +900,11 @@ class L4ContractConstructor(L4ContractConstructorInterface):
     def _mk_term(self, x:Union[str, SExpr],
                  parent_situation : Optional[Situation] = None,
                  parent_action : Optional[Action] = None,
-                 parent_action_rule : Optional[EventRule] = None,
+                 parent_er_context : Optional[EventRuleContext] = None,
                  parent_SExpr : Optional[SExpr] = None ) -> Term:
         assert parent_SExpr is not None, x # todo clean this up
         assert x != "no_time_constraint"
+        assert parent_er_context is None or isinstance(parent_er_context, EventRuleContext), parent_er_context
 
         if isinstance(x,str):
             if x in UNICODE_TO_ASCII:
@@ -932,13 +933,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     #                   SExpr(['+', "last_situation_td", "1" + timeunit], sexpr2.line,
                     #                         sexpr2.col)], sexpr2.line, sexpr2.col)
                     coord = parent_SExpr.coord()
-                    return FnApp('==', [
+
+                    if cast(EventRuleContext, parent_er_context).for_deadline_event_rule:
+                        return FnApp('last_situation_td', [], coord)
+                    else:
+                        return FnApp('==', [
                                 FnApp('next_event_td',[],coord),
                                 FnApp('last_situation_td', [], coord)
-                                # FnApp('+', [
-                                #     FnApp('last_situation_td',[],coord),
-                                #     SimpleTimeDeltaLit(1, self.top.timeunit, coord)
-                                # ], coord)
                             ], coord)
                 # elif x == "no_time_constraint":
                 #     return None
@@ -962,14 +963,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if x in self.top.contract_params:
                 return ContractParam(self.top.contract_params[cast(ContractParamId,x)], parent_SExpr.coord() if parent_SExpr else None)
 
-            # print("parent_action_rule", parent_action_rule)
-            # if x == 'order' and parent_action_rule:
-            #     print("args", parent_action_rule.args)
-            if parent_action_rule and parent_action_rule.ruleparam_names and x in parent_action_rule.ruleparam_names:
+            if parent_er_context and parent_er_context.ruleparam_names and x in parent_er_context.ruleparam_names:
                 assert parent_SExpr is not None and parent_SExpr.coord() is not None
-                assert parent_action_rule.ruleparam_to_ind is not None
-                return RuleBoundActionParam(cast(RuleParamId, x), parent_action_rule,
-                                            parent_action_rule.ruleparam_to_ind[castid(RuleParamId, x)],
+                assert parent_er_context.ruleparam_to_ind is not None
+                print(type(parent_er_context))
+                return RuleBoundActionParam(cast(RuleParamId, x), parent_er_context.action_id,
+                                            cast(int,parent_er_context.ruleparam_to_ind(castid(RuleParamId, x))),
                                             parent_SExpr.coord())
 
             if parent_action and x in parent_action.param_sorts_by_name:
@@ -981,7 +980,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
             if x in self.top.definitions:
                 return self._mk_term(self.top.definitions[castid(DefinitionId, x)].body,
-                                     parent_situation, parent_action, parent_action_rule,
+                                     parent_situation, parent_action, parent_er_context,
                                      parent_SExpr)
 
             if parent_action and x in parent_action.local_vars:
@@ -1009,7 +1008,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 args : List[Term]
 
                 if fnsymb_name in ('cast','check','trust','units'):
-                    args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_situation, parent_action, parent_action_rule, x) for arg in pair[1][1:]]
+                    args = [cast(Term, self.mk_sort_lit(pair[1][0]))] + [self._mk_term(arg, parent_situation, parent_action, parent_er_context, x) for arg in pair[1][1:]]
 
                 elif fnsymb_name == "str2dt":
                     assert isinstance(pair[1],SExpr) and isinstance(pair[1][0], SExpr) and pair[1][0][0] == STRING_LITERAL_MARKER, pair
@@ -1025,7 +1024,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                         print(e)
                         raise e
                 else:
-                    args = [ self._mk_term(arg, parent_situation, parent_action, parent_action_rule, x) for arg in pair[1] ]
+                    args = [ self._mk_term(arg, parent_situation, parent_action, parent_er_context, x) for arg in pair[1] ]
                 return FnApp(
                     fnsymb_name,
                     args,
@@ -1037,12 +1036,12 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 elif x[0] in self.top.sorts:
                     return FnApp( "units", [
                         self.mk_sort_lit(x[0]),
-                        self._mk_term(x[1], parent_situation, parent_action, parent_action_rule, parent_SExpr),
+                        self._mk_term(x[1], parent_situation, parent_action, parent_er_context, parent_SExpr),
                     ], x.coord())
                 elif x[0] in self.top.sort_definitions:
                     return FnApp("units", [
                         self.mk_sort_lit(x[0]),
-                        self._mk_term(x[1], parent_situation, parent_action, parent_action_rule, parent_SExpr)
+                        self._mk_term(x[1], parent_situation, parent_action, parent_er_context, parent_SExpr)
                     ], x.coord())
                 else:
                     if x[0] in INFIX_FN_SYMBOLS:
@@ -1056,7 +1055,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
 
     def _mk_time_constraint(self, expr:SExprOrStr, src_situation:Optional[Situation], src_action:Optional[Action],
-                            parent_action_rule:Optional[EventRule], parent_sexpr:SExpr) -> Optional[Term]:
+                            event_rule_ctx:Optional[EventRuleContext], parent_sexpr:SExpr) -> Optional[Term]:
         rv : Term
         # if expr in TIME_CONSTRAINT_KEYWORDS:
         #     return self._mk_term(expr, src_situation, src_action)
@@ -1065,7 +1064,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         if isinstance(expr,str):
             if expr == "no_time_constraint":
                 return None
-            rv = self._mk_term(expr, src_situation, src_action, parent_action_rule, parent_sexpr)
+            rv = self._mk_term(expr, src_situation, src_action, event_rule_ctx, parent_sexpr)
         else:
             self.assertOrSyntaxError( len(expr) > 1, expr)
             pair = try_parse_as_fn_app(expr)
@@ -1073,7 +1072,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                 # return self._mk_term(expr, src_situation, src_action, parent_action_rule, None)
                 rv = FnApp(
                         pair[0],
-                        [self._mk_term(arg, src_situation, src_action, parent_action_rule, expr) for arg in pair[1]],
+                        [self._mk_term(arg, src_situation, src_action, event_rule_ctx, expr) for arg in pair[1]],
                         FileCoord(expr.line, expr.col)
                     )
             else:
@@ -1112,116 +1111,35 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         else:
             return self._mk_deadline_event_rule(expr, src_situation, parent_action, entrance_enabled_guard)
 
-    def _mk_deadline_event_rule(self, expr:SExpr, src_situation:Situation, parent_action:Optional[Action], entrance_enabled_guard:Optional[Term]) -> None:
-        action_id : ActionId
-        ruleparams : Optional[List[RuleParamId]] = None
-        der : DeadlineEventRule
 
-        # The different forms:
-        # 1a. (<DeadlineEventName>) is short for (<DeadlineEventName> immediately) which is itself
-        #   short for (<DeadlineEventName> (at last_event_td))
-        # 1b. ((<DeadlineEventName> arg1 arg2)) is short for ((<DeadlineEventName> arg1 arg2) immediately)
-        # 2. (<DeadlineEventName> (at <Term of type TimeDelta>))
-        # 3. ((<DeadlineEventName> arg1 arg2) (at <Term of type TimeDelta>))
+    def _mk_deadline_fn(self, expr:SExprOrStr, src_situation:Situation, parent_action:Optional[Action],
+                        parent_sexpr:SExpr, parent_event_rule_context:EventRuleContext) -> Tuple[Term, TriggerType]:
+        if expr == "immediately" or (isinstance(expr,SExpr) and expr[0] == "immediately"):
+            return self._mk_term("last_event_td", src_situation, parent_action, None, parent_sexpr), TriggerType.at_td_contract
+            # return FnApp("=",[self._mk_term("next_event_td",src_situation, parent_action, None, parent_sexpr),
+            #                   self._mk_term("last_event_td",src_situation, parent_action, None, parent_sexpr)], parent_sexpr.coord())
+        # else:
+        #     print("???", expr)
+        #     (timeconstraint, maybe_whereclause) = self._handle_optional_action_rule_parts(expr, parent_event_rule_context, src_situation, parent_action)
+        #     return cast(Term,timeconstraint)
 
-        # cases 1a and 1b
-        if len(expr) == 1:
-            expr = expr.newHere([expr[0], "immediately"])
-        assert len(expr) == 2
-        deadline_fn_expr = expr[1]
-        # now reduced to cases 2 and 3
-        if isinstance(expr[0],str):
-            # then no event params
-            action_id = castid(ActionId,expr[0])
-            ruleparams = None
-            fixed_args = None
-        else:
-            action_id = castid(ActionId, (expr[0][0]))
-            ruleparams_part = expr[0].tillEnd(1)
-            assert len(ruleparams_part) > 0
+        print("deadline fn:", expr)
 
-            assert (all([ruleparams_part[i][0] == "?" for i in range(len(ruleparams_part))]) or all([ruleparams_part[i][0] != "?" for i in range(len(ruleparams_part))])), \
-                "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
-            if ruleparams_part[0][0] == "?":
-                ruleparams = cast(List[RuleParamId], ruleparams_part)
-                fixed_args = None
-            else:
-                # TODO creation of the temporary DeadlineEventRule IS A HACK
-                fixed_args = [self._mk_term(arg, src_situation, parent_action,
-                    DeadlineEventRule(src_situation.situation_id, action_id,
-                                      None, None,
-                                      entrance_enabled_guard, None)
-                    , ruleparams_part) for arg in ruleparams_part]
-                ruleparams = None
-
-        if not is_derived_trigger_id(action_id):
-            self.referenced_nonderived_action_ids.add(action_id)
-
-        tempder = DeadlineEventRule(src_situation.situation_id, action_id,
-                          ruleparams, fixed_args,
-                          entrance_enabled_guard, None)
-        deadline_fn = self._mk_deadline_fn(deadline_fn_expr, src_situation, parent_action, expr, tempder)
-        der = DeadlineEventRule(src_situation.situation_id, action_id,
-                                ruleparams, fixed_args,
-                                entrance_enabled_guard, deadline_fn)
-
-        assert not der.fixed_args or not der.where_clause
-        src_situation.add_action_rule(der)
-        self._building_next_action_rule = False
+        for x in expr:
+            if isinstance(x, SExpr):
+                if x[0] in TRIGGER_TYPE_INTERP:
+                    trigger_type = TRIGGER_TYPE_INTERP[x[0]]
+                    if len(x) > 2:
+                        deadline_fn = self._mk_term(x.tillEnd(1), src_situation, parent_action,
+                                                    parent_event_rule_context, x)
+                    else:
+                        deadline_fn = self._mk_term(x[1], src_situation, parent_action,
+                                                    parent_event_rule_context, x)
+                    return deadline_fn, trigger_type
 
 
-    def _mk_actor_event_rule(self, expr:SExpr, src_situation:Situation, parent_action:Optional[Action], entrance_enabled_guard:Optional[Term]) -> None:
-        deontic_keyword : Optional[str] = None
-        role_id : RoleId
-        role_ids: List[RoleId]
-        action_id : ActionId
-        ruleparams : Optional[List[RuleParamId]] = None
-        er : ActorEventRule
+        self.syntaxError(expr, "Didn't find time trigger function")
 
-        role_ids = [castid(RoleId, expr[0])] if (isinstance(expr[0],Literal) or isinstance(expr[0],str)) else expr[0]
-        deontic_keyword = castid(DeonticKeyword, expr[1])
-        self.assertOrSyntaxError(deontic_keyword in DEONTIC_KEYWORDS, expr, deontic_keyword)
-        if isinstance(expr[2],str):
-            action_id = castid(ActionId,expr[2])
-            ruleparams = []
-        else:
-            action_id = castid(ActionId, (expr[2][0]))
-            ruleparams_part = expr[2].tillEnd(1)
-            if len(ruleparams_part) == 0:
-                ruleparams = []
-            elif ruleparams_part[0][0] == "?":
-                assert all([ruleparams_part[i][0] == "?" for i in range(len(ruleparams_part))]), \
-                    "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
-                ruleparams = cast(List[RuleParamId], ruleparams_part)
-
-        if not is_derived_trigger_id(action_id):
-            self.referenced_nonderived_action_ids.add(action_id)
-
-        er = ActorEventRule(src_situation.situation_id, role_ids, action_id, ruleparams, entrance_enabled_guard, deontic_keyword)
-        rem = expr.tillEnd(3)
-
-        if ruleparams is None:
-            er.fixed_args = [self._mk_term(arg, src_situation, parent_action, er, ruleparams_part) for arg in ruleparams_part]
-
-        (timeconstraint, whereclause) = self._handle_optional_action_rule_parts(rem, er, src_situation, parent_action)
-        er.time_constraint = timeconstraint
-        er.where_clause = whereclause
-        if deontic_keyword == "must" and er.time_constraint:
-            if isinstance(er.time_constraint, Literal) and er.time_constraint.lit == "no_time_constraint":
-                assert False, er
-
-        assert not er.fixed_args or not er.where_clause
-        src_situation.add_action_rule(er)
-        self._building_next_action_rule = False
-
-    def _mk_deadline_fn(self, expr:SExprOrStr, src_situation:Situation, parent_action:Optional[Action], parent_sexpr:SExpr, parent_action_rule:DeadlineEventRule) -> Term:
-        if expr == "immediately":
-            return FnApp("=",[self._mk_term("next_event_td",src_situation, parent_action, None, parent_sexpr),
-                              self._mk_term("last_event_td",src_situation, parent_action, None, parent_sexpr)], parent_sexpr.coord())
-
-        (maybe_timeconstraint, maybe_whereclause) = self._handle_optional_action_rule_parts(parent_sexpr.newHere([expr]), parent_action_rule, src_situation, parent_action)
-
-        return cast(Term,maybe_timeconstraint)
         # if expr == "immediately":
         #     return FnApp("=",[self._mk_term("next_event_td",src_situation, parent_action, None, parent_sexpr),
         #                       self._mk_term("last_event_td",src_situation, parent_action, None, parent_sexpr)], parent_sexpr.coord())
@@ -1239,7 +1157,105 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         #     self.assertOrSyntaxError(False, expr, f"sexpr {expr} for deadline fn. parent {src_situation}")
 
 
-    def _handle_optional_action_rule_parts(self, rem:SExpr, ar:EventRule, src_situation:Optional[Situation], src_or_parent_act: Optional[Action]) -> Tuple[Optional[Term],Optional[Term]]:
+
+    def _mk_deadline_event_rule(self, expr:SExpr, src_situation:Situation, parent_action:Optional[Action], entrance_enabled_guard:Optional[Term]) -> None:
+        action_id : ActionId
+        der : DeadlineEventRule
+
+
+        # The different forms:
+        # 1a. (<DeadlineEventName>) is short for (<DeadlineEventName> immediately) which is itself
+        #   short for (<DeadlineEventName> (<trigger type> last_event_td))
+        # 1b. ((<DeadlineEventName> arg1 arg2)) is short for ((<DeadlineEventName> arg1 arg2) immediately)
+        # 2. (<DeadlineEventName> (<trigger type> <Term of type TimeDelta>))
+        # 3. ((<DeadlineEventName> arg1 arg2) (<trigger type> <Term of type TimeDelta>))
+
+        # cases 1a and 1b
+        if len(expr) == 1:
+            expr = expr.newHere([expr[0], "immediately"])
+        assert len(expr) == 2
+        # now reduced to cases 2 and 3
+
+        deadline_fn_expr = expr[1]
+        er_context : EventRuleContext
+        param_setter : Optional[Tuple[Term,...]]
+
+        if isinstance(expr[0],str):
+            # then no event params
+            action_id = castid(ActionId,expr[0])
+            param_setter = None
+            er_context = EventRuleContext(None, action_id, True)
+        else:
+            action_id = castid(ActionId, (expr[0][0]))
+            param_setter_part = expr[0].tillEnd(1)
+            self.assertOrSyntaxError(len(param_setter_part) > 0, expr, "Either you meant to include parameter setters, or you have an exta pair of brackets")
+            er_context = EventRuleContext(None, action_id, True)
+            param_setter = tuple(self._mk_term(arg, src_situation, parent_action,
+                    er_context, param_setter_part) for arg in param_setter_part)
+
+        if not is_derived_trigger_id(action_id):
+            self.referenced_nonderived_action_ids.add(action_id)
+
+        rem = expr.tillEnd(1)
+        # deadline_fn = self._mk_deadline_fn(deadline_fn_expr, src_situation, parent_action, expr, er_context)
+        deadline_fn, triggertype  = self._mk_deadline_fn(rem, src_situation, parent_action, expr, er_context)
+        der = DeadlineEventRule(src_situation.situation_id, action_id,
+                                entrance_enabled_guard, param_setter, deadline_fn, triggertype)
+
+        src_situation.add_action_rule(der)
+        self._building_next_action_rule = False
+
+
+    def _mk_actor_event_rule(self, expr:SExpr, src_situation:Situation, parent_action:Optional[Action], entrance_enabled_guard:Optional[Term]) -> None:
+        action_id : ActionId
+        ruleparams : Optional[Tuple[RuleParamId,...]] = None
+        er : ActorEventRule
+        param_setter: Optional[Tuple[Term,...]] = None
+
+        role_ids = [castid(RoleId, expr[0])] if (isinstance(expr[0],Literal) or isinstance(expr[0],str)) else expr[0]
+        deontic_keyword : DeonticKeyword = castid(DeonticKeyword, expr[1])
+        self.assertOrSyntaxError(deontic_keyword in DEONTIC_KEYWORDS, expr, deontic_keyword)
+        if isinstance(expr[2],str):
+            action_id = castid(ActionId,expr[2])
+            ruleparams = None
+            param_setter = None
+        else:
+            action_id = castid(ActionId, (expr[2][0]))
+            ruleparams_part = expr[2].tillEnd(1)
+            if len(ruleparams_part) == 0:
+                ruleparams = None
+                param_setter = None
+            elif ruleparams_part[0][0] == "?":
+                assert all([ruleparams_part[i][0] == "?" for i in range(len(ruleparams_part))]), \
+                    "Either all or none of the action argument positions in an action rule must be newly-bound variables prefixed with '?'."
+                # ruleparams = cast(List[RuleParamId], ruleparams_part)
+                ruleparams = cast(Tuple[RuleParamId,...],tuple(ruleparams_part))
+                param_setter = None
+            else:
+                ruleparams = None
+                er_ctx = EventRuleContext(ruleparams, action_id, False)
+                param_setter = tuple(self._mk_term(arg, src_situation, parent_action, er_ctx, ruleparams_part) for arg in
+                              ruleparams_part)
+        rem = expr.tillEnd(3)
+
+        if not is_derived_trigger_id(action_id):
+            self.referenced_nonderived_action_ids.add(action_id)
+
+        er_ctx = EventRuleContext(ruleparams, action_id, False)
+        (timeconstraint, whereclause) = self._handle_optional_action_rule_parts(rem, er_ctx, src_situation, parent_action)
+        print(rem)
+        er = ActorEventRule(src_situation.situation_id, action_id, entrance_enabled_guard, ruleparams, param_setter, whereclause,
+                            role_ids, deontic_keyword, timeconstraint, len(rem) > 0 and rem[0] == "immediate")
+
+        if deontic_keyword == "must" and er.time_constraint:
+            if isinstance(er.time_constraint, Literal) and er.time_constraint.lit == "no_time_constraint":
+                assert False, er
+
+        assert not er.param_setter or not er.where_clause
+        src_situation.add_action_rule(er)
+        self._building_next_action_rule = False
+
+    def _handle_optional_action_rule_parts(self, rem:SExpr, er_context:EventRuleContext, src_situation:Optional[Situation], src_or_parent_act: Optional[Action]) -> Tuple[Optional[Term],Optional[Term]]:
         where_clause : Optional[Term] = None
         time_constraint : Optional[Term] = None
 
@@ -1247,13 +1263,13 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         for x in rem:
             if not isinstance(x, str):
                 if x[0] == "where":
-                    where_clause = self._mk_term(x[1], src_situation, src_or_parent_act, ar, rem)
+                    where_clause = self._mk_term(x[1], src_situation, src_or_parent_act, er_context, rem)
                 elif x[0] == "when":
                     found_labeled_time_constraint = True
                     if len(x) > 2:
-                        time_constraint = self._mk_time_constraint(x.tillEnd(1), src_situation, src_or_parent_act, ar, x)
+                        time_constraint = self._mk_time_constraint(x.tillEnd(1), src_situation, src_or_parent_act, er_context, x)
                     else:
-                        time_constraint = self._mk_time_constraint(x[1], src_situation, src_or_parent_act, ar, x)
+                        time_constraint = self._mk_time_constraint(x[1], src_situation, src_or_parent_act, er_context, x)
 
                 elif x[0] in {"before", "within", "at", "after", "at_or_after"}:
                     found_labeled_time_constraint = True
@@ -1269,7 +1285,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     elif x[0] == "at_or_after":
                         symb = '≥'
                     expanded = x.newHere([symb, 'next_event_td', rest])
-                    time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
+                    time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, er_context, x)
 
                 # =============TimeDelta since last shorthand=============
                 elif x[0] in { "before_split", "within_split", "at_split", "after_split", "at_or_after_split"}:
@@ -1286,7 +1302,7 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     elif x[0] == "at_or_after_split":
                         symb = '≥'
                     expanded = x.newHere([symb, 'next_event_td', x.newHere(['+', 'last_situation_td', rest])])
-                    time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
+                    time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, er_context, x)
 
                 # =============DateTime shorthand=============
                 elif x[0] in {"before_dt", "by", "within_dt", "on", "at_dt", "after_dt", "at_or_after_dt"}:
@@ -1303,24 +1319,25 @@ class L4ContractConstructor(L4ContractConstructorInterface):
                     elif x[0] == 'at_or_after_dt':
                         symb = '≥'
                     expanded = SExpr(['≤', 'next_event_dt', rest], x.line, x.col)
-                    time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, ar, x)
+                    time_constraint = self._mk_time_constraint(expanded, src_situation, src_or_parent_act, er_context, x)
 
                 else:
                     self.syntaxError(rem)
 
             elif x in TIME_CONSTRAINT_KEYWORDS:
                 found_labeled_time_constraint = True
-                time_constraint = self._mk_time_constraint(x, src_situation, src_or_parent_act, ar, rem)
+                time_constraint = self._mk_time_constraint(x, src_situation, src_or_parent_act, er_context, rem)
 
             # else:
             #     self.syntaxError(rem, "wtf is this? " + str(x))
 
         if not found_labeled_time_constraint:
             assert time_constraint is None
-            # ar.time_constraint = self._mk_time_constraint("no_time_constraint", src_situation, src_or_parent_act, ar, rem)
-            # assert ar.time_constraint is not None, f"Currently a time constraint is needed in the S-Expr syntax, but it can be 'no_time_constraint'. See {str(rem)}"
+            # er_context.time_constraint = self._mk_time_constraint("no_time_constraint", src_situation, src_or_parent_act, er_context, rem)
+            # assert er_context.time_constraint is not None, f"Currently a time constraint is needed in the S-Expr syntax, but it can be 'no_time_constraint'. See {str(rem)}"
 
         return (time_constraint, where_clause)
+
 
 
 def try_parse_as_fn_app(x:SExpr)  -> Optional[Tuple[str, SExpr]]:

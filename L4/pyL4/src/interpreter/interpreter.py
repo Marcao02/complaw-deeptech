@@ -246,7 +246,7 @@ class ExecEnv:
                 # return ContractFlawedError()
             else:
                 assert isinstance(enabled_strong_obligs[0],ActorEventRule)
-                if self.current_event_compatible_with_enabled_NextEventRule(enabled_strong_obligs[0]):
+                if self.current_event_compatible_with_enabled_EventRule(enabled_strong_obligs[0]):
                     return EventOk()
                 else:
                     return BreachResult(enabled_strong_obligs[0].role_ids,
@@ -267,11 +267,11 @@ class ExecEnv:
         todo_once("Verbose print option here for showing compatible enabled env actions and permissions")
         # We ignore permissions for roles that are not the current role id, for actions that aren't the current
         # action id, whose time constraint is false, or whose where clause is false
-        compat_enabled_permissions = list(filter(self.current_event_compatible_with_enabled_NextEventRule, enabled_permissions))
+        compat_enabled_permissions = list(filter(self.current_event_compatible_with_enabled_EventRule, enabled_permissions))
         if len(compat_enabled_permissions) > 0:
             return EventOk()
         # Similarly for Env actions:
-        compat_enabled_env_action_rules = list(filter(self.current_event_compatible_with_enabled_NextEventRule, enabled_env_action_rules))
+        compat_enabled_env_action_rules = list(filter(self.current_event_compatible_with_enabled_EventRule, enabled_env_action_rules))
         if len(compat_enabled_env_action_rules) > 0:
             return EventOk()
 
@@ -295,7 +295,7 @@ class ExecEnv:
         for roleid_with_wo in enabled_weak_obligs_by_role:
             for rule in enabled_weak_obligs_by_role[roleid_with_wo]:
                 # print(f"An enabled weak oblig rule for {roleid_with_wo}: " + str(rule))
-                if self.current_event_compatible_with_enabled_NextEventRule(rule):
+                if self.current_event_compatible_with_enabled_EventRule(rule):
                     if verbose:
                         print("weak oblig rule checks out: ", rule)
                     return EventOk()
@@ -311,27 +311,26 @@ class ExecEnv:
 
     # Only if the current situation is an anonymous situation (i.e. given by a FollowingSituation declaration) is it possible
     # for the where_clause of action_rule to contain action-bound action parameters.
-    def current_event_compatible_with_enabled_NextEventRule(self, action_rule:EventRule)  -> bool:
+    def current_event_compatible_with_enabled_EventRule(self, action_rule:EventRule)  -> bool:
         assert self.cur_event is not None
         rv : bool
         self.evaluation_is_in_next_action_rule = True
-        print("event role id", self.cur_event.role_id)
         if isinstance(action_rule,DeadlineEventRule):
             rv = self.cur_event.role_id == ENV_ROLE
         else:
-            role_action_match = self.cur_event.role_id in cast(ActorEventRule,action_rule).role_ids and self.cur_event.action_id == action_rule.action_id
+            role_action_match = self.cur_event.role_id in action_rule.role_ids and self.cur_event.action_id == action_rule.action_id
             if not role_action_match:
                 rv = False
             elif not self.evalTimeConstraint(action_rule.time_constraint):
                 rv = False
             elif action_rule.where_clause:
                 rv = chcast(bool,self.evalTerm(action_rule.where_clause))
-            elif action_rule.fixed_args:
+            elif action_rule.param_setter:
                 if self.cur_event.actionparam_subst_list:
-                    argvals = [self.evalTerm(arg) for arg in action_rule.fixed_args]
+                    argvals = [self.evalTerm(arg) for arg in action_rule.param_setter]
                     rv = all(argvals[i] == self.cur_event.actionparam_subst_list[i] for i in range(len(self.cur_event.actionparam_subst_list)))
                 else:
-                    rv = len(action_rule.fixed_args) == 0
+                    rv = len(action_rule.param_setter) == 0
             else:
                 rv = True
         self.evaluation_is_in_next_action_rule = False

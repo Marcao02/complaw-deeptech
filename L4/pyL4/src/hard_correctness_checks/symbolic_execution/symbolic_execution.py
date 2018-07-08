@@ -538,7 +538,7 @@ def symbolic_execution(prog:L4Contract):
         todo_once("QueryPath for each precondition, or their conjunction")
 
         for rule in s.action_rules():
-            assert isinstance(rule,EventRule)
+            # assert isinstance(rule,EventRule)
             if rule.entrance_enabled_guard:
                 enabled_guard_z3 = term2z3(rule.entrance_enabled_guard, None, None,
                                            CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
@@ -563,9 +563,8 @@ def symbolic_execution(prog:L4Contract):
         action = prog.action(rule.action_id)
         # first need to handle the new action params
         actparam_store: OneUseStore
-        if rule.fixed_args:
-            assert not rule.where_clause
-            d = {actparam_name: rule.fixed_args[
+        if rule.param_setter:
+            d = {actparam_name: rule.param_setter[
                 action.param_name_to_ind[actparam_name]] for actparam_name in action.param_names}
             actparam_store = OneUseStore({actparam_name: term2z3(d[actparam_name], state, None, core) for actparam_name in d})
         else:
@@ -575,7 +574,8 @@ def symbolic_execution(prog:L4Contract):
 
         # SETTING next_event_td
         envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t+1}",'TimeDelta',sz3))
-        envvars = envvars.set("next_event_dt", name2symbolicvar(f"td_{t+1}", 'TimeDelta', sz3) - name2symbolicvar("td_0", 'TimeDelta', sz3)) # type:ignore
+        todo_once(Exception("next_event_dt is set wrong here. should be start dt + td_{t+1}."))
+        # envvars = envvars.set("next_event_dt", name2symbolicvar(f"td_{t+1}", 'TimeDelta', sz3) - name2symbolicvar("td_0", 'TimeDelta', sz3)) # type:ignore
         if t > 0:
             time_pathconstr = conj(
                 name2symbolicvar(f"td_{t-1}", 'TimeDelta', sz3) <= name2symbolicvar(f"td_{t}", 'TimeDelta', sz3), # type:ignore
@@ -593,7 +593,7 @@ def symbolic_execution(prog:L4Contract):
                 ruleparam_store = OneUseStore({ruleparam_name:
                                                name2actparam_symbolic_var(ruleparam_name, t,
                                                                           action.param_sort(ruleparam_ind), sz3) \
-                                               for (ruleparam_name, ruleparam_ind) in rule.ruleparam_to_ind.items()})
+                                               for (ruleparam_name, ruleparam_ind) in rule.ruleparam_to_ind().items()})
                 wc = term2z3(rule.where_clause, None, ruleparam_store, newcore)
             tc : Z3Term = Z3TRUE
             if rule.time_constraint and rule.time_constraint != "no_time_constraint":

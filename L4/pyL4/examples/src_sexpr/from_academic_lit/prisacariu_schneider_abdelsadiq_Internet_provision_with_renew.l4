@@ -159,15 +159,15 @@
 		)
 
 		(if (and sent_delay_email usage_level_normal (paid ≥ ($ 2)))
-			(Reset (within (infraction_time + 48H)))
+			(Reset (after_td (infraction_time + 48H)))
 		)
 
 		(if (and sent_delay_email (traffic_low_since ≤ (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 2)))
-			(Reset (within (infraction_time + 48H)))
+			(Reset (after_td (infraction_time + 48H)))
 		)
 
 		(if (and sent_delay_email (traffic_low_since > (infraction_time + 24H)) usage_level_normal (paid ≥ ($ 3)))
-			(Reset (within (infraction_time + 48H)))
+			(Reset (after_td (infraction_time + 48H)))
 		)
 
 		(ClientBreaches (after (infraction_time + 48H)))

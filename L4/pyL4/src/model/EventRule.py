@@ -1,3 +1,4 @@
+from enum import Enum
 from itertools import chain
 
 from src.independent.util import indent
@@ -8,26 +9,51 @@ from src.model.Term import Term
 
 T = TypeVar('T')
 
-# EventRule is a ActorEventRule or a DeadlineEventRule
+rule_param_to_ind_cache : Dict['ActorEventRule', Dict[RuleParamId,int]] = dict()
+def rule_to_ruleparam_to_ind(er:'ActorEventRule') -> Dict[RuleParamId,int]:
 
-# ABSTRACT
-class EventRule:
-    def __init__(self,
-                 src_id: SituationId,
-                 action_id: ActionId,
-                 ruleparam_names: Optional[List[RuleParamId]],
-                 entrance_enabled_guard: Optional[Term]) -> None:
-        self.src_id = src_id
-        self.action_id = action_id
-        self.entrance_enabled_guard = entrance_enabled_guard
-        self.time_constraint: Optional[Term] = None
-        self.where_clause: Optional[Term] = None
+    if er in rule_param_to_ind_cache:
+        return rule_param_to_ind_cache[er]
+    else:
+        if er.ruleparam_names:
+            d = {er.ruleparam_names[i]:i for i in range(len(er.ruleparam_names))}
+            rule_param_to_ind_cache[er] = d
+            return d
+        else:
+            return dict()
 
-        self.ruleparam_names = ruleparam_names
-        self.ruleparam_to_ind : Optional[Dict[str, int]] = \
-            {self.ruleparam_names[i]:i for i in range(len(self.ruleparam_names))} \
-            if self.ruleparam_names else None
-        self.fixed_args: Optional[List[Term]] = None
+
+#
+class EventRuleContext(NamedTuple):
+    ruleparam_names: Optional[Tuple[RuleParamId,...]]
+    action_id: ActionId
+    for_deadline_event_rule: bool
+
+    def ruleparam_to_ind(self,name:str) -> Optional[int]:
+        if not self.ruleparam_names:
+            return None
+        else:
+            for known_name_ind in range(len(self.ruleparam_names)):
+                if self.ruleparam_names[known_name_ind] == name:
+                    return known_name_ind
+            assert False
+
+
+class ActorEventRule(NamedTuple):
+    src_id: SituationId
+    action_id: ActionId
+    entrance_enabled_guard: Optional[Term]
+
+    ruleparam_names: Optional[Tuple[RuleParamId, ...]]
+    param_setter: Optional[Tuple[Term,...]]
+    where_clause: Optional[Term]
+    role_ids: List[RoleId]
+    deontic_keyword: DeonticKeyword
+    time_constraint: Optional[Term]
+    immediate: bool
+
+    def ruleparam_to_ind(self) -> Dict[RuleParamId,int]:
+        return rule_to_ruleparam_to_ind(self)
 
     def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
         rviter : Iterable[T] = iteraccum_maybe or []
@@ -35,118 +61,101 @@ class EventRule:
             rviter = self.entrance_enabled_guard.forEachTerm(f,rviter)
         if self.where_clause:
             rviter = self.where_clause.forEachTerm(f,rviter)
-        if self.fixed_args:
-            for i in range(len(self.fixed_args)):
-                argterm = self.fixed_args[i]
+        if self.param_setter:
+            for i in range(len(self.param_setter)):
+                argterm = self.param_setter[i]
                 rviter = argterm.forEachTerm(f, rviter)
-                # rviter = chain(rviter, f(argterm))
         if self.time_constraint:
             rviter = self.time_constraint.forEachTerm(f, rviter)
-            # rviter = chain(rviter, f(self.time_constraint))
         return rviter
 
     def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
         rviter: Iterable[T] = []
+        rviter = chain(rviter, f(self.action_id), f(self.src_id))
         if pred(self):
             rviter = chain(rviter, f(self))
+        if self.ruleparam_names:
+            for pname in self.ruleparam_names:
+                rviter = chain(rviter, f(pname))
+        for roleid in self.role_ids:
+            rviter = chain(rviter, f(roleid))
         if self.entrance_enabled_guard:
             rviter = chain(rviter, self.entrance_enabled_guard.forEach(pred,f))
         if self.where_clause:
             rviter = chain(rviter, self.where_clause.forEach(pred,f))
-        if self.fixed_args:
-            for i in range(len(self.fixed_args)):
-                argterm = self.fixed_args[i]
+        if self.param_setter:
+            for i in range(len(self.param_setter)):
+                argterm = self.param_setter[i]
                 rviter = chain(rviter, argterm.forEach(pred,f))
-                # rviter = chain(rviter, f(argterm))
         if self.time_constraint:
             rviter = chain(rviter, self.time_constraint.forEach(pred,f))
-            # rviter = chain(rviter, f(self.time_constraint))
         return rviter
 
     def toStr(self, i:int) -> str:
-        raise NotImplemented
+        rv: str = ""
+        indent_level = i
+        if self.entrance_enabled_guard:
+            rv = indent(indent_level) + "if " + str(self.entrance_enabled_guard) + ":\n"
+            indent_level += 1
 
-    def action_object(self, prog:'L4Contract') -> 'Action': #type:ignore
-        return prog.action(self.action_id) # type:ignore
+        if self.action_id == FULFILLED_SITUATION_LABEL and self.immediate:
+            rv += indent(indent_level) + FULFILLED_SITUATION_LABEL
+            return rv
 
-    def rule_varname_to_sort(self, prog:'L4Contract', name) -> 'Sort': #type:ignore
-        return self.action_object(prog).param_sort(self.ruleparam_to_ind[name]) #type:ignore
+        rv += indent(indent_level) + f"{roles_to_str(self.role_ids)} {self.deontic_keyword} {self.action_id}"
 
-    def __str__(self) -> str:
-        return self.toStr(0)
+        if self.param_setter:
+            assert not self.ruleparam_names
+            rv += f"({mapjoin(str , self.param_setter, ', ')})"
+        elif self.ruleparam_names:
+            assert not self.param_setter
+            rv += f"({mapjoin(str , self.ruleparam_names, ', ')})"
 
-    def __repr__(self) -> str:
-        return self.toStr(0)
-    
-def common_party_action_rule_toStr(ar:'ActorEventRule', i:int, fixed_param_vals : Optional[List[Data]] = None) -> str:
-    rv: str = ""
-    indent_level = i
-    if ar.entrance_enabled_guard:
-        rv = indent(indent_level) + "if " + str(ar.entrance_enabled_guard) + ":\n"
-        indent_level += 1
+        if self.time_constraint:
+            rv += " when " + str(self.time_constraint)
 
-    assert str(ar.time_constraint) != 'immediately'
+        if self.where_clause:
+            rv += " where " + str(self.where_clause)
 
-    if ar.action_id == FULFILLED_SITUATION_LABEL and str(ar.time_constraint) == 'immediately':
-        rv += indent(indent_level) + FULFILLED_SITUATION_LABEL
         return rv
 
 
-    if ar.role_ids[0] == ENV_ROLE:
-        rv += indent(indent_level) + ar.action_id
-    else:
-        rv += indent(indent_level) + f"{roles_to_str(ar.role_ids)} {ar.deontic_keyword} {ar.action_id}"
+class DeadlineEventRule(NamedTuple):
+    src_id: SituationId
+    action_id: ActionId
+    entrance_enabled_guard: Optional[Term]
 
-    if fixed_param_vals:
-        assert not ar.ruleparam_names
-        rv += f"({mapjoin(str , fixed_param_vals, ', ')})"
-    elif ar.ruleparam_names:
-        assert not ar.fixed_args
-        rv += f"({mapjoin(str , ar.ruleparam_names, ', ')})"
-    elif ar.fixed_args:
-        rv += f"({mapjoin(str , ar.fixed_args, ', ')})"
+    param_setter: Optional[Tuple[Term, ...]]
+    deadline_fn: Term
+    trigger_type: TriggerType
 
-    # if ar.role_id == ENV_ROLE and str(ar.time_constraint) == 'immediately':
-    #     return rv
-    #
-    if ar.time_constraint:
-        rv += " " + str(ar.time_constraint)
+    # def ruleparam_to_ind(self) -> Dict[RuleParamId,int]:
+    #     return rule_to_ruleparam_to_ind(self)
 
-    if ar.where_clause:
-        rv += " where " + str(ar.where_clause)
+    def forEachTerm(self, f:Callable[[Term],Iterable[T]], iteraccum_maybe:Optional[Iterable[T]] = None) -> Iterable[T]:
+        rviter : Iterable[T] = iteraccum_maybe or []
+        rviter = self.deadline_fn.forEachTerm(f, rviter)
+        if self.entrance_enabled_guard:
+            rviter = self.entrance_enabled_guard.forEachTerm(f,rviter)
+        if self.param_setter:
+            for i in range(len(self.param_setter)):
+                argterm = self.param_setter[i]
+                rviter = argterm.forEachTerm(f, rviter)
+        return rviter
 
-    return rv
-
-
-class ActorEventRule(EventRule):
-    def __init__(self,
-                 src_id: SituationId,
-                 role_ids: List[RoleId],
-                 action_id: ActionId,
-                 ruleparam_names: Optional[List[RuleParamId]],
-                 entrance_enabled_guard: Optional[Term],
-                 deontic_keyword: DeonticKeyword) -> None:
-        super().__init__(src_id, action_id, ruleparam_names, entrance_enabled_guard)
-        self.role_ids = role_ids
-        self.time_constraint: Optional[Term]
-        self.deontic_keyword = deontic_keyword
-
-    def toStr(self, i:int) -> str:
-        return common_party_action_rule_toStr(self, i)
-
-
-class DeadlineEventRule(EventRule):
-    def __init__(self,
-                 src_id: SituationId,
-                 action_id: ActionId,
-                 ruleparam_names: Optional[List[RuleParamId]],
-                 fixed_args: Optional[List[Term]],
-                 entrance_enabled_guard: Optional[Term],
-                 deadline_fn: Term
-                 ) -> None:
-        super().__init__(src_id, action_id, ruleparam_names, entrance_enabled_guard)
-        self.fixed_args = fixed_args
-        self.deadline_fn = deadline_fn
+    def forEach(self, pred: Callable[[Any], bool], f: Callable[[Any], Iterable[T]]) -> Iterable[T]:
+        rviter: Iterable[T] = []
+        rviter = chain(rviter, f(self.action_id), f(self.src_id))
+        rviter = self.deadline_fn.forEachTerm(f, rviter)
+        if pred(self):
+            rviter = chain(rviter, f(self))
+        if self.entrance_enabled_guard:
+            rviter = chain(rviter, self.entrance_enabled_guard.forEach(pred,f))
+        if self.param_setter:
+            for i in range(len(self.param_setter)):
+                argterm = self.param_setter[i]
+                rviter = chain(rviter, argterm.forEach(pred,f))
+        return rviter
 
     def toStr(self, i:int) -> str:
         rv : str = ""
@@ -157,21 +166,14 @@ class DeadlineEventRule(EventRule):
 
         rv += indent(indent_level) + self.action_id
 
-        if self.ruleparam_names:
-            assert not self.fixed_args
-            rv += f"({mapjoin(str , self.ruleparam_names, ', ')})"
-        elif self.fixed_args:
-            rv += f"({mapjoin(str , self.fixed_args, ', ')})"
+        if self.param_setter:
+            rv += f"({mapjoin(str , self.param_setter, ', ')})"
 
-        # if str(self.time_constraint) == 'immediately':
-        #     return rv
-
-        if self.time_constraint:
-            rv += " " + str(self.time_constraint)
+        rv += " " + self.trigger_type.name + " " + str(self.deadline_fn)
 
         return rv
 
-
+EventRule = Union[ActorEventRule,DeadlineEventRule]
 
 def roles_to_str(roles:Sequence[str]) -> str:
     if len(roles) == 1:

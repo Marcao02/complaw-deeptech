@@ -6,23 +6,23 @@ roles: Env, Arbiter, Student, Grader
 state vars:
 
 situation AssignmentOut:
-    Student may Submit (next_event_td == 11)
-    Breach_Student (next_event_td > 11)
+    Student may Submit when (next_event_td == 11)
+    Breach_Student after_td_contract 11
 
 action Accept()  transitions to Fulfilled
 
 action Submit()  transitions to AfterSubmit
     following situation:
-        Grader may Accept (next_event_td ≤ (last_situation_td + 7d))
-        Grader may Reject (next_event_td ≤ (last_situation_td + 7d))
-        Breach_Grader (next_event_td > (last_situation_td + 7d))
+        Grader may Accept when (next_event_td ≤ (last_situation_td + 7d))
+        Grader may Reject when (next_event_td ≤ (last_situation_td + 7d))
+        Breach_Grader after_td_event 7d
 
 action Reject()  transitions to AfterReject
     following situation:
-        Student may Resubmit (next_event_dt ≤ 26)
-        Breach_Student (next_event_dt ≤ 26)
+        Student may Resubmit when (next_event_dt ≤ 26)
+        Breach_Student after_dt 26
 
 action Resubmit()  transitions to AfterResubmit
     following situation:
-        Grader may Accept (next_event_td ≤ (7 + last_situation_td))
-        Breach_Grader (next_event_td > (7 + last_situation_td))
+        Grader may Accept when (next_event_td ≤ (7 + last_situation_td))
+        Breach_Grader after_td_contract (7 + last_situation_td)

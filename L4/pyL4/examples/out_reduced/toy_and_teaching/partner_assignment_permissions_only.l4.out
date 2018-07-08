@@ -12,23 +12,23 @@ state vars:
 
 situation WorkingOnAssignment:
     if ¬probAsolved:
-        Alice may SolveProbA (next_event_td ≤ DUE_TD)
+        Alice may SolveProbA when (next_event_td ≤ DUE_TD)
     if ¬probBsolved:
-        Alice may SolveProbB (next_event_td ≤ DUE_TD)
+        Alice may SolveProbB when (next_event_td ≤ DUE_TD)
     if (and probAsolved probBsolved):
-        Alice may Submit (next_event_td ≤ DUE_TD)
+        Alice may Submit when (next_event_td ≤ DUE_TD)
     if ¬probAsolved:
-        Bob may SolveProbA (next_event_td ≤ DUE_TD)
+        Bob may SolveProbA when (next_event_td ≤ DUE_TD)
     if ¬probBsolved:
-        Bob may SolveProbB (next_event_td ≤ DUE_TD)
+        Bob may SolveProbB when (next_event_td ≤ DUE_TD)
     if (and probAsolved probBsolved):
-        Bob may Submit (next_event_td ≤ DUE_TD)
+        Bob may Submit when (next_event_td ≤ DUE_TD)
     if (and ¬probAsolved ¬probBsolved):
-        Breach_Alice_Bob (next_event_td == (DUE_TD + 1))
+        Breach_Alice_Bob at_td_contract (DUE_TD + 1)
     if (and ¬probAsolved probBsolved):
-        Breach_Alice (next_event_td == (DUE_TD + 1))
+        Breach_Alice at_td_contract (DUE_TD + 1)
     if (and probAsolved ¬probBsolved):
-        Breach_Bob (next_event_td == (DUE_TD + 1))
+        Breach_Bob at_td_contract (DUE_TD + 1)
 
 action SolveProbA()  transitions to WorkingOnAssignment:
     transform:

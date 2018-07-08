@@ -106,14 +106,14 @@
 		(if (nonempty 2Bdelivered)
 			; lang note: the `where (hasKey  2Bdelivered ?order)` expression constrains permitted values of the event parameter `order`.
 			(Vendor may (Deliver ?order) (when tdGEQ 2Bdelivered ?order next_event_td) (where (hasKey 2Bdelivered ?order)))
-			(Breach_Vendor (when tdmapHasItemExpiredBefore 2Bdelivered next_event_td))
+			(Breach_Vendor (after (minValue 2Bdelivered)))
 		)
 		(if (nonempty 2Binvoiced)
 			(Vendor may (EmailInvoice ?order) (when tdGEQ 2Binvoiced ?order next_event_td) (where (hasKey 2Binvoiced ?order)))
 		)
 		(if (nonempty 2Bpaid)
 			(Customer may (PayBill ?order) (when tdGEQ 2Bpaid ?order next_event_td) (where (hasKey 2Bpaid ?order)))
-			(Breach_Customer (when tdmapHasItemExpiredBefore 2Bpaid next_event_td))
+			(Breach_Customer (after (minValue 2Bpaid)))
 		)
 		(if ; conditions for early end of contract
 			( and (orderable_units == 0) (empty 2Bpaid) (empty 2Bdelivered))
@@ -123,7 +123,8 @@
 		(if ; conditions for end of contract with units remaining
 			( and (orderable_units > 0) (empty 2Bpaid) (empty 2Bdelivered) )
 			; then fulfilled provided all invoice deadlines are expired, and the _order period is over
-			(EnterFulfilled (when (next_event_td > furthest_invoice_deadline) and (next_event_td > order_period_ends)))
+			; (EnterFulfilled (when (next_event_td > furthest_invoice_deadline) and (next_event_td > order_period_ends)))
+			(EnterFulfilled (after (max furthest_invoice_deadline order_period_ends)))
 		)
 	)
 

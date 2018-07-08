@@ -46,9 +46,9 @@ action PayForBooze(cost: Pos$) transitions to AfterPayForBooze:
     transform:
         buyer_funds := (buyer_funds - cost)
     following situation:
-        Seller may DeliverBooze (next_event_td ≤ 10m)
-        Seller may RefundBuyer(cost) (next_event_td ≤ 15m)
-        Breach_Seller (next_event_td > 15m)
+        Seller may DeliverBooze when (next_event_td ≤ 10m)
+        Seller may RefundBuyer(cost) when (next_event_td ≤ 15m)
+        Breach_Seller after_td_contract 15m
 
 action DeliverBooze()  transitions to NothingHappening
 
