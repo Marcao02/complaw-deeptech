@@ -6,7 +6,7 @@
 
 The first edition of this document was drafted beginning July 2017 and published in November 2017 in [[https://www.soldan.de/media/pdf/ee/33/e8/9783406713484_inh.pdf][Rechtshandbuch Legal Tech]]. This is a live document and will evolve toward the second edition.
 
-A version of this content is available in [[https://drive.google.com/open?id=10n25p2uwoDP91V-JbyFdWBSAbXfoZOlM-F9YmHeJk5s][a slide deck presented at Stanford on Nov 30 2017]].
+A presentation version of this content is available in [[https://drive.google.com/open?id=10n25p2uwoDP91V-JbyFdWBSAbXfoZOlM-F9YmHeJk5s][a slide deck presented at Stanford on Nov 30 2017]]. It is being incorporated into a Stanford CodeX paper on the [[https://conferences.law.stanford.edu/compkworking201709/wp-content/uploads/sites/40/2017/07/WhitePaperDraftfordistroApril32018.pdf][Legal Specification Protocol]].
 
 The authoritative links are at
 - https://github.com/legalese/complaw-deeptech/blob/master/doc/chapter-201707.org
