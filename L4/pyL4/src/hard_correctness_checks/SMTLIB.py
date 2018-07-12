@@ -83,7 +83,7 @@ FN_NAME_SUBST : Dict[str,str] = {
 
     # hacky and temporary
     'mapSet': 'mapSet',
-    'mapDelete': 'mapDelete',
+    'delete': 'delete',
     'tuple': 'tuple',
 
 }

@@ -25,20 +25,20 @@ state vars:
     writes≤1 pay_interest_in_cash : Bool := False
 
 situation InvestorInvests:
-    Company may CommitToAcquisition(?1) (next_event_td < TIME_TILL_MATURITY)
-    Company may CommitToFinancing(?1) (next_event_td < TIME_TILL_MATURITY)
-    ReachMaturity (next_event_td ≥ TIME_TILL_MATURITY)
+    Company may CommitToAcquisition(?1) when (next_event_td < TIME_TILL_MATURITY)
+    Company may CommitToFinancing(?1) when (next_event_td < TIME_TILL_MATURITY)
+    ReachMaturity at_td_contract TIME_TILL_MATURITY
 
 action CommitToFinancing(qualifying_round_new_money: $) transitions to AfterCommitToFinancing:
     pre: (qualifying_round_new_money ≥ (units $ 1000000))
     following situation:
-        Company may NotifyInvestorOfNextEquityFinancingTerms (next_event_td ≤ (last_situation_td + 1d))
-        Breach_Company (next_event_td > (last_situation_td + 1d))
+        Company may NotifyInvestorOfNextEquityFinancingTerms when (next_event_td ≤ (last_situation_td + 1d))
+        Breach_Company after_td_event 1d
 
 action NotifyInvestorOfNextEquityFinancingTerms()  transitions to After_NotifyInvestorOfNextEquityFinancingTerms
 
 situation After_NotifyInvestorOfNextEquityFinancingTerms:
-    Company may CloseEquityFinancingSale(?1, ?2) (next_event_td > (last_situation_td + 5d))
+    Company may CloseEquityFinancingSale(?1, ?2) when (next_event_td > (last_situation_td + 5d))
     Investor may choose_cash_interest_repayment
 
 action choose_cash_interest_repayment()  non-transitioning:

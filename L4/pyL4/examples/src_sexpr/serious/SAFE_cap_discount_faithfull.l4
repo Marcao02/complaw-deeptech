@@ -163,16 +163,9 @@
 
 	(StartSituation Signed)
 
-	(Action ExternalShareCntChange
-		(nlglogicsection "Events/Scenarios Relevant in All Cases")
-	)
-	(Action ExternalShareCntChange
-		(nlglogicsection "Events/Scenarios Relevant in All Cases")
-	)
-	(Action ExternalShareCntChange
-		(nlglogicsection "Events/Scenarios Relevant in All Cases")
-	)
-
+	; (Action ExternalShareCntChange
+	; 	(nlglogicsection "Events/Scenarios Relevant in All Cases")
+	; )
 
 	(Situation Signed
 		(nlg "Investment Agreement Signed")

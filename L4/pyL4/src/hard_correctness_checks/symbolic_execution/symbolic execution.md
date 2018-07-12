@@ -1,7 +1,7 @@
 Symbolic eval, at any time, is in
 -A Situation
 	-evaluating a precondition or postcondition
-	-deciding what ActionRule to apply.
+	-deciding what EventRule to apply.
 -An Action
 	-evaluating the StateTransform section of an Action
 	// no need for preconditions and postconditions, since they can just be `assert`s in the StateTransform.

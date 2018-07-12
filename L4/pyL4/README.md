@@ -62,9 +62,9 @@ You can control which modules to run examples on, and which examples to run, wit
 
 <!-- **Todo: update LaTeX to add "env action" as an action_rule type.** -->
 
-<!--In LSM, there is only one type of `NextActionRule`, which has a role, action, and a few other things.-->
-<!--In L4, there are PartyNextActionRule, EnvNextActionRule. They are just conveniences:-->
+<!--In LSM, there is only one type of `NextEventRule`, which has a role, action, and a few other things.-->
+<!--In L4, there are ActorEventRule, DeadlineEventRule. They are just conveniences:-->
 
-<!--* ActionRuleToSituation has no `deontic_keyword` but has an extra `dest_id` (a `Situation` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
-<!--* EnvNextActionRule has no `deontic_keyword` and its `role_id` is always `ENV_ROLE`.-->
+<!--* EventRuleToSituation has no `deontic_keyword` but has an extra `dest_id` (a `Situation` id), its `role_id` is always `ENV_ROLE`, and its `action_id` is its `dest_id` prefixed with `Enter`.-->
+<!--* DeadlineEventRule has no `deontic_keyword` and its `role_id` is always `ENV_ROLE`.-->
 

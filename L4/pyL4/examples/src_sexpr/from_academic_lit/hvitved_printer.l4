@@ -1,7 +1,7 @@
 
 (Claims
-	(MAX_TIME' = 44D)
-	(MAX_SITUATION_VISITS' = 6)
+	(MAX_TIME = 44D)
+	(MAX_SITUATION_VISITS = 6)
 )
 
 (Roles Buyer Seller)

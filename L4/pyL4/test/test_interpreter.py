@@ -77,57 +77,16 @@ traces_toy_and_teaching : Sequence[ TraceExample ] = (
         {"n": 81})
      ),
 
-    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
+    ('toy_and_teaching/juggling.l4', CompleteTrace(
         {},
-        (event('Throw', 'I'),
-         event('Throw', 'I'),
-         event('Throw', 'I'),
-         foevent('Catch', 'I', 0, {'m': 3}),
-         foevent('Catch', 'I', 0, {'m': 2}),
-         foevent('Catch', 'I', 0, {'m': 1}),
-         event('EnterFulfilled', 'Env', 0), # not finished. see next test.
-         ), breachSituationId('Env'))
-    ),
-
-    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
-        {},
-        (event('Throw', 'I'),  # n = 1 after
-         event('Throw', 'I'),  # n = 2 after
-         event('Stand', 'I'),  # n = 3 after
-         event('Throw', 'I'),  # n = 4 after
-         foevent('Catch', 'I', 0, {'m': 1}),
-         foevent('Catch', 'I', 0, {'m': 4}),
-         foevent('Catch', 'I', 0, {'m': 2}),
-         event('Stand', 'I'),  # n = 5 after
-         event('EnterFulfilled', 'Env', 0),
+        (event('RequestNewBall', 'You', 0),
+         event('RequestNewBall', 'You', 500),
+         event('TossNewBall', 'Assistant', 600, {'latest_possible_catch_delay': timedelta(milliseconds=500)}),
+         event('TossNewBall', 'Assistant', 900, {'latest_possible_catch_delay': timedelta(milliseconds=400)}),
+         event('Catch', 'You', 600 + 500, {'n': 0}), # catch ball 0
+         event('Catch', 'You', 900 + 350, {'n': 1}),  # catch ball 0
+         event('FinishJuggling', 'You', 2000)
          ), FULFILLED_SITUATION_LABEL)
-     ),
-
-    ('toy_and_teaching/minimal_future-actions2.l4', CompleteTrace(
-        {}, (
-        event('Throw', 'I', 0, {'n':4}),
-        event('Throw', 'I', 0, {'n':3}),
-        event('Throw', 'I', 0, {'n':1}),
-        event('Throw', 'I', 0, {'n':2}),
-        foevent('Catch', 'I', 0, {'n': 1}),
-        foevent('Catch', 'I', 0, {'n': 3}),
-        foevent('Catch', 'I', 0, {'n': 4}),
-        foevent('Catch', 'I', 0, {'n': 2}),
-        event('EnterFulfilled', 'I', 0),
-         ), FULFILLED_SITUATION_LABEL)
-     ),
-
-    ('toy_and_teaching/minimal_future-actions.l4', CompleteTrace(
-        {},
-        (   event('Throw','I'),
-            event('Throw','I'),
-            event('Stand','I'),
-            event('Throw','I'),
-            foevent('Catch', 'I', 0, {'m': 1}),
-            foevent('Catch', 'I', 0, {'m': 4}),
-            foevent('Catch', 'I', 0, {'m': 3}),
-            # event('EnterFulfilled', 'Env', 0),
-        ), breachSituationId('I'))
     ),
 
 
@@ -325,8 +284,7 @@ EXAMPLES_TO_RUN = [
 
         'from_academic_lit/hvitved_instalment_sale--simplified_time.l4',
 
-        'toy_and_teaching/minimal_future-actions.l4',
-        'toy_and_teaching/minimal_future-actions2.l4',
+        'toy_and_teaching/juggling.l4',
         'toy_and_teaching/collatz.l4',
         'toy_and_teaching/collatz2.l4',
         'toy_and_teaching/monster_burger_program_only.l4',

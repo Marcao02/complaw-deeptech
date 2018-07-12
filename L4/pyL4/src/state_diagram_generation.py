@@ -29,15 +29,15 @@ def actionAsDotNodeStr(act: Action) -> str:
     return f'{act.action_id}[label={act.action_id},shape=box]'
 
 
-def actionRuleAsDotArcStr(con: NextActionRule, l4file:L4Contract) -> str:
+def actionRuleAsDotArcStr(con: EventRule, l4file:L4Contract) -> str:
     srcid : str = con.src_id
     situation = l4file.situation(con.src_id)
     if situation.is_anon():
         srcid = chcaststr(situation.parent_action_id)
 
-    if isinstance(con, PartyNextActionRule):
+    if isinstance(con, ActorEventRule):
         return f"{srcid} -> {con.action_id}"
-    elif isinstance(con, EnvNextActionRule):
+    elif isinstance(con, DeadlineEventRule):
         return f"{srcid} -> {con.action_id} [style=dashed]"
     else:
         raise NotImplementedError
@@ -86,7 +86,7 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
                         multiloop_actions_to_situations_str += x
                         loops_included.add(x)
 
-        action_rulesfrom_situations_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.nextaction_rules(), ";\n\t")
+        action_rulesfrom_situations_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.event_rules(), ";\n\t")
     else:
         action_nodes_str = ""
         nonmultiloop_actions_to_situations_str = ""
@@ -111,7 +111,7 @@ def contractToDotFileStr(l4file: L4Contract) -> str:
                         loops_included.add(x)
 
         action_rulesfrom_situations_str = ""
-        # action_rulesfrom_situations_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.nextaction_rules(),
+        # action_rulesfrom_situations_str = mapjoin(lambda c: actionRuleAsDotArcStr(c, l4file), l4file.event_rules(),
         #                                           ";\n\t")
 
 

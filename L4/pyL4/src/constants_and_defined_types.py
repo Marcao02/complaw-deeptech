@@ -1,4 +1,5 @@
 # from enum import Enum
+from enum import Enum
 from typing import Dict, NewType, cast, Union, List, Any, Set, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -53,6 +54,32 @@ UNICODE_TO_ASCII = {
     '⟹':'->'
 }
 
+class TriggerType(Enum):
+    at_td_contract = "at_td_abs" # relative to start of contract, not situation entrance
+    after_td_contract = "after_td_abs" # relative to start of contract, not situation entrance
+
+    at_td_event = "at_td_event"
+    after_td_event = "after_td_event"
+
+    on_dt = "on_dt"
+    after_dt = "after_dt"
+
+TRIGGER_TYPE_INTERP : Dict[str,TriggerType] = {
+    "at": TriggerType.at_td_contract,
+    "at_td": TriggerType.at_td_contract,
+    "within": TriggerType.at_td_contract,
+    "at_split": TriggerType.at_td_event,
+
+    "on": TriggerType.on_dt,
+    "on_dt": TriggerType.on_dt,
+
+    "after": TriggerType.after_td_contract,
+    "after_td": TriggerType.after_td_contract,
+    "after_split": TriggerType.after_td_event,
+    "after_td_abs": TriggerType.after_td_contract,
+    "after_dt": TriggerType.after_dt
+}
+
 QUANTIFIERS = { '∀','∃','∃!' }
 
 TIME_CONSTRAINT_PREDICATES = {'≤','<=','≥','>=','<','>','==','and','tdGEQ', 'tdLT', 'tdmapHasItemExpiredBefore'}
@@ -95,9 +122,14 @@ PREFIX_FN_SYMBOLS = { 'cast','check',
                      'fraction-of-sum',
 
                      'tuple', 'tupleGet',
+
                      'emptyTDMap', # should be a constant but more important things to do
-                     'mapSet','mapDelete','mapHas','tdGEQ','tdLT', 'tdmapHasItemExpiredBefore',
-                     'nonempty', 'empty'
+                     'mapSet','delete','hasKey','tdmapAdd',
+                     'nonempty', 'empty', 'tdGEQ','tdLT', 'tdLEQ', 'tdmapHasItemExpiredBefore',
+                     'minValue', 'size',
+
+                     'emptySet', # should be a constant but more important things to do
+                     'add','has'
                      }.union(TIME_CONSTRAINT_OPERATORS).union(VERIFICATION_FN_SYMBOLS)
 
 INFIX_FN_SYMBOLS = {'+', '-', '/', '*', '==', '≤', '≥', '<', '>', '^', '=',
@@ -119,8 +151,8 @@ PROSE_CONTRACT_AREA_LABEL = "ProseContract"
 FORMAL_CONTRACT_AREA_LABEL = "Dynamics"
 ROLES_DEC_LABEL = "Roles"
 TIMEUNIT_DEC_LABEL = "TimeUnit"
-SUPPORTED_TIMEUNITS = ['w','d','h','m','s']
-LONGFORMS_OF_SUPPORTED_TIMEUNITS = {'weeks':'w','days':'d','hours':'h','minutes':'m','seconds':'s'}
+SUPPORTED_TIMEUNITS = ['w','d','h','m','s','ms']
+LONGFORMS_OF_SUPPORTED_TIMEUNITS = {'weeks':'w','days':'d','hours':'h','minutes':'m','seconds':'s','milliseconds':'ms'}
 MACRO_DEC_LABEL = "Macro"
 BLOCKMACRO_DEC_LABEL = "BlockMacro"
 CONTRACT_PARAMETERS_AREA_LABEL = "ContractParams"

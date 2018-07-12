@@ -10,11 +10,6 @@ from src.model.Literal import Literal
 
 
 def evalTrace(it:Union[Trace,CompleteTrace], prog:L4Contract, verbose:bool=True, debug:bool=False):
-    assert len(list(prog.futureaction_rules())) == 0, "Killed interpreter_deprecated so I could simplify a bunch of other code.\n" +\
-                                                      "Must use floating_rules_transpile.py first now."
-    #     # raise Exception("ExecEnvOld works but we're trying to phase it out.")
-    #     env = ExecEnvOld(prog)
-    # else:
     env = ExecEnvNF(prog)
     if isinstance(it, CompleteTrace):
         for contract_param in it.contract_param_subst:

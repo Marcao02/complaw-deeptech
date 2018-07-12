@@ -1,0 +1,108 @@
+
+(Roles You Assistant)
+
+(TimeUnit ms)
+
+(ContractParams
+	(slack : TimeDelta := 200ms)
+)
+
+(StateVars
+	(next_ball : Nat := 0)
+	(must_catch_by : [TDMap Nat] := (emptyTDMap))
+	(must_supply_by : [TDMap Nat] := (emptyTDMap))
+	(balls_in_play : [Set Nat] := (emptySet))
+
+)
+
+(Macro holding (?n)
+	(and (has balls_in_play ?n) (not (hasKey must_catch_by ?n)))
+)
+
+(Definitions
+	(number_held_balls = ((size balls_in_play) - (size must_catch_by)))
+)
+
+(Dynamics "juggle"
+	(StartSituation Juggling)
+
+	; You can tell your assistant to toss you a new ball at any time. They will do so within 1 second.
+	; Your assistant is fairly regular with their tosses; each new ball will be tossed in such a way that its latest-possible-catch-time is between 400 and 600 ms from the time it is tossed.
+	; If you're holding a ball, you can throw it. You throw high and consistently, so each thrown ball has a latest-possible-catch-time between 1500 and 1700 ms from the time it's thrown.
+	; If a ball is thrown/tossed with latest-possible-catch-time t ms, then you can catch it no earlier than t - {slack} ms.
+	; You can only catch a ball if you're holding fewer than 3 balls.
+	; You can toss a ball back to your assistant if it's in your hand.
+	; You can finish juggling if there are no balls in the air.
+
+	; EXERCISE: Find an expression that can be deleted without changing the semantics of the program (i.e. without changing the set of legal traces).
+
+	(Situation Juggling
+		(You may RequestNewBall)
+		(Assistant may (TossNewBall ?t) (within 1000ms) (where (and (400ms ≤ ?t) (?t ≤ 600ms))))
+
+		(Breach_Assistant (at ((minValue must_catch_by) + 1ms)))
+
+		(You may (Throw ?n ?t) (where
+			(and
+				(holding ?n)
+				(and ((next_event_td + 1500ms) ≤ ?t) (?t ≤ (next_event_td + 1700ms)))
+			)
+		))
+		(You may (Catch ?n) (where
+			(and (hasKey must_catch_by ?n)
+				 (number_held_balls ≤ 3)
+				 (tdLEQ must_catch_by ?n (next_event_td + slack))
+				 (tdGEQ must_catch_by ?n next_event_td)
+			)
+		))
+
+		(You may (ReturnBallToAssistant ?n) (where (holding ?n)))
+
+		(if (empty must_catch_by)
+			(You may FinishJuggling)
+		)
+
+
+		(Breach_You (at ((minValue must_catch_by) + 1)))
+	)
+
+	(Action RequestNewBall (TransitionsTo Juggling)
+		(StateTransform
+			(must_supply_by' := (mapSet must_supply_by next_ball (1000ms + last_event_td)))
+		)
+	)
+
+	(Action (TossNewBall (latest_possible_catch_delay : TimeDelta)) (TransitionsTo Juggling)
+		(StateTransform
+			(must_supply_by' := (delete must_supply_by next_ball))
+			(must_catch_by' := (mapSet must_catch_by next_ball (last_event_td + latest_possible_catch_delay)))
+			(balls_in_play' := (add balls_in_play next_ball))
+			(next_ball' := (next_ball + 1))
+		)
+	)
+
+	(Action (Throw (n : Nat) (latest_possible_catch_delay : TimeDelta)) (TransitionsTo Juggling)
+		(Pre (holding n))
+		(StateTransform
+			(must_catch_by' := (mapSet must_catch_by n (last_event_td + latest_possible_catch_delay)))
+		)
+	)
+
+	(Action (Catch (n : Nat)) (TransitionsTo Juggling)
+		(Pre (hasKey must_catch_by n))
+		(Pre (not (holding n)))
+		(Pre (number_held_balls ≤ 3))
+		(StateTransform
+			(must_catch_by' := (delete must_catch_by n))
+		)
+	)
+
+	(Action (ReturnBallToAssistant (n : Nat)) (TransitionsTo Juggling)
+		(Pre (holding n))
+		(StateTransform
+			(balls_in_play' := (delete balls_in_play n))
+		)
+	)
+
+	(Action FinishJuggling (TransitionsTo Fulfilled))
+)

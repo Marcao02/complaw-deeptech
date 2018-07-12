@@ -3,12 +3,12 @@ from typing import Any, Dict, Optional, Match, List, NamedTuple
 import re
 
 from src.constants_and_defined_types import ContractParamId, FULFILLED_SITUATION_LABEL, ActionParamId, SituationId, \
-    ActionId
+    ActionId, TriggerType
 from src.independent.util import castid
 from src.independent.util_for_dicts import partitionBy
 from src.independent.util_for_io import writeFile
 from src.model.Action import Action
-from src.model.ActionRule import ActionRule, PartyNextActionRule, EnvNextActionRule
+from src.model.EventRule import EventRule, ActorEventRule, DeadlineEventRule
 from src.model.BoundVar import ActionBoundActionParam, StateVar, ContractParam, LocalVar, PrimedStateVar
 from src.model.ContractParamDec import ContractParamDec
 from src.model.L4Contract import L4Contract
@@ -479,6 +479,9 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
         #     return div(intro(statement.varname), ", a ", sortHtml(statement.sort), "  to:", one_indented(termHtml(statement.value_expr)))
         return div(str(statement))
 
+    def datetimeLitHtml(s: str) -> str:
+        raise NotImplementedError
+
     def timedeltaLitHtml(s:str) -> str:
         if s.endswith("d"):
             if int(s[:-1]) == 1:
@@ -493,15 +496,15 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
 
         raise NotImplementedError(s)
 
-    def ruleHtml(rule:ActionRule) -> html_tag:
+    def ruleHtml(rule:EventRule) -> html_tag:
             
-        if isinstance(rule, PartyNextActionRule):
+        if isinstance(rule, ActorEventRule):
             x = li(
                 span(rule.role_ids[0]),
                 span(f" {rule.deontic_keyword} "),
                 actid2link(rule.action_id)
             )
-        elif isinstance(rule, EnvNextActionRule):
+        elif isinstance(rule, DeadlineEventRule):
             if "Breach" in rule.action_id:
                 x = li(
                     span(rule.action_id[7:], " breaches the contract.")
@@ -514,51 +517,75 @@ def gen_english(prog:L4Contract, outpath:str) -> None:
         else:
             raise NotImplementedError
 
-        if rule.where_clause:
-            x = li(span("if ", termHtml(rule.where_clause)),
-                   indented(x))
-        if rule.time_constraint:
-            if rule.time_constraint.src_expr:
-                y = rule.time_constraint.src_expr
-                if y[0] in {"before_split", "within_split", "at_split", "after_split", "at_or_after_split"}:
-                    if y[0] == "within_split":
-                        x = li(span("Within ", timedeltaLitHtml(y[1]), " of the last event:"),
-                               indented(x))
-                    elif y[0] == "at_split":
-                        x = li(span("At ", timedeltaLitHtml(y[1]), " since the last event:"),
-                               indented(x))
-                    elif y[0] == "before_split":
-                        x = li(span("Before ", timedeltaLitHtml(y[1]), " since the last event:"),
-                               indented(x))
-                    elif y[0] == "after_split":
-                        x = li(span("After ", timedeltaLitHtml(y[1]), " since the last event:"),
-                               indented(x))
-                    elif y[0] == "at_or_after_split":
-                        x = li(span("On or after ", timedeltaLitHtml(y[1]), " since the last event:"),
-                               indented(x))
-                    else:
-                        raise NotImplementedError
-                elif y[0] in {"before", "within", "at", "after", "at_or_after"}:
-                    if y[0] == "within":
-                        x = li(span("Within ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
-                               indented(x))
-                    elif y[0] == "at":
-                        x = li(span("At ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
-                               indented(x))
-                    elif y[0] == "before":
-                        x = li(span("Before ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
-                               indented(x))
-                    elif y[0] == "after":
-                        x = li(span("After ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
-                               indented(x))
-                    elif y[0] == "at_or_after":
-                        x = li(span("On or after ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
-                               indented(x))
-                    else:
-                        raise NotImplementedError
-            else:
-                x = li(span("if ", str(rule.time_constraint)),
+        if isinstance(rule, ActorEventRule):
+            if rule.where_clause:
+                x = li(span("if ", termHtml(rule.where_clause)),
                        indented(x))
+
+            if rule.time_constraint:
+                if rule.time_constraint.src_expr:
+                    y = rule.time_constraint.src_expr
+                    if y[0] in {"before_split", "within_split", "at_split", "after_split", "at_or_after_split"}:
+                        if y[0] == "within_split":
+                            x = li(span("Within ", timedeltaLitHtml(y[1]), " of the last event:"),
+                                   indented(x))
+                        elif y[0] == "at_split":
+                            x = li(span("At ", timedeltaLitHtml(y[1]), " since the last event:"),
+                                   indented(x))
+                        elif y[0] == "before_split":
+                            x = li(span("Before ", timedeltaLitHtml(y[1]), " since the last event:"),
+                                   indented(x))
+                        elif y[0] == "after_split":
+                            x = li(span("After ", timedeltaLitHtml(y[1]), " since the last event:"),
+                                   indented(x))
+                        elif y[0] == "at_or_after_split":
+                            x = li(span("On or after ", timedeltaLitHtml(y[1]), " since the last event:"),
+                                   indented(x))
+                        else:
+                            raise NotImplementedError
+                    elif y[0] in {"before", "within", "at", "after", "at_or_after"}:
+                        if y[0] == "within":
+                            x = li(span("Within ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
+                                   indented(x))
+                        elif y[0] == "at":
+                            x = li(span("At ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
+                                   indented(x))
+                        elif y[0] == "before":
+                            x = li(span("Before ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
+                                   indented(x))
+                        elif y[0] == "after":
+                            x = li(span("After ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
+                                   indented(x))
+                        elif y[0] == "at_or_after":
+                            x = li(span("On or after ", timedeltaLitHtml(y[1]), " since the start of the contract:"),
+                                   indented(x))
+                        else:
+                            raise NotImplementedError
+                else:
+                    x = li(span("if ", str(rule.time_constraint)),
+                           indented(x))
+        else:
+            tt = rule.trigger_type
+            if tt == TriggerType.at_td_contract:
+                x = li(span("At ", termHtml(rule.deadline_fn), " since the start of the contract:"),
+                       indented(x))
+            elif tt == TriggerType.after_td_contract:
+                x = li(span("After ", termHtml(rule.deadline_fn), " since the start of the contract:"),
+                       indented(x))
+            elif tt == TriggerType.at_td_event:
+                x = li(span("At ", termHtml(rule.deadline_fn), " since the last event:"),
+                       indented(x))
+            elif tt == TriggerType.after_td_event:
+                x = li(span("After ", termHtml(rule.deadline_fn), " since the last event:"),
+                       indented(x))
+            elif tt == TriggerType.on_dt:
+                x = li(span("On ", termHtml(rule.deadline_fn), ":"),
+                       indented(x))
+            elif tt == TriggerType.after_dt:
+                x = li(span("After ", termHtml(rule.deadline_fn), ":"),
+                       indented(x))
+            else:
+                raise NotImplementedError
 
         return x
 

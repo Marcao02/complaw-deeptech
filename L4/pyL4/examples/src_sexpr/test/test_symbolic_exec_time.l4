@@ -1,22 +1,32 @@
+(Roles You)
+
 (TimeUnit m)
 
 (Dynamics "test symbolic exec time"
 	(StartSituation Ongoing)
 
 	(Situation Ongoing
-		(DoIt immediately)
-		; which is short for:
+		(You may DoIt immediately)
+		; which was formerly short for:
 		; (DoIt (when next_event_td == last_situation_td))
+		; and is now short for
+		; (DoIt (at last_situation_td))
 	)
 
 	(Action DoIt
 		(FollowingSituation
-			(DoIt (when (and
+			; (DoIt (when (and
+			; 	(next_event_td > (last_situation_td + 1))
+			; 	(next_event_td < 5m) )
+			; ))
+			; (Done (when next_event_td ≥ 5m))
+
+			(You may DoIt (when (and
 				(next_event_td > (last_situation_td + 1))
 				(next_event_td < 5m) )
 			))
 
-			(Done (when next_event_td ≥ 5m))
+			(Done (at 5m))
 		)
 	)
 

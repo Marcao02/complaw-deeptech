@@ -23,7 +23,7 @@ contexts:
           2: keyword.toplevel.l4
       push: ContractParams_toplevel
 
-    - match: '\W(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariants|Definitions|NLGSection|NonoperativeContractParams|Ontology|NLDefinitions)\W'
+    - match: '\W(ContractParams|TimeUnit|Roles|ProseContract|StateVars|Macro|BlockMacro|Dynamics|SortDefinitions|DefaultActionTimeLimit|NLGNames|StartDatetime|Invariant|Invariants|Definitions|NLGSection|NonoperativeContractParams|Ontology|NLDefinitions)\W'
       captures:
         1: keyword.toplevel.l4
 
@@ -38,7 +38,7 @@ contexts:
       captures:
         1: keyword.operator
 
-    - match: '\W(before_split|at_split|within|after_split|after_dt|before|at|after|on|by|immediately|last_situation_td|AllowedRoles|may-later|may|must-later|must|check|nlg|nlgsection|Action|nlglogicsection|FollowingSituation|Situation|Future|Sort|Definition|Axiom|Fn|StartSituation|StateTransform|TransitionsTo|AllowedSubjects|when|where|{{var_modifier}})\W'
+    - match: '\W(before_split|at_split|within|after_split|after_dt|before|at|after|on|by|immediately|last_situation_td|AllowedRoles|may-later|may|must-later|must|check|nlg|nlgsection|Action|nlglogicsection|Precond|Precondition|Pre|FollowingSituation|Situation|Sort|Definition|Axiom|Fn|StartSituation|StateTransform|TransitionsTo|AllowedSubjects|when|where|{{var_modifier}})\W'
       captures:
         1: keyword.other
 

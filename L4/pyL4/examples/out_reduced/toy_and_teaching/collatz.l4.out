@@ -10,12 +10,12 @@ state vars:
     x : Nat := START
 
 situation Ongoing:
-    if (and (x > 1) (even x)):
-        DivideBy2 (next_event_td == last_situation_td)
     if (or (x == 0) (x == 1)):
-        EnterFulfilled (next_event_td == last_situation_td)
+        EnterFulfilled at_td_contract last_event_td
+    if (and (x > 1) (even x)):
+        DivideBy2 at_td_contract last_event_td
     if (and (x > 1) (odd x)):
-        TripplePlus1 (next_event_td == last_situation_td)
+        TripplePlus1 at_td_contract last_event_td
 
 action DivideBy2()  transitions to Ongoing:
     transform:

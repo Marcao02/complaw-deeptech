@@ -1,7 +1,7 @@
 from src.independent.TransitivelyClosedDirectedGraph import TransitivelyClosedDirectedGraphInvariantError
 from src.independent.util import todo_once
 from src.model.Action import Action
-from src.model.ActionRule import ActionRule
+from src.model.EventRule import EventRule, ActorEventRule
 from src.model.BoundVar import LocalVar, StateVar, ActionBoundActionParam, ContractParam, \
     RuleBoundActionParam, PrimedStateVar
 from src.model.FnTypes import OverloadedFnType, SortTuple, SimpleFnType, SimpleFnType
@@ -98,7 +98,7 @@ def what_sorts_used_explicitly_or_at_leaves(prog:L4Contract) -> Iterable[Sort]:
         elif isinstance(t, ContractParam):
             yield t.paramdec.sort
         elif isinstance(t, RuleBoundActionParam):
-            action = prog.action(t.action_rule.action_id)
+            action = prog.action(t.action_id)
             yield action.param_sort(t.ind)
 
     return prog.forEachTerm(f)
@@ -114,7 +114,8 @@ def what_sorts_used_explicitly(prog:L4Contract) -> Iterable[Sort]:
         elif isinstance(t, ContractParam):
             yield t.paramdec.sort
         elif isinstance(t, RuleBoundActionParam):
-            action = prog.action(t.action_rule.action_id)
+            assert isinstance(t.action_id, str), type(t.action_id)
+            action = prog.action(t.action_id)
             yield action.param_sort(t.ind)
 
     return prog.forEachTerm(f)
@@ -128,8 +129,8 @@ def what_fnsymbols_used(prog:L4Contract) -> Iterable[str]:
 def what_fnsymbols_used2(prog:L4Contract) -> Iterable[str]:
     pred = lambda t: isinstance(t,FnApp)
     def f(t:FnApp):
-        # if isinstance(t, FnApp):
-        yield t.fnsymb_name
+        if isinstance(t, FnApp):
+            yield t.fnsymb_name
     return prog.forEach(pred,f)
 
 def what_fnsymbol_arity_pairs_used(prog:L4Contract) -> Iterable[Tuple[str,int]]:
@@ -337,7 +338,7 @@ class TypeChecker:
                     raise L4TypeInferError(t, "Problem with tupleGet.")
 
             # ------------TDMap------------
-            # if t.fnsymb_name in {'mapSet','tdGEQ','mapDelete','mapHas','nonempty','empty','emptyTDMap'}:
+            # if t.fnsymb_name in {'mapSet','tdGEQ','delete','has','nonempty','empty','emptyTDMap'}:
             #     if t.fnsymb_name == 'mapSet':
 
             # ------------Other function applications------------
@@ -415,7 +416,7 @@ class TypeChecker:
         elif isinstance(t,ContractParam):
             return t.paramdec.sort
         elif isinstance(t,RuleBoundActionParam):
-            action = self.prog.action(t.action_rule.action_id)
+            action = self.prog.action(t.action_id)
             return action.param_sort(t.ind)
 
 
@@ -458,20 +459,31 @@ class TypeChecker:
         else:
             raise NotImplementedError
 
-    def typecheck_action_rule(self, rule:ActionRule):
+    def typecheck_action_rule(self, rule:EventRule):
         action = self.prog.action(rule.action_id)
         if rule.entrance_enabled_guard:
             self.typecheck_term(rule.entrance_enabled_guard, 'Bool')
-        if rule.where_clause:
-            self.typecheck_term(rule.where_clause, 'Bool')
-        if rule.fixed_args:
-            for i in range(len(rule.fixed_args)):
-                argterm = rule.fixed_args[i]
-                paramname = action.param_names[i]
-                paramsort = action.param_sorts_by_name[paramname]
-                self.typecheck_term(argterm, paramsort)
-        if rule.time_constraint:
-            self.typecheck_term(rule.time_constraint, 'Bool')
+        if isinstance(rule, ActorEventRule):
+            if rule.where_clause:
+                self.typecheck_term(rule.where_clause, 'Bool')
+            if rule.param_setter:
+                for i in range(len(rule.param_setter)):
+                    argterm = rule.param_setter[i]
+                    paramname = action.param_names[i]
+                    paramsort = action.param_sorts_by_name[paramname]
+                    self.typecheck_term(argterm, paramsort)
+            if rule.time_constraint:
+                self.typecheck_term(rule.time_constraint, 'Bool')
+        else:
+            if rule.param_setter:
+                for i in range(len(rule.param_setter)):
+                    argterm = rule.param_setter[i]
+                    paramname = action.param_names[i]
+                    paramsort = action.param_sorts_by_name[paramname]
+                    self.typecheck_term(argterm, paramsort)
+            if rule.deadline_fn:
+                self.typecheck_term(rule.deadline_fn, 'TimeDelta')
+
 
 
     def typecheck_situation(self, situation:Situation, verbose=True):
@@ -489,7 +501,4 @@ class TypeChecker:
             self.typecheck_term(prop, 'Bool')
         for statement in action.state_transform_statements():
             self.typecheck_statement(statement)
-        for rule in action.future_action_rules():
-            assert isinstance(rule,ActionRule)
-            self.typecheck_action_rule(rule)
 

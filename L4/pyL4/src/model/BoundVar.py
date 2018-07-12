@@ -3,10 +3,10 @@ from itertools import chain
 from src.independent.FileCoord import FileCoord
 from src.independent.util import castid, todo_once
 from src.constants_and_defined_types import StateVarId, ContractParamId, ActionParamId, \
-    RuleParamId, LocalVarId
+    RuleParamId, LocalVarId, ActionId
 from src.independent.typing_imports import *
 from src.model.Action import Action
-from src.model.ActionRule import ActionRule
+from src.model.EventRule import EventRule
 from src.model.ContractParamDec import ContractParamDec
 from src.model.Statement import LocalVarDec
 from src.model.StateVarDec import StateVarDec
@@ -55,9 +55,9 @@ class BoundVar(Term):
         raise NotImplementedError
 
 class RuleBoundActionParam(BoundVar):
-    def __init__(self, _name:RuleParamId, conn: ActionRule, ind:int, coord: Optional[FileCoord] = None) -> None:
+    def __init__(self, _name:RuleParamId, action_id: ActionId, ind:int, coord: Optional[FileCoord] = None) -> None:
         super().__init__(coord)
-        self.action_rule = conn
+        self.action_id = action_id
         self._name = _name
         self.ind = ind
 

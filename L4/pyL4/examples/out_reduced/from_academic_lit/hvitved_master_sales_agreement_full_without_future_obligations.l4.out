@@ -25,21 +25,21 @@ claims:
 
 situation VendorAcceptingOrders:
     if (nonempty 2Bpaid):
-        Customer may PayBill(?order) (tdGEQ 2Bpaid ?order next_event_td) where (mapHas 2Bpaid ?order)
+        Customer may PayBill(?order) when (tdGEQ 2Bpaid ?order next_event_td) where (hasKey 2Bpaid ?order)
     if ((MAX_UNITS - units_ordered) > 0):
-        Customer may SubmitNewOrder(?q) (next_event_td ≤ order_period_ends) where (and (?q ≤ (MAX_UNITS - units_ordered)) (?q > 0))
-    if (nonempty 2Bpaid):
-        Breach_Customer (tdmapHasItemExpiredBefore 2Bpaid next_event_td)
+        Customer may SubmitNewOrder(?q) when (next_event_td ≤ order_period_ends) where (and (?q ≤ (MAX_UNITS - units_ordered)) (?q > 0))
     if (nonempty 2Bdelivered):
-        Breach_Vendor (tdmapHasItemExpiredBefore 2Bdelivered next_event_td)
-    if (and ((MAX_UNITS - units_ordered) == 0) (empty 2Bpaid) (empty 2Bdelivered)):
-        EnterFulfilled (next_event_td > furthest_invoice_deadline)
-    if (and ((MAX_UNITS - units_ordered) > 0) (empty 2Bpaid) (empty 2Bdelivered)):
-        EnterFulfilled (and (next_event_td > furthest_invoice_deadline) (next_event_td > order_period_ends))
-    if (nonempty 2Bdelivered):
-        Vendor may Deliver(?order) (tdGEQ 2Bdelivered ?order next_event_td) where (mapHas 2Bdelivered ?order)
+        Vendor may Deliver(?order) when (tdGEQ 2Bdelivered ?order next_event_td) where (hasKey 2Bdelivered ?order)
     if (nonempty 2Binvoiced):
-        Vendor may EmailInvoice(?order) (tdGEQ 2Binvoiced ?order next_event_td) where (mapHas 2Binvoiced ?order)
+        Vendor may EmailInvoice(?order) when (tdGEQ 2Binvoiced ?order next_event_td) where (hasKey 2Binvoiced ?order)
+    if (nonempty 2Bdelivered):
+        Breach_Vendor after_td_contract (minValue 2Bdelivered)
+    if (nonempty 2Bpaid):
+        Breach_Customer after_td_contract (minValue 2Bpaid)
+    if (and ((MAX_UNITS - units_ordered) == 0) (empty 2Bpaid) (empty 2Bdelivered)):
+        EnterFulfilled after_td_contract furthest_invoice_deadline
+    if (and ((MAX_UNITS - units_ordered) > 0) (empty 2Bpaid) (empty 2Bdelivered)):
+        EnterFulfilled after_td_contract (max furthest_invoice_deadline order_period_ends)
 
 action EnterFulfilled()  transitions to Fulfilled
 
@@ -51,21 +51,21 @@ action SubmitNewOrder(quantity: PosInt) transitions to VendorAcceptingOrders:
 
 action Deliver(order: Order) transitions to VendorAcceptingOrders:
     transform:
-        prove (mapHas 2Bdelivered order)
+        prove (hasKey 2Bdelivered order)
         units_delivered := (units_delivered + (tupleGet order 0))
-        2Bdelivered := (mapDelete 2Bdelivered order)
+        2Bdelivered := (delete 2Bdelivered order)
         furthest_invoice_deadline := (max furthest_invoice_deadline (last_event_td + 30d))
         2Binvoiced := (mapSet 2Binvoiced (tuple (tupleGet order 0) (tupleGet order 1)) (last_event_td + 30d))
 
 action EmailInvoice(order: Order) transitions to VendorAcceptingOrders:
     transform:
-        prove (mapHas 2Binvoiced order)
+        prove (hasKey 2Binvoiced order)
         units_invoiced := (units_invoiced + (tupleGet order 0))
-        2Binvoiced := (mapDelete 2Binvoiced order)
+        2Binvoiced := (delete 2Binvoiced order)
         2Bpaid := (mapSet 2Bpaid (tuple (tupleGet order 0) (tupleGet order 1)) (last_event_td + 14d))
 
 action PayBill(order: Order) transitions to VendorAcceptingOrders:
     transform:
-        prove (mapHas 2Bpaid order)
+        prove (hasKey 2Bpaid order)
         total_paid := (total_paid + ((tupleGet order 0) * PRICE_PER_UNIT))
-        2Bpaid := (mapDelete 2Bpaid order)
+        2Bpaid := (delete 2Bpaid order)

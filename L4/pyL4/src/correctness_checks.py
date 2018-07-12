@@ -5,7 +5,7 @@ from typing import Optional, Iterable
 from src.model.FnTypes import OverloadedFnType
 from src.independent.SExpr import SExprOrStr
 from src.constants_and_defined_types import *
-from src.model.ActionRule import ActionRule
+from src.model.EventRule import EventRule, ActorEventRule, DeadlineEventRule
 from src.model.L4Contract import L4Contract, is_derived_destination_id, is_derived_trigger_id
 
 
@@ -45,17 +45,28 @@ def referenced_nonderived_action_ids_equal_defined_nonderived_action_ids(it:L4Co
     return True
 
 def actions_correct_number_args(it:L4ContractConstructorInterface) -> bool:
-    for c in it.top.nextaction_rules():
+    for c in it.top.event_rules():
         action = it.top.action(c.action_id)
-        args_required = len(c.ruleparam_names) if c.ruleparam_names else (len(c.fixed_args) if c.fixed_args else 0)
-        args_given = len(action.param_sorts_by_name) if action.param_sorts_by_name else 0
+        args_required = len(action.param_sorts_by_name) if action.param_sorts_by_name else 0
+        if isinstance(c,ActorEventRule):
+            args_given = len(c.ruleparam_names) if c.ruleparam_names else (len(c.param_setter) if c.param_setter else 0)
+            if args_given != args_required:
+                it.syntaxError('',
+                               f"Wrong number of parameters for event {action.action_id}. Expected {args_required} but got {args_given}.\nSee actor rule:\n{c}." +
+                               f"\n{c.ruleparam_names}\n{c.param_setter}")
+                return False
+        else:
+            assert isinstance(c,DeadlineEventRule)
+            args_given = len(c.param_setter) if c.param_setter else 0
+
         if args_given != args_required:
-            it.syntaxError('', f"Wrong number of action parameters for {action.action_id}. See rule:\n{c}")
+            it.syntaxError('', f"Wrong number of parameters for event {action.action_id}. Expected {args_required} but got {args_given}. See deadline rule:\n{c}." +
+                           f"\n{c.param_setter}")
             return False
     return True
 
 def role_ids_recognized(it:L4ContractConstructorInterface) -> bool:
-    for rule in chain(cast(Iterable[ActionRule], it.top.nextaction_rules()), cast(Iterable[ActionRule],it.top.futureaction_rules())):
+    for rule in it.top.actor_event_rules():
         role_ids = rule.role_ids
         for role_id in role_ids:
             if role_id not in it.top.roles:
