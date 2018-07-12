@@ -24,6 +24,7 @@ version := "0.0.1"
 // Want to use a published library in your project?
 // You can define other libraries as dependencies in your build like this:
 libraryDependencies += "org.typelevel" %% "cats-core" % "1.1.0"
+libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.20.0"
 // Here, `libraryDependencies` is a set of dependencies, and by using `+=`,
 // we're adding the cats dependency to the set of dependencies that sbt will go
 // and fetch when it starts up.

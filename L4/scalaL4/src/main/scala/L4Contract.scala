@@ -1,9 +1,6 @@
-
-/*
-L4's "immediately" will have to mean after ε timedelta.
-
-*/
-
+import com.github.nscala_time.time.Imports._
+import com.github.nscala_time.time.Imports.{DateTime => DateTimeFromLib}
+import org.joda.time.Days
 
 import Sort._
 import Term._
@@ -12,19 +9,20 @@ import Statement._
 import EventRule._
 import TypeAliases._
 import FnType._
-import Sort.SortSeq
+
 import Deontic.Deontic
 
-import scala.collection.mutable
+import scala.collection.{SortedMap, SortedSet, mutable}
+
 
 class SyntaxError(val msg:String) extends Exception(msg)
 
 object TypeAliases {
-  type DateTime = Any
+  type DateTime = DateTimeFromLib
   type TimeDelta = Any
   type TimeUnit = String
-  type OrderedDict[K, V] = Map[K, V]
-  type OrderedSet[V] = Seq[V]
+  type OrderedMap[K, V] = SortedMap[K, V]
+  type OrderedSet[V] = SortedSet[V]
 
   type TermSeq = Seq[Term]
   type SortSeq = Seq[Sort]
@@ -69,27 +67,17 @@ object Term {
   case class FnApp(fnName: Symb.Fn, args: TermSeq) extends Term
 
   object BoundVar {
-
     sealed abstract class BoundVar extends Term
-
     case class RuleParam(name: Symb.RuleParam) extends BoundVar
-
     case class EventParam(name: Symb.EventParam) extends BoundVar
-
     case class EnvVar(name: Symb.EnvVar) extends BoundVar
-
-    case class StateVar(name: Symb.StateVar) extends BoundVar
-
+    case class StateVar(name: Symb.StateVar, primed: Boolean) extends BoundVar
     case class LocalVar(name: Symb.LocalVar) extends BoundVar
 
     val tlast_env : EnvVar = EnvVar(Symb.tlast_env)
     val tnext_env : EnvVar= EnvVar(Symb.tnext_env)
-    val tlast_state : StateVar= StateVar(Symb.tlast_state)
+    val tlast_state : StateVar= StateVar(Symb.tlast_state, false)
     val tnext_eparam : EventParam= EventParam(Symb.tnext_eparam)
-    
-    val timestamp = Sort.Atomic(Symb.timestamp)
-
-    val bool = Sort.Atomic(Symb.bool)
   }
 
   object handy_term_constructors {
@@ -105,17 +93,11 @@ object Term {
 
   object Literal {
     sealed abstract class Literal extends Term
-
     case class Bool(lit: Boolean) extends Literal
-
     case class Int(lit: Int) extends Literal
-
     case class Real(lit: Float) extends Literal
-
     case class DateTime(lit: DateTime) extends Literal
-
     case class TimeDelta(lit: TimeDelta) extends Literal
-
   }
 
 }
@@ -123,31 +105,24 @@ object Term {
 
 object Sort {
   type SortSeq = Seq[Sort]
-
   sealed abstract class Sort
-
   case class Atomic(name: Symb.AtomicSort) extends Sort
-
   case class OpApp(sortOp: Symb.SortOp, args: SortSeq) extends Sort
-
+  val timestamp = Atomic(Symb.timestamp)
+  val bool = Atomic(Symb.bool)
 }
 
 object FnType {
-
+  type SortSeq = Seq[Sort]
   case class FnType(dom: SortSeq, ran: Sort)
-
   case class OverloadedFnType(parts: Seq[FnType])
 
 }
 object Statement {
   sealed abstract class Statement
-
   case class LocalAssign(name: Symb.LocalVar, rhs: Term) extends Statement
-
   case class StateVarAssign(name: String, rhs: Term) extends Statement
-
   case class IfElse(test: Term, trueBranch: Block, falseBranch: Block) extends Statement
-
   case class Prove(conjecture: Term) extends Statement
 
 }
@@ -155,9 +130,9 @@ object Statement {
 
 case class Situation(name:Symb.Situation, handlerSet:Seq[EventRule])
 
-case class L4EventDec(name: Symb.EventDec, destSit: String, paramNames: OrderedSet[Symb.EventParam],
+case class L4EventDec(name: Symb.EventDec, destSit: Symb.Situation, paramNames: OrderedSet[Symb.EventParam],
                       transform: Block,
-                      followingSituation: Option[Symb.Situation])
+                      hasFollowingSituation: Boolean)
 
 object EventRule {
 
@@ -176,13 +151,10 @@ object EventRule {
   case class TimeConstraintShorthand(keyword:TimeConstraintShorthandKeyword, timeterm:Term)
 
   sealed abstract class EventRule
-
   case class BasicEventRule(eventTypeName: Symb.EventDec, enabledGuard: Term)
-
   case class ExternalEventRule(basic: BasicEventRule, roles: OrderedSet[Symb.Role], paramConstraint: Term,
                                timeConstraint: Either[Term,TimeConstraintShorthand], deontic: Deontic) extends EventRule
-
-  case class InternalEventRule(basic: BasicEventRule, paramSetters: OrderedDict[Symb.EventParam, Term], timeTrigger: Term, triggerType: TimeTrigger.TimeTrigger) extends EventRule
+  case class InternalEventRule(basic: BasicEventRule, paramSetters: OrderedMap[Symb.EventParam, Term], timeTrigger: Term, triggerType: TimeTrigger.TimeTrigger) extends EventRule
 
   object TimeTrigger extends Enumeration {
     type TimeTrigger = Value
@@ -200,14 +172,14 @@ object EventRule {
 
 case class L4Contract(
                        timeunit:TimeUnit,
-                       fnBasis: OrderedDict[Symb.Fn, FnType],
+                       fnBasis: Map[Symb.Fn, FnType],
                        startSituation: Symb.Situation,
-                       contractParamSorts: OrderedDict[Symb.ContractParam, Sort],
-                       stateVarInitVals : OrderedDict[Symb.StateVar, Term],
-                       stateVarSorts : OrderedDict[Symb.StateVar, Sort],
-                       situations : OrderedDict[Symb.Situation,Situation],
-                       eventDecs : OrderedDict[Symb.EventDec, L4EventDec],
-                       eventParamSorts : OrderedDict[Symb.EventParam, Sort] ) {
+                       contractParamSorts: OrderedMap[Symb.ContractParam, Sort],
+                       stateVarInitVals : OrderedMap[Symb.StateVar, Term],
+                       stateVarSorts : OrderedMap[Symb.StateVar, Sort],
+                       situations : OrderedMap[Symb.Situation,Situation],
+                       eventDecs : OrderedMap[Symb.EventDec, L4EventDec],
+                       eventParamSorts : OrderedMap[Symb.EventParam, Sort] ) {
 	lazy val externalEventRules : Iterable[ExternalEventRule] =
 		for{
 			sit <- this.situations.values
@@ -248,12 +220,12 @@ object transformations {
                     breach_events_situations_used.add((breach_event_symb,breach_situation_symb))
                     val new_basic = BasicEventRule(breach_event_symb, basic.enabledGuard)
                     keyword match {
-                      case TimeConstraintShorthandKeyword.before_timedelta_contract => InternalEventRule(new_basic, Map(), timeterm, TimeTrigger.at_timedelta_contract)
-                      case TimeConstraintShorthandKeyword.before_timedelta_event => InternalEventRule(new_basic, Map(), timeterm, TimeTrigger.at_timedelta_event)
-                      case TimeConstraintShorthandKeyword.before_datetime => InternalEventRule(new_basic, Map(), timeterm, TimeTrigger.on_datetime)
-                      case TimeConstraintShorthandKeyword.within_timedelta_contract => InternalEventRule(new_basic, Map(), plus(timeterm, Literal.Real(1)), TimeTrigger.at_timedelta_contract)
-                      case TimeConstraintShorthandKeyword.within_timedelta_event => InternalEventRule(new_basic, Map(), plus(timeterm,Literal.Real(1)), TimeTrigger.at_timedelta_event)
-                      case TimeConstraintShorthandKeyword.within_datetime => InternalEventRule(new_basic, Map(), plus(timeterm,Literal.Real(1)), TimeTrigger.on_datetime)
+                      case TimeConstraintShorthandKeyword.before_timedelta_contract => InternalEventRule(new_basic, SortedMap(), timeterm, TimeTrigger.at_timedelta_contract)
+                      case TimeConstraintShorthandKeyword.before_timedelta_event => InternalEventRule(new_basic, SortedMap(), timeterm, TimeTrigger.at_timedelta_event)
+                      case TimeConstraintShorthandKeyword.before_datetime => InternalEventRule(new_basic, SortedMap(), timeterm, TimeTrigger.on_datetime)
+                      case TimeConstraintShorthandKeyword.within_timedelta_contract => InternalEventRule(new_basic, SortedMap(), plus(timeterm, Literal.Real(1)), TimeTrigger.at_timedelta_contract)
+                      case TimeConstraintShorthandKeyword.within_timedelta_event => InternalEventRule(new_basic, SortedMap(), plus(timeterm,Literal.Real(1)), TimeTrigger.at_timedelta_event)
+                      case TimeConstraintShorthandKeyword.within_datetime => InternalEventRule(new_basic, SortedMap(), plus(timeterm,Literal.Real(1)), TimeTrigger.on_datetime)
                     }
                   }
                 }
@@ -264,14 +236,12 @@ object transformations {
       }))
     })
 
-
     val breach_eventDecs = p.eventDecs.++( breach_events_situations_used.map( event_sit_pair =>
-      (event_sit_pair._1, L4EventDec(event_sit_pair._1, event_sit_pair._2, List(), List(), Some(event_sit_pair._2)))).toMap
+      (event_sit_pair._1, L4EventDec(event_sit_pair._1, event_sit_pair._2, SortedSet(), List(), hasFollowingSituation = true))).toMap
     )
     val breach_sitDecs = p.situations.++( breach_events_situations_used.map( event_sit_pair =>
       (event_sit_pair._2, Situation(event_sit_pair._2, List()))).toMap
     )
-
 
     L4Contract(
       p.timeunit,
@@ -286,7 +256,3 @@ object transformations {
     )
   }
 }
-
-//object DoINeedThis extends App {
-//
-//}
