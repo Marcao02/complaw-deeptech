@@ -11,14 +11,14 @@ USE_CONTRACT_PARAM_VALS = True
 # USE_CONTRACT_PARAM_VALS = False
 
 from src.model.StateVarDec import StateVarDec
-from src.constants_and_defined_types import FULFILLED_SITUATION_LABEL
+from src.constants_and_defined_types import FULFILLED_SITUATION_LABEL, TriggerType
 from src.independent.LedgerDict import LedgerDict, LazyRecTuple
 from src.independent.OneUseFrozenDict import OneUseFrozenDict
 from src.parse_to_model.sexpr_to_L4Contract import unprimed, isprimed
 from src.model.BoundVar import BoundVar
 from src.model.Literal import Literal, SortLit, EventIdLit
 from src.model.Action import Action
-from src.model.EventRule import EventRule
+from src.model.EventRule import EventRule, ActorEventRule
 from src.model.L4Contract import L4Contract
 from src.model.Situation import Situation
 from src.model.Statement import StatementList, Statement, StateVarAssign, IfElse, FVRequirement, LocalVarDec
@@ -574,33 +574,68 @@ def symbolic_execution(prog:L4Contract):
 
         # SETTING next_event_td
         envvars = envvars.set("next_event_td", name2symbolicvar(f"td_{t+1}",'TimeDelta',sz3))
-        todo_once(Exception("next_event_dt is set wrong here. should be start dt + td_{t+1}."))
-        # envvars = envvars.set("next_event_dt", name2symbolicvar(f"td_{t+1}", 'TimeDelta', sz3) - name2symbolicvar("td_0", 'TimeDelta', sz3)) # type:ignore
+        todo_once("next_event_dt is set wrong here??? should be start dt + td_{t+1}")
+        envvars = envvars.set("next_event_dt", name2symbolicvar(f"td_{t+1}", 'TimeDelta', sz3) - name2symbolicvar("td_0", 'TimeDelta', sz3)) # type:ignore
         if t > 0:
             time_pathconstr = conj(
                 name2symbolicvar(f"td_{t-1}", 'TimeDelta', sz3) <= name2symbolicvar(f"td_{t}", 'TimeDelta', sz3), # type:ignore
                 time_pathconstr)
 
         # raise Exception("Need to include type assumptions. should I keep them separate from pathconstr? then they won't clutter the middle of the z3 input formula.")
+        tc: Z3Term
 
-        if rule.time_constraint is None and rule.where_clause is None:
-            return sevalRuleIgnoreGuardAndParamConstraints(rule, actparam_store, CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
-        else:
+        if isinstance(rule,ActorEventRule):
+            if rule.time_constraint is None and rule.where_clause is None:
+                return sevalRuleIgnoreGuardAndParamConstraints(rule, actparam_store, CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra))
+            else:
+                newcore = CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra)
+                wc : Z3Term = Z3TRUE
+                ruleparam_store : Optional[OneUseFrozenDict] = None
+                if rule.where_clause and rule.ruleparam_to_ind:
+                    ruleparam_store = OneUseStore({ruleparam_name:
+                                                   name2actparam_symbolic_var(ruleparam_name, t,
+                                                                              action.param_sort(ruleparam_ind), sz3) \
+                                                   for (ruleparam_name, ruleparam_ind) in rule.ruleparam_to_ind().items()})
+                    wc = term2z3(rule.where_clause, None, ruleparam_store, newcore)
+                tc  = Z3TRUE
+                if rule.time_constraint and rule.time_constraint != "no_time_constraint":
+                    tc = term2z3(rule.time_constraint, None, ruleparam_store, newcore)
+
+                addQueryPath( EventRuleParamsConstraintPath(
+                    rule, actparam_store, CoreSymbExecState(conj(wc, pathconstr), conj(tc, time_pathconstr), state, t, envvars, extra)
+                ))
+                return SEvalRVStopThread("from sevalRuleIgnoreGuard")
+        else: # DeadlineEventRule
             newcore = CoreSymbExecState(pathconstr, time_pathconstr, state, t, envvars, extra)
-            wc : Z3Term = Z3TRUE
-            ruleparam_store : Optional[OneUseFrozenDict] = None
-            if rule.where_clause and rule.ruleparam_to_ind:
-                ruleparam_store = OneUseStore({ruleparam_name:
-                                               name2actparam_symbolic_var(ruleparam_name, t,
-                                                                          action.param_sort(ruleparam_ind), sz3) \
-                                               for (ruleparam_name, ruleparam_ind) in rule.ruleparam_to_ind().items()})
-                wc = term2z3(rule.where_clause, None, ruleparam_store, newcore)
-            tc : Z3Term = Z3TRUE
-            if rule.time_constraint and rule.time_constraint != "no_time_constraint":
-                tc = term2z3(rule.time_constraint, None, ruleparam_store, newcore)
+            deadfn: Z3Term = term2z3(rule.deadline_fn, None, None, newcore)
+            next_event_td = envvars["next_event_td"]
+            last_event_td = envvars["last_event_td"]
+            next_event_dt = envvars["next_event_dt"]
 
-            addQueryPath( EventRuleParamsConstraintPath(
-                rule, actparam_store, CoreSymbExecState(conj(wc, pathconstr), conj(tc, time_pathconstr), state, t, envvars, extra)
+            tt = rule.trigger_type
+            if tt == TriggerType.at_td_contract:
+                tc = equals(next_event_td, deadfn)
+
+            elif tt == TriggerType.after_td_contract:
+                tc = next_event_td > deadfn #type:ignore
+
+            elif tt == TriggerType.at_td_event:
+                tc = equals(next_event_td - last_event_td, deadfn) #type:ignore
+
+            elif tt == TriggerType.after_td_event:
+                tc = (next_event_td - last_event_td) > deadfn #type:ignore
+
+            elif tt == TriggerType.on_dt:
+                tc = equals(next_event_dt, deadfn)
+
+            elif tt == TriggerType.after_dt:
+                tc = next_event_dt > deadfn #type:ignore
+            else:
+                raise NotImplementedError
+
+            addQueryPath(EventRuleParamsConstraintPath(
+                rule, actparam_store,
+                CoreSymbExecState(pathconstr, conj(tc, time_pathconstr), state, t, envvars, extra)
             ))
             return SEvalRVStopThread("from sevalRuleIgnoreGuard")
 

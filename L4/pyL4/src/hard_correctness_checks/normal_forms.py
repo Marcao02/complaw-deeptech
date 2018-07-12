@@ -5,6 +5,7 @@ from src.independent.SExpr import SExpr, SExprOrStr, sexpr_rewrite
 from src.independent.util import chcast, warn_once, todo_once
 from src.model.EventRule import ActorEventRule, DeadlineEventRule
 from src.model.EventsAndTraces import interveneOnDelayId, breachActionId
+from src.model.StateVarDec import StateVarDec
 from src.model.Term import Term, FnApp
 from src.model.BoundVar import LocalVar, StateVar
 from src.independent.typing_imports import *
@@ -445,3 +446,5 @@ def eliminate_must(sexpr:SExpr, prog:L4Contract, timeunit:str, default_time_limi
     sexpr_rewrite(sexpr, is_must, _eliminate_must)
 
     prog.must_eliminated = True
+
+

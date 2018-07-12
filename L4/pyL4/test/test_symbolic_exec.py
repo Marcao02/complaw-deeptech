@@ -35,7 +35,7 @@ def main(examples: Dict[str, L4Contract], verbose=True):
         # 'test/test_symbexec_multiwrite_error.l4',
 
         # 'from_academic_lit/wip/goodenough_flood_loan_verbatim_happypath.l4'
-        # 'from_academic_lit/goodenough_flood_loan_verbatim_noBreach.l4',
+        'from_academic_lit/goodenough_flood_loan_verbatim_noBreach.l4',
 
 
         'from_academic_lit/hvitved_printer.l4',

@@ -966,7 +966,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
             if parent_er_context and parent_er_context.ruleparam_names and x in parent_er_context.ruleparam_names:
                 assert parent_SExpr is not None and parent_SExpr.coord() is not None
                 assert parent_er_context.ruleparam_to_ind is not None
-                print(type(parent_er_context))
                 return RuleBoundActionParam(cast(RuleParamId, x), parent_er_context.action_id,
                                             cast(int,parent_er_context.ruleparam_to_ind(castid(RuleParamId, x))),
                                             parent_SExpr.coord())
@@ -1123,7 +1122,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
         #     (timeconstraint, maybe_whereclause) = self._handle_optional_action_rule_parts(expr, parent_event_rule_context, src_situation, parent_action)
         #     return cast(Term,timeconstraint)
 
-        print("deadline fn:", expr)
 
         for x in expr:
             if isinstance(x, SExpr):
@@ -1243,7 +1241,6 @@ class L4ContractConstructor(L4ContractConstructorInterface):
 
         er_ctx = EventRuleContext(ruleparams, action_id, False)
         (timeconstraint, whereclause) = self._handle_optional_action_rule_parts(rem, er_ctx, src_situation, parent_action)
-        print(rem)
         er = ActorEventRule(src_situation.situation_id, action_id, entrance_enabled_guard, ruleparams, param_setter, whereclause,
                             role_ids, deontic_keyword, timeconstraint, len(rem) > 0 and rem[0] == "immediate")
 

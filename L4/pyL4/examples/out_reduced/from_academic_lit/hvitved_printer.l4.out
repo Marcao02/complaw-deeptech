@@ -13,8 +13,8 @@ state vars:
     writes≤1 delivery_td : TimeDelta
 
 claims:
-    ["MAX_TIME'", '=', '44D']
-    ["MAX_SITUATION_VISITS'", '=', '6']
+    ['MAX_TIME', '=', '44D']
+    ['MAX_SITUATION_VISITS', '=', '6']
 
 situation Awaiting_Delivery:
     Seller may Deliver when (next_event_td ≤ DELIVERY_TIME_ALLOWANCE)

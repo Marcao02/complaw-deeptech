@@ -1,7 +1,7 @@
 from enum import Enum
 from itertools import chain
 
-from src.independent.util import indent
+from src.independent.util import indent, todo_once, castid
 from src.independent.util_for_str import mapjoin
 from src.constants_and_defined_types import *
 from src.independent.typing_imports import *
@@ -9,18 +9,24 @@ from src.model.Term import Term
 
 T = TypeVar('T')
 
-rule_param_to_ind_cache : Dict['ActorEventRule', Dict[RuleParamId,int]] = dict()
+rule_param_to_ind_cache : Dict['ActorEventRule', Dict[RuleParamId,int]] = Dict[RuleParamId,int]
 def rule_to_ruleparam_to_ind(er:'ActorEventRule') -> Dict[RuleParamId,int]:
-
-    if er in rule_param_to_ind_cache:
-        return rule_param_to_ind_cache[er]
+    todo_once("Once Term is immutable, can cache this without using str() for hash")
+    if er.ruleparam_names:
+        d = {er.ruleparam_names[i]: i for i in range(len(er.ruleparam_names))}
+        return d
     else:
-        if er.ruleparam_names:
-            d = {er.ruleparam_names[i]:i for i in range(len(er.ruleparam_names))}
-            rule_param_to_ind_cache[er] = d
-            return d
-        else:
-            return dict()
+        return dict()
+    # erhash = str(er)
+    # if erhash in rule_param_to_ind_cache:
+    #     return rule_param_to_ind_cache[castid(RuleParamId,erhash)]
+    # else:
+    #     if er.ruleparam_names:
+    #         d = {er.ruleparam_names[i]:i for i in range(len(er.ruleparam_names))}
+    #         rule_param_to_ind_cache[erhash] = d
+    #         return d
+    #     else:
+    #         return dict()
 
 
 #
