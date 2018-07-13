@@ -1,6 +1,6 @@
 import com.github.nscala_time.time.Imports._
 import com.github.nscala_time.time.Imports.{DateTime => DateTimeFromLib}
-import org.joda.time.Days
+import org.joda.time.Period
 
 import Sort._
 import Term._
@@ -11,7 +11,6 @@ import TypeAliases._
 import FnType._
 
 import Deontic.Deontic
-
 import scala.collection.{SortedMap, SortedSet, mutable}
 
 
@@ -19,7 +18,7 @@ class SyntaxError(val msg:String) extends Exception(msg)
 
 object TypeAliases {
   type DateTime = DateTimeFromLib
-  type TimeDelta = Any
+  type TimeDelta = Period
   type TimeUnit = String
   type OrderedMap[K, V] = SortedMap[K, V]
   type OrderedSet[V] = SortedSet[V]
@@ -57,8 +56,6 @@ object Symb {
 
   val timestamp : AtomicSort = "timestamp"
   val bool : AtomicSort = "bool"
-
-
 }
 
 object Term {
@@ -84,11 +81,6 @@ object Term {
     def plus(t1:Term, t2:Term) : Term = {
       FnApp("plus",List(t1,t2))
     }
-//    val s_eq : (STerm, STerm) => STerm
-//    val s_minus : (STerm, STerm) => STerm
-//    val s_lt : (STerm, STerm) => STerm
-//    val s_gt_ts : (STerm, STerm) => STerm
-//    val s_and : (STerm, ...) => STerm
   }
 
   object Literal {
@@ -99,7 +91,6 @@ object Term {
     case class DateTime(lit: DateTime) extends Literal
     case class TimeDelta(lit: TimeDelta) extends Literal
   }
-
 }
 
 
@@ -116,17 +107,15 @@ object FnType {
   type SortSeq = Seq[Sort]
   case class FnType(dom: SortSeq, ran: Sort)
   case class OverloadedFnType(parts: Seq[FnType])
-
 }
+
 object Statement {
   sealed abstract class Statement
   case class LocalAssign(name: Symb.LocalVar, rhs: Term) extends Statement
   case class StateVarAssign(name: String, rhs: Term) extends Statement
   case class IfElse(test: Term, trueBranch: Block, falseBranch: Block) extends Statement
   case class Prove(conjecture: Term) extends Statement
-
 }
-
 
 case class Situation(name:Symb.Situation, handlerSet:Seq[EventRule])
 
@@ -135,7 +124,6 @@ case class L4EventDec(name: Symb.EventDec, destSit: Symb.Situation, paramNames: 
                       hasFollowingSituation: Boolean)
 
 object EventRule {
-
   object TimeConstraintShorthandKeyword extends Enumeration {
     type TimeConstraintShorthandKeyword = Value
     val before_timedelta_contract : TimeConstraintShorthandKeyword = Value
@@ -255,4 +243,9 @@ object transformations {
       p.eventParamSorts
     )
   }
+}
+
+
+object INeedThis extends App {
+  println("Hello, World!")
 }

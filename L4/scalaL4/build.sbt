@@ -1,6 +1,15 @@
-// The simplest possible sbt build file is just one line:
+// BEGIN setting for scala native
+enablePlugins(ScalaNativePlugin)
+// Set to false or remove if you want to show stubs as linking errors
+nativeLinkStubs := true
+scalaVersion := "2.11.12"
+nativeMode := "debug"
+// nativeMode := "release"
+// END setting for scala native
 
-scalaVersion := "2.12.6"
+// The simplest possible sbt build file is just one line:
+// scalaVersion := "2.12.6"
+
 // That is, to create a valid sbt build, all you've got to do is define the
 // version of Scala you'd like your project to use.
 
@@ -23,7 +32,7 @@ version := "0.0.1"
 
 // Want to use a published library in your project?
 // You can define other libraries as dependencies in your build like this:
-libraryDependencies += "org.typelevel" %% "cats-core" % "1.1.0"
+// libraryDependencies += "org.typelevel" %% "cats-core" % "1.1.0"
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.20.0"
 // Here, `libraryDependencies` is a set of dependencies, and by using `+=`,
 // we're adding the cats dependency to the set of dependencies that sbt will go
