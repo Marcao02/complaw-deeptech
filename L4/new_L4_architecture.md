@@ -34,6 +34,9 @@ Possible middle ground: JIT simplification.
 
 ## Architecture
 
+*Update from 30 July 2018:* We will not need multiple copies of the AST datastructure, as suggested below. Instead, Scala's immutable case classes that make up the AST will have pure functions that, given a small Linking object (for L-AST case) or Typing object (for TL-AST case), each of which contain mostly just a bunch of Maps, returns the richer representations.
+
+
 - AST (a collection of types in a module, say) defines the immutable AST.
     - This is the parser's target.
     - We do minimal error checking constructing the AST. For example, symbols are not resolved to their definitions.
@@ -44,13 +47,15 @@ Possible middle ground: JIT simplification.
     - The "more-convenient" part makes for simpler program analysis/transformation code. The "more-strong-typed" part does too, by removing the need to handle (or " unsafely" not handle) impossible cases that the type system doesn't prevent.
     - For example, if `app` is a function symbol application, then `app.fn` is a feature-rich model of the function symbol, rather than just a `Symbol`.
       Thus, our implementation language will not ask us to handle the case where the symbol does not resolve to a FnSymbol object in our global map of `Symbol`s  to `FnSymbol` objects (which would be the alternative approach, if we don't use L-AST).
-    - Syntax error checking happens here, but not typechecking yet. AST nodes with optional t ype annotations have a `.sort : Option[Sort]` field.
+    - Syntax error checking happens here, but not typechecking yet. AST nodes with optional type annotations have a `.sort : Option[Sort]` field.
     - AST is still the source of truth, and that is somtimes what we transform when we do transformations. L-AST is then rebuilt.
     - Since we want to do pattern matching on L-AST types also, in Scala we would need to make them immutable case classes as well.
     - L-AST types might wrap AST types. E.g. if t : L-AST.Term, then t.ast : AST.Term.
 
 - TL-AST (typed linked AST) types are identical to L-AST types, but every L-AST node with a `.sort : Option[Sort]` field has a `.sort : Sort` field.
-    - This datastructure could be automatically generated from L-AST.
-    - In principle, I would like for us to be able to output to an AST object that has explicit type annotations on everything. This simplifies our mental model, makes our formal methods independent of type inference and intersection function-types.
+    - This datastructure (the datatypes and/or interfaces and/or classes) could be automatically generated from those of L-AST.
+        - Or perhaps I can find a way to use polymorphism to accomplish the same thing.
+    - We should be able to output to an AST object that has explicit, linear-time checkable type annotations on everything. This simplifies our mental model, and makes our formal methods independent of type inference and intersection function-types.
+
 
 
