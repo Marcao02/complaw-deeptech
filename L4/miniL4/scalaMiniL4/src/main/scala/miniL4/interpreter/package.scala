@@ -9,6 +9,7 @@ import scalax.collection.mutable.{Graph => MutDiGraph}
 package object interpreter {
   val fnInterps : TMap[Name, Seq[Data] => Data]= Map(
     '+ -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] + x(1).asInstanceOf[Real]),
+    '- -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] - x(1).asInstanceOf[Real]),
     'not -> ((x:Seq[Data]) => !x(0).asInstanceOf[Boolean])
   )
 
@@ -16,9 +17,21 @@ package object interpreter {
   type Data = Any
   type Trace = Seq[L4Event]
 
+  def minimalTraceString(trace:Trace) : String = {
+//    trace.map(_.eventName.toString()).fold("")((x,y) => s"$x -> $y")
+    if(trace.isEmpty)
+      "<empty trace>"
+    else
+      trace.map(_.eventName.toString()).reduce((x,y) => s"$x -> $y")
+  }
+
   // turn occurs-in relation (state var occurs in the right hand side of another state var's assignment statement) into a graph
   def assignSetToGraph(svAssigns: TMap[Name,StateVarAssign], clink:ContractLinking) : NameDiGraph = {
     val graph = MutDiGraph[Name,DiEdgeLikeIn]()
+
+    svAssigns.foreach({ case (svname, _) =>
+      graph.add(svname)
+    })
 
     svAssigns.foreach({ case (parent_name, sva) => {
       def f(node:ASTNode): Unit = node match {
@@ -43,8 +56,10 @@ package object interpreter {
     val svas = clink.stateVarDefs.filter({ case (name,svd) => {  svd.initVal.nonEmpty } })
                       .mapValues( svd => { StateVarAssign(svd.name, svd.initVal.get, svd.loc) } )
 
+//    println(s"State var defs: ", clink.stateVarDefs.keySet)
     var ctx = EvalCtx(Map.empty, clink.stateVarDefs.keySet, Map.empty, Map.empty, clink.startSit)
     ctx = evalStateVarAssigns(svas, ctx, clink)
+//    println(s"Initial state var vals: ", ctx.sv_vals)
 
     var prev_ts = 0
 
@@ -69,7 +84,7 @@ package object interpreter {
         val enabled_for_this_role_and_event = for_this_role_and_event.filter(
           erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
         assert(enabled_for_this_role_and_event.nonEmpty,
-          s"Among the ${for_this_role_and_event} event rules allowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit}, none was enabled upon entering the present Situation." )
+          s"Among the ${for_this_role_and_event.size} event rules allowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit}, none was enabled upon entering the present Situation." )
 
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
@@ -82,12 +97,14 @@ package object interpreter {
         assert(final_rules.nonEmpty,
           s"Among the enabled ${enabled_for_this_role_and_event} event rules allowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit}, none has both its event parameter constraint and time constraint satisfied.")
 
-        warn(final_rules.size > 1, "Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this?")
+        warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${final_rules}")
 
         // no exception
       }
 
       ctx = evalEvent(event, ctx, clink)
+
+//      println(s"Done with ${event.eventName}. Now in ${ctx.cur_sit.name}.")
     })
   }
 
@@ -106,12 +123,15 @@ package object interpreter {
     // turn occurs-in relation into a graph
     val graph = assignSetToGraph(svAssigns, clink)
     var ctx = _ctx
+//    println("The graph: ", graph)
     graph.topologicalSort.fold(
       (cycleNode:graph.NodeT) => assert(false,s"Cycle involving ${cycleNode}"),
       order => {
+//        println("The topological order: ", order)
         order.foreach(node => {
-          val svname = node.asInstanceOf[Name]
+          val svname = node.value
           val svval = evalTerm(svAssigns(svname).rhs, ctx, clink)
+//          println(s"Initial val of ${svname} is ${svval}.")
           ctx = EvalCtx(ctx.sv_vals.updated(svname, svval), ctx.sv_uninit - svname, ctx.locv_vals, ctx.eparam_vals, ctx.cur_sit)
         })
       }
@@ -120,7 +140,8 @@ package object interpreter {
   }
 
   def evalEvent(event: L4Event, ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
-    evalEventHandler(clink.eventHandlerDefs(event.eventName), ctx, clink)
+    val eh = clink.eventHandlerDefs(event.eventName)
+    evalEventHandler(eh, ctx, clink).withCurSitUpdated(clink.situationDefs(eh.destSit))
   }
 
   def evalEventHandler(eh: EventHandlerDef, ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
@@ -145,11 +166,7 @@ package object interpreter {
           }
           case IfElse(test, tbranch, fbranch, _) => {
             val testval = evalTerm(test,ctx,clink).asInstanceOf[Boolean]
-            _stmts = _stmts - stmt
-            if(testval)
-              _stmts = _stmts ++ tbranch
-            else
-              _stmts = _stmts ++ fbranch
+            _stmts = _stmts - stmt ++ (if(testval) tbranch else fbranch)
             progress = true
           }
           case StateVarAssign(_,_,_) => ()
@@ -175,6 +192,7 @@ package object interpreter {
       }
       case FnApp(fnname, args, _) => {
         val argvals = args.map( evalTerm(_, ctx, clink) )
+        assert(fnInterps.contains(fnname), s"Don't know how to interpret function symbol $fnname")
         fnInterps(fnname)(argvals)
       }
       case SortAnnotation(tm, sort, _) => {

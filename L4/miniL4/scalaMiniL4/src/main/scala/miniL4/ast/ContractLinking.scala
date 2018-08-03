@@ -46,8 +46,10 @@ object ContractLinking {
           for (stmt <- stateTransform) { linkStatement(stmt, tlnode, par) }
         }
         case sitdef@SituationDef(sitName, _, _, _) => {
-          if(startSit.isEmpty)
+          if (startSit.isEmpty) {
             startSit = Some(sitdef)
+            println(s"Start Situation is ${sitName} since it's the first SituationDef in the list.")
+          }
           situationDefs.update(sitName, sitdef)
           sitdef.eventRules.foreach(erule => {
             linkEventRule(erule, tlnode, par)

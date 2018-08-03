@@ -9,5 +9,5 @@ package object miniL4 {
   type TSet[V] = scala.collection.Set[V]
   type Block = Seq[Statement]
 
-  def warn(test:Boolean, msg:String) : Unit = println("WARNING: " + msg)
+  def warn(test:Boolean, msg:String) : Unit = if(test) println("WARNING: " + msg) else ()
 }

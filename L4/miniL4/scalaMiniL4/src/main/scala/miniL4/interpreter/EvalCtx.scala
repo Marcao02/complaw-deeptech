@@ -17,4 +17,8 @@ case class EvalCtx( sv_vals: TMap[Name,Data],
     EvalCtx(this.sv_vals, this.sv_uninit, this.locv_vals, eparam_vals2, this.cur_sit)
   }
 
+  def withCurSitUpdated(sitDef:SituationDef): EvalCtx = {
+    EvalCtx(this.sv_vals, this.sv_uninit, this.locv_vals, this.eparam_vals, sitDef)
+  }
+
 }

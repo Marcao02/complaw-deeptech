@@ -1,15 +1,20 @@
 package miniL4.examples
-import miniL4.ast.{ContractLinking, _}
+import miniL4.ast.{ContractLinking, SituationDef, _}
 import miniL4.ast.time.timeUtil.{after_m, within_m}
+import miniL4.interpreter.L4Event
 
 
 object meng_buy_booze {
   val seller = List('Seller)
   val buyer = List('Buyer)
 
-  val contract : Contract = Contract(List(
+  val meng_buy_booze_contract : Contract = Contract(List(
     StateVarDef('buyerMoney, AtomicSort('Real), Some(RealLit(20))),
     StateVarDef('cashRegister, AtomicSort('Real), Some(RealLit(200))),
+
+    SituationDef('AtCounter, List(
+      ExternalEventRule('ShowID, buyer)
+    )),
 
     EventHandlerDef('ShowID, 'AfterShowID),
 
@@ -18,12 +23,6 @@ object meng_buy_booze {
       ExternalEventRule('RefuseIntoxicatedBuyer, seller),
       ExternalEventRule('AcceptIDAndSobrietyOfBuyer, seller)
     )),
-
-    SituationDef('AtCounter, List(
-      ExternalEventRule('ShowID, buyer)
-    )),
-
-
 
     EventHandlerDef('RefuseIntoxicatedBuyer, 'Fulfilled),
 
@@ -54,8 +53,24 @@ object meng_buy_booze {
     )),
 
     EventHandlerDef('Breach_Seller, 'Breached_Seller),
-    SituationDef('Breached_Seller, List())
+    SituationDef('Breached_Seller, List()),
+
+    SituationDef('Fulfilled, List())
   ))
+
+  val traces = List(
+    List(
+      L4Event('ShowID, 'Buyer),
+      L4Event('RefuseID, 'Seller)
+    ),
+
+    List(
+      L4Event('ShowID, 'Buyer),
+      L4Event('AcceptIDAndSobrietyOfBuyer, 'Seller),
+      L4Event('PayForBooze, 'Buyer),
+      L4Event('DeliverBooze, 'Seller),
+    )
+  )
 
 }
 
