@@ -13,6 +13,7 @@ case class EventHandlerDef(
     eventName: Name,
     destSit: Name,
     stateTransform: Block = List(),
+    preconditions: Seq[Term] = List(),
     loc: Loc = NoLoc) extends ToplevelNode(loc) {
 }
 

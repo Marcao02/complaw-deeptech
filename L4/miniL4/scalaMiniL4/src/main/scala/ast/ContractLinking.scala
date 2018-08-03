@@ -3,11 +3,11 @@ package ast
 import scala.collection.mutable
 
 class ContractLinking(
-  val contract: Contract,
-  val eventHandlerDefs: IMap[Name, EventHandlerDef],
-  val situationDefs: IMap[Name, SituationDef],
-  val stateVarDefs: IMap[Name, StateVarDef],
-  val par: IMap[ASTNode, ASTNode] )
+                       val contract: Contract,
+                       val eventHandlerDefs: TMap[Name, EventHandlerDef],
+                       val situationDefs: TMap[Name, SituationDef],
+                       val stateVarDefs: TMap[Name, StateVarDef],
+                       val par: TMap[ASTNode, ASTNode] )
   {
     def hasPar(node: ASTNode): Boolean = par.contains(node)
   }
@@ -24,21 +24,19 @@ object ContractLinking {
     cprog.decs.foreach(tlnode => {
       par.update(tlnode, cprog)
       tlnode match {
-        case EventHandlerDef(eventName, _, _, _) => {
-          // these `asInstanceOf`s shouldn't be necessary...
-          eventHandlerDefs.update(eventName, tlnode.asInstanceOf[EventHandlerDef])
-          tlnode.asInstanceOf[EventHandlerDef].stateTransform.foreach(stmt => {
-            linkStatement(stmt, tlnode, par)
-          })
+        case ehdef@EventHandlerDef(eventName, _, stateTransform, preconditions, _) => {
+          for (tm <- preconditions) { linkTerm(tm, tlnode, par)}
+          eventHandlerDefs.update(eventName, ehdef)
+          for (stmt <- stateTransform) { linkStatement(stmt, tlnode, par) }
         }
-        case SituationDef(sitName, _, _, _) => {
-          situationDefs.update(sitName, tlnode.asInstanceOf[SituationDef])
-          tlnode.asInstanceOf[SituationDef].eventRules.foreach(erule => {
+        case sitdef@SituationDef(sitName, _, _, _) => {
+          situationDefs.update(sitName, sitdef)
+          sitdef.eventRules.foreach(erule => {
             linkEventRule(erule, tlnode, par)
           })
         }
-        case StateVarDef(varName, _, _, _, _) => {
-          stateVarDefs.update(varName, tlnode.asInstanceOf[StateVarDef])
+        case svdef@StateVarDef(varName, _, _, _, _) => {
+          stateVarDefs.update(varName, svdef)
         }
       }
     })

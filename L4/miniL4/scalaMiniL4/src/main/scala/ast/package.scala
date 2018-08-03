@@ -6,6 +6,7 @@ package object ast {
 
   type Block = Seq[Statement]
 
-  type IMap[K,V] = scala.collection.Map[K,V]
+  type TMap[K,V] = scala.collection.Map[K,V]
+  type TSet[V] = scala.collection.Set[V]
 }
 
