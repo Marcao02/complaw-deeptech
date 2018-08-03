@@ -1,4 +1,6 @@
-package ast
+package miniL4.ast
+
+import miniL4.Nat
 
 sealed abstract class Loc {}
   case object NoLoc extends Loc

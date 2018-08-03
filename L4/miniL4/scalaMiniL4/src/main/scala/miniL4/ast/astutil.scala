@@ -1,11 +1,13 @@
-package ast
+package miniL4.ast
+
+import miniL4.Block
 
 object astutil {
   def forEachNodeInContract(cprog:Contract, f: ASTNode => Unit) : Unit = {
     f(cprog)
     cprog.decs.foreach(tlnode => {
       tlnode match {
-        case EventHandlerDef(_, _, stateTransform, preconditions, _) => {
+        case EventHandlerDef(_, _, stateTransform, _, preconditions, _) => {
           forEachNodeInTermIter(preconditions, f)
           forEachNodeInBlock(stateTransform, f)
         }
@@ -24,15 +26,15 @@ object astutil {
   def forEachNodeInEventRule(erule: EventRule, f: ASTNode => Unit): Unit = {
     f(erule)
     erule match {
-      case InternalEventRule(eventDefName, timeTrigger, entranceGuard, ruleparamNames, paramSetter, loc) => {
+      case InternalEventRule(eventDefName, timeTrigger, enabledGuard, ruleparamNames, paramSetter, loc) => {
         f(timeTrigger)
-        forEachNodeInTermIter(entranceGuard, f)
+        forEachNodeInTermIter(enabledGuard, f)
         forEachNodeInTermIter(paramSetter, f)
       }
-      case ExternalEventRule(eventDefName, roleids, timeConstraint, entranceGuard, ruleparamNames, paramSetter, paramConstraint, loc) => {
+      case ExternalEventRule(eventDefName, roleids, timeConstraint, enabledGuard, ruleparamNames, /*paramSetter,*/ paramConstraint, loc) => {
         f(timeConstraint)
-        forEachNodeInTermIter(entranceGuard, f)
-        forEachNodeInTermIter(paramSetter, f)
+        forEachNodeInTermIter(enabledGuard, f)
+//        forEachNodeInTermIter(paramSetter, f)
         forEachNodeInTermIter(paramConstraint, f)
       }
     }

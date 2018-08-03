@@ -1,6 +1,7 @@
-package ast
+package miniL4.ast
 
 import TimeDeltaUnit.TimeDeltaUnit
+import miniL4.{Name, Real}
 
 // NOTE that these definitions aren't actually nested. It's just conceptual nesting.
 

@@ -1,4 +1,4 @@
-package ast
+package miniL4.ast
 
 abstract sealed class TermBinder {}
 case class LetInBinder(src:LetIn) extends TermBinder

@@ -1,6 +1,6 @@
-import analysis.checks
-import ast.ContractLinking
-import examples.meng_buy_booze.contract
+import miniL4.analysis.checks
+import miniL4.ast.ContractLinking
+import miniL4.examples.meng_buy_booze.contract
 import org.scalatest.FunSuite
 
 class ASTTest extends FunSuite {

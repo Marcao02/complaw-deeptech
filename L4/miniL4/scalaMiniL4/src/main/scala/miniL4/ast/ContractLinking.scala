@@ -1,19 +1,33 @@
-package ast
+package miniL4.ast
+
+import miniL4.{Block, Name, TMap, TSet}
 
 import scala.collection.mutable
 
-class ContractLinking(
+case class ContractLinking(
                        val contract: Contract,
                        val eventHandlerDefs: TMap[Name, EventHandlerDef],
                        val situationDefs: TMap[Name, SituationDef],
                        val stateVarDefs: TMap[Name, StateVarDef],
-                       val par: TMap[ASTNode, ASTNode] )
+                       val par: TMap[ASTNode, ASTNode],
+                       val startSit: SituationDef )
   {
     def hasPar(node: ASTNode): Boolean = par.contains(node)
+    val externalEventRules : TMap[SituationDef, TSet[ExternalEventRule]] = situationDefs.values.map( sitdef => {
+      (sitdef, sitdef.eventRules.filter(_.isInstanceOf[ExternalEventRule]).toSet.asInstanceOf[TSet[ExternalEventRule]])
+    }).toMap
+    val internalEventRules : TMap[SituationDef, TSet[InternalEventRule]] = situationDefs.values.map( sitdef => {
+      (sitdef, sitdef.eventRules.filter(_.isInstanceOf[InternalEventRule]).toSet.asInstanceOf[TSet[InternalEventRule]])
+    }).toMap
+//    val externalEventRules : TMap[SituationDef, TSet[ExternalEventRule]] = situationDefs.mapValues( sitdef => {
+//      sitdef.eventRules.filter(_.isInstanceOf[ExternalEventRule]).toSet
+//    })
+//    val internalEventRules : TMap[SituationDef, TSet[InternalEventRule]] = situationDefs.mapValues( sitdef => {
+//      sitdef.eventRules.filter(_.isInstanceOf[InternalEventRule]).toSet
+//    })
   }
 
 object ContractLinking {
-
   /* create parent links, as well as links from various names to the place where the name is introduced. */
   def link(cprog: Contract): ContractLinking = {
     val eventHandlerDefs = mutable.Map[Name, EventHandlerDef]()
@@ -21,15 +35,19 @@ object ContractLinking {
     val stateVarDefs = mutable.Map[Name, StateVarDef]()
     val par = mutable.Map[ASTNode, ASTNode]()
 
+    var startSit : Option[SituationDef] = None
+
     cprog.decs.foreach(tlnode => {
       par.update(tlnode, cprog)
       tlnode match {
-        case ehdef@EventHandlerDef(eventName, _, stateTransform, preconditions, _) => {
+        case ehdef@EventHandlerDef(eventName, _, stateTransform, _, preconditions, _) => {
           for (tm <- preconditions) { linkTerm(tm, tlnode, par)}
           eventHandlerDefs.update(eventName, ehdef)
           for (stmt <- stateTransform) { linkStatement(stmt, tlnode, par) }
         }
         case sitdef@SituationDef(sitName, _, _, _) => {
+          if(startSit.isEmpty)
+            startSit = Some(sitdef)
           situationDefs.update(sitName, sitdef)
           sitdef.eventRules.foreach(erule => {
             linkEventRule(erule, tlnode, par)
@@ -41,21 +59,21 @@ object ContractLinking {
       }
     })
 
-    new ContractLinking(cprog, eventHandlerDefs, situationDefs, stateVarDefs, par)
+    new ContractLinking(cprog, eventHandlerDefs, situationDefs, stateVarDefs, par, startSit.get)
   }
 
   private def linkEventRule(rule: EventRule, parent: ToplevelNode, par: mutable.Map[ASTNode, ASTNode]): Unit = {
     par.update(rule, parent)
     rule match {
-      case InternalEventRule(eventDefName, timeTrigger, entranceGuard, ruleparamNames, paramSetter, loc) => {
+      case InternalEventRule(eventDefName, timeTrigger, enabledGuard, ruleparamNames, paramSetter, loc) => {
         par.update(timeTrigger, rule)
-        entranceGuard.foreach(linkTerm(_, rule, par))
+        enabledGuard.foreach(linkTerm(_, rule, par))
         paramSetter.foreach(linkTerm(_, rule, par))
       }
-      case ExternalEventRule(eventDefName, roleids, timeConstraint, entranceGuard, ruleparamNames, paramSetter, paramConstraint, loc) => {
+      case ExternalEventRule(eventDefName, roleids, timeConstraint, enabledGuard, ruleparamNames, /*paramSetter,*/ paramConstraint, loc) => {
         par.update(timeConstraint, rule)
-        entranceGuard.foreach(linkTerm(_, rule, par))
-        paramSetter.foreach(linkTerm(_, rule, par))
+        enabledGuard.foreach(linkTerm(_, rule, par))
+//        paramSetter.foreach(linkTerm(_, rule, par))
         paramConstraint.foreach(linkTerm(_, rule, par))
       }
     }
