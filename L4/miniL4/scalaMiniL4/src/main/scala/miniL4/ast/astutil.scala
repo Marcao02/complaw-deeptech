@@ -1,8 +1,34 @@
 package miniL4.ast
 
-import miniL4.Block
+import miniL4.{Block, Name, Real}
+import miniL4.ast.Term
 
 object astutil {
+  def fnapp_helper_maker(fnsymb:Name) : (Any,Any) => Term = {
+    (x,y) => {
+      x match {
+        case _x: Name => y match {
+          case _y: Name => FnApp(fnsymb, List(NiT(_x), NiT(_y)))
+          case _y: Real => FnApp(fnsymb, List(NiT(_x), RealLit(_y)))
+          case _ => throw new Exception
+        }
+        case _x: Real => y match {
+          case _y: Name => FnApp(fnsymb, List(RealLit(_x), NiT(_y)))
+          case _y: Real => FnApp(fnsymb, List(RealLit(_x), RealLit(_y)))
+          case _ => throw new Exception
+        }
+        case _ => throw new Exception
+      }
+    }
+  }
+
+  val leq = fnapp_helper_maker('<=)(_,_)
+  val plus = fnapp_helper_maker('+)(_,_)
+  val minus = fnapp_helper_maker('-)(_,_)
+//  '+ -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] + x(1).asInstanceOf[Real]),
+//  '- -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] - x(1).asInstanceOf[Real]),
+//  'not -> ((x:Seq[Data]) => !x(0).asInstanceOf[Boolean])
+
   def forEachNodeInContract(cprog:Contract, f: ASTNode => Unit) : Unit = {
     f(cprog)
     cprog.decs.foreach(tlnode => {

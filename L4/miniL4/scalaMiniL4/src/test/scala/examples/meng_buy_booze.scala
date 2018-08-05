@@ -1,8 +1,8 @@
-package miniL4.examples
+package examples
 import miniL4.ast.{ContractLinking, SituationDef, _}
 import miniL4.ast.time.timeUtil.{after_m, within_m}
 import miniL4.interpreter.L4Event
-
+import miniL4.ast.astutil.{plus,leq,minus}
 
 object meng_buy_booze {
   val seller = List('Seller)
@@ -36,8 +36,8 @@ object meng_buy_booze {
 
     EventHandlerDef('PayForBooze, 'AfterPayForBooze, List(
 //      LocalVarAssign('pointlessLocalVar, RealLit(9)),
-      StateVarAssign('buyerMoney, FnApp('-, List(NiT('buyerMoney), RealLit(10)))),
-      StateVarAssign('cashRegister, FnApp('+, List(NiT('cashRegister), RealLit(10))))
+      StateVarAssign('buyerMoney, minus('buyerMoney,10)),
+      StateVarAssign('cashRegister, plus('cashRegister,10))
     )),
 
     SituationDef('AfterPayForBooze, List(
@@ -48,9 +48,9 @@ object meng_buy_booze {
 
     EventHandlerDef('DeliverBooze, 'Fulfilled),
     EventHandlerDef('RefundBuyer, 'Fulfilled, List(
-      StateVarAssign('buyerMoney, FnApp('+, List(NiT('buyerMoney), RealLit(10)))),
-      StateVarAssign('cashRegister, FnApp('-, List(NiT('cashRegister), RealLit(10))))
-    )),
+      StateVarAssign('buyerMoney, plus('buyerMoney,10)),
+      StateVarAssign('cashRegister, minus('cashRegister,10)
+    ))),
 
     EventHandlerDef('Breach_Seller, 'Breached_Seller),
     SituationDef('Breached_Seller, List()),
@@ -69,6 +69,13 @@ object meng_buy_booze {
       L4Event('AcceptIDAndSobrietyOfBuyer, 'Seller),
       L4Event('PayForBooze, 'Buyer),
       L4Event('DeliverBooze, 'Seller),
+    ),
+
+    List(
+      L4Event('ShowID, 'Buyer),
+      L4Event('AcceptIDAndSobrietyOfBuyer, 'Seller),
+      L4Event('PayForBooze, 'Buyer),
+      L4Event('RefundBuyer, 'Seller),
     )
   )
 

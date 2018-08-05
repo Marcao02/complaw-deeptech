@@ -1,6 +1,7 @@
 import miniL4.analysis.checks
 import miniL4.ast.ContractLinking
-import miniL4.examples.meng_buy_booze.{meng_buy_booze_contract, traces}
+import examples.meng_buy_booze.{meng_buy_booze_contract, traces}
+import miniL4.interpreter.{Trace, evalL4}
 import org.scalatest.FunSuite
 
 class ASTTest extends FunSuite {
@@ -11,9 +12,9 @@ class ASTTest extends FunSuite {
   }
 
   for (trace <- traces) {
-    test(interpreter.minimalTraceString(trace)) {
+    test(Trace.minimalTraceString(trace)) {
       val clink = ContractLinking.link(meng_buy_booze_contract)
-      interpreter.evalTrace(trace, clink)
+      evalL4.evalTrace(trace, clink)
     }
   }
 

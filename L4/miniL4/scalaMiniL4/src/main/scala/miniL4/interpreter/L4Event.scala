@@ -1,7 +1,7 @@
 package miniL4.interpreter
 
 import interpreter.Data
-import miniL4.{Name, Real, CONTRACT_ROLE}
+import miniL4.{CONTRACT_ROLE, Name, Real}
 
 case class L4Event(
                     eventName: Name,
