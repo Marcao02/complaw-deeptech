@@ -65,30 +65,30 @@ object evalL4 {
       }
       else {
         val for_this_role = clink.externalEventRules(ctx.cur_sit).filter(erule => erule.roleIds.contains(event.roleName))
-        assert(for_this_role.nonEmpty, s"No event rules for role ${event.roleName} in situation ${ctx.cur_sit}.")
+        assert(for_this_role.nonEmpty, s"No event rules for role ${event.roleName} in situation ${ctx.cur_sit.name}.")
 
         val for_this_role_and_event = for_this_role.filter(erule => erule.eventDefName == event.eventName)
-        assert(for_this_role.nonEmpty,
-          s"Among the ${for_this_role.size} event rules for role ${event.roleName} in situation ${ctx.cur_sit}, none allow doing ${event.eventName} ")
+        assert(for_this_role_and_event.nonEmpty,
+          s"\nAmong the ${for_this_role.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role)}\nfor role ${event.roleName} in situation ${ctx.cur_sit.name}, none allow doing ${event.eventName} ")
 
         val enabled_for_this_role_and_event = for_this_role_and_event.filter(
           erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
         assert(enabled_for_this_role_and_event.nonEmpty,
-          s"Among the ${for_this_role_and_event.size} event rules allowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit}, none was enabled upon entering the present Situation." )
+          s"\nAmong the ${for_this_role_and_event.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation." )
 
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(
-//              clink.eventHandlerDefs(erule.eventDefName).params.zip( event.params ).toMap
               event.paramVals
             )
             ((erule.paramConstraint.isEmpty || evalTerm(erule.paramConstraint.get, ctx_for_rule_eval, clink) == true )
               && (evalTimeConstraint(erule.timeConstraint, (prev_ts,next_ts), ctx_for_rule_eval, clink) == true))
           })
-        assert(final_rules.nonEmpty,
-          s"Among the enabled ${enabled_for_this_role_and_event} event rules allowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit}, none has both its event parameter constraint and time constraint satisfied.")
 
-        warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${final_rules}")
+        assert(final_rules.nonEmpty,
+          s"\nAmong the ${enabled_for_this_role_and_event.size} enabled event rule(s):\n${EventRule.minimalEventRuleCollToString(enabled_for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none has both its event parameter constraint and time constraint satisfied.")
+
+        warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${EventRule.minimalEventRuleCollToString(final_rules)}")
 
         // no exception
       }

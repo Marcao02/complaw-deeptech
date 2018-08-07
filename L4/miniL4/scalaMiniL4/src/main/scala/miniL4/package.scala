@@ -13,4 +13,7 @@ package object miniL4 {
 
   def seqmapHasKey[K,V](seq:Seq[(K,V)], k:K) : Boolean = seq.exists({case (k2,_) => k == k2})
 
+  def stringJoin(seq:Seq[String], delim:String) = seq.reduce((x,y) => s"$x${delim}$y")
+  def mapToStringJoin[T](seq:Iterable[T], delim:String, fn: T => String) = seq.view.map(fn).reduce((x,y) => s"$x${delim}$y")
+
 }

@@ -40,6 +40,10 @@ object bank {
       L4Event('Withdraw, 'Customer, 0, Map('amount -> 400.0)),
       L4Event('Deposit, 'Customer, 0, Map('amount -> 400.0))
     )
+
+//    ,List( // this produces an exception. need to introduce L4TraceException
+//      L4Event('Withdraw, 'Customer, 0, Map('amount -> 299.0))
+//    )
   )
 
 }
