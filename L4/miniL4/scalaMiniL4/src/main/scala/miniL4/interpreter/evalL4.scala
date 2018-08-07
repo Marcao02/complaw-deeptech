@@ -59,36 +59,60 @@ object evalL4 {
       // let's evaluate all the event rules, since if more than one is triggered that's something we
       // ought to tell the user about
       if(event.roleName == CONTRACT_ROLE) {
-        // todo: evaluate clink.internalEventRules(ctx.cur_sit)
-
-        // no exception
-      }
-      else {
-        val for_this_role = clink.externalEventRules(ctx.cur_sit).filter(erule => erule.roleIds.contains(event.roleName))
-        assert(for_this_role.nonEmpty, s"No event rules for role ${event.roleName} in situation ${ctx.cur_sit.name}.")
+        val for_this_role = clink.internalEventRules(ctx.cur_sit)
+        assert(for_this_role.nonEmpty, s"\nNo internal event rules in situation ${ctx.cur_sit.name}.\n")
 
         val for_this_role_and_event = for_this_role.filter(erule => erule.eventDefName == event.eventName)
         assert(for_this_role_and_event.nonEmpty,
-          s"\nAmong the ${for_this_role.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role)}\nfor role ${event.roleName} in situation ${ctx.cur_sit.name}, none allow doing ${event.eventName} ")
+          s"\nNo internal event rules for ${event.eventName} in situation ${ctx.cur_sit.name}.\n")
 
         val enabled_for_this_role_and_event = for_this_role_and_event.filter(
           erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
         assert(enabled_for_this_role_and_event.nonEmpty,
-          s"\nAmong the ${for_this_role_and_event.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation." )
+          s"\nAmong the ${for_this_role_and_event.size} internal event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nfor ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation.\n" )
+
+        val final_rules = enabled_for_this_role_and_event.filter(
+          erule => {
+            val paramsOk = erule.paramSetter.isEmpty || erule.paramSetterMap().forall({case (name,term) =>
+              event.paramVals(name) == term})
+            val ctx_for_rule_eval = ctx.withEventParamsUpdated(event.paramVals)
+            val timeOk = evalTimeTrigger(erule.timeTrigger, prev_ts, ctx_for_rule_eval, clink) == next_ts
+            paramsOk && timeOk
+          })
+
+        assert(final_rules.nonEmpty,
+          s"\nAmong the ${enabled_for_this_role_and_event.size} enabled internal event rule(s):\n${EventRule.minimalEventRuleCollToString(enabled_for_this_role_and_event)}\nfor ${event.eventName} in situation ${ctx.cur_sit.name}, none give the correct values for the event parameters and timestamp specified by the event.\n")
+
+        warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${EventRule.minimalEventRuleCollToString(final_rules)}\n")
+        // no exception
+      }
+      else {
+        val for_this_role = clink.externalEventRules(ctx.cur_sit).filter(erule => erule.roleIds.contains(event.roleName))
+        assert(for_this_role.nonEmpty, s"\nNo event rules for role ${event.roleName} in situation ${ctx.cur_sit.name}.")
+
+        val for_this_role_and_event = for_this_role.filter(erule => erule.eventDefName == event.eventName)
+        assert(for_this_role_and_event.nonEmpty,
+          s"\nAmong the ${for_this_role.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role)}\nfor role ${event.roleName} in situation ${ctx.cur_sit.name}, none allow doing ${event.eventName}.\n")
+
+        val enabled_for_this_role_and_event = for_this_role_and_event.filter(
+          erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
+        assert(enabled_for_this_role_and_event.nonEmpty,
+          s"\nAmong the ${for_this_role_and_event.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation.\n" )
 
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(
               event.paramVals
             )
-            ((erule.paramConstraint.isEmpty || evalTerm(erule.paramConstraint.get, ctx_for_rule_eval, clink) == true )
-              && (evalTimeConstraint(erule.timeConstraint, (prev_ts,next_ts), ctx_for_rule_eval, clink) == true))
+            val paramsOk = erule.paramConstraint.isEmpty || evalTerm(erule.paramConstraint.get, ctx_for_rule_eval, clink) == true
+            val timeConstraintOk = evalTimeConstraint(erule.timeConstraint, (prev_ts,next_ts), ctx_for_rule_eval, clink)
+            paramsOk && timeConstraintOk
           })
 
         assert(final_rules.nonEmpty,
-          s"\nAmong the ${enabled_for_this_role_and_event.size} enabled event rule(s):\n${EventRule.minimalEventRuleCollToString(enabled_for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none has both its event parameter constraint and time constraint satisfied.")
+          s"\nAmong the ${enabled_for_this_role_and_event.size} enabled event rule(s):\n${EventRule.minimalEventRuleCollToString(enabled_for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none has both its event parameter constraint and time constraint satisfied.\n")
 
-        warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${EventRule.minimalEventRuleCollToString(final_rules)}")
+        warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${EventRule.minimalEventRuleCollToString(final_rules)}\n")
 
         // no exception
       }
@@ -107,6 +131,13 @@ object evalL4 {
       case WithinTimeDeltaFromStart(td,_) => next_ts <= td.num
       case BeforeTimeDeltaSplit(td,_) => next_ts < (td.num + prev_ts)
       case WithinTimeDeltaSplit(td,_) => next_ts <= (td.num + prev_ts)
+    }
+  }
+
+  def evalTimeTrigger(tc:TimeTrigger, prev_ts:Real, ctx:EvalCtx, clink:ContractLinking) : Real = {
+    tc match {
+      case AtTimeDelta(td,_) => td.num
+      case AfterTimeDelta(td,_) => td.num + 1
     }
   }
 

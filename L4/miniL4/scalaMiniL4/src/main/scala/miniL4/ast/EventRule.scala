@@ -15,6 +15,7 @@ object EventRule {
   def minimalEventRuleCollToString(ers:Iterable[EventRule]) : String = {
     mapToStringJoin[EventRule](ers, "\n", _.minimalEventRuleToString())
   }
+
 }
 
 case class InternalEventRule(
@@ -27,6 +28,8 @@ case class InternalEventRule(
   def minimalEventRuleToString() : String = {
     this.eventDefName + "..."
   }
+
+  def paramSetterMap(): Map[Name,Term] = this.ruleparamNames.view.zip(this.paramSetter).toMap
 }
 
 case class ExternalEventRule(
