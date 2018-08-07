@@ -1,8 +1,9 @@
-package examples
-import miniL4.ast.{ContractLinking, SituationDef, _}
+package miniL4.examples
+
+import miniL4.ast.astutil.{minus, plus, geq}
 import miniL4.ast.time.timeUtil.{after_m, within_m}
+import miniL4.ast.{SituationDef, _}
 import miniL4.interpreter.L4Event
-import miniL4.ast.astutil.{plus,leq,minus}
 
 object meng_buy_booze {
   val seller = List('Seller)
@@ -38,7 +39,7 @@ object meng_buy_booze {
 //      LocalVarAssign('pointlessLocalVar, RealLit(9)),
       StateVarAssign('buyerMoney, minus('buyerMoney,10)),
       StateVarAssign('cashRegister, plus('cashRegister,10))
-    )),
+    ), List(), List(geq('buyerMoney,10)) ),
 
     SituationDef('AfterPayForBooze, List(
       ExternalEventRule('DeliverBooze, seller, within_m(10)),

@@ -1,7 +1,7 @@
 package miniL4.ast
 
 import TimeDeltaUnit.TimeDeltaUnit
-import miniL4.{Name, Real}
+import miniL4.{Name, Real, seqmapHasKey}
 
 // NOTE that these definitions aren't actually nested. It's just conceptual nesting.
 
@@ -25,6 +25,16 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
                 if (name2 == this.name)
                   return LetInBinderO(cur.asInstanceOf[LetIn])
               }})
+            }
+            case ehd@EventHandlerDef(_, _, _, paramAndSorts, _, _) => {
+              if(seqmapHasKey(paramAndSorts, this.name)) {
+                return EventHandlerParamBinderO(ehd)
+              }
+            }
+            case er:EventRule => {
+              if(er.ruleparamNames.contains(this.name)) {
+                return EventRuleParamBinderO(er)
+              }
             }
             case _ => ()
           }

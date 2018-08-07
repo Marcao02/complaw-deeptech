@@ -5,7 +5,7 @@ import miniL4.ast.time._
 import miniL4.interpreter.Trace.Trace
 import miniL4._
 import scalax.collection.GraphPredef.DiEdgeLikeIn
-import ast.{astutil, _}
+import ast.{NoBinder, astutil, _}
 //import interpreter.Data
 import scalax.collection.GraphEdge.DiEdge
 import scalax.collection.mutable.{Graph => MutDiGraph}
@@ -79,7 +79,8 @@ object evalL4 {
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(
-              clink.eventHandlerDefs(erule.eventDefName).params.zip( event.params ).toMap
+//              clink.eventHandlerDefs(erule.eventDefName).params.zip( event.params ).toMap
+              event.paramVals
             )
             ((erule.paramConstraint.isEmpty || evalTerm(erule.paramConstraint.get, ctx_for_rule_eval, clink) == true )
               && (evalTimeConstraint(erule.timeConstraint, (prev_ts,next_ts), ctx_for_rule_eval, clink) == true))
@@ -131,7 +132,9 @@ object evalL4 {
 
   def evalEvent(event: L4Event, ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
     val eh = clink.eventHandlerDefs(event.eventName)
-    evalEventHandler(eh, ctx, clink).withCurSitUpdated(clink.situationDefs(eh.destSit))
+//    ctx2 = ctx.withEventParamsUpdated(eh.params.zip(event.params).toMap)
+    val ctx2 = ctx.withEventParamsUpdated(event.paramVals)
+    evalEventHandler(eh, ctx2, clink).withCurSitUpdated(clink.situationDefs(eh.destSit))
   }
 
   def evalEventHandler(eh: EventHandlerDef, ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
@@ -177,7 +180,9 @@ object evalL4 {
         nit.defn(clink) match {
           case LetInBinderO(_) => ctx.locv_vals(nit.name)
           case StateVarBinderO(_) => ctx.sv_vals(nit.name)
-          case NoBinder => assert(false, "error msg toto")
+          case EventHandlerParamBinderO(_) => ctx.eparam_vals(nit.name)
+          case EventRuleParamBinderO(_) => ctx.eparam_vals(nit.name)
+          case NoBinder => assert(false, "can't happen")
         }
       }
       case FnApp(fnname, args, _) => {

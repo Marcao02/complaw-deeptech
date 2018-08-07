@@ -1,6 +1,7 @@
 package miniL4.ast
 
-import miniL4.{Block, Name}
+import interpreter.Data
+import miniL4.{Block, Name, TMap}
 
 abstract sealed class ToplevelNode(loc:Loc) extends ASTNode(loc) {}
 
@@ -19,6 +20,12 @@ case class EventHandlerDef(
     preconditions: Seq[Term] = List(),
     loc: Loc = NoLoc) extends ToplevelNode(loc) {
   val params = paramAndSorts.map(_._1)
+
+  def paramValSubstOk(subst:TMap[Name,Data]) : Boolean = {
+    this.params.forall((pname) => {
+      subst.contains(pname)
+    }) && subst.size == this.paramAndSorts.size
+  }
 }
 
 case class StateVarDef(

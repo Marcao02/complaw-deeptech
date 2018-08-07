@@ -7,5 +7,6 @@ case class L4Event(
                     eventName: Name,
                     roleName: Name = CONTRACT_ROLE,
                     timeStamp: Real = 0,
-                    params: Seq[Data] = List()
+//                    params: Seq[Data] = List(),
+                    paramVals: Map[Name,Data] = Map.empty[Name,Data]
                   ) { }

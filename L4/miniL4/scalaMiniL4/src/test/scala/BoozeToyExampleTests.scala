@@ -1,11 +1,10 @@
 import miniL4.analysis.checks
 import miniL4.ast.ContractLinking
-import examples.meng_buy_booze.{meng_buy_booze_contract, traces}
+import miniL4.examples.meng_buy_booze.{meng_buy_booze_contract, traces}
 import miniL4.interpreter.{Trace, evalL4}
 import org.scalatest.FunSuite
 
-class ASTTest extends FunSuite {
-
+class BoozeToyExampleTests extends FunSuite {
   test("no unresolved names in meng_buy_booze example") {
     val clink = ContractLinking.link(meng_buy_booze_contract)
     checks.assertNamesResolve(meng_buy_booze_contract, clink)
@@ -17,6 +16,8 @@ class ASTTest extends FunSuite {
       evalL4.evalTrace(trace, clink)
     }
   }
+}
+
 
   //     use the try catch later for a negative example
 //  test("unresolved names in example_with_unresolved_name example") {
@@ -30,5 +31,5 @@ class ASTTest extends FunSuite {
 //      }
 //    }
 //  }
-}
+//}
 

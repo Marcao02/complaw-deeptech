@@ -10,4 +10,7 @@ package object miniL4 {
   type Block = Seq[Statement]
 
   def warn(test:Boolean, msg:String) : Unit = if(test) println("WARNING: " + msg) else ()
+
+  def seqmapHasKey[K,V](seq:Seq[(K,V)], k:K) : Boolean = seq.exists({case (k2,_) => k == k2})
+
 }
