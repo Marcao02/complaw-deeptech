@@ -13,26 +13,26 @@ case class SituationDef(
 }
 
 case class EventHandlerDef(
-    eventName: Name,
-    destSit: Name,
-    stateTransform: Block = List(),
-    paramAndSorts: Seq[(Name,Sort)] = List(),
-    preconditions: Seq[Term] = List(),
-    loc: Loc = NoLoc) extends ToplevelNode(loc) {
-  val params = paramAndSorts.map(_._1)
+                            eventName: Name,
+                            destSit: Name,
+                            stateTransform: Block = List(),
+                            paramsAndDatatypes: Seq[(Name,Datatype)] = List(),
+                            preconditions: Seq[Term] = List(),
+                            loc: Loc = NoLoc) extends ToplevelNode(loc) {
+  val params = paramsAndDatatypes.map(_._1)
 
   def paramValSubstOk(subst:TMap[Name,Data]) : Boolean = {
     this.params.forall((pname) => {
       subst.contains(pname)
-    }) && subst.size == this.paramAndSorts.size
+    }) && subst.size == this.paramsAndDatatypes.size
   }
 }
 
 case class StateVarDef(
-    name: Name,
-    sort: Sort,
-    initVal: Option[Term] = None,
-    modifiers: Seq[Symbol] = List(),
-    loc: Loc = NoLoc) extends ToplevelNode(loc) {
+                        name: Name,
+                        dtype: Datatype,
+                        initVal: Option[Term] = None,
+                        modifiers: Seq[Symbol] = List(),
+                        loc: Loc = NoLoc) extends ToplevelNode(loc) {
 }
 

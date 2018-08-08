@@ -63,8 +63,8 @@ object astutil {
           for (erule <- eventRules) { forEachNodeInEventRule(erule, f) }
           forEachNodeInTermIter(preconditions, f)
         }
-        case StateVarDef(_, sort, initval, _, _) => {
-          forEachNodeInSort(sort, f)
+        case StateVarDef(_, dtype, initval, _, _) => {
+          forEachNodeInDatatype(dtype, f)
           forEachNodeInTermIter(initval, f)
         }
       }
@@ -114,19 +114,19 @@ object astutil {
     f(tm)
     tm match {
       case FnApp(fnname, args, _) => forEachNodeInTermIter(args,f)
-      case SortAnnotation(tm2, sort, _) => {
-        forEachNodeInSort(sort, f)
+      case TypeAnnotation(tm2, dtype, _) => {
+        forEachNodeInDatatype(dtype, f)
         forEachNodeInTerm(tm2, f)
       }
       case _ => ()
     }
   }
 
-  def forEachNodeInSort(sort: Sort, f: ASTNode => Unit) : Unit = {
-    f(sort)
-    sort match {
-      case SortOpApp(_, args, _) => {
-        for (childSort <- args) forEachNodeInSort(childSort, f)
+  def forEachNodeInDatatype(dtype: Datatype, f: ASTNode => Unit) : Unit = {
+    f(dtype)
+    dtype match {
+      case DatatypeOpApp(_, args, _) => {
+        for (childDtype <- args) forEachNodeInDatatype(childDtype, f)
       }
       case _ => ()
     }

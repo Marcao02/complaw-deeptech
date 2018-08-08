@@ -10,8 +10,8 @@ object meng_buy_booze {
   val buyer = List('Buyer)
 
   val meng_buy_booze_contract : Contract = Contract(List(
-    StateVarDef('buyerMoney, AtomicSort('Real), Some(RealLit(20))),
-    StateVarDef('cashRegister, AtomicSort('Real), Some(RealLit(200))),
+    StateVarDef('buyerMoney, AtomicDatatype('Real), Some(RealLit(20))),
+    StateVarDef('cashRegister, AtomicDatatype('Real), Some(RealLit(200))),
 
     SituationDef('AtCounter, List(
       ExternalEventRule('ShowID, buyer)

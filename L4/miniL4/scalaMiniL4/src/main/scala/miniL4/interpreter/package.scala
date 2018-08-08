@@ -14,6 +14,6 @@ package object interpreter {
     'or -> ((x:Seq[Data]) => x(0).asInstanceOf[Boolean] && x(1).asInstanceOf[Boolean])
   )
 
-//  val sortPreds : TMap[Sort, Data => Boolean]= Map(
+//  val datatypePreds : TMap[Datatype, Data => Boolean]= Map(
 //  )
 }

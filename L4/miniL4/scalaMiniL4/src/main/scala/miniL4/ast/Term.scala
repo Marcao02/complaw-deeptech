@@ -9,7 +9,7 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
 
   /* Name in Term */
   case class NiT(name: Name, loc: Loc = NoLoc) extends Term(loc) {
-    //  def sort(self, info:L4ContractTyping) : Sort:
+    //  def datatype(self, info:L4ContractTyping) : Datatype:
 
     def defn(link:ContractLinking) : TermBinderO = {
       if( link.stateVarDefs.contains(this.name) ) {
@@ -26,8 +26,8 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
                   return LetInBinderO(cur.asInstanceOf[LetIn])
               }})
             }
-            case ehd@EventHandlerDef(_, _, _, paramAndSorts, _, _) => {
-              if(seqmapHasKey(paramAndSorts, this.name)) {
+            case ehd@EventHandlerDef(_, _, _, paramsAndDatatypes, _, _) => {
+              if(seqmapHasKey(paramsAndDatatypes, this.name)) {
                 return EventHandlerParamBinderO(ehd)
               }
             }
@@ -50,16 +50,16 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
   }
 
   case class FnApp(name: Name, args: Seq[Term], loc: Loc = NoLoc) extends Term(loc) {
-    // def sort(self, info:'L4ContractTyping') -> 'Sort':
+    // def datatype(self, info:'L4ContractTyping') -> 'Datatype':
   }
 
-  case class SortAnnotation(term: Term, sort: Sort, loc: Loc = NoLoc) extends Term(loc) {}
+  case class TypeAnnotation(term: Term, dtype: Datatype, loc: Loc = NoLoc) extends Term(loc) {}
 
 
   abstract sealed class Literal(loc: Loc = NoLoc) extends Term(loc) {}
 
     case class RealLit(num: Real, loc: Loc = NoLoc) extends Literal(loc) {
-      //# def sort(self, info:'L4ContractTyping') -> 'Sort':
+      //# def datatype(self, info:'L4ContractTyping') -> 'Datatype':
     }
 
     object TimeDeltaUnit extends Enumeration {

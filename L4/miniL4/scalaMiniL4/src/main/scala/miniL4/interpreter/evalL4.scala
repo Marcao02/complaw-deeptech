@@ -221,12 +221,12 @@ object evalL4 {
         assert(fnInterps.contains(fnname), s"Don't know how to interpret function symbol $fnname")
         fnInterps(fnname)(argvals)
       }
-      case SortAnnotation(tm, sort, _) => {
+      case TypeAnnotation(tm, dtype, _) => {
         val tmval = evalTerm(tm, ctx, clink)
         // doing it just for Real and Boolean, since those are the only atomic types in miniL4
         tmval match {
-          case _: Real => assert(sort == AtomicSort('Real) || sort == AtomicSort('TimeDelta))
-          case _: Boolean => assert(sort == AtomicSort('Bool))
+          case _: Real => assert(dtype == AtomicDatatype('Real) || dtype == AtomicDatatype('TimeDelta))
+          case _: Boolean => assert(dtype == AtomicDatatype('Bool))
         }
         tmval
       }

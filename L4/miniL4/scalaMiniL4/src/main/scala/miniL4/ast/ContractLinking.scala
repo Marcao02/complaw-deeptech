@@ -112,21 +112,21 @@ object ContractLinking {
         for (arg <- args)
           linkTerm(arg, tm, par)
       }
-      case SortAnnotation(tm2, sort, _) => {
-        linkSort(sort, tm, par)
+      case TypeAnnotation(tm2, dtype, _) => {
+        linkDatatype(dtype, tm, par)
         linkTerm(tm2, tm, par)
       }
       case _ => ()
     }
   }
 
-  /* Fill in `par` entries for `ASTNode`s at or below sort */
-  private def linkSort(sort: Sort, parent: ASTNode, par: mutable.Map[ASTNode, ASTNode]): Unit = {
-    par.update(sort, parent)
-    sort match {
-      case SortOpApp(_, args, _) => {
-        for (childSort <- args)
-          linkSort(childSort, sort, par)
+  /* Fill in `par` entries for `ASTNode`s at or below dtype */
+  private def linkDatatype(dtype: Datatype, parent: ASTNode, par: mutable.Map[ASTNode, ASTNode]): Unit = {
+    par.update(dtype, parent)
+    dtype match {
+      case DatatypeOpApp(_, args, _) => {
+        for (childDatatype <- args)
+          linkDatatype(childDatatype, dtype, par)
       }
       case _ => ()
     }
