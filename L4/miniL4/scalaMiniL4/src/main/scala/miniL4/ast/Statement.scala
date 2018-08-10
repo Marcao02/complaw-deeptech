@@ -6,6 +6,7 @@ import miniL4.{Block, Name}
 
 abstract sealed class Statement(loc: Loc) extends ASTNode(loc) {}
 
+  // recall TypeAnnotation is used if you want to assign a type to a local var
   case class LetIn(defs: Seq[(Name, Term)], block: Block, loc: Loc = NoLoc) extends Statement(loc)
 
   case class StateVarAssign(name: Name, rhs: Term, loc: Loc = NoLoc) extends Statement(loc) {

@@ -207,6 +207,7 @@ object evalL4 {
     term match {
       case RealLit(x,_) => x
       case TimeDeltaLit(x,_,_) => x // WARN: I'm ignoring units, since this is miniL4
+      case BoolLit(x,_) => x // WARN: I'm ignoring units, since this is miniL4
       case nit:NiT => {
         nit.defn(clink) match {
           case LetInBinderO(_) => ctx.locv_vals(nit.name)

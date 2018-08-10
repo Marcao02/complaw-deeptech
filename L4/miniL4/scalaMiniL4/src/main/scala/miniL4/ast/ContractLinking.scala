@@ -1,5 +1,6 @@
 package miniL4.ast
 
+import miniL4.typechecker.stdlibTyping.stdFnTypes
 import miniL4.{Block, Name, TMap, TSet}
 
 import scala.collection.mutable
@@ -10,7 +11,10 @@ case class ContractLinking(
                        val situationDefs: TMap[Name, SituationDef],
                        val stateVarDefs: TMap[Name, StateVarDef],
                        val par: TMap[ASTNode, ASTNode],
-                       val startSit: SituationDef )
+                       val startSit: SituationDef,
+                       val functions: TMap[Name, FnDec],
+                       val registeredDatatypes: Set[Datatype] )
+                       // not in miniL4: val datatypeAbbrevs: TMap[Name, Datatype])
   {
     def hasPar(node: ASTNode): Boolean = par.contains(node)
     val externalEventRules : TMap[SituationDef, TSet[ExternalEventRule]] = situationDefs.values.map( sitdef => {
@@ -28,14 +32,22 @@ case class ContractLinking(
   }
 
 object ContractLinking {
+  object Checks {
+    /* Exception on failure */
+    def noShadowing(linking:ContractLinking) = {
+      // TODO
+    }
+  }
+
   /* create parent links, as well as links from various names to the place where the name is introduced. */
   def link(cprog: Contract): ContractLinking = {
     val eventHandlerDefs = mutable.Map[Name, EventHandlerDef]()
     val situationDefs = mutable.Map[Name, SituationDef]()
     val stateVarDefs = mutable.Map[Name, StateVarDef]()
     val par = mutable.Map[ASTNode, ASTNode]()
-
     var startSit : Option[SituationDef] = None
+    val fnDecs = stdFnTypes.name2type.map(pair => (pair._1, FnDec(pair._1, pair._2))).toMap
+    var datatypes = Set.empty[Datatype]
 
     cprog.decs.foreach(tlnode => {
       par.update(tlnode, cprog)
@@ -58,10 +70,14 @@ object ContractLinking {
         case svdef@StateVarDef(varName, _, _, _, _) => {
           stateVarDefs.update(varName, svdef)
         }
+        case dtypeReg@RegisteredDatatypes(dtypes, _) => {
+          for (dtype <- dtypes) linkDatatype(dtype, dtypeReg, par)
+          datatypes = dtypes
+        }
       }
     })
 
-    new ContractLinking(cprog, eventHandlerDefs, situationDefs, stateVarDefs, par, startSit.get)
+    new ContractLinking(cprog, eventHandlerDefs, situationDefs, stateVarDefs, par, startSit.get, fnDecs, datatypes)
   }
 
   private def linkEventRule(rule: EventRule, parent: ToplevelNode, par: mutable.Map[ASTNode, ASTNode]): Unit = {

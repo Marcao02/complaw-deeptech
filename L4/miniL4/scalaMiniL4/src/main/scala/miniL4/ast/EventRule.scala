@@ -10,6 +10,11 @@ abstract sealed class EventRule(
 //  val paramSetter: Seq[Term], // don't allow it for miniL4
   val loc:Loc = NoLoc) extends ASTNode(loc) {
   def minimalEventRuleToString() : String
+  def eventHandler(linking:ContractLinking) : EventHandlerDef = linking.eventHandlerDefs(this.eventDefName)
+  def getEventHandlerParamTypePair(paramname:Name, linking:ContractLinking) : (Name, Datatype) = {
+    val ind = this.ruleparamNames.indexOf(paramname)
+    this.eventHandler(linking).paramsAndDatatypes(ind)
+  }
 }
 object EventRule {
   def minimalEventRuleCollToString(ers:Iterable[EventRule]) : String = {

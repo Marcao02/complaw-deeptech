@@ -67,6 +67,9 @@ object astutil {
           forEachNodeInDatatype(dtype, f)
           forEachNodeInTermIter(initval, f)
         }
+        case RegisteredDatatypes(dtypes, _) => {
+          for (dtype <- dtypes) forEachNodeInDatatype(dtype, f)
+        }
       }
     })
   }

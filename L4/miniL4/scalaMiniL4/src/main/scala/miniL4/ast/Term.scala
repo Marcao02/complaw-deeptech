@@ -9,12 +9,19 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
 
   /* Name in Term */
   case class NiT(name: Name, loc: Loc = NoLoc) extends Term(loc) {
-    //  def datatype(self, info:L4ContractTyping) : Datatype:
+//    def datatype(self, typing: ContractTyping) : Datatype = {
+//      val defnOpt = this.defn(linking)
+//      defnOpt match {
+//        case LetInBinderO => {
+//
+//        }
+//        case NoBinder => throw new Exception(s"Name ${name} at ${loc} does not dereference to any TermBinder.")
+//      }
+//    }
 
-    def defn(link:ContractLinking) : TermBinderO = {
-      if( link.stateVarDefs.contains(this.name) ) {
-        StateVarBinderO(link.stateVarDefs(this.name))
-      }
+    def defn(linking:ContractLinking) : TermBinderO = {
+      if( linking.stateVarDefs.contains(this.name) )
+        StateVarBinderO(linking.stateVarDefs(this.name))
       else {
         // then we walk up the AST looking for a LetIn expression.
         var cur : ASTNode = this
@@ -27,20 +34,18 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
               }})
             }
             case ehd@EventHandlerDef(_, _, _, paramsAndDatatypes, _, _) => {
-              if(seqmapHasKey(paramsAndDatatypes, this.name)) {
+              if(seqmapHasKey(paramsAndDatatypes, this.name))
                 return EventHandlerParamBinderO(ehd)
-              }
             }
             case er:EventRule => {
-              if(er.ruleparamNames.contains(this.name)) {
+              if(er.ruleparamNames.contains(this.name))
                 return EventRuleParamBinderO(er)
-              }
             }
             case _ => ()
           }
 
-          if( link.hasPar(cur) )
-            cur = link.par(cur)
+          if( linking.hasPar(cur) )
+            cur = linking.par(cur)
           else
             return NoBinder
         }
@@ -55,12 +60,16 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
 
   case class TypeAnnotation(term: Term, dtype: Datatype, loc: Loc = NoLoc) extends Term(loc) {}
 
+  // TODO: <term> as <datatype> or ... or <datatype> in <block>
+  // TODO: type cases <term> (<datatype>, <block>) ... (<datatype>, <block>)
 
   abstract sealed class Literal(loc: Loc = NoLoc) extends Term(loc) {}
 
     case class RealLit(num: Real, loc: Loc = NoLoc) extends Literal(loc) {
       //# def datatype(self, info:'L4ContractTyping') -> 'Datatype':
     }
+
+    case class BoolLit(bool: Boolean, loc: Loc = NoLoc) extends Literal(loc) {}
 
     object TimeDeltaUnit extends Enumeration {
       type TimeDeltaUnit = Value

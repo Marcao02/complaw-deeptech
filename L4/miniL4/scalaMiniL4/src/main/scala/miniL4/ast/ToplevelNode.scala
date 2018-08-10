@@ -36,3 +36,4 @@ case class StateVarDef(
                         loc: Loc = NoLoc) extends ToplevelNode(loc) {
 }
 
+case class RegisteredDatatypes( dtypes: Set[Datatype], loc:Loc = NoLoc) extends ToplevelNode(loc)
