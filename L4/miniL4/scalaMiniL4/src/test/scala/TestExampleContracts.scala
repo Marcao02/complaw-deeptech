@@ -1,6 +1,7 @@
+import miniL4.EvalError
 import miniL4.analysis.checks
 import miniL4.ast.ContractLinking
-import miniL4.examples.{TestExample, bank, meng_buy_booze, typechecking_test, following_situation_alternative}
+import miniL4.examples.{TestExample, bank, following_situation_alternative, meng_buy_booze, typechecking_test}
 import miniL4.interpreter.{Trace, evalL4}
 import miniL4.typechecker.typechecker
 import org.scalatest.FunSuite
@@ -10,7 +11,7 @@ object TestExampleContracts {
     ("bank", bank),
     ("booze", meng_buy_booze),
     ("typechecking_only", typechecking_test),
-    ("following_situation_alternative", following_situation_alternative)
+//    ("following_situation_alternative", following_situation_alternative)
 
   )
 }
@@ -42,7 +43,7 @@ class TestExampleContracts extends FunSuite {
           evalL4.evalTrace(trace, linking)
           fail("Should have triggered an L4TraceException")
         } catch {
-          case e:L4TraceException=> () // all good
+          case e:EvalError => () // all good
           case e:Throwable => fail(s"Should have triggered an L4TraceException, but got this instead: ${e}" )
         }
       }
