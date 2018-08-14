@@ -4,11 +4,22 @@ object Trace {
   type Trace = Seq[L4Event]
 
   def minimalTraceString(trace:Trace) : String = {
-    //    trace.map(_.eventName.toString()).fold("")((x,y) => s"$x -> $y")
     if(trace.isEmpty)
       "<empty trace>"
     else
       trace.map(_.eventName.toString()).reduce((x,y) => s"$x -> $y")
+  }
+
+  def traceStringWithEventParamsNoNamesNoTime(trace:Trace) : String = {
+    if(trace.isEmpty)
+      "<empty trace>"
+    else
+      trace.map(evt => {
+        if( evt.paramVals.nonEmpty )
+          s"${evt.eventName}${evt.paramVals.values.toList}"
+        else
+          s"${evt.eventName}"
+      }).reduce((x,y) => s"$x -> $y")
   }
 }
 

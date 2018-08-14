@@ -9,16 +9,22 @@ object bank extends TestExample  {
   private val teller = List('Teller)
   private val customer = List('Customer)
 
+  private val start_CashOnHand = 20.0
+  private val start_AccountBalance = 1000.0
+  private val MIN_WITHDRAW = 300.0
+
+
   val contract : Contract = Contract(List(
-    StateVarDef('customerCashOnHand, AtomicDatatype('Real), Some(RealLit(20))),
-    StateVarDef('customerAccountBalance, AtomicDatatype('Real), Some(RealLit(1000))),
+    StateVarDef('customerCashOnHand, AtomicDatatype('Real), Some(RealLit(start_CashOnHand))),
+    StateVarDef('customerAccountBalance, AtomicDatatype('Real), Some(RealLit(start_AccountBalance))),
     StateVarDef('totalAccountChange, AtomicDatatype('Real), Some(RealLit(0))),
 
     SituationDef('AtCounter, List(
-      ExternalEventRule('Withdraw, customer, NoTimeConstraint(NoLoc), None, List('amount), Some(
-        and(leq('amount, 'customerAccountBalance), geq('amount, 300))
+      ExternalEventRule('Withdraw, customer, NoTimeConstraint(NoLoc), None, List('amount),
+        Some(and(leq('amount, 'customerAccountBalance), geq('amount, MIN_WITHDRAW))
       )),
-      ExternalEventRule('Deposit, customer, NoTimeConstraint(NoLoc), None, List('amount), Some(leq('amount, 'customerCashOnHand))),
+      ExternalEventRule('Deposit, customer, NoTimeConstraint(NoLoc), None, List('amount),
+        Some(leq('amount, 'customerCashOnHand))),
     )),
 
     EventHandlerDef('Withdraw, 'AtCounter, List(
@@ -42,7 +48,13 @@ object bank extends TestExample  {
 
   val exceptionTraces = List(
     List(
-      L4Event('Withdraw, 'Customer, 0, Map('amount -> 299.0))
+      L4Event('Withdraw, 'Customer, 0, Map('amount -> (MIN_WITHDRAW - 1)))
+    ),
+    List(
+      L4Event('Withdraw, 'Customer, 0, Map('amount -> (1 + start_AccountBalance)))
+    ),
+    List(
+      L4Event('Deposit, 'Customer, 0, Map('amount -> (1 + start_CashOnHand)))
     )
   )
 

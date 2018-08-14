@@ -36,13 +36,13 @@ class TestExampleContracts extends FunSuite {
     }
 
     for (trace <- exceptionTraces) {
-      test(s"run errorful trace of '$name': " + Trace.minimalTraceString(trace)) {
+      test(s"run errorful trace of '$name': " + Trace.traceStringWithEventParamsNoNamesNoTime(trace)) {
         try {
           evalL4.evalTrace(trace, linking)
           fail("Should have triggered an L4TraceException")
         } catch {
           case e:L4TraceException=> () // all good
-          case _:Throwable => fail("Should have triggered an L4TraceException")
+          case e:Throwable => fail(s"Should have triggered an L4TraceException, but got this instead: ${e}" )
         }
       }
     }
