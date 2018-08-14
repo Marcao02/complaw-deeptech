@@ -5,10 +5,6 @@ import miniL4.ast.{Datatype, DatatypeOpApp}
 import miniL4.typechecker.stdlibTyping.stdDataTypes.bottomDType
 
 abstract sealed class FnType {
-//  def rangeTypeOnArgTypes(argtypes: Iterable[Datatype]) : Datatype = {
-//    // todo: this'll need to be overloaded
-//    bottomDType
-//  }
   def rangeTypeOnArgTypes(argtypes: Seq[Datatype], graph:SubtypingGraph) : Datatype
 }
 
@@ -56,8 +52,10 @@ case class OverloadedFnType(parts: Set[SimpleFnType]) extends FnType {
       if( !result.isBottom )
         in_range = result::in_range
     }
-    if(in_range.isEmpty)
+    if(in_range.isEmpty) {
+      println(s"${argtypes.toList} is not in the domain of a function of type:\n${parts}")
       return bottomDType
+    }
     val intersection = graph.simplifyIntersection(in_range)
     assert(!intersection.isBottom)
     intersection

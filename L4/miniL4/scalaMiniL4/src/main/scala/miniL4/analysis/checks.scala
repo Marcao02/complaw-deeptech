@@ -10,6 +10,7 @@ object checks {
         case StateVarAssign(name, _, _) => assert( link.stateVarDefs.contains(name), s"StateVarDef for ${name} not found.")
         case EventHandlerDef(_, destSit, _, _, _, _) => assert( link.eventHandlerDefs.contains(destSit), s"SituationDef for ${destSit} not found.")
         case er:EventRule => assert( link.eventHandlerDefs.contains(er.eventDefName), s"EventHandlerDef for ${er.eventDefName} not found.")
+        case nit:NiT => assert( nit.defn(link) != NoBinder, s"Name-in-term ${nit.name} is not bound.")
         case _ => ()
       }
     }

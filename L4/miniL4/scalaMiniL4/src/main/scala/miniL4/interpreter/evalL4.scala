@@ -7,17 +7,17 @@ import miniL4._
 import scalax.collection.GraphPredef.DiEdgeLikeIn
 import ast.{NoBinder, Statement, astutil, _}
 import Statement.Block
-//import interpreter.Data
+import astutil.{rp2hp,hp2rp,isEventHandlerParam, isEventRuleParam}
+
 import scalax.collection.GraphEdge.DiEdge
 import scalax.collection.mutable.{Graph => MutDiGraph}
 
-import astutil.{rp2hp,hp2rp,isEventHandlerParam, isEventRuleParam}
 
 object evalL4 {
   type Data = Any
   type NameDiGraph = scalax.collection.mutable.Graph[Name,DiEdgeLikeIn]
 
-  def evassert(test:Boolean, msg: => String) : Unit = if(!test) { throw new L4TraceException(msg) }
+  def evassert(test:Boolean, msg: => String) : Unit = if(!test) { throw new EvalError(msg) }
 
   // turn occurs-in relation (state var occurs in the right hand side of another state var's assignment statement) into a graph
   def assignSetToGraph(svAssigns: TMap[Name,StateVarAssign], clink:ContractLinking) : NameDiGraph = {

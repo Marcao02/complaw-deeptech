@@ -7,8 +7,6 @@ import miniL4.typechecker.stdlibTyping.stdDataTypes.{bottomDType, boolDType, rea
 import astutil.{rp2hp,hp2rp,isEventHandlerParam, isEventRuleParam}
 import Statement.Block
 
-class TypeError(msg: String) extends Exception(msg) {}
-
 object typechecker {
   def tcassert(test:Boolean, msg: => String) : Unit = if(!test) { throw new TypeError(msg) }
 
@@ -89,7 +87,7 @@ object typechecker {
         tcassert(ctx.contains(nit.name), s"${nit.name} should be in the typing context ${ctx}")
         ctx(nit.name)
       } // TODO feedback on error
-      case NoBinder => throw new Exception("unbound name...")
+      case NoBinder => throw new Exception(s"${nit.name} is unbound...")
     }
   }
 

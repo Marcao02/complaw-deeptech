@@ -29,4 +29,6 @@ object abbrevs {
 
   def svd(name: Name, dtype: Datatype, initVal: Option[Term] = None, modifiers: Seq[Symbol] = List(), loc: Loc = NoLoc) =
     StateVarDef(name, dtype, initVal, modifiers, loc)
+
+  val ntc = NoTimeConstraint()
 }

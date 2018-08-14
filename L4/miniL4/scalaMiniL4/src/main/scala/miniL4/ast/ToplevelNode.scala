@@ -13,6 +13,7 @@ case class SituationDef(
    loc: Loc = NoLoc) extends ToplevelNode(loc) {
 }
 
+// TODO: should I add roles parameter? or fine to leave it out in miniL4
 case class EventHandlerDef(
                             eventName: Name,
                             destSit: Name,

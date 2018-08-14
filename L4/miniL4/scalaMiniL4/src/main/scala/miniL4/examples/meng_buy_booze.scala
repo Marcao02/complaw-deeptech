@@ -13,7 +13,7 @@ object meng_buy_booze extends TestExample {
 
   val contract : Contract = Contract(List(
     svd('buyerMoney, realDType, Some(RealLit(20))),
-    svd('cashRegister, boolDType, Some(RealLit(200))),
+    svd('cashRegister, realDType, Some(RealLit(200))),
 
     sd('AtCounter, List(
       eer('ShowID, buyer)
