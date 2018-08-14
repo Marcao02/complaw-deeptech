@@ -5,11 +5,11 @@ import miniL4.ast.astutil._
 import miniL4.ast.time.timeUtil.{after_m, within_m}
 import miniL4.typechecker.stdlibTyping.stdDataTypes._
 
-object typechecking_test {
+object typechecking_test extends TestExample {
 
-  val me = List('Me)
+  private val me = List('Me)
 
-  val typechecking_only = Contract(List(
+  val contract = Contract(List(
     StateVarDef('real, realDType, Some(RealLit(20))),
     StateVarDef('posreal, posRealDType, Some(RealLit(200))),
     StateVarDef('nonnegreal, nonnegRealDType, Some(RealLit(0))),
@@ -32,5 +32,8 @@ object typechecking_test {
       )
     ))
   ))
+
+  val traces = List()
+  val exceptionTraces = List()
 
 }

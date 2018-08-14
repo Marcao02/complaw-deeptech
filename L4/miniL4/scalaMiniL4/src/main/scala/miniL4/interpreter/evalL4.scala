@@ -13,8 +13,9 @@ import scalax.collection.mutable.{Graph => MutDiGraph}
 
 object evalL4 {
   type Data = Any
-
   type NameDiGraph = scalax.collection.mutable.Graph[Name,DiEdgeLikeIn]
+
+  def evassert(test:Boolean, msg: => String) : Unit = if(!test) { throw new L4TraceException(msg) }
 
   // turn occurs-in relation (state var occurs in the right hand side of another state var's assignment statement) into a graph
   def assignSetToGraph(svAssigns: TMap[Name,StateVarAssign], clink:ContractLinking) : NameDiGraph = {
@@ -61,15 +62,15 @@ object evalL4 {
       // ought to tell the user about
       if(event.roleName == CONTRACT_ROLE) {
         val for_this_role = clink.internalEventRules(ctx.cur_sit)
-        assert(for_this_role.nonEmpty, s"\nNo internal event rules in situation ${ctx.cur_sit.name}.\n")
+        evassert(for_this_role.nonEmpty, s"\nNo internal event rules in situation ${ctx.cur_sit.name}.\n")
 
         val for_this_role_and_event = for_this_role.filter(erule => erule.eventDefName == event.eventName)
-        assert(for_this_role_and_event.nonEmpty,
+        evassert(for_this_role_and_event.nonEmpty,
           s"\nNo internal event rules for ${event.eventName} in situation ${ctx.cur_sit.name}.\n")
 
         val enabled_for_this_role_and_event = for_this_role_and_event.filter(
           erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
-        assert(enabled_for_this_role_and_event.nonEmpty,
+        evassert(enabled_for_this_role_and_event.nonEmpty,
           s"\nAmong the ${for_this_role_and_event.size} internal event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nfor ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation.\n" )
 
         val final_rules = enabled_for_this_role_and_event.filter(
@@ -81,7 +82,7 @@ object evalL4 {
             paramsOk && timeOk
           })
 
-        assert(final_rules.nonEmpty,
+        evassert(final_rules.nonEmpty,
           s"\nAmong the ${enabled_for_this_role_and_event.size} enabled internal event rule(s):\n${EventRule.minimalEventRuleCollToString(enabled_for_this_role_and_event)}\nfor ${event.eventName} in situation ${ctx.cur_sit.name}, none give the correct values for the event parameters and timestamp specified by the event.\n")
 
         warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${EventRule.minimalEventRuleCollToString(final_rules)}\n")
@@ -89,15 +90,15 @@ object evalL4 {
       }
       else {
         val for_this_role = clink.externalEventRules(ctx.cur_sit).filter(erule => erule.roleIds.contains(event.roleName))
-        assert(for_this_role.nonEmpty, s"\nNo event rules for role ${event.roleName} in situation ${ctx.cur_sit.name}.")
+        evassert(for_this_role.nonEmpty, s"\nNo event rules for role ${event.roleName} in situation ${ctx.cur_sit.name}.")
 
         val for_this_role_and_event = for_this_role.filter(erule => erule.eventDefName == event.eventName)
-        assert(for_this_role_and_event.nonEmpty,
+        evassert(for_this_role_and_event.nonEmpty,
           s"\nAmong the ${for_this_role.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role)}\nfor role ${event.roleName} in situation ${ctx.cur_sit.name}, none allow doing ${event.eventName}.\n")
 
         val enabled_for_this_role_and_event = for_this_role_and_event.filter(
           erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
-        assert(enabled_for_this_role_and_event.nonEmpty,
+        evassert(enabled_for_this_role_and_event.nonEmpty,
           s"\nAmong the ${for_this_role_and_event.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation.\n" )
 
         val final_rules = enabled_for_this_role_and_event.filter(
@@ -110,7 +111,7 @@ object evalL4 {
             paramsOk && timeConstraintOk
           })
 
-        assert(final_rules.nonEmpty,
+        evassert(final_rules.nonEmpty,
           s"\nAmong the ${enabled_for_this_role_and_event.size} enabled event rule(s):\n${EventRule.minimalEventRuleCollToString(enabled_for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none has both its event parameter constraint and time constraint satisfied.\n")
 
         warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${EventRule.minimalEventRuleCollToString(final_rules)}\n")
@@ -148,7 +149,7 @@ object evalL4 {
     var ctx = _ctx
     //    println("The graph: ", graph)
     graph.topologicalSort.fold(
-      (cycleNode:graph.NodeT) => assert(false,s"Cycle involving ${cycleNode}"),
+      (cycleNode:graph.NodeT) => evassert(false,s"State var initialization cycle involving ${cycleNode}"),
       order => {
         //        println("The topological order: ", order)
         order.foreach(node => {
@@ -170,7 +171,7 @@ object evalL4 {
   }
 
   def evalEventHandler(eh: EventHandlerDef, ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
-    for (pre <- eh.preconditions) { assert( evalTerm(pre, ctx, clink) == true, "precondition failed" )}
+    for (pre <- eh.preconditions) { evassert( evalTerm(pre, ctx, clink) == true, "Event handler precondition failed" )}
     evalBlock(eh.stateTransform, ctx, clink)
   }
 
@@ -195,11 +196,14 @@ object evalL4 {
             progress = true
           }
           case StateVarAssign(_,_,_) => ()
-          case AssertTypeError(stmt2,_) => evalBlock(List(stmt2), ctx, clink)
+          case AssertTypeError(stmt2,_) => {
+            _stmts = _stmts - stmt + stmt2
+            progress = true
+          }
         }
       }
     }
-    assert( _stmts.forall(_.isInstanceOf[StateVarAssign]) )
+    bugassert( _stmts.forall(_.isInstanceOf[StateVarAssign]), "The block evaluation should be reduced to a set of state var assignments now." )
 
     val svAssigns = _stmts.asInstanceOf[TSet[StateVarAssign]].map(sva => (sva.name, sva)).toMap
     evalStateVarAssigns( svAssigns, _ctx, clink )
@@ -216,7 +220,7 @@ object evalL4 {
           case StateVarBinderO(_) => ctx.sv_vals(nit.name)
           case EventHandlerParamBinderO(_) => ctx.eparam_vals(nit.name)
           case EventRuleParamBinderO(_) => ctx.eparam_vals(nit.name)
-          case NoBinder => assert(false, "can't happen")
+          case NoBinder => bugassert(false, "can't happen")
         }
       }
       case FnApp(fnname, args, _) => {
@@ -228,8 +232,8 @@ object evalL4 {
         val tmval = evalTerm(tm, ctx, clink)
         // doing it just for Real and Boolean, since those are the only atomic types in miniL4
         tmval match {
-          case _: Real => assert(dtype == AtomicDatatype('Real) || dtype == AtomicDatatype('TimeDelta))
-          case _: Boolean => assert(dtype == AtomicDatatype('Bool))
+          case _: Real => evassert(dtype == AtomicDatatype('Real) || dtype == AtomicDatatype('TimeDelta), "type annotation as predicate is false")
+          case _: Boolean => evassert(dtype == AtomicDatatype('Bool), "type annotation as predicate is false")
         }
         tmval
       }

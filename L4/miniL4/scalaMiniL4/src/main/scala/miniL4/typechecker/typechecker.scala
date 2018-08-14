@@ -35,9 +35,7 @@ object typechecker {
     }
 
     case RealLit(_, _) => (realDType, List())
-
     case TimeDeltaLit(_, _, _) => (timeDeltaDType, List())
-
     case BoolLit(_, _) => (boolDType, List())
   }
 

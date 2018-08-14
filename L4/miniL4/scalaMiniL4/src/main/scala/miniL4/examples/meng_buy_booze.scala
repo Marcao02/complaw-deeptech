@@ -5,11 +5,11 @@ import miniL4.ast.time.timeUtil.{after_m, within_m}
 import miniL4.ast.{SituationDef, _}
 import miniL4.interpreter.L4Event
 
-object meng_buy_booze {
+object meng_buy_booze extends TestExample {
   val seller = List('Seller)
   val buyer = List('Buyer)
 
-  val meng_buy_booze_contract : Contract = Contract(List(
+  val contract : Contract = Contract(List(
     StateVarDef('buyerMoney, AtomicDatatype('Real), Some(RealLit(20))),
     StateVarDef('cashRegister, AtomicDatatype('Real), Some(RealLit(200))),
 
@@ -79,6 +79,8 @@ object meng_buy_booze {
       L4Event('RefundBuyer, 'Seller),
     )
   )
+
+  val exceptionTraces = List()
 
 }
 

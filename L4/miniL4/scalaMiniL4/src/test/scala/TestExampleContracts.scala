@@ -1,23 +1,22 @@
 import miniL4.analysis.checks
 import miniL4.ast.ContractLinking
-import miniL4.examples.bank.{bank_contract, traces => bank_traces}
-import miniL4.examples.meng_buy_booze.{meng_buy_booze_contract => booze_contract, traces => booze_traces}
-import miniL4.examples.typechecking_test._
-import miniL4.interpreter.{Trace, evalL4}
+import miniL4.examples.{TestExample, bank, meng_buy_booze, typechecking_test}
+import miniL4.interpreter.{L4TraceException, Trace, evalL4}
 import miniL4.typechecker.typechecker
 import org.scalatest.FunSuite
 
 object TestExampleContracts {
-  val toTest = List(
-    ("bank", bank_contract, bank_traces),
-    ("booze", booze_contract, booze_traces),
-    ("typechecking_only", typechecking_only, List())
+  val toTest : Seq[(String,TestExample)] = List(
+    ("bank", bank),
+    ("booze", meng_buy_booze),
+    ("typechecking_only", typechecking_test)
 
   )
 }
 class TestExampleContracts extends FunSuite {
 
-  for ((name, contract,traces) <- TestExampleContracts.toTest) {
+  for ((name, example) <- TestExampleContracts.toTest) {
+    val (contract,traces,exceptionTraces) = (example.contract, example.traces, example.exceptionTraces)
 
     val linking = ContractLinking.link(contract)
 
@@ -31,8 +30,20 @@ class TestExampleContracts extends FunSuite {
     }
 
     for (trace <- traces) {
-      test(s"'$name': " + Trace.minimalTraceString(trace)) {
+      test(s"run trace of '$name': " + Trace.minimalTraceString(trace)) {
         evalL4.evalTrace(trace, linking)
+      }
+    }
+
+    for (trace <- exceptionTraces) {
+      test(s"run errorful trace of '$name': " + Trace.minimalTraceString(trace)) {
+        try {
+          evalL4.evalTrace(trace, linking)
+          fail("Should have triggered an L4TraceException")
+        } catch {
+          case e:L4TraceException=> () // all good
+          case _:Throwable => fail("Should have triggered an L4TraceException")
+        }
       }
     }
   }
