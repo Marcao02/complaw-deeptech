@@ -19,13 +19,13 @@ object astutil {
     FnApp(fnsymb, args_wrapped.toList)
   }
 
-  def leq(args:Any*) = fnapp_helper('<=)(args)
-  def geq(args:Any*) = fnapp_helper('>=)(args)
-  def plus(args:Any*) = fnapp_helper('+)(args)
-  def minus(args:Any*) = fnapp_helper('-)(args)
-  def and(args:Any*) = fnapp_helper('and)(args)
-  def or(args:Any*) = fnapp_helper('or)(args)
-  def not(args:Any*) = fnapp_helper('not)(args)
+  def leq(args:Any*) = fnapp_helper('<=)(args : _*)
+  def geq(args:Any*) = fnapp_helper('>=)(args : _*)
+  def plus(args:Any*) = fnapp_helper('+)(args : _*)
+  def minus(args:Any*) = fnapp_helper('-)(args : _*)
+  def and(args:Any*) = fnapp_helper('and)(args : _*)
+  def or(args:Any*) = fnapp_helper('or)(args : _*)
+  def not(args:Any*) = fnapp_helper('not)(args : _*)
 
   def forEachNodeInContract(cprog:Contract, f: ASTNode => Unit) : Unit = {
     f(cprog)
