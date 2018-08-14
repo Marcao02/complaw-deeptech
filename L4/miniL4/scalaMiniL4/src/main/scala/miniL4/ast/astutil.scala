@@ -8,31 +8,24 @@ object astutil {
   def lit(x:Int) : RealLit = RealLit(x)
   def lit(x:Boolean) : BoolLit = BoolLit(x)
 
-
-  def fnapp_helper_maker(fnsymb:Name) : List[Any] => Term = args => {
-    val args_wrapped = args.map( arg => arg match {
-        case _arg: Name => NiT(_arg)
-        case _arg: Term => _arg
-        case _arg: Real => RealLit(_arg)
-        case _arg: Int => RealLit(_arg)
-        case _arg: Boolean => BoolLit(_arg)
-      }
-    )
-    FnApp(fnsymb, args_wrapped)
+  def fnapp_helper(fnsymb:Name)(args:Any*) = {
+    val args_wrapped = args.map {
+      case _arg: Name => NiT(_arg)
+      case _arg: Term => _arg
+      case _arg: Real => RealLit(_arg)
+      case _arg: Int => RealLit(_arg)
+      case _arg: Boolean => BoolLit(_arg)
+    }
+    FnApp(fnsymb, args_wrapped.toList)
   }
-  def fnapp_helper_maker1(fnsymb:Name) : Any => Term = x => fnapp_helper_maker(fnsymb)(List(x))
-  def fnapp_helper_maker2(fnsymb:Name) : (Any,Any) => Term = (x,y) => fnapp_helper_maker(fnsymb)(List(x,y))
 
-  val leq = fnapp_helper_maker2('<=)(_,_)
-  val geq = fnapp_helper_maker2('>=)(_,_)
-  val plus = fnapp_helper_maker2('+)(_,_)
-  val minus = fnapp_helper_maker2('-)(_,_)
-  val and = fnapp_helper_maker2('and)(_,_)
-  val or = fnapp_helper_maker2('or)(_,_)
-  val not = fnapp_helper_maker1('not)(_)
-//  '+ -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] + x(1).asInstanceOf[Real]),
-//  '- -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] - x(1).asInstanceOf[Real]),
-//  'not -> ((x:Seq[Data]) => !x(0).asInstanceOf[Boolean])
+  def leq(args:Any*) = fnapp_helper('<=)(args)
+  def geq(args:Any*) = fnapp_helper('>=)(args)
+  def plus(args:Any*) = fnapp_helper('+)(args)
+  def minus(args:Any*) = fnapp_helper('-)(args)
+  def and(args:Any*) = fnapp_helper('and)(args)
+  def or(args:Any*) = fnapp_helper('or)(args)
+  def not(args:Any*) = fnapp_helper('not)(args)
 
   def forEachNodeInContract(cprog:Contract, f: ASTNode => Unit) : Unit = {
     f(cprog)
