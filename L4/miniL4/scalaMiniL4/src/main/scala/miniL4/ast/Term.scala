@@ -44,8 +44,8 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
             case _ => ()
           }
 
-          if( linking.hasPar(cur) )
-            cur = linking.par(cur)
+          if( linking.hasParentNode(cur) )
+            cur = linking.parentNode(cur)
           else
             return NoBinder
         }
@@ -54,7 +54,7 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
     }
   }
 
-  case class FnApp(name: Name, args: Seq[Term], loc: Loc = NoLoc) extends Term(loc) {
+  case class FnApp(name: Name, args: List[Term], loc: Loc = NoLoc) extends Term(loc) {
     // def datatype(self, info:'L4ContractTyping') -> 'Datatype':
   }
 

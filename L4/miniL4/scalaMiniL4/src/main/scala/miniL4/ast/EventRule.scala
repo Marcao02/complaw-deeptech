@@ -1,6 +1,6 @@
 package miniL4.ast
 
-import miniL4.{Name, mapToStringJoin}
+import miniL4.{Name, TMap, mapToStringJoin}
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint, TimeTrigger}
 
 abstract sealed class EventRule(
@@ -11,10 +11,15 @@ abstract sealed class EventRule(
   val loc:Loc = NoLoc) extends ASTNode(loc) {
   def minimalEventRuleToString() : String
   def eventHandler(linking:ContractLinking) : EventHandlerDef = linking.eventHandlerDefs(this.eventDefName)
+  def paramTypePairs(linking:ContractLinking) : Seq[(Name,Datatype)] = this.eventHandler(linking).paramsAndDatatypes
   def getEventHandlerParamTypePair(paramname:Name, linking:ContractLinking) : (Name, Datatype) = {
     val ind = this.ruleparamNames.indexOf(paramname)
     this.eventHandler(linking).paramsAndDatatypes(ind)
   }
+  def paramToType(linking:ContractLinking) : TMap[Name,Datatype] = {
+    this.eventHandler(linking).paramsAndDatatypes.toMap
+  }
+
 }
 object EventRule {
   def minimalEventRuleCollToString(ers:Iterable[EventRule]) : String = {
@@ -33,8 +38,8 @@ case class InternalEventRule(
   def minimalEventRuleToString() : String = {
     this.eventDefName + "..."
   }
-
-  def paramSetterMap(): Map[Name,Term] = this.ruleparamNames.view.zip(this.paramSetter).toMap
+  lazy val paramSetterPairs : Seq[(Name,Term)] = this.ruleparamNames.view.zip(this.paramSetter)
+  lazy val paramSetterMap : Map[Name,Term] = this.paramSetterPairs.toMap
 }
 
 case class ExternalEventRule(

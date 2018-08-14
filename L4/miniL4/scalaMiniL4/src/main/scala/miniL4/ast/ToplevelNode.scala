@@ -1,7 +1,8 @@
 package miniL4.ast
 
 import interpreter.Data
-import miniL4.{Block, Name, TMap}
+import miniL4.{Name, TMap}
+import Statement.Block
 
 abstract sealed class ToplevelNode(loc:Loc) extends ASTNode(loc) {}
 

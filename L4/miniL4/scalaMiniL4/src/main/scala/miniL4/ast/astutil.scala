@@ -1,52 +1,35 @@
 package miniL4.ast
 
-import miniL4.{Block, Name, Real}
+import miniL4.{Name, Real}
+import Statement.Block
 
 object astutil {
-  def real_fnapp_helper_maker(fnsymb:Name) : (Any,Any) => Term = {
-    (x,y) => {
-      x match {
-        case _x: Name => y match {
-          case _y: Name => FnApp(fnsymb, List(NiT(_x), NiT(_y)))
-          case _y: Real => FnApp(fnsymb, List(NiT(_x), RealLit(_y)))
-          case _y: Int => FnApp(fnsymb, List(NiT(_x), RealLit(_y)))
-          case _ => throw new Exception
-        }
-        case _x: Real => y match {
-          case _y: Name => FnApp(fnsymb, List(RealLit(_x), NiT(_y)))
-          case _y: Real => FnApp(fnsymb, List(RealLit(_x), RealLit(_y)))
-          case _y: Int => FnApp(fnsymb, List(RealLit(_x), RealLit(_y)))
-          case _ => throw new Exception
-        }
-        case _ => throw new Exception
-      }
-    }
-  }
-  def bool_fnapp_helper_maker(fnsymb:Name) : (Any,Any) => Term = {
-    (x,y) => {
-      x match {
-        case _x: Name => y match {
-          case _y: Name => FnApp(fnsymb, List(NiT(_x), NiT(_y)))
-          case _y: Term => FnApp(fnsymb, List(NiT(_x), _y))
-          case _ => throw new Exception
-        }
-        case _x: Term => y match {
-          case _y: Name => FnApp(fnsymb, List(_x, NiT(_y)))
-          case _y: Term => FnApp(fnsymb, List(_x, _y))
-          case _ => throw new Exception
-        }
-        case _ => throw new Exception
-      }
-    }
-  }
+  def lit(x:Real) : RealLit = RealLit(x)
+  def lit(x:Int) : RealLit = RealLit(x)
+  def lit(x:Boolean) : BoolLit = BoolLit(x)
 
 
-  val leq = real_fnapp_helper_maker('<=)(_,_)
-  val geq = real_fnapp_helper_maker('>=)(_,_)
-  val plus = real_fnapp_helper_maker('+)(_,_)
-  val minus = real_fnapp_helper_maker('-)(_,_)
-  val and = bool_fnapp_helper_maker('and)(_,_)
-  val or = bool_fnapp_helper_maker('or)(_,_)
+  def fnapp_helper_maker(fnsymb:Name) : List[Any] => Term = args => {
+    val args_wrapped = args.map( arg => arg match {
+        case _arg: Name => NiT(_arg)
+        case _arg: Term => _arg
+        case _arg: Real => RealLit(_arg)
+        case _arg: Int => RealLit(_arg)
+        case _arg: Boolean => BoolLit(_arg)
+      }
+    )
+    FnApp(fnsymb, args_wrapped)
+  }
+  def fnapp_helper_maker1(fnsymb:Name) : Any => Term = x => fnapp_helper_maker(fnsymb)(List(x))
+  def fnapp_helper_maker2(fnsymb:Name) : (Any,Any) => Term = (x,y) => fnapp_helper_maker(fnsymb)(List(x,y))
+
+  val leq = fnapp_helper_maker2('<=)(_,_)
+  val geq = fnapp_helper_maker2('>=)(_,_)
+  val plus = fnapp_helper_maker2('+)(_,_)
+  val minus = fnapp_helper_maker2('-)(_,_)
+  val and = fnapp_helper_maker2('and)(_,_)
+  val or = fnapp_helper_maker2('or)(_,_)
+  val not = fnapp_helper_maker1('not)(_)
 //  '+ -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] + x(1).asInstanceOf[Real]),
 //  '- -> ((x:Seq[Data]) => x(0).asInstanceOf[Real] - x(1).asInstanceOf[Real]),
 //  'not -> ((x:Seq[Data]) => !x(0).asInstanceOf[Boolean])
@@ -110,6 +93,7 @@ object astutil {
           forEachNodeInTerm(term, f)
         }})
       }
+      case AssertTypeError(stmt2, _) => forEachNodeInStatement(stmt2, f)
     }
   }
 

@@ -1,8 +1,12 @@
 package miniL4.ast
 
 
-import miniL4.{Block, Name}
+import miniL4.Name
 
+object Statement {
+  type Block = List[Statement]
+}
+import Statement.Block
 
 abstract sealed class Statement(loc: Loc) extends ASTNode(loc) {}
 
@@ -19,3 +23,6 @@ abstract sealed class Statement(loc: Loc) extends ASTNode(loc) {}
   }
 
   case class IfElse(test: Term, trueBranch: Block, falseBranch: Block, loc: Loc = NoLoc) extends Statement(loc)
+
+  // mostly for testing purposes
+  case class AssertTypeError(stmt:Statement, loc:Loc = NoLoc) extends Statement(loc)

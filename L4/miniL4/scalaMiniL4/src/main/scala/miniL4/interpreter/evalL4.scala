@@ -5,7 +5,8 @@ import miniL4.ast.time._
 import miniL4.interpreter.Trace.Trace
 import miniL4._
 import scalax.collection.GraphPredef.DiEdgeLikeIn
-import ast.{NoBinder, astutil, _}
+import ast.{NoBinder, Statement, astutil, _}
+import Statement.Block
 //import interpreter.Data
 import scalax.collection.GraphEdge.DiEdge
 import scalax.collection.mutable.{Graph => MutDiGraph}
@@ -24,7 +25,7 @@ object evalL4 {
     })
 
     svAssigns.foreach({ case (parent_name, sva) => {
-      def f(node:ASTNode): Unit = node match {
+      def add_edges_to_parent_name(node:ASTNode): Unit = node match {
         case sv_nit:NiT => {
           sv_nit.defn(clink) match {
             case StateVarBinderO(svd) => {
@@ -35,7 +36,7 @@ object evalL4 {
         }
         case _ => ()
       }
-      astutil.forEachNodeInTerm(sva.rhs, f)
+      astutil.forEachNodeInTerm(sva.rhs, add_edges_to_parent_name)
     }})
 
     graph
@@ -73,7 +74,7 @@ object evalL4 {
 
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
-            val paramsOk = erule.paramSetter.isEmpty || erule.paramSetterMap().forall({case (name,term) =>
+            val paramsOk = erule.paramSetter.isEmpty || erule.paramSetterMap.forall({case (name,term) =>
               event.paramVals(name) == term})
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(event.paramVals)
             val timeOk = evalTimeTrigger(erule.timeTrigger, prev_ts, ctx_for_rule_eval, clink) == next_ts
@@ -194,6 +195,7 @@ object evalL4 {
             progress = true
           }
           case StateVarAssign(_,_,_) => ()
+          case AssertTypeError(stmt2,_) => evalBlock(List(stmt2), ctx, clink)
         }
       }
     }
