@@ -2,9 +2,11 @@ package miniL4.examples
 
 import miniL4.ast.astutil._
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint}
-import miniL4.ast.{SituationDef, _}
+import miniL4.ast._
 import miniL4.interpreter.L4Event
 import miniL4.typechecker.stdlibTyping.stdDataTypes.{realDType,posRealDType}
+
+import miniL4.abbrevs._
 
 object bank extends TestExample  {
   private val teller = List('Teller)
@@ -15,26 +17,26 @@ object bank extends TestExample  {
   private val MIN_WITHDRAW = 300.0
 
   val contract : Contract = Contract(List(
-    StateVarDef('customerCashOnHand, realDType, Some(RealLit(start_CashOnHand))),
-    StateVarDef('customerAccountBalance, realDType, Some(RealLit(start_AccountBalance))),
-    StateVarDef('totalAccountChange, realDType, Some(RealLit(0))),
+    svd('customerCashOnHand, realDType, Some(RealLit(start_CashOnHand))),
+    svd('customerAccountBalance, realDType, Some(RealLit(start_AccountBalance))),
+    svd('totalAccountChange, realDType, Some(RealLit(0))),
 
-    SituationDef('AtCounter, List(
-      ExternalEventRule('Withdraw, customer, NoTimeConstraint(NoLoc), None, List(hp2rp('amount)),
+    sd('AtCounter, List(
+      eer('Withdraw, customer, NoTimeConstraint(), None, List(hp2rp('amount)),
         Some(and(leq(hp2rp('amount), 'customerAccountBalance), geq(hp2rp('amount), MIN_WITHDRAW))
       )),
-      ExternalEventRule('Deposit, customer, NoTimeConstraint(NoLoc), None, List(hp2rp('amount)),
+      eer('Deposit, customer, NoTimeConstraint(), None, List(hp2rp('amount)),
         Some(leq(hp2rp('amount), 'customerCashOnHand))),
     )),
 
-    EventHandlerDef('Withdraw, 'AtCounter, List(
-      StateVarAssign('customerAccountBalance, minus('customerAccountBalance,'amount)),
-      StateVarAssign('customerCashOnHand, plus('customerCashOnHand,'amount)),
+    ehd('Withdraw, 'AtCounter, List(
+      sva('customerAccountBalance, minus('customerAccountBalance,'amount)),
+      sva('customerCashOnHand, plus('customerCashOnHand,'amount)),
     ), List(('amount, posRealDType)), List(geq('customerAccountBalance,'amount))),
 
-    EventHandlerDef('Deposit, 'AtCounter, List(
-      StateVarAssign('customerCashOnHand, minus('customerCashOnHand,'amount)),
-      StateVarAssign('customerAccountBalance, plus('customerAccountBalance,'amount)),
+    ehd('Deposit, 'AtCounter, List(
+      sva('customerCashOnHand, minus('customerCashOnHand,'amount)),
+      sva('customerAccountBalance, plus('customerAccountBalance,'amount)),
     ), List(('amount, posRealDType)), List(geq('customerCashOnHand,'amount)))
 
   ))

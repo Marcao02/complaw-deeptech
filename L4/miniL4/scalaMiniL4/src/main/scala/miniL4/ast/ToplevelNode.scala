@@ -22,6 +22,7 @@ case class EventHandlerDef(
                             loc: Loc = NoLoc) extends ToplevelNode(loc) {
   val params = paramsAndDatatypes.map(_._1)
 
+  // TODO use this on Trace
   def paramValSubstOk(subst:TMap[Name,Data]) : Boolean = {
     this.params.forall((pname) => {
       subst.contains(pname)
