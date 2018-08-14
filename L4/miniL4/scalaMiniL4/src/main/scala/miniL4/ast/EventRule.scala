@@ -2,6 +2,7 @@ package miniL4.ast
 
 import miniL4.{Name, TMap, mapToStringJoin}
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint, TimeTrigger}
+import miniL4.ast.astutil.{hp2rp,rp2hp}
 
 abstract sealed class EventRule(
   val eventDefName: Name,
@@ -11,14 +12,14 @@ abstract sealed class EventRule(
   val loc:Loc = NoLoc) extends ASTNode(loc) {
   def minimalEventRuleToString() : String
   def eventHandler(linking:ContractLinking) : EventHandlerDef = linking.eventHandlerDefs(this.eventDefName)
-  def paramTypePairs(linking:ContractLinking) : Seq[(Name,Datatype)] = this.eventHandler(linking).paramsAndDatatypes
+
+  def paramTypePairsForHandler(linking:ContractLinking) : Seq[(Name,Datatype)] = this.eventHandler(linking).paramsAndDatatypes
+  def paramTypePairsForRule(linking:ContractLinking) : Seq[(Name,Datatype)] = this.eventHandler(linking).paramsAndDatatypes.map({case (name,tp) => (hp2rp(name),tp)})
   def getEventHandlerParamTypePair(paramname:Name, linking:ContractLinking) : (Name, Datatype) = {
     val ind = this.ruleparamNames.indexOf(paramname)
     this.eventHandler(linking).paramsAndDatatypes(ind)
   }
-  def paramToType(linking:ContractLinking) : TMap[Name,Datatype] = {
-    this.eventHandler(linking).paramsAndDatatypes.toMap
-  }
+  def paramToType(linking:ContractLinking) : TMap[Name,Datatype] = this.eventHandler(linking).paramsAndDatatypes.toMap
 
 }
 object EventRule {

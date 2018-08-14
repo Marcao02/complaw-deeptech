@@ -8,6 +8,17 @@ object astutil {
   def lit(x:Int) : RealLit = RealLit(x)
   def lit(x:Boolean) : BoolLit = BoolLit(x)
 
+  def hp2rp(x:Symbol) : Symbol = {
+    assert(!x.name.startsWith("?"), "An event rule param name is obtained by prefixing a '?' onto the corresponding event handler param name. We don't allow event handler param names to start with a '?' to keep the classes visibly distinct.")
+    Symbol("?" + x.name)
+  }
+  def rp2hp(x:Symbol) : Symbol = {
+    assert(x.name.startsWith("?"), "An event rule param name shold start with a '?'. The corresponding event handler param is obtained by deleting the '?'.")
+    Symbol(x.name.substring(1))
+  }
+  def isEventRuleParam(x:Symbol) : Boolean = x.name.nonEmpty && x.name.startsWith("?")
+  def isEventHandlerParam(x:Symbol) : Boolean = x.name.nonEmpty && !x.name.startsWith("?")
+
   def fnapp_helper(fnsymb:Name)(args:Any*) = {
     val args_wrapped = args.map {
       case _arg: Name => NiT(_arg)

@@ -4,7 +4,7 @@ import miniL4._
 import miniL4.ast._
 import miniL4.typechecker.stdlibTyping.{stdDataTypes, stdSubtypePairs}
 import miniL4.typechecker.stdlibTyping.stdDataTypes.{bottomDType, boolDType, realDType, timeDeltaDType}
-
+import astutil.{rp2hp,hp2rp,isEventHandlerParam, isEventRuleParam}
 import Statement.Block
 
 class TypeError(msg: String) extends Exception(msg) {}
@@ -80,10 +80,15 @@ object typechecker {
       case StateVarBinderO(src) => src.dtype
       case EventHandlerParamBinderO(eventHandlerDef) => {
 //        println(s"${nit.name} is an event parameter of ${eventHandlerDef.eventName}.")
+        tcassert(isEventHandlerParam(nit.name), s"${nit.name} is not a valid event handler param name. Should be nonempty and not start with '?'.")
         tcassert(ctx.contains(nit.name), s"${nit.name} should be in the typing context ${ctx}")
         ctx(nit.name)
       } // TODO feedback on error
-      case EventRuleParamBinderO(_) => ctx(nit.name) // TODO feedback on error
+      case EventRuleParamBinderO(_) => {
+        tcassert(isEventRuleParam(nit.name), s"${nit.name} is not a valid event rule param name. Should be nonempty and start with '?'.")
+        tcassert(ctx.contains(nit.name), s"${nit.name} should be in the typing context ${ctx}")
+        ctx(nit.name)
+      } // TODO feedback on error
       case NoBinder => throw new Exception("unbound name...")
     }
   }
@@ -104,7 +109,7 @@ object typechecker {
     }
     val from_param_constraints = er match {
       case eer@ExternalEventRule(_, _, timeConstraint, _, _, paramConstraint, _) => {
-        val a2 = A(a.links, a.graph, a.ctx ++ er.paramTypePairs(a.links))
+        val a2 = A(a.links, a.graph, a.ctx ++ er.paramTypePairsForRule(a.links))
         paramConstraint match {
           case Some(pc) => typecheckTerm(pc, boolDType, a2)
           case None => List()
@@ -198,7 +203,7 @@ object typechecker {
 //      defn match {
 //        case LetInBinderO(src) => ctx(nit.name)
 //        case StateVarBinderO(src) => src.dtype
-//        // TODO: next two cases are wrong, since they allow referencing *any* event's params
+//        // next two cases are wrong, since they allow referencing *any* event's params
 //        case EventHandlerParamBinderO(src) => {
 //          //          println("paramsAndDatatypes: ", src.paramsAndDatatypes)
 //          seqmapGet(src.paramsAndDatatypes, nit.name)

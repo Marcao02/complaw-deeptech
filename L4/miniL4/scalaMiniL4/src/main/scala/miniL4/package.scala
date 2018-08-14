@@ -38,7 +38,7 @@ package object miniL4 {
 
   def proj2fromMap[K,V1,V2](m:TMap[K,(V1,V2)]) : TMap[K,V2] = m.mapValues(_._2)
 
-  // OPT todo
+  // OPT
   def projections[K,V1,V2](m:TMap[K,(V1,V2)]) : (TMap[K,V1],TMap[K,V2]) = (m.mapValues(_._1), m.mapValues(_._2))
 
 }

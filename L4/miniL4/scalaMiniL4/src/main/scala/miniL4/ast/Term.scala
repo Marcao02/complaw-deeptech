@@ -60,7 +60,7 @@ abstract sealed class Term(loc: Loc) extends ASTNode(loc) {}
 
   case class TypeAnnotation(term: Term, dtype: Datatype, loc: Loc = NoLoc) extends Term(loc) {}
 
-  // TODO: <term> as <datatype> or ... or <datatype> in <block>
+  // TODO: <term> as (<datatype> or ... or <datatype>) in <block>
   // TODO: type cases <term> (<datatype>, <block>) ... (<datatype>, <block>)
 
   abstract sealed class Literal(loc: Loc = NoLoc) extends Term(loc) {}

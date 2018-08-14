@@ -11,6 +11,8 @@ import Statement.Block
 import scalax.collection.GraphEdge.DiEdge
 import scalax.collection.mutable.{Graph => MutDiGraph}
 
+import astutil.{rp2hp,hp2rp,isEventHandlerParam, isEventRuleParam}
+
 object evalL4 {
   type Data = Any
   type NameDiGraph = scalax.collection.mutable.Graph[Name,DiEdgeLikeIn]
@@ -43,6 +45,7 @@ object evalL4 {
     graph
   }
 
+
   def evalTrace(trace:Trace, clink:ContractLinking) : Unit = {
     // view the state var defs with initial vals as StateVarAssign's
     val svas = clink.stateVarDefs.filter({ case (name,svd) => {  svd.initVal.nonEmpty } })
@@ -53,7 +56,7 @@ object evalL4 {
     ctx = evalStateVarAssigns(svas, ctx, clink)
     //    println(s"Initial state var vals: ", ctx.sv_vals)
 
-    var prev_ts = 0
+    var prev_ts : Real = 0.0
 
     trace.foreach( event => {
       val next_ts = event.timeStamp
@@ -76,7 +79,7 @@ object evalL4 {
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
             val paramsOk = erule.paramSetter.isEmpty || erule.paramSetterMap.forall({case (name,term) =>
-              event.paramVals(name) == term})
+              event.paramVals(rp2hp(name)) == term})
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(event.paramVals)
             val timeOk = evalTimeTrigger(erule.timeTrigger, prev_ts, ctx_for_rule_eval, clink) == next_ts
             paramsOk && timeOk
@@ -104,7 +107,7 @@ object evalL4 {
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(
-              event.paramVals
+              event.paramVals.map({case (name,data) => (hp2rp(name),data)})
             )
             val paramsOk = erule.paramConstraint.isEmpty || evalTerm(erule.paramConstraint.get, ctx_for_rule_eval, clink) == true
             val timeConstraintOk = evalTimeConstraint(erule.timeConstraint, (prev_ts,next_ts), ctx_for_rule_eval, clink)
@@ -116,6 +119,7 @@ object evalL4 {
 
         warn(final_rules.size > 1, s"Multiple rules apply. Execution is unambiguous, but perhaps you didn't intend this? These are the rules:\n${EventRule.minimalEventRuleCollToString(final_rules)}\n")
 
+        prev_ts = next_ts
         // no exception
       }
 
@@ -175,6 +179,9 @@ object evalL4 {
     evalBlock(eh.stateTransform, ctx, clink)
   }
 
+  // no evalStatement because of the reduction approach to evaluating a block
+  //  def evalStatement
+
   def evalBlock(stmts: Block, ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
     var _ctx = ctx
     var progress = true
@@ -218,8 +225,14 @@ object evalL4 {
         nit.defn(clink) match {
           case LetInBinderO(_) => ctx.locv_vals(nit.name)
           case StateVarBinderO(_) => ctx.sv_vals(nit.name)
-          case EventHandlerParamBinderO(_) => ctx.eparam_vals(nit.name)
-          case EventRuleParamBinderO(_) => ctx.eparam_vals(nit.name)
+          case EventHandlerParamBinderO(_) => {
+            assert(isEventHandlerParam(nit.name))
+            ctx.eparam_vals(nit.name)
+          }
+          case EventRuleParamBinderO(_) => {
+            assert(isEventRuleParam(nit.name))
+            ctx.eparam_vals(nit.name)
+          }
           case NoBinder => bugassert(false, "can't happen")
         }
       }
