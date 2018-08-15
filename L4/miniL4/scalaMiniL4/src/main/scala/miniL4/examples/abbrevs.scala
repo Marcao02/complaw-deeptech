@@ -3,7 +3,7 @@ package miniL4
 import miniL4.ast.Statement.Block
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint, TimeTrigger}
 import miniL4.ast.{ToplevelNode, _}
-import miniL4.interpreter.{RTBool, RTData, RTReal}
+import miniL4.interpreter.RTData.{RTBool, RTData, RTReal}
 
 object abbrevs {
   def d(x:AnyVal) : RTData = x match {

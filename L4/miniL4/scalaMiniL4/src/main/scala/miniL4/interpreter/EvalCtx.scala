@@ -1,7 +1,8 @@
 package miniL4.interpreter
 
-import miniL4._
-import miniL4.ast.{SituationDef}
+import miniL4.{Name, TMap, TSet}
+import miniL4.interpreter.RTData.RTData
+import miniL4.ast.SituationDef
 
 case class EvalCtx(sv_vals: TMap[Name,RTData],
                    sv_uninit: TSet[Name],

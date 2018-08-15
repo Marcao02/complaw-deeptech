@@ -1,15 +1,17 @@
 package miniL4.interpreter
 
-import interpreter.fnInterps
+
 import miniL4.ast.time._
 import miniL4.interpreter.Trace.Trace
 import miniL4.{EvalError, interpreter, _}
+
+import miniL4.interpreter.RTData.{RTBool, RTData, RTReal, fnInterps, rtfalse, rttrue}
 import scalax.collection.GraphPredef.DiEdgeLikeIn
 import ast.{NoBinder, Statement, astutil, _}
 import Statement.Block
 import astutil.{hp2rp, isEventHandlerParam, isEventRuleParam, rp2hp}
 import miniL4.typechecker.stdlibTyping.stdDataTypes.{boolDType, realDType, timeDeltaDType}
-import RTData._
+
 
 // TODO: don't need this library dependency just for computing topological ordering.
 // Add a tiny class to indy package

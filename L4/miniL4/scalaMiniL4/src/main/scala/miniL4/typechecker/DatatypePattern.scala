@@ -2,7 +2,7 @@ package miniL4.typechecker
 
 import miniL4.{Name, TMap}
 import miniL4.ast.{Datatype, Term}
-import miniL4.interpreter.RTData
+import miniL4.interpreter.RTData.RTData
 
 /*
 This seems like a heavy approach, effectively equivalent to having one type for closed datatypes and another for datatypes

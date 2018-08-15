@@ -8,6 +8,7 @@ package object miniL4 {
   type TMap[K,V] = scala.collection.Map[K,V]
   type TSet[V] = scala.collection.Set[V]
 
+
   def warn(test:Boolean, msg:String) : Unit = if(test) println("WARNING: " + msg) else ()
   def bugassert(test:Boolean, msg:String) : Unit = if(!test) throw new BugInCodebase(msg) else ()
 
