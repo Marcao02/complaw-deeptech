@@ -1,6 +1,6 @@
 package miniL4.ast
 
-import interpreter.Data
+import miniL4.interpreter.RTData
 import miniL4.{Name, mapToStringJoin}
 import miniL4.typechecker.stdlibTyping.stdDataTypes.sBottom
 
@@ -35,10 +35,10 @@ abstract sealed class Datatype(loc:Loc) extends ASTNode(loc) {
       case _ => false
     }
   }
-  case class DependentDatatypeOpApp(name:Name, args:Seq[Datatype], dataargs:Seq[Data], loc:Loc = NoLoc) extends Datatype(loc) {
+  case class DependentDatatypeOpApp(name:Name, args:Seq[Datatype], dataargs:Seq[RTData], loc:Loc = NoLoc) extends Datatype(loc) {
     override def toString: String = name.toString() + "(" +
       mapToStringJoin[Datatype](args, ",", x => x.toString) + "; " +
-      mapToStringJoin[Data](dataargs, ",", x => x.toString) +
+      mapToStringJoin[RTData](dataargs, ",", x => x.toString) +
     ")"
     override def equals(obj: scala.Any): Boolean = obj match {
       case DatatypeOpApp(name2,args2,_) => name == name2 && args == args2

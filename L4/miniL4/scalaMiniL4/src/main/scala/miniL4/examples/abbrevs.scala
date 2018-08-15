@@ -3,8 +3,16 @@ package miniL4
 import miniL4.ast.Statement.Block
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint, TimeTrigger}
 import miniL4.ast.{ToplevelNode, _}
+import miniL4.interpreter.{RTBool, RTData, RTReal}
 
 object abbrevs {
+  def d(x:AnyVal) : RTData = x match {
+    case _x:Real => RTReal(_x)
+    case _x:Int => RTReal(_x.toDouble)
+    case _x:Boolean => RTBool(_x)
+    case _ => throw new L4ProjectError(s"$x is not a valid runtime data value.")
+  }
+
   def ehd(eventName: Name, destSit: Name, stateTransform: Block = List(),
           paramsAndDatatypes: Seq[(Name,Datatype)] = List(), preconditions: Seq[Term] = List(), loc: Loc = NoLoc) =
     EventHandlerDef(eventName, destSit, stateTransform, paramsAndDatatypes, preconditions, loc)

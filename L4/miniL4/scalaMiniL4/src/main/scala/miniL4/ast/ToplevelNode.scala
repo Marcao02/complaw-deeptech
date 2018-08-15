@@ -1,8 +1,8 @@
 package miniL4.ast
 
-import interpreter.Data
 import miniL4.{Name, TMap}
 import Statement.Block
+import miniL4.interpreter.RTData
 
 abstract sealed class ToplevelNode(loc:Loc) extends ASTNode(loc) {}
 
@@ -24,7 +24,7 @@ case class EventHandlerDef(
   val params = paramsAndDatatypes.map(_._1)
 
   // TODO use this on Trace
-  def paramValSubstOk(subst:TMap[Name,Data]) : Boolean = {
+  def paramValSubstOk(subst:TMap[Name,RTData]) : Boolean = {
     this.params.forall((pname) => {
       subst.contains(pname)
     }) && subst.size == this.paramsAndDatatypes.size

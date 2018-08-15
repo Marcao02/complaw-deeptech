@@ -43,20 +43,20 @@ object bank extends TestExample  {
 
   val traces = List(
     List(
-      L4Event('Withdraw, 'Customer, 0, Map('amount -> 400.0)),
-      L4Event('Deposit, 'Customer, 0, Map('amount -> 400.0))
+      L4Event('Withdraw, 'Customer, 0, Map('amount -> d(400))),
+      L4Event('Deposit, 'Customer, 0, Map('amount -> d(400)))
     )
   )
 
   val exceptionTraces = List(
     List(
-      L4Event('Withdraw, 'Customer, 0, Map('amount -> (MIN_WITHDRAW - 1)))
+      L4Event('Withdraw, 'Customer, 0, Map('amount -> d(MIN_WITHDRAW - 1)))
     ),
     List(
-      L4Event('Withdraw, 'Customer, 0, Map('amount -> (1 + start_AccountBalance)))
+      L4Event('Withdraw, 'Customer, 0, Map('amount -> d(1 + start_AccountBalance)))
     ),
     List(
-      L4Event('Deposit, 'Customer, 0, Map('amount -> (1 + start_CashOnHand)))
+      L4Event('Deposit, 'Customer, 0, Map('amount -> d(1 + start_CashOnHand)))
     )
   )
 

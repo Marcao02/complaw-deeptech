@@ -1,15 +1,16 @@
 package miniL4.typechecker
-import interpreter.Data
 import miniL4.{Name, TMap, TSet}
 import miniL4.ast.{Datatype, DatatypeOpApp, DependentDatatypeOpApp}
+import miniL4.interpreter.RTData
 //import miniL4.typechecker.DatatypePatSubst
 import miniL4.interpreter.evalL4.evalTermSimple
+import miniL4.interpreter.RTData._
 
 import util.control.Breaks._
 
 object matching {
 
-  def matchData(data:Data, pat:ConstantMatchVar, subst:DatatypePatSubst = DatatypePatSubst.empty) : Option[DatatypePatSubst] = {
+  def matchData(data:RTData, pat:ConstantMatchVar, subst:DatatypePatSubst = DatatypePatSubst.empty) : Option[DatatypePatSubst] = {
     if (subst.forData.contains(pat.name)) {
       if (data != subst.forData(pat.name)) None
       else Some(subst)
@@ -97,7 +98,7 @@ object matching {
         datatypeMatches(pat.right, allowed_datatypes, subst).flatMap({ case (dtright, subst2) => {
           pat match {
             case spat:DependentSubtypePairPattern =>
-              if( evalTermSimple(spat.sidecondition, subst2.forData) == true ) Some((dtleft, dtright)) else None
+              if( evalTermSimple(spat.sidecondition, subst2.forData) == rttrue ) Some((dtleft, dtright)) else None
             case hopat:HigherOrderSubtypePairPattern =>
               if( hopat.sidecondition(subst2) ) Some((dtleft, dtright)) else None
           }

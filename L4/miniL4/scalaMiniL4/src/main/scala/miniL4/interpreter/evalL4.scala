@@ -3,12 +3,13 @@ package miniL4.interpreter
 import interpreter.fnInterps
 import miniL4.ast.time._
 import miniL4.interpreter.Trace.Trace
-import miniL4._
+import miniL4.{EvalError, interpreter, _}
 import scalax.collection.GraphPredef.DiEdgeLikeIn
 import ast.{NoBinder, Statement, astutil, _}
 import Statement.Block
-import astutil.{rp2hp,hp2rp,isEventHandlerParam, isEventRuleParam}
-import miniL4.EvalError
+import astutil.{hp2rp, isEventHandlerParam, isEventRuleParam, rp2hp}
+import miniL4.typechecker.stdlibTyping.stdDataTypes.{boolDType, realDType, timeDeltaDType}
+import RTData._
 
 // TODO: don't need this library dependency just for computing topological ordering.
 // Add a tiny class to indy package
@@ -17,7 +18,6 @@ import scalax.collection.mutable.{Graph => MutDiGraph}
 
 
 object evalL4 {
-  type Data = Any
   type NameDiGraph = scalax.collection.mutable.Graph[Name,DiEdgeLikeIn]
 
   def evassert(test:Boolean, msg: => String) : Unit = if(!test) { throw new EvalError(msg) }
@@ -75,14 +75,14 @@ object evalL4 {
           s"\nNo internal event rules for ${event.eventName} in situation ${ctx.cur_sit.name}.\n")
 
         val enabled_for_this_role_and_event = for_this_role_and_event.filter(
-          erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
+          erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == rttrue )
         evassert(enabled_for_this_role_and_event.nonEmpty,
           s"\nAmong the ${for_this_role_and_event.size} internal event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nfor ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation.\n" )
 
         val final_rules = enabled_for_this_role_and_event.filter(
           erule => {
             val paramsOk = erule.paramSetter.isEmpty || erule.paramSetterMap.forall({case (name,term) =>
-              event.paramVals(rp2hp(name)) == term})
+              event.paramVals(rp2hp(name)) == evalTerm(term,ctx,clink)})
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(event.paramVals)
             val timeOk = evalTimeTrigger(erule.timeTrigger, prev_ts, ctx_for_rule_eval, clink) == next_ts
             paramsOk && timeOk
@@ -103,7 +103,7 @@ object evalL4 {
           s"\nAmong the ${for_this_role.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role)}\nfor role ${event.roleName} in situation ${ctx.cur_sit.name}, none allow doing ${event.eventName}.\n")
 
         val enabled_for_this_role_and_event = for_this_role_and_event.filter(
-          erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == true )
+          erule => erule.enabledGuard.isEmpty || evalTerm(erule.enabledGuard.get, ctx, clink) == rttrue )
         evassert(enabled_for_this_role_and_event.nonEmpty,
           s"\nAmong the ${for_this_role_and_event.size} event rule(s):\n${EventRule.minimalEventRuleCollToString(for_this_role_and_event)}\nallowing role ${event.roleName} to do ${event.eventName} in situation ${ctx.cur_sit.name}, none was enabled upon entering the present Situation.\n" )
 
@@ -112,7 +112,7 @@ object evalL4 {
             val ctx_for_rule_eval = ctx.withEventParamsUpdated(
               event.paramVals.map({case (name,data) => (hp2rp(name),data)})
             )
-            val paramsOk = erule.paramConstraint.isEmpty || evalTerm(erule.paramConstraint.get, ctx_for_rule_eval, clink) == true
+            val paramsOk = erule.paramConstraint.isEmpty || evalTerm(erule.paramConstraint.get, ctx_for_rule_eval, clink) == rttrue
             val timeConstraintOk = evalTimeConstraint(erule.timeConstraint, (prev_ts,next_ts), ctx_for_rule_eval, clink)
             paramsOk && timeConstraintOk
           })
@@ -178,7 +178,7 @@ object evalL4 {
   }
 
   def evalEventHandler(eh: EventHandlerDef, ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
-    for (pre <- eh.preconditions) { evassert( evalTerm(pre, ctx, clink) == true, "Event handler precondition failed" )}
+    for (pre <- eh.preconditions) { evassert( evalTerm(pre, ctx, clink) == rttrue, "Event handler precondition failed" )}
     evalBlock(eh.stateTransform, ctx, clink)
   }
 
@@ -221,10 +221,10 @@ object evalL4 {
 
   /* Assumes name of every NiT subterm is in subst, and thus is independent of ContractLinking.
    * Also assumes that every value of subst is a Term. */
-  def evalTermSimple(term:Term, subst:TMap[Name,Any]) : Data = term match {
-    case RealLit(x,_) => x
-    case TimeDeltaLit(x,_,_) => x // WARN: I'm ignoring units, since this is miniL4
-    case BoolLit(x,_) => x // WARN: I'm ignoring units, since this is miniL4
+  def evalTermSimple(term:Term, subst:TMap[Name,RTData]) : RTData = term match {
+    case RealLit(x,_) => RTReal(x)
+    case TimeDeltaLit(x,_,_) => RTReal(x)
+    case BoolLit(x,_) => RTBool(x)
     case nit:NiT => {
       if(subst.contains(nit.name)) subst(nit.name)
       else throw new EvalError("Violation of simple Term condition.")
@@ -233,8 +233,8 @@ object evalL4 {
       val tmval = evalTermSimple(tm, subst)
       // doing it just for Real and Boolean, since those are the only atomic types in miniL4
       tmval match {
-        case _: Real => evassert(dtype == AtomicDatatype('Real) || dtype == AtomicDatatype('TimeDelta), "type annotation as predicate is false")
-        case _: Boolean => evassert(dtype == AtomicDatatype('Bool), "type annotation as predicate is false")
+        case _: RTReal => evassert(dtype == realDType || dtype == timeDeltaDType, "type annotation as predicate is false")
+        case _: RTBool => evassert(dtype == boolDType, "type annotation as predicate is false")
       }
       tmval
     }
@@ -246,11 +246,11 @@ object evalL4 {
   }
 
 
-  def evalTerm(term:Term, ctx:EvalCtx, clink:ContractLinking) : Data = {
+  def evalTerm(term:Term, ctx:EvalCtx, clink:ContractLinking) : RTData = {
     term match {
-      case RealLit(x,_) => x
-      case TimeDeltaLit(x,_,_) => x // WARN: I'm ignoring units, since this is miniL4
-      case BoolLit(x,_) => x // WARN: I'm ignoring units, since this is miniL4
+      case RealLit(x,_) => RTReal(x)
+      case TimeDeltaLit(x,_,_) => RTReal(x)
+      case BoolLit(x,_) => RTBool(x)
       case nit:NiT => {
         nit.defn(clink) match {
           case LetInBinderO(_) => ctx.locv_vals(nit.name)
@@ -263,7 +263,7 @@ object evalL4 {
             assert(isEventRuleParam(nit.name))
             ctx.eparam_vals(nit.name)
           }
-          case NoBinder => bugassert(false, "can't happen")
+          case NoBinder => throw new BugInCodebase(s"Unbound variable ${nit.name}. This should've been ruled out statically.")
         }
       }
       case FnApp(fnname, args, _) => {
@@ -275,8 +275,9 @@ object evalL4 {
         val tmval = evalTerm(tm, ctx, clink)
         // doing it just for Real and Boolean, since those are the only atomic types in miniL4
         tmval match {
-          case _: Real => evassert(dtype == AtomicDatatype('Real) || dtype == AtomicDatatype('TimeDelta), "type annotation as predicate is false")
-          case _: Boolean => evassert(dtype == AtomicDatatype('Bool), "type annotation as predicate is false")
+          case _: RTReal => evassert(dtype == realDType || dtype == timeDeltaDType, "type annotation as predicate is false")
+          case _: RTBool => evassert(dtype == boolDType, "type annotation as predicate is false")
+//          case _: RTString => throw new TypeError("`RTString`s are the runtime interpretation of enums, which aren't yet implemented.")
         }
         tmval
       }
