@@ -4,7 +4,7 @@ import miniL4.TSet
 import miniL4.ast.{Datatype}
 
 abstract sealed class SubtypingDec {
-  val pairs : Set[(Datatype,Datatype)]
+  val pairs : TSet[(Datatype,Datatype)]
 }
 //abstract sealed class SubtypePair extends SubtypingDec {}
 
@@ -20,10 +20,10 @@ case class SimpleSubtypeChain(decs:Iterable[Datatype]) extends SubtypingDec {
 }
 
 
-abstract sealed class ParametricSubtypingDec extends SubtypingDec {}
-case class PSDForEachDatatypeIn(dtset:Set[Datatype], fntype: Datatype => SubtypingDec) extends ParametricSubtypingDec {
-  val pairs = this.dtset.flatMap(x => fntype(x).pairs)
-}
+//abstract sealed class ParametricSubtypingDec extends SubtypingDec {}
+//case class PSDForEachDatatypeIn(dtset:TSet[Datatype], fntype: Datatype => SubtypingDec) extends ParametricSubtypingDec {
+//  val pairs = this.dtset.flatMap(x => fntype(x).pairs)
+//}
 //case class PSDForEachUnitsTypeIn(dtset:TSet[Datatype], fntype: UnitsType => SubtypingDec) extends ParametricSubtypingDec {}
 
 

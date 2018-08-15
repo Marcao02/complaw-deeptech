@@ -13,7 +13,7 @@ object stdSubtypePairs {
   val l = List[Datatype] _
   val s = Symbol(_)
 
-  val atomicConstraints = Set[SubtypingDec](
+  val atomicConstraints : TSet[SubtypingDec] = Set[SubtypingDec](
     asschain(List(sPosReal,sNonnegReal,sReal)),
 
     assp(s0,s01),
@@ -29,17 +29,17 @@ object stdSubtypePairs {
     asschain(List(s("(0,1)"), s("[0,1)"), s("[0,1]")))
   )
 
-  val BASIC_NUMERIC_DATATYPES = Set(
+  val BASIC_NUMERIC_DATATYPES : TSet[Name] = Set(
     sReal, sPosReal, sNonnegReal,
     s0, s1, s01,
     s("(0,1)"), s("[0,1)"), s("(0,1]"), s("[0,1]")
   )
 
-  val basicSubtypesOfPosReal : Set[Datatype] = Set(
+  val basicSubtypesOfPosReal : TSet[Datatype] = Set(
     s("(0,1]"), s("(0,1)"), s1
   ).map(AtomicDatatype(_))
 
-  val basicSubtypesOfNonnegReal : Set[Datatype] = basicSubtypesOfPosReal ++ Set(
+  val basicSubtypesOfNonnegReal : TSet[Datatype] = basicSubtypesOfPosReal ++ Set(
     sPosReal, s("[0,1]"), s("[0,1)"), s0, s01
   ).map(AtomicDatatype(_))
 
@@ -47,26 +47,8 @@ object stdSubtypePairs {
   val dtPosReal = AtomicDatatype(sPosReal)
   val dtNonnegReal = AtomicDatatype(sNonnegReal)
 
-  val ratioBasicSubtypes = PSDForEachDatatypeIn(Set(dtReal, dtNonnegReal, dtPosReal), s =>
-              PSDForEachDatatypeIn(basicSubtypesOfPosReal, sPos =>
-                SimpleSubtypePair(DatatypeOpApp('Ratio,List(s,sPos)), s)
-              )
-            )
-  val ratioRatioSubtypes = PSDForEachDatatypeIn(basicSubtypesOfPosReal, sPos =>
-      SimpleSubtypeChain(List(
-        DatatypeOpApp('Ratio,List(dtPosReal,sPos)), DatatypeOpApp('Ratio,List(dtNonnegReal,sPos)), DatatypeOpApp('Ratio,List(dtReal,sPos))
-        /*, ... and many more*/
-      )
-    )
-  )
-
-  val STD_SUBTYPE_PAIRS : TSet[(Datatype,Datatype)] = atomicConstraints.flatMap(x => x.pairs) ++
+  val STD_SUBTYPE_PAIRS : TSet[(Datatype,Datatype)] =
+    atomicConstraints.flatMap(_.pairs) ++
     basicSubtypesOfPosReal.map((_,posRealDType)) ++
     basicSubtypesOfNonnegReal.map((_,nonnegRealDType))
-    // ++ ratioBasicSubtypes ++ ratioRatioSubtypes
-
-
-
 }
-
-
