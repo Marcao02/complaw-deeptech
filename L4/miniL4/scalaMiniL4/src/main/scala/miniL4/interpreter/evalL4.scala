@@ -8,7 +8,10 @@ import scalax.collection.GraphPredef.DiEdgeLikeIn
 import ast.{NoBinder, Statement, astutil, _}
 import Statement.Block
 import astutil.{rp2hp,hp2rp,isEventHandlerParam, isEventRuleParam}
+import miniL4.EvalError
 
+// TODO: don't need this library dependency just for computing topological ordering.
+// Add a tiny class to indy package
 import scalax.collection.GraphEdge.DiEdge
 import scalax.collection.mutable.{Graph => MutDiGraph}
 
@@ -215,6 +218,33 @@ object evalL4 {
     val svAssigns = _stmts.asInstanceOf[TSet[StateVarAssign]].map(sva => (sva.name, sva)).toMap
     evalStateVarAssigns( svAssigns, _ctx, clink )
   }
+
+  /* Assumes name of every NiT subterm is in subst, and thus is independent of ContractLinking.
+   * Also assumes that every value of subst is a Term. */
+  def evalTermSimple(term:Term, subst:TMap[Name,Any]) : Data = term match {
+    case RealLit(x,_) => x
+    case TimeDeltaLit(x,_,_) => x // WARN: I'm ignoring units, since this is miniL4
+    case BoolLit(x,_) => x // WARN: I'm ignoring units, since this is miniL4
+    case nit:NiT => {
+      if(subst.contains(nit.name)) subst(nit.name)
+      else throw new EvalError("Violation of simple Term condition.")
+    }
+    case TypeAnnotation(tm, dtype, _) => {
+      val tmval = evalTermSimple(tm, subst)
+      // doing it just for Real and Boolean, since those are the only atomic types in miniL4
+      tmval match {
+        case _: Real => evassert(dtype == AtomicDatatype('Real) || dtype == AtomicDatatype('TimeDelta), "type annotation as predicate is false")
+        case _: Boolean => evassert(dtype == AtomicDatatype('Bool), "type annotation as predicate is false")
+      }
+      tmval
+    }
+    case FnApp(fnname, args, _) => {
+      val argvals = args.map( evalTermSimple(_, subst) )
+      assert(fnInterps.contains(fnname), s"Don't know how to interpret function symbol $fnname")
+      fnInterps(fnname)(argvals)
+    }
+  }
+
 
   def evalTerm(term:Term, ctx:EvalCtx, clink:ContractLinking) : Data = {
     term match {

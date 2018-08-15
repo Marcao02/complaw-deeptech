@@ -1,44 +1,77 @@
 package miniL4.typechecker
+import interpreter.Data
 import miniL4.{Name, TMap, TSet}
-import miniL4.ast.{Datatype, DatatypeOpApp}
-import miniL4.typechecker.DatatypePattern.DatatypePatSubst
+import miniL4.ast.{Datatype, DatatypeOpApp, DependentDatatypeOpApp}
+//import miniL4.typechecker.DatatypePatSubst
+import miniL4.interpreter.evalL4.evalTermSimple
 
 import util.control.Breaks._
 
 object matching {
 
+  def matchData(data:Data, pat:ConstantMatchVar, subst:DatatypePatSubst = DatatypePatSubst.empty) : Option[DatatypePatSubst] = {
+    if (subst.forData.contains(pat.name)) {
+      if (data != subst.forData(pat.name)) None
+      else Some(subst)
+    }
+    else
+      Some(DatatypePatSubst(subst.forDatatypes, subst.forData.updated(pat.name, data)))
+  }
+
   /* This is an inefficient version, which will do for now. */
-  def matchDT(dtype:Datatype, pat:DatatypePattern, subst:DatatypePatSubst = Map.empty[Name,Any]) : Option[DatatypePatSubst] = {
+  def matchDT(dtype:Datatype, pat:DatatypePattern, subst:DatatypePatSubst = DatatypePatSubst.empty) : Option[DatatypePatSubst] = {
     pat match {
       case FixedDatatype(dtype2) => if(dtype == dtype2) Some(subst) else None
 
-      case mvar@ConstantMatchVar(mvarname, mvar_datatype) => {
-        // TODO: check mvar_datatype
-        if (subst.contains(mvarname))
-          if (dtype != subst(mvarname)) None else Some(subst)
-        else
-          Some(subst.updated(mvarname, dtype))
-      }
-
       case mvar@DatatypeMatchVar(mvarname) => {
-        if (subst.contains(mvarname))
-          if (dtype != subst(mvarname)) None else Some(subst)
+        if (subst.forDatatypes.contains(mvarname)) {
+          if (dtype != subst.forDatatypes(mvarname)) None
+          else Some(subst)
+        }
         else
-          Some(subst.updated(mvarname, dtype))
+          Some(DatatypePatSubst(subst.forDatatypes.updated(mvarname, dtype), subst.forData))
       }
 
-      case DatatypeOpAppPattern(op,args) => {
+      case DatatypeOpAppPattern(op,argsPat) => {
         dtype match {
-          case DatatypeOpApp(op2,args2,_) => {
-            if(op != op2 || args2.length != args.length) None
+          case DatatypeOpApp(op2,args,_) => {
+            if(op != op2 || args.length != argsPat.length) None
             else {
               var newsubstO : Option[DatatypePatSubst] = Some(subst)
               breakable {
-                for ((child_dtype, child_pat) <- args2.view.zip(args) ) {
+                for ((child_dtype, child_pat) <- args.view.zip(argsPat) ) {
+                  newsubstO = matchDT(child_dtype, child_pat, newsubstO.get)
                   if(newsubstO == None)
                     break
-                  else
-                    newsubstO = matchDT(child_dtype, child_pat, newsubstO.get)
+                }
+              }
+              newsubstO
+            }
+          }
+          case _ => None
+        }
+      }
+
+      case DependentDatatypeOpAppPattern(op,argsPat,dataargsPat) => {
+        dtype match {
+          case DependentDatatypeOpApp(op2, args, dataargs, _) => {
+            if (op != op2 || args.length != argsPat.length || dataargs.length != dataargsPat.length) None
+            else {
+              var newsubstO: Option[DatatypePatSubst] = Some(subst)
+              breakable {
+                for ((child_dtype, child_pat) <- args.view.zip(argsPat)) {
+                  newsubstO = matchDT(child_dtype, child_pat, newsubstO.get)
+                  if (newsubstO == None)
+                    break
+                }
+                // not sure if the break in the previous loops breaks out of just the loop, or also the surrounding
+                // `breakable`, so:
+                if (newsubstO == None)
+                  break
+                for ((child_data, child_datapat) <- dataargs.view.zip(dataargsPat)) {
+                  newsubstO = matchData(child_data, child_datapat, newsubstO.get)
+                  if (newsubstO == None)
+                    break
                 }
               }
               newsubstO
@@ -48,11 +81,10 @@ object matching {
         }
       }
     }
-
   }
 
   def datatypeMatches(pat:DatatypePattern, allowed_datatypes:TSet[Datatype],
-                      subst:DatatypePatSubst = Map.empty[Name,Any]) : TSet[(Datatype, DatatypePatSubst)] = {
+                      subst:DatatypePatSubst = DatatypePatSubst.empty) : TSet[(Datatype, DatatypePatSubst)] = {
     allowed_datatypes.flatMap( (dt) => matchDT(dt,pat,subst) match {
       case None => None
       case Some(subst2) => Some((dt,subst2))
@@ -63,8 +95,12 @@ object matching {
     allowed_datatypes.flatMap( dt => {
       datatypeMatches(pat.left, allowed_datatypes).flatMap({ case (dtleft, subst) => {
         datatypeMatches(pat.right, allowed_datatypes, subst).flatMap({ case (dtright, subst2) => {
-          if( pat.sidecondition(subst2) ) Some((dtleft, dtright))
-          else None
+          pat match {
+            case spat:DependentSubtypePairPattern =>
+              if( evalTermSimple(spat.sidecondition, subst2.forData) == true ) Some((dtleft, dtright)) else None
+            case hopat:HigherOrderSubtypePairPattern =>
+              if( hopat.sidecondition(subst2) ) Some((dtleft, dtright)) else None
+          }
         }})
       }})
     })

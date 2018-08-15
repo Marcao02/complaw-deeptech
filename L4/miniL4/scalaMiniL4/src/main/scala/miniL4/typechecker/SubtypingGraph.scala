@@ -1,6 +1,6 @@
 package miniL4.typechecker
 
-import indyUtil.TransitivelyClosedDirectedGraph
+import indy.TransitivelyClosedDirectedGraph
 import miniL4.{Name, TMap, TSet}
 import miniL4.ast.Datatype
 
