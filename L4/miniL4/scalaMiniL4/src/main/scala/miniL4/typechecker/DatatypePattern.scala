@@ -1,6 +1,6 @@
 package miniL4.typechecker
 
-import miniL4.{Name, TMap}
+import miniL4.{Name, TMap, toStringJoin}
 import miniL4.ast.{Datatype, Term}
 import miniL4.interpreter.RTData.RTData
 
@@ -16,7 +16,14 @@ case class DatatypeOpAppPattern(op:Name, args:List[DatatypePattern]) extends Dat
 case class FixedDatatype(datatype:Datatype) extends DatatypePattern
 
 case class ConstantMatchVar(name:Name, datatype:Name)
-case class DependentDatatypeOpAppPattern(op:Name, args:List[DatatypePattern], dataargs:List[ConstantMatchVar]) extends DatatypePattern
+case class DependentDatatypeOpAppPattern(op: Name, dataargs: List[ConstantMatchVar], args: List[DatatypePattern] = List.empty) extends DatatypePattern {
+  override def toString: String = {
+    if(args.isEmpty)
+      op.toString() + "(" + toStringJoin(dataargs,", ") + ")"
+    else
+      op.toString() + "(" + toStringJoin(dataargs,", ") + "; " + toStringJoin(args,", ") + ")"
+  }
+}
 
 case class DatatypePatSubst(forDatatypes: TMap[Name,Datatype], forData: TMap[Name,RTData])
 object DatatypePatSubst {

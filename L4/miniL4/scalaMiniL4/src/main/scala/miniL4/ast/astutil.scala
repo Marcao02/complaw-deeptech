@@ -32,6 +32,8 @@ object astutil {
 
   def leq(args:Any*) = fnapp_helper('<=)(args : _*)
   def geq(args:Any*) = fnapp_helper('>=)(args : _*)
+  def lt(args:Any*) = fnapp_helper('<)(args : _*)
+  def gt(args:Any*) = fnapp_helper('>)(args : _*)
   def plus(args:Any*) = fnapp_helper('+)(args : _*)
   def minus(args:Any*) = fnapp_helper('-)(args : _*)
   def and(args:Any*) = fnapp_helper('and)(args : _*)
@@ -40,25 +42,25 @@ object astutil {
 
   def forEachNodeInContract(cprog:Contract, f: ASTNode => Unit) : Unit = {
     f(cprog)
-    cprog.decs.foreach(tlnode => {
-      tlnode match {
-        case EventHandlerDef(_, _, stateTransform, _, preconditions, _) => {
-          forEachNodeInTermIter(preconditions, f)
-          forEachNodeInBlock(stateTransform, f)
-        }
-        case SituationDef(_, eventRules, preconditions, _) => {
-          for (erule <- eventRules) { forEachNodeInEventRule(erule, f) }
-          forEachNodeInTermIter(preconditions, f)
-        }
-        case StateVarDef(_, dtype, initval, _, _) => {
-          forEachNodeInDatatype(dtype, f)
-          forEachNodeInTermIter(initval, f)
-        }
-        case RegisteredDatatypes(dtypes, _) => {
-          for (dtype <- dtypes) forEachNodeInDatatype(dtype, f)
-        }
+    cprog.decs.foreach {
+      case EventHandlerDef(_, _, stateTransform, _, preconditions, _) => {
+        forEachNodeInTermIter(preconditions, f)
+        forEachNodeInBlock(stateTransform, f)
       }
-    })
+      case SituationDef(_, eventRules, preconditions, _) => {
+        for (erule <- eventRules) {
+          forEachNodeInEventRule(erule, f)
+        }
+        forEachNodeInTermIter(preconditions, f)
+      }
+      case StateVarDef(_, dtype, initval, _, _) => {
+        forEachNodeInDatatype(dtype, f)
+        forEachNodeInTermIter(initval, f)
+      }
+      case RegisteredDatatypes(dtypes, _) => {
+        for (dtype <- dtypes) forEachNodeInDatatype(dtype, f)
+      }
+    }
   }
 
   def forEachNodeInEventRule(erule: EventRule, f: ASTNode => Unit): Unit = {

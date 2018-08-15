@@ -12,6 +12,11 @@ package object miniL4 {
   def warn(test:Boolean, msg:String) : Unit = if(test) println("WARNING: " + msg) else ()
   def bugassert(test:Boolean, msg:String) : Unit = if(!test) throw new BugInCodebase(msg) else ()
 
+  // TODO: move everything below here to package `indy`
+  def seqToPairs[V](seq:Seq[V]) : Iterable[(V,V)] = {
+    seq.indices.init.map( (i:Int) => (seq(i),seq(i+1)) )
+  }
+
   def seqmapHasKey[K,V](seq:Seq[(K,V)], k:K) : Boolean = seq.exists({case (k2,_) => k == k2})
   def seqmapGet[K,V](seq:Seq[(K,V)], k:K) : V = {
     for (pair <- seq) {
@@ -21,8 +26,10 @@ package object miniL4 {
     throw new Exception(s"key not found: $k")
   }
 
-  def stringJoin(seq:Seq[String], delim:String) = seq.reduce((x,y) => s"$x${delim}$y")
-  def mapToStringJoin[T](seq:Iterable[T], delim:String, fn: T => String) = seq.view.map(fn).reduce((x,y) => s"$x${delim}$y")
+//  def stringJoin[T](seq:Seq[T], delim:String): String = seq.reduce[T]((x:T,y:T) => s"${x.toString}${delim}${y.toString}")
+  def stringJoin(seq:Iterable[String], delim:String): String = seq.reduce((x,y) => s"$x$delim$y")
+  def mapToStringJoin[T](seq:Iterable[T], delim:String, fn: T => String): String = stringJoin(seq.view.map(fn),delim)
+  def toStringJoin[T](seq:Iterable[T], delim:String): String = stringJoin(seq.map(_.toString), delim)
 
   // just a stub for a map-reduce-by-union (maximally parallelizable, in principle)
   def mapCollectAnyOrder[T,V](iter:Iterable[T], fn:T => Iterable[V]) : Iterable[V] = {

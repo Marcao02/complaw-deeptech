@@ -53,9 +53,9 @@ object matching {
         }
       }
 
-      case DependentDatatypeOpAppPattern(op,argsPat,dataargsPat) => {
+      case DependentDatatypeOpAppPattern(op, dataargsPat, argsPat) => {
         dtype match {
-          case DependentDatatypeOpApp(op2, args, dataargs, _) => {
+          case DependentDatatypeOpApp(op2, dataargs, args, _) => {
             if (op != op2 || args.length != argsPat.length || dataargs.length != dataargsPat.length) None
             else {
               var newsubstO: Option[DatatypePatSubst] = Some(subst)
@@ -97,10 +97,11 @@ object matching {
       datatypeMatches(pat.left, allowed_datatypes).flatMap({ case (dtleft, subst) => {
         datatypeMatches(pat.right, allowed_datatypes, subst).flatMap({ case (dtright, subst2) => {
           pat match {
-            case spat:DependentSubtypePairPattern =>
-              if( evalTermSimple(spat.sidecondition, subst2.forData) == rttrue ) Some((dtleft, dtright)) else None
-            case hopat:HigherOrderSubtypePairPattern =>
-              if( hopat.sidecondition(subst2) ) Some((dtleft, dtright)) else None
+            case SimpleSubtypePairPattern(_,_) => Some((dtleft,dtright))
+            case DependentSubtypePairPattern(_,_,sidecondition) =>
+              if( evalTermSimple(sidecondition, subst2.forData) == rttrue ) Some((dtleft, dtright)) else None
+            case HigherOrderSubtypePairPattern(_,_,sidecondition) =>
+              if( sidecondition(subst2) ) Some((dtleft, dtright)) else None
           }
         }})
       }})
