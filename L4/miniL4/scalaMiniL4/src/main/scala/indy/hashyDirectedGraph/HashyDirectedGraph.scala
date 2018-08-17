@@ -1,6 +1,7 @@
 package indy.hashyDirectedGraph
 
-import miniL4.TSet
+import indy.type_abbrevs._
+import indy.util._
 
 import scala.collection.mutable
 import scala.collection.mutable.{HashMap, HashSet}

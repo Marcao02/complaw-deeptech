@@ -1,5 +1,6 @@
 package miniL4
 
+import indy.type_abbrevs._
 import miniL4.ast.Statement.Block
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint, TimeTrigger}
 import miniL4.ast.{ToplevelNode, _}

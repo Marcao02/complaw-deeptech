@@ -1,6 +1,6 @@
 package miniL4.interpreter
 
-import miniL4.{Name, TMap, TSet}
+import indy.type_abbrevs._
 import miniL4.interpreter.RTData.RTData
 import miniL4.ast.SituationDef
 

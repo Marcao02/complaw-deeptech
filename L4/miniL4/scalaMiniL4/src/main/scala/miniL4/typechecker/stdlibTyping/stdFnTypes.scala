@@ -1,6 +1,6 @@
 package miniL4.typechecker.stdlibTyping
 
-import miniL4.{Name, TMap, TSet}
+import indy.type_abbrevs._
 import miniL4.ast.Datatype
 import miniL4.typechecker.{FnType, OverloadedFnType, SimpleFnType}
 import miniL4.typechecker.stdlibTyping.stdDataTypes._

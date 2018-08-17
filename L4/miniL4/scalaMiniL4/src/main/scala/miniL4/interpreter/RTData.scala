@@ -1,6 +1,6 @@
 package miniL4.interpreter
 
-import miniL4.{Name, Real, TMap}
+import indy.type_abbrevs._
 
 
 // "RT" for RunTime

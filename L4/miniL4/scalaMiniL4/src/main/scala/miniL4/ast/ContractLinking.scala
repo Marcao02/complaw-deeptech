@@ -1,7 +1,7 @@
 package miniL4.ast
 
 import miniL4.typechecker.stdlibTyping.stdFnTypes
-import miniL4.{Name, TMap, TSet}
+import indy.type_abbrevs._
 import Statement.Block
 
 import scala.collection.mutable

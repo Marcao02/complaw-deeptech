@@ -1,7 +1,7 @@
 package miniL4.typechecker
 
 import indy.TransitivelyClosedDirectedGraph
-import miniL4.{Name, TMap, TSet}
+import indy.type_abbrevs._
 import miniL4.ast.Datatype
 
 class SubtypingGraph(dtypes:TSet[Datatype], seedSubtypePairs: TSet[(Datatype,Datatype)]) {

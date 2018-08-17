@@ -1,5 +1,5 @@
 package miniL4.typechecker
-import miniL4.{Name, TMap, TSet}
+import indy.type_abbrevs._
 import miniL4.ast.{Datatype, DatatypeOpApp, DependentDatatypeOpApp}
 import miniL4.interpreter.RTData
 //import miniL4.typechecker.DatatypePatSubst

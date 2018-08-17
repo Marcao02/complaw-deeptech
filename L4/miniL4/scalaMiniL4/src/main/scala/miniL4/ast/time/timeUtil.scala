@@ -1,6 +1,7 @@
 package miniL4.ast.time
 
-import miniL4.Real
+import indy.type_abbrevs._
+import indy.util._
 import miniL4.ast.{TimeDeltaLit, TimeDeltaUnit}
 
 object timeUtil {

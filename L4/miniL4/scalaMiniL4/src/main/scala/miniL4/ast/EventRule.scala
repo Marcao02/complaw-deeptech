@@ -1,6 +1,7 @@
 package miniL4.ast
 
-import miniL4.{Name, TMap, mapToStringJoin}
+import indy.type_abbrevs._
+import indy.util._
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint, TimeTrigger}
 import miniL4.ast.astutil.{hp2rp,rp2hp}
 

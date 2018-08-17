@@ -1,6 +1,7 @@
 package miniL4.typechecker
 
-import miniL4.{Name, TMap, toStringJoin}
+import indy.type_abbrevs._
+import indy.util._
 import miniL4.ast.{Datatype, Term}
 import miniL4.interpreter.RTData.RTData
 

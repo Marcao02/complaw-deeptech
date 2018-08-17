@@ -1,5 +1,7 @@
 package miniL4.typechecker
 
+import indy.type_abbrevs._
+import indy.util._
 import miniL4._
 import miniL4.ast._
 import miniL4.typechecker.stdlibTyping.{stdDataTypes, stdSubtypePairs}

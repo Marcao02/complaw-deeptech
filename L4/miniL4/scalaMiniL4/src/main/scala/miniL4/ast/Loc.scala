@@ -1,6 +1,7 @@
 package miniL4.ast
 
-import miniL4.Nat
+import indy.type_abbrevs._
+import indy.util._
 
 sealed abstract class Loc {}
   case object NoLoc extends Loc

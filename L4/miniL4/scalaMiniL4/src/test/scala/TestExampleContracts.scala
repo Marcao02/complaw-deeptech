@@ -10,7 +10,7 @@ object TestExampleContracts {
   val toTest : Seq[(String,TestExample)] = List(
     ("bank", bank),
     ("booze", meng_buy_booze),
-    ("typechecking_only", typechecking_test),
+    ("typechecking_only", typechecking_test)
 //    ("following_situation_alternative", following_situation_alternative)
 
   )

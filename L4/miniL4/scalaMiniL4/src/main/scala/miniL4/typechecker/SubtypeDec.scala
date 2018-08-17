@@ -1,6 +1,6 @@
 package miniL4.typechecker
 
-import miniL4.TSet
+import indy.type_abbrevs._
 import miniL4.ast.{Datatype}
 
 abstract sealed class SubtypingDec {

@@ -1,6 +1,7 @@
 package miniL4.typechecker
 
-import miniL4.{TSet, mapToStringJoin}
+import indy.type_abbrevs._
+import indy.util._
 import miniL4.ast.{Datatype, DatatypeOpApp}
 import miniL4.typechecker.stdlibTyping.stdDataTypes.bottomDType
 

@@ -1,5 +1,5 @@
 // BEGIN settings for scala native
-// enablePlugins(ScalaNativePlugin)
+//enablePlugins(ScalaNativePlugin)
 // Set to false or remove if you want to show stubs as linking errors
 nativeLinkStubs := true
 scalaVersion := "2.11.12" // Scala Native doesn't support 2.12.* yet...

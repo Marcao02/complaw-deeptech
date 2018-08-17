@@ -1,6 +1,7 @@
 package miniL4.typechecker.stdlibTyping
 
-import miniL4.{Name, TSet}
+import indy.type_abbrevs._
+import indy.util._
 import miniL4.ast.{AtomicDatatype, Datatype, DatatypeOpApp}
 import miniL4.typechecker.stdlibTyping.stdDataTypes._
 import miniL4.typechecker._

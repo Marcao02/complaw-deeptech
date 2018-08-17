@@ -1,7 +1,8 @@
 package miniL4.ast
 
 import miniL4.interpreter.RTData.{RTData}
-import miniL4.{Name, mapToStringJoin}
+import indy.type_abbrevs._
+import indy.util._
 import miniL4.typechecker.stdlibTyping.stdDataTypes.sBottom
 
 object Datatype {

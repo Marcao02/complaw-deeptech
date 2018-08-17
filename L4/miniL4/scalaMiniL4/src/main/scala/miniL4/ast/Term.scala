@@ -1,7 +1,8 @@
 package miniL4.ast
 
 import TimeDeltaUnit.TimeDeltaUnit
-import miniL4.{Name, Real, seqmapHasKey}
+import indy.type_abbrevs._
+import indy.util._
 
 // NOTE that these definitions aren't actually nested. It's just conceptual nesting.
 

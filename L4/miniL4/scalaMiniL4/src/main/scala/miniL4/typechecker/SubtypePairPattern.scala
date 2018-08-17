@@ -1,7 +1,8 @@
 package miniL4.typechecker
 
 import miniL4.ast.Term
-import miniL4.seqToPairs
+import indy.type_abbrevs._
+import indy.util._
 
 abstract sealed class SubtypePairPattern {
   val left:DatatypePattern

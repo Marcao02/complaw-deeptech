@@ -1,7 +1,8 @@
 package miniL4.ast
 
 
-import miniL4.Name
+import indy.type_abbrevs._
+import indy.util._
 
 object Statement {
   type Block = List[Statement]

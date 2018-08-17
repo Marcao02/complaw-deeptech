@@ -1,6 +1,7 @@
 package miniL4.ast
 
-import miniL4.{Name, Real}
+import indy.type_abbrevs._
+import indy.util._
 import Statement.Block
 
 object astutil {

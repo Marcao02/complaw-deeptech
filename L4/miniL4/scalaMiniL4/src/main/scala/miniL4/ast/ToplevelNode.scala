@@ -1,6 +1,7 @@
 package miniL4.ast
 
-import miniL4.{Name, TMap}
+import indy.type_abbrevs._
+import indy.util._
 import Statement.Block
 import miniL4.interpreter.RTData.RTData
 
@@ -14,8 +15,7 @@ case class SituationDef(
 }
 
 // TODO: should I add roles parameter? or fine to leave it out in miniL4
-case class EventHandlerDef(
-                            eventName: Name,
+case class EventHandlerDef( eventName: Name,
                             destSit: Name,
                             stateTransform: Block = List(),
                             paramsAndDatatypes: Seq[(Name,Datatype)] = List(),
@@ -31,8 +31,7 @@ case class EventHandlerDef(
   }
 }
 
-case class StateVarDef(
-                        name: Name,
+case class StateVarDef( name: Name,
                         dtype: Datatype,
                         initVal: Option[Term] = None,
                         modifiers: Seq[Symbol] = List(),
