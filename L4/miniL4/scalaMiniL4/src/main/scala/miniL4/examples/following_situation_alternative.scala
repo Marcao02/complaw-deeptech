@@ -27,14 +27,14 @@ object following_situation_alternative extends TestExample {
   val traces = List(
     List(
       L4Event('Enter, me, 0, Map('enter_param -> d(9))),
-      L4Event('Enter, me, 0, Map('enter_param -> d(9))),
+      L4Event('Enter, me, 0, Map('enter_param -> d(9)))
     )
   )
 
   val exceptionTraces = List(
     List(
       L4Event('Enter, me, 0, Map('enter_param -> d(9))),
-      L4Event('Enter, me, 0, Map('enter_param -> d(8))),
+      L4Event('Enter, me, 0, Map('enter_param -> d(8)))
     )
   )
 

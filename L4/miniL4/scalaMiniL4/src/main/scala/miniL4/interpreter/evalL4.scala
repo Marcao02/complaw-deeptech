@@ -4,32 +4,29 @@ package miniL4.interpreter
 import miniL4.ast.time._
 import miniL4.interpreter.Trace.Trace
 import miniL4.{EvalError, interpreter, _}
-
 import miniL4.interpreter.RTData.{RTBool, RTData, RTReal, fnInterps, rtfalse, rttrue}
-import scalax.collection.GraphPredef.DiEdgeLikeIn
 import ast.{NoBinder, Statement, astutil, _}
 import Statement.Block
 import astutil.{hp2rp, isEventHandlerParam, isEventRuleParam, rp2hp}
+import indy.hashyDirectedGraph._
 import miniL4.typechecker.stdlibTyping.stdDataTypes.{boolDType, realDType, timeDeltaDType}
 
 
 // TODO: don't need this library dependency just for computing topological ordering.
 // Add a tiny class to indy package
-import scalax.collection.GraphEdge.DiEdge
-import scalax.collection.mutable.{Graph => MutDiGraph}
+//import scalax.collection.GraphEdge.DiEdge
+//import scalax.collection.mutable.{Graph => MutDiGraph}
 
 
 object evalL4 {
-  type NameDiGraph = scalax.collection.mutable.Graph[Name,DiEdgeLikeIn]
-
   def evassert(test:Boolean, msg: => String) : Unit = if(!test) { throw new EvalError(msg) }
 
   // turn occurs-in relation (state var occurs in the right hand side of another state var's assignment statement) into a graph
-  def assignSetToGraph(svAssigns: TMap[Name,StateVarAssign], clink:ContractLinking) : NameDiGraph = {
-    val graph = MutDiGraph[Name,DiEdgeLikeIn]()
+  private def assignSetToGraph(svAssigns: TMap[Name,StateVarAssign], clink:ContractLinking) : DirectedGraph[Name] = {
+    val graph = new HashyDirectedGraph[Name]()
 
     svAssigns.foreach({ case (svname, _) =>
-      graph.add(svname)
+      graph.addNode(svname)
     })
 
     svAssigns.foreach({ case (parent_name, sva) => {
@@ -37,7 +34,8 @@ object evalL4 {
         case sv_nit:NiT => {
           sv_nit.defn(clink) match {
             case StateVarBinderO(svd) => {
-              graph.add(DiEdge(svd.name, parent_name))
+//              println(s"Adding edge ${(svd.name, parent_name)}")
+              graph.addEdge(svd.name, parent_name)
             }
             case _ => ()
           }
@@ -46,7 +44,7 @@ object evalL4 {
       }
       astutil.forEachNodeInTerm(sva.rhs, add_edges_to_parent_name)
     }})
-
+//    println(s"The graph for ${svAssigns}:"); println(graph)
     graph
   }
 
@@ -58,7 +56,7 @@ object evalL4 {
 
     //    println(s"State var defs: ", clink.stateVarDefs.keySet)
     var ctx = EvalCtx(Map.empty, clink.stateVarDefs.keySet, Map.empty, Map.empty, clink.startSit)
-    ctx = evalStateVarAssigns(svas, ctx, clink)
+    ctx = evalInitialStateVarAssigns(svas, ctx, clink)
     //    println(s"Initial state var vals: ", ctx.sv_vals)
 
     var prev_ts : Real = 0.0
@@ -152,23 +150,29 @@ object evalL4 {
     }
   }
 
-  def evalStateVarAssigns(svAssigns: TMap[Name,StateVarAssign], _ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
+  def evalStateVarAssigns(svAssigns: TMap[Name,StateVarAssign], ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
+    val newvals = svAssigns.mapValues(sva => evalTerm(sva.rhs, ctx, clink))
+    ctx.withStateVarValsUpdated(newvals)
+  }
+
+  // TODO: it's too weird to allow dependencies in the initial state var assignments but not later.
+  def evalInitialStateVarAssigns(svAssigns: TMap[Name,StateVarAssign], _ctx: EvalCtx, clink: ContractLinking) : EvalCtx = {
     // turn occurs-in relation into a graph
     val graph = assignSetToGraph(svAssigns, clink)
     var ctx = _ctx
-    //    println("The graph: ", graph)
-    graph.topologicalSort.fold(
-      (cycleNode:graph.NodeT) => evassert(false,s"State var initialization cycle involving ${cycleNode}"),
-      order => {
+    graph.topSortOrEvidenceOfNone() match {
+      case CycleInvolving(cycleNode) => throw new EvalError(s"State var assigns cycle involving ${cycleNode}")
+      case TraversalNoCycleFound(order, nodes_untraversed) => {
+        assert(nodes_untraversed.isEmpty, "topSortOrEvidenceOfNone should never return an ordering with unvisited nodes. This is a bug.")
         //        println("The topological order: ", order)
-        order.foreach(node => {
-          val svname = node.value
+        order.foreach(svname => {
           val svval = evalTerm(svAssigns(svname).rhs, ctx, clink)
           //          println(s"Initial val of ${svname} is ${svval}.")
           ctx = EvalCtx(ctx.sv_vals.updated(svname, svval), ctx.sv_uninit - svname, ctx.locv_vals, ctx.eparam_vals, ctx.cur_sit)
         })
       }
-    )
+      case NoSourceNodes(nodeSubset) => throw new EvalError(s"Cyclic dependency among state var assigns of ${nodeSubset}.")
+    }
     ctx
   }
 

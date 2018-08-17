@@ -68,8 +68,13 @@ object ContractLinking {
             linkEventRule(erule, tlnode, parentNode)
           })
         }
-        case svdef@StateVarDef(varName, _, _, _, _) => {
+        case svdef@StateVarDef(varName, dtype, initVal, _, _) => {
           stateVarDefs.update(varName, svdef)
+          linkDatatype(dtype, svdef, parentNode)
+          if(initVal.nonEmpty) {
+            println(s"Initializer term: ${initVal}")
+            linkTerm(initVal.get, svdef, parentNode)
+          }
         }
         case dtypeReg@RegisteredDatatypes(dtypes, _) => {
           for (dtype <- dtypes) linkDatatype(dtype, dtypeReg, parentNode)

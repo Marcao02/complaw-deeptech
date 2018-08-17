@@ -1,12 +1,12 @@
 package indy
 
-import miniL4.TSet
+import indy.type_abbrevs.TSet
 
 import scala.collection.mutable.{HashMap, HashSet}
 
 
 /*
-NOTE: addEdge makes use of fact that graph has self-edges
+NOTE: addEdge makes use of the fact that graph has self-edges
 */
 class TransitivelyClosedDirectedGraph[T] {
   private val edges_from = HashMap.empty[T,HashSet[T]]

@@ -26,17 +26,17 @@ object bank extends TestExample  {
         Some(and(leq(hp2rp('amount), 'customerAccountBalance), geq(hp2rp('amount), MIN_WITHDRAW))
       )),
       eer('Deposit, customer, NoTimeConstraint(), None, List(hp2rp('amount)),
-        Some(leq(hp2rp('amount), 'customerCashOnHand))),
+        Some(leq(hp2rp('amount), 'customerCashOnHand)))
     )),
 
     ehd('Withdraw, 'AtCounter, List(
       sva('customerAccountBalance, minus('customerAccountBalance,'amount)),
-      sva('customerCashOnHand, plus('customerCashOnHand,'amount)),
+      sva('customerCashOnHand, plus('customerCashOnHand,'amount))
     ), List(('amount, posRealDType)), List(geq('customerAccountBalance,'amount))),
 
     ehd('Deposit, 'AtCounter, List(
       sva('customerCashOnHand, minus('customerCashOnHand,'amount)),
-      sva('customerAccountBalance, plus('customerAccountBalance,'amount)),
+      sva('customerAccountBalance, plus('customerAccountBalance,'amount))
     ), List(('amount, posRealDType)), List(geq('customerCashOnHand,'amount)))
 
   ))

@@ -71,14 +71,14 @@ object meng_buy_booze extends TestExample {
       L4Event('ShowID, 'Buyer),
       L4Event('AcceptIDAndSobrietyOfBuyer, 'Seller),
       L4Event('PayForBooze, 'Buyer),
-      L4Event('DeliverBooze, 'Seller),
+      L4Event('DeliverBooze, 'Seller)
     ),
 
     List(
       L4Event('ShowID, 'Buyer),
       L4Event('AcceptIDAndSobrietyOfBuyer, 'Seller),
       L4Event('PayForBooze, 'Buyer),
-      L4Event('RefundBuyer, 'Seller),
+      L4Event('RefundBuyer, 'Seller)
     )
   )
 

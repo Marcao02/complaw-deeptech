@@ -1,13 +1,13 @@
 // BEGIN settings for scala native
-//enablePlugins(ScalaNativePlugin)
+// enablePlugins(ScalaNativePlugin)
 // Set to false or remove if you want to show stubs as linking errors
-// nativeLinkStubs := true
-// scalaVersion := "2.11.12" // Scala Native doesn't support 2.12.* yet...
-// nativeMode := "debug"
+nativeLinkStubs := true
+scalaVersion := "2.11.12" // Scala Native doesn't support 2.12.* yet...
+nativeMode := "debug"
 // nativeMode := "release" // for slower compilation
 // END settings for scala native
 
-scalaVersion := "2.12.6" // needed for scala-graph
+//scalaVersion := "2.12.6" // needed for scala-graph
 
 // The simplest possible sbt build file is just one line:
 // scalaVersion := "2.12.6"
@@ -30,7 +30,7 @@ version := "0.0.1"
 // mostly only necessary if you intend to publish your library's binaries on a
 // place like Sonatype or Bintray.
 
-libraryDependencies += "org.scala-graph" %% "graph-core" % "1.12.5"
+//libraryDependencies += "org.scala-graph" %% "graph-core" % "1.12.5"
 
 //libraryDependencies += "org.typelevel" %% "cats-core" % "1.1.0"
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.20.0"

@@ -9,6 +9,10 @@ case class EvalCtx(sv_vals: TMap[Name,RTData],
                    locv_vals: TMap[Name,RTData],
                    eparam_vals : TMap[Name,RTData],
                    cur_sit : SituationDef ) {
+  def withStateVarValsUpdated(sv_vals2 : TMap[Name,RTData]): EvalCtx = {
+    EvalCtx(this.sv_vals ++ sv_vals2, this.sv_uninit.diff(sv_vals2.keys.toSet), this.locv_vals, this.eparam_vals, this.cur_sit)
+  }
+
   def withLocalVarsUpdated(locv_vals2 : TMap[Name,RTData]): EvalCtx = {
     EvalCtx(this.sv_vals, this.sv_uninit, this.locv_vals ++ locv_vals2, this.eparam_vals, this.cur_sit)
   }
