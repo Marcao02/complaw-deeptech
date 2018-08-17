@@ -36,17 +36,15 @@
 	(Action RefuseID (TransitionsTo NothingHappening))
 	(Action AcceptID (TransitionsTo AtCounter))
 
+	; (Action AcceptSobrietyOfBuyer
+	; 	(FollowingSituation
+	; 		(Seller may (RingUpBuyer ?cost))
+	; 	)
+	; )
+
 	(Action AcceptSobrietyOfBuyer
 		(FollowingSituation
-			(Seller may (RingUpBuyer ?cost))
-		)
-	)
-
-	(Action (RingUpBuyer (cost : Pos$))
-		(FollowingSituation
-			(if (cost ≤ buyer_funds)
-				(Buyer may (PayForBooze cost))
-			)
+			(Buyer may (PayForBooze ?cost) (where ?cost ≤ buyer_funds))
 		)
 	)
 

@@ -6,7 +6,7 @@ import miniL4.ast._
 import miniL4.interpreter.L4Event
 import miniL4.typechecker.stdlibTyping.stdDataTypes.{realDType,posRealDType}
 
-import miniL4.abbrevs._
+import miniL4.examples.abbrevs._
 
 object bank extends TestExample  {
   private val teller = List('Teller)

@@ -1,4 +1,5 @@
-import miniL4.EvalError
+
+import miniL4._
 import miniL4.analysis.checks
 import miniL4.ast.ContractLinking
 import miniL4.examples.{TestExample, bank, following_situation_alternative, meng_buy_booze, typechecking_test}

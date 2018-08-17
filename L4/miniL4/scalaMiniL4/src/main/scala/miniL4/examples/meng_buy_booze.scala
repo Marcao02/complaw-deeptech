@@ -5,7 +5,7 @@ import miniL4.ast.time.timeUtil.{after_m, within_m}
 import miniL4.ast._
 import miniL4.interpreter.L4Event
 import miniL4.typechecker.stdlibTyping.stdDataTypes.{realDType,posRealDType,boolDType}
-import miniL4.abbrevs._
+import miniL4.examples.abbrevs._
 
 object meng_buy_booze extends TestExample {
   val seller = List('Seller)
