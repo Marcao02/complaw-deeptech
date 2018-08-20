@@ -19,7 +19,17 @@ object util {
   }
 
   //  def stringJoin[T](seq:Seq[T], delim:String): String = seq.reduce[T]((x:T,y:T) => s"${x.toString}${delim}${y.toString}")
-  def stringJoin(seq:Iterable[String], delim:String): String = seq.reduce((x,y) => s"$x$delim$y")
+//  def stringJoin(seq:Iterable[String], delim:String): String = if(seq.isEmpty) "" (else seq.reduce((x,y) => s"$x$delim$y")
+  def stringJoin(seq:Iterable[String], delim:String): String = seq.mkString("",delim,"")
+//{
+//    println(seq)
+//    val s = seq.toIndexedSeq
+//    if(s.isEmpty) ""
+//    else {
+//      if(s.length == 1) s(0)
+//      else s.reduce((x,y) => s"$x$delim$y")
+//    }
+//  }
   def mapToStringJoin[T](seq:Iterable[T], delim:String, fn: T => String): String = stringJoin(seq.view.map(fn),delim)
   def toStringJoin[T](seq:Iterable[T], delim:String): String = stringJoin(seq.map(_.toString), delim)
 

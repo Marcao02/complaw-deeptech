@@ -33,7 +33,7 @@ version := "0.0.1"
 //libraryDependencies += "org.scala-graph" %% "graph-core" % "1.12.5"
 
 //libraryDependencies += "org.typelevel" %% "cats-core" % "1.1.0"
-libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.20.0"
+//libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.20.0"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 //libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 //libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
