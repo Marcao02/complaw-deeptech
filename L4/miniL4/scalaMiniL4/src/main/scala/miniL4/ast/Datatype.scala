@@ -1,6 +1,7 @@
 package miniL4.ast
 
-import miniL4.interpreter.RTData.{RTData}
+import indy.srcLocation.{Loc, NoLoc}
+import miniL4.interpreter.RTData.RTData
 import indy.type_abbrevs._
 import indy.util._
 import miniL4.typechecker.stdlibTyping.stdDataTypes.sBottom

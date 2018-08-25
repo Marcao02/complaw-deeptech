@@ -1,17 +1,12 @@
 package indy.sexpr
 
 import exceptions.{UnbalancedException, UnbalancedExceptionLC}
+import indy.srcLocation.Loc.LinPos
+import indy.srcLocation.{LCPos, LCSpan, Locator}
 
 import scala.io.Source
 import util.control.Breaks._
 
-
-/*
- a bit fewer parens:
- if the last non-whitespace part of a line is ...
- and the first non-whitespace part of the next line is not a grouping symbol, a quote, or a line comment character,
- then we wrap the whole thing (minus any line comment at end) in implicit parens
-*/
 
 object parse {
   def parseStr(s:String, debug:Boolean=false,
@@ -20,7 +15,8 @@ object parse {
                lineBreakChar:String = "\n"
               ) : (SExpr, IndexedSeq[Int]) = {
 
-    var lineStartIndices = IndexedSeq(0)
+    var lineStartIndices = IndexedSeq.newBuilder[Int]
+    lineStartIndices += 0
 
     /*
     Return the sequence of SExpr's S and index i such that parsing starting from position i generates the
@@ -43,7 +39,7 @@ object parse {
             val num = token.toDouble
             NumberLit(num, (start_token_ind.get, start_token_ind.get + token.length))
           } catch {
-            case _:NumberFormatException => Token(token, (start_token_ind.get, start_token_ind.get + token.length))
+            case _:NumberFormatException => Token(token, (start_token_ind.get, start_token_ind.get + token.length - 1))
           }
         }
         token = ""
@@ -55,7 +51,7 @@ object parse {
         if(a.toString == lineBreakChar) {
           line += 1
           coln = 0
-          lineStartIndices = lineStartIndices :+ (i+1)
+          lineStartIndices += (i+1)
         }
         else
           coln += 1
@@ -76,20 +72,22 @@ object parse {
           if (lineCommentStart.nonEmpty) {
             if (a.toString == lineBreakChar) {
               if(!stripComments) {
-                builder += Comment(token, (i_start, i))
+                val sexpr = Comment(token, (lineCommentStart.get, i))
+                builder += sexpr
               }
               token = ""
               advance()
               lineCommentStart = None
             }
             else take()
-            break
+            break // does a continue
           }
 
           /* We are not already in a comment */
           if ( a == LINE_COMMENT_START_CHAR ) {
+            maybeAppendToken()
             lineCommentStart = Some(i)
-            advance()
+            take() // include the comment start char
           }
           /* We are not in a comment */
           else if (allowPrimedNames && a.toString == "'" && quoteExpecting.isEmpty && i > 0 && s(i - 1).isLetterOrDigit) {
@@ -99,7 +97,8 @@ object parse {
           else if (quotelike.contains(a)) {
             if (quoteExpecting.nonEmpty) {
               if (quoteExpecting.contains(a)) {
-                builder += StrLit(token, a, (start_token_ind.get, i - 1))
+                // go to i to include the closing quote
+                builder += StrLit(token, a, (start_token_ind.get, i))
                 token = ""
                 start_token_ind = None
                 quoteExpecting = None
@@ -110,7 +109,7 @@ object parse {
             else {
               assert(token.isEmpty, s"Whitespace must precede a string literal, but found ${token}. See ${LCPos(line,coln)}.")
               quoteExpecting = Some(a)
-              start_token_ind = Some(i + 1)
+              start_token_ind = Some(i) // include opening quote
               advance()
             }
           }
@@ -119,10 +118,15 @@ object parse {
           else {
             if (left_groupers.contains(a)) {
               maybeAppendToken()
-              val (ch, next_linpos, next_line, next_coln) = parse(i + 1, line, coln, Some(grouper_map(a)))
+              // coln + 1 might take us to an endline, but can't take us past
+              val (ch, next_linpos, next_line, next_coln) = parse(i + 1, line, coln + 1, Some(grouper_map(a)))
               if (s(next_linpos) != grouper_map(a)) {
                 throw UnbalancedExceptionLC(Some(grouper_map(a)), Some(s(next_linpos)), LCPos(next_line, next_coln))
               }
+              // both no-head-token and empty brackets are used
+//              if(ch.length < 1 || !ch.head.isInstanceOf[Token]) throw NoHeadTokenError(ch, LCArea(LCPos(line, coln), LCPos(next_line, next_coln)))
+//              if(ch.length < 1) throw EmptyBrackExprError(LCArea(LCPos(line, coln), LCPos(next_line, next_coln)))
+
               builder += BrackExpr(ch, right_grouper_to_bracket_type(s(next_linpos)), (i, next_linpos))
               i = next_linpos + 1
               coln = next_coln + 1
@@ -172,13 +176,25 @@ object parse {
 
       if(expecting.nonEmpty)  throw UnbalancedException(None, expecting, i)
       maybeAppendToken()
+      if (lineCommentStart.nonEmpty && !stripComments)
+        builder += Comment(token, (lineCommentStart.get, i))
       (builder.result(), s.length - 1, line, coln)
     }
 
-    val (sexpr, ind, line, coln) = parse(0, 0, 0, None)
+    val (sexprs, ind, line, coln) = parse(0, 0, 0, None)
+
+
     if(line > 0) println(s"Parsed ${line + 1} lines.")
     assert(ind == s.length - 1, s"Parsed ${ind+1} characters while expecteing ${s.length}")
-    (BrackExpr(sexpr, BracketType.fileToplevel, (0,s.length - 1)), lineStartIndices)
+    if(sexprs.length == 1)
+      (sexprs.head, lineStartIndices.result())
+    else
+      (BrackExpr(sexprs, BracketType.fileToplevel, (0,s.length - 1)), lineStartIndices.result())
+  }
+
+  def parseStringTop(s:String, debug:Boolean=false, stripComments:Boolean=false) : (SExpr,Locator) = {
+    val (parsed, lineStartIndices) = parseStr(s, debug, stripComments)
+    (parsed, new Locator("no file", lineStartIndices))
   }
 
   def parseFile(filePath:String, debug:Boolean=false, stripComments:Boolean=false) : (SExpr, Locator) = {
@@ -187,6 +203,5 @@ object parse {
     bufferedSource.close
     val (parsed, lineStartIndices) = parseStr(s, debug, stripComments)
     (parsed, new Locator(filePath, lineStartIndices))
-
   }
 }

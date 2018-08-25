@@ -3,6 +3,7 @@ package miniL4.ast
 import indy.type_abbrevs._
 import indy.util._
 import Statement.Block
+import indy.srcLocation.{Loc, NoLoc}
 import miniL4.interpreter.RTData.RTData
 
 abstract sealed class ToplevelNode(loc:Loc) extends ASTNode(loc) {}

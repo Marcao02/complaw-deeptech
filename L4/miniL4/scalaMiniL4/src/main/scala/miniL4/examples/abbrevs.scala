@@ -1,5 +1,6 @@
 package miniL4.examples
 
+import indy.srcLocation.{Loc, NoLoc}
 import miniL4._
 import indy.type_abbrevs._
 import miniL4.ast.Statement.Block

@@ -1,6 +1,7 @@
 package miniL4.ast
 
 
+import indy.srcLocation.{Loc, NoLoc}
 import indy.type_abbrevs._
 import indy.util._
 

@@ -1,9 +1,10 @@
 package miniL4.ast
 
+import indy.srcLocation.{Loc, NoLoc}
 import indy.type_abbrevs._
 import indy.util._
 import miniL4.ast.time.{NoTimeConstraint, TimeConstraint, TimeTrigger}
-import miniL4.ast.astutil.{hp2rp,rp2hp}
+import miniL4.ast.astutil.{hp2rp, rp2hp}
 
 abstract sealed class EventRule(
   val eventDefName: Name,

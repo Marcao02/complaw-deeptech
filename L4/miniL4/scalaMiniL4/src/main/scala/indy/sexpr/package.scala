@@ -15,13 +15,6 @@ package object sexpr {
     val implicitBrack : BracketType = Value
   }
 
-  case class LCPos(line:Int,coln:Int) {
-    override def toString: String = s"line ${line}, coln ${coln}"
-  }
-  type LCArea = (LCPos, LCPos)
-  type LinPos = Int
-  type LinArea = (LinPos,LinPos)
-
   val LINE_COMMENT_START_CHAR = ';'
 
   val COMMENT_LITERAL_TOKEN = 'COMMENT // the head of a comment SExpr (the result of a LINE_COMMENT_START_CHAR comment)  
@@ -39,7 +32,7 @@ package object sexpr {
     '"' -> '"',
     '`' -> '`',
     LINE_COMMENT_START_CHAR -> '\n')
-  val quotelike : Set[Char] = Set((("'".toCharArray())(0)),'"','`')
+  val quotelike : Set[Char] = Set("'".toCharArray()(0),'"','`')
 
   val double_char_seqs_that_split_words_only = Set(":=","+=","-=","*=","==","<=", ">=", "->", "=>", "<-")
   val single_chars_that_split_words = Set(':','=',',','.')
@@ -53,8 +46,8 @@ package object sexpr {
   val bracketTypeToLeftGrouper = Map(
     BracketType.roundBrack -> '(',
     BracketType.squareBrack -> '[',
-    BracketType.curlyBrack -> '{',
-    BracketType.fileToplevel -> '('
+    BracketType.curlyBrack -> '{'
+//    BracketType.fileToplevel -> '('
   )
   //  val all_head_tokens = quotelike ++ left_groupers ++ Set(LINE_COMMENT_START_CHAR)
 

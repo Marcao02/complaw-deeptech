@@ -1,5 +1,6 @@
-package indy.sexpr
+package indy.srcLocation
 
+import indy.srcLocation.Loc.{LinPos, LinSpan}
 
 class Locator(val filePath: String, val lineStartFileIndices: IndexedSeq[Int]) {
   def linPosToLCPos(pos:LinPos) : LCPos = {
@@ -19,6 +20,12 @@ class Locator(val filePath: String, val lineStartFileIndices: IndexedSeq[Int]) {
 
     throw new Exception("impossible?")
   }
+
+  def linSpanToLCSpan(span:LinSpan) : LCSpan = LCSpan(linPosToLCPos(span._1), linPosToLCPos(span._2))
+
+
+  def linPosToHeavySrcPos(pos:LinPos) : HeavySrcPos = HeavySrcPos(filePath, linPosToLCPos(pos))
+  def linSpanToHeavySrcSpan(span:LinSpan) : HeavySrcSpan = HeavySrcSpan(filePath, linSpanToLCSpan(span))
 
 }
 

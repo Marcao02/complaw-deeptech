@@ -1,6 +1,7 @@
 package miniL4.ast.time
 
-import miniL4.ast.{ASTNode, Loc, TimeDeltaLit, NoLoc}
+import indy.srcLocation.{Loc, NoLoc}
+import miniL4.ast.{ASTNode, TimeDeltaLit}
 
 abstract sealed class TimeTrigger(loc:Loc) extends ASTNode(loc) {}
 

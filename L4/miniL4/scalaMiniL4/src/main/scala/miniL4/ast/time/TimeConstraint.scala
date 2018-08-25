@@ -1,6 +1,7 @@
 package miniL4.ast.time
 
-import miniL4.ast.{ASTNode, Loc, NoLoc, TimeDeltaLit}
+import indy.srcLocation.{Loc, NoLoc}
+import miniL4.ast.{ASTNode, TimeDeltaLit}
 
 abstract sealed class TimeConstraint(loc:Loc) extends ASTNode(loc) {}
 
