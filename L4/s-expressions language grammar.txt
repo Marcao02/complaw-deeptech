@@ -1,0 +1,36 @@
+I use ❪ ❫ for regexp grouping and ( ) for the literal symbols.
+
+<Ident> ≔ any string without white space
+
+
+<AtomicSortId> ≔ <Ident>
+<ContractParamId> ≔ <Ident>
+<RoleId> ≔ <Ident>
+<SortOpId> ≔ <Ident>
+<LocalVarId> ≔ <Ident>
+<EventId> ≔ <Ident>
+<SituationId> ≔ <Ident>
+<StateVarId> ≔ <Ident>
+<PrimedStateVarId> ≔ <Ident>'
+
+<TimeUnit> ≔ d|h|m|s|ms
+
+<TopDec> ≔ (Roles <RoleId>*) | (SortDefinitions <SortDec>*) | (ContractParams <ContractParamDec>*) | (TimeUnit <TimeUnit>) | (StateVars <StateVarDec>*) | (Dynamics <StringLit> <DynamicsDec>+) | (ProseContract <ProseClause>*)
+
+<is> ≔ ❪:=|=❫
+
+<SortDec> ≔ (<AtomicSortId> <is> <Sort>)
+<Sort> ≔ <AtomicSortId> | (<SortOpId> <Sort>+) | (Dimensioned <AtomicSortId> <StringLit>)
+
+<ContractParamDec> ≔ (<ContractParamId> : <Sort> <is> <Term>)
+<Term> ≔ <Literal> |
+
+<StateVarDec> ≔ (<StateVarId> : <Sort> <is> <Term>)
+
+<DynamicsDec> ≔ (StartSituation <SituationId>) | <EventDec> | <SituationDec>
+
+<EventDec> ≔ (Action <EventId> <InsideEventDec>*)
+<InsideEventDec> ≔ (TransitionsTo <SituationId>) | (AllowedSubjects <RoleId>) | (StateTransform <Statement>*)
+<Statement> ≔ (<StateVarId> <is> <Term>) | (local <LocalVarId> : <Sort> <is> <Term>)
+
+<Term> ≔ <RoleId>|<AtomicSortId>|<ContractParamId>|<LocalVarId>|<StateVarId>|(<FnSymbId> <Term>*)

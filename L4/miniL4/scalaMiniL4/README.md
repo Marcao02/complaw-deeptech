@@ -1,4 +1,4 @@
-*This is very early work. If you don't work for Legalese, _ignore it_.*
+*This is very early work. If you don't work for Legalese, you should probably ignore it.*
 
 Ping Dustin on Legalese Slack if you want to install on Windows, and he'll write the documentation to do so with your help.
 
@@ -8,25 +8,20 @@ First clone this repo, because Scala gets installed inside the project directory
 
 Then install Scala, preferably via the IntelliJ IDE option here: https://www.scala-lang.org/download/. 
 
-Then install Ammonite-REPL (installs to `/usr/local/bin`) for Scala 2.11 (until Scala-native supports Scala 2.12, which the developer(s?) intend by the end of Aug 2018). 
-
-> sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.1.2/2.11-1.1.2) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm' && amm
-
-
-
-## Runnning
-
-
-
-## Building
+## Building and Running
 
 From the root (L4/miniL4/scalaMiniL4):
 > sbt
 
 After sbt loads:
+> ~compile
 
-- To build and run scala native:
-> ~run
-- I don't know how to do the normal JVM build yet.
-   
+The ~ starts indicates to watch for changes.
+
+To run the tests:
+> ~test
+
+To build and run scala native (which won't actually do anything useful, but it's nice to see that it works):
+
+> run
 

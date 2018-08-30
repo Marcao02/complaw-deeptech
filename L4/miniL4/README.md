@@ -1,4 +1,4 @@
-**MiniL4** is a subset of L4 intended to be used to investigate different technologies for the next, high-quality implementation of L4.
+**MiniL4** is a subset of L4 intended to be used to investigate different technologies for the long-term, high-quality implementation of L4 (as opposed to the prototype pyL4).
 Its features are intended to be a minimal set required to bring out most of the difficulties of implementing L4.
 
 In particular, the following features are removed:
