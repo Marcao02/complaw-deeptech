@@ -23,7 +23,7 @@ package object sexpr {
 
   val left_groupers = Set('(','{','[','‹','❪')
   val right_groupers = Set(')','}',']','›','❫')
-  val grouper_map : Map[Char,Char] = Map(
+  val left_grouper_to_right : Map[Char,Char] = Map(
     '(' -> ')',
     '{' -> '}',
     '[' -> ']',

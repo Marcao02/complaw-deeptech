@@ -2,9 +2,11 @@ package indy
 
 import indy.sexpr.exceptions.UnbalancedException
 import org.scalatest.FunSuite
-import indy.sexpr.parse._
+//import indy.sexpr.parse._
+import indy.sexpr.parse2._
 import indy.srcLocation.Loc.LinPos
 import indy.sexpr.unparse._
+import miniL4.ast.SExprToAST
 
 import scala.io.Source
 
@@ -18,7 +20,7 @@ class test_sexpr  extends FunSuite {
       assert(back_to_str == s2)
     }
 
-    val name2 = s"unparse(parse($s1) == $s1"
+    val name2 = s"unparse(parse($s1)) == $s1"
     test(name2) {
       val (parsed, locator) = parseStringTop(s1)
       val s3 = unparse(parsed, locator)
@@ -78,6 +80,13 @@ class test_contract_files extends FunSuite {
     test(filePath + "  parses"){
       val (expr, locator) = parseFile(filePath)
       unparse(expr, locator)
+      val s2a = new SExprToAST(locator)
+      s2a.contractToAST(expr)
+      // NOTE that unparse does not produce EXACTLY the same string, because of lossy conversion such as
+      // 3 -> 3.0
+      // 3.00 => 3.0
+      // (since we don't have Int types yet)
+
 //      val bufferedSource = Source.fromFile(filePath)
 //      val s = bufferedSource.mkString
 //      bufferedSource.close

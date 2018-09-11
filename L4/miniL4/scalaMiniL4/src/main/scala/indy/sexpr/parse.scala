@@ -12,7 +12,7 @@ object parse {
   def parseStr(s:String, debug:Boolean=false,
                stripComments:Boolean=false,
                allowPrimedNames:Boolean=true,
-               lineBreakChar:String = "\n"
+               lineBreakChar:Char = '\n'
               ) : (SExpr, IndexedSeq[Int]) = {
 
     var lineStartIndices = IndexedSeq.newBuilder[Int]
@@ -48,7 +48,7 @@ object parse {
       def maybeAppendToken(): Unit = if (token.nonEmpty)  appendToken()
 
       def advance(): Unit = {
-        if(a.toString == lineBreakChar) {
+        if(a == lineBreakChar) {
           line += 1
           coln = 0
           lineStartIndices += (i+1)
@@ -66,6 +66,7 @@ object parse {
       def notEnd(): Boolean = i < s.length - 1
 
       while (i < s.length) {
+        // enables a `break` that functions like continue. putting this line above `while` makes it function as break.
         breakable {
           a = s(i)
 
@@ -95,6 +96,7 @@ object parse {
             appendToken()
           }
           else if (quotelike.contains(a)) {
+            // We are beginning a string literal, ending a string literal, or using a quote character within a string literatl.
             if (quoteExpecting.nonEmpty) {
               if (quoteExpecting.contains(a)) {
                 // go to i to include the closing quote
@@ -113,15 +115,15 @@ object parse {
               advance()
             }
           }
-          else if (quoteExpecting.nonEmpty) take()
+          else if (quoteExpecting.nonEmpty) take() // we are just adding a non-quote character to a string literal.
           /* We are not in a comment or string literal */
           else {
             if (left_groupers.contains(a)) {
               maybeAppendToken()
               // coln + 1 might take us to an endline, but can't take us past
-              val (ch, next_linpos, next_line, next_coln) = parse(i + 1, line, coln + 1, Some(grouper_map(a)))
-              if (s(next_linpos) != grouper_map(a)) {
-                throw UnbalancedExceptionLC(Some(grouper_map(a)), Some(s(next_linpos)), LCPos(next_line, next_coln))
+              val (ch, next_linpos, next_line, next_coln) = parse(i + 1, line, coln + 1, Some(left_grouper_to_right(a)))
+              if (s(next_linpos) != left_grouper_to_right(a)) {
+                throw UnbalancedExceptionLC(Some(left_grouper_to_right(a)), Some(s(next_linpos)), LCPos(next_line, next_coln))
               }
               // both no-head-token and empty brackets are used
 //              if(ch.length < 1 || !ch.head.isInstanceOf[Token]) throw NoHeadTokenError(ch, LCArea(LCPos(line, coln), LCPos(next_line, next_coln)))

@@ -37,7 +37,7 @@ object unparse {
             rv += "\n"*(nextEndPos.line - pos.line) + " "*nextEndPos.coln
           }
           if(x.brackType != BracketType.fileToplevel) // in which case we don't use any brackets
-            rv += grouper_map(bracketTypeToLeftGrouper(x.brackType))
+            rv += left_grouper_to_right(bracketTypeToLeftGrouper(x.brackType))
         }
         case x:LeafExpr =>  rv += x.toString
 

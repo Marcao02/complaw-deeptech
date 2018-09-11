@@ -6,12 +6,16 @@ import miniL4.ast.{ASTNode, BullshitASTNode}
 class L4ProjectError(msg:String) extends Error(msg)
   class BugInCodebase(msg:String) extends L4ProjectError(msg)
 
-  class ParseError(msg: String, expr:LocatedSExpr) extends L4ProjectError(msg) {
+  class SExprParseError(msg: String, expr:LocatedSExpr) extends L4ProjectError(s"Parse error.\n${msg}\nSee ${expr.loc}.") {
 //    def this(expr:LocatedSExpr) = this(s"Parse error in file ${expr.filePath} in the range ${expr.lcspan.left} to ${expr.lcspan.right}.", expr)
 //    def this(expr:LocatedSExpr, msg:String) = this(s"${msg}\nFile ${expr.filePath}, range ${expr.lcspan.left} to ${expr.lcspan.right}.", expr)
     def this(expr:LocatedSExpr) = this(s"Parse error. See ${expr.loc}.", expr)
-    def this(expr:LocatedSExpr, msg:String) = this(s"Parse error. See ${expr.loc}.", expr)
+    def this(expr:LocatedSExpr, msg:String) = this(msg,expr)
+
+//    override def toString(): String = s"Parse error.\n${msg}\nSee ${expr.loc}."
   }
+
+  class SExprToASTError(msg: String, expr:LocatedSExpr) extends SExprParseError(msg, expr)
 
   class L4SrcError(msg:String, node:ASTNode = BullshitASTNode) extends L4ProjectError(msg)
 

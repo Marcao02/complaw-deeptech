@@ -12,4 +12,6 @@ object exceptions {
   case class UnbalancedException(expected: Option[Char], found: Option[Char], linpos: LinPos) extends Exception(s"Expected ${expected} but found ${found} at linear pos ${linpos}.")
 
   case class UnbalancedExceptionLC(expected: Option[Char], found: Option[Char], lcpos: LCPos) extends Exception(s"Expected ${expected} but found ${found} at ${lcpos}.")
+
+  case class ExpectedStructureException(msg: String, expr:LocatedSExpr) extends Exception(s"Parse error.\n${msg}\nSee ${expr.loc}.")
 }
